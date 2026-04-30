@@ -791,80 +791,42 @@
         <button class="btn btn-primary" id="refreshAnimesBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
     </section>
-    <section class="media-spotlight" id="animesSpotlight" hidden>
-      <div class="media-spotlight-shell">
-        <div class="media-spotlight-bg" id="animesSpotlightBg"></div>
-        <div class="media-spotlight-copy">
-          <h2 id="animesSpotlightTitle">Loading?</h2>
-          <p class="media-spotlight-meta" id="animesSpotlightMeta"></p>
-          <p class="media-spotlight-summary" id="animesSpotlightSummary"></p>
-          <div class="media-spotlight-actions">
-            <a class="btn" id="animesSpotlightOpen" href="#">Open anime</a>
-          </div>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search anime, genres, years...">
+      <button id="animesSearchBtn" class="control-icon-btn" type="button" aria-label="Search anime"><i class="fas fa-search"></i></button>
+      <button id="animesFilterBtn" class="control-icon-btn" type="button" aria-label="Open anime filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="animesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter anime</div>
+          <button class="control-modal-close" id="animesFilterCloseBtn" type="button" aria-label="Close anime filters">&times;</button>
         </div>
-        <div class="media-spotlight-poster">
-          <img id="animesSpotlightImage" src="/newlogo.webp" alt="Anime spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
         </div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>popular anime right now</h2>
+        <p>Trending anime across all genres.</p>
+      </div>
+      <div class="grid" id="animesGrid"></div>
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
       </div>
     </section>
-
-    <div class="controls">
-      <input id="searchInput" class="search-input" type="text" placeholder="Search anime..." />
-      <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search anime">
-        <i class="fas fa-search"></i>
-      </button>
-      <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
-        <i class="fas fa-sliders-h"></i>
-      </button>
-    </div>
-    <div id="activeFilters" class="chip-row"></div>
-    <div class="modal" id="filterModal">
-      <div class="modal-content filter-modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Filter anime</div>
-          <button class="modal-close" id="closeFilterModalBtn">&times;</button>
-        </div>
-        <div class="filter-form-grid">
-          <select id="genreSelect" class="filter-select">
-            <option value="">All Genres</option>
-          </select>
-          <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
-          <input id="studioInput" class="search-input full-span" type="text" placeholder="Studio" />
-        </div>
-      </div>
-    </div>
-
-    <div id="animesGrid" class="grid"></div>
-    <div id="emptyState" class="empty" style="display:none;">No anime found.</div>
-    <div class="pagination">
-      <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
-      <div class="page-info" id="pageInfo">Page 1</div>
-      <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
-    </div>
-
-    <div class="modal" id="animeListsModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Custom Anime Lists</div>
-          <button class="modal-close" id="closeAnimeListsBtn">&times;</button>
-        </div>
-        <div class="modal-list" id="animeListsContainer"></div>
-        <div class="modal-input">
-          <input type="text" id="newAnimeListName" placeholder="New list name..." maxlength="50">
-          <button class="btn" id="createAnimeListBtn">Create</button>
-        </div>
-        <div class="icon-options" id="animeListIconOptions">
-          <button class="icon-option selected" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
-          <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-          <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-          <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-          <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
-        </div>
-        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn" id="saveAnimeListsBtn">Save Changes</button>
-        </div>
-      </div>
-    </div>
   </main>
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
@@ -919,193 +881,204 @@
   </div>
 
   <script>
-      (function () {
-        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-        const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-        const TMDB_PROXY_BASE = '/api/tmdb';
-        const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-        const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-        const ANIMES_PAGE_SIZE = 100;
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const TMDB_PROXY_BASE = '/api/tmdb';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+    const ANIMES_PAGE_SIZE = 100;
 
-        let supabaseClient = null;
-        let currentUser = null;
-        const state = {
-          animes: [],
-          search: '',
-          genre: '',
-          year: '',
-          studio: '',
-          page: 1,
-          totalPages: 1,
-          listStatusMap: new Map(),
-          pendingQuickOps: new Set()
-        };
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      animes: [],
+      search: '',
+      genre: '',
+      year: '',
+      sort: 'popular',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
 
-        function escapeHtml(value) {
-          return String(value || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/\"/g, '&quot;')
-            .replace(/'/g, '&#039;');
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '16px';
+      el.style.right = '16px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '10px 14px';
+      el.style.borderRadius = '10px';
+      el.style.fontSize = '13px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
         }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
 
-        function showToast(message, isError = false) {
-          const el = document.createElement('div');
-          el.style.position = 'fixed';
-          el.style.top = '16px';
-          el.style.right = '16px';
-          el.style.zIndex = '9999';
-          el.style.background = isError ? '#dc2626' : '#f59e0b';
-          el.style.color = '#fff';
-          el.style.padding = '10px 14px';
-          el.style.borderRadius = '10px';
-          el.style.fontSize = '13px';
-          el.textContent = message;
-          document.body.appendChild(el);
-          setTimeout(() => el.remove(), 2200);
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
         }
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
 
-        async function ensureSupabase() {
-          if (supabaseClient) return supabaseClient;
-          if (window.__ZO2Y_SUPABASE_CLIENT) {
-            supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
-            return supabaseClient;
-          }
-          if (!window.supabase) return null;
-          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
-          });
-          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          return supabaseClient;
+    function filterAnime(tvResults) {
+      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
+        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+        const isJapaneseAnime = originCountry.includes('JP') || originCountry.includes('JP') || genreIds.includes(16);
+        const name = String(tv.name || '').toLowerCase();
+        const overview = String(tv.overview || '').toLowerCase();
+        const hasAnimeKeywords = /anime|manga|japanese/.test(name + ' ' + overview);
+        const isNotWestern = !originCountry.includes('US') && !originCountry.includes('GB') && !originCountry.includes('CA');
+        return (isJapaneseAnime && isNotWestern) || hasAnimeKeywords;
+      });
+    }
+
+    async function loadAnimes(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      let animes = [];
+      let apiTotalPages = 1;
+
+      try {
+        const endpoint = query ? 'search/tv' : 'trending/tv/week';
+        const params = query ? { query, page: state.page } : { page: state.page };
+        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          const tvResults = Array.isArray(json?.results) ? json.results : [];
+          animes = filterAnime(tvResults);
+          apiTotalPages = json?.total_pages || 1;
         }
+      } catch (_err) {
+        console.error('Failed to load animes', _err);
+      }
 
-        async function initAuthUi() {
-          const client = await ensureSupabase();
-          if (!client) return;
-          const loginBtn = document.getElementById('loginBtn');
-          const signupBtn = document.getElementById('signupBtn');
-          const profileBtn = document.getElementById('profileBtn');
-          const { data } = await client.auth.getUser();
-          currentUser = data?.user || null;
+      state.animes = animes.map((anime) => ({
+        id: String(anime.id || ''),
+        name: anime.name || anime.title || 'Unknown Anime',
+        overview: anime.overview || '',
+        posterPath: anime.poster_path || '',
+        backdropPath: anime.backdrop_path || '',
+        firstAirDate: anime.first_air_date || '',
+        voteAverage: anime.vote_average || 0,
+        genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
+      })).filter((a) => a.id);
+      
+      state.totalPages = apiTotalPages;
+    }
 
-          if (currentUser) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (profileBtn) {
-              profileBtn.style.display = 'inline-flex';
-              profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-            }
-          } else {
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
-            if (signupBtn) signupBtn.style.display = 'inline-flex';
-            if (profileBtn) profileBtn.style.display = 'none';
-          }
-        }
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.animes.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.animes.map((anime) => anime.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('anime_list_items')
+        .select('anime_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('anime_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.anime_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
 
-        function filterAnime(tvResults) {
-          return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
-            const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
-            const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
-            const isJapaneseAnime = originCountry.includes('JP') || originCountry.includes('JP') || genreIds.includes(16);
-            const name = String(tv.name || '').toLowerCase();
-            const overview = String(tv.overview || '').toLowerCase();
-            const hasAnimeKeywords = /anime|manga|japanese/.test(name + ' ' + overview);
-            const isNotWestern = !originCountry.includes('US') && !originCountry.includes('GB') && !originCountry.includes('CA');
-            return (isJapaneseAnime && isNotWestern) || hasAnimeKeywords;
-          });
-        }
+    function getAnimeListStatus(animeId) {
+      const id = String(animeId || '').trim();
+      const empty = { favorites: false, watched: false, watchlist: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
 
-        async function loadAnimes(queryOverride = '') {
-          const query = String(queryOverride || state.search || '').trim();
-          let animes = [];
+    function getAnimeCardExtra(anime) {
+      const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
+      const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
+      const parts = [year, rating].filter(Boolean);
+      return parts.join(' | ') || 'Anime details';
+    }
 
-          try {
-            const endpoint = query ? 'search/tv' : 'trending/tv/week';
-            const params = query ? { query, page: 1 } : {};
-            const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              const tvResults = Array.isArray(json?.results) ? json.results : [];
-              animes = filterAnime(tvResults);
-            }
-          } catch (_err) {
-            console.error('Failed to load animes', _err);
-          }
-
-          state.animes = animes.map((anime) => ({
-            id: String(anime.id || ''),
-            name: anime.name || anime.title || 'Unknown Anime',
-            overview: anime.overview || '',
-            posterPath: anime.poster_path || '',
-            backdropPath: anime.backdrop_path || '',
-            firstAirDate: anime.first_air_date || '',
-            voteAverage: anime.vote_average || 0,
-            genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
-          })).filter((a) => a.id);
-          
-          state.page = 1;
-          state.totalPages = Math.max(1, Math.ceil(state.animes.length / ANIMES_PAGE_SIZE));
-        }
-
-        async function loadListStatus() {
-          state.listStatusMap = new Map();
-          if (!currentUser?.id || !state.animes.length) return;
-          const client = await ensureSupabase();
-          if (!client) return;
-          const ids = state.animes.map((anime) => anime.id);
-          if (!ids.length) return;
-          const { data } = await client
-            .from('anime_list_items')
-            .select('anime_id, list_type')
-            .eq('user_id', currentUser.id)
-            .in('anime_id', ids);
-          (data || []).forEach((row) => {
-            const id = String(row.anime_id || '');
-            if (!id) return;
-            if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
-            const bucket = state.listStatusMap.get(id);
-            if (row.list_type in bucket) bucket[row.list_type] = true;
-          });
-        }
-
-        function getAnimeListStatus(animeId) {
-          const id = String(animeId || '').trim();
-          const empty = { favorites: false, watched: false, watchlist: false };
-          if (!id) return empty;
-          if (!state.listStatusMap.has(id)) {
-            state.listStatusMap.set(id, { ...empty });
-          }
-          return state.listStatusMap.get(id);
-        }
-
-        function getAnimeCardExtra(anime) {
-          const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
-          const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
-          const parts = [year, rating].filter(Boolean);
-          return parts.join(' | ') || 'Anime details';
-        }
-
-        function renderGrid() {
-          const grid = document.getElementById('animesGrid');
-          if (!grid) return;
-          if (!state.animes.length) {
-            grid.innerHTML = '<div class="empty">No anime found.</div>';
-            updatePagination();
-            return;
-          }
-          const start = (state.page - 1) * ANIMES_PAGE_SIZE;
-          const visibleItems = state.animes.slice(start, start + ANIMES_PAGE_SIZE);
-          grid.innerHTML = visibleItems.map((anime) => {
-            const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
-            return `
-            <article class="card" data-id="${escapeHtml(anime.id)}">
-              <div class="card-media">
-                <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(anime.name)}" loading="lazy">
-              </div>
-              <div class="card-meta">
+    function renderGrid() {
+      const grid = document.getElementById('animesGrid');
+      if (!grid) return;
+      if (!state.animes.length) {
+        grid.innerHTML = '<div class="empty">No animes found.</div>';
+        updatePagination();
+        return;
+      }
+      grid.innerHTML = state.animes.map((anime) => {
+        const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
+        return `
+        <article class="card" data-id="${escapeHtml(anime.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(anime.name)}" loading="lazy">
+          </div>
+          <div class="card-meta">
             <p class="card-title">${escapeHtml(anime.name)}</p>
             <p class="card-sub">${escapeHtml(anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getAnimeCardExtra(anime))}</p>
@@ -1117,254 +1090,211 @@
       `;
       }).join('');
 
-          wireGridActions();
-          updatePagination();
-        }
+      wireGridActions();
+      updatePagination();
+    }
 
-        function updatePagination() {
-          const prevBtn = document.getElementById('prevPageBtn');
-          const nextBtn = document.getElementById('nextPageBtn');
-          const info = document.getElementById('pageInfo');
-          state.totalPages = Math.max(1, Math.ceil(state.animes.length / ANIMES_PAGE_SIZE));
-          if (state.page > state.totalPages) state.page = state.totalPages;
-          if (state.page < 1) state.page = 1;
-          if (prevBtn) prevBtn.disabled = state.page <= 1;
-          if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-          if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
-        }
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
 
-        async function upsertAnimeRecord(client, anime) {
-          if (!client || !anime?.id) return false;
-          const payload = {
-            id: String(anime.id),
-            name: anime.name || '',
-            poster_url: anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '',
-            updated_at: new Date().toISOString()
-          };
-          const { error } = await client.from('animes').upsert(payload, { onConflict: 'id' });
-          if (error) {
-            console.error('Anime upsert failed', error);
-            return false;
-          }
-          return true;
-        }
+    async function upsertAnimeRecord(client, anime) {
+      if (!client || !anime?.id) return false;
+      const payload = {
+        id: String(anime.id),
+        name: anime.name || '',
+        poster_url: anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('animes').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Anime upsert failed', error);
+        return false;
+      }
+      return true;
+    }
 
-        async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-          const animeId = String(itemId || '').trim();
-          if (!animeId) return { ok: false, saved: false };
-          const anime = state.animes.find((row) => String(row.id || '').trim() === animeId);
-          if (!anime) return { ok: false, saved: false };
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const animeId = String(itemId || '').trim();
+      if (!animeId) return { ok: false, saved: false };
+      const anime = state.animes.find((row) => String(row.id || '').trim() === animeId);
+      if (!anime) return { ok: false, saved: false };
 
-          const client = await ensureSupabase();
-          if (!client || !currentUser?.id) {
-            window.location.href = 'login.html';
-            return { ok: false, saved: false };
-          }
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
 
-          const status = getAnimeListStatus(animeId);
-          if (!(listType in status)) return { ok: false, saved: false };
+      const status = getAnimeListStatus(animeId);
+      if (!(listType in status)) return { ok: false, saved: false };
 
-          const previousSaved = !!status[listType];
-          const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-          const opKey = `${animeId}:${listType}`;
-          if (state.pendingQuickOps.has(opKey)) {
-            return { ok: false, saved: previousSaved };
-          }
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${animeId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
 
-          state.pendingQuickOps.add(opKey);
-          status[listType] = nextSaved;
-          try {
-            if (nextSaved) {
-              const ok = await upsertAnimeRecord(client, anime);
-              if (!ok) throw new Error('Anime upsert failed');
-              const { error } = await client.from('anime_list_items').insert({
-                user_id: currentUser.id,
-                anime_id: animeId,
-                list_type: listType
-              });
-              if (error && String(error.code || '') !== '23505') throw error;
-              showToast('Added to list');
-            } else {
-              const { error } = await client
-                .from('anime_list_items')
-                .delete()
-                .eq('user_id', currentUser.id)
-                .eq('anime_id', animeId)
-                .eq('list_type', listType);
-              if (error) throw error;
-              showToast('Removed from list');
-            }
-            return { ok: true, saved: nextSaved };
-          } catch (error) {
-            console.error('Anime list toggle failed', error);
-            status[listType] = previousSaved;
-            showToast('Could not update list', true);
-            return { ok: false, saved: previousSaved };
-          } finally {
-            state.pendingQuickOps.delete(opKey);
-          }
-        }
-
-        function wireGridActions() {
-          document.querySelectorAll('.menu-btn').forEach((btn) => {
-            btn.addEventListener('click', (e) => {
-              e.stopPropagation();
-              const card = btn.closest('.card');
-              if (!card) return;
-              if (typeof window.openIndexStyleListMenu === 'function') {
-                window.openIndexStyleListMenu(card);
-              }
-            });
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const ok = await upsertAnimeRecord(client, anime);
+          if (!ok) throw new Error('Anime upsert failed');
+          const { error } = await client.from('anime_list_items').insert({
+            user_id: currentUser.id,
+            anime_id: animeId,
+            list_type: listType
           });
-
-          document.querySelectorAll('.card').forEach((card) => {
-            card.addEventListener('click', (e) => {
-              if (e.target.closest('.menu-btn')) return;
-              const id = String(card.getAttribute('data-id') || '').trim();
-              if (!id) return;
-              window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
-            });
-          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('anime_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('anime_id', animeId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
         }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Anime list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
 
-        function wireUI() {
-          const searchInput = document.getElementById('searchInput');
-          const genreSelect = document.getElementById('genreSelect');
-          const yearInput = document.getElementById('yearInput');
-          const studioInput = document.getElementById('studioInput');
-          const searchSubmitBtn = document.getElementById('searchSubmitBtn');
-          const filterToggleBtn = document.getElementById('filterToggleBtn');
-          const filterModal = document.getElementById('filterModal');
-          const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
-          const prevBtn = document.getElementById('prevPageBtn');
-          const nextBtn = document.getElementById('nextPageBtn');
-
-          if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-              state.search = e.target.value.trim();
-              state.page = 1;
-              loadAnimes();
-            });
-            searchInput.addEventListener('keydown', (e) => {
-              if (e.key !== 'Enter') return;
-              e.preventDefault();
-              state.search = e.target.value.trim();
-              state.page = 1;
-              loadAnimes();
-            });
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
           }
-          if (searchSubmitBtn && searchInput) {
-            searchSubmitBtn.addEventListener('click', () => {
-              searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-            });
-          }
-          if (genreSelect) {
-            genreSelect.addEventListener('change', (e) => {
-              state.genre = e.target.value;
-              state.page = 1;
-              loadAnimes();
-            });
-          }
-          if (yearInput) {
-            yearInput.addEventListener('input', (e) => {
-              state.year = e.target.value.trim();
-              state.page = 1;
-              loadAnimes();
-            });
-          }
-          if (studioInput) {
-            studioInput.addEventListener('input', (e) => {
-              state.studio = e.target.value.trim();
-              state.page = 1;
-              loadAnimes();
-            });
-          }
-          if (filterToggleBtn && filterModal) {
-            filterToggleBtn.addEventListener('click', () => {
-              filterModal.style.display = 'flex';
-            });
-          }
-          if (closeFilterModalBtn && filterModal) {
-            closeFilterModalBtn.addEventListener('click', () => {
-              filterModal.style.display = 'none';
-            });
-          }
-          if (filterModal) {
-            filterModal.addEventListener('click', (e) => {
-              if (e.target === filterModal) filterModal.style.display = 'none';
-            });
-          }
-          if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-              if (state.page > 1) {
-                state.page -= 1;
-                renderGrid();
-              }
-            });
-          }
-          if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-              if (state.page < state.totalPages) {
-                state.page += 1;
-                renderGrid();
-              }
-            });
-          }
-        }
-
-        async function loadPage() {
-          try {
-            await initAuthUi();
-            await loadAnimes();
-            await loadListStatus();
-            renderGrid();
-          } catch (_err) {
-            const grid = document.getElementById('animesGrid');
-            if (grid) grid.innerHTML = '<div class="empty">Anime feed unavailable right now.</div>';
-          }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-          if (window.initUniversalSearch) {
-            const initSearch = () => window.initUniversalSearch({
-              input: '#globalSearch',
-              fallbackRoute: 'animes.html'
-            });
-            if (typeof window.requestIdleCallback === 'function') {
-              window.requestIdleCallback(initSearch, { timeout: 1500 });
-            } else {
-              window.setTimeout(initSearch, 0);
-            }
-          }
-          if (window.initIndexStyleListMenu) {
-            window.initIndexStyleListMenu({
-              mediaType: 'animes',
-              itemIdAttr: 'data-id',
-              getVisibleItemIds: () =>
-                Array.from(document.querySelectorAll('.card[data-id]'))
-                  .map((card) => card.getAttribute('data-id'))
-                  .filter(Boolean),
-              getQuickStatusForItem: (itemId) => {
-                const key = String(itemId || '').trim();
-                const status = state.listStatusMap.get(key);
-                return status ? { ...status } : null;
-              },
-              ensureClient: async () => {
-                if (supabaseClient) return supabaseClient;
-                await ensureSupabase();
-                return supabaseClient;
-              },
-              getCurrentUser: () => currentUser,
-              notify: (message, isError) => showToast(message, !!isError),
-              toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-                toggleDefaultList(itemId, listType, card, nextSaved)
-            });
-          }
-          wireUI();
-          loadPage();
         });
-      })();
-    </script>
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadAnimes();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('animesGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Anime feed unavailable right now.</div>';
+      }
+    }
+
+    document.getElementById('refreshAnimesBtn')?.addEventListener('click', loadPage);
+    document.getElementById('animesSearchBtn')?.addEventListener('click', async () => {
+      state.search = String(document.getElementById('q')?.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      state.search = String(e.target.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('animesFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('animesFilterModal')?.classList.add('show');
+    });
+    document.getElementById('animesFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('animesFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('animesFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      await loadAnimes();
+      await loadListStatus();
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      await loadAnimes();
+      await loadListStatus();
+      renderGrid();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'animes.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'anime',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      loadPage();
+    });
+  </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>

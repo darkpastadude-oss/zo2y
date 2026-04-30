@@ -791,80 +791,42 @@
         <button class="btn btn-primary" id="refreshMoviesBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
     </section>
-    <section class="media-spotlight" id="moviesSpotlight" hidden>
-      <div class="media-spotlight-shell">
-        <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
-        <div class="media-spotlight-copy">
-          <h2 id="moviesSpotlightTitle">Loading?</h2>
-          <p class="media-spotlight-meta" id="moviesSpotlightMeta"></p>
-          <p class="media-spotlight-summary" id="moviesSpotlightSummary"></p>
-          <div class="media-spotlight-actions">
-            <a class="btn" id="moviesSpotlightOpen" href="#">Open movie</a>
-          </div>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search movies, genres, years...">
+      <button id="moviesSearchBtn" class="control-icon-btn" type="button" aria-label="Search movies"><i class="fas fa-search"></i></button>
+      <button id="moviesFilterBtn" class="control-icon-btn" type="button" aria-label="Open movie filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="moviesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter movies</div>
+          <button class="control-modal-close" id="moviesFilterCloseBtn" type="button" aria-label="Close movie filters">&times;</button>
         </div>
-        <div class="media-spotlight-poster">
-          <img id="moviesSpotlightImage" src="/newlogo.webp" alt="Movie spotlight poster" loading="eager" decoding="async" referrerpolicy="no-referrer">
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
         </div>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>popular movies right now</h2>
+        <p>Trending movies across all genres.</p>
+      </div>
+      <div class="grid" id="moviesGrid"></div>
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
       </div>
     </section>
-
-    <div class="controls">
-      <input id="searchInput" class="search-input" type="text" placeholder="Search movies..." />
-      <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search movies">
-        <i class="fas fa-search"></i>
-      </button>
-      <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
-        <i class="fas fa-sliders-h"></i>
-      </button>
-    </div>
-    <div id="activeFilters" class="chip-row"></div>
-    <div class="modal" id="filterModal">
-      <div class="modal-content filter-modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Filter movies</div>
-          <button class="modal-close" id="closeFilterModalBtn">&times;</button>
-        </div>
-        <div class="filter-form-grid">
-          <select id="genreSelect" class="filter-select">
-            <option value="">All Genres</option>
-          </select>
-          <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
-          <input id="actorInput" class="search-input full-span" type="text" placeholder="Cast member" />
-        </div>
-      </div>
-    </div>
-
-    <div id="moviesGrid" class="grid"></div>
-    <div id="emptyState" class="empty" style="display:none;">No movies found.</div>
-    <div class="pagination">
-      <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
-      <div class="page-info" id="pageInfo">Page 1</div>
-      <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
-    </div>
-
-    <div class="modal" id="movieListsModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title">Custom Movie Lists</div>
-          <button class="modal-close" id="closeMovieListsBtn">&times;</button>
-        </div>
-        <div class="modal-list" id="movieListsContainer"></div>
-        <div class="modal-input">
-          <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
-          <button class="btn" id="createMovieListBtn">Create</button>
-        </div>
-        <div class="icon-options" id="movieListIconOptions">
-          <button class="icon-option selected" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
-          <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-          <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-          <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-          <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
-        </div>
-        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
-          <button class="btn" id="saveMovieListsBtn">Save Changes</button>
-        </div>
-      </div>
-    </div>
   </main>
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
@@ -919,938 +881,406 @@
   </div>
 
   <script>
-      (function () {
-        if (window.innerWidth <= 768) {
-          window.location.href = 'movies-mobile.html?v=20260418a';
-          return;
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const TMDB_PROXY_BASE = '/api/tmdb';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+    const MOVIES_PAGE_SIZE = 100;
+
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      movies: [],
+      search: '',
+      genre: '',
+      year: '',
+      sort: 'popular',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '16px';
+      el.style.right = '16px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '10px 14px';
+      el.style.borderRadius = '10px';
+      el.style.fontSize = '13px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
         }
-        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-        const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-        const TMDB_PROXY_BASE = '/api/tmdb';
-        const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-        const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-        const MOVIE_SPOTLIGHT_CACHE_KEY = 'zo2y_movies_spotlight_v1';
-        const state = {
-          genres: [],
-          activeGenre: '',
-          query: '',
-          animePromptQuery: '',
-          actor: '',
-          year: '',
-          page: 1,
-          totalPages: 1,
-          currentUser: null,
-          listStatusMap: new Map(),
-          customLists: [],
-          activeMovieId: null,
-          modalSelectedLists: new Set(),
-          selectedIcon: 'fas fa-film',
-          pendingDefaultOps: new Set()
-        };
-  
-        let supabaseClient = null;
-  
-        async function tmdbFetch(path, params = {}) {
-          const url = new URL(`${TMDB_PROXY_BASE}${path}`, window.location.origin);
-          Object.entries(params).forEach(([k, v]) => {
-            if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-          });
-          const res = await fetch(url.toString());
-          if (!res.ok) throw new Error(`TMDB error ${res.status}`);
-          return res.json();
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
         }
-  
-        function showNotification(message, type = 'info', duration = 3000) {
-          const existing = document.querySelectorAll('.notification');
-          existing.forEach(n => n.remove());
-          const notification = document.createElement('div');
-          notification.className = `notification ${type}`;
-          notification.textContent = message;
-          document.body.appendChild(notification);
-          setTimeout(() => notification.remove(), duration);
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    async function loadMovies(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      let movies = [];
+      let apiTotalPages = 1;
+
+      try {
+        const endpoint = query ? 'search/movie' : 'trending/movie/week';
+        const params = query ? { query, page: state.page } : { page: state.page };
+        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          movies = Array.isArray(json?.results) ? json.results : [];
+          apiTotalPages = json?.total_pages || 1;
         }
-  
-        let lastAnimeRedirectPrompt = '';
-        let animeRedirectModal = null;
-        let animeRedirectConfirmHandler = null;
-  
-        function isAnimeMovieResult(item) {
-          const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids.map((entry) => Number(entry)) : [];
-          const originalLanguage = String(item?.original_language || '').trim().toLowerCase();
-          return genreIds.includes(16) && originalLanguage === 'ja';
-        }
-  
-        function normalizeAnimeSearchText(value) {
-          return String(value || '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, ' ')
-            .trim();
-        }
-  
-        function isExactAnimeSearchMatch(query, matchedTitles = []) {
-          const normalizedQuery = normalizeAnimeSearchText(query);
-          if (!normalizedQuery) return false;
-          return (Array.isArray(matchedTitles) ? matchedTitles : []).some((title) => (
-            normalizeAnimeSearchText(title) === normalizedQuery
-          ));
-        }
-  
-        function filterOutAnimeMovies(rows = []) {
-          let removed = 0;
-          let firstAnimeTitle = '';
-          const matchedAnimeTitles = [];
-          const filtered = (Array.isArray(rows) ? rows : []).filter((item) => {
-            if (isAnimeMovieResult(item)) {
-              removed += 1;
-              const animeTitle = String(item?.title || item?.original_title || item?.name || '').trim();
-              if (!firstAnimeTitle) {
-                firstAnimeTitle = animeTitle;
-              }
-              if (animeTitle) matchedAnimeTitles.push(animeTitle);
-              return false;
-            }
-            return true;
-          });
-          return { filtered, removed, firstAnimeTitle, matchedAnimeTitles };
-        }
-  
-        function closeAnimeRedirectModal() {
-          if (!animeRedirectModal) return;
-          animeRedirectModal.classList.remove('active');
-          animeRedirectModal.setAttribute('aria-hidden', 'true');
-          animeRedirectConfirmHandler = null;
-        }
-  
-        function ensureAnimeRedirectModal() {
-          if (animeRedirectModal) return animeRedirectModal;
-          const modal = document.createElement('div');
-          modal.id = 'animeRedirectModal';
-          modal.className = 'menu-modal';
-          modal.setAttribute('aria-hidden', 'true');
-          modal.innerHTML = `
-            <div class="menu-modal-content" style="max-width:420px;">
-              <div class="menu-modal-header">
-                <h3><i class="fas fa-dragon" style="color: var(--accent); margin-right: 8px;"></i>Found Under Anime</h3>
-                <button type="button" class="menu-modal-close" data-close="1" aria-label="Close">&times;</button>
-              </div>
-              <div class="menu-modal-body">
-                <div id="animeRedirectTitle" style="font-size:15px;line-height:1.5;color:#e6eefc;"></div>
-                <div id="animeRedirectSub" style="margin-top:6px;font-size:13px;color:#9fb0cf;">This title is categorized as Anime. Open Anime results?</div>
-                <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
-                  <button type="button" class="btn" data-stay="1">Stay Here</button>
-                  <button type="button" class="btn" data-go="1" style="background: var(--gradient); border: 0; color: #0b1633; font-weight: 700;">Go To Anime</button>
-                </div>
-              </div>
+      } catch (_err) {
+        console.error('Failed to load movies', _err);
+      }
+
+      state.movies = movies.map((movie) => ({
+        id: String(movie.id || ''),
+        title: movie.title || movie.name || 'Unknown Movie',
+        overview: movie.overview || '',
+        posterPath: movie.poster_path || '',
+        backdropPath: movie.backdrop_path || '',
+        releaseDate: movie.release_date || '',
+        voteAverage: movie.vote_average || 0,
+        genreIds: Array.isArray(movie.genre_ids) ? movie.genre_ids : []
+      })).filter((m) => m.id);
+      
+      state.totalPages = apiTotalPages;
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.movies.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.movies.map((movie) => movie.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('movie_list_items')
+        .select('movie_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('movie_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.movie_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
+
+    function getMovieListStatus(movieId) {
+      const id = String(movieId || '').trim();
+      const empty = { favorites: false, watched: false, watchlist: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getMovieCardExtra(movie) {
+      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
+      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
+      const parts = [year, rating].filter(Boolean);
+      return parts.join(' | ') || 'Movie details';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('moviesGrid');
+      if (!grid) return;
+      if (!state.movies.length) {
+        grid.innerHTML = '<div class="empty">No movies found.</div>';
+        updatePagination();
+        return;
+      }
+      grid.innerHTML = state.movies.map((movie) => {
+        const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+        return `
+        <article class="card" data-id="${escapeHtml(movie.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)}" loading="lazy">
+          </div>
+          <div class="card-meta">
+            <p class="card-title">${escapeHtml(movie.title)}</p>
+            <p class="card-sub">${escapeHtml(movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD')}</p>
+            <p class="card-extra">${escapeHtml(getMovieCardExtra(movie))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
             </div>
-          `;
-          modal.addEventListener('click', (event) => {
-            const target = event.target;
-            if (!(target instanceof HTMLElement)) return;
-            if (target === modal || target.closest('[data-close="1"]') || target.closest('[data-stay="1"]')) {
-              closeAnimeRedirectModal();
-              return;
-            }
-            if (target.closest('[data-go="1"]')) {
-              const handler = animeRedirectConfirmHandler;
-              closeAnimeRedirectModal();
-              if (typeof handler === 'function') handler();
-            }
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function upsertMovieRecord(client, movie) {
+      if (!client || !movie?.id) return false;
+      const payload = {
+        id: String(movie.id),
+        title: movie.title || '',
+        poster_url: movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('movies').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Movie upsert failed', error);
+        return false;
+      }
+      return true;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const movieId = String(itemId || '').trim();
+      if (!movieId) return { ok: false, saved: false };
+      const movie = state.movies.find((row) => String(row.id || '').trim() === movieId);
+      if (!movie) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getMovieListStatus(movieId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${movieId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const ok = await upsertMovieRecord(client, movie);
+          if (!ok) throw new Error('Movie upsert failed');
+          const { error } = await client.from('movie_list_items').insert({
+            user_id: currentUser.id,
+            movie_id: movieId,
+            list_type: listType
           });
-          document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && modal.classList.contains('active')) {
-              closeAnimeRedirectModal();
-            }
-          });
-          document.body.appendChild(modal);
-          animeRedirectModal = modal;
-          return modal;
-        }
-  
-        function showAnimeRedirectModal(query, matchedTitle) {
-          const modal = ensureAnimeRedirectModal();
-          const titleEl = modal.querySelector('#animeRedirectTitle');
-          const displayTitle = String(matchedTitle || query || 'This result').trim();
-          if (titleEl) {
-            titleEl.textContent = `"${displayTitle}" is available in the Anime section.`;
-          }
-          const destinationUrl = new URL('animes.html', window.location.href);
-          if (query) destinationUrl.searchParams.set('search', query);
-          animeRedirectConfirmHandler = () => {
-            window.location.href = `${destinationUrl.pathname}${destinationUrl.search}`;
-          };
-          modal.classList.add('active');
-          modal.setAttribute('aria-hidden', 'false');
-          const content = modal.querySelector('.menu-modal-content');
-          if (content) {
-            content.classList.remove('menu-modal-fly-up');
-            void content.offsetWidth;
-            content.classList.add('menu-modal-fly-up');
-          }
-        }
-  
-        function promptAnimeRedirect(query, forcePrompt = false, matchedTitle = '') {
-          const q = String(query || '').trim();
-          if (!q) return;
-          const key = `${q.toLowerCase()}::${String(matchedTitle || '').toLowerCase()}`;
-          if (key === lastAnimeRedirectPrompt) return;
-          lastAnimeRedirectPrompt = key;
-          showAnimeRedirectModal(q, matchedTitle);
-        }
-  
-        function renderListIcon(icon) {
-          if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-film');
-          if (!icon) return '<i class="fas fa-film"></i>';
-          if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
-          return icon;
-        }
-  
-        async function ensureSupabase() {
-          if (supabaseClient) return supabaseClient;
-          const authRuntime = window.ZO2Y_AUTH || null;
-          if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-            await authRuntime.waitForSupabase(8000);
-          } else {
-            const startedAt = Date.now();
-            while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-              await new Promise((resolve) => setTimeout(resolve, 40));
-            }
-          }
-          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-            supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-            if (supabaseClient) return supabaseClient;
-          }
-          if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-            supabaseClient = window.supabase.createClient(
-              window.__ZO2Y_SUPABASE_CONFIG.url,
-              window.__ZO2Y_SUPABASE_CONFIG.key,
-              { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-            );
-            window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-            return supabaseClient;
-          }
-          return null;
-        }
-  
-        async function initAuthUi() {
-          const client = await ensureSupabase();
-          if (!client) return;
-          const loginBtn = document.getElementById('loginBtn');
-          const signupBtn = document.getElementById('signupBtn');
-          const profileBtn = document.getElementById('profileBtn');
-          const { data } = await client.auth.getUser();
-          state.currentUser = data?.user || null;
-  
-          if (state.currentUser) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (profileBtn) {
-              profileBtn.style.display = 'inline-flex';
-              profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-            }
-          } else {
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
-            if (signupBtn) signupBtn.style.display = 'inline-flex';
-            if (profileBtn) profileBtn.style.display = 'none';
-          }
-        }
-  
-        async function loadUserListStatus() {
-          state.listStatusMap = new Map();
-          if (!supabaseClient || !state.currentUser) return;
-          const { data, error } = await supabaseClient
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
             .from('movie_list_items')
-            .select('movie_id, list_type')
-            .eq('user_id', state.currentUser.id);
-          if (error) return;
-          (data || []).forEach(row => {
-            if (!state.listStatusMap.has(row.movie_id)) {
-              state.listStatusMap.set(row.movie_id, { favorites: false, watched: false, watchlist: false });
-            }
-            if (row.list_type && state.listStatusMap.get(row.movie_id)[row.list_type] !== undefined) {
-              state.listStatusMap.get(row.movie_id)[row.list_type] = true;
-            }
-          });
-          updateAllCardMenus();
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('movie_id', movieId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
         }
-  
-        function updateAllCardMenus() {
-          document.querySelectorAll('.card').forEach(card => {
-            const movieId = Number(card.getAttribute('data-movie-id'));
-            if (!movieId) return;
-            updateCardMenuUI(card, movieId);
-          });
-        }
-  
-        function updateCardMenuUI(card, movieId) {
-          const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
-          card.querySelectorAll('.list-action').forEach(btn => {
-            const listType = btn.getAttribute('data-list');
-            if (!listType) return;
-            const isActive = !!status[listType];
-            btn.classList.toggle('active', isActive);
-            const stateEl = btn.querySelector('.list-action-state');
-            if (stateEl) stateEl.textContent = isActive ? 'Saved' : 'Add';
-          });
-        }
-  
-        function renderFilters() {
-          const row = document.getElementById('activeFilters');
-          if (!row) return;
-          row.innerHTML = '';
-          const items = [];
-          if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
-          if (state.query) items.push({ label: state.query, type: 'query' });
-          if (state.year) items.push({ label: state.year, type: 'year' });
-          if (state.actor) items.push({ label: state.actor, type: 'actor' });
-          items.forEach(item => {
-            const chip = document.createElement('div');
-            chip.className = 'chip active';
-            chip.textContent = item.label;
-            chip.onclick = () => {
-              if (item.type === 'genre') state.activeGenre = '';
-              if (item.type === 'query') state.query = '';
-              if (item.type === 'year') state.year = '';
-              if (item.type === 'actor') state.actor = '';
-              document.getElementById('searchInput').value = state.query;
-              document.getElementById('genreSelect').value = state.activeGenre;
-              document.getElementById('yearInput').value = state.year;
-              document.getElementById('actorInput').value = state.actor;
-              renderFilters();
-              state.page = 1;
-              loadMovies();
-            };
-            row.appendChild(chip);
-          });
-        }
-  
-        let pageSpotlightTimer = null;
-        let pageSpotlightItems = [];
-        let pageSpotlightIndex = 0;
-  
-        function optimizeRemoteImage(url, { width = 420, quality = 72, height = 0, fit = 'cover' } = {}) {
-          const raw = String(url || '').trim();
-          if (!raw) return '';
-          let normalized = raw;
-          if (normalized.startsWith('//')) normalized = `https:${normalized}`;
-          normalized = normalized.replace(/^http:\/\//i, 'https://');
-          return normalized;
-        }
-  
-        function getMoviePosterUrl(item) {
-          return item?.poster_path
-            ? optimizeRemoteImage(POSTER_BASE + item.poster_path, { width: 420, quality: 72, fit: 'contain' })
-            : 'images/placeholder.jpg';
-        }
-  
-        function getMovieBackdropUrl(item) {
-          return item?.backdrop_path
-            ? optimizeRemoteImage(BACKDROP_BASE + item.backdrop_path, { width: 1280, quality: 70, fit: 'cover' })
-            : getMoviePosterUrl(item);
-        }
-  
-        function pickMovieSpotlightPool(items = []) {
-          const seen = new Set();
-          return (Array.isArray(items) ? items : []).filter((item) => {
-            const id = Number(item?.id || 0);
-            if (!id || seen.has(id) || !item?.poster_path) return false;
-            seen.add(id);
-            return true;
-          }).slice(0, 12);
-        }
-  
-        function readMovieSpotlightCache() {
-          try {
-            const raw = sessionStorage.getItem(MOVIE_SPOTLIGHT_CACHE_KEY);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            return parsed && parsed.poster_path ? parsed : null;
-          } catch (_err) {
-            return null;
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Movie list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
           }
+        });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `movie.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadMovies();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('moviesGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Movies feed unavailable right now.</div>';
+      }
+    }
+
+    document.getElementById('refreshMoviesBtn')?.addEventListener('click', loadPage);
+    document.getElementById('moviesSearchBtn')?.addEventListener('click', async () => {
+      state.search = String(document.getElementById('q')?.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      state.search = String(e.target.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('moviesFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('moviesFilterModal')?.classList.add('show');
+    });
+    document.getElementById('moviesFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('moviesFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('moviesFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      await loadMovies();
+      await loadListStatus();
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      await loadMovies();
+      await loadListStatus();
+      renderGrid();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'movies.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
         }
-  
-        function writeMovieSpotlightCache(item) {
-          try {
-            if (!item?.poster_path) return;
-            sessionStorage.setItem(MOVIE_SPOTLIGHT_CACHE_KEY, JSON.stringify(item));
-          } catch (_err) {}
-        }
-  
-        function renderMoviePageSpotlight(item) {
-          const section = document.getElementById('moviesSpotlight');
-          if (!section || !item) return;
-          const bg = document.getElementById('moviesSpotlightBg');
-          const titleEl = document.getElementById('moviesSpotlightTitle');
-          const metaEl = document.getElementById('moviesSpotlightMeta');
-          const summaryEl = document.getElementById('moviesSpotlightSummary');
-          const imgEl = document.getElementById('moviesSpotlightImage');
-          const openEl = document.getElementById('moviesSpotlightOpen');
-          const poster = getMoviePosterUrl(item);
-          const backdrop = getMovieBackdropUrl(item) || poster;
-          section.hidden = false;
-          if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdrop}")`;
-          if (titleEl) titleEl.textContent = item.title || 'Movie Spotlight';
-          if (metaEl) {
-            const date = String(item.release_date || '').trim();
-            const rating = Number(item.vote_average || 0) > 0 ? `TMDB ${Number(item.vote_average).toFixed(1)}` : '';
-            metaEl.textContent = [date, rating].filter(Boolean).join(' ? ');
-          }
-          if (summaryEl) {
-            summaryEl.textContent = String(item.overview || '').trim() || 'A standout movie from the live chart.';
-          }
-          if (imgEl) {
-            imgEl.src = poster;
-            imgEl.alt = `${item.title || 'Movie'} poster`;
-          }
-          if (openEl) {
-            openEl.href = `movie.html?id=${encodeURIComponent(String(item.id || ''))}`;
-          }
-        }
-  
-        function resetMoviePageSpotlightTimer() {
-          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-          if (pageSpotlightItems.length < 2) return;
-          pageSpotlightTimer = window.setInterval(() => {
-            pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
-            renderMoviePageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
-          }, 6500);
-        }
-  
-        function updateMoviePageSpotlight(items = []) {
-          pageSpotlightItems = pickMovieSpotlightPool(items);
-          pageSpotlightIndex = 0;
-          const section = document.getElementById('moviesSpotlight');
-          if (!section) return;
-          if (!pageSpotlightItems.length) {
-            section.hidden = true;
-            if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-            return;
-          }
-          writeMovieSpotlightCache(pageSpotlightItems[0]);
-          renderMoviePageSpotlight(pageSpotlightItems[0]);
-          resetMoviePageSpotlightTimer();
-        }
-  
-        async function loadGenres() {
-          const data = await tmdbFetch('/genre/movie/list', { language: 'en' });
-          state.genres = data.genres || [];
-          const select = document.getElementById('genreSelect');
-          if (!select) return;
-          state.genres.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = String(g.id);
-            opt.textContent = g.name;
-            select.appendChild(opt);
-          });
-        }
-  
-        async function resolveActorId() {
-          if (!state.actor) return null;
-          const res = await tmdbFetch('/search/person', {
-            query: state.actor,
-            language: 'en',
-            page: 1
-          });
-          const person = (res.results || [])[0];
-          return person ? person.id : null;
-        }
-  
-        async function resolveActorCreditIds(actorId) {
-          if (!actorId) return null;
-          const data = await tmdbFetch(`/person/${actorId}/movie_credits`, { language: 'en' });
-          const rows = Array.isArray(data?.cast) ? data.cast : [];
-          return new Set(rows.map((entry) => Number(entry?.id || 0)).filter(Boolean));
-        }
-  
-        function matchesMovieYear(item) {
-          if (!state.year) return true;
-          const releaseDate = String(item?.release_date || '').trim();
-          return releaseDate.startsWith(String(state.year));
-        }
-  
-        async function loadMovies() {
-          const grid = document.getElementById('moviesGrid');
-          const empty = document.getElementById('emptyState');
-          if (!grid) return;
-          if (!state.query && !state.activeGenre && !state.year && !state.actor) {
-            const cachedSpotlight = readMovieSpotlightCache();
-            if (cachedSpotlight) renderMoviePageSpotlight(cachedSpotlight);
-          }
-  
-          let data;
-          let actorCreditIds = null;
-          try {
-            const actorId = await resolveActorId();
-            if (state.query) {
-              data = await tmdbFetch('/search/movie', {
-                query: state.query,
-                language: 'en',
-                include_adult: false,
-                page: state.page
-              });
-              if (actorId) {
-                actorCreditIds = await resolveActorCreditIds(actorId);
-              }
-            } else if (state.year || state.activeGenre || actorId) {
-              data = await tmdbFetch('/discover/movie', {
-                language: 'en',
-                page: state.page,
-                with_genres: state.activeGenre,
-                primary_release_year: state.year,
-                with_cast: actorId || undefined,
-                sort_by: 'popularity.desc'
-              });
-            } else {
-              data = await tmdbFetch('/movie/popular', {
-                language: 'en',
-                page: state.page
-              });
-            }
-          } catch (e) {
-            if (empty) empty.style.display = 'block';
-            return;
-          }
-  
-          let results = data.results || [];
-          const animeFilter = filterOutAnimeMovies(results);
-          results = animeFilter.filtered;
-          const nonAnimeCountBeforeGenreFilter = results.length;
-          if (actorCreditIds instanceof Set) {
-            results = results.filter((item) => actorCreditIds.has(Number(item?.id || 0)));
-          }
-          results = results.filter(matchesMovieYear);
-          if (state.activeGenre) {
-            const genreId = parseInt(state.activeGenre, 10);
-            results = results.filter(m => Array.isArray(m.genre_ids) && m.genre_ids.includes(genreId));
-          }
-  
-          const shouldEvaluateAnimePrompt = normalizeAnimeSearchText(state.animePromptQuery)
-            && normalizeAnimeSearchText(state.animePromptQuery) === normalizeAnimeSearchText(state.query);
-          if (shouldEvaluateAnimePrompt) {
-            if (animeFilter.removed > 0 && isExactAnimeSearchMatch(state.query, animeFilter.matchedAnimeTitles)) {
-              promptAnimeRedirect(state.query, nonAnimeCountBeforeGenreFilter === 0, animeFilter.firstAnimeTitle);
-            }
-            state.animePromptQuery = '';
-          }
-  
-          if (!results.length) {
-            if (empty) empty.style.display = 'block';
-            updateMoviePageSpotlight([]);
-            grid.innerHTML = '';
-            return;
-          }
-  
-          updateMoviePageSpotlight(results);
-  
-          const fragment = document.createDocumentFragment();
-          results.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.setAttribute('data-movie-id', item.id);
-            card.innerHTML = `
-              <img src="${getMoviePosterUrl(item)}" alt="${item.title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='images/placeholder.jpg';">
-              <div class="card-body">
-                <h3 class="card-title">${item.title}</h3>
-                <div class="card-meta-row">
-                  <div class="card-meta">${item.release_date || ''}</div>
-                  <div class="card-menu-wrap">
-                    <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-                  </div>
-                </div>
-                <div class="card-desc">${item.overview || 'No description available.'}</div>
-              </div>
-            `;
-            card.onclick = (e) => {
-              if (e.target.closest('.menu-btn')) return;
-              window.location.href = `movie.html?id=${item.id}`;
-            };
-            wireCardMenu(card, item.id);
-            updateCardMenuUI(card, item.id);
-            fragment.appendChild(card);
-          });
-          grid.innerHTML = '';
-          grid.appendChild(fragment);
-          if (empty) empty.style.display = 'none';
-  
-          state.totalPages = Math.min(data.total_pages || 1, 500);
-          updatePagination();
-        }
-  
-        function wireCardMenu(card, movieId) {
-          const menuBtn = card.querySelector('.menu-btn');
-          if (!menuBtn) return;
-          menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (typeof window.openIndexStyleListMenu === 'function') {
-              window.openIndexStyleListMenu(card);
-            }
-          });
-        }
-  
-        function ensureListMenuBackdrop() {
-          let backdrop = document.getElementById('listMenuBackdrop');
-          if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.id = 'listMenuBackdrop';
-            backdrop.className = 'list-menu-backdrop';
-            backdrop.addEventListener('click', closeAllListMenus);
-            document.body.appendChild(backdrop);
-          }
-          return backdrop;
-        }
-  
-        function showListMenuBackdrop() {
-          const backdrop = ensureListMenuBackdrop();
-          backdrop.classList.add('active');
-        }
-  
-        function hideListMenuBackdrop() {
-          const backdrop = document.getElementById('listMenuBackdrop');
-          if (backdrop) backdrop.classList.remove('active');
-        }
-  
-        function closeAllListMenus() {
-          document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
-          document.querySelectorAll('.card.menu-open').forEach(c => c.classList.remove('menu-open'));
-          hideListMenuBackdrop();
-        }
-  
-        async function toggleDefaultList(movieId, listType, card, forcedNextSaved) {
-          if (!state.currentUser) {
-            showNotification('Please sign in to save movies', 'info');
-            return { ok: false, saved: false };
-          }
-          if (!supabaseClient) return { ok: false, saved: false };
-          const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };
-          const previousSaved = !!status[listType];
-          const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-          const opKey = `${movieId}:${listType}`;
-          if (state.pendingDefaultOps.has(opKey)) {
-            return { ok: false, saved: previousSaved };
-          }
-          state.pendingDefaultOps.add(opKey);
-  
-          status[listType] = nextSaved;
-          state.listStatusMap.set(movieId, status);
-          if (card) updateCardMenuUI(card, movieId);
-  
-          try {
-            if (nextSaved) {
-              const { error } = await supabaseClient
-                .from('movie_list_items')
-                .insert({ user_id: state.currentUser.id, movie_id: movieId, list_type: listType });
-              if (error) throw error;
-              showNotification('Saved to list', 'success');
-            } else {
-              const { error } = await supabaseClient
-                .from('movie_list_items')
-                .delete()
-                .eq('user_id', state.currentUser.id)
-                .eq('movie_id', movieId)
-                .eq('list_type', listType);
-              if (error) throw error;
-              showNotification('Removed from list', 'info');
-            }
-            return { ok: true, saved: nextSaved };
-          } catch (_err) {
-            status[listType] = previousSaved;
-            state.listStatusMap.set(movieId, status);
-            if (card) updateCardMenuUI(card, movieId);
-            showNotification('Could not update list', 'error');
-            return { ok: false, saved: previousSaved };
-          } finally {
-            state.pendingDefaultOps.delete(opKey);
-          }
-        }
-  
-        async function loadCustomLists() {
-          if (!supabaseClient || !state.currentUser || !window.ListUtils) return [];
-          return await ListUtils.loadCustomLists(supabaseClient, state.currentUser.id, 'movie');
-        }
-  
-        async function openMovieListsModal(movieId) {
-          if (!state.currentUser) {
-            showNotification('Please sign in to manage lists', 'info');
-            return;
-          }
-          state.activeMovieId = movieId;
-          const modal = document.getElementById('movieListsModal');
-          const container = document.getElementById('movieListsContainer');
-          if (!modal || !container) return;
-          container.innerHTML = '<div class="chip">Loading...</div>';
-          state.customLists = await loadCustomLists();
-          const listIds = state.customLists.map(l => l.id);
-          state.modalSelectedLists = window.ListUtils
-            ? await ListUtils.loadCustomListMembership(supabaseClient, state.currentUser.id, 'movie', movieId, listIds)
-            : new Set();
-          container.innerHTML = '';
-          if (!state.customLists.length) {
-            container.innerHTML = '<div class="chip">No custom lists yet.</div>';
-          } else {
-            state.customLists.forEach(list => {
-              const item = document.createElement('div');
-              item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
-              item.innerHTML = `
-                <span>${renderListIcon(list.icon)} ${list.title}</span>
-                <span class="modal-list-actions">
-                  <span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
-                  <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
-                </span>
-              `;
-              item.onclick = () => {
-                if (state.modalSelectedLists.has(list.id)) {
-                  state.modalSelectedLists.delete(list.id);
-                } else {
-                  state.modalSelectedLists.add(list.id);
-                }
-                item.classList.toggle('active');
-                item.querySelector('.modal-list-actions span').textContent = state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
-              };
-              const editBtn = item.querySelector('.list-edit-btn');
-              if (editBtn) {
-                editBtn.onclick = (e) => {
-                  e.stopPropagation();
-                  renameMovieList(list.id, list.title);
-                };
-              }
-              container.appendChild(item);
-            });
-          }
-          modal.classList.add('active');
-        }
-  
-        async function saveMovieListChanges() {
-          if (!supabaseClient || !state.currentUser || !state.activeMovieId) return;
-          if (window.ListUtils) {
-            await ListUtils.saveCustomListChanges(
-              supabaseClient,
-              state.currentUser.id,
-              'movie',
-              state.activeMovieId,
-              [...state.modalSelectedLists]
-            );
-          }
-          showNotification('Lists updated', 'success');
-          closeMovieListsModal();
-        }
-  
-        function closeMovieListsModal() {
-          const modal = document.getElementById('movieListsModal');
-          if (modal) modal.classList.remove('active');
-          state.activeMovieId = null;
-        }
-  
-        async function createMovieList() {
-          const input = document.getElementById('newMovieListName');
-          if (!input || !input.value.trim()) return;
-          if (!supabaseClient || !state.currentUser) return;
-          const title = input.value.trim();
-          const modal = document.getElementById('movieListsModal');
-          const tierState = window.ListUtils && modal
-            ? ListUtils.readTierCreateState(modal)
-            : { listKind: 'standard', maxRank: null };
-          const data = window.ListUtils
-            ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'movie', {
-              title,
-              icon: state.selectedIcon || 'fas fa-film',
-            listKind: tierState.listKind,
-            maxRank: tierState.maxRank
-            })
-            : null;
-          if (!data) {
-            showNotification('Could not create list', 'error');
-            return;
-          }
-          input.value = '';
-          if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
-          state.customLists.unshift(data);
-          openMovieListsModal(state.activeMovieId);
-        }
-  
-        async function renameMovieList(listId, currentTitle) {
-          const nextTitle = prompt('Rename list', currentTitle || '');
-          if (!nextTitle || !nextTitle.trim()) return;
-          if (!supabaseClient || !state.currentUser) return;
-          const ok = window.ListUtils
-            ? await ListUtils.renameCustomList(supabaseClient, state.currentUser.id, 'movie', listId, nextTitle.trim())
-            : false;
-          if (!ok) {
-            showNotification('Could not rename list', 'error');
-            return;
-          }
-          state.customLists = state.customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
-          openMovieListsModal(state.activeMovieId);
-        }
-  
-        function wireUI() {
-          const searchInput = document.getElementById('searchInput');
-          const genreSelect = document.getElementById('genreSelect');
-          const yearInput = document.getElementById('yearInput');
-          const actorInput = document.getElementById('actorInput');
-          const searchSubmitBtn = document.getElementById('searchSubmitBtn');
-          const filterToggleBtn = document.getElementById('filterToggleBtn');
-          const filterModal = document.getElementById('filterModal');
-          const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
-          const prevBtn = document.getElementById('prevPageBtn');
-          const nextBtn = document.getElementById('nextPageBtn');
-          const closeListsBtn = document.getElementById('closeMovieListsBtn');
-          const saveListsBtn = document.getElementById('saveMovieListsBtn');
-          const createListBtn = document.getElementById('createMovieListBtn');
-          const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
-          if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-              state.query = e.target.value.trim();
-              state.animePromptQuery = '';
-              renderFilters();
-              state.page = 1;
-              loadMovies();
-            });
-            searchInput.addEventListener('keydown', (e) => {
-              if (e.key !== 'Enter') return;
-              e.preventDefault();
-              state.query = e.target.value.trim();
-              state.animePromptQuery = state.query;
-              renderFilters();
-              state.page = 1;
-              loadMovies();
-            });
-          }
-          if (searchSubmitBtn && searchInput) {
-            searchSubmitBtn.addEventListener('click', () => {
-              searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-            });
-          }
-          if (genreSelect) {
-            genreSelect.addEventListener('change', (e) => {
-              state.activeGenre = e.target.value;
-              renderFilters();
-              state.page = 1;
-              loadMovies();
-            });
-          }
-          if (yearInput) {
-            yearInput.addEventListener('input', (e) => {
-              state.year = e.target.value.trim();
-              renderFilters();
-              state.page = 1;
-              loadMovies();
-            });
-          }
-          if (actorInput) {
-            let actorTimer = null;
-            actorInput.addEventListener('input', (e) => {
-              window.clearTimeout(actorTimer);
-              actorTimer = window.setTimeout(() => {
-                state.actor = e.target.value.trim();
-                renderFilters();
-                state.page = 1;
-                loadMovies();
-              }, 260);
-            });
-          }
-          if (filterToggleBtn && filterModal) {
-            filterToggleBtn.addEventListener('click', () => {
-              filterModal.style.display = 'flex';
-            });
-          }
-          if (closeFilterModalBtn && filterModal) {
-            closeFilterModalBtn.addEventListener('click', () => {
-              filterModal.style.display = 'none';
-            });
-          }
-          if (filterModal) {
-            filterModal.addEventListener('click', (e) => {
-              if (e.target === filterModal) filterModal.style.display = 'none';
-            });
-          }
-          if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-              if (state.page > 1) {
-                state.page -= 1;
-                loadMovies();
-              }
-            });
-          }
-          if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-              if (state.page < state.totalPages) {
-                state.page += 1;
-                loadMovies();
-              }
-            });
-          }
-          if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
-          if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
-          if (createListBtn) createListBtn.addEventListener('click', createMovieList);
-          iconOptions.forEach(btn => {
-            btn.addEventListener('click', () => {
-              iconOptions.forEach(b => b.classList.remove('selected'));
-              btn.classList.add('selected');
-              state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
-            });
-          });
-  
-          document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeAllListMenus();
-          });
-        }
-  
-        function updatePagination() {
-          const prevBtn = document.getElementById('prevPageBtn');
-          const nextBtn = document.getElementById('nextPageBtn');
-          const info = document.getElementById('pageInfo');
-          if (prevBtn) prevBtn.disabled = state.page <= 1;
-          if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-          if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
-        }
-  
-        function syncSearchStateFromUrl() {
-          const params = new URLSearchParams(window.location.search);
-          const search = (params.get('search') || '').trim();
-          if (!search) return;
-          state.query = search;
-          state.animePromptQuery = search;
-          const searchInput = document.getElementById('searchInput');
-          if (searchInput) searchInput.value = search;
-        }
-  
-        if (window.initIndexStyleListMenu) {
-          window.initIndexStyleListMenu({
-            mediaType: 'movie',
-            itemIdAttr: 'data-movie-id',
-            getVisibleItemIds: () =>
-              Array.from(document.querySelectorAll('.card[data-movie-id]'))
-                .map((card) => card.getAttribute('data-movie-id'))
-                .filter(Boolean),
-            getQuickStatusForItem: (itemId) => {
-              const numeric = Number(itemId);
-              const key = Number.isFinite(numeric) ? numeric : itemId;
-              const status = state.listStatusMap.get(key);
-              return status ? { ...status } : null;
-            },
-            ensureClient: async () => {
-              if (supabaseClient) return supabaseClient;
-              await initSupabase();
-              return supabaseClient;
-            },
-            getCurrentUser: () => state.currentUser,
-            notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-            toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-              toggleDefaultList(itemId, listType, card, nextSaved)
-          });
-        }
-  
-        (async function init() {
-          await ensureSupabase();
-          wireUI();
-          syncSearchStateFromUrl();
-          await Promise.all([loadGenres(), initAuthUi()]);
-          renderFilters();
-          loadMovies();
-        })();
-      })();
-    </script>
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'movie',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      loadPage();
+    });
+  </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
