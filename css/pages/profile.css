@@ -1327,7 +1327,7 @@
             border-radius: var(--radius-sm);
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
             display: flex;
             align-items: center;
@@ -1660,7 +1660,7 @@
 
         .modal-content.profile-modal-fly-up,
         .confirm-content.profile-modal-fly-up {
-            animation: profileModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: profileModalFlyUp 0.32s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .modal-header {
@@ -2541,7 +2541,7 @@
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: smoothTabFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* === LOADING STATES === */
@@ -2577,6 +2577,17 @@
         @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes smoothTabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* === SEARCH BOX === */
