@@ -1026,7 +1026,7 @@ body.zo2y-mobile-menu-open {
   font-weight: 600;
   padding: 9px 12px;
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .zo2y-shared-pill:hover,
@@ -1065,6 +1065,7 @@ body.zo2y-mobile-menu-open {
   text-decoration: none;
   cursor: pointer;
   max-width: min(100%, 260px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .zo2y-shared-btn span {
