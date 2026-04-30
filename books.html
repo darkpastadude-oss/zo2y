@@ -1261,11 +1261,16 @@
         });
         url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
         const cacheUrl = url.toString();
+        const isSearchRequest = normalizedPath === '/search' || params.q;
+        
         if (booksApiInFlight.has(cacheUrl)) {
           return booksApiInFlight.get(cacheUrl);
         }
-        const cached = readBooksApiCache(cacheUrl);
-        if (cached) return cached;
+        // Skip cache for search requests to ensure fresh, accurate results
+        if (!isSearchRequest) {
+          const cached = readBooksApiCache(cacheUrl);
+          if (cached) return cached;
+        }
 
         const requestPromise = (async () => {
           const controller = new AbortController();
@@ -1505,25 +1510,6 @@
           merged.push(book);
         });
 
-        scheduleBooksBackgroundRefresh('books:curated-seeds', async () => {
-          const seededBooks = await fetchCuratedTopBookSeeds(Math.min(BOOKS_PER_PAGE, 18));
-          if (!seededBooks.length) return;
-          if (state.query || state.author || state.activeCategory || state.year || Number(state.page || 1) !== 1) return;
-          const next = [];
-          const nextSeen = new Set();
-          [...seededBooks, ...merged].forEach((book) => {
-            const title = normalizeBookSeedText(book?.title || '');
-            const author = normalizeBookSeedText(book?.author || '');
-            const key = `${title}::${author}`;
-            if (!title || nextSeen.has(key)) return;
-            nextSeen.add(key);
-            next.push(book);
-          });
-          const payload = { books: next.slice(0, BOOKS_PER_PAGE), numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), next.length) };
-          writeCachedBooksPage(payload);
-          updateBookPageSpotlight(payload.books || []);
-          displayBookResults(payload.books || [], payload.numFound || 0);
-        });
 
         if (merged.length < BOOKS_PER_PAGE) {
           const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
@@ -2071,14 +2057,14 @@
             const [popularResult, trendingResult] = await Promise.allSettled([
               booksFetch('/popular', {
                 page: 1,
-                limit: 60,
+                limit: 50,
                 subject: state.activeCategory || 'fiction',
                 language: BOOKS_LANGUAGE,
                 orderBy: 'relevance'
               }),
               booksFetch('/trending', {
                 period: 'weekly',
-                limit: 60
+                limit: 50
               })
             ]);
             

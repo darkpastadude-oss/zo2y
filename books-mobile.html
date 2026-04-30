@@ -1853,14 +1853,14 @@
             const [popularResult, trendingResult] = await Promise.allSettled([
               booksFetch('/popular', {
                 page: 1,
-                limit: 60,
+                limit: 50,
                 subject: state.activeCategory || 'fiction',
                 language: BOOKS_LANGUAGE,
                 orderBy: 'relevance'
               }),
               booksFetch('/trending', {
                 period: 'weekly',
-                limit: 60
+                limit: 50
               })
             ]);
             
