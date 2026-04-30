@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
 <script src="/js/auth-gate.js?v=20260428a"></script>
-  <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260430b" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -1588,8 +1588,15 @@
         state.currentUser = await ensureBooksUserSession();
         await loadUserListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
-          state.currentUser = session?.user || null;
-          loadUserListStatus();
+          if (session?.user) {
+            state.currentUser = session.user;
+            void loadUserListStatus();
+            return;
+          }
+          window.setTimeout(async () => {
+            state.currentUser = await ensureBooksUserSession();
+            await loadUserListStatus();
+          }, BOOKS_SESSION_RECOVERY_RETRY_MS);
         });
       }
 
@@ -1624,12 +1631,19 @@
 
       async function ensureBooksUserSession() {
         if (!supabaseClient?.auth) return state.currentUser || null;
+        if (state.currentUser?.id) return state.currentUser;
         try {
-          const { data: { user } } = await supabaseClient.auth.getUser();
-          state.currentUser = user || null;
-          return state.currentUser;
+          const sessionResult = await supabaseClient.auth.getSession();
+          const sessionUser = sessionResult?.data?.session?.user || null;
+          if (sessionUser?.id) return sessionUser;
+        } catch (_error) {}
+        try {
+          const userResult = typeof supabaseClient.auth.getUser === 'function'
+            ? await supabaseClient.auth.getUser()
+            : null;
+          return userResult?.data?.user || null;
         } catch (_error) {
-          return state.currentUser || null;
+          return null;
         }
       }
 
