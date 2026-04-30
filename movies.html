@@ -928,6 +928,85 @@
       setTimeout(() => el.remove(), 2200);
     }
 
+    let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        // Try adding space at common compound word boundaries
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadMoviesWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      const variations = getQueryVariations(query);
+      let movies = [];
+      let apiTotalPages = 1;
+
+      for (const variation of variations) {
+        try {
+          const endpoint = variation ? 'search/movie' : 'trending/movie/week';
+          const params = variation ? { query: variation, page: state.page } : { page: state.page };
+          const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            const results = Array.isArray(json?.results) ? json.results : [];
+            if (results.length > 0) {
+              movies = results;
+              apiTotalPages = json?.total_pages || 1;
+              break;
+            }
+          }
+        } catch (_err) {
+          console.error('Failed to load movies with variation:', variation, _err);
+        }
+      }
+
+      state.movies = movies.map((movie) => ({
+        id: String(movie.id || ''),
+        title: movie.title || movie.name || 'Unknown Movie',
+        overview: movie.overview || '',
+        posterPath: movie.poster_path || '',
+        backdropPath: movie.backdrop_path || '',
+        releaseDate: movie.release_date || '',
+        voteAverage: movie.vote_average || 0,
+        genreIds: Array.isArray(movie.genre_ids) ? movie.genre_ids : []
+      })).filter((m) => m.id);
+      
+      state.totalPages = apiTotalPages;
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadMoviesWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
       const authRuntime = window.ZO2Y_AUTH || null;
@@ -979,36 +1058,7 @@
     }
 
     async function loadMovies(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      let movies = [];
-      let apiTotalPages = 1;
-
-      try {
-        const endpoint = query ? 'search/movie' : 'trending/movie/week';
-        const params = query ? { query, page: state.page } : { page: state.page };
-        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          movies = Array.isArray(json?.results) ? json.results : [];
-          apiTotalPages = json?.total_pages || 1;
-        }
-      } catch (_err) {
-        console.error('Failed to load movies', _err);
-      }
-
-      state.movies = movies.map((movie) => ({
-        id: String(movie.id || ''),
-        title: movie.title || movie.name || 'Unknown Movie',
-        overview: movie.overview || '',
-        posterPath: movie.poster_path || '',
-        backdropPath: movie.backdrop_path || '',
-        releaseDate: movie.release_date || '',
-        voteAverage: movie.vote_average || 0,
-        genreIds: Array.isArray(movie.genre_ids) ? movie.genre_ids : []
-      })).filter((m) => m.id);
-      
-      state.totalPages = apiTotalPages;
+      await loadMoviesWithFallback(queryOverride);
     }
 
     async function loadListStatus() {
@@ -1091,22 +1141,6 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    async function upsertMovieRecord(client, movie) {
-      if (!client || !movie?.id) return false;
-      const payload = {
-        id: String(movie.id),
-        title: movie.title || '',
-        poster_url: movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('movies').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('Movie upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const movieId = String(itemId || '').trim();
       if (!movieId) return { ok: false, saved: false };
@@ -1133,8 +1167,6 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const ok = await upsertMovieRecord(client, movie);
-          if (!ok) throw new Error('Movie upsert failed');
           const { error } = await client.from('movie_list_items').insert({
             user_id: currentUser.id,
             movie_id: movieId,
@@ -1199,14 +1231,12 @@
 
     document.getElementById('refreshMoviesBtn')?.addEventListener('click', loadPage);
     document.getElementById('moviesSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
     });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('moviesFilterBtn')?.addEventListener('click', () => {
       document.getElementById('moviesFilterModal')?.classList.add('show');

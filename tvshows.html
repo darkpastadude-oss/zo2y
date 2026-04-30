@@ -928,6 +928,85 @@
       setTimeout(() => el.remove(), 2200);
     }
 
+    let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadTvshowsWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      const variations = getQueryVariations(query);
+      let tvshows = [];
+      let apiTotalPages = 1;
+
+      for (const variation of variations) {
+        try {
+          const endpoint = variation ? 'search/tv' : 'trending/tv/week';
+          const params = variation ? { query: variation, page: state.page } : { page: state.page };
+          const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            const filteredTvshows = filterNonAnime(tvResults);
+            if (filteredTvshows.length > 0) {
+              tvshows = filteredTvshows;
+              apiTotalPages = json?.total_pages || 1;
+              break;
+            }
+          }
+        } catch (_err) {
+          console.error('Failed to load tvshows with variation:', variation, _err);
+        }
+      }
+
+      state.tvshows = tvshows.map((tvshow) => ({
+        id: String(tvshow.id || ''),
+        name: tvshow.name || tvshow.title || 'Unknown TV Show',
+        overview: tvshow.overview || '',
+        posterPath: tvshow.poster_path || '',
+        backdropPath: tvshow.backdrop_path || '',
+        firstAirDate: tvshow.first_air_date || '',
+        voteAverage: tvshow.vote_average || 0,
+        genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
+      })).filter((t) => t.id);
+      
+      state.totalPages = apiTotalPages;
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadTvshowsWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
       const authRuntime = window.ZO2Y_AUTH || null;
@@ -991,37 +1070,7 @@
     }
 
     async function loadTvshows(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      let tvshows = [];
-      let apiTotalPages = 1;
-
-      try {
-        const endpoint = query ? 'search/tv' : 'trending/tv/week';
-        const params = query ? { query, page: state.page } : { page: state.page };
-        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          const tvResults = Array.isArray(json?.results) ? json.results : [];
-          tvshows = filterNonAnime(tvResults);
-          apiTotalPages = json?.total_pages || 1;
-        }
-      } catch (_err) {
-        console.error('Failed to load tvshows', _err);
-      }
-
-      state.tvshows = tvshows.map((tvshow) => ({
-        id: String(tvshow.id || ''),
-        name: tvshow.name || tvshow.title || 'Unknown TV Show',
-        overview: tvshow.overview || '',
-        posterPath: tvshow.poster_path || '',
-        backdropPath: tvshow.backdrop_path || '',
-        firstAirDate: tvshow.first_air_date || '',
-        voteAverage: tvshow.vote_average || 0,
-        genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
-      })).filter((t) => t.id);
-      
-      state.totalPages = apiTotalPages;
+      await loadTvshowsWithFallback(queryOverride);
     }
 
     async function loadListStatus() {
@@ -1104,22 +1153,6 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    async function upsertTvshowRecord(client, tvshow) {
-      if (!client || !tvshow?.id) return false;
-      const payload = {
-        id: String(tvshow.id),
-        name: tvshow.name || '',
-        poster_url: tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('tvshows').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('TV show upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const tvshowId = String(itemId || '').trim();
       if (!tvshowId) return { ok: false, saved: false };
@@ -1146,8 +1179,6 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const ok = await upsertTvshowRecord(client, tvshow);
-          if (!ok) throw new Error('TV show upsert failed');
           const { error } = await client.from('tvshow_list_items').insert({
             user_id: currentUser.id,
             tvshow_id: tvshowId,
@@ -1212,14 +1243,12 @@
 
     document.getElementById('refreshTvshowsBtn')?.addEventListener('click', loadPage);
     document.getElementById('tvshowsSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
     });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('tvshowsFilterBtn')?.addEventListener('click', () => {
       document.getElementById('tvshowsFilterModal')?.classList.add('show');

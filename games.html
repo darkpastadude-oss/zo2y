@@ -930,6 +930,105 @@
       setTimeout(() => el.remove(), 2200);
     }
 
+    let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadGamesWithFallback() {
+      const query = String(state.search || '').trim();
+      const variations = getQueryVariations(query);
+      let games = [];
+      let apiTotalPages = 1;
+
+      for (const variation of variations) {
+        const client = await ensureSupabase();
+        if (!client) break;
+
+        try {
+          let query = client.from('games').select('*', { count: 'exact' });
+
+          if (variation) {
+            query = query.ilike('title', `%${variation}%`);
+          }
+
+          if (state.genre) {
+            query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
+          }
+
+          if (state.platform) {
+            query = query.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+          }
+
+          if (state.sort === 'name') {
+            query = query.order('title', { ascending: true });
+          } else if (state.sort === 'released') {
+            query = query.order('release_date', { ascending: false, nullsFirst: false });
+          } else {
+            query = query.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+          }
+
+          const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
+          const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
+          const { data, error, count } = await query.range(rangeStart, rangeEnd);
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            games = data;
+            apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+            break;
+          }
+        } catch (_err) {
+          console.error('Failed to load games with variation:', variation, _err);
+        }
+      }
+
+      state.games = games.map((game) => ({
+        id: String(game.id || ''),
+        name: game.title || 'Unknown Game',
+        summary: game.description || '',
+        cover: resolveGameCover(game),
+        firstReleaseDate: game.release_date || '',
+        rating: game.rating || 0,
+        genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
+      })).filter((g) => g.id);
+      
+      state.totalPages = apiTotalPages;
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadGamesWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
     function toHttpsUrl(value) {
       const raw = String(value || '').trim();
       if (!raw) return '';
@@ -987,51 +1086,7 @@
     }
 
     async function loadGames() {
-      const client = await ensureSupabase();
-      if (!client) return;
-
-      let query = client.from('games').select('*', { count: 'exact' });
-
-      if (state.search) {
-        query = query.ilike('title', `%${state.search}%`);
-      }
-
-      if (state.genre) {
-        query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
-      }
-
-      if (state.platform) {
-        query = query.contains('extra->platforms', `{"slug": "${state.platform}"}`);
-      }
-
-      if (state.sort === 'name') {
-        query = query.order('title', { ascending: true });
-      } else if (state.sort === 'released') {
-        query = query.order('release_date', { ascending: false, nullsFirst: false });
-      } else {
-        query = query.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
-      }
-
-      try {
-        const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
-        const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
-        const { data, error, count } = await query.range(rangeStart, rangeEnd);
-        if (error) throw error;
-
-        state.games = (Array.isArray(data) ? data : []).map((game) => ({
-          id: String(game.id || ''),
-          name: game.title || 'Unknown Game',
-          summary: game.description || '',
-          cover: resolveGameCover(game),
-          firstReleaseDate: game.release_date || '',
-          rating: game.rating || 0,
-          genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-        })).filter((g) => g.id);
-        
-        state.totalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-      } catch (_err) {
-        console.error('Failed to load games', _err);
-      }
+      await loadGamesWithFallback();
     }
 
     async function loadListStatus() {
@@ -1115,22 +1170,6 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    async function upsertGameRecord(client, game) {
-      if (!client || !game?.id) return false;
-      const payload = {
-        id: String(game.id),
-        title: game.name || '',
-        cover_url: game.cover || '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('games').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('Game upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const gameId = String(itemId || '').trim();
       if (!gameId) return { ok: false, saved: false };
@@ -1157,8 +1196,6 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const ok = await upsertGameRecord(client, game);
-          if (!ok) throw new Error('Game upsert failed');
           const { error } = await client.from('game_list_items').insert({
             user_id: currentUser.id,
             game_id: gameId,
@@ -1223,14 +1260,12 @@
 
     document.getElementById('refreshGamesBtn')?.addEventListener('click', loadPage);
     document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
     });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('gamesFilterBtn')?.addEventListener('click', () => {
       document.getElementById('gamesFilterModal')?.classList.add('show');

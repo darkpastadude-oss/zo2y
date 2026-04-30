@@ -928,6 +928,85 @@
       setTimeout(() => el.remove(), 2200);
     }
 
+    let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadAnimesWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      const variations = getQueryVariations(query);
+      let animes = [];
+      let apiTotalPages = 1;
+
+      for (const variation of variations) {
+        try {
+          const endpoint = variation ? 'search/tv' : 'trending/tv/week';
+          const params = variation ? { query: variation, page: state.page } : { page: state.page };
+          const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            const filteredAnimes = filterAnime(tvResults);
+            if (filteredAnimes.length > 0) {
+              animes = filteredAnimes;
+              apiTotalPages = json?.total_pages || 1;
+              break;
+            }
+          }
+        } catch (_err) {
+          console.error('Failed to load animes with variation:', variation, _err);
+        }
+      }
+
+      state.animes = animes.map((anime) => ({
+        id: String(anime.id || ''),
+        name: anime.name || anime.title || 'Unknown Anime',
+        overview: anime.overview || '',
+        posterPath: anime.poster_path || '',
+        backdropPath: anime.backdrop_path || '',
+        firstAirDate: anime.first_air_date || '',
+        voteAverage: anime.vote_average || 0,
+        genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
+      })).filter((a) => a.id);
+      
+      state.totalPages = apiTotalPages;
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadAnimesWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
       const authRuntime = window.ZO2Y_AUTH || null;
@@ -992,37 +1071,7 @@
     }
 
     async function loadAnimes(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      let animes = [];
-      let apiTotalPages = 1;
-
-      try {
-        const endpoint = query ? 'search/tv' : 'trending/tv/week';
-        const params = query ? { query, page: state.page } : { page: state.page };
-        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          const tvResults = Array.isArray(json?.results) ? json.results : [];
-          animes = filterAnime(tvResults);
-          apiTotalPages = json?.total_pages || 1;
-        }
-      } catch (_err) {
-        console.error('Failed to load animes', _err);
-      }
-
-      state.animes = animes.map((anime) => ({
-        id: String(anime.id || ''),
-        name: anime.name || anime.title || 'Unknown Anime',
-        overview: anime.overview || '',
-        posterPath: anime.poster_path || '',
-        backdropPath: anime.backdrop_path || '',
-        firstAirDate: anime.first_air_date || '',
-        voteAverage: anime.vote_average || 0,
-        genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
-      })).filter((a) => a.id);
-      
-      state.totalPages = apiTotalPages;
+      await loadAnimesWithFallback(queryOverride);
     }
 
     async function loadListStatus() {
@@ -1105,22 +1154,6 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    async function upsertAnimeRecord(client, anime) {
-      if (!client || !anime?.id) return false;
-      const payload = {
-        id: String(anime.id),
-        name: anime.name || '',
-        poster_url: anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('animes').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('Anime upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const animeId = String(itemId || '').trim();
       if (!animeId) return { ok: false, saved: false };
@@ -1147,8 +1180,6 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const ok = await upsertAnimeRecord(client, anime);
-          if (!ok) throw new Error('Anime upsert failed');
           const { error } = await client.from('anime_list_items').insert({
             user_id: currentUser.id,
             anime_id: animeId,
@@ -1213,14 +1244,12 @@
 
     document.getElementById('refreshAnimesBtn')?.addEventListener('click', loadPage);
     document.getElementById('animesSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
     });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('animesFilterBtn')?.addEventListener('click', () => {
       document.getElementById('animesFilterModal')?.classList.add('show');
