@@ -505,6 +505,35 @@
       text-align: center;
     }
 
+    .loading-spinner {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .spinner-circle {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .spinner-text {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .pagination {
       max-width: 1200px;
       margin: 0 auto 60px;
@@ -976,6 +1005,10 @@
   </div>
 
   <div id="booksGrid" class="grid"></div>
+  <div id="loadingSpinner" class="loading-spinner" style="display:none;">
+    <div class="spinner-circle"></div>
+    <div class="spinner-text">Loading books...</div>
+  </div>
   <div id="emptyState" class="empty" style="display:none;">No books found.</div>
   <div class="pagination">
     <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
@@ -2029,9 +2062,13 @@
 
       async function loadBooks(options = {}) {
         const grid = document.getElementById('booksGrid');
+        const spinner = document.getElementById('loadingSpinner');
+        const empty = document.getElementById('emptyState');
         if (!grid) return;
         
         grid.innerHTML = '';
+        if (spinner) spinner.style.display = 'flex';
+        if (empty) empty.style.display = 'none';
         
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
         const isFirstPage = Number(state.page || 1) === 1;
@@ -2131,6 +2168,7 @@
           data = { books: [], numFound: 0 };
         }
         
+        if (spinner) spinner.style.display = 'none';
         updateBookPageSpotlight(data.books || []);
         displayBookResults(data.books || [], data.numFound || 0);
       }
@@ -2282,7 +2320,10 @@
             const { error } = await supabaseClient
               .from('book_list_items')
               .insert({ user_id: activeUser.id, book_id: bookId, list_type: listType });
-            if (error && String(error.code || '') !== '23505') throw error;
+            if (error && String(error.code || '') !== '23505') {
+              showNotification('Could not add to list', 'error');
+              return { ok: false, saved: previousSaved };
+            }
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
@@ -2291,7 +2332,10 @@
               .eq('user_id', activeUser.id)
               .eq('book_id', bookId)
               .eq('list_type', listType);
-            if (error) throw error;
+            if (error) {
+              showNotification('Could not update list', 'error');
+              return { ok: false, saved: previousSaved };
+            }
             showNotification('Removed from list', 'info');
           }
           return { ok: true, saved: nextSaved };
