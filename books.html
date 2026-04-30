@@ -1004,11 +1004,11 @@
     </div>
   </div>
 
-  <div id="booksGrid" class="grid"></div>
   <div id="loadingSpinner" class="loading-spinner" style="display:none;">
     <div class="spinner-circle"></div>
     <div class="spinner-text">Loading books...</div>
   </div>
+  <div id="booksGrid" class="grid"></div>
   <div id="emptyState" class="empty" style="display:none;">No books found.</div>
   <div class="pagination">
     <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
@@ -2133,35 +2133,12 @@
           if (!Array.isArray(data?.books) || !data.books.length) {
             data = { books: [], numFound: 0 };
           } else {
-            // Filter for books with covers and prioritize aesthetic ones
-            data.books = data.books
-              .filter(book => {
-                const hasCover = book.cover && 
-                                book.cover !== FALLBACK_BOOK_IMAGE && 
-                                !book.cover.includes('fallback') &&
-                                !book.cover.includes('placeholder') &&
-                                !book.cover.includes('open-book');
-                return hasCover;
-              })
-              .sort((a, b) => {
-                // Prioritize books with better covers (googleusercontent > openlibrary)
-                const aCover = String(a?.cover || '');
-                const bCover = String(b?.cover || '');
-                const aHasGoogle = aCover.includes('googleusercontent.com');
-                const bHasGoogle = bCover.includes('googleusercontent.com');
-                const aHasOpenLibrary = aCover.includes('covers.openlibrary.org');
-                const bHasOpenLibrary = bCover.includes('covers.openlibrary.org');
-                
-                if (aHasGoogle && !bHasGoogle) return -1;
-                if (!aHasGoogle && bHasGoogle) return 1;
-                if (aHasOpenLibrary && !bHasOpenLibrary) return -1;
-                if (!aHasOpenLibrary && bHasOpenLibrary) return 1;
-                
-                // Then prioritize newer books
-                const aYear = a.year || 0;
-                const bYear = b.year || 0;
-                return bYear - aYear;
-              });
+            // Only filter out truly invalid covers, allow books with any cover
+            data.books = data.books.filter(book => {
+              const cover = String(book?.cover || '').trim();
+              // Only exclude if cover is explicitly a known fallback/placeholder
+              return !cover.includes('fallback') && !cover.includes('placeholder');
+            });
           }
         } catch (e) {
           console.error('Books fetch error', e);
@@ -2319,8 +2296,11 @@
             if (!ensured) throw new Error('book_record_missing');
             const { error } = await supabaseClient
               .from('book_list_items')
-              .insert({ user_id: activeUser.id, book_id: bookId, list_type: listType });
-            if (error && String(error.code || '') !== '23505') {
+              .upsert({ user_id: activeUser.id, book_id: bookId, list_type: listType }, {
+                onConflict: 'user_id,book_id,list_type',
+                ignoreDuplicates: false
+              });
+            if (error) {
               showNotification('Could not add to list', 'error');
               return { ok: false, saved: previousSaved };
             }
