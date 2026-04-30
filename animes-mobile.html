@@ -32,8 +32,19 @@
     .section { background: rgba(19, 35, 71, 0.9); border: 1px solid var(--border); border-radius: 16px; }
     .section-head { padding: 12px 14px; border-bottom: 1px solid var(--border); }
     .section-head h2 { font-size: 18px; }
-    .section-search { margin-top: 8px; display: flex; gap: 6px; }
-    .section-search input { flex: 1; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-2); color: var(--white); padding: 0 10px; font-size: 14px; }
+    .controls { display: grid; grid-template-columns: minmax(0, 1fr) 52px 52px; gap: 10px; }
+    .controls input, .controls select { height: 52px; border: 1px solid var(--border); border-radius: 18px; background: #10224a; color: #fff; padding: 0 18px; font-size: 16px; -webkit-appearance: none; appearance: none; }
+    .controls button, .pager button { height: 52px; border: 1px solid var(--border); border-radius: 18px; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); color: #0b1633; padding: 0; cursor: pointer; }
+    .control-modal { position: fixed; inset: 0; z-index: 1700; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(4, 10, 23, 0.72); backdrop-filter: blur(6px); }
+    .control-modal.show { display: flex; }
+    .control-modal-card { width: min(480px, 100%); border-radius: 18px; border: 1px solid var(--border); background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98)); box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42); padding: 16px; }
+    .control-modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .control-modal-title { font-size: 18px; font-weight: 800; }
+    .control-modal-close { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.04); color: #fff; cursor: pointer; }
+    .control-modal-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .control-modal-grid select, .control-modal-action { width: 100%; height: 48px; border-radius: 14px; border: 1px solid var(--border); background: #10224a; color: #fff; padding: 0 14px; font-size: 14px; }
+    .control-modal-action { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: var(--card); color: #fff; cursor: pointer; }
+    .control-icon-btn { width: 52px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     .grid { padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .card { border-radius: 12px; overflow: hidden; background: var(--card-2); min-height: 260px; display: flex; flex-direction: column; }
     .card-media { aspect-ratio: 2/3; background: linear-gradient(135deg, #102545 0%, #0b1c35 100%); overflow: hidden; }
@@ -70,10 +81,32 @@
       <div style="margin-top:6px;font-size:11px;color:var(--muted);">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions"><button class="btn btn-primary" id="refreshAnimesBtn"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
     </section>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search anime, genres, years...">
+      <button id="animesSearchBtn" class="control-icon-btn" type="button" aria-label="Search anime"><i class="fas fa-search"></i></button>
+      <button id="animesFilterBtn" class="control-icon-btn" type="button" aria-label="Open anime filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="animesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter anime</div>
+          <button class="control-modal-close" id="animesFilterCloseBtn" type="button" aria-label="Close anime filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
     <section class="section">
       <div class="section-head">
         <h2>popular anime right now</h2>
-        <div class="section-search"><input id="animesPageSearch" type="text" placeholder="Search anime..." /><button class="btn" id="searchAnimesBtn"><i class="fa-solid fa-magnifying-glass"></i></button><button class="btn" id="clearAnimesSearchBtn"><i class="fa-solid fa-rotate-left"></i></button></div>
       </div>
       <div class="grid" id="animesGrid"></div>
       <div class="pagination"><button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button><div class="page-info" id="pageInfo">Page 1 of 1</div><button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button></div>
@@ -87,7 +120,7 @@
     const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
     const ANIMES_PAGE_SIZE = 20;
     let supabaseClient = null, currentUser = null;
-    const state = { animes: [], currentQuery: '', page: 1, totalPages: 1, listStatusMap: new Map(), pendingQuickOps: new Set() };
+    const state = { animes: [], search: '', genre: '', year: '', sort: 'popular', page: 1, totalPages: 1, listStatusMap: new Map(), pendingQuickOps: new Set() };
     function escapeHtml(v) { return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
     function showToast(m, isError) { const el=document.createElement('div');el.style.position='fixed';el.style.top='12px';el.style.right='12px';el.style.zIndex='9999';el.style.background=isError?'#dc2626':'#f59e0b';el.style.color='#fff';el.style.padding='8px 12px';el.style.borderRadius='8px';el.style.fontSize='12px';el.textContent=m;document.body.appendChild(el);setTimeout(()=>el.remove(),2000); }
     async function ensureSupabase() {
@@ -169,11 +202,16 @@
         return{ok:true,saved:next};
       } catch(e) { console.error('Anime list toggle failed',e); status[listType]=prev; showToast('Could not update list',true);return{ok:false,saved:prev}; }finally{state.pendingQuickOps.delete(opKey);}
     }
-    async function loadPage() { try{await initAuthUi();await loadAnimes(state.currentQuery);await loadListStatus();renderGrid();}catch(e){const g=document.getElementById('animesGrid');if(g)g.innerHTML='<div class="empty">Anime feed unavailable.</div>';}}
+    async function loadPage() { try{await initAuthUi();await loadAnimes();await loadListStatus();renderGrid();}catch(e){const g=document.getElementById('animesGrid');if(g)g.innerHTML='<div class="empty">Anime feed unavailable.</div>';}}
     document.getElementById('refreshAnimesBtn')?.addEventListener('click',loadPage);
-    document.getElementById('searchAnimesBtn')?.addEventListener('click',async()=>{state.currentQuery=String(document.getElementById('animesPageSearch')?.value||'').trim();await loadPage();});
-    document.getElementById('clearAnimesSearchBtn')?.addEventListener('click',async()=>{const i=document.getElementById('animesPageSearch');if(i)i.value='';state.currentQuery='';await loadPage();});
-    document.getElementById('animesPageSearch')?.addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();state.currentQuery=String(e.target.value||'').trim();await loadPage();});
+    document.getElementById('animesSearchBtn')?.addEventListener('click',async()=>{state.search=String(document.getElementById('q')?.value||'').trim();await loadPage();});
+    document.getElementById('q')?.addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();state.search=String(e.target.value||'').trim();await loadPage();});
+    document.getElementById('animesFilterBtn')?.addEventListener('click',()=>{document.getElementById('animesFilterModal')?.classList.add('show');});
+    document.getElementById('animesFilterCloseBtn')?.addEventListener('click',()=>{document.getElementById('animesFilterModal')?.classList.remove('show');});
+    document.getElementById('genre')?.addEventListener('change',e=>{state.genre=String(e.target.value||'').trim();});
+    document.getElementById('year')?.addEventListener('change',e=>{state.year=String(e.target.value||'').trim();});
+    document.getElementById('sort')?.addEventListener('change',e=>{state.sort=String(e.target.value||'popular').trim();});
+    document.getElementById('refresh')?.addEventListener('click',async()=>{document.getElementById('animesFilterModal')?.classList.remove('show');await loadPage();});
     document.getElementById('prevPageBtn')?.addEventListener('click',()=>{if(state.page<=1)return;state.page-=1;renderGrid();});
     document.getElementById('nextPageBtn')?.addEventListener('click',()=>{if(state.page>=state.totalPages)return;state.page+=1;renderGrid();});
     document.addEventListener('DOMContentLoaded',()=>{

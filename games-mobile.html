@@ -108,28 +108,104 @@
     .section-head h2 { font-size: 18px; margin-bottom: 2px; }
     .section-head p { color: var(--muted); font-size: 12px; }
 
-    .section-search {
-      margin-top: 8px;
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      align-items: center;
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 52px 52px;
+      gap: 10px;
     }
-    .section-search input {
-      flex: 1;
-      min-width: 150px;
-      height: 36px;
-      border-radius: 8px;
+    .controls input, .controls select {
+      height: 52px;
       border: 1px solid var(--border);
-      background: var(--card-2);
-      color: var(--white);
-      padding: 0 10px;
-      outline: none;
+      border-radius: 18px;
+      background: #10224a;
+      color: #fff;
+      padding: 0 18px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .controls button, .pager button {
+      height: 52px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 0;
+      cursor: pointer;
+    }
+    .control-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .control-modal.show {
+      display: flex;
+    }
+    .control-modal-card {
+      width: min(480px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+      padding: 16px;
+    }
+    .control-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .control-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .control-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .control-modal-grid select,
+    .control-modal-action {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #10224a;
+      color: #fff;
+      padding: 0 14px;
       font-size: 14px;
     }
-    .section-search input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+    .control-modal-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--card);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-icon-btn {
+      width: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
     }
 
     .grid {
@@ -307,15 +383,34 @@
         <button class="btn btn-primary" id="refreshGamesBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
       </div>
     </section>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search games, genres, platforms...">
+      <button id="gamesSearchBtn" class="control-icon-btn" type="button" aria-label="Search games"><i class="fas fa-search"></i></button>
+      <button id="gamesFilterBtn" class="control-icon-btn" type="button" aria-label="Open game filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="gamesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter games</div>
+          <button class="control-modal-close" id="gamesFilterCloseBtn" type="button" aria-label="Close game filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="platform"><option value="">All Platforms</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
+
     <section class="section">
       <div class="section-head">
         <h2>popular games right now</h2>
         <p>Trending games across all platforms.</p>
-        <div class="section-search">
-          <input id="gamesPageSearch" type="text" placeholder="Search games..." />
-          <button class="btn" id="searchGamesBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
-          <button class="btn" id="clearGamesSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i></button>
-        </div>
       </div>
       <div class="grid" id="gamesGrid"></div>
       <div class="pagination">
@@ -326,18 +421,22 @@
     </section>
   </main>
 
-  <script src="/js/igdb-client.js?v=20260228a"></script>
+  <script src="/js/pages/games-shared.js?v=20260428a"></script>
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-    const GAMES_PAGE_SIZE = 20;
+      const FALLBACK_IMAGE = '/newlogo.webp';
+      const GAMES_PAGE_SIZE = 20;
 
     let supabaseClient = null;
     let currentUser = null;
     const state = {
       games: [],
-      currentQuery: '',
+      search: '',
+      genre: '',
+      platform: '',
+      sort: 'popular',
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
@@ -369,31 +468,31 @@
       setTimeout(() => el.remove(), 2000);
     }
 
+    function toHttpsUrl(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      return raw.replace(/^http:\/\//i, 'https://');
+    }
+
+    function resolveGameCover(row) {
+      const raw = String(row?.cover_url || row?.cover || row?.image || '').trim();
+      if (!raw || raw === '[object Object]') return '';
+      return toHttpsUrl(raw);
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
-      const authRuntime = window.ZO2Y_AUTH || null;
-      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-        await authRuntime.waitForSupabase(8000);
-      } else {
-        const startedAt = Date.now();
-        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-          await new Promise((resolve) => setTimeout(resolve, 40));
-        }
-      }
-      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (supabaseClient) return supabaseClient;
-      }
-      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-        supabaseClient = window.supabase.createClient(
-          window.__ZO2Y_SUPABASE_CONFIG.url,
-          window.__ZO2Y_SUPABASE_CONFIG.key,
-          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-        );
-        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      if (window.__ZO2Y_SUPABASE_CLIENT) {
+        supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return supabaseClient;
       }
-      return null;
+      if (!window.supabase) return null;
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
+      });
+      window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      return supabaseClient;
     }
 
     async function initAuthUi() {
@@ -419,33 +518,49 @@
       }
     }
 
-    async function loadGames(queryOverride = '') {
-      const query = String(queryOverride || state.currentQuery || '').trim();
-      let games = [];
+    async function loadGames() {
+      const client = await ensureSupabase();
+      if (!client) return;
 
-      try {
-        if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-          const params = query ? { search: query, page_size: 40 } : { page_size: 40 };
-          const data = await window.ZO2Y_IGDB.request('/games', params);
-          games = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []);
-        }
-      } catch (_err) {
-        console.error('Failed to load games', _err);
+      let query = client.from('games').select('*');
+
+      if (state.search) {
+        query = query.ilike('title', `%${state.search}%`);
       }
 
-      state.games = games.map((game) => ({
-        id: String(game.id || ''),
-        name: game.name || 'Unknown Game',
-        summary: game.summary || '',
-        cover: game.cover || '',
-        releaseDate: game.first_release_date || '',
-        rating: game.rating || 0,
-        platforms: Array.isArray(game.platforms) ? game.platforms : [],
-        genres: Array.isArray(game.genres) ? game.genres : []
-      })).filter((g) => g.id);
-      
-      state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
+      if (state.genre) {
+        query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
+      }
+
+      if (state.sort === 'name') {
+        query = query.order('title', { ascending: true });
+      } else if (state.sort === 'released') {
+        query = query.order('release_date', { ascending: false, nullsFirst: false });
+      } else {
+        query = query.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+      }
+
+      try {
+        const { data, error } = await query.limit(200);
+        if (error) throw error;
+
+        state.games = (Array.isArray(data) ? data : []).map((game) => ({
+          id: String(game.id || ''),
+          name: game.title || 'Unknown Game',
+          summary: game.description || '',
+          cover: resolveGameCover(game),
+          releaseDate: game.release_date || '',
+          rating: game.rating || 0,
+          platforms: Array.isArray(game.extra?.platforms) ? game.extra.platforms : [],
+          genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
+        })).filter((g) => g.id);
+
+        state.page = 1;
+        state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
+      } catch (err) {
+        console.error('Failed to load games', err);
+        state.games = [];
+      }
     }
 
     async function loadListStatus() {
@@ -480,9 +595,9 @@
     }
 
     function getGameCardExtra(game) {
-      const platforms = (game.platforms || []).slice(0, 2).join(', ') || 'Unknown';
-      const rating = game.rating ? `${Math.round(game.rating)}/100` : '';
-      const parts = [platforms, rating].filter(Boolean);
+      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
+      const parts = [genres, rating].filter(Boolean);
       return parts.join(' | ') || 'Game details';
     }
 
@@ -497,7 +612,8 @@
       const start = (state.page - 1) * GAMES_PAGE_SIZE;
       const visibleItems = state.games.slice(start, start + GAMES_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((game) => {
-        const coverUrl = game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '/newlogo.webp';
+        const coverUrl = game.cover || FALLBACK_IMAGE;
+        const year = game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBD';
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
@@ -505,7 +621,7 @@
           </div>
           <div class="card-meta">
             <p class="card-title">${escapeHtml(game.name)}</p>
-            <p class="card-sub">${escapeHtml(game.releaseDate ? new Date(game.releaseDate * 1000).getFullYear() : 'TBD')}</p>
+            <p class="card-sub">${escapeHtml(year)}</p>
             <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
@@ -535,8 +651,8 @@
       if (!client || !game?.id) return false;
       const payload = {
         id: String(game.id),
-        name: game.name || '',
-        cover_url: game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '',
+        title: game.name || '',
+        cover_url: game.cover || '',
         updated_at: new Date().toISOString()
       };
       const { error } = await client.from('games').upsert(payload, { onConflict: 'id' });
@@ -628,7 +744,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadGames(state.currentQuery);
+        await loadGames();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -638,20 +754,33 @@
     }
 
     document.getElementById('refreshGamesBtn')?.addEventListener('click', loadPage);
-    document.getElementById('searchGamesBtn')?.addEventListener('click', async () => {
-      state.currentQuery = String(document.getElementById('gamesPageSearch')?.value || '').trim();
+    document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
+      state.search = String(document.getElementById('q')?.value || '').trim();
       await loadPage();
     });
-    document.getElementById('clearGamesSearchBtn')?.addEventListener('click', async () => {
-      const input = document.getElementById('gamesPageSearch');
-      if (input) input.value = '';
-      state.currentQuery = '';
-      await loadPage();
-    });
-    document.getElementById('gamesPageSearch')?.addEventListener('keydown', async (e) => {
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      state.currentQuery = String(e.target.value || '').trim();
+      state.search = String(e.target.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('gamesFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('gamesFilterModal')?.classList.add('show');
+    });
+    document.getElementById('gamesFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('gamesFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('platform')?.addEventListener('change', (e) => {
+      state.platform = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('gamesFilterModal')?.classList.remove('show');
       await loadPage();
     });
     document.getElementById('prevPageBtn')?.addEventListener('click', () => {

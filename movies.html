@@ -214,27 +214,106 @@
     .section-head h2 { font-size: 23px; margin-bottom: 3px; }
     .section-head p { color: var(--muted); font-size: 13px; }
 
-    .section-search {
-      margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 56px 56px;
+      gap: 12px;
+      max-width: 1240px;
+      margin: 12px auto 0;
     }
-    .section-search input {
-      flex: 1;
-      min-width: 220px;
-      height: 38px;
-      border-radius: 10px;
+    .controls input, .controls select {
+      height: 56px;
       border: 1px solid var(--border);
-      background: var(--card-2);
-      color: var(--white);
-      padding: 0 10px;
-      outline: none;
+      border-radius: 18px;
+      background: #10224a;
+      color: #fff;
+      padding: 0 18px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
     }
-    .section-search input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+    .controls button, .pager button {
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 0;
+      cursor: pointer;
+    }
+    .control-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .control-modal.show {
+      display: flex;
+    }
+    .control-modal-card {
+      width: min(480px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+      padding: 16px;
+    }
+    .control-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .control-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .control-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .control-modal-grid select,
+    .control-modal-action {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #10224a;
+      color: #fff;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+    .control-modal-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--card);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-icon-btn {
+      width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
     }
 
     .grid {
@@ -455,15 +534,34 @@
         <button class="btn btn-primary" id="refreshMoviesBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
     </section>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search movies, genres, years...">
+      <button id="moviesSearchBtn" class="control-icon-btn" type="button" aria-label="Search movies"><i class="fas fa-search"></i></button>
+      <button id="moviesFilterBtn" class="control-icon-btn" type="button" aria-label="Open movie filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="moviesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter movies</div>
+          <button class="control-modal-close" id="moviesFilterCloseBtn" type="button" aria-label="Close movie filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
+
     <section class="section">
       <div class="section-head">
         <h2>popular movies right now</h2>
         <p>Trending movies across all genres.</p>
-        <div class="section-search">
-          <input id="moviesPageSearch" type="text" placeholder="Search movies..." />
-          <button class="btn" id="searchMoviesBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-          <button class="btn" id="clearMoviesSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Reset</button>
-        </div>
       </div>
       <div class="grid" id="moviesGrid"></div>
       <div class="pagination">
@@ -487,7 +585,10 @@
     let currentUser = null;
     const state = {
       movies: [],
-      currentQuery: '',
+      search: '',
+      genre: '',
+      year: '',
+      sort: 'popular',
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
@@ -781,7 +882,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadMovies(state.currentQuery);
+        await loadMovies();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -791,20 +892,33 @@
     }
 
     document.getElementById('refreshMoviesBtn')?.addEventListener('click', loadPage);
-    document.getElementById('searchMoviesBtn')?.addEventListener('click', async () => {
-      state.currentQuery = String(document.getElementById('moviesPageSearch')?.value || '').trim();
+    document.getElementById('moviesSearchBtn')?.addEventListener('click', async () => {
+      state.search = String(document.getElementById('q')?.value || '').trim();
       await loadPage();
     });
-    document.getElementById('clearMoviesSearchBtn')?.addEventListener('click', async () => {
-      const input = document.getElementById('moviesPageSearch');
-      if (input) input.value = '';
-      state.currentQuery = '';
-      await loadPage();
-    });
-    document.getElementById('moviesPageSearch')?.addEventListener('keydown', async (e) => {
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      state.currentQuery = String(e.target.value || '').trim();
+      state.search = String(e.target.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('moviesFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('moviesFilterModal')?.classList.add('show');
+    });
+    document.getElementById('moviesFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('moviesFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('moviesFilterModal')?.classList.remove('show');
       await loadPage();
     });
     document.getElementById('prevPageBtn')?.addEventListener('click', () => {
