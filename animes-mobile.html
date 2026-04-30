@@ -1334,7 +1334,11 @@
           state.currentUser = providedUser;
         }
         if (!state.currentUser) {
-          await ensureMediaUserSession();
+          const client = await ensureSupabase();
+          if (client) {
+            const { data } = await client.auth.getUser();
+            state.currentUser = data?.user || null;
+          }
         }
         const opKey = `${movieId}:${listType}`;
         const status = state.listStatusMap.get(movieId) || { favorites: false, watched: false, watchlist: false };

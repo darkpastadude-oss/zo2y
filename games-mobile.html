@@ -2706,7 +2706,11 @@
           state.currentUser = providedUser;
         }
         if (!state.currentUser) {
-          await ensureMediaUserSession();
+          const client = await ensureSupabase();
+          if (client) {
+            const { data } = await client.auth.getUser();
+            state.currentUser = data?.user || null;
+          }
         }
         const opKey = `${gameId}:${listType}`;
         const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
