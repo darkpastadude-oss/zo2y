@@ -467,19 +467,276 @@
         grid-template-columns: 1fr;
       }
       .media-spotlight-copy {
-      padding: 18px 18px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: flex-start;
-      min-width: 0;
-    }
+        padding: 18px 18px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: flex-start;
+        min-width: 0;
+      }
       .media-spotlight-poster {
-      padding: 18px 18px 18px 0;
-      display: flex;
+        padding: 18px 18px 18px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .menu-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      top: 0;
+      left: 0;
+      width: 100dvw;
+      height: 100dvh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      padding: 0;
       align-items: center;
       justify-content: center;
     }
+    .menu-modal.active {
+      display: flex;
+    }
+    .menu-modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+    }
+    .menu-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .menu-modal-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+      margin: 0;
+    }
+    .menu-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .menu-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+    }
+    .menu-modal-body {
+      padding: 16px 20px;
+    }
+    .menu-quick-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .menu-quick-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-quick-item:hover {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-quick-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-quick-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-quick-left i {
+      width: 20px;
+      color: var(--accent);
+    }
+    .menu-quick-left span {
+      font-weight: 500;
+    }
+    .menu-quick-state {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .menu-custom-section {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .menu-custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .menu-create-list-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .menu-create-list-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .menu-custom-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .menu-custom-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-custom-item:hover {
+      border-color: var(--accent);
+    }
+    .menu-custom-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-custom-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .menu-custom-left i {
+      width: 18px;
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .menu-custom-left span {
+      font-size: 14px;
+    }
+    .menu-custom-state {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .menu-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-option {
+      height: 44px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .menu-icon-option:hover {
+      border-color: var(--accent);
+    }
+    .menu-icon-option.selected {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-icon-option i {
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .menu-icon-option.selected i {
+      color: var(--accent);
+    }
+    .menu-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .menu-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-btn-secondary {
+      background: var(--card-2);
+      color: var(--white);
+    }
+    .menu-btn-secondary:hover {
+      border-color: var(--accent);
+    }
+    .menu-btn-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+    }
+    .menu-btn-primary:hover {
+      opacity: 0.9;
+    }
+    .authenticated-only {
+      display: none;
+    }
+    body.authenticated .authenticated-only {
+      display: block;
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -572,6 +829,57 @@
     </section>
   </main>
 
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content" style="max-width: 320px;">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
@@ -579,7 +887,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const MOVIES_PAGE_SIZE = 24;
+    const MOVIES_PAGE_SIZE = 100;
 
     let supabaseClient = null;
     let currentUser = null;
