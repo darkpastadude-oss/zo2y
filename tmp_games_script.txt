@@ -1,0 +1,2006 @@
+﻿
+>   <script>
+      // Allow games browsing even when IGDB is not configured by accepting a Wikipedia-only backend.
+      window.ZO2Y_REQUIRE_IGDB = false;
+    </script>
+    <script src="js/igdb-client.js?v=20260311c"></script>
+    <script src="js/list-utils.js?v=20260422a"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260428a"></script>
+    <style>
+      :root {
+        --bg: #0b1633;
+        --card: #132347;
+        --muted: #8ca3c7;
+        --accent: #f59e0b;
+        --glass: rgba(255,255,255,0.03);
+        --white: #ffffff;
+        --border: rgba(255,255,255,0.1);
+        --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+        --surface: rgba(19, 35, 71, 0.6);
+        --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+        --shadow: 0 10px 30px rgba(0,0,0,0.3);
+        --info: #3b82f6;
+        --success: #10b981;
+        --error: #ef4444;
+      }
+  
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg);
+        color: var(--white);
+        overflow-x: hidden;
+        position: relative;
+      }
+  
+      body::before {
+        content: '';
+        position: fixed;
+        inset: -20% 0 0 0;
+        background: var(--radial-glow);
+        pointer-events: none;
+        z-index: -2;
+      }
+  
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
+        opacity: 0.25;
+        pointer-events: none;
+        z-index: -3;
+      }
+  
+      a { color: inherit; text-decoration: none; }
+  
+      /* Header to match index/game */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        padding: 14px 16px;
+        backdrop-filter: blur(10px) saturate(180%);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+  
+      .nav-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        gap: 12px;
+      }
+  
+      .logo {
+        height: 40px;
+        width: auto;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+      }
+  
+      .logo:hover { transform: scale(1.05); }
+  
+      .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+  
+      .nav a.ghost {
+        color: var(--muted);
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        white-space: nowrap;
+      }
+  
+      .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
+  
+      .account-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--white);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+  
+      .account-btn:hover { border-color: var(--accent); color: var(--accent); }
+  
+      .account-btn.logged-in {
+        background: rgba(245, 158, 11, 0.15);
+        border-color: rgba(245, 158, 11, 0.4);
+        color: var(--accent);
+      }
+  
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--white);
+        cursor: pointer;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+  
+      .btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+  
+      .hero {
+        max-width: 1200px;
+        margin: 24px auto 0;
+        padding: 0 20px;
+      }
+  
+      .hero h1 {
+        font-size: 28px;
+        margin: 0 0 8px 0;
+      }
+  
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+      }
+  
+      .media-spotlight {
+        max-width: 1200px;
+        margin: 18px auto 0;
+        padding: 0 20px;
+      }
+  
+      .media-spotlight[hidden] {
+        display: none;
+      }
+  
+      .media-spotlight-shell {
+        position: relative;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+          min-height: 298px;
+          max-height: 298px;
+        display: grid;
+          grid-template-columns: minmax(0, 1fr) clamp(214px, 21vw, 282px);
+        gap: 0;
+        align-items: stretch;
+        background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      }
+  
+      .media-spotlight-bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, rgba(8,14,31,0.74), rgba(10,19,39,0.40));
+        background-size: cover;
+        background-position: center center;
+        transform: scale(1.02);
+      }
+  
+      .media-spotlight-copy,
+      .media-spotlight-poster { position: relative; z-index: 1; }
+  
+      .media-spotlight-copy {
+        padding: 22px 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: flex-start;
+        min-width: 0;
+      }
+  
+      .media-spotlight-kicker { display: none; }
+  
+      .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; 
+overflow: hidden; }
+  
+      .media-spotlight-meta,
+      .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
+  
+      .media-spotlight-meta {
+        font-size: 13px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+  
+      .media-spotlight-summary {
+        font-size: 14px;
+        max-width: 36ch;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+  
+      .media-spotlight-poster {
+          padding: 16px 10px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        height: 100%;
+        min-height: 100%;
+        border-left: 1px solid rgba(255,255,255,0.08);
+        background: linear-gradient(180deg, rgba(11, 22, 49, 0.72), rgba(8, 16, 36, 0.9));
+      }
+  
+      .media-spotlight-poster img {
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        object-position: center center;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+      }
+  
+      .media-spotlight-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 4px; }
+  
+      .controls {
+        max-width: 1200px;
+        margin: 16px auto 0;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 56px 56px;
+        gap: 12px;
+        align-items: center;
+      }
+  
+      .search-input {
+        width: 100%;
+        min-width: 0;
+        height: 56px;
+        padding: 0 18px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: #10224a;
+        color: var(--white);
+        outline: none;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+  
+      .filter-select {
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f1f40;
+        color: var(--white);
+        outline: none;
+        min-width: 200px;
+        font-size: 16px;
+      }
+  
+      .small-input {
+        max-width: 140px;
+      }
+  
+      .chip-row {
+        max-width: 1200px;
+        margin: 10px auto 0;
+        padding: 0 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+  
+      .filter-launch-btn,
+      .search-submit-btn {
+        width: 56px;
+        min-width: 56px;
+        height: 56px;
+        justify-content: center;
+        padding: 0;
+        border-radius: 18px;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+        color: #0b1633;
+        box-shadow: 0 10px 24px rgba(245, 158, 11, 0.22);
+      }
+  
+      .filter-launch-btn:hover,
+      .filter-launch-btn:focus-visible,
+      .search-submit-btn:hover,
+      .search-submit-btn:focus-visible {
+        border-color: rgba(245, 158, 11, 0.55);
+        color: #0b1633;
+        transform: translateY(-1px);
+      }
+  
+      .filter-launch-btn i,
+      .search-submit-btn i {
+        margin: 0;
+      }
+  
+      .filter-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 8px;
+      }
+  
+      .filter-form-grid > * {
+        min-width: 0;
+        max-width: 100%;
+      }
+  
+      .filter-form-grid .search-input,
+      .filter-form-grid .filter-select {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+  
+      .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+        font-size: 12px;
+        cursor: pointer;
+      }
+  
+      .chip.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+  
+      .grid {
+        max-width: 1110px;
+        margin: 24px auto 60px;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 202px));
+        gap: 16px;
+        align-items: stretch;
+        justify-content: center;
+        justify-items: stretch;
+      }
+  
+      .card {
+        background: var(--card);
+        border: none;
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 300px;
+        transition: all 0.2s ease;
+        position: relative;
+            }
+  
+      .card:hover {
+        transform: translateY(-2px);
+      }
+  
+      .card.menu-open,
+      .card.menu-open:hover {
+        transform: none;
+        overflow: visible;
+      }
+  
+      .card .card-media {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        background: #0f1f40;
+        background-size: cover;
+        background-position: center center;
+        overflow: hidden;
+      }
+  
+      .card .card-media::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(9, 18, 36, 0.2) 0%, rgba(9, 18, 36, 0.45) 100%);
+        opacity: 0.6;
+        pointer-events: none;
+      }
+  
+      .card .card-media img {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        display: block;
+        background: transparent;
+        padding: 0;
+        filter: none;
+      }
+  
+      .card .card-media.game-media {
+        background-color: #111f41;
+        background-size: cover;
+        background-position: center;
+      }
+  
+      .card .card-media.game-media img {
+        object-fit: contain;
+        object-position: center center;
+        padding: 8px;
+      }
+  
+      .card .card-media.game-media.portrait-poster img {
+        object-fit: cover;
+        object-position: center center;
+        padding: 0;
+      }
+  
+      .card .card-media.game-media.plain-logo {
+        background: transparent !important;
+        background-image: none !important;
+      }
+  
+      .card .card-media.game-media.plain-logo::before,
+      .card .card-media.game-media.plain-logo::after {
+        display: none;
+      }
+  
+      .card .card-media.game-media.plain-logo img {
+        padding: 0;
+        filter: none;
+      }
+  
+      .card .card-media.game-media::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), rgba(255,255,255,0) 42%),
+          linear-gradient(180deg, rgba(9, 18, 36, 0.18) 0%, rgba(9, 18, 36, 0.72) 100%);
+        z-index: 0;
+        pointer-events: none;
+      }
+  
+      .card-body {
+        padding: 12px 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-height: 0;
+      }
+  
+      .card-title {
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.35;
+        margin: 0;
+        order: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+  
+      .card-meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+  
+      .card-desc {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 34px;
+        margin-top: 2px;
+      }
+  
+      .empty {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+        color: var(--muted);
+        text-align: center;
+      }
+  
+      .pagination {
+        max-width: 1200px;
+        margin: 0 auto 60px;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+  
+      .page-btn {
+        min-width: 44px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--white);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+  
+      .card-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        order: 3;
+        margin-top: auto;
+      }
+  
+      .card-menu-wrap {
+        position: relative;
+        margin-left: auto;
+        flex-shrink: 0;
+      }
+  
+      .menu-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(19, 35, 71, 0.9);
+        color: var(--white);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      }
+  
+      .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
+  
+      .list-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+  
+      .list-menu.open { display: flex; }
+  
+      .list-menu-panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 380px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow);
+        animation: menuFadeIn 0.2s ease;
+      }
+  
+      .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  
+      .list-action {
+        width: 100%;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--white);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 6px;
+      }
+  
+      .list-action:last-child { margin-bottom: 0; }
+      .list-action:hover { border-color: var(--accent); color: var(--accent); }
+      .list-action.active {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+  
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-size: 14px;
+        z-index: 2000;
+        box-shadow: var(--shadow);
+      }
+      .notification.success { background: var(--success); color: white; }
+      .notification.error { background: var(--error); color: white; }
+      .notification.info { background: var(--info); color: white; }
+  
+      .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+        padding: 20px;
+      }
+      .modal.active { display: flex; }
+      .modal-content {
+        width: 100%;
+        max-width: 520px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .modal-title { font-size: 18px; font-weight: 700; }
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--white);
+        font-size: 22px;
+        cursor: pointer;
+      }
+      .modal-list {
+        display: grid;
+        gap: 8px;
+        max-height: 240px;
+        overflow: auto;
+        margin-bottom: 12px;
+      }
+      .modal-list-item {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+      }
+      .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
+      .list-edit-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--white);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+      .modal-list-item.active {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(245, 158, 11, 0.12);
+      }
+      .modal-input {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .modal-input input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f1f40;
+        color: var(--white);
+        outline: none;
+      }
+      .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .icon-option {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--white);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .icon-option.selected { border-color: var(--accent); color: var(--accent); }
+  
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+  
+      .page-info {
+        color: var(--muted);
+        font-size: 13px;
+      }
+  
+      @media (max-width: 1100px) {
+        .grid { grid-template-columns: repeat(4, minmax(0, 202px)); justify-content: center; }
+      }
+  
+      @media (max-width: 780px) {
+        .grid { grid-template-columns: repeat(3, minmax(0, 202px)); justify-content: center; }
+      }
+  
+      @media (max-width: 600px) {
+        .hero h1 { font-size: 22px; }
+        .grid { gap: 12px; }
+        .card .card-media { aspect-ratio: 2 / 3; }
+      }
+  
+      .menu-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+  
+      .menu-modal.active {
+        display: flex;
+      }
+  
+      .menu-modal-content {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 380px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow);
+        animation: menuFadeIn 0.2s ease;
+      }
+  
+      @keyframes menuFadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+  
+      .menu-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+  
+      .menu-modal-header h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--white);
+        margin: 0;
+      }
+  
+      .menu-modal-close {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 24px;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+  
+      .menu-modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+      }
+  
+      .menu-modal-body {
+        padding: 16px 20px;
+      }
+  
+      .menu-quick-lists {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+  
+      .menu-custom-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+  
+      .menu-custom-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+  
+      .menu-create-list-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--accent);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+  
+      .menu-create-list-btn:hover {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: var(--accent);
+      }
+  
+      .menu-custom-lists {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+    </style>
+    <meta name="theme-color" content="#0b1633" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Zo2y" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+    <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
+  <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
+    <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
+  <script src="js/shared-header.js?v=20260428a" defer></script>
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+    <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
+  </head>
+  <body>
+    <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+    <div class="zo2y-shared-header-inner">
+      <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+        <img src="/file.svg" alt="Logo" />
+      </a>
+      <div class="nav-search zo2y-shared-search">
+        <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+        <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+        <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+      </div>
+      <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+        <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+        <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+        <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+        <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+        <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+        <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+        <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+        <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+        <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+      </nav>
+      <div class="zo2y-shared-auth">
+        <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+        <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+        <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+  </div>
+    </div>
+  </header>
+  
+    <section class="hero">
+      <h1>Games</h1>
+      <p>Discover trending and popular games from the Zo2y game catalog.</p>
+    </section>
+  
+    <section class="media-spotlight" id="gamesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <h2 id="gamesSpotlightTitle">Loading?</h2>
+          <p class="media-spotlight-meta" id="gamesSpotlightMeta"></p>
+          <p class="media-spotlight-summary" id="gamesSpotlightSummary"></p>
+          <div class="media-spotlight-actions">
+            <a class="btn" id="gamesSpotlightOpen" href="#">Open game</a>
+          </div>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="gamesSpotlightImage" src="/newlogo.webp" alt="Game spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
+        </div>
+      </div>
+    </section>
+  
+    <div class="controls">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search games..." />
+      <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search games">
+        <i class="fas fa-search"></i>
+      </button>
+      <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
+        <i class="fas fa-sliders-h"></i>
+      </button>
+    </div>
+    <div id="activeFilters" class="chip-row"></div>
+    <div class="modal" id="filterModal">
+      <div class="modal-content filter-modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Filter games</div>
+          <button class="modal-close" id="closeFilterModalBtn">&times;</button>
+        </div>
+        <div class="filter-form-grid">
+          <select id="genreSelect" class="filter-select">
+            <option value="">All Genres</option>
+          </select>
+          <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
+          <input id="platformInput" class="search-input full-span" type="text" placeholder="Platform (e.g., PC, PlayStation, Xbox)" />
+        </div>
+      </div>
+    </div>
+  
+    <div id="gamesGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">No games found.</div>
+    <div class="pagination">
+      <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+      <div class="page-info" id="pageInfo">Page 1</div>
+      <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+    </div>
+  
+    <div class="modal" id="gameListsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Custom Game Lists</div>
+          <button class="modal-close" id="closeGameListsBtn">&times;</button>
+        </div>
+        <div class="modal-list" id="gameListsContainer"></div>
+>     <script>
+      (function () {
+        if (window.innerWidth <= 768) {
+          window.location.href = 'games-mobile.html';
+          return;
+        }
+        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+        const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+        const IGDB_PROXY_BASE = '/api/igdb';
+        const IGDB_PAGE_SIZE = 50;
+  
+        const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
+        const IGDB_CACHE_TTL_MS = 1000 * 60 * 4;
+        const IGDB_CACHE_MAX = 180;
+        const igdbCache = new Map();
+        const igdbInFlight = new Map();
+  
+        function normalizeGameImageUrl(value) {
+          const raw = String(value || '').trim();
+          if (!raw || raw === '[object Object]') return '';
+          if (raw.startsWith('//')) return `https:${raw}`;
+          if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
+          return raw;
+        }
+  
+        function pickPreferredCoverUrl(candidates = []) {
+          const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
+          const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
+          const pool = likelyCovers.length ? likelyCovers : cleaned;
+          const posterPool = pool.filter((url) => isLikelyPosterGameUrl(url));
+          const preferredPool = posterPool.length ? posterPool : pool;
+          return preferredPool.find((url) => /wikimedia|wikipedia/.test(url))
+            || preferredPool.find((url) => /igdb|images\.igdb\.com/.test(url))
+            || preferredPool.find((url) => /rawg|media\.rawg/.test(url))
+            || preferredPool.find((url) => /\/game-assets\/covers-official\//.test(url))
+            || preferredPool.find((url) => /\/game-assets\/covers\//.test(url))
+            || pool.find((url) => /wikimedia|wikipedia/.test(url))
+            || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
+            || pool.find((url) => /rawg|media\.rawg/.test(url))
+            || pool.find((url) => /\/game-assets\/covers-official\//.test(url))
+            || pool.find((url) => /\/game-assets\/covers\//.test(url))
+            || pool[0]
+            || '';
+        }
+  
+        function pickBackdropUrl(candidates = [], fallback = '') {
+          const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
+          const fallbackUrl = normalizeGameImageUrl(fallback);
+          if (fallbackUrl) {
+            const different = cleaned.find((url) => url !== fallbackUrl);
+            return different || fallbackUrl;
+          }
+          return cleaned[0] || '';
+        }
+  
+        function getGameImportedFrom(row) {
+          return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
+        }
+  
+        function hasPosterOfficialGameCover(row) {
+          const cover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
+          if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
+          return Boolean(row?.extra?.official_cover_is_poster);
+        }
+  
+        function isOfficialGameProviderRow(row) {
+          const importedFrom = getGameImportedFrom(row);
+          return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
+        }
+  
+        function isLikelyBackdropGameUrl(url) {
+          const value = String(url || '').trim().toLowerCase();
+          if (!value) return false;
+          return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
+        }
+  
+        function isLikelyPosterGameUrl(url) {
+          const value = String(url || '').trim().toLowerCase();
+          if (!value || isLikelyBackdropGameUrl(value)) return false;
+          return [
+            '/covers-official/',
+            '/covers/',
+            'cover',
+            'boxart',
+            'box-art',
+            'poster',
+            'front'
+          ].some((token) => value.includes(token));
+        }
+  
+        function resolveGameImageSource(row) {
+          if (!row) return '';
+          if (hasPosterOfficialGameCover(row)) {
+            return pickPreferredCoverUrl([row?.cover_url, row?.cover?.url, row?.cover]);
+          }
+          return pickPreferredCoverUrl([
+            row?.cover_url,
+            row?.cover?.url,
+            row?.cover,
+            ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+            ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+            ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+            ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
+            isOfficialGameProviderRow(row) ? '' : row?.hero_url,
+            isOfficialGameProviderRow(row) ? '' : row?.hero,
+            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+          ]);
+        }
+  
+        function buildGameCoverFallbackChain(row, preferredCover = '', preferredHero = '') {
+          const chain = [
+            preferredCover,
+            row?.cover_url,
+            row?.cover?.url,
+            row?.cover,
+            ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
+            ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
+            ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+            ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+            preferredHero,
+            row?.hero_url,
+            row?.hero,
+            row?.background_image,
+            ...(Array.isArray(row?.extra?.screenshots) ? row.extra.screenshots : []),
+            ...(Array.isArray(row?.extra?.local_screenshots) ? row.extra.local_screenshots : []),
+            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
+            IGDB_FALLBACK_IMAGE
+          ]
+            .map(normalizeGameImageUrl)
+            .filter(Boolean);
+          const seen = new Set();
+          return chain.filter((url) => {
+            if (seen.has(url)) return false;
+            seen.add(url);
+            return true;
+          });
+        }
+  
+        function resolveGameHeroSource(row, fallback) {
+          const hero = pickBackdropUrl([
+            row?.hero_url,
+            row?.hero,
+            row?.background_image,
+            ...(Array.isArray(row?.extra?.local_screenshots) ? row.extra.local_screenshots : []),
+            ...(Array.isArray(row?.extra?.screenshots) ? row.extra.screenshots : []),
+            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
+          ], fallback);
+          return hero || fallback || IGDB_FALLBACK_IMAGE;
+        }
+  
+        function isLikelyLogoOnlyGameArt(url) {
+          const value = String(url || '').trim().toLowerCase();
+          if (!value) return false;
+          if (value.endsWith('.svg') || value.includes('.svg?')) return true;
+          return ['logo', 'wordmark', 'transparent', 'icon', 'banner'].some((token) => value.includes(token));
+        }
+  
+        function shouldUsePortraitPosterFit(item, cover) {
+          const resolvedCover = normalizeGameImageUrl(cover);
+          if (!resolvedCover || isLikelyLogoOnlyGameArt(resolvedCover)) return false;
+          if (hasPosterOfficialGameCover(item)) return true;
+          if (Boolean(item?.extra?.official_cover_is_poster)) return true;
+          return isLikelyPosterGameUrl(resolvedCover);
+        }
+  
+          function shouldUsePlainGameStage(item, cover, hero) {
+            return isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
+          }
+  
+        function buildIgdbCacheKey(path, params = {}) {
+          const pairs = Object.entries(params || {})
+            .filter(([, value]) => value !== undefined && value !== null && value !== '')
+            .map(([key, value]) => [String(key), String(value)]);
+          pairs.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
+          const query = pairs.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
+          return query ? `${path}?${query}` : String(path || '');
+        }
+  
+        function readIgdbCache(key) {
+          const entry = igdbCache.get(key);
+          if (!entry) return null;
+          if (entry.expiresAt <= Date.now()) {
+            igdbCache.delete(key);
+            return null;
+          }
+          return entry.data || null;
+        }
+  
+        function writeIgdbCache(key, data, ttlMs = IGDB_CACHE_TTL_MS) {
+          if (!key || !data) return;
+          igdbCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+          while (igdbCache.size > IGDB_CACHE_MAX) {
+            const firstKey = igdbCache.keys().next().value;
+            if (!firstKey) break;
+            igdbCache.delete(firstKey);
+          }
+        }
+  
+        async function fetchIgdbJson(path, params = {}, options = {}) {
+          const cacheKey = buildIgdbCacheKey(path, params);
+          const useCache = !options?.cacheBust;
+          const reuseInFlight = useCache && !options?.signal;
+          if (useCache) {
+            const cached = readIgdbCache(cacheKey);
+            if (cached) return cached;
+            if (reuseInFlight && igdbInFlight.has(cacheKey)) return igdbInFlight.get(cacheKey);
+          }
+  
+          const fetchPromise = (async () => {
+            try {
+              if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+                const data = await window.ZO2Y_IGDB.request(path, params, options?.signal ? { signal: options.signal } : undefined);
+                if (useCache && data) writeIgdbCache(cacheKey, data);
+                return data;
+              }
+              const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
+              Object.entries(params || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === '') return;
+                url.searchParams.set(key, String(value));
+              });
+              const res = await fetch(url.toString(), options?.signal ? { signal: options.signal } : undefined);
+              if (!res.ok) return null;
+              const data = await res.json();
+              if (useCache && data) writeIgdbCache(cacheKey, data);
+              return data;
+            } catch (_err) {
+              return null;
+            }
+          })();
+  
+          if (reuseInFlight) igdbInFlight.set(cacheKey, fetchPromise);
+          try {
+            return await fetchPromise;
+          } finally {
+            if (reuseInFlight) igdbInFlight.delete(cacheKey);
+          }
+        }
+        const state = {
+          genres: [],
+          activeGenre: '',
+          query: '',
+          year: '',
+          platform: '',
+          page: 1,
+          totalPages: 1,
+          hasMore: true,
+          requestId: 0,
+          currentUser: null,
+          listStatusMap: new Map(),
+          customLists: [],
+          catalog: [],
+          catalogLoadedAll: false,
+          catalogSource: 'supabase',
+          activeGameId: null,
+          modalSelectedLists: new Set(),
+          selectedIcon: 'fas fa-gamepad',
+          pendingDefaultOps: new Set(),
+          searchSupplementCache: new Map()
+        };
+  
+        let supabaseClient = null;
+        let loadGamesTimer = null;
+        let igdbAbortController = null;
+        let prefetchTimer = null;
+        let prefetchKey = '';
+        let catalogLoadPromise = null;
+  
+        function scheduleGamesLoad(delayMs = 360) {
+          if (loadGamesTimer) clearTimeout(loadGamesTimer);
+          const effectiveDelay = isSlowNetwork() ? Math.max(120, delayMs) : Math.min(45, delayMs);
+          loadGamesTimer = setTimeout(() => {
+            loadGames();
+          }, effectiveDelay);
+        }
+  
+        function isSlowNetwork() {
+          const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+          if (!connection) return false;
+          if (connection.saveData) return true;
+          const effectiveType = String(connection.effectiveType || '').toLowerCase();
+          return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
+        }
+  
+        function getGamesPageSize() {
+          return isSlowNetwork() ? 18 : 24;
+        }
+  
+        const WIKI_COVER_CACHE_KEY = 'zo2y_game_wiki_cover_cache_v1';
+        const WIKI_COVER_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 21;
+  
+        function readWikiCoverCache() {
+          try {
+            const raw = localStorage.getItem(WIKI_COVER_CACHE_KEY);
+            const parsed = raw ? JSON.parse(raw) : null;
+            return parsed && typeof parsed === 'object' ? parsed : { items: {} };
+          } catch (_err) {
+            return { items: {} };
+          }
+        }
+  
+        function writeWikiCoverCache(cache) {
+          try {
+            localStorage.setItem(WIKI_COVER_CACHE_KEY, JSON.stringify(cache || { items: {} }));
+          } catch (_err) {}
+        }
+  
+        function normalizeWikiTitleKey(value) {
+          return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+  
+        async function fetchWikipediaCoverUrl(title) {
+          const cleaned = String(title || '').trim();
+          if (!cleaned) return '';
+          const slug = cleaned.replace(/\s+/g, '_');
+          const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(slug)}`;
+          try {
+            const res = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'omit' });
+            if (!res.ok) return '';
+            const json = await res.json().catch(() => null);
+            const src = String(json?.originalimage?.source || json?.thumbnail?.source || '').trim();
+            return normalizeGameImageUrl(src);
+          } catch (_err) {
+            return '';
+          }
+        }
+  
+        function isFallbackGameCoverUrl(url) {
+          const value = String(url || '').trim();
+          if (!value) return true;
+          if (value === IGDB_FALLBACK_IMAGE) return true;
+          if (value.includes('/newlogo.webp')) return true;
+          if (value.includes('/images/onboarding/')) return true;
+          return false;
+        }
+  
+        function queueWikipediaCoverBackfill(gridEl) {
+          const grid = gridEl || document.getElementById('gamesGrid');
+          if (!grid) return;
+          const cards = Array.from(grid.querySelectorAll('.card'));
+          if (!cards.length) return;
+  
+          const cache = readWikiCoverCache();
+          const now = Date.now();
+          const items = cache.items && typeof cache.items === 'object' ? cache.items : {};
+          let inflight = 0;
+          const limit = isSlowNetwork() ? 2 : 4;
+          const queue = [];
+  
+          cards.forEach((card) => {
+            const img = card.querySelector('.card-media img');
+            const titleEl = card.querySelector('.card-title');
+            const title = String(titleEl ? titleEl.textContent : '').trim();
+            if (!img || !title) return;
+            if (!isFallbackGameCoverUrl(img.getAttribute('src') || img.src)) return;
+            const key = normalizeWikiTitleKey(title);
+            if (!key) return;
+  
+            const cached = items[key];
+            if (cached && cached.url && Number(cached.savedAt || 0) + WIKI_COVER_CACHE_TTL_MS > now) {
+              img.src = cached.url;
+              return;
+            }
+            queue.push({ key, title, img });
+          });
+  
+          if (!queue.length) return;
+  
+          const runNext = async () => {
+            if (!queue.length) return;
+            if (inflight >= limit) return;
+            const job = queue.shift();
+            if (!job) return;
+            inflight += 1;
+            try {
+              const url = await fetchWikipediaCoverUrl(job.title);
+              if (url && !isFallbackGameCoverUrl(url)) {
+                job.img.src = url;
+                items[job.key] = { url, savedAt: Date.now() };
+                cache.items = items;
+                writeWikiCoverCache(cache);
+              } else {
+                items[job.key] = { url: '', savedAt: Date.now() };
+                cache.items = items;
+                writeWikiCoverCache(cache);
+              }
+            } finally {
+              inflight -= 1;
+              if (queue.length) {
+                if (typeof requestIdleCallback === 'function') {
+                  requestIdleCallback(runNext, { timeout: 1200 });
+                } else {
+                  setTimeout(runNext, 120);
+                }
+              }
+            }
+          };
+  
+          // Kick a few workers in the background without blocking render.
+          const kick = () => {
+            for (let i = 0; i < limit; i += 1) void runNext();
+          };
+          if (typeof requestIdleCallback === 'function') requestIdleCallback(kick, { timeout: 1200 });
+          else setTimeout(kick, 220);
+        }
+  
+        const POPULAR_GAMES_LOAD_SEED = (() => {
+          try {
+            if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
+              const seedBuffer = new Uint32Array(1);
+              window.crypto.getRandomValues(seedBuffer);
+              return Number(seedBuffer[0] || 0) >>> 0;
+            }
+          } catch (_err) {}
+          return ((Date.now() & 0xffffffff) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
+        })();
+  
+        function mulberry32(seed) {
+          let a = Number(seed || 0) || 0;
+          return function () {
+            a |= 0;
+            a = (a + 0x6D2B79F5) | 0;
+            let t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+  
+        function shuffleInPlace(list, rand) {
+          const arr = Array.isArray(list) ? list : [];
+          const r = typeof rand === 'function' ? rand : Math.random;
+          for (let i = arr.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(r() * (i + 1));
+            const tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+          }
+          return arr;
+        }
+  
+        function shufflePopularGamesPool(rows, pageSize) {
+          const pool = Array.isArray(rows) ? rows.slice() : [];
+          const size = Math.max(1, Number(pageSize || 24)) || 24;
+          if (pool.length <= size) return pool;
+  
+          const rand = mulberry32(POPULAR_GAMES_LOAD_SEED);
+  
+          // Keep the list "popular-first" by shuffling within small top tiers only.
+          const tiers = [
+            Math.min(pool.length, Math.max(16, Math.floor(size * 1.25))),
+            Math.min(pool.length, Math.max(48, Math.floor(size * 3))),
+            Math.min(pool.length, Math.max(96, Math.floor(size * 5)))
+          ];
+  
+          const out = [];
+          let cursor = 0;
+          tiers.forEach((end) => {
+            if (end <= cursor) return;
+            const chunk = pool.slice(cursor, end);
+            shuffleInPlace(chunk, rand);
+            out.push(...chunk);
+            cursor = end;
+          });
+          if (cursor < pool.length) out.push(...pool.slice(cursor));
+          return out;
+        }
+  
+        function schedulePrefetch(nextPage, params = {}) {
+          if (!Number.isFinite(nextPage) || nextPage <= 0) return;
+          const key = JSON.stringify({ ...params, page: nextPage });
+          if (key === prefetchKey) return;
+          prefetchKey = key;
+          if (prefetchTimer) clearTimeout(prefetchTimer);
+          const run = () => {
+            fetchIgdbPage({ ...params, page: nextPage }).catch(() => null);
+          };
+          if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(run, { timeout: 1200 });
+          } else {
+            prefetchTimer = setTimeout(run, 350);
+          }
+        }
+  
+        function normalizeGameGenres(extra) {
+          const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
+          const out = [];
+          const seen = new Set();
+          rawGenres.forEach((entry) => {
+            const name = String(entry?.name || '').trim();
+            const slug = String(entry?.slug || name).trim().toLowerCase().replace(/\s+/g, '-');
+            if (!name || !slug || seen.has(slug)) return;
+            seen.add(slug);
+            out.push({ name, slug });
+          });
+          return out;
+        }
+  
+        const ROMAN_NUMERAL_MAP = {
+          i: '1',
+          ii: '2',
+          iii: '3',
+          iv: '4',
+          v: '5',
+          vi: '6',
+          vii: '7',
+          viii: '8',
+          ix: '9',
+          x: '10'
+        };
+  
+        function normalizeTitleKey(value) {
+          const normalized = String(value || '')
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          if (!normalized) return '';
+          return normalized
+            .split(' ')
+            .map((token) => ROMAN_NUMERAL_MAP[token] || token)
+            .join(' ')
+            .trim();
+        }
+  
+        function normalizeFranchiseTitleKey(value) {
+          return normalizeTitleKey(value)
+            .replace(/\bvideo game\b/g, ' ')
+            .replace(/\bthe\b/g, ' ')
+            .replace(/\bmarvels\b/g, 'marvel ')
+            .replace(/\bspider man\b/g, 'spiderman')
+            .replace(/\bpokemon\b/g, 'pokemon')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+  
+        function buildTitleEditionKey(row) {
+          const titleKey = normalizeTitleKey(row?.title || row?.name || row?.slug || '');
+          const yearKey = String(row?.release_date || '').slice(0, 4);
+          if (!titleKey) return '';
+          return `${titleKey}::${yearKey || 'na'}`;
+        }
+  
+        function splitTitleTokens(value) {
+          const normalized = normalizeTitleKey(value);
+          if (!normalized) return [];
+          return normalized.split(' ').filter(Boolean);
+        }
+  
+        function buildAcronym(tokens = []) {
+          return tokens.map((token) => token.slice(0, 1)).join('');
+        }
+  
+        function isOneEditAway(a = '', b = '') {
+          if (a === b) return true;
+          if (Math.abs(a.length - b.length) > 1) return false;
+          let i = 0;
+          let j = 0;
+          let edits = 0;
+          while (i < a.length && j < b.length) {
+            if (a[i] === b[j]) {
+              i += 1;
+              j += 1;
+              continue;
+            }
+            edits += 1;
+            if (edits > 1) return false;
+            if (a.length > b.length) {
+              i += 1;
+            } else if (b.length > a.length) {
+              j += 1;
+            } else {
+              i += 1;
+              j += 1;
+            }
+          }
+          if (i < a.length || j < b.length) edits += 1;
+          return edits <= 1;
+        }
+  
+        function isTransposition(a = '', b = '') {
+          if (a.length !== b.length || a.length < 2) return false;
+          const diffs = [];
+          for (let i = 0; i < a.length; i += 1) {
+            if (a[i] !== b[i]) diffs.push(i);
+            if (diffs.length > 2) return false;
+          }
+          if (diffs.length !== 2) return false;
+          if (diffs[1] !== diffs[0] + 1) return false;
+          return a[diffs[0]] === b[diffs[1]] && a[diffs[1]] === b[diffs[0]];
+        }
+  
+        function tokenMatchesQuery(titleToken, queryToken) {
+          if (!titleToken || !queryToken) return false;
+          if (titleToken.startsWith(queryToken)) return true;
+          if (queryToken.length >= 3 && titleToken.includes(queryToken)) return true;
+          if (queryToken.length >= 4 && isTransposition(titleToken, queryToken)) return true;
+          if (queryToken.length >= 4 && isOneEditAway(titleToken, queryToken)) return true;
+          return false;
+        }
+  
+        function titleMatchesQuery(title, query) {
+          const titleKey = normalizeTitleKey(title);
+          const queryKey = normalizeTitleKey(query);
+          const franchiseTitleKey = normalizeFranchiseTitleKey(title);
+          const franchiseQueryKey = normalizeFranchiseTitleKey(query);
+          if (!queryKey) return true;
+          if (titleKey.includes(queryKey)) return true;
+          if (franchiseQueryKey && franchiseTitleKey.includes(franchiseQueryKey)) return true;
+          const compactTitle = titleKey.replace(/\s+/g, '');
+          const compactQuery = queryKey.replace(/\s+/g, '');
+          const compactFranchiseTitle = franchiseTitleKey.replace(/\s+/g, '');
+          const compactFranchiseQuery = franchiseQueryKey.replace(/\s+/g, '');
+          if (!compactQuery) return false;
+          if (compactTitle.includes(compactQuery)) return true;
+          if (compactFranchiseQuery && compactFranchiseTitle.includes(compactFranchiseQuery)) return true;
+          const titleTokens = splitTitleTokens(titleKey);
+          const queryTokens = splitTitleTokens(queryKey);
+          if (!queryTokens.length) return true;
+          if (queryTokens.length === 1) {
+            const acronym = buildAcronym(titleTokens);
+            if (acronym && (acronym === queryKey || acronym.startsWith(queryKey))) return true;
+          }
+          return queryTokens.every((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token)));
+        }
+  
+        function filterTitleMatches(rows = [], query = '') {
+          const queryKey = normalizeTitleKey(query);
+          if (!queryKey) return Array.isArray(rows) ? rows : [];
+          return (Array.isArray(rows) ? rows : []).filter((row) => {
+            const title = String(row?.title || row?.name || row?.slug || '').trim();
+            return titleMatchesQuery(title, queryKey);
+          });
+        }
+  
+        function dedupeRowsById(rows = []) {
+          const out = [];
+          const seen = new Set();
+          (Array.isArray(rows) ? rows : []).forEach((row) => {
+            const rawId = row?.id;
+            const key = Number.isFinite(Number(rawId)) ? String(rawId) : String(rawId || '').trim();
+            if (!key || seen.has(key)) return;
+            seen.add(key);
+            out.push(row);
+          });
+          return out;
+        }
+  
+        function dedupeRowsByTitleEdition(rows = []) {
+          const grouped = new Map();
+          (Array.isArray(rows) ? rows : []).forEach((row) => {
+            const key = buildTitleEditionKey(row);
+            if (!key) return;
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key).push(row);
+          });
+          return Array.from(grouped.values()).map((group) => sortGamesPosterFirst(group)[0]).filter(Boolean);
+        }
+  
+        const SEARCH_TITLE_SUFFIX_NOISE = new Set([
+          'version',
+          'edition',
+          'standard edition',
+          'deluxe edition',
+          'ultimate edition',
+          'definitive edition',
+          'game of the year edition',
+          'goty edition'
+        ]);
+  
+        const SEARCH_UNOFFICIAL_TOKENS = [
+          'prototype',
+          'demo',
+          'tech demo',
+          'fan game',
+          'fangame',
+          'fan made',
+          'fan-made',
+          'fan project',
+          'fan remake',
+          'rom hack',
+          'hack',
+          'mod',
+          'modded',
+          'custom map',
+          'creative map',
+          'creative 2.0',
+          'creepy',
+          'creepypasta',
+          'but the',
+          'pictures pack',
+          'images pack',
+          'soundtrack',
+          'music',
+          'field trip',
+          'dream prototype',
+          'radical red',
+          'meta firered',
+          'ace dragon'
+        ];
+  
+        const UNOFFICIAL_GAME_PATTERNS = [
+          /\bprototype\b/i,
+          /\btech demo\b/i,
+          /\bdemo\b/i,
+          /\bfan\s?game\b/i,
+          /\bfanmade\b/i,
+          /\bfan[- ]made\b/i,
+          /\bfan project\b/i,
+          /\bfan remake\b/i,
+          /\brom hack\b/i,
+          /\bmod\b/i,
+          /\bmodded\b/i,
+          /\bcustom map\b/i,
+          /\bcreative map\b/i,
+          /\bcreative 2(?:\.0)?\b/i,
+          /\bpictures pack\b/i,
+          /\bimages pack\b/i,
+          /\bwallpaper pack\b/i,
+          /\bsoundtrack\b/i,
+          /\bost\b/i,
+          /\bupdate\s*\d+\b/i,
+          /\bfield trip\b/i,
+          /\bcreepy red\b/i,
+          /\bradical red\b/i,
+          /\bmeta fire\s?red\b/i,
+          /\bace ?dragon\b/i,
+          /\bpc port\b/i,
+          /\bchapter\b/i,
+          /\bepisode\b/i,
+          /\bmission\b/i,
+          /\bprologue\b/i,
+          /\bside story\b/i,
+          /\balpha\b/i,
+          /\bbeta\b/i,
+          /\btest build\b/i,
+          /\bdlc\b/i,
+          /\bexpansion\b/i
+        ];
+  
+        const STRICT_GAME_FRANCHISE_LIMITS = {
+          fortnite: 2,
+          overwatch: 2,
+          undertale: 1
+        };
+  
+        function normalizeSearchCanonicalTitleKey(value) {
+          return normalizeFranchiseTitleKey(value)
+            .replace(/\bversion\b/g, ' ')
+            .replace(/\bedition\b/g, ' ')
+            .replace(/\bstandard\b/g, ' ')
+            .replace(/\bultimate\b/g, ' ')
+            .replace(/\bdefinitive\b/g, ' ')
+            .replace(/\bdeluxe\b/g, ' ')
+            .replace(/\bgame of the year\b/g, ' ')
+            .replace(/\bgoty\b/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+        }
+  
+        function isLikelyUnofficialSearchResult(row, query = '') {
+          const title = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+          const queryKey = normalizeFranchiseTitleKey(query);
+          if (!title) return false;
+          if (!queryKey || !title.includes(queryKey)) return false;
+          if (SEARCH_UNOFFICIAL_TOKENS.some((token) => title.includes(token))) return true;
+          if (title.includes(`${queryKey} s `) || title.includes(`${queryKey}s `)) return true;
+          if (/[[(][^)]+[)\]]/.test(String(row?.title || '')) && !String(row?.source || '').toLowerCase().includes('wikipedia')) return true;
+          return false;
+        }
+  
+        function isLikelyRealGameRow(row) {
+          const title = String(row?.title || row?.name || row?.slug || '').trim();
+          if (!title) return false;
+          if (UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
+          const importedFrom = getGameImportedFrom(row);
+          if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
+          return true;
+        }
+  
+        function getStrictGameFranchiseKey(row) {
+          const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+          if (!titleKey) return '';
+          if (titleKey === 'fortnite' || titleKey.startsWith('fortnite ')) return 'fortnite';
+          if (titleKey === 'overwatch' || titleKey.startsWith('overwatch ')) return 'overwatch';
+          if (titleKey === 'undertale' || titleKey.startsWith('undertale ')) return 'undertale';
+          return '';
+        }
+  
+        function isAllowedStrictGameFranchiseRow(row, franchiseKey) {
+          const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+          if (!titleKey || !franchiseKey) return true;
+          if (franchiseKey === 'fortnite') return titleKey === 'fortnite' || titleKey === 'fortnite battle royale';
+          if (franchiseKey === 'undertale') return titleKey === 'undertale';
+          if (franchiseKey === 'overwatch') return titleKey === 'overwatch' || titleKey === 'overwatch 2';
+          return true;
+        }
+  
+        function getStrictGameVariantKey(row, franchiseKey) {
+          const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
+          if (franchiseKey === 'overwatch') return /\boverwatch 2\b/.test(titleKey) ? '2' : '1';
+          return 'base';
+        }
+  
+        function getStrictGameQueryKey(query = '') {
+          const normalized = normalizeFranchiseTitleKey(query);
+          if (normalized === 'fortnite') return 'fortnite';
+          if (normalized === 'overwatch' || normalized === 'overwatch 2') return 'overwatch';
+          if (normalized === 'undertale') return 'undertale';
+          return '';
+        }
+  
+        function matchesStrictGameQuery(row, query = '') {
+          const strictKey = getStrictGameQueryKey(query);
+          if (!strictKey) return true;
+          return isAllowedStrictGameFranchiseRow(row, strictKey) && getStrictGameFranchiseKey(row) === strictKey;
+        }
+  
+        function applyStrictGameFranchiseLimits(rows = [], query = '') {
+          const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+          if (!list.length) return [];
+          const ordered = query
+            ? list.slice().sort((a, b) => scoreSearchResultRow(b, query) - scoreSearchResultRow(a, query))
+            : sortGamesPosterFirst(list);
+          const kept = [];
+          const counts = new Map();
+          const seenVariants = new Set();
+          ordered.forEach((row) => {
+            const franchiseKey = getStrictGameFranchiseKey(row);
+            if (!franchiseKey) {
+              kept.push(row);
+              return;
+            }
+            if (!isAllowedStrictGameFranchiseRow(row, franchiseKey)) return;
+            const variantKey = `${franchiseKey}::${getStrictGameVariantKey(row, franchiseKey)}`;
+            if (seenVariants.has(variantKey)) return;
+            const currentCount = Number(counts.get(franchiseKey) || 0);
+            const limit = Number(STRICT_GAME_FRANCHISE_LIMITS[franchiseKey] || 1);
+            if (currentCount >= limit) return;
+            counts.set(franchiseKey, currentCount + 1);
+            seenVariants.add(variantKey);
+            kept.push(row);
+          });
+          return kept;
+        }
+  
+        function scoreSearchResultRow(row, query = '') {
+          const title = String(row?.title || row?.name || row?.slug || '').trim();
+          const titleKey = normalizeSearchCanonicalTitleKey(title);
+          const queryKey = normalizeSearchCanonicalTitleKey(query);
+          let score = scoreSearchMatch(title, query);
+          if (queryKey && titleKey === queryKey) score += 1200;
+          if (queryKey && titleKey.startsWith(`${queryKey} `)) {
+            const suffix = titleKey.slice(queryKey.length).trim();
+            if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) score += 700;
+          }
+          if (hasPosterOfficialGameCover(row)) score += 260;
+          if (/\/game-assets\/covers\//.test(normalizeGameImageUrl(row?.cover_url))) score += 120;
+          if (isOfficialGameProviderRow(row)) score += 80;
+          if (isLikelyUnofficialSearchResult(row, query)) score -= 2000;
+          score += Math.min(Number(row?.rating_count || 0), 5000) / 50;
+          return score;
+        }
+  
+        function buildSearchDedupKey(row, query = '') {
+          const title = String(row?.title || row?.name || row?.slug || '').trim();
+          const canonicalTitle = normalizeSearchCanonicalTitleKey(title);
+          const queryKey = normalizeSearchCanonicalTitleKey(query);
+          if (!canonicalTitle) return '';
+          if (queryKey && (canonicalTitle === queryKey || canonicalTitle.startsWith(`${queryKey} `))) {
+            const suffix = canonicalTitle.slice(queryKey.length).trim();
+            if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) return `${queryKey}::query`;
+          }
+          return canonicalTitle;
+        }
+  
+        function dedupeSearchResults(rows = [], query = '') {
+          const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+          if (!query) return applyStrictGameFranchiseLimits(dedupeRowsByTitleEdition(list));
+          const grouped = new Map();
+          list.forEach((row) => {
+            const key = buildSearchDedupKey(row, query) || buildTitleEditionKey(row) || String(row?.id || '');
+            if (!key) return;
+            if (!grouped.has(key)) grouped.set(key, []);
+            grouped.get(key).push(row);
+          });
+          return applyStrictGameFranchiseLimits(Array.from(grouped.values()).map((group) => {
+            return group.slice().sort((a, b) => scoreSearchResultRow(b, query) - scoreSearchResultRow(a, query))[0];
+          }).filter(Boolean), query);
+        }
+  
+        function scoreSearchMatch(title, query) {
+          const cleanTitle = normalizeTitleKey(title);
+          const cleanQuery = normalizeTitleKey(query);
+          const franchiseTitle = normalizeFranchiseTitleKey(title);
+          const franchiseQuery = normalizeFranchiseTitleKey(query);
+          if (!cleanTitle || !cleanQuery) return 0;
+          let score = 0;
+          if (cleanTitle === cleanQuery) score += 1000;
+          if (franchiseQuery && franchiseTitle === franchiseQuery) score += 950;
+          if (cleanTitle.startsWith(cleanQuery)) score += 700;
+          if (franchiseQuery && franchiseTitle.startsWith(franchiseQuery)) score += 650;
+          if (cleanTitle.includes(cleanQuery)) score += 400;
+          if (franchiseQuery && franchiseTitle.includes(franchiseQuery)) score += 320;
+          const compactTitle = cleanTitle.replace(/\s+/g, '');
+          const compactQuery = cleanQuery.replace(/\s+/g, '');
+          if (compactTitle === compactQuery) score += 260;
+          if (compactTitle.startsWith(compactQuery)) score += 220;
+          const titleTokens = splitTitleTokens(cleanTitle);
+          const queryTokens = splitTitleTokens(cleanQuery);
+          const tokenHits = queryTokens.filter((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token))).length;
+          score += tokenHits * 90;
+          if (queryTokens.length && tokenHits === queryTokens.length) score += 180;
+          if (queryTokens.length === 1) {
+            const acronym = buildAcronym(titleTokens);
+            if (acronym && acronym === compactQuery) score += 140;
+          }
+          return score;
+        }
+  
+        function sortSearchResults(rows = [], query = '') {
+          const cleanQuery = String(query || '').trim().toLowerCase();
+          if (!cleanQuery) return sortGamesPosterFirst(rows);
+          const list = Array.isArray(rows) ? rows.slice() : [];
+          return list.sort((a, b) => {
+            const aTitle = String(a?.title || a?.name || a?.slug || '').trim();
+            const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
+            const scoreDiff = scoreSearchResultRow(b, cleanQuery) - scoreSearchResultRow(a, cleanQuery);
+            if (scoreDiff !== 0) return scoreDiff;
+            const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
+            if (countDiff !== 0) return countDiff;
+            const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
+            if (dateDiff !== 0) return dateDiff;
+            const aRating = Number(a?.rating || 0);
+            const bRating = Number(b?.rating || 0);
+            if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
+              return bRating - aRating;
+            }
+            return aTitle.localeCompare(bTitle);
+          });
+        }
+  
+        const SEARCH_ALIASES = {
+          mario: 'super mario mario kart mario party paper mario mario tennis mario golf mario vs donkey kong',
+          mariokart: 'mario kart',
+          marioparty: 'mario party',
+          pokemon: 'pokemon',
+          ['pok' + '\u00e9' + 'mon']: 'pokemon',
+          spiderman: 'spider man',
+          gta: 'grand theft auto',
+          gtav: 'grand theft auto v',
+          gtas: 'grand theft auto san andreas',
+          cod: 'call of duty',
+          cs: 'counter strike',
+          cs2: 'counter strike 2',
+          csgo: 'counter strike global offensive',
+          lol: 'league of legends',
+          tlou: 'the last of us',
+          tloz: 'the legend of zelda',
+          r6: 'rainbow six',
+          mk: 'mortal kombat',
+          ac: 'assassins creed'
+        };
+  
+        function getSearchFallbackQueries(query) {
+          const raw = String(query || '').trim();
+          if (!raw) return [];
+          const normalized = normalizeTitleKey(raw);
+          const compact = normalized.replace(/\s+/g, '');
+          const variants = new Set();
+          const alias = SEARCH_ALIASES[normalized] || SEARCH_ALIASES[compact] || '';
+          if (alias && alias !== raw) variants.add(alias);
+          if (normalized && normalized !== raw) variants.add(normalized);
+          if (compact && compact !== normalized && compact !== raw) variants.add(compact);
+          return [...variants].filter(Boolean);
+        }
+  
+        function getSearchSupplementKey(query, activeGenre, year) {
+          return [String(query || '').trim().toLowerCase(), String(activeGenre || '').trim().toLowerCase(), String(year || '').trim()].join('::');
+        }
+  
+        async function fetchSearchSupplementGames(query, activeGenre = '', year = '') {
+          if (!supabaseClient) return [];
+          const rawQuery = String(query || '').trim();
+          if (!rawQuery) return [];
+          const cacheKey = getSearchSupplementKey(rawQuery, activeGenre, year);
+          if (state.searchSupplementCache.has(cacheKey)) {
+            return state.searchSupplementCache.get(cacheKey) || [];
+          }
+          const variants = [rawQuery, ...getSearchFallbackQueries(rawQuery)]
+            .map((value) => String(value || '').trim())
+            .filter(Boolean);
+          const seenVariants = new Set();
+          const uniqueVariants = variants.filter((value) => {
+            const key = normalizeTitleKey(value);
+            if (!key || seenVariants.has(key)) return false;
+
+

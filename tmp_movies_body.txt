@@ -1,0 +1,204 @@
+﻿
+> <body>
+    <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+    <div class="zo2y-shared-header-inner">
+      <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+        <img src="/file.svg" alt="Logo" />
+      </a>
+      <div class="nav-search zo2y-shared-search">
+        <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+        <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+        <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+      </div>
+      <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+        <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+        <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+        <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+        <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+        <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+        <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+        <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+        <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+        <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+      </nav>
+      <div class="zo2y-shared-auth">
+        <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+        <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+        <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+  </div>
+    </div>
+  </header>
+  
+    <section class="hero">
+      <h1>popular movies right now</h1>
+      <p>Live TMDB popularity picks, updated from the current movie chart.</p>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+    </section>
+  
+    <section class="media-spotlight" id="moviesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <h2 id="moviesSpotlightTitle">Loading?</h2>
+          <p class="media-spotlight-meta" id="moviesSpotlightMeta"></p>
+          <p class="media-spotlight-summary" id="moviesSpotlightSummary"></p>
+          <div class="media-spotlight-actions">
+            <a class="btn" id="moviesSpotlightOpen" href="#">Open movie</a>
+          </div>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="moviesSpotlightImage" src="/newlogo.webp" alt="Movie spotlight poster" loading="eager" decoding="async" referrerpolicy="no-referrer">
+        </div>
+      </div>
+    </section>
+  
+    <div class="controls">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search movies..." />
+      <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search movies">
+        <i class="fas fa-search"></i>
+      </button>
+      <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
+        <i class="fas fa-sliders-h"></i>
+      </button>
+    </div>
+    <div id="activeFilters" class="chip-row"></div>
+    <div class="modal" id="filterModal">
+      <div class="modal-content filter-modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Filter movies</div>
+          <button class="modal-close" id="closeFilterModalBtn">&times;</button>
+        </div>
+        <div class="filter-form-grid">
+          <select id="genreSelect" class="filter-select">
+            <option value="">All Genres</option>
+          </select>
+          <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
+          <input id="actorInput" class="search-input full-span" type="text" placeholder="Cast member" />
+        </div>
+      </div>
+    </div>
+  
+    <div id="moviesGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">No movies found.</div>
+    <div class="pagination">
+      <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+      <div class="page-info" id="pageInfo">Page 1</div>
+      <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+    </div>
+  
+    <div class="modal" id="movieListsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Custom Movie Lists</div>
+          <button class="modal-close" id="closeMovieListsBtn">&times;</button>
+        </div>
+        <div class="modal-list" id="movieListsContainer"></div>
+        <div class="modal-input">
+          <input type="text" id="newMovieListName" placeholder="New list name..." maxlength="50">
+          <button class="btn" id="createMovieListBtn">Create</button>
+        </div>
+        <div class="icon-options" id="movieListIconOptions">
+          <button class="icon-option selected" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+          <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn" id="saveMovieListsBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  
+      <script>
+      (function () {
+        if (window.innerWidth <= 768) {
+          window.location.href = 'movies-mobile.html?v=20260418a';
+          return;
+        }
+        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+        const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+        const TMDB_PROXY_BASE = '/api/tmdb';
+        const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+        const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+        const MOVIE_SPOTLIGHT_CACHE_KEY = 'zo2y_movies_spotlight_v1';
+        const state = {
+          genres: [],
+          activeGenre: '',
+          query: '',
+          animePromptQuery: '',
+          actor: '',
+          year: '',
+          page: 1,
+          totalPages: 1,
+          currentUser: null,
+          listStatusMap: new Map(),
+          customLists: [],
+          activeMovieId: null,
+          modalSelectedLists: new Set(),
+          selectedIcon: 'fas fa-film',
+          pendingDefaultOps: new Set()
+        };
+  
+        let supabaseClient = null;
+  
+        async function tmdbFetch(path, params = {}) {
+          const url = new URL(`${TMDB_PROXY_BASE}${path}`, window.location.origin);
+          Object.entries(params).forEach(([k, v]) => {
+            if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+          });
+          const res = await fetch(url.toString());
+          if (!res.ok) throw new Error(`TMDB error ${res.status}`);
+          return res.json();
+        }
+  
+        function showNotification(message, type = 'info', duration = 3000) {
+          const existing = document.querySelectorAll('.notification');
+          existing.forEach(n => n.remove());
+          const notification = document.createElement('div');
+          notification.className = `notification ${type}`;
+          notification.textContent = message;
+          document.body.appendChild(notification);
+          setTimeout(() => notification.remove(), duration);
+        }
+  
+        let lastAnimeRedirectPrompt = '';
+        let animeRedirectModal = null;
+        let animeRedirectConfirmHandler = null;
+  
+        function isAnimeMovieResult(item) {
+          const genreIds = Array.isArray(item?.genre_ids) ? item.genre_ids.map((entry) => Number(entry)) : [];
+          const originalLanguage = String(item?.original_language || '').trim().toLowerCase();
+          return genreIds.includes(16) && originalLanguage === 'ja';
+        }
+  
+        function normalizeAnimeSearchText(value) {
+          return String(value || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+        }
+  
+        function isExactAnimeSearchMatch(query, matchedTitles = []) {
+          const normalizedQuery = normalizeAnimeSearchText(query);
+          if (!normalizedQuery) return false;
+          return (Array.isArray(matchedTitles) ? matchedTitles : []).some((title) => (
+            normalizeAnimeSearchText(title) === normalizedQuery
+          ));
+        }
+  
+        function filterOutAnimeMovies(rows = []) {
+          let removed = 0;
+          let firstAnimeTitle = '';
+          const matchedAnimeTitles = [];
+          const filtered = (Array.isArray(rows) ? rows : []).filter((item) => {
+            if (isAnimeMovieResult(item)) {
+              removed += 1;
+              const animeTitle = String(item?.title || item?.original_title || item?.name || '').trim();
+              if (!firstAnimeTitle) {
+                firstAnimeTitle = animeTitle;
+              }
+              if (animeTitle) matchedAnimeTitles.push(animeTitle);
+
+

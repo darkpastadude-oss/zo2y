@@ -791,42 +791,80 @@
         <button class="btn btn-primary" id="refreshTvshowsBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
       </div>
     </section>
-    <section class="controls">
-      <input id="q" class="search-input" placeholder="Search TV shows, genres, years...">
-      <button id="tvshowsSearchBtn" class="control-icon-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
-      <button id="tvshowsFilterBtn" class="control-icon-btn" type="button" aria-label="Open TV show filters"><i class="fas fa-sliders-h"></i></button>
-    </section>
-    <div class="control-modal" id="tvshowsFilterModal" aria-hidden="true">
-      <div class="control-modal-card">
-        <div class="control-modal-head">
-          <div class="control-modal-title">Filter TV shows</div>
-          <button class="control-modal-close" id="tvshowsFilterCloseBtn" type="button" aria-label="Close TV show filters">&times;</button>
+    <section class="media-spotlight" id="tvshowsSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="tvshowsSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <h2 id="tvshowsSpotlightTitle">Loading?</h2>
+          <p class="media-spotlight-meta" id="tvshowsSpotlightMeta"></p>
+          <p class="media-spotlight-summary" id="tvshowsSpotlightSummary"></p>
+          <div class="media-spotlight-actions">
+            <a class="btn" id="tvshowsSpotlightOpen" href="#">Open TV show</a>
+          </div>
         </div>
-        <div class="control-modal-grid">
-          <select id="genre"><option value="">All Genres</option></select>
-          <select id="year"><option value="">All Years</option></select>
-          <select id="sort">
-            <option value="popular">popular right now</option>
-            <option value="name">Name A-Z</option>
-            <option value="released">Release Date</option>
+        <div class="media-spotlight-poster">
+          <img id="tvshowsSpotlightImage" src="/newlogo.webp" alt="TV show spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
+        </div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search TV shows..." />
+      <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search TV shows">
+        <i class="fas fa-search"></i>
+      </button>
+      <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
+        <i class="fas fa-sliders-h"></i>
+      </button>
+    </div>
+    <div id="activeFilters" class="chip-row"></div>
+    <div class="modal" id="filterModal">
+      <div class="modal-content filter-modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Filter TV shows</div>
+          <button class="modal-close" id="closeFilterModalBtn">&times;</button>
+        </div>
+        <div class="filter-form-grid">
+          <select id="genreSelect" class="filter-select">
+            <option value="">All Genres</option>
           </select>
-          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+          <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
+          <input id="networkInput" class="search-input full-span" type="text" placeholder="Network" />
         </div>
       </div>
     </div>
 
-    <section class="section">
-      <div class="section-head">
-        <h2>popular TV shows right now</h2>
-        <p>Trending TV shows across all genres.</p>
+    <div id="tvshowsGrid" class="grid"></div>
+    <div id="emptyState" class="empty" style="display:none;">No TV shows found.</div>
+    <div class="pagination">
+      <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
+      <div class="page-info" id="pageInfo">Page 1</div>
+      <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="modal" id="tvshowListsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Custom TV Show Lists</div>
+          <button class="modal-close" id="closeTvshowListsBtn">&times;</button>
+        </div>
+        <div class="modal-list" id="tvshowListsContainer"></div>
+        <div class="modal-input">
+          <input type="text" id="newTvshowListName" placeholder="New list name..." maxlength="50">
+          <button class="btn" id="createTvshowListBtn">Create</button>
+        </div>
+        <div class="icon-options" id="tvshowListIconOptions">
+          <button class="icon-option selected" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+          <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
+        </div>
+        <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
+          <button class="btn" id="saveTvshowListsBtn">Save Changes</button>
+        </div>
       </div>
-      <div class="grid" id="tvshowsGrid"></div>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
-    </section>
+    </div>
   </main>
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
@@ -881,204 +919,192 @@
   </div>
 
   <script>
-      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-      const TMDB_PROXY_BASE = '/api/tmdb';
-      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
-      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const TVSHOWS_PAGE_SIZE = 100;
+      (function () {
+        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+        const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+        const TMDB_PROXY_BASE = '/api/tmdb';
+        const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+        const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+        const TVSHOWS_PAGE_SIZE = 100;
 
-    let supabaseClient = null;
-    let currentUser = null;
-    const state = {
-      tvshows: [],
-      search: '',
-      genre: '',
-      year: '',
-      sort: 'popular',
-      page: 1,
-      totalPages: 1,
-      listStatusMap: new Map(),
-      pendingQuickOps: new Set()
-    };
+        let supabaseClient = null;
+        let currentUser = null;
+        const state = {
+          tvshows: [],
+          search: '',
+          genre: '',
+          year: '',
+          network: '',
+          page: 1,
+          totalPages: 1,
+          listStatusMap: new Map(),
+          pendingQuickOps: new Set()
+        };
 
-    function escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function showToast(message, isError = false) {
-      const el = document.createElement('div');
-      el.style.position = 'fixed';
-      el.style.top = '16px';
-      el.style.right = '16px';
-      el.style.zIndex = '9999';
-      el.style.background = isError ? '#dc2626' : '#f59e0b';
-      el.style.color = '#fff';
-      el.style.padding = '10px 14px';
-      el.style.borderRadius = '10px';
-      el.style.fontSize = '13px';
-      el.textContent = message;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 2200);
-    }
-
-    async function ensureSupabase() {
-      if (supabaseClient) return supabaseClient;
-      const authRuntime = window.ZO2Y_AUTH || null;
-      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-        await authRuntime.waitForSupabase(8000);
-      } else {
-        const startedAt = Date.now();
-        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-          await new Promise((resolve) => setTimeout(resolve, 40));
+        function escapeHtml(value) {
+          return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#039;');
         }
-      }
-      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (supabaseClient) return supabaseClient;
-      }
-      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-        supabaseClient = window.supabase.createClient(
-          window.__ZO2Y_SUPABASE_CONFIG.url,
-          window.__ZO2Y_SUPABASE_CONFIG.key,
-          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-        );
-        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-        return supabaseClient;
-      }
-      return null;
-    }
 
-    async function initAuthUi() {
-      const client = await ensureSupabase();
-      if (!client) return;
-      const loginBtn = document.getElementById('loginBtn');
-      const signupBtn = document.getElementById('signupBtn');
-      const profileBtn = document.getElementById('profileBtn');
-      const { data } = await client.auth.getUser();
-      currentUser = data?.user || null;
-
-      if (currentUser) {
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (signupBtn) signupBtn.style.display = 'none';
-        if (profileBtn) {
-          profileBtn.style.display = 'inline-flex';
-          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+        function showToast(message, isError = false) {
+          const el = document.createElement('div');
+          el.style.position = 'fixed';
+          el.style.top = '16px';
+          el.style.right = '16px';
+          el.style.zIndex = '9999';
+          el.style.background = isError ? '#dc2626' : '#f59e0b';
+          el.style.color = '#fff';
+          el.style.padding = '10px 14px';
+          el.style.borderRadius = '10px';
+          el.style.fontSize = '13px';
+          el.textContent = message;
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 2200);
         }
-      } else {
-        if (loginBtn) loginBtn.style.display = 'inline-flex';
-        if (signupBtn) signupBtn.style.display = 'inline-flex';
-        if (profileBtn) profileBtn.style.display = 'none';
-      }
-    }
 
-    function filterNonAnime(tvResults) {
-      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
-        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
-        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
-        const isJapaneseAnime = originCountry.includes('JP') || originCountry.includes('JP') || genreIds.includes(16);
-        const name = String(tv.name || '').toLowerCase();
-        const overview = String(tv.overview || '').toLowerCase();
-        const hasAnimeKeywords = /anime|manga|japanese/.test(name + ' ' + overview);
-        return !(isJapaneseAnime || hasAnimeKeywords);
-      });
-    }
-
-    async function loadTvshows(queryOverride = '') {
-      const query = String(queryOverride || state.currentQuery || '').trim();
-      let tvshows = [];
-
-      try {
-        const endpoint = query ? 'search/tv' : 'trending/tv/week';
-        const params = query ? { query, page: 1 } : {};
-        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          const tvResults = Array.isArray(json?.results) ? json.results : [];
-          tvshows = filterNonAnime(tvResults);
+        async function ensureSupabase() {
+          if (supabaseClient) return supabaseClient;
+          if (window.__ZO2Y_SUPABASE_CLIENT) {
+            supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
+            return supabaseClient;
+          }
+          if (!window.supabase) return null;
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
+          });
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+          return supabaseClient;
         }
-      } catch (_err) {
-        console.error('Failed to load tvshows', _err);
-      }
 
-      state.tvshows = tvshows.map((tvshow) => ({
-        id: String(tvshow.id || ''),
-        name: tvshow.name || tvshow.title || 'Unknown TV Show',
-        overview: tvshow.overview || '',
-        posterPath: tvshow.poster_path || '',
-        backdropPath: tvshow.backdrop_path || '',
-        firstAirDate: tvshow.first_air_date || '',
-        voteAverage: tvshow.vote_average || 0,
-        genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
-      })).filter((t) => t.id);
-      
-      state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(state.tvshows.length / TVSHOWS_PAGE_SIZE));
-    }
+        async function initAuthUi() {
+          const client = await ensureSupabase();
+          if (!client) return;
+          const loginBtn = document.getElementById('loginBtn');
+          const signupBtn = document.getElementById('signupBtn');
+          const profileBtn = document.getElementById('profileBtn');
+          const { data } = await client.auth.getUser();
+          currentUser = data?.user || null;
 
-    async function loadListStatus() {
-      state.listStatusMap = new Map();
-      if (!currentUser?.id || !state.tvshows.length) return;
-      const client = await ensureSupabase();
-      if (!client) return;
-      const ids = state.tvshows.map((tvshow) => tvshow.id);
-      if (!ids.length) return;
-      const { data } = await client
-        .from('tvshow_list_items')
-        .select('tvshow_id, list_type')
-        .eq('user_id', currentUser.id)
-        .in('tvshow_id', ids);
-      (data || []).forEach((row) => {
-        const id = String(row.tvshow_id || '');
-        if (!id) return;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
-        const bucket = state.listStatusMap.get(id);
-        if (row.list_type in bucket) bucket[row.list_type] = true;
-      });
-    }
+          if (currentUser) {
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (signupBtn) signupBtn.style.display = 'none';
+            if (profileBtn) {
+              profileBtn.style.display = 'inline-flex';
+              profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+            }
+          } else {
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (signupBtn) signupBtn.style.display = 'inline-flex';
+            if (profileBtn) profileBtn.style.display = 'none';
+          }
+        }
 
-    function getTvshowListStatus(tvshowId) {
-      const id = String(tvshowId || '').trim();
-      const empty = { favorites: false, watched: false, watchlist: false };
-      if (!id) return empty;
-      if (!state.listStatusMap.has(id)) {
-        state.listStatusMap.set(id, { ...empty });
-      }
-      return state.listStatusMap.get(id);
-    }
+        function filterNonAnime(tvResults) {
+          return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+            const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
+            const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+            const isJapaneseAnime = originCountry.includes('JP') || originCountry.includes('JP') || genreIds.includes(16);
+            const name = String(tv.name || '').toLowerCase();
+            const overview = String(tv.overview || '').toLowerCase();
+            const hasAnimeKeywords = /anime|manga|japanese/.test(name + ' ' + overview);
+            return !(isJapaneseAnime || hasAnimeKeywords);
+          });
+        }
 
-    function getTvshowCardExtra(tvshow) {
-      const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
-      const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
-      const parts = [year, rating].filter(Boolean);
-      return parts.join(' | ') || 'TV Show details';
-    }
+        async function loadTvshows(queryOverride = '') {
+          const query = String(queryOverride || state.search || '').trim();
+          let tvshows = [];
 
-    function renderGrid() {
-      const grid = document.getElementById('tvshowsGrid');
-      if (!grid) return;
-      if (!state.tvshows.length) {
-        grid.innerHTML = '<div class="empty">No TV shows found.</div>';
-        updatePagination();
-        return;
-      }
-      const start = (state.page - 1) * TVSHOWS_PAGE_SIZE;
-      const visibleItems = state.tvshows.slice(start, start + TVSHOWS_PAGE_SIZE);
-      grid.innerHTML = visibleItems.map((tvshow) => {
-        const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/newlogo.webp';
-        return `
-        <article class="card" data-id="${escapeHtml(tvshow.id)}">
-          <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy">
-          </div>
-          <div class="card-meta">
+          try {
+            const endpoint = query ? 'search/tv' : 'trending/tv/week';
+            const params = query ? { query, page: 1 } : {};
+            const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              tvshows = filterNonAnime(tvResults);
+            }
+          } catch (_err) {
+            console.error('Failed to load tvshows', _err);
+          }
+
+          state.tvshows = tvshows.map((tvshow) => ({
+            id: String(tvshow.id || ''),
+            name: tvshow.name || tvshow.title || 'Unknown TV Show',
+            overview: tvshow.overview || '',
+            posterPath: tvshow.poster_path || '',
+            backdropPath: tvshow.backdrop_path || '',
+            firstAirDate: tvshow.first_air_date || '',
+            voteAverage: tvshow.vote_average || 0,
+            genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
+          })).filter((t) => t.id);
+          
+          state.page = 1;
+          state.totalPages = Math.max(1, Math.ceil(state.tvshows.length / TVSHOWS_PAGE_SIZE));
+        }
+
+        async function loadListStatus() {
+          state.listStatusMap = new Map();
+          if (!currentUser?.id || !state.tvshows.length) return;
+          const client = await ensureSupabase();
+          if (!client) return;
+          const ids = state.tvshows.map((tvshow) => tvshow.id);
+          if (!ids.length) return;
+          const { data } = await client
+            .from('tvshow_list_items')
+            .select('tvshow_id, list_type')
+            .eq('user_id', currentUser.id)
+            .in('tvshow_id', ids);
+          (data || []).forEach((row) => {
+            const id = String(row.tvshow_id || '');
+            if (!id) return;
+            if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
+            const bucket = state.listStatusMap.get(id);
+            if (row.list_type in bucket) bucket[row.list_type] = true;
+          });
+        }
+
+        function getTvshowListStatus(tvshowId) {
+          const id = String(tvshowId || '').trim();
+          const empty = { favorites: false, watched: false, watchlist: false };
+          if (!id) return empty;
+          if (!state.listStatusMap.has(id)) {
+            state.listStatusMap.set(id, { ...empty });
+          }
+          return state.listStatusMap.get(id);
+        }
+
+        function getTvshowCardExtra(tvshow) {
+          const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
+          const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
+          const parts = [year, rating].filter(Boolean);
+          return parts.join(' | ') || 'TV Show details';
+        }
+
+        function renderGrid() {
+          const grid = document.getElementById('tvshowsGrid');
+          if (!grid) return;
+          if (!state.tvshows.length) {
+            grid.innerHTML = '<div class="empty">No TV shows found.</div>';
+            updatePagination();
+            return;
+          }
+          const start = (state.page - 1) * TVSHOWS_PAGE_SIZE;
+          const visibleItems = state.tvshows.slice(start, start + TVSHOWS_PAGE_SIZE);
+          grid.innerHTML = visibleItems.map((tvshow) => {
+            const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/newlogo.webp';
+            return `
+            <article class="card" data-id="${escapeHtml(tvshow.id)}">
+              <div class="card-media">
+                <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy">
+              </div>
+              <div class="card-meta">
             <p class="card-title">${escapeHtml(tvshow.name)}</p>
             <p class="card-sub">${escapeHtml(tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getTvshowCardExtra(tvshow))}</p>
@@ -1090,208 +1116,254 @@
       `;
       }).join('');
 
-      wireGridActions();
-      updatePagination();
-    }
-
-    function updatePagination() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      state.totalPages = Math.max(1, Math.ceil(state.tvshows.length / TVSHOWS_PAGE_SIZE));
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
-    }
-
-    async function upsertTvshowRecord(client, tvshow) {
-      if (!client || !tvshow?.id) return false;
-      const payload = {
-        id: String(tvshow.id),
-        name: tvshow.name || '',
-        poster_url: tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('tvshows').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('TV show upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
-    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-      const tvshowId = String(itemId || '').trim();
-      if (!tvshowId) return { ok: false, saved: false };
-      const tvshow = state.tvshows.find((row) => String(row.id || '').trim() === tvshowId);
-      if (!tvshow) return { ok: false, saved: false };
-
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id) {
-        window.location.href = 'login.html';
-        return { ok: false, saved: false };
-      }
-
-      const status = getTvshowListStatus(tvshowId);
-      if (!(listType in status)) return { ok: false, saved: false };
-
-      const previousSaved = !!status[listType];
-      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-      const opKey = `${tvshowId}:${listType}`;
-      if (state.pendingQuickOps.has(opKey)) {
-        return { ok: false, saved: previousSaved };
-      }
-
-      state.pendingQuickOps.add(opKey);
-      status[listType] = nextSaved;
-      try {
-        if (nextSaved) {
-          const ok = await upsertTvshowRecord(client, tvshow);
-          if (!ok) throw new Error('TV show upsert failed');
-          const { error } = await client.from('tvshow_list_items').insert({
-            user_id: currentUser.id,
-            tvshow_id: tvshowId,
-            list_type: listType
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
-          showToast('Added to list');
-        } else {
-          const { error } = await client
-            .from('tvshow_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('tvshow_id', tvshowId)
-            .eq('list_type', listType);
-          if (error) throw error;
-          showToast('Removed from list');
+          wireGridActions();
+          updatePagination();
         }
-        return { ok: true, saved: nextSaved };
-      } catch (error) {
-        console.error('TV show list toggle failed', error);
-        status[listType] = previousSaved;
-        showToast('Could not update list', true);
-        return { ok: false, saved: previousSaved };
-      } finally {
-        state.pendingQuickOps.delete(opKey);
-      }
-    }
 
-    function wireGridActions() {
-      document.querySelectorAll('.menu-btn').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const card = btn.closest('.card');
-          if (!card) return;
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(card);
+        function updatePagination() {
+          const prevBtn = document.getElementById('prevPageBtn');
+          const nextBtn = document.getElementById('nextPageBtn');
+          const info = document.getElementById('pageInfo');
+          state.totalPages = Math.max(1, Math.ceil(state.tvshows.length / TVSHOWS_PAGE_SIZE));
+          if (state.page > state.totalPages) state.page = state.totalPages;
+          if (state.page < 1) state.page = 1;
+          if (prevBtn) prevBtn.disabled = state.page <= 1;
+          if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+          if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+        }
+
+        async function upsertTvshowRecord(client, tvshow) {
+          if (!client || !tvshow?.id) return false;
+          const payload = {
+            id: String(tvshow.id),
+            name: tvshow.name || '',
+            poster_url: tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '',
+            updated_at: new Date().toISOString()
+          };
+          const { error } = await client.from('tvshows').upsert(payload, { onConflict: 'id' });
+          if (error) {
+            console.error('TV show upsert failed', error);
+            return false;
           }
-        });
-      });
-
-      document.querySelectorAll('.card').forEach((card) => {
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn')) return;
-          const id = String(card.getAttribute('data-id') || '').trim();
-          if (!id) return;
-          window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
-        });
-      });
-    }
-
-    async function loadPage() {
-      try {
-        await initAuthUi();
-        await loadTvshows();
-        await loadListStatus();
-        renderGrid();
-      } catch (_err) {
-        const grid = document.getElementById('tvshowsGrid');
-        if (grid) grid.innerHTML = '<div class="empty">TV shows feed unavailable right now.</div>';
-      }
-    }
-
-    document.getElementById('refreshTvshowsBtn')?.addEventListener('click', loadPage);
-    document.getElementById('tvshowsSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
-    });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
-    });
-    document.getElementById('tvshowsFilterBtn')?.addEventListener('click', () => {
-      document.getElementById('tvshowsFilterModal')?.classList.add('show');
-    });
-    document.getElementById('tvshowsFilterCloseBtn')?.addEventListener('click', () => {
-      document.getElementById('tvshowsFilterModal')?.classList.remove('show');
-    });
-    document.getElementById('genre')?.addEventListener('change', (e) => {
-      state.genre = String(e.target.value || '').trim();
-    });
-    document.getElementById('year')?.addEventListener('change', (e) => {
-      state.year = String(e.target.value || '').trim();
-    });
-    document.getElementById('sort')?.addEventListener('change', (e) => {
-      state.sort = String(e.target.value || 'popular').trim();
-    });
-    document.getElementById('refresh')?.addEventListener('click', async () => {
-      document.getElementById('tvshowsFilterModal')?.classList.remove('show');
-      await loadPage();
-    });
-    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
-      if (state.page <= 1) return;
-      state.page -= 1;
-      renderGrid();
-    });
-    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
-      if (state.page >= state.totalPages) return;
-      state.page += 1;
-      renderGrid();
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.initUniversalSearch) {
-        const initSearch = () => window.initUniversalSearch({
-          input: '#globalSearch',
-          fallbackRoute: 'tvshows.html'
-        });
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(initSearch, { timeout: 1500 });
-        } else {
-          window.setTimeout(initSearch, 0);
+          return true;
         }
-      }
-      if (window.initIndexStyleListMenu) {
-        window.initIndexStyleListMenu({
-          mediaType: 'tvshows',
-          itemIdAttr: 'data-id',
-          getVisibleItemIds: () =>
-            Array.from(document.querySelectorAll('.card[data-id]'))
-              .map((card) => card.getAttribute('data-id'))
-              .filter(Boolean),
-          getQuickStatusForItem: (itemId) => {
-            const key = String(itemId || '').trim();
-            const status = state.listStatusMap.get(key);
-            return status ? { ...status } : null;
-          },
-          ensureClient: async () => {
-            if (supabaseClient) return supabaseClient;
-            await ensureSupabase();
-            return supabaseClient;
-          },
-          getCurrentUser: () => currentUser,
-          notify: (message, isError) => showToast(message, !!isError),
-          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-            toggleDefaultList(itemId, listType, card, nextSaved)
+
+        async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+          const tvshowId = String(itemId || '').trim();
+          if (!tvshowId) return { ok: false, saved: false };
+          const tvshow = state.tvshows.find((row) => String(row.id || '').trim() === tvshowId);
+          if (!tvshow) return { ok: false, saved: false };
+
+          const client = await ensureSupabase();
+          if (!client || !currentUser?.id) {
+            window.location.href = 'login.html';
+            return { ok: false, saved: false };
+          }
+
+          const status = getTvshowListStatus(tvshowId);
+          if (!(listType in status)) return { ok: false, saved: false };
+
+          const previousSaved = !!status[listType];
+          const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+          const opKey = `${tvshowId}:${listType}`;
+          if (state.pendingQuickOps.has(opKey)) {
+            return { ok: false, saved: previousSaved };
+          }
+
+          state.pendingQuickOps.add(opKey);
+          status[listType] = nextSaved;
+          try {
+            if (nextSaved) {
+              const ok = await upsertTvshowRecord(client, tvshow);
+              if (!ok) throw new Error('TV show upsert failed');
+              const { error } = await client.from('tvshow_list_items').insert({
+                user_id: currentUser.id,
+                tvshow_id: tvshowId,
+                list_type: listType
+              });
+              if (error && String(error.code || '') !== '23505') throw error;
+              showToast('Added to list');
+            } else {
+              const { error } = await client
+                .from('tvshow_list_items')
+                .delete()
+                .eq('user_id', currentUser.id)
+                .eq('tvshow_id', tvshowId)
+                .eq('list_type', listType);
+              if (error) throw error;
+              showToast('Removed from list');
+            }
+            return { ok: true, saved: nextSaved };
+          } catch (error) {
+            console.error('TV show list toggle failed', error);
+            status[listType] = previousSaved;
+            showToast('Could not update list', true);
+            return { ok: false, saved: previousSaved };
+          } finally {
+            state.pendingQuickOps.delete(opKey);
+          }
+        }
+
+        function wireGridActions() {
+          document.querySelectorAll('.menu-btn').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const card = btn.closest('.card');
+              if (!card) return;
+              if (typeof window.openIndexStyleListMenu === 'function') {
+                window.openIndexStyleListMenu(card);
+              }
+            });
+          });
+
+          document.querySelectorAll('.card').forEach((card) => {
+            card.addEventListener('click', (e) => {
+              if (e.target.closest('.menu-btn')) return;
+              const id = String(card.getAttribute('data-id') || '').trim();
+              if (!id) return;
+              window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
+            });
+          });
+        }
+
+        function wireUI() {
+          const searchInput = document.getElementById('searchInput');
+          const genreSelect = document.getElementById('genreSelect');
+          const yearInput = document.getElementById('yearInput');
+          const networkInput = document.getElementById('networkInput');
+          const searchSubmitBtn = document.getElementById('searchSubmitBtn');
+          const filterToggleBtn = document.getElementById('filterToggleBtn');
+          const filterModal = document.getElementById('filterModal');
+          const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
+          const prevBtn = document.getElementById('prevPageBtn');
+          const nextBtn = document.getElementById('nextPageBtn');
+
+          if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+              state.search = e.target.value.trim();
+              state.page = 1;
+              loadTvshows();
+            });
+            searchInput.addEventListener('keydown', (e) => {
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              state.search = e.target.value.trim();
+              state.page = 1;
+              loadTvshows();
+            });
+          }
+          if (searchSubmitBtn && searchInput) {
+            searchSubmitBtn.addEventListener('click', () => {
+              searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+            });
+          }
+          if (genreSelect) {
+            genreSelect.addEventListener('change', (e) => {
+              state.genre = e.target.value;
+              state.page = 1;
+              loadTvshows();
+            });
+          }
+          if (yearInput) {
+            yearInput.addEventListener('input', (e) => {
+              state.year = e.target.value.trim();
+              state.page = 1;
+              loadTvshows();
+            });
+          }
+          if (networkInput) {
+            networkInput.addEventListener('input', (e) => {
+              state.network = e.target.value.trim();
+              state.page = 1;
+              loadTvshows();
+            });
+          }
+          if (filterToggleBtn && filterModal) {
+            filterToggleBtn.addEventListener('click', () => {
+              filterModal.style.display = 'flex';
+            });
+          }
+          if (closeFilterModalBtn && filterModal) {
+            closeFilterModalBtn.addEventListener('click', () => {
+              filterModal.style.display = 'none';
+            });
+          }
+          if (filterModal) {
+            filterModal.addEventListener('click', (e) => {
+              if (e.target === filterModal) filterModal.style.display = 'none';
+            });
+          }
+          if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+              if (state.page > 1) {
+                state.page -= 1;
+                renderGrid();
+              }
+            });
+          }
+          if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+              if (state.page < state.totalPages) {
+                state.page += 1;
+                renderGrid();
+              }
+            });
+          }
+        }
+
+        async function loadPage() {
+          try {
+            await initAuthUi();
+            await loadTvshows();
+            await loadListStatus();
+            renderGrid();
+          } catch (_err) {
+            const grid = document.getElementById('tvshowsGrid');
+            if (grid) grid.innerHTML = '<div class="empty">TV shows feed unavailable right now.</div>';
+          }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+          if (window.initUniversalSearch) {
+            const initSearch = () => window.initUniversalSearch({
+              input: '#globalSearch',
+              fallbackRoute: 'tvshows.html'
+            });
+            if (typeof window.requestIdleCallback === 'function') {
+              window.requestIdleCallback(initSearch, { timeout: 1500 });
+            } else {
+              window.setTimeout(initSearch, 0);
+            }
+          }
+          if (window.initIndexStyleListMenu) {
+            window.initIndexStyleListMenu({
+              mediaType: 'tvshows',
+              itemIdAttr: 'data-id',
+              getVisibleItemIds: () =>
+                Array.from(document.querySelectorAll('.card[data-id]'))
+                  .map((card) => card.getAttribute('data-id'))
+                  .filter(Boolean),
+              getQuickStatusForItem: (itemId) => {
+                const key = String(itemId || '').trim();
+                const status = state.listStatusMap.get(key);
+                return status ? { ...status } : null;
+              },
+              ensureClient: async () => {
+                if (supabaseClient) return supabaseClient;
+                await ensureSupabase();
+                return supabaseClient;
+              },
+              getCurrentUser: () => currentUser,
+              notify: (message, isError) => showToast(message, !!isError),
+              toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+                toggleDefaultList(itemId, listType, card, nextSaved)
+            });
+          }
+          wireUI();
+          loadPage();
         });
-      }
-      loadPage();
-    });
-  </script>
+      })();
+    </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
