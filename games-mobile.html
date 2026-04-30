@@ -2304,7 +2304,7 @@
         return icon;
       }
 
-      async function initSupabase() {
+      async function ensureSupabase() {
         if (supabaseClient) return supabaseClient;
         const authRuntime = window.ZO2Y_AUTH || null;
         if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
@@ -2360,15 +2360,27 @@
         });
       }
 
-      async function initAuth() {
-        if (!supabaseClient) return;
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        state.currentUser = user || null;
-        await loadUserListStatus();
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-          state.currentUser = session?.user || null;
-          loadUserListStatus();
-        });
+      async function initAuthUi() {
+        const client = await ensureSupabase();
+        if (!client) return;
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const profileBtn = document.getElementById('profileBtn');
+        const { data } = await client.auth.getUser();
+        state.currentUser = data?.user || null;
+
+        if (state.currentUser) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (signupBtn) signupBtn.style.display = 'none';
+          if (profileBtn) {
+            profileBtn.style.display = 'inline-flex';
+            profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+          }
+        } else {
+          if (loginBtn) loginBtn.style.display = 'inline-flex';
+          if (signupBtn) signupBtn.style.display = 'inline-flex';
+          if (profileBtn) profileBtn.style.display = 'none';
+        }
       }
 
       async function loadUserListStatus() {
@@ -3032,9 +3044,9 @@
       }
 
       (async function init() {
-        await initSupabase();
+        await ensureSupabase();
         wireUI();
-        await initAuth();
+        await initAuthUi();
         renderFilters();
         loadGames();
         loadGenreCatalog().catch(() => {});
