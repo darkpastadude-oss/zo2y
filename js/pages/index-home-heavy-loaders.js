@@ -245,10 +245,10 @@ async function loadBooks(signal) {
           if (value === undefined || value === null || value === '') return;
           url.searchParams.set(key, String(value));
         });
-        url.searchParams.set('cb', '20260325a');
+        url.searchParams.set('cb', '20260430c');
         url.searchParams.set('_', String(Date.now()));
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+        const timeoutId = window.setTimeout(() => controller.abort(), 8000);
         try {
           setBooksDebug('fetching', { path: normalizedPath, params });
           let response;

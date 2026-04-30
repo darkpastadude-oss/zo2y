@@ -1018,8 +1018,9 @@
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
-      const BOOKS_PER_PAGE = 20;
-      const BOOKS_CACHE_BUSTER = '20260425e-curated-top-100';
+      const BOOKS_PER_PAGE = 40;
+      const BOOKS_INITIAL_LOAD_COUNT = 100;
+      const BOOKS_CACHE_BUSTER = '20260430c-top-100-fast';
       const BOOKS_PAGE_CACHE_KEY = 'zo2y_books_page_cache_v3';
       const BOOKS_PAGE_CACHE_TTL_MS = 1000 * 60 * 60 * 6;
       const BOOKS_API_CACHE_PREFIX = 'zo2y_books_api_cache_v3';
@@ -2030,34 +2031,63 @@
         const grid = document.getElementById('booksGrid');
         if (!grid) return;
         
-        // Clear grid immediately, no loading message
         grid.innerHTML = '';
         
         const hasActiveFilters = !!(state.query || state.author || state.activeCategory || state.year);
+        const isFirstPage = Number(state.page || 1) === 1;
         
         let data;
         try {
           const params = {
             page: state.page,
-            limit: BOOKS_PER_PAGE,
+            limit: isFirstPage && !hasActiveFilters ? BOOKS_INITIAL_LOAD_COUNT : BOOKS_PER_PAGE,
             language: BOOKS_LANGUAGE
           };
           
           if (state.query) {
             params.q = state.query;
-            params.orderBy = 'newest';
+            params.orderBy = 'relevance';
           }
           if (state.author) params.author = state.author;
           if (state.activeCategory) params.subject = state.activeCategory;
           if (state.year) params.first_publish_year = state.year;
           
-          if (!hasActiveFilters) {
-            // Load trending books for first page
-            data = await booksFetch('/trending', {
-              ...params,
-              period: 'weekly',
-              subject: state.activeCategory || 'fiction'
+          if (!hasActiveFilters && isFirstPage) {
+            // Load top 100 popular books for first page
+            const [popularResult, trendingResult] = await Promise.allSettled([
+              booksFetch('/popular', {
+                page: 1,
+                limit: 60,
+                subject: state.activeCategory || 'fiction',
+                language: BOOKS_LANGUAGE,
+                orderBy: 'relevance'
+              }),
+              booksFetch('/trending', {
+                period: 'weekly',
+                limit: 60
+              })
+            ]);
+            
+            const popular = popularResult.status === 'fulfilled' ? popularResult.value : { books: [], numFound: 0 };
+            const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : { books: [], numFound: 0 };
+            
+            const popularBooks = Array.isArray(popular?.books) ? popular.books : [];
+            const trendingBooks = Array.isArray(trending?.books) ? trending.books : [];
+            
+            // Merge and dedupe
+            const seen = new Set();
+            const merged = [];
+            [...trendingBooks, ...popularBooks].forEach(book => {
+              const key = `${String(book?.title || '').trim().toLowerCase()}::${String(book?.author || '').trim().toLowerCase()}`;
+              if (!key || seen.has(key)) return;
+              seen.add(key);
+              merged.push(book);
             });
+            
+            data = {
+              books: merged.slice(0, BOOKS_INITIAL_LOAD_COUNT),
+              numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length)
+            };
           } else {
             // Search with filters
             data = await booksFetch('/search', params);
@@ -2066,18 +2096,31 @@
           if (!Array.isArray(data?.books) || !data.books.length) {
             data = { books: [], numFound: 0 };
           } else {
-            // Filter for books with covers and from recent years
+            // Filter for books with covers and prioritize aesthetic ones
             data.books = data.books
               .filter(book => {
                 const hasCover = book.cover && 
                                 book.cover !== FALLBACK_BOOK_IMAGE && 
                                 !book.cover.includes('fallback') &&
-                                !book.cover.includes('placeholder');
-                const isRecent = book.year && book.year >= 2018;
-                return hasCover && isRecent;
+                                !book.cover.includes('placeholder') &&
+                                !book.cover.includes('open-book');
+                return hasCover;
               })
               .sort((a, b) => {
-                // Prioritize newer books first
+                // Prioritize books with better covers (googleusercontent > openlibrary)
+                const aCover = String(a?.cover || '');
+                const bCover = String(b?.cover || '');
+                const aHasGoogle = aCover.includes('googleusercontent.com');
+                const bHasGoogle = bCover.includes('googleusercontent.com');
+                const aHasOpenLibrary = aCover.includes('covers.openlibrary.org');
+                const bHasOpenLibrary = bCover.includes('covers.openlibrary.org');
+                
+                if (aHasGoogle && !bHasGoogle) return -1;
+                if (!aHasGoogle && bHasGoogle) return 1;
+                if (aHasOpenLibrary && !bHasOpenLibrary) return -1;
+                if (!aHasOpenLibrary && bHasOpenLibrary) return 1;
+                
+                // Then prioritize newer books
                 const aYear = a.year || 0;
                 const bYear = b.year || 0;
                 return bYear - aYear;
