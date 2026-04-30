@@ -957,28 +957,56 @@
 
     async function loadAnimesWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
-      const variations = getQueryVariations(query);
       let animes = [];
       let apiTotalPages = 1;
 
-      for (const variation of variations) {
+      if (!query) {
+        // Load popular TV shows when no search query (more comprehensive than trending)
         try {
-          const endpoint = variation ? 'search/tv' : 'trending/tv/week';
-          const params = variation ? { query: variation, page: state.page } : { page: state.page };
-          const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=popularity.desc&page=${state.page}`;
           const res = await fetch(url);
           if (res.ok) {
             const json = await res.json();
             const tvResults = Array.isArray(json?.results) ? json.results : [];
-            const filteredAnimes = filterAnime(tvResults);
-            if (filteredAnimes.length > 0) {
-              animes = filteredAnimes;
-              apiTotalPages = json?.total_pages || 1;
-              break;
-            }
+            animes = filterAnime(tvResults);
+            apiTotalPages = json?.total_pages || 1;
           }
         } catch (_err) {
-          console.error('Failed to load animes with variation:', variation, _err);
+          console.error('Failed to load popular animes', _err);
+          // Fallback to trending if discover fails
+          try {
+            const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${state.page}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              animes = filterAnime(tvResults);
+              apiTotalPages = json?.total_pages || 1;
+            }
+          } catch (_err2) {
+            console.error('Failed to load trending animes', _err2);
+          }
+        }
+      } else {
+        // Try search with variations
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=${state.page}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              const filteredAnimes = filterAnime(tvResults);
+              if (filteredAnimes.length > 0) {
+                animes = filteredAnimes;
+                apiTotalPages = json?.total_pages || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load animes with variation:', variation, _err);
+          }
         }
       }
 

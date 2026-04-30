@@ -954,27 +954,41 @@
 
     async function loadBooksWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
-      const variations = getQueryVariations(query);
       let books = [];
       let apiTotalPages = 1;
 
-      for (const variation of variations) {
+      if (!query) {
+        // Load trending when no search query
         try {
-          const endpoint = variation ? 'search' : 'trending';
-          const params = variation ? { q: variation, page: state.page, limit: 40 } : { page: state.page, limit: 40 };
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/trending?page=${state.page}&limit=40`;
           const res = await fetch(url);
           if (res.ok) {
             const json = await res.json();
-            const results = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
-            if (results.length > 0) {
-              books = results;
-              apiTotalPages = json?.totalPages || 1;
-              break;
-            }
+            books = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+            apiTotalPages = json?.totalPages || 1;
           }
         } catch (_err) {
-          console.error('Failed to load books with variation:', variation, _err);
+          console.error('Failed to load trending books', _err);
+        }
+      } else {
+        // Try search with variations
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&page=${state.page}&limit=40`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const results = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
+              if (results.length > 0) {
+                books = results;
+                apiTotalPages = json?.totalPages || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load books with variation:', variation, _err);
+          }
         }
       }
 

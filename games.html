@@ -959,50 +959,94 @@
 
     async function loadGamesWithFallback() {
       const query = String(state.search || '').trim();
-      const variations = getQueryVariations(query);
       let games = [];
       let apiTotalPages = 1;
 
-      for (const variation of variations) {
-        const client = await ensureSupabase();
-        if (!client) break;
+      const client = await ensureSupabase();
+      if (!client) {
+        state.games = [];
+        state.totalPages = 1;
+        return;
+      }
 
-        try {
-          let query = client.from('games').select('*', { count: 'exact' });
+      try {
+        let dbQuery = client.from('games').select('*', { count: 'exact' });
 
-          if (variation) {
-            query = query.ilike('title', `%${variation}%`);
+        if (query) {
+          // Try search with variations
+          const variations = getQueryVariations(query);
+          let found = false;
+          
+          for (const variation of variations) {
+            try {
+              let searchQuery = client.from('games').select('*', { count: 'exact' });
+              searchQuery = searchQuery.ilike('title', `%${variation}%`);
+
+              if (state.genre) {
+                searchQuery = searchQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
+              }
+
+              if (state.platform) {
+                searchQuery = searchQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+              }
+
+              if (state.sort === 'name') {
+                searchQuery = searchQuery.order('title', { ascending: true });
+              } else if (state.sort === 'released') {
+                searchQuery = searchQuery.order('release_date', { ascending: false, nullsFirst: false });
+              } else {
+                searchQuery = searchQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+              }
+
+              const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
+              const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
+              const { data, error, count } = await searchQuery.range(rangeStart, rangeEnd);
+              if (error) throw error;
+
+              if (data && data.length > 0) {
+                games = data;
+                apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+                found = true;
+                break;
+              }
+            } catch (_err) {
+              console.error('Failed to load games with variation:', variation, _err);
+            }
           }
-
+          
+          if (!found) {
+            state.games = [];
+            state.totalPages = 1;
+            return;
+          }
+        } else {
+          // Load all games when no search query
           if (state.genre) {
-            query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
+            dbQuery = dbQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
           }
 
           if (state.platform) {
-            query = query.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+            dbQuery = dbQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
           }
 
           if (state.sort === 'name') {
-            query = query.order('title', { ascending: true });
+            dbQuery = dbQuery.order('title', { ascending: true });
           } else if (state.sort === 'released') {
-            query = query.order('release_date', { ascending: false, nullsFirst: false });
+            dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false });
           } else {
-            query = query.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+            dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
           }
 
           const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
           const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
-          const { data, error, count } = await query.range(rangeStart, rangeEnd);
+          const { data, error, count } = await dbQuery.range(rangeStart, rangeEnd);
           if (error) throw error;
 
-          if (data && data.length > 0) {
-            games = data;
-            apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-            break;
-          }
-        } catch (_err) {
-          console.error('Failed to load games with variation:', variation, _err);
+          games = data || [];
+          apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
         }
+      } catch (_err) {
+        console.error('Failed to load games', _err);
       }
 
       state.games = games.map((game) => ({

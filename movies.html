@@ -958,27 +958,53 @@
 
     async function loadMoviesWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
-      const variations = getQueryVariations(query);
       let movies = [];
       let apiTotalPages = 1;
 
-      for (const variation of variations) {
+      if (!query) {
+        // Load popular movies when no search query (more comprehensive than trending)
         try {
-          const endpoint = variation ? 'search/movie' : 'trending/movie/week';
-          const params = variation ? { query: variation, page: state.page } : { page: state.page };
-          const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+          const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=popularity.desc&page=${state.page}`;
           const res = await fetch(url);
           if (res.ok) {
             const json = await res.json();
-            const results = Array.isArray(json?.results) ? json.results : [];
-            if (results.length > 0) {
-              movies = results;
-              apiTotalPages = json?.total_pages || 1;
-              break;
-            }
+            movies = Array.isArray(json?.results) ? json.results : [];
+            apiTotalPages = json?.total_pages || 1;
           }
         } catch (_err) {
-          console.error('Failed to load movies with variation:', variation, _err);
+          console.error('Failed to load popular movies', _err);
+          // Fallback to trending if discover fails
+          try {
+            const url = `${TMDB_PROXY_BASE}/trending/movie/week?page=${state.page}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              movies = Array.isArray(json?.results) ? json.results : [];
+              apiTotalPages = json?.total_pages || 1;
+            }
+          } catch (_err2) {
+            console.error('Failed to load trending movies', _err2);
+          }
+        }
+      } else {
+        // Try search with variations
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${TMDB_PROXY_BASE}/search/movie?query=${encodeURIComponent(variation)}&page=${state.page}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const results = Array.isArray(json?.results) ? json.results : [];
+              if (results.length > 0) {
+                movies = results;
+                apiTotalPages = json?.total_pages || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load movies with variation:', variation, _err);
+          }
         }
       }
 
