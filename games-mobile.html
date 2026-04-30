@@ -1,768 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
   <script src="/js/auth-gate.js?v=20260428a"></script>
   <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
-  <link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link rel="stylesheet" href="css/animations.css?v=20260430c" />
+  <meta name="description" content="Discover trending games and save them to your game lists." />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/igdb-client.js?v=20260311c"></script>
+  <script src="js/list-utils.js?v=20260419a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
       --bg: #0b1633;
       --card: #132347;
+      --card-2: #172b58;
       --muted: #8ca3c7;
       --accent: #f59e0b;
-      --glass: rgba(255,255,255,0.03);
-      --white: #ffffff;
-      --border: rgba(255,255,255,0.1);
+      --white: #fff;
+      --border: rgba(255,255,255,0.12);
+      --surface: rgba(12, 26, 57, 0.84);
       --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --surface: rgba(19, 35, 71, 0.6);
-      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --info: #3b82f6;
-      --success: #10b981;
-      --error: #ef4444;
     }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(245,158,11,0.18), transparent 35%),
+        radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
+        var(--bg);
       color: var(--white);
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: -20% 0 0 0;
-      background: var(--radial-glow);
-      pointer-events: none;
-      z-index: -2;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
-      opacity: 0.25;
-      pointer-events: none;
-      z-index: -3;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
     }
 
     a { color: inherit; text-decoration: none; }
 
-    .nav {
+    .container { width: calc(100% - 16px); margin: 0 auto; }
+
+    header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      padding: 12px 12px;
+      z-index: 100;
       backdrop-filter: blur(10px) saturate(180%);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
 
-    .nav-container {
+    .header-inner {
+      min-height: 60px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
       gap: 10px;
-    }
-
-    .logo {
-      height: 34px;
-      width: auto;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-    }
-
-    .logo:hover { transform: scale(1.05); }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      padding: 10px 0;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
-    .nav a.ghost {
-      color: var(--muted);
-      padding: 6px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      white-space: nowrap;
+    .brand { display: inline-flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; }
+    .brand img { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; }
+
+    .search-wrap { flex: 1; min-width: 150px; position: relative; }
+    .search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; }
+    .search {
+      width: 100%; height: 38px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
+      color: var(--white); padding: 0 12px 0 30px; outline: none; font-size: 14px;
     }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
 
-    .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
-
-    .account-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      white-space: nowrap;
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      border: 1px solid var(--border); background: var(--card); color: var(--white); height: 36px; padding: 0 12px;
+      border-radius: 10px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
     }
+    .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
 
-    .account-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .account-btn.logged-in {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.4);
-      color: var(--accent);
-    }
+    .page-shell { margin-top: 14px; display: grid; gap: 12px; padding-bottom: 18px; }
 
     .hero {
-      max-width: 1200px;
-      margin: 16px auto 0;
-      padding: 0 12px;
-    }
-
-    .hero h1 {
-      font-size: 20px;
-      margin: 0 0 6px 0;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .media-spotlight {
-      margin: 16px auto 0;
-      padding: 0 16px;
-    }
-
-    .media-spotlight[hidden] {
-      display: none;
-    }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 16px;
       border: 1px solid var(--border);
-        min-height: 220px;
-        max-height: 220px;
-      display: grid;
-        grid-template-columns: minmax(0, 1.02fr) minmax(128px, 0.98fr);
-      gap: 0;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      border-radius: 18px;
+      padding: 18px 16px;
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("https://images.unsplash.com/photo-1552820728-8b83bb6b2b0d?auto=format&fit=crop&w=800&q=80") center/cover;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.26);
     }
+    .hero h1 { font-size: 26px; line-height: 1.1; }
+    .hero p { color: #d3e5ff; margin-top: 8px; font-size: 14px; line-height: 1.4; }
+    .hero-actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
 
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.78), rgba(10,19,39,0.42));
-      background-size: cover;
-      background-position: center center;
-      transform: scale(1.02);
-    }
-
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-     .media-spotlight-copy {
-      padding: 12px 12px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-width: 0;
-    }
-
-    .media-spotlight-kicker { display: none; }
-
-     .media-spotlight-copy h2 { margin: 0; font-size: 16px; line-height: 1.08; max-width: 11ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.35; }
-
-    .media-spotlight-meta {
-      font-size: 11px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .media-spotlight-summary {
-      font-size: 12px;
-      max-width: 22ch;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-     .media-spotlight-poster {
-        padding: 10px 8px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(11, 22, 49, 0.72), rgba(8, 16, 36, 0.92));
-    }
-
-    .media-spotlight-poster img {
-      width: auto;
-      height: auto;
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      object-position: center center;
-      border-radius: 0;
-      box-shadow: none;
-      background: transparent;
-      padding: 0;
-    }
-
-    .media-spotlight-actions { margin-top: auto; display: flex; gap: 8px; padding-top: 2px; }
-
-    .controls {
-      max-width: 1200px;
-      margin: 10px auto 0;
-      padding: 0 12px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 52px 52px;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .search-input,
-    .filter-select {
-      width: 100%;
-      height: 52px;
-      padding: 0 16px;
-      border-radius: 16px;
+    .section {
+      background: rgba(19, 35, 71, 0.9);
       border: 1px solid var(--border);
-      background: #10224a;
-      color: var(--white);
-      outline: none;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    .full-span { grid-column: 1 / -1; }
-
-    .btn.filter-launch-btn,
-    .btn.search-submit-btn {
-      width: 52px;
-      min-width: 52px;
-      height: 52px;
-      justify-content: center;
-      padding: 0;
       border-radius: 16px;
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      flex: 0 0 auto;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+      overflow: hidden;
     }
+    .section-head { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .section-head h2 { font-size: 18px; margin-bottom: 2px; }
+    .section-head p { color: var(--muted); font-size: 12px; }
 
-    .btn.filter-launch-btn:hover,
-    .btn.filter-launch-btn:focus-visible,
-    .btn.search-submit-btn:hover,
-    .btn.search-submit-btn:focus-visible {
-      border-color: rgba(245, 158, 11, 0.55);
-      color: #0b1633;
-    }
-
-    .btn.filter-launch-btn i,
-    .btn.search-submit-btn i {
-      margin: 0;
-    }
-
-    .filter-form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .section-search {
       margin-top: 8px;
-    }
-
-    .filter-form-grid > * {
-      min-width: 0;
-      max-width: 100%;
-    }
-
-    .filter-form-grid .search-input,
-    .filter-form-grid .filter-select {
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 12px;
-      transition: all 0.2s ease;
-      justify-content: center;
-    }
-
-    .btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .chip-row {
-      max-width: 1200px;
-      margin: 8px auto 0;
-      padding: 0 12px;
       display: flex;
-      flex-wrap: wrap;
       gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
     }
-
-    .chip {
-      padding: 5px 8px;
-      border-radius: 999px;
+    .section-search input {
+      flex: 1;
+      min-width: 150px;
+      height: 36px;
+      border-radius: 8px;
       border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--muted);
-      font-size: 11px;
-      cursor: pointer;
+      background: var(--card-2);
+      color: var(--white);
+      padding: 0 10px;
+      outline: none;
+      font-size: 14px;
     }
-
-    .chip.active { border-color: var(--accent); color: var(--accent); }
+    .section-search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+    }
 
     .grid {
-      max-width: 382px;
-      margin: 16px auto 40px;
-      padding: 0 12px;
+      padding: 12px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 114px));
-      gap: 10px;
-      justify-content: center;
-      justify-items: stretch;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      background: var(--card-2);
+      min-height: 260px;
       display: flex;
       flex-direction: column;
-      transition: all 0.2s ease;
       position: relative;
+      transition: transform 0.2s ease;
+    }
+    .card:hover { transform: translateY(-2px); }
+
+    .card-media {
       width: 100%;
-      max-width: 114px;
-      min-width: 0;
-      justify-self: center;
-    }
-
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    @media (max-width: 420px) {
-      .grid {
-        grid-template-columns: repeat(3, minmax(0, 114px));
-        justify-content: center;
-      }
-      .card {
-        max-width: 114px;
-      }
-    }
-
-    .card.menu-open,
-    .card.menu-open:hover {
-      transform: none;
-      overflow: visible;
-    }
-
-    .card .card-media {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 2 / 3;
-      background: #0f1f40;
-      background-size: cover;
-      background-position: center center;
+      aspect-ratio: 3/4;
+      background: linear-gradient(135deg, #102545 0%, #0b1c35 100%);
       overflow: hidden;
     }
+    .card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    .card .card-media::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(9, 18, 36, 0.1) 0%, rgba(9, 18, 36, 0.35) 100%);
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    .card .card-media img {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-      background: transparent;
-      padding: 0;
-      filter: none;
-    }
-
-    .card .card-media.game-media {
-      background-color: #111f41;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .card .card-media.game-media img {
-      object-fit: contain;
-      object-position: center center;
-      padding: 6px;
-    }
-
-    .card .card-media.game-media.portrait-poster img {
-      object-fit: cover;
-      object-position: center center;
-      padding: 0;
-    }
-
-    .card .card-media.game-media.plain-logo {
-      background: transparent !important;
-      background-image: none !important;
-    }
-
-    .card .card-media.game-media.plain-logo::before,
-    .card .card-media.game-media.plain-logo::after {
-      display: none;
-    }
-
-    .card .card-media.game-media.plain-logo img {
-      padding: 0;
-      filter: none;
-    }
-
-    .card .card-media.game-media::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), rgba(255,255,255,0) 42%),
-        linear-gradient(180deg, rgba(9, 18, 36, 0.18) 0%, rgba(9, 18, 36, 0.72) 100%);
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .card-body {
-      padding: 8px 10px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 800;
-      margin: 0;
-      line-height: 1.35;
-      min-height: 38px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      order: 1;
-    }
-
-    .card-meta {
+    .card-meta { padding: 8px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .card-title { font-size: 13px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .card-sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-extra {
+      color: #abc5e8;
       font-size: 11px;
-      color: var(--muted);
-    }
-
-    .card-desc {
+      line-height: 1.3;
       display: -webkit-box;
-      font-size: 12px;
-      color: #a9b9da;
-      line-height: 1.45;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-    }
-
-    .card-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      order: 3;
+      min-height: 28px;
       margin-top: auto;
+      padding-top: 2px;
     }
 
-    .card-menu-wrap {
-      position: relative;
-      margin-left: auto;
-      flex-shrink: 0;
+    .card-actions {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 5px;
+      margin-top: 5px;
+      justify-content: end;
     }
-
-    .menu-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: rgba(19, 35, 71, 0.9);
-      color: var(--white);
+    .icon-btn {
+      height: 28px; width: 28px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
     }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .list-menu {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .list-menu.open { display: flex; }
-
-    .list-menu-panel {
-      background: var(--card);
+    .menu {
+      position: absolute;
+      right: 8px;
+      bottom: 38px;
+      width: 170px;
+      background: #0e284b;
       border: 1px solid var(--border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 380px;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow);
-      animation: menuFadeIn 0.2s ease;
-    }
-
-    .list-menu-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.55);
-      z-index: 3290;
-      display: none;
-    }
-    .list-menu-backdrop.active { display: block; }
-
-    .list-menu-title { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
-
-    .list-action {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
       border-radius: 10px;
-      padding: 7px 9px;
-      font-size: 12px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      transition: all 0.2s ease;
-      margin-bottom: 6px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+      padding: 6px;
+      display: none;
+      z-index: 12;
     }
+    .menu.open { display: block; }
+    .menu button {
+      width: 100%; border: 1px solid var(--border); background: transparent; color: #eef4ff; border-radius: 6px;
+      padding: 7px; font-size: 11px; margin-bottom: 5px; text-align: left; cursor: pointer;
+    }
+    .menu button:last-child { margin-bottom: 0; }
+    .menu button:hover { border-color: var(--accent); color: var(--accent); }
+    .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
 
-    .list-action:last-child { margin-bottom: 0; }
-    .list-action:hover { border-color: var(--accent); color: var(--accent); }
-    .list-action.active {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .empty {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 12px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 12px;
-    }
+    .empty { color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
 
     .pagination {
-      max-width: 1200px;
-      margin: 0 auto 40px;
-      padding: 0 12px;
+      padding: 0 12px 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
     }
-
     .page-btn {
       min-width: 40px;
-      height: 36px;
-      border-radius: 10px;
+      height: 32px;
+      border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--white);
       cursor: pointer;
       transition: all 0.2s ease;
-    }
-
-    .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    .page-info { color: var(--muted); font-size: 12px; }
-
-    .notification {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      padding: 10px 14px;
-      border-radius: 10px;
       font-size: 12px;
-      z-index: 2000;
-      box-shadow: var(--shadow);
     }
-    .notification.success { background: var(--success); color: white; }
-    .notification.error { background: var(--error); color: white; }
-    .notification.info { background: var(--info); color: white; }
+    .page-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .page-info {
+      color: var(--muted);
+      font-size: 12px;
+    }
 
     .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      padding: 16px;
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(6, 12, 28, 0.72); z-index: 240; padding: 16px;
     }
     .modal.active { display: flex; }
     .modal-content {
-      width: 100%;
-      max-width: 520px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: var(--shadow);
+      width: min(380px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px;
     }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .modal-title { font-size: 16px; font-weight: 700; }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--white);
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .modal-list {
-      display: grid;
-      gap: 8px;
-      max-height: 240px;
-      overflow: auto;
-      margin-bottom: 10px;
-    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .modal-list { display: grid; gap: 6px; max-height: 240px; overflow-y: auto; padding: 4px 0; }
     .modal-list-item {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      font-size: 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 8px;
+      border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); cursor: pointer;
     }
-    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
-    .list-edit-btn {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .modal-list-item.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(245, 158, 11, 0.12);
-    }
-    .modal-input {
-      display: flex;
-      gap: 8px;
-      margin-top: 6px;
-    }
+    .modal-list-item.active { border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
+    .modal-input { display: flex; gap: 6px; margin-top: 6px; }
     .modal-input input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1f40;
-      color: var(--white);
-      outline: none;
-      font-size: 12px;
-    }
-    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .icon-option {
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
-
-    @media (max-width: 760px) {
-      .card .card-media { aspect-ratio: 2 / 3; }
+      flex: 1; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-2);
+      color: var(--white); padding: 0 10px; font-size: 14px;
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -772,12 +273,11 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
-<script src="/js/mobile-webapp.js?v=20260424b" defer></script>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+  <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
 <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
-  <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -786,20 +286,10 @@
       <img src="/file.svg" alt="Logo" />
     </a>
     <div class="nav-search zo2y-shared-search">
-      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search..." aria-label="Search" />
       <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
       <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
     </div>
-    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
-      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
-      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
-      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
-      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
-      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
-      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
-      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
-    </nav>
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
@@ -808,2221 +298,395 @@
   </div>
 </header>
 
-  <section class="hero">
-    <h1>Games</h1>
-    <p>Trending titles from the catalog.</p>
-  </section>
-
-  <section class="media-spotlight" id="gamesSpotlight" hidden>
-    <div class="media-spotlight-shell">
-      <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
-      <div class="media-spotlight-copy">
-        <h2 id="gamesSpotlightTitle">Loading?</h2>
-        <p class="media-spotlight-meta" id="gamesSpotlightMeta"></p>
-        <p class="media-spotlight-summary" id="gamesSpotlightSummary"></p>
-        <div class="media-spotlight-actions">
-          <a class="btn" id="gamesSpotlightOpen" href="#">Open game</a>
+  <main class="container page-shell">
+    <section class="hero">
+      <h1>popular games right now</h1>
+      <p>Discover trending video games from all platforms and save them to your game lists.</p>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+      <div class="hero-actions">
+        <button class="btn btn-primary" id="refreshGamesBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      </div>
+    </section>
+    <section class="section">
+      <div class="section-head">
+        <h2>popular games right now</h2>
+        <p>Trending games across all platforms.</p>
+        <div class="section-search">
+          <input id="gamesPageSearch" type="text" placeholder="Search games..." />
+          <button class="btn" id="searchGamesBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button class="btn" id="clearGamesSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i></button>
         </div>
       </div>
-      <div class="media-spotlight-poster">
-        <img id="gamesSpotlightImage" src="/newlogo.webp" alt="Game spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
+      <div class="grid" id="gamesGrid"></div>
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <div class="controls">
-    <input id="searchInput" class="search-input" type="text" placeholder="Search games...">
-    <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search games">
-      <i class="fas fa-search"></i>
-    </button>
-    <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
-      <i class="fas fa-sliders-h"></i>
-    </button>
-  </div>
-  <div id="activeFilters" class="chip-row"></div>
-  <div class="modal" id="filterModal">
-    <div class="modal-content filter-modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Filter games</div>
-        <button class="modal-close" id="closeFilterModalBtn">&times;</button>
-      </div>
-      <div class="filter-form-grid">
-        <select id="genreSelect" class="filter-select">
-          <option value="">All Genres</option>
-        </select>
-        <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year">
-        <input id="platformInput" class="search-input full-span" type="text" placeholder="Platform (e.g., PC, PlayStation, Xbox)">
-      </div>
-    </div>
-  </div>
-
-  <div id="gamesGrid" class="grid"></div>
-  <div id="emptyState" class="empty" style="display:none;">No games found.</div>
-  <div class="pagination">
-    <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
-    <div class="page-info" id="pageInfo">Page 1</div>
-    <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
-  </div>
-
-  <div class="modal" id="gameListsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Custom Game Lists</div>
-        <button class="modal-close" id="closeGameListsBtn">&times;</button>
-      </div>
-      <div class="modal-list" id="gameListsContainer"></div>
-      <div class="modal-input">
-        <input type="text" id="newGameListName" placeholder="New list name..." maxlength="50">
-        <button class="btn" id="createGameListBtn">Create</button>
-      </div>
-      <div class="icon-options" id="gameListIconOptions">
-        <button class="icon-option selected" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
-        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
-      </div>
-      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn" id="saveGameListsBtn">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="js/list-utils.js?v=20260419a"></script>
-<script src="js/index-list-menu-adapter.js?v=20260428a"></script>
+  <script src="/js/igdb-client.js?v=20260228a"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-      const IGDB_PROXY_BASE = '/api/igdb';
-      const IGDB_PAGE_SIZE = 50;
+    const GAMES_PAGE_SIZE = 20;
 
-      const IGDB_FALLBACK_IMAGE = '/newlogo.webp';
-      const IGDB_CACHE_TTL_MS = 1000 * 60 * 4;
-      const IGDB_CACHE_MAX = 160;
-      const igdbCache = new Map();
-      const igdbInFlight = new Map();
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      games: [],
+      currentQuery: '',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
 
-      function normalizeGameImageUrl(value) {
-        const raw = String(value || '').trim();
-        if (!raw || raw === '[object Object]') return '';
-        if (raw.startsWith('//')) return `https:${raw}`;
-        if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
-        return raw;
-      }
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-      function pickPreferredCoverUrl(candidates = []) {
-        const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        const likelyCovers = cleaned.filter((url) => !isLikelyBackdropGameUrl(url));
-        const pool = likelyCovers.length ? likelyCovers : cleaned;
-        const posterPool = pool.filter((url) => isLikelyPosterGameUrl(url));
-        const preferredPool = posterPool.length ? posterPool : pool;
-        return preferredPool.find((url) => /wikimedia|wikipedia/.test(url))
-          || preferredPool.find((url) => /igdb|images\.igdb\.com/.test(url))
-          || preferredPool.find((url) => /rawg|media\.rawg/.test(url))
-          || preferredPool.find((url) => /\/game-assets\/covers-official\//.test(url))
-          || preferredPool.find((url) => /\/game-assets\/covers\//.test(url))
-          || pool.find((url) => /wikimedia|wikipedia/.test(url))
-          || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
-          || pool.find((url) => /rawg|media\.rawg/.test(url))
-          || pool.find((url) => /\/game-assets\/covers-official\//.test(url))
-          || pool.find((url) => /\/game-assets\/covers\//.test(url))
-          || pool[0]
-          || '';
-      }
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '12px';
+      el.style.right = '12px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '8px 12px';
+      el.style.borderRadius = '8px';
+      el.style.fontSize = '12px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    }
 
-      function pickBackdropUrl(candidates = [], fallback = '') {
-        const cleaned = candidates.map(normalizeGameImageUrl).filter(Boolean);
-        const fallbackUrl = normalizeGameImageUrl(fallback);
-        if (fallbackUrl) {
-          const different = cleaned.find((url) => url !== fallbackUrl);
-          return different || fallbackUrl;
-        }
-        return cleaned[0] || '';
-      }
-
-      function getGameImportedFrom(row) {
-        return String(row?.extra?.imported_from || row?.source || '').trim().toLowerCase();
-      }
-
-      function hasPosterOfficialGameCover(row) {
-        const cover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
-        if (!cover || !/\/game-assets\/covers-official\//.test(cover)) return false;
-        return Boolean(row?.extra?.official_cover_is_poster);
-      }
-
-      function isOfficialGameProviderRow(row) {
-        const importedFrom = getGameImportedFrom(row);
-        return importedFrom.includes('wikipedia') || importedFrom.includes('igdb');
-      }
-
-      function isLikelyBackdropGameUrl(url) {
-        const value = String(url || '').trim().toLowerCase();
-        if (!value) return false;
-        return ['/heroes/', '/hero/', 'background', 'fanart', 'screenshot', 'screenshots', 'backdrop'].some((token) => value.includes(token));
-      }
-
-      function isLikelyPosterGameUrl(url) {
-        const value = String(url || '').trim().toLowerCase();
-        if (!value || isLikelyBackdropGameUrl(value)) return false;
-        return [
-          '/covers-official/',
-          '/covers/',
-          'cover',
-          'boxart',
-          'box-art',
-          'poster',
-          'front'
-        ].some((token) => value.includes(token));
-      }
-
-      function resolveGameImageSource(row) {
-        if (!row) return '';
-        if (hasPosterOfficialGameCover(row)) {
-          return pickPreferredCoverUrl([row?.cover_url, row?.cover?.url, row?.cover]);
-        }
-        return pickPreferredCoverUrl([
-          row?.cover_url,
-          row?.cover?.url,
-          row?.cover,
-          ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
-          ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
-          ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
-          ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
-          isOfficialGameProviderRow(row) ? '' : row?.hero_url,
-          isOfficialGameProviderRow(row) ? '' : row?.hero,
-          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
-        ]);
-      }
-
-      function buildGameCoverFallbackChain(row, preferredCover = '', preferredHero = '') {
-        const chain = [
-          preferredCover,
-          row?.cover_url,
-          row?.cover?.url,
-          row?.cover,
-          ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
-          ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
-          ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
-          ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
-          preferredHero,
-          row?.hero_url,
-          row?.hero,
-          row?.background_image,
-          ...(Array.isArray(row?.extra?.screenshots) ? row.extra.screenshots : []),
-          ...(Array.isArray(row?.extra?.local_screenshots) ? row.extra.local_screenshots : []),
-          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : []),
-          IGDB_FALLBACK_IMAGE
-        ]
-          .map(normalizeGameImageUrl)
-          .filter(Boolean);
-        const seen = new Set();
-        return chain.filter((url) => {
-          if (seen.has(url)) return false;
-          seen.add(url);
-          return true;
-        });
-      }
-
-      function resolveGameHeroSource(row, fallback) {
-        const hero = pickBackdropUrl([
-          row?.hero_url,
-          row?.hero,
-          row?.background_image,
-          ...(Array.isArray(row?.extra?.local_screenshots) ? row.extra.local_screenshots : []),
-          ...(Array.isArray(row?.extra?.screenshots) ? row.extra.screenshots : []),
-          ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
-          ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
-        ], fallback);
-        return hero || fallback || IGDB_FALLBACK_IMAGE;
-      }
-
-      function isLikelyLogoOnlyGameArt(url) {
-        const value = String(url || '').trim().toLowerCase();
-        if (!value) return false;
-        if (value.endsWith('.svg') || value.includes('.svg?')) return true;
-        return ['logo', 'wordmark', 'transparent', 'icon', 'banner'].some((token) => value.includes(token));
-      }
-
-      function shouldUsePortraitPosterFit(item, cover) {
-        const resolvedCover = normalizeGameImageUrl(cover);
-        if (!resolvedCover || isLikelyLogoOnlyGameArt(resolvedCover)) return false;
-        if (hasPosterOfficialGameCover(item)) return true;
-        if (Boolean(item?.extra?.official_cover_is_poster)) return true;
-        return isLikelyPosterGameUrl(resolvedCover);
-      }
-
-        function shouldUsePlainGameStage(item, cover, hero) {
-          return isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
-        }
-
-      function buildIgdbCacheKey(path, params = {}) {
-        const pairs = Object.entries(params || {})
-          .filter(([, value]) => value !== undefined && value !== null && value !== '')
-          .map(([key, value]) => [String(key), String(value)]);
-        pairs.sort((a, b) => a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]));
-        const query = pairs.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
-        return query ? `${path}?${query}` : String(path || '');
-      }
-
-      function readIgdbCache(key) {
-        const entry = igdbCache.get(key);
-        if (!entry) return null;
-        if (entry.expiresAt <= Date.now()) {
-          igdbCache.delete(key);
-          return null;
-        }
-        return entry.data || null;
-      }
-
-      function writeIgdbCache(key, data, ttlMs = IGDB_CACHE_TTL_MS) {
-        if (!key || !data) return;
-        igdbCache.set(key, { data, expiresAt: Date.now() + ttlMs });
-        while (igdbCache.size > IGDB_CACHE_MAX) {
-          const firstKey = igdbCache.keys().next().value;
-          if (!firstKey) break;
-          igdbCache.delete(firstKey);
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
         }
       }
-
-      async function fetchIgdbJson(path, params = {}, options = {}) {
-        const cacheKey = buildIgdbCacheKey(path, params);
-        const useCache = !options?.cacheBust;
-        const reuseInFlight = useCache && !options?.signal;
-        if (useCache) {
-          const cached = readIgdbCache(cacheKey);
-          if (cached) return cached;
-          if (reuseInFlight && igdbInFlight.has(cacheKey)) return igdbInFlight.get(cacheKey);
-        }
-
-        const fetchPromise = (async () => {
-          try {
-            if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
-              const data = await window.ZO2Y_IGDB.request(path, params, options?.signal ? { signal: options.signal } : undefined);
-              if (useCache && data) writeIgdbCache(cacheKey, data);
-              return data;
-            }
-            const url = new URL(`${IGDB_PROXY_BASE}${path}`, window.location.origin);
-            Object.entries(params || {}).forEach(([key, value]) => {
-              if (value === undefined || value === null || value === '') return;
-              url.searchParams.set(key, String(value));
-            });
-            const res = await fetch(url.toString(), options?.signal ? { signal: options.signal } : undefined);
-            if (!res.ok) return null;
-            const data = await res.json();
-            if (useCache && data) writeIgdbCache(cacheKey, data);
-            return data;
-          } catch (_err) {
-            return null;
-          }
-        })();
-
-        if (reuseInFlight) igdbInFlight.set(cacheKey, fetchPromise);
-        try {
-          return await fetchPromise;
-        } finally {
-          if (reuseInFlight) igdbInFlight.delete(cacheKey);
-        }
-      }
-      const state = {
-        genres: [],
-        activeGenre: '',
-        query: '',
-        year: '',
-        platform: '',
-        page: 1,
-        totalPages: 1,
-        hasMore: true,
-        requestId: 0,
-        currentUser: null,
-        listStatusMap: new Map(),
-        customLists: [],
-        catalog: [],
-        catalogLoadedAll: false,
-        catalogSource: 'supabase',
-        activeGameId: null,
-        modalSelectedLists: new Set(),
-        selectedIcon: 'fas fa-gamepad',
-        pendingDefaultOps: new Set(),
-        searchSupplementCache: new Map()
-      };
-
-      let supabaseClient = null;
-      let loadGamesTimer = null;
-      let igdbAbortController = null;
-      let prefetchTimer = null;
-      let prefetchKey = '';
-      let catalogLoadPromise = null;
-
-      async function ensureSupabase() {
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
         if (supabaseClient) return supabaseClient;
-        const authRuntime = window.ZO2Y_AUTH || null;
-        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-          await authRuntime.waitForSupabase(8000);
-        } else {
-          const startedAt = Date.now();
-          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-            await new Promise((resolve) => setTimeout(resolve, 40));
-          }
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i>';
         }
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-          if (supabaseClient) return supabaseClient;
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    async function loadGames(queryOverride = '') {
+      const query = String(queryOverride || state.currentQuery || '').trim();
+      let games = [];
+
+      try {
+        if (window.ZO2Y_IGDB && typeof window.ZO2Y_IGDB.request === 'function') {
+          const params = query ? { search: query, page_size: 40 } : { page_size: 40 };
+          const data = await window.ZO2Y_IGDB.request('/games', params);
+          games = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []);
         }
-        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-          supabaseClient = window.supabase.createClient(
-            window.__ZO2Y_SUPABASE_CONFIG.url,
-            window.__ZO2Y_SUPABASE_CONFIG.key,
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-          );
-          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          return supabaseClient;
-        }
-        return null;
-      }
-
-      function scheduleGamesLoad(delayMs = 360) {
-        if (loadGamesTimer) clearTimeout(loadGamesTimer);
-        const effectiveDelay = isSlowNetwork() ? Math.max(120, delayMs) : Math.min(45, delayMs);
-        loadGamesTimer = setTimeout(() => {
-          loadGames();
-        }, effectiveDelay);
-      }
-
-      function isSlowNetwork() {
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        if (!connection) return false;
-        if (connection.saveData) return true;
-        const effectiveType = String(connection.effectiveType || '').toLowerCase();
-        return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
-      }
-
-      function getGamesPageSize() {
-        return isSlowNetwork() ? 16 : 20;
-      }
-
-      function schedulePrefetch(nextPage, params = {}) {
-        if (!Number.isFinite(nextPage) || nextPage <= 0) return;
-        const key = JSON.stringify({ ...params, page: nextPage });
-        if (key === prefetchKey) return;
-        prefetchKey = key;
-        if (prefetchTimer) clearTimeout(prefetchTimer);
-        const run = () => {
-          fetchIgdbPage({ ...params, page: nextPage }).catch(() => null);
-        };
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(run, { timeout: 1200 });
-        } else {
-          prefetchTimer = setTimeout(run, 350);
-        }
-      }
-
-      function normalizeGameGenres(extra) {
-        const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
-        const out = [];
-        const seen = new Set();
-        rawGenres.forEach((entry) => {
-          const name = String(entry?.name || '').trim();
-          const slug = String(entry?.slug || name).trim().toLowerCase().replace(/\s+/g, '-');
-          if (!name || !slug || seen.has(slug)) return;
-          seen.add(slug);
-          out.push({ name, slug });
-        });
-        return out;
-      }
-
-      const ROMAN_NUMERAL_MAP = {
-        i: '1',
-        ii: '2',
-        iii: '3',
-        iv: '4',
-        v: '5',
-        vi: '6',
-        vii: '7',
-        viii: '8',
-        ix: '9',
-        x: '10'
-      };
-
-      function normalizeTitleKey(value) {
-        const normalized = String(value || '')
-          .normalize('NFKD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        if (!normalized) return '';
-        return normalized
-          .split(' ')
-          .map((token) => ROMAN_NUMERAL_MAP[token] || token)
-          .join(' ')
-          .trim();
-      }
-
-      function normalizeFranchiseTitleKey(value) {
-        return normalizeTitleKey(value)
-          .replace(/\bvideo game\b/g, ' ')
-          .replace(/\bthe\b/g, ' ')
-          .replace(/\bmarvels\b/g, 'marvel ')
-          .replace(/\bspider man\b/g, 'spiderman')
-          .replace(/\bpokemon\b/g, 'pokemon')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
-
-      function buildTitleEditionKey(row) {
-        const titleKey = normalizeTitleKey(row?.title || row?.name || row?.slug || '');
-        const yearKey = String(row?.release_date || '').slice(0, 4);
-        if (!titleKey) return '';
-        return `${titleKey}::${yearKey || 'na'}`;
-      }
-
-      function splitTitleTokens(value) {
-        const normalized = normalizeTitleKey(value);
-        if (!normalized) return [];
-        return normalized.split(' ').filter(Boolean);
-      }
-
-      function buildAcronym(tokens = []) {
-        return tokens.map((token) => token.slice(0, 1)).join('');
-      }
-
-      function isOneEditAway(a = '', b = '') {
-        if (a === b) return true;
-        if (Math.abs(a.length - b.length) > 1) return false;
-        let i = 0;
-        let j = 0;
-        let edits = 0;
-        while (i < a.length && j < b.length) {
-          if (a[i] === b[j]) {
-            i += 1;
-            j += 1;
-            continue;
-          }
-          edits += 1;
-          if (edits > 1) return false;
-          if (a.length > b.length) {
-            i += 1;
-          } else if (b.length > a.length) {
-            j += 1;
-          } else {
-            i += 1;
-            j += 1;
-          }
-        }
-        if (i < a.length || j < b.length) edits += 1;
-        return edits <= 1;
-      }
-
-      function isTransposition(a = '', b = '') {
-        if (a.length !== b.length || a.length < 2) return false;
-        const diffs = [];
-        for (let i = 0; i < a.length; i += 1) {
-          if (a[i] !== b[i]) diffs.push(i);
-          if (diffs.length > 2) return false;
-        }
-        if (diffs.length !== 2) return false;
-        if (diffs[1] !== diffs[0] + 1) return false;
-        return a[diffs[0]] === b[diffs[1]] && a[diffs[1]] === b[diffs[0]];
-      }
-
-      function tokenMatchesQuery(titleToken, queryToken) {
-        if (!titleToken || !queryToken) return false;
-        if (titleToken.startsWith(queryToken)) return true;
-        if (queryToken.length >= 3 && titleToken.includes(queryToken)) return true;
-        if (queryToken.length >= 4 && isTransposition(titleToken, queryToken)) return true;
-        if (queryToken.length >= 4 && isOneEditAway(titleToken, queryToken)) return true;
-        return false;
-      }
-
-      function titleMatchesQuery(title, query) {
-        const titleKey = normalizeTitleKey(title);
-        const queryKey = normalizeTitleKey(query);
-        const franchiseTitleKey = normalizeFranchiseTitleKey(title);
-        const franchiseQueryKey = normalizeFranchiseTitleKey(query);
-        if (!queryKey) return true;
-        if (titleKey.includes(queryKey)) return true;
-        if (franchiseQueryKey && franchiseTitleKey.includes(franchiseQueryKey)) return true;
-        const compactTitle = titleKey.replace(/\s+/g, '');
-        const compactQuery = queryKey.replace(/\s+/g, '');
-        const compactFranchiseTitle = franchiseTitleKey.replace(/\s+/g, '');
-        const compactFranchiseQuery = franchiseQueryKey.replace(/\s+/g, '');
-        if (!compactQuery) return false;
-        if (compactTitle.includes(compactQuery)) return true;
-        if (compactFranchiseQuery && compactFranchiseTitle.includes(compactFranchiseQuery)) return true;
-        const titleTokens = splitTitleTokens(titleKey);
-        const queryTokens = splitTitleTokens(queryKey);
-        if (!queryTokens.length) return true;
-        if (queryTokens.length === 1) {
-          const acronym = buildAcronym(titleTokens);
-          if (acronym && (acronym === queryKey || acronym.startsWith(queryKey))) return true;
-        }
-        return queryTokens.every((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token)));
-      }
-
-      function filterTitleMatches(rows = [], query = '') {
-        const queryKey = normalizeTitleKey(query);
-        if (!queryKey) return Array.isArray(rows) ? rows : [];
-        return (Array.isArray(rows) ? rows : []).filter((row) => {
-          const title = String(row?.title || row?.name || row?.slug || '').trim();
-          return titleMatchesQuery(title, queryKey);
-        });
-      }
-
-      function dedupeRowsById(rows = []) {
-        const out = [];
-        const seen = new Set();
-        (Array.isArray(rows) ? rows : []).forEach((row) => {
-          const rawId = row?.id;
-          const key = Number.isFinite(Number(rawId)) ? String(rawId) : String(rawId || '').trim();
-          if (!key || seen.has(key)) return;
-          seen.add(key);
-          out.push(row);
-        });
-        return out;
-      }
-
-      function dedupeRowsByTitleEdition(rows = []) {
-        const grouped = new Map();
-        (Array.isArray(rows) ? rows : []).forEach((row) => {
-          const key = buildTitleEditionKey(row);
-          if (!key) return;
-          if (!grouped.has(key)) grouped.set(key, []);
-          grouped.get(key).push(row);
-        });
-        return Array.from(grouped.values()).map((group) => sortGamesPosterFirst(group)[0]).filter(Boolean);
-      }
-
-      const SEARCH_TITLE_SUFFIX_NOISE = new Set([
-        'version',
-        'edition',
-        'standard edition',
-        'deluxe edition',
-        'ultimate edition',
-        'definitive edition',
-        'game of the year edition',
-        'goty edition'
-      ]);
-
-      const SEARCH_UNOFFICIAL_TOKENS = [
-        'prototype',
-        'demo',
-        'tech demo',
-        'fan game',
-        'fangame',
-        'fan made',
-        'fan-made',
-        'fan project',
-        'fan remake',
-        'rom hack',
-        'hack',
-        'mod',
-        'modded',
-        'custom map',
-        'creative map',
-        'creative 2.0',
-        'creepy',
-        'creepypasta',
-        'but the',
-        'pictures pack',
-        'images pack',
-        'soundtrack',
-        'music',
-        'field trip',
-        'dream prototype',
-        'radical red',
-        'meta firered',
-        'ace dragon'
-      ];
-
-      const UNOFFICIAL_GAME_PATTERNS = [
-        /\bprototype\b/i,
-        /\btech demo\b/i,
-        /\bdemo\b/i,
-        /\bfan\s?game\b/i,
-        /\bfanmade\b/i,
-        /\bfan[- ]made\b/i,
-        /\bfan project\b/i,
-        /\bfan remake\b/i,
-        /\brom hack\b/i,
-        /\bmod\b/i,
-        /\bmodded\b/i,
-        /\bcustom map\b/i,
-        /\bcreative map\b/i,
-        /\bcreative 2(?:\.0)?\b/i,
-        /\bpictures pack\b/i,
-        /\bimages pack\b/i,
-        /\bwallpaper pack\b/i,
-        /\bsoundtrack\b/i,
-        /\bost\b/i,
-        /\bupdate\s*\d+\b/i,
-        /\bfield trip\b/i,
-        /\bcreepy red\b/i,
-        /\bradical red\b/i,
-        /\bmeta fire\s?red\b/i,
-        /\bace ?dragon\b/i,
-        /\bpc port\b/i,
-        /\bchapter\b/i,
-        /\bepisode\b/i,
-        /\bmission\b/i,
-        /\bprologue\b/i,
-        /\bside story\b/i,
-        /\balpha\b/i,
-        /\bbeta\b/i,
-        /\btest build\b/i,
-        /\bdlc\b/i,
-        /\bexpansion\b/i
-      ];
-
-      const STRICT_GAME_FRANCHISE_LIMITS = {
-        fortnite: 2,
-        overwatch: 2,
-        undertale: 1
-      };
-
-      function normalizeSearchCanonicalTitleKey(value) {
-        return normalizeFranchiseTitleKey(value)
-          .replace(/\bversion\b/g, ' ')
-          .replace(/\bedition\b/g, ' ')
-          .replace(/\bstandard\b/g, ' ')
-          .replace(/\bultimate\b/g, ' ')
-          .replace(/\bdefinitive\b/g, ' ')
-          .replace(/\bdeluxe\b/g, ' ')
-          .replace(/\bgame of the year\b/g, ' ')
-          .replace(/\bgoty\b/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
-
-      function isLikelyUnofficialSearchResult(row, query = '') {
-        const title = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
-        const queryKey = normalizeFranchiseTitleKey(query);
-        if (!title) return false;
-        if (!queryKey || !title.includes(queryKey)) return false;
-        if (SEARCH_UNOFFICIAL_TOKENS.some((token) => title.includes(token))) return true;
-        if (title.includes(`${queryKey} s `) || title.includes(`${queryKey}s `)) return true;
-        if (/[[(][^)]+[)\]]/.test(String(row?.title || '')) && !String(row?.source || '').toLowerCase().includes('wikipedia')) return true;
-        return false;
-      }
-
-      function isLikelyRealGameRow(row) {
-        const title = String(row?.title || row?.name || row?.slug || '').trim();
-        if (!title) return false;
-        if (UNOFFICIAL_GAME_PATTERNS.some((pattern) => pattern.test(title))) return false;
-        const importedFrom = getGameImportedFrom(row);
-        if (/[[(][^)]+[)\]]/.test(title) && importedFrom.includes('rawg')) return false;
-        return true;
-      }
-
-      function getStrictGameFranchiseKey(row) {
-        const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
-        if (!titleKey) return '';
-        if (titleKey === 'fortnite' || titleKey.startsWith('fortnite ')) return 'fortnite';
-        if (titleKey === 'overwatch' || titleKey.startsWith('overwatch ')) return 'overwatch';
-        if (titleKey === 'undertale' || titleKey.startsWith('undertale ')) return 'undertale';
-        return '';
-      }
-
-      function isAllowedStrictGameFranchiseRow(row, franchiseKey) {
-        const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
-        if (!titleKey || !franchiseKey) return true;
-        if (franchiseKey === 'fortnite') return titleKey === 'fortnite' || titleKey === 'fortnite battle royale';
-        if (franchiseKey === 'undertale') return titleKey === 'undertale';
-        if (franchiseKey === 'overwatch') return titleKey === 'overwatch' || titleKey === 'overwatch 2';
-        return true;
-      }
-
-      function getStrictGameVariantKey(row, franchiseKey) {
-        const titleKey = normalizeFranchiseTitleKey(row?.title || row?.name || row?.slug || '');
-        if (franchiseKey === 'overwatch') return /\boverwatch 2\b/.test(titleKey) ? '2' : '1';
-        return 'base';
-      }
-
-      function getStrictGameQueryKey(query = '') {
-        const normalized = normalizeFranchiseTitleKey(query);
-        if (normalized === 'fortnite') return 'fortnite';
-        if (normalized === 'overwatch' || normalized === 'overwatch 2') return 'overwatch';
-        if (normalized === 'undertale') return 'undertale';
-        return '';
-      }
-
-      function matchesStrictGameQuery(row, query = '') {
-        const strictKey = getStrictGameQueryKey(query);
-        if (!strictKey) return true;
-        return isAllowedStrictGameFranchiseRow(row, strictKey) && getStrictGameFranchiseKey(row) === strictKey;
-      }
-
-      function applyStrictGameFranchiseLimits(rows = [], query = '') {
-        const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
-        if (!list.length) return [];
-        const ordered = query
-          ? list.slice().sort((a, b) => scoreSearchResultRow(b, query) - scoreSearchResultRow(a, query))
-          : sortGamesPosterFirst(list);
-        const kept = [];
-        const counts = new Map();
-        const seenVariants = new Set();
-        ordered.forEach((row) => {
-          const franchiseKey = getStrictGameFranchiseKey(row);
-          if (!franchiseKey) {
-            kept.push(row);
-            return;
-          }
-          if (!isAllowedStrictGameFranchiseRow(row, franchiseKey)) return;
-          const variantKey = `${franchiseKey}::${getStrictGameVariantKey(row, franchiseKey)}`;
-          if (seenVariants.has(variantKey)) return;
-          const currentCount = Number(counts.get(franchiseKey) || 0);
-          const limit = Number(STRICT_GAME_FRANCHISE_LIMITS[franchiseKey] || 1);
-          if (currentCount >= limit) return;
-          counts.set(franchiseKey, currentCount + 1);
-          seenVariants.add(variantKey);
-          kept.push(row);
-        });
-        return kept;
-      }
-
-      function scoreSearchResultRow(row, query = '') {
-        const title = String(row?.title || row?.name || row?.slug || '').trim();
-        const titleKey = normalizeSearchCanonicalTitleKey(title);
-        const queryKey = normalizeSearchCanonicalTitleKey(query);
-        let score = scoreSearchMatch(title, query);
-        if (queryKey && titleKey === queryKey) score += 1200;
-        if (queryKey && titleKey.startsWith(`${queryKey} `)) {
-          const suffix = titleKey.slice(queryKey.length).trim();
-          if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) score += 700;
-        }
-        if (hasPosterOfficialGameCover(row)) score += 260;
-        if (/\/game-assets\/covers\//.test(normalizeGameImageUrl(row?.cover_url))) score += 120;
-        if (isOfficialGameProviderRow(row)) score += 80;
-        if (isLikelyUnofficialSearchResult(row, query)) score -= 2000;
-        score += Math.min(Number(row?.rating_count || 0), 5000) / 50;
-        return score;
-      }
-
-      function buildSearchDedupKey(row, query = '') {
-        const title = String(row?.title || row?.name || row?.slug || '').trim();
-        const canonicalTitle = normalizeSearchCanonicalTitleKey(title);
-        const queryKey = normalizeSearchCanonicalTitleKey(query);
-        if (!canonicalTitle) return '';
-        if (queryKey && (canonicalTitle === queryKey || canonicalTitle.startsWith(`${queryKey} `))) {
-          const suffix = canonicalTitle.slice(queryKey.length).trim();
-          if (!suffix || SEARCH_TITLE_SUFFIX_NOISE.has(suffix)) return `${queryKey}::query`;
-        }
-        return canonicalTitle;
-      }
-
-      function dedupeSearchResults(rows = [], query = '') {
-        const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
-        if (!query) return applyStrictGameFranchiseLimits(dedupeRowsByTitleEdition(list));
-        const grouped = new Map();
-        list.forEach((row) => {
-          const key = buildSearchDedupKey(row, query) || buildTitleEditionKey(row) || String(row?.id || '');
-          if (!key) return;
-          if (!grouped.has(key)) grouped.set(key, []);
-          grouped.get(key).push(row);
-        });
-        return applyStrictGameFranchiseLimits(Array.from(grouped.values()).map((group) => {
-          return group.slice().sort((a, b) => scoreSearchResultRow(b, query) - scoreSearchResultRow(a, query))[0];
-        }).filter(Boolean), query);
-      }
-
-      function scoreSearchMatch(title, query) {
-        const cleanTitle = normalizeTitleKey(title);
-        const cleanQuery = normalizeTitleKey(query);
-        const franchiseTitle = normalizeFranchiseTitleKey(title);
-        const franchiseQuery = normalizeFranchiseTitleKey(query);
-        if (!cleanTitle || !cleanQuery) return 0;
-        let score = 0;
-        if (cleanTitle === cleanQuery) score += 1000;
-        if (franchiseQuery && franchiseTitle === franchiseQuery) score += 950;
-        if (cleanTitle.startsWith(cleanQuery)) score += 700;
-        if (franchiseQuery && franchiseTitle.startsWith(franchiseQuery)) score += 650;
-        if (cleanTitle.includes(cleanQuery)) score += 400;
-        if (franchiseQuery && franchiseTitle.includes(franchiseQuery)) score += 320;
-        const compactTitle = cleanTitle.replace(/\s+/g, '');
-        const compactQuery = cleanQuery.replace(/\s+/g, '');
-        if (compactTitle === compactQuery) score += 260;
-        if (compactTitle.startsWith(compactQuery)) score += 220;
-        const titleTokens = splitTitleTokens(cleanTitle);
-        const queryTokens = splitTitleTokens(cleanQuery);
-        const tokenHits = queryTokens.filter((token) => titleTokens.some((titleToken) => tokenMatchesQuery(titleToken, token))).length;
-        score += tokenHits * 90;
-        if (queryTokens.length && tokenHits === queryTokens.length) score += 180;
-        if (queryTokens.length === 1) {
-          const acronym = buildAcronym(titleTokens);
-          if (acronym && acronym === compactQuery) score += 140;
-        }
-        return score;
-      }
-
-      function sortSearchResults(rows = [], query = '') {
-        const cleanQuery = String(query || '').trim().toLowerCase();
-        if (!cleanQuery) return sortGamesPosterFirst(rows);
-        const list = Array.isArray(rows) ? rows.slice() : [];
-        return list.sort((a, b) => {
-          const aTitle = String(a?.title || a?.name || a?.slug || '').trim();
-          const bTitle = String(b?.title || b?.name || b?.slug || '').trim();
-          const scoreDiff = scoreSearchResultRow(b, cleanQuery) - scoreSearchResultRow(a, cleanQuery);
-          if (scoreDiff !== 0) return scoreDiff;
-          const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
-          if (countDiff !== 0) return countDiff;
-          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
-          if (dateDiff !== 0) return dateDiff;
-          const aRating = Number(a?.rating || 0);
-          const bRating = Number(b?.rating || 0);
-          if (Number.isFinite(aRating) && Number.isFinite(bRating) && aRating !== bRating) {
-            return bRating - aRating;
-          }
-          return aTitle.localeCompare(bTitle);
-        });
-      }
-
-      const SEARCH_ALIASES = {
-        mario: 'super mario mario kart mario party paper mario mario tennis mario golf mario vs donkey kong',
-        mariokart: 'mario kart',
-        marioparty: 'mario party',
-        pokemon: 'pokemon',
-        ['pok' + '\u00e9' + 'mon']: 'pokemon',
-        spiderman: 'spider man',
-        gta: 'grand theft auto',
-        gtav: 'grand theft auto v',
-        gtas: 'grand theft auto san andreas',
-        cod: 'call of duty',
-        cs: 'counter strike',
-        cs2: 'counter strike 2',
-        csgo: 'counter strike global offensive',
-        lol: 'league of legends',
-        tlou: 'the last of us',
-        tloz: 'the legend of zelda',
-        r6: 'rainbow six',
-        mk: 'mortal kombat',
-        ac: 'assassins creed'
-      };
-
-      function getSearchFallbackQueries(query) {
-        const raw = String(query || '').trim();
-        if (!raw) return [];
-        const normalized = normalizeTitleKey(raw);
-        const compact = normalized.replace(/\s+/g, '');
-        const variants = new Set();
-        const alias = SEARCH_ALIASES[normalized] || SEARCH_ALIASES[compact] || '';
-        if (alias && alias !== raw) variants.add(alias);
-        if (normalized && normalized !== raw) variants.add(normalized);
-        if (compact && compact !== normalized && compact !== raw) variants.add(compact);
-        return [...variants].filter(Boolean);
-      }
-
-      function getSearchSupplementKey(query, activeGenre, year) {
-        return [String(query || '').trim().toLowerCase(), String(activeGenre || '').trim().toLowerCase(), String(year || '').trim()].join('::');
-      }
-
-      async function fetchSearchSupplementGames(query, activeGenre = '', year = '') {
-        if (!supabaseClient) return [];
-        const rawQuery = String(query || '').trim();
-        if (!rawQuery) return [];
-        const cacheKey = getSearchSupplementKey(rawQuery, activeGenre, year);
-        if (state.searchSupplementCache.has(cacheKey)) {
-          return state.searchSupplementCache.get(cacheKey) || [];
-        }
-        const variants = [rawQuery, ...getSearchFallbackQueries(rawQuery)]
-          .map((value) => String(value || '').trim())
-          .filter(Boolean);
-        const seenVariants = new Set();
-        const uniqueVariants = variants.filter((value) => {
-          const key = normalizeTitleKey(value);
-          if (!key || seenVariants.has(key)) return false;
-          seenVariants.add(key);
-          return true;
-        });
-        const termQueue = [];
-        uniqueVariants.slice(0, 2).forEach((variant) => {
-          [variant, normalizeTitleKey(variant), normalizeFranchiseTitleKey(variant)]
-            .map((value) => String(value || '').trim())
-            .filter((value, index, array) => value && array.indexOf(value) === index)
-            .slice(0, 2)
-            .forEach((term) => {
-              const escaped = term.replace(/[%_,]/g, ' ').trim();
-              if (!escaped || termQueue.includes(escaped)) return;
-              termQueue.push(escaped);
-            });
-        });
-        const settled = await Promise.allSettled(termQueue.slice(0, 3).map(async (escaped) => {
-          let queryBuilder = supabaseClient
-            .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
-            .or(`title.ilike.%${escaped}%,slug.ilike.%${escaped}%`)
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('rating', { ascending: false, nullsFirst: false })
-            .order('release_date', { ascending: false, nullsFirst: false })
-            .range(0, 119);
-          if (year) {
-            queryBuilder = queryBuilder.gte('release_date', `${year}-01-01`).lte('release_date', `${year}-12-31`);
-          }
-          const { data, error } = await queryBuilder;
-          if (error || !Array.isArray(data)) return [];
-          return data;
-        }));
-        const allRows = [];
-        settled.forEach((result) => {
-          if (result.status !== 'fulfilled' || !Array.isArray(result.value)) return;
-          allRows.push(...result.value);
-        });
-        const filtered = filterCatalogGames(dedupeSearchResults(allRows, rawQuery));
-        state.searchSupplementCache.set(cacheKey, filtered);
-        return filtered;
-      }
-
-      async function fetchTargetedSearchPage(pageSize) {
-        const query = String(state.query || '').trim();
-        if (!query) return null;
-        let supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
-        if (supplement.length < Math.max(pageSize * 3, 60)) {
-          const ready = state.catalogLoadedAll;
-          if (ready) {
-            const catalogMatches = filterCatalogGames(state.catalog);
-            supplement = dedupeSearchResults([...supplement, ...catalogMatches], query);
-          } else {
-            void ensureGamesCatalogLoaded().catch(() => false);
-          }
-        }
-        if (!supplement.length) {
-          return {
-            rows: [],
-            count: 0,
-            source: 'supabase-search'
-          };
-        }
-        const ranked = sortSearchResults(dedupeSearchResults(supplement, query), query);
-        const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-        return {
-          rows: ranked.slice(start, start + pageSize),
-          count: ranked.length,
-          source: 'supabase-search'
-        };
-      }
-      function mapIgdbRowToCatalog(row) {
-        if (!row) return null;
-        const id = Number(row?.id || 0);
-        if (!Number.isFinite(id) || id <= 0) return null;
-        const title = String(row?.name || row?.title || row?.slug || 'Game').trim() || 'Game';
-        const released = row?.released ? String(row.released).slice(0, 10) : '';
-        const rating = Number(row?.rating || 0);
-        const cover = resolveGameImageSource(row);
-        const hero = resolveGameHeroSource(row, cover);
-        return {
-          id,
-          title,
-          description: String(row?.description || row?.summary || '').trim(),
-          cover_url: cover,
-          hero_url: hero || cover,
-          release_date: released,
-          rating: Number.isFinite(rating) ? rating : null,
-          rating_count: Number(row?.ratings_count || row?.rating_count || 0),
-          slug: String(row?.slug || '').trim(),
-          source: String(row?.source || 'igdb').trim(),
-          extra: {
-            genres: Array.isArray(row?.genres) ? row.genres : [],
-            platforms: Array.isArray(row?.platforms)
-              ? row.platforms.map((entry) => entry?.platform?.name || entry?.name).filter(Boolean)
-              : []
-          }
-        };
-      }
-
-      async function fetchIgdbCatalog(options = {}, requestOptions = {}) {
-        try {
-          const search = String(options.search || '').trim();
-          const pageSize = Number(options.pageSize || IGDB_PAGE_SIZE);
-          const page = Number(options.page || 1);
-          const ordering = String(options.ordering || '-rating').trim();
-          const popularityType = Number(options.popularityType || options.popularity_type || 0);
-          const spotlight = !!options.spotlight;
-          const titleOnly = !!options.title_only || !!options.search_title_only;
-          const safeOrdering = search ? '' : ordering;
-          const dates = String(options.dates || '').trim();
-          const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
-          const minFollows = Number(options.minFollows || options.min_follows || 0);
-          const json = await fetchIgdbJson('/games', {
-            search: search || undefined,
-            ordering: safeOrdering || undefined,
-            provider: 'wikipedia',
-            popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
-            dates: dates || undefined,
-            spotlight: spotlight ? 1 : undefined,
-            title_only: titleOnly && search ? 1 : undefined,
-            min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
-            min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
-            page_size: Math.max(1, Math.min(pageSize, 200)),
-            page: Math.max(1, page)
-          }, requestOptions);
-          if (!json) return [];
-          const rows = Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : []);
-          return rows.map(mapIgdbRowToCatalog).filter(Boolean);
-        } catch (_err) {
-          return [];
-        }
-      }
-
-      async function fetchIgdbPage(options = {}, requestOptions = {}) {
-        try {
-          const search = String(options.search || '').trim();
-          const pageSize = Number(options.pageSize || 24);
-          const page = Number(options.page || 1);
-          const ordering = String(options.ordering || '-rating_count').trim();
-          const popularityType = Number(options.popularityType || options.popularity_type || 0);
-          const spotlight = !!options.spotlight;
-          const titleOnly = !!options.title_only || !!options.search_title_only;
-          const safeOrdering = search ? '' : ordering;
-          const dates = String(options.dates || '').trim();
-          const genres = String(options.genres || '').trim();
-          const minRatingCount = Number(options.minRatingCount || options.min_rating_count || 0);
-          const minFollows = Number(options.minFollows || options.min_follows || 0);
-          const json = await fetchIgdbJson('/games', {
-            search: search || undefined,
-            ordering: safeOrdering || undefined,
-            provider: 'wikipedia',
-            popularity_type: popularityType > 0 ? Math.floor(popularityType) : undefined,
-            dates: dates || undefined,
-            genres: genres || undefined,
-            spotlight: spotlight ? 1 : undefined,
-            title_only: titleOnly && search ? 1 : undefined,
-            min_rating_count: minRatingCount > 0 ? Math.floor(minRatingCount) : undefined,
-            min_follows: minFollows > 0 ? Math.floor(minFollows) : undefined,
-            page_size: Math.max(1, Math.min(pageSize, 50)),
-            page: Math.max(1, page)
-          }, requestOptions);
-          if (!json) return null;
-          const rows = Array.isArray(json?.results) ? json.results : [];
-          const mapped = rows.map(mapIgdbRowToCatalog).filter(Boolean);
-          return {
-            rows: mapped,
-            count: Number(json?.count || mapped.length || 0)
-          };
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      function buildGenreCatalog() {
-        const bySlug = new Map();
-        state.catalog.forEach((item) => {
-          normalizeGameGenres(item?.extra).forEach((genre) => {
-            if (!bySlug.has(genre.slug)) bySlug.set(genre.slug, genre);
-          });
-        });
-        state.genres = [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name));
-      }
-
-      function populateGenreSelect() {
-        const select = document.getElementById('genreSelect');
-        if (!select) return;
-        const previous = state.activeGenre;
-        select.innerHTML = '<option value="">All Genres</option>';
-        state.genres.forEach((genre) => {
-          const opt = document.createElement('option');
-          opt.value = genre.slug;
-          opt.textContent = genre.name;
-          select.appendChild(opt);
-        });
-        if (previous && state.genres.some((genre) => genre.slug === previous)) {
-          select.value = previous;
-        } else {
-          state.activeGenre = '';
-          select.value = '';
-        }
-      }
-
-      const GENRE_CACHE_KEY = 'zo2y_game_genres_cache_v3';
-      const GENRE_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-      const GAMES_PAGE_CACHE_KEY = 'zo2y_games_featured_pages_cache_v1';
-      const GAMES_PAGE_CACHE_TTL_MS = 1000 * 60 * 20;
-      const POPULAR_GAMES_LOAD_SEED = (() => {
-        try {
-          if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-            const seedBuffer = new Uint32Array(1);
-            window.crypto.getRandomValues(seedBuffer);
-            return Number(seedBuffer[0] || 0) >>> 0;
-          }
-        } catch (_err) {}
-        return ((Date.now() & 0xffffffff) ^ Math.floor(Math.random() * 0xffffffff)) >>> 0;
-      })();
-
-      function mulberry32(seed) {
-        let a = Number(seed || 0) || 0;
-        return function () {
-          a |= 0;
-          a = (a + 0x6D2B79F5) | 0;
-          let t = Math.imul(a ^ (a >>> 15), 1 | a);
-          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-      }
-
-      function shuffleInPlace(list, rand) {
-        const arr = Array.isArray(list) ? list : [];
-        const r = typeof rand === 'function' ? rand : Math.random;
-        for (let i = arr.length - 1; i > 0; i -= 1) {
-          const j = Math.floor(r() * (i + 1));
-          const tmp = arr[i];
-          arr[i] = arr[j];
-          arr[j] = tmp;
-        }
-        return arr;
-      }
-
-      function shufflePopularGamesPool(rows, pageSize) {
-        const pool = Array.isArray(rows) ? rows.slice() : [];
-        const size = Math.max(1, Number(pageSize || 20)) || 20;
-        if (pool.length <= size) return pool;
-
-        const rand = mulberry32(POPULAR_GAMES_LOAD_SEED);
-        const tiers = [
-          Math.min(pool.length, Math.max(16, Math.floor(size * 1.25))),
-          Math.min(pool.length, Math.max(48, Math.floor(size * 3))),
-          Math.min(pool.length, Math.max(96, Math.floor(size * 5)))
-        ];
-
-        const out = [];
-        let cursor = 0;
-        tiers.forEach((end) => {
-          if (end <= cursor) return;
-          const chunk = pool.slice(cursor, end);
-          shuffleInPlace(chunk, rand);
-          out.push(...chunk);
-          cursor = end;
-        });
-        if (cursor < pool.length) out.push(...pool.slice(cursor));
-        return out;
-      }
-
-      function readCachedGenres() {
-        try {
-          const raw = localStorage.getItem(GENRE_CACHE_KEY);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!parsed || !Array.isArray(parsed.items)) return null;
-          if (Number(parsed.savedAt || 0) + GENRE_CACHE_TTL_MS < Date.now()) return null;
-          return parsed.items;
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      function writeCachedGenres(items) {
-        try {
-          if (!Array.isArray(items) || !items.length) return;
-          localStorage.setItem(GENRE_CACHE_KEY, JSON.stringify({
-            savedAt: Date.now(),
-            items
-          }));
-        } catch (_err) {}
-      }
-
-      function isPopularGamesBrowseState() {
-        return !state.query && !state.activeGenre && !state.year && !state.platform;
-      }
-
-      function readCachedGamePages() {
-        try {
-          const raw = localStorage.getItem(GAMES_PAGE_CACHE_KEY);
-          const parsed = raw ? JSON.parse(raw) : null;
-          return parsed && typeof parsed === 'object' ? parsed : {};
-        } catch (_err) {
-          return {};
-        }
-      }
-
-      function writeCachedGamePages(pages) {
-        try {
-          localStorage.setItem(GAMES_PAGE_CACHE_KEY, JSON.stringify(pages || {}));
-        } catch (_err) {}
-      }
-
-      function readCachedFeaturedGamesPage(page) {
-        const key = String(Math.max(1, Number(page || 1)));
-        const pages = readCachedGamePages();
-        const entry = pages?.[key];
-        if (!entry || !Array.isArray(entry.rows) || !entry.rows.length) return null;
-        const cachedAt = Number(entry.cachedAt || 0) || 0;
-        if (!cachedAt || (cachedAt + GAMES_PAGE_CACHE_TTL_MS) < Date.now()) return null;
-        return {
-          rows: entry.rows.filter(Boolean),
-          count: Number(entry.count || entry.rows.length) || entry.rows.length,
-          source: 'supabase-fast-cache',
-          cachedAt
-        };
-      }
-
-      function writeCachedFeaturedGamesPage(page, payload) {
-        const rows = Array.isArray(payload?.rows) ? payload.rows.filter(Boolean) : [];
-        if (!rows.length) return;
-        const key = String(Math.max(1, Number(page || 1)));
-        const pages = readCachedGamePages();
-        pages[key] = {
-          rows,
-          count: Number(payload?.count || rows.length) || rows.length,
-          cachedAt: Date.now()
-        };
-        writeCachedGamePages(pages);
-      }
-
-      async function loadGenreCatalog() {
-        try {
-          const cached = readCachedGenres();
-          if (cached) {
-            state.genres = cached;
-            populateGenreSelect();
-            return true;
-          }
-          const ready = await ensureGamesCatalogLoaded();
-          if (!ready) return false;
-          writeCachedGenres(state.genres);
-          return state.genres.length > 0;
-        } catch (_err) {
-          return false;
-        }
-      }
-
-      async function ensureGamesCatalogLoaded(force = false) {
-        if (state.catalogLoadedAll && state.catalog.length && !force) return true;
-        if (catalogLoadPromise && !force) return catalogLoadPromise;
-        const task = (async () => {
-          let rows = [];
-          if (supabaseClient) {
-            const pageSize = 1000;
-            let from = 0;
-            while (true) {
-              const { data, error } = await supabaseClient
-                .from('games')
-                .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug')
-                .order('rating', { ascending: false, nullsFirst: false })
-                .order('rating_count', { ascending: false, nullsFirst: false })
-                .order('release_date', { ascending: false, nullsFirst: false })
-                .range(from, from + pageSize - 1);
-              if (error || !Array.isArray(data) || !data.length) break;
-              rows.push(...data);
-              if (data.length < pageSize) break;
-              from += data.length;
-            }
-            rows = sortGamesPosterFirst(dedupeRowsById(rows));
-          }
-
-          if (rows.length) {
-            state.catalog = rows;
-            state.catalogLoadedAll = true;
-            state.catalogSource = 'supabase';
-            buildGenreCatalog();
-            populateGenreSelect();
-            return true;
-          }
-
-          state.catalog = [];
-          state.catalogLoadedAll = false;
-          return false;
-        })();
-        if (!force) catalogLoadPromise = task;
-        try {
-          return await task;
-        } finally {
-          if (catalogLoadPromise === task) catalogLoadPromise = null;
-        }
-      }
-
-      function queueCatalogRefreshForActiveSearch(querySnapshot = '') {
-        const snapshot = normalizeTitleKey(querySnapshot);
-        if (!snapshot || state.catalogLoadedAll) return;
-        void ensureGamesCatalogLoaded().then((ready) => {
-          if (!ready) return false;
-          if (normalizeTitleKey(state.query || '') !== snapshot) return false;
-          loadGames();
-          return true;
-        }).catch(() => false);
-      }
-
-      function hasRenderableGameArt(item) {
-        const cover = resolveGameImageSource(item);
-        return Boolean(cover && cover !== IGDB_FALLBACK_IMAGE && !cover.includes('/newlogo.webp'));
-      }
-
-      async function fetchFastFeaturedGamesPage(pageSize) {
-        if (!supabaseClient) return null;
-        const page = Math.max(1, Number(state.page || 1));
-        const featuredPoolTarget = Math.max(100, pageSize * 4);
-        const from = (page - 1) * featuredPoolTarget;
-        const chunkSize = Math.max(60, Math.ceil(featuredPoolTarget / 2), pageSize * 3, 24);
-        let cursor = from;
-        let count = 0;
-        const collected = [];
-        for (let attempt = 0; attempt < 4 && collected.length < featuredPoolTarget; attempt += 1) {
-          const { data, error, count: totalCount } = await supabaseClient
-            .from('games')
-            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,extra,source,slug', { count: 'exact' })
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .order('rating', { ascending: false, nullsFirst: false })
-            .order('release_date', { ascending: false, nullsFirst: false })
-            .range(cursor, cursor + chunkSize - 1);
-          if (error || !Array.isArray(data) || !data.length) break;
-          count = Number(totalCount || count || 0);
-          data.forEach((row) => {
-            const title = String(row?.title || row?.name || row?.slug || '').trim();
-            if (!title) return;
-            collected.push(row);
-          });
-          if (data.length < chunkSize) break;
-          cursor += data.length;
-        }
-        const deduped = dedupeRowsById(collected).slice(0, featuredPoolTarget);
-        if (!deduped.length) return null;
-        const payload = {
-          rows: deduped.slice(0, featuredPoolTarget),
-          count: Number(count || deduped.length),
-          source: 'supabase-fast'
-        };
-        writeCachedFeaturedGamesPage(page, payload);
-        return payload;
-      }
-
-      async function fetchLocalGamesPage(pageSize) {
-        if (!supabaseClient) return null;
-        if (state.query) {
-          const currentQuery = String(state.query || '').trim();
-          if (state.catalogLoadedAll && Array.isArray(state.catalog) && state.catalog.length) {
-            const localResults = filterCatalogGames(state.catalog);
-            if (localResults.length >= Math.max(1, pageSize) || String(state.query || '').trim().length < 3) {
-              const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-              void fetchSearchSupplementGames(state.query, state.activeGenre, state.year).catch(() => []);
-              return {
-                rows: localResults.slice(start, start + pageSize),
-                count: localResults.length,
-                source: 'supabase-catalog-cache'
-              };
-            }
-          }
-          const targeted = await fetchTargetedSearchPage(pageSize);
-          if (targeted) {
-            queueCatalogRefreshForActiveSearch(currentQuery);
-            return targeted;
-          }
-        }
-        if (Math.max(1, Number(state.page || 1)) === 1 && !state.query && !state.activeGenre && !state.year && !state.platform) {
-          const fast = await fetchFastFeaturedGamesPage(pageSize);
-          if (fast?.rows?.length) return fast;
-        }
-        const ready = await ensureGamesCatalogLoaded();
-        if (!ready) return null;
-        const query = String(state.query || '').trim();
-        let workingSet = Array.isArray(state.catalog) ? state.catalog.slice() : [];
-        if (query) {
-          const supplement = await fetchSearchSupplementGames(query, state.activeGenre, state.year);
-          if (supplement.length) {
-            workingSet = dedupeSearchResults([...supplement, ...workingSet], query);
-          }
-        }
-        const filtered = filterCatalogGames(dedupeSearchResults(workingSet, query));
-        const ranked = query ? sortSearchResults(filtered, query) : filtered;
-        const start = (Math.max(1, Number(state.page || 1)) - 1) * pageSize;
-        return {
-          rows: ranked.slice(start, start + pageSize),
-          count: ranked.length,
-          source: 'supabase'
-        };
-      }
-
-      function isPosterOfficialGameRow(row) {
-        const cover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
-        if (!cover || !/\/covers-official\//.test(cover)) return false;
-        return Boolean(row?.extra?.official_cover_is_poster);
-      }
-
-      function scoreResolvedGameCover(row) {
-        const directCover = normalizeGameImageUrl(row?.cover_url || row?.cover?.url || row?.cover);
-        const resolvedCover = resolveGameImageSource(row);
-        if (!resolvedCover) return Number.NEGATIVE_INFINITY;
-        let score = 0;
-        if (hasPosterOfficialGameCover(row) || isPosterOfficialGameRow(row)) score += 900;
-        if (/\/game-assets\/covers\//.test(resolvedCover)) score += 420;
-        if (/\/game-assets\/covers-official\//.test(resolvedCover)) score += 520;
-        if (/wikimedia|wikipedia/.test(resolvedCover)) score += 340;
-        if (/igdb|images\.igdb\.com/.test(resolvedCover)) score += 240;
-        if (/rawg|media\.rawg/.test(resolvedCover)) score += 120;
-        if (directCover && resolvedCover === directCover) score += 110;
-        if (isLikelyPosterGameUrl(resolvedCover)) score += 180;
-        if (isLikelyBackdropGameUrl(resolvedCover)) score -= 700;
-        if (isLikelyLogoOnlyGameArt(resolvedCover)) score -= 160;
-        return score;
-      }
-
-      function sortGamesPosterFirst(rows) {
-        const list = Array.isArray(rows) ? rows.slice() : [];
-        return list.sort((a, b) => {
-          const coverDiff = scoreResolvedGameCover(b) - scoreResolvedGameCover(a);
-          if (coverDiff !== 0) return coverDiff;
-          const aPoster = isPosterOfficialGameRow(a) ? 1 : 0;
-          const bPoster = isPosterOfficialGameRow(b) ? 1 : 0;
-          if (bPoster !== aPoster) return bPoster - aPoster;
-          const dateDiff = String(b?.release_date || '').localeCompare(String(a?.release_date || ''));
-          if (dateDiff !== 0) return dateDiff;
-          const countDiff = Number(b?.rating_count || 0) - Number(a?.rating_count || 0);
-          if (countDiff !== 0) return countDiff;
-          const ratingDiff = Number(b?.rating || 0) - Number(a?.rating || 0);
-          if (ratingDiff !== 0) return ratingDiff;
-          return String(a?.title || '').localeCompare(String(b?.title || ''));
-        });
-      }
-
-      function filterCatalogGames(catalogOverride) {
-        const catalog = Array.isArray(catalogOverride) ? catalogOverride : state.catalog;
-        const query = String(state.query || '').trim();
-        const activeGenre = String(state.activeGenre || '').trim().toLowerCase();
-        const year = String(state.year || '').trim();
-        const platform = String(state.platform || '').trim().toLowerCase();
-        const filtered = catalog.filter((item) => {
-          const title = String(item?.title || '').trim();
-          if (!title) return false;
-
-          if (!isLikelyRealGameRow(item)) return false;
-          if (!matchesStrictGameQuery(item, query)) return false;
-
-          if (query) {
-            if (!titleMatchesQuery(title, query)) return false;
-            if (isLikelyUnofficialSearchResult(item, query)) return false;
-          }
-
-          if (activeGenre) {
-            const genres = normalizeGameGenres(item?.extra);
-            if (!genres.some((genre) => genre.slug === activeGenre)) return false;
-          }
-
-          if (year) {
-            const releaseYear = String(item?.release_date || '').slice(0, 4);
-            if (releaseYear !== year) return false;
-          }
-          if (platform) {
-            const platforms = Array.isArray(item?.extra?.platforms) ? item.extra.platforms : [];
-            if (!platforms.some((entry) => String(entry || '').trim().toLowerCase().includes(platform))) {
-              return false;
-            }
-          }
-          return true;
-        });
-        const deduped = query ? dedupeSearchResults(filtered, query) : applyStrictGameFranchiseLimits(dedupeRowsByTitleEdition(filtered));
-        return query ? sortSearchResults(deduped, query) : sortGamesPosterFirst(deduped);
-      }
-
-
-      function showNotification(message, type = 'info', duration = 3000) {
-        const existing = document.querySelectorAll('.notification');
-        existing.forEach(n => n.remove());
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), duration);
-      }
-
-      function renderListIcon(icon) {
-        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-gamepad');
-        if (!icon) return '<i class="fas fa-gamepad"></i>';
-        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
-        return icon;
-      }
-
-      async function ensureSupabase() {
-        if (supabaseClient) return supabaseClient;
-        const authRuntime = window.ZO2Y_AUTH || null;
-        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-          await authRuntime.waitForSupabase(8000);
-        } else {
-          const startedAt = Date.now();
-          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-            await new Promise((resolve) => setTimeout(resolve, 40));
-          }
-        }
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-          if (supabaseClient) return supabaseClient;
-        }
-        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-          supabaseClient = window.supabase.createClient(
-            window.__ZO2Y_SUPABASE_CONFIG.url,
-            window.__ZO2Y_SUPABASE_CONFIG.key,
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-          );
-          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          return supabaseClient;
-        }
-        return null;
-      }
-
-      async function initAuthUi() {
-        const client = await ensureSupabase();
-        if (!client) return;
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const profileBtn = document.getElementById('profileBtn');
-        const { data } = await client.auth.getUser();
-        state.currentUser = data?.user || null;
-
-        if (state.currentUser) {
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (signupBtn) signupBtn.style.display = 'none';
-          if (profileBtn) {
-            profileBtn.style.display = 'inline-flex';
-            profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          }
-        } else {
-          if (loginBtn) loginBtn.style.display = 'inline-flex';
-          if (signupBtn) signupBtn.style.display = 'inline-flex';
-          if (profileBtn) profileBtn.style.display = 'none';
-        }
-      }
-
-      async function loadUserListStatus() {
-        state.listStatusMap = new Map();
-        if (!supabaseClient || !state.currentUser) return;
-        const { data, error } = await supabaseClient
-          .from('game_list_items')
-          .select('game_id, list_type')
-          .eq('user_id', state.currentUser.id);
-        if (error) return;
-        (data || []).forEach(row => {
-          if (!state.listStatusMap.has(row.game_id)) {
-            state.listStatusMap.set(row.game_id, { favorites: false, watched: false, watchlist: false });
-          }
-          if (row.list_type && state.listStatusMap.get(row.game_id)[row.list_type] !== undefined) {
-            state.listStatusMap.get(row.game_id)[row.list_type] = true;
-          }
-        });
-        updateAllCardMenus();
-      }
-
-      function updateAllCardMenus() {
-        document.querySelectorAll('.card').forEach(card => {
-          const gameId = Number(card.getAttribute('data-game-id'));
-          if (!gameId) return;
-          updateCardMenuUI(card, gameId);
-        });
-      }
-
-      function updateCardMenuUI(card, gameId) {
-        const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
-        card.querySelectorAll('.list-action').forEach(btn => {
-          const listType = btn.getAttribute('data-list');
-          if (!listType) return;
-          const isActive = !!status[listType];
-          btn.classList.toggle('active', isActive);
-          const stateEl = btn.querySelector('.list-action-state');
-          if (stateEl) stateEl.textContent = isActive ? 'Saved' : 'Add';
-        });
-      }
-
-      function updatePopularVisibility() {
-        const section = document.getElementById('popularSection');
-        if (!section) return;
-        const shouldShow = !state.query && !state.activeGenre && !state.year;
-        section.style.display = shouldShow ? '' : 'none';
-      }
-
-      function renderFilters() {
-        const row = document.getElementById('activeFilters');
-        if (!row) return;
-        row.innerHTML = '';
-        updatePopularVisibility();
-        const items = [];
-        if (state.activeGenre) items.push({ label: state.activeGenre, type: 'genre' });
-        if (state.query) items.push({ label: state.query, type: 'query' });
-        if (state.year) items.push({ label: state.year, type: 'year' });
-        if (state.platform) items.push({ label: state.platform, type: 'platform' });
-        items.forEach(item => {
-          const chip = document.createElement('div');
-          chip.className = 'chip active';
-          chip.textContent = item.label;
-          chip.onclick = () => {
-            if (item.type === 'genre') state.activeGenre = '';
-            if (item.type === 'query') state.query = '';
-            if (item.type === 'year') state.year = '';
-            if (item.type === 'platform') state.platform = '';
-            document.getElementById('searchInput').value = state.query;
-            document.getElementById('genreSelect').value = state.activeGenre;
-            document.getElementById('yearInput').value = state.year;
-            const platformInput = document.getElementById('platformInput');
-            if (platformInput) platformInput.value = state.platform;
-            renderFilters();
-            state.page = 1;
-            loadGames();
-          };
-          row.appendChild(chip);
-        });
-      }
-
-      let pageSpotlightTimer = null;
-      let pageSpotlightItems = [];
-      let pageSpotlightIndex = 0;
-
-      function pickGameSpotlightPool(items = []) {
-        const seen = new Set();
-        return (Array.isArray(items) ? items : []).filter((item) => {
-          const key = String(item?.slug || item?.title || item?.id || '').trim().toLowerCase();
-          const cover = resolveGameImageSource(item);
-          if (!key || !cover || seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        }).slice(0, 12);
-      }
-
-      function renderGamePageSpotlight(item) {
-        const section = document.getElementById('gamesSpotlight');
-        if (!section || !item) return;
-        const bg = document.getElementById('gamesSpotlightBg');
-        const titleEl = document.getElementById('gamesSpotlightTitle');
-        const metaEl = document.getElementById('gamesSpotlightMeta');
-        const summaryEl = document.getElementById('gamesSpotlightSummary');
-        const imgEl = document.getElementById('gamesSpotlightImage');
-        const openEl = document.getElementById('gamesSpotlightOpen');
-        const cover = resolveGameImageSource(item);
-        const hero = resolveGameHeroSource(item, cover);
-        section.hidden = false;
-        if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${hero || cover}")`;
-        if (titleEl) titleEl.textContent = item.title || 'Game Spotlight';
-        if (metaEl) {
-          const genres = normalizeGameGenres(item.extra).map((genre) => genre.name).slice(0, 3).join(' | ');
-          const date = item.release_date ? String(item.release_date).slice(0, 10) : '';
-          metaEl.textContent = [genres, date].filter(Boolean).join(' ? ');
-        }
-        if (summaryEl) {
-          summaryEl.textContent = String(item.description || '').trim() || 'A standout game from the local catalog.';
-        }
-        if (imgEl) {
-          imgEl.src = cover || '/newlogo.webp';
-          imgEl.alt = `${item.title || 'Game'} cover`;
-        }
-        if (openEl) {
-          openEl.href = `game.html?id=${encodeURIComponent(String(item.id || ''))}`;
-        }
-      }
-
-      function resetGamePageSpotlightTimer() {
-        if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-        if (pageSpotlightItems.length < 2) return;
-        pageSpotlightTimer = window.setInterval(() => {
-          pageSpotlightIndex = (pageSpotlightIndex + 1) % pageSpotlightItems.length;
-          renderGamePageSpotlight(pageSpotlightItems[pageSpotlightIndex]);
-        }, 6500);
-      }
-
-      function updateGamePageSpotlight(items = []) {
-        pageSpotlightItems = pickGameSpotlightPool(items);
-        pageSpotlightIndex = 0;
-        const section = document.getElementById('gamesSpotlight');
-        if (!section) return;
-        if (!pageSpotlightItems.length) {
-          section.hidden = true;
-          if (pageSpotlightTimer) clearInterval(pageSpotlightTimer);
-          return;
-        }
-        renderGamePageSpotlight(pageSpotlightItems[0]);
-        resetGamePageSpotlightTimer();
-      }
-
-      function createGameCard(item, index = 0) {
-        const gameTitle = item.title || item.slug || 'Untitled';
-        const gameDate = item.release_date ? String(item.release_date).slice(0, 10) : '';
-        const genreText = normalizeGameGenres(item.extra)
-          .map((genre) => genre.name)
-          .slice(0, 2)
-          .join(' | ');
-        const ratingValue = Number(item.rating || 0);
-        const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
-        const gameDesc = [genreText, ratingText].filter(Boolean).join(' | ') || String(item.description || '').trim() || 'Popular pick';
-        const gameHeroFallback = pickPreferredCoverUrl([
-          item?.hero_url,
-          item?.hero,
-          item?.background_image,
-          ...(Array.isArray(item?.extra?.local_screenshots) ? item.extra.local_screenshots : []),
-          ...(Array.isArray(item?.extra?.screenshots) ? item.extra.screenshots : [])
-        ]) || IGDB_FALLBACK_IMAGE;
-        const gameCover = resolveGameImageSource(item) || gameHeroFallback;
-        const gameHero = resolveGameHeroSource(item, gameCover || gameHeroFallback);
-        const coverFallbackChain = buildGameCoverFallbackChain(item, gameCover, gameHero);
-        const plainGameStage = shouldUsePlainGameStage(item, gameCover, gameHero);
-        const usePortraitPosterFit = !plainGameStage && shouldUsePortraitPosterFit(item, gameCover);
-
-        const gameId = Number(item.id);
-        if (!Number.isFinite(gameId)) return null;
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.setAttribute('data-game-id', gameId);
-        const isPriority = Number.isFinite(index) && index < 4;
-        const mediaStyle = !plainGameStage && gameHero && gameHero !== gameCover
-          ? ` style="background-image:url('${gameHero.replace(/'/g, '%27')}')"`
-          : '';
-        card.innerHTML = `
-          <div class="card-media game-media${plainGameStage ? ' plain-logo' : ''}${usePortraitPosterFit ? ' portrait-poster' : ''}"${mediaStyle}>
-            <img src="${gameCover}" alt="${gameTitle}" loading="${isPriority ? 'eager' : 'lazy'}" fetchpriority="${isPriority ? 'high' : 'low'}" decoding="async" referrerpolicy="no-referrer">
-          </div>
-          <div class="card-body">
-            <h3 class="card-title">${gameTitle}</h3>
-            <div class="card-meta-row">
-              <div class="card-meta">${gameDate}</div>
-              <div class="card-menu-wrap">
-                <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-              </div>
-            </div>
-            <p class="card-desc">${gameDesc}</p>
-          </div>
-        `;
-        const cardImage = card.querySelector('.card-media img');
-        if (cardImage) {
-          let fallbackIndex = 1;
-          cardImage.addEventListener('error', () => {
-            const nextSrc = coverFallbackChain[fallbackIndex++] || IGDB_FALLBACK_IMAGE;
-            if (!nextSrc || cardImage.src === nextSrc) {
-              cardImage.onerror = null;
-              return;
-            }
-            cardImage.src = nextSrc;
-          });
-        }
-        card.onclick = (e) => {
-          if (e.target.closest('.menu-btn')) return;
-          window.location.href = `game.html?id=${encodeURIComponent(String(gameId))}`;
-        };
-        wireCardMenu(card, gameId);
-        updateCardMenuUI(card, gameId);
-        return card;
-      }
-
-      async function loadGames(options = {}) {
-        const grid = document.getElementById('gamesGrid');
-        const empty = document.getElementById('emptyState');
-        if (!grid) return;
-        if (!supabaseClient) {
-          await ensureSupabase();
-        }
-        const requestId = ++state.requestId;
-        if (igdbAbortController) {
-          igdbAbortController.abort();
-        }
-        igdbAbortController = new AbortController();
-        const signal = igdbAbortController.signal;
-
-        const pageSize = getGamesPageSize();
-        const shouldUseFeaturedCache = isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1;
-        const cachedFeaturedPage = shouldUseFeaturedCache ? readCachedFeaturedGamesPage(state.page) : null;
-        if (empty) empty.style.display = 'none';
-
-        if (cachedFeaturedPage?.rows?.length) {
-          state.catalogSource = cachedFeaturedPage.source || 'supabase-fast-cache';
-          const pool = Array.isArray(cachedFeaturedPage.rows) ? cachedFeaturedPage.rows.filter(Boolean) : [];
-          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
-            ? shufflePopularGamesPool(pool, pageSize)
-            : pool;
-          updateGamePageSpotlight(shuffledPool);
-          grid.innerHTML = '';
-          const cachedFragment = document.createDocumentFragment();
-          shuffledPool.slice(0, pageSize).forEach((item, idx) => {
-            const card = createGameCard(item, idx);
-            if (card) cachedFragment.appendChild(card);
-          });
-          const renderedCount = cachedFragment.childNodes.length;
-          grid.appendChild(cachedFragment);
-          if (empty) empty.style.display = renderedCount ? 'none' : 'block';
-          const totalMatches = Number(cachedFeaturedPage.count || renderedCount) || renderedCount;
-          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
-          state.hasMore = state.page < state.totalPages;
-          updatePagination();
-          if (!options?.cacheBust) return;
-        }
-
-        if (!cachedFeaturedPage?.rows?.length && state.page === 1) {
-          grid.innerHTML = '<div class="empty">Loading games...</div>';
-        }
-        const fetchLimitCap = isSlowNetwork() ? 30 : 50;
-        const fetchMultiplier = state.query ? 2 : 1.5;
-        const fetchPageSize = Math.min(Math.ceil(pageSize * fetchMultiplier), fetchLimitCap);
-        const dates = state.year ? `${state.year}-01-01,${state.year}-12-31` : '';
-        const ordering = state.query ? '-rating' : '-follows';
-        const minRatingCount = (!state.query && !state.activeGenre && !state.year && !state.platform) ? 50 : 0;
-        const popularityType = (!state.query && !state.activeGenre && !state.year && !state.platform) ? 1 : 0;
-        const shouldWarmCache = state.page === 1 && !state.query && !state.activeGenre && !state.year && !state.platform;
-        const cacheFlag = shouldWarmCache ? 1 : undefined;
-        const cachePages = shouldWarmCache ? 2 : undefined;
-
-        const localPayload = await fetchLocalGamesPage(pageSize);
-        if (requestId !== state.requestId) return;
-        if (localPayload?.rows?.length) {
-          state.catalogSource = localPayload.source || 'supabase';
-          const pool = Array.isArray(localPayload.rows) ? localPayload.rows.filter(Boolean) : [];
-          const shuffledPool = (isPopularGamesBrowseState() && Math.max(1, Number(state.page || 1)) === 1)
-            ? shufflePopularGamesPool(pool, pageSize)
-            : pool;
-          const results = shuffledPool.slice(0, pageSize);
-          updateGamePageSpotlight(shuffledPool.length ? shuffledPool : results);
-          grid.innerHTML = '';
-          const fragment = document.createDocumentFragment();
-          results.forEach((item, idx) => {
-            const card = createGameCard(item, idx);
-            if (card) fragment.appendChild(card);
-          });
-          const renderedCount = fragment.childNodes.length;
-          grid.appendChild(fragment);
-          if (empty) empty.style.display = renderedCount ? 'none' : 'block';
-          const totalMatches = Number(localPayload.count || renderedCount) || renderedCount;
-          state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
-          state.hasMore = state.page < state.totalPages;
-          updatePagination();
-          return;
-        }
-
-        if (empty) {
-          empty.style.display = 'block';
-          empty.textContent = 'No games found.';
-        }
-        updateGamePageSpotlight([]);
-        grid.innerHTML = '';
-        state.hasMore = false;
-        state.totalPages = 1;
+      } catch (_err) {
+        console.error('Failed to load games', _err);
+      }
+
+      state.games = games.map((game) => ({
+        id: String(game.id || ''),
+        name: game.name || 'Unknown Game',
+        summary: game.summary || '',
+        cover: game.cover || '',
+        releaseDate: game.first_release_date || '',
+        rating: game.rating || 0,
+        platforms: Array.isArray(game.platforms) ? game.platforms : [],
+        genres: Array.isArray(game.genres) ? game.genres : []
+      })).filter((g) => g.id);
+      
+      state.page = 1;
+      state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.games.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.games.map((game) => game.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('game_list_items')
+        .select('game_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('game_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.game_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, backlog: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
+
+    function getGameListStatus(gameId) {
+      const id = String(gameId || '').trim();
+      const empty = { favorites: false, played: false, backlog: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getGameCardExtra(game) {
+      const platforms = (game.platforms || []).slice(0, 2).join(', ') || 'Unknown';
+      const rating = game.rating ? `${Math.round(game.rating)}/100` : '';
+      const parts = [platforms, rating].filter(Boolean);
+      return parts.join(' | ') || 'Game details';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('gamesGrid');
+      if (!grid) return;
+      if (!state.games.length) {
+        grid.innerHTML = '<div class="empty">No games found.</div>';
         updatePagination();
+        return;
+      }
+      const start = (state.page - 1) * GAMES_PAGE_SIZE;
+      const visibleItems = state.games.slice(start, start + GAMES_PAGE_SIZE);
+      grid.innerHTML = visibleItems.map((game) => {
+        const coverUrl = game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '/newlogo.webp';
+        return `
+        <article class="card" data-id="${escapeHtml(game.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy">
+          </div>
+          <div class="card-meta">
+            <p class="card-title">${escapeHtml(game.name)}</p>
+            <p class="card-sub">${escapeHtml(game.releaseDate ? new Date(game.releaseDate * 1000).getFullYear() : 'TBD')}</p>
+            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function upsertGameRecord(client, game) {
+      if (!client || !game?.id) return false;
+      const payload = {
+        id: String(game.id),
+        name: game.name || '',
+        cover_url: game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('games').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Game upsert failed', error);
+        return false;
+      }
+      return true;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const gameId = String(itemId || '').trim();
+      if (!gameId) return { ok: false, saved: false };
+      const game = state.games.find((row) => String(row.id || '').trim() === gameId);
+      if (!game) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
       }
 
-      function wireCardMenu(card, gameId) {
-        const menuBtn = card.querySelector('.menu-btn');
-        if (!menuBtn) return;
-        menuBtn.addEventListener('click', (e) => {
+      const status = getGameListStatus(gameId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${gameId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const ok = await upsertGameRecord(client, game);
+          if (!ok) throw new Error('Game upsert failed');
+          const { error } = await client.from('game_list_items').insert({
+            user_id: currentUser.id,
+            game_id: gameId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('game_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('game_id', gameId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
+        }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Game list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
           e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
           if (typeof window.openIndexStyleListMenu === 'function') {
             window.openIndexStyleListMenu(card);
           }
         });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `game.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadGames(state.currentQuery);
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('gamesGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Games feed unavailable right now.</div>';
       }
+    }
 
-      function ensureListMenuBackdrop() {
-        let backdrop = document.getElementById('listMenuBackdrop');
-        if (!backdrop) {
-          backdrop = document.createElement('div');
-          backdrop.id = 'listMenuBackdrop';
-          backdrop.className = 'list-menu-backdrop';
-          backdrop.addEventListener('click', closeAllListMenus);
-          document.body.appendChild(backdrop);
-        }
-        return backdrop;
-      }
+    document.getElementById('refreshGamesBtn')?.addEventListener('click', loadPage);
+    document.getElementById('searchGamesBtn')?.addEventListener('click', async () => {
+      state.currentQuery = String(document.getElementById('gamesPageSearch')?.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('clearGamesSearchBtn')?.addEventListener('click', async () => {
+      const input = document.getElementById('gamesPageSearch');
+      if (input) input.value = '';
+      state.currentQuery = '';
+      await loadPage();
+    });
+    document.getElementById('gamesPageSearch')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      state.currentQuery = String(e.target.value || '').trim();
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      renderGrid();
+    });
 
-      function showListMenuBackdrop() {
-        const backdrop = ensureListMenuBackdrop();
-        backdrop.classList.add('active');
-      }
-
-      function hideListMenuBackdrop() {
-        const backdrop = document.getElementById('listMenuBackdrop');
-        if (backdrop) backdrop.classList.remove('active');
-      }
-
-      function closeAllListMenus() {
-        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
-        document.querySelectorAll('.card.menu-open').forEach(c => c.classList.remove('menu-open'));
-        hideListMenuBackdrop();
-      }
-
-      async function toggleDefaultList(gameId, listType, card, forcedNextSaved, providedUser = null) {
-        if (providedUser?.id) {
-          state.currentUser = providedUser;
-        }
-        const opKey = `${gameId}:${listType}`;
-        const status = state.listStatusMap.get(gameId) || { favorites: false, watched: false, watchlist: false };
-        const previousSaved = !!status[listType];
-        if (state.pendingDefaultOps.has(opKey)) {
-          return { ok: false, saved: previousSaved };
-        }
-        state.pendingDefaultOps.add(opKey);
-        if (!state.currentUser) {
-          showNotification('Please sign in to save games', 'info');
-          state.pendingDefaultOps.delete(opKey);
-          return { ok: false, saved: previousSaved };
-        }
-        if (!supabaseClient) {
-          state.pendingDefaultOps.delete(opKey);
-          return { ok: false, saved: previousSaved };
-        }
-        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-
-        status[listType] = nextSaved;
-        state.listStatusMap.set(gameId, status);
-        if (card) updateCardMenuUI(card, gameId);
-
-        try {
-          if (nextSaved) {
-            const { error } = await supabaseClient
-              .from('game_list_items')
-              .insert({ user_id: state.currentUser.id, game_id: gameId, list_type: listType });
-            if (error) throw error;
-            showNotification('Saved to list', 'success');
-          } else {
-            const { error } = await supabaseClient
-              .from('game_list_items')
-              .delete()
-              .eq('user_id', state.currentUser.id)
-              .eq('game_id', gameId)
-              .eq('list_type', listType);
-            if (error) throw error;
-            showNotification('Removed from list', 'info');
-          }
-          return { ok: true, saved: nextSaved };
-        } catch (_err) {
-          status[listType] = previousSaved;
-          state.listStatusMap.set(gameId, status);
-          if (card) updateCardMenuUI(card, gameId);
-          showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
-        } finally {
-          state.pendingDefaultOps.delete(opKey);
-        }
-      }
-
-      async function loadCustomLists() {
-        if (!supabaseClient || !state.currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, state.currentUser.id, 'game');
-      }
-
-      async function openGameListsModal(gameId) {
-        if (!state.currentUser) {
-          showNotification('Please sign in to manage lists', 'info');
-          return;
-        }
-        state.activeGameId = gameId;
-        const modal = document.getElementById('gameListsModal');
-        const container = document.getElementById('gameListsContainer');
-        if (!modal || !container) return;
-        container.innerHTML = '<div class="chip">Loading...</div>';
-        state.customLists = await loadCustomLists();
-        const listIds = state.customLists.map(l => l.id);
-        state.modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, state.currentUser.id, 'game', gameId, listIds)
-          : new Set();
-        container.innerHTML = '';
-        if (!state.customLists.length) {
-          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'games-mobile.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
         } else {
-          state.customLists.forEach(list => {
-            const item = document.createElement('div');
-            item.className = 'modal-list-item' + (state.modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `
-              <span>${renderListIcon(list.icon)} ${list.title}</span>
-              <span class="modal-list-actions">
-                <span>${state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
-                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
-              </span>
-            `;
-            item.onclick = () => {
-              if (state.modalSelectedLists.has(list.id)) {
-                state.modalSelectedLists.delete(list.id);
-              } else {
-                state.modalSelectedLists.add(list.id);
-              }
-              item.classList.toggle('active');
-              item.querySelector('.modal-list-actions span').textContent = state.modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
-            };
-            const editBtn = item.querySelector('.list-edit-btn');
-            if (editBtn) {
-              editBtn.onclick = (e) => {
-                e.stopPropagation();
-                renameGameList(list.id, list.title);
-              };
-            }
-            container.appendChild(item);
-          });
+          window.setTimeout(initSearch, 0);
         }
-        modal.classList.add('active');
       }
-
-      async function saveGameListChanges() {
-        if (!supabaseClient || !state.currentUser || !state.activeGameId) return;
-        if (window.ListUtils) {
-          await ListUtils.saveCustomListChanges(
-            supabaseClient,
-            state.currentUser.id,
-            'game',
-            state.activeGameId,
-            [...state.modalSelectedLists]
-          );
-        }
-        showNotification('Lists updated', 'success');
-        closeGameListsModal();
-      }
-
-      function closeGameListsModal() {
-        const modal = document.getElementById('gameListsModal');
-        if (modal) modal.classList.remove('active');
-        state.activeGameId = null;
-      }
-
-      async function createGameList() {
-        const input = document.getElementById('newGameListName');
-        if (!input || !input.value.trim()) return;
-        if (!supabaseClient || !state.currentUser) return;
-        const title = input.value.trim();
-        const modal = document.getElementById('gameListsModal');
-        const tierState = window.ListUtils && modal
-          ? ListUtils.readTierCreateState(modal)
-          : { listKind: 'standard', maxRank: null };
-        const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, state.currentUser.id, 'game', {
-            title,
-            icon: state.selectedIcon || 'fas fa-gamepad',
-          listKind: tierState.listKind,
-          maxRank: tierState.maxRank
-          })
-          : null;
-        if (!data) {
-          showNotification('Could not create list', 'error');
-          return;
-        }
-        input.value = '';
-        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
-        state.customLists.unshift(data);
-        openGameListsModal(state.activeGameId);
-      }
-
-      async function renameGameList(listId, currentTitle) {
-        const nextTitle = prompt('Rename list', currentTitle || '');
-        if (!nextTitle || !nextTitle.trim()) return;
-        if (!supabaseClient || !state.currentUser) return;
-        const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, state.currentUser.id, 'game', listId, nextTitle.trim())
-          : false;
-        if (!ok) {
-          showNotification('Could not rename list', 'error');
-          return;
-        }
-        state.customLists = state.customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
-        openGameListsModal(state.activeGameId);
-      }
-
-      function wireUI() {
-        const searchInput = document.getElementById('searchInput');
-        const genreSelect = document.getElementById('genreSelect');
-        const yearInput = document.getElementById('yearInput');
-        const platformInput = document.getElementById('platformInput');
-        const searchSubmitBtn = document.getElementById('searchSubmitBtn');
-        const filterToggleBtn = document.getElementById('filterToggleBtn');
-        const filterModal = document.getElementById('filterModal');
-        const closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
-        const prevBtn = document.getElementById('prevPageBtn');
-        const nextBtn = document.getElementById('nextPageBtn');
-        const closeListsBtn = document.getElementById('closeGameListsBtn');
-        const saveListsBtn = document.getElementById('saveGameListsBtn');
-        const createListBtn = document.getElementById('createGameListBtn');
-        const iconOptions = document.querySelectorAll('#gameListIconOptions .icon-option');
-
-        if (searchInput) {
-          searchInput.addEventListener('input', (e) => {
-            state.query = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            scheduleGamesLoad(30);
-          });
-          searchInput.addEventListener('change', (e) => {
-            state.query = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            loadGames();
-          });
-          searchInput.addEventListener('keyup', (e) => {
-            if (e.key !== 'Enter') return;
-            state.query = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            loadGames();
-          });
-        }
-        if (searchSubmitBtn && searchInput) {
-          searchSubmitBtn.addEventListener('click', () => {
-            searchInput.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
-          });
-        }
-        if (genreSelect) {
-          genreSelect.addEventListener('change', (e) => {
-            state.activeGenre = e.target.value;
-            renderFilters();
-            state.page = 1;
-            scheduleGamesLoad(30);
-          });
-        }
-        if (yearInput) {
-          yearInput.addEventListener('input', (e) => {
-            state.year = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            scheduleGamesLoad(30);
-          });
-        }
-        if (platformInput) {
-          platformInput.addEventListener('input', (e) => {
-            state.platform = e.target.value.trim();
-            renderFilters();
-            state.page = 1;
-            scheduleGamesLoad(30);
-          });
-        }
-        if (filterToggleBtn && filterModal) filterToggleBtn.addEventListener('click', () => { filterModal.style.display = 'flex'; });
-        if (closeFilterModalBtn && filterModal) closeFilterModalBtn.addEventListener('click', () => { filterModal.style.display = 'none'; });
-        if (filterModal) filterModal.addEventListener('click', (e) => { if (e.target === filterModal) filterModal.style.display = 'none'; });
-        if (prevBtn) {
-          prevBtn.addEventListener('click', () => {
-            if (state.page > 1) {
-              state.page -= 1;
-              loadGames();
-            }
-          });
-        }
-        if (nextBtn) {
-          nextBtn.addEventListener('click', () => {
-            if (state.hasMore) {
-              state.page += 1;
-              loadGames();
-            }
-          });
-        }
-        if (closeListsBtn) closeListsBtn.addEventListener('click', closeGameListsModal);
-        if (saveListsBtn) saveListsBtn.addEventListener('click', saveGameListChanges);
-        if (createListBtn) createListBtn.addEventListener('click', createGameList);
-        iconOptions.forEach(btn => {
-          btn.addEventListener('click', () => {
-            iconOptions.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            state.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-gamepad';
-          });
-        });
-
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeAllListMenus();
-        });
-      }
-
-      function updatePagination() {
-        const prevBtn = document.getElementById('prevPageBtn');
-        const nextBtn = document.getElementById('nextPageBtn');
-        const info = document.getElementById('pageInfo');
-        if (prevBtn) prevBtn.disabled = state.page <= 1;
-        if (nextBtn) nextBtn.disabled = !state.hasMore;
-        if (info) info.textContent = `Page ${Math.max(1, Number(state.page || 1))} of ${Math.max(1, Number(state.totalPages || 1))}`;
-      }
-
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
-          mediaType: 'game',
-          itemIdAttr: 'data-game-id',
+          mediaType: 'games',
+          itemIdAttr: 'data-id',
           getVisibleItemIds: () =>
-            Array.from(document.querySelectorAll('.card[data-game-id]'))
-              .map((card) => card.getAttribute('data-game-id'))
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
               .filter(Boolean),
           getQuickStatusForItem: (itemId) => {
-            const numeric = Number(itemId);
-            const key = Number.isFinite(numeric) ? numeric : itemId;
+            const key = String(itemId || '').trim();
             const status = state.listStatusMap.get(key);
             return status ? { ...status } : null;
           },
@@ -3031,86 +695,15 @@
             await ensureSupabase();
             return supabaseClient;
           },
-          getCurrentUser: () => state.currentUser,
-          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-          toggleDefaultList: async ({ itemId, listType, card, nextSaved, user }) =>
-            toggleDefaultList(itemId, listType, card, nextSaved, user || null)
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
-
-      (async function init() {
-        void ensureSupabase();
-        wireUI();
-        renderFilters();
-        void loadGames();
-        void loadGenreCatalog().catch(() => {});
-        void ensureGamesCatalogLoaded().catch(() => false);
-        void initAuthUi().catch(() => {});
-      })();
+      loadPage();
     });
   </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
