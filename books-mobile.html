@@ -12,7 +12,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="css/animations.css?v=20260430c" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -961,7 +961,7 @@
 <script src="js/list-utils.js?v=20260422b"></script>
 <script src="js/index-list-menu-adapter.js?v=20260428a"></script>
     <script>
-    (function () {
+    document.addEventListener('DOMContentLoaded', function () {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
@@ -2436,7 +2436,7 @@
         void loadBooks();
         void initAuthUi().catch(() => {});
       })();
-    })();
+    });
   </script>
   <script src="js/production-runtime.js?v=20260307a" defer></script>
 </body>
