@@ -1,47 +1,6 @@
-/* Global lowercase UI text, with media-title exceptions */
+/* Global lowercase UI text - all text */
 
 html body,
-html body a,
-html body button,
-html body label,
-html body p,
-html body span,
-html body li,
-html body small,
-html body strong,
-html body th,
-html body td,
-html body figcaption,
-html body .chip,
-html body .btn,
-html body .menu-btn,
-html body .nav-pill,
-html body .sidebar-link,
-html body .sidebar-ghost-link,
-html body .mobile-nav-item,
-html body .rail-title,
-html body .section-head,
-html body .status,
-html body .meta,
-html body .subtitle {
+html body * {
   text-transform: lowercase;
-}
-
-/* Preserve media/content titles */
-html body .card-title,
-html body .spotlight-title,
-html body .media-title,
-html body .movie-title,
-html body .tv-title,
-html body .anime-title,
-html body .game-title,
-html body .book-title,
-html body .song-title,
-html body .track-title,
-html body .country-title-text,
-html body .reviews-spotlight-popover-title,
-html body .reviews-spotlight-note-title,
-html body [data-media-title],
-html body [data-preserve-case="1"] {
-  text-transform: none !important;
 }
