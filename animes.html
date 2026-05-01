@@ -801,7 +801,7 @@
   <main class="container page-shell">
     <section class="hero">
       <h1>popular anime right now</h1>
-      <p>Discover trending anime series and save them to your anime lists.</p>
+      <p>Discover trending anime from around the world and save them to your anime lists.</p>
       <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
         <button class="btn btn-primary" id="refreshAnimesBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
@@ -955,12 +955,10 @@
       
       const variations = [normalized];
       
-      // Try without spaces for compound words
       if (normalized.includes(' ')) {
         variations.push(normalized.replace(/\s+/g, ''));
       }
       
-      // Try with spaces if no spaces
       if (!normalized.includes(' ') && normalized.length > 3) {
         const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
         if (spaced !== normalized.toLowerCase()) {
@@ -971,13 +969,28 @@
       return [...new Set(variations)];
     }
 
+    function filterAnime(tvResults) {
+      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
+        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+        const name = String(tv.name || '').toLowerCase();
+        const overview = String(tv.overview || '').toLowerCase();
+        
+        const isJapaneseOrigin = originCountry.includes('JP');
+        const isAnimationGenre = genreIds.includes(16);
+        const hasAnimeKeywords = /anime|manga/.test(name + ' ' + overview);
+        const isWestern = originCountry.includes('US') || originCountry.includes('GB') || originCountry.includes('CA');
+        
+        return isJapaneseOrigin || (hasAnimeKeywords && !isWestern) || (isAnimationGenre && !isWestern);
+      });
+    }
+
     async function loadAnimesWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let animes = [];
       let apiTotalPages = 1;
 
       if (!query) {
-        // Load popular TV shows when no search query (more comprehensive than trending)
         try {
           const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=popularity.desc&page=${state.page}`;
           const res = await fetch(url);
@@ -989,7 +1002,6 @@
           }
         } catch (_err) {
           console.error('Failed to load popular animes', _err);
-          // Fallback to trending if discover fails
           try {
             const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${state.page}`;
             const res = await fetch(url);
@@ -1004,7 +1016,6 @@
           }
         }
       } else {
-        // Use multi-search for better accuracy (searches across movies, TV, people)
         const variations = getQueryVariations(query);
         for (const variation of variations) {
           try {
@@ -1013,7 +1024,6 @@
             if (res.ok) {
               const json = await res.json();
               const results = Array.isArray(json?.results) ? json.results : [];
-              // Filter for TV shows only
               const tvResults = results.filter((item) => item.media_type === 'tv');
               const filteredAnimes = filterAnime(tvResults);
               if (filteredAnimes.length > 0) {
@@ -1027,7 +1037,6 @@
           }
         }
         
-        // Fallback to TV-specific search if multi-search fails
         if (animes.length === 0) {
           for (const variation of variations) {
             try {
@@ -1125,30 +1134,6 @@
       }
     }
 
-    function filterAnime(tvResults) {
-      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
-        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
-        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
-        const name = String(tv.name || '').toLowerCase();
-        const overview = String(tv.overview || '').toLowerCase();
-        
-        // Include shows that are clearly Japanese anime
-        const isJapaneseOrigin = originCountry.includes('JP');
-        const isAnimationGenre = genreIds.includes(16);
-        const hasAnimeKeywords = /anime|manga/.test(name + ' ' + overview);
-        
-        // Include if Japanese AND (animation genre OR anime keywords)
-        const isJapaneseAnime = isJapaneseOrigin && (isAnimationGenre || hasAnimeKeywords);
-        
-        // Also include if has anime keywords in name/overview (even if not Japanese)
-        // But exclude if it's clearly Western (US/GB/CA origin)
-        const isWestern = originCountry.includes('US') || originCountry.includes('GB') || originCountry.includes('CA');
-        
-        // Very permissive: include if Japanese anime OR has anime keywords OR animation genre (unless clearly Western)
-        return isJapaneseAnime || (hasAnimeKeywords && !isWestern) || (isAnimationGenre && !isWestern) || isJapaneseOrigin;
-      });
-    }
-
     async function loadAnimes(queryOverride = '') {
       await loadAnimesWithFallback(queryOverride);
     }
@@ -1161,12 +1146,12 @@
       const ids = state.animes.map((anime) => anime.id);
       if (!ids.length) return;
       const { data } = await client
-        .from('anime_list_items')
-        .select('anime_id, list_type')
+        .from('tv_list_items')
+        .select('tv_id, list_type')
         .eq('user_id', currentUser.id)
-        .in('anime_id', ids);
+        .in('tv_id', ids);
       (data || []).forEach((row) => {
-        const id = String(row.anime_id || '');
+        const id = String(row.tv_id || '');
         if (!id) return;
         if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
         const bucket = state.listStatusMap.get(id);
@@ -1195,7 +1180,7 @@
       const grid = document.getElementById('animesGrid');
       if (!grid) return;
       if (!state.animes.length) {
-        grid.innerHTML = '<div class="empty">No animes found.</div>';
+        grid.innerHTML = '<div class="empty">No anime found.</div>';
         updatePagination();
         return;
       }
@@ -1264,19 +1249,19 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('anime_list_items').insert({
+          const { error } = await client.from('tv_list_items').insert({
             user_id: currentUser.id,
-            anime_id: animeId,
+            tv_id: animeId,
             list_type: listType
           });
           if (error && String(error.code || '') !== '23505') throw error;
           showToast('Added to list');
         } else {
           const { error } = await client
-            .from('anime_list_items')
+            .from('tv_list_items')
             .delete()
             .eq('user_id', currentUser.id)
-            .eq('anime_id', animeId)
+            .eq('tv_id', animeId)
             .eq('list_type', listType);
           if (error) throw error;
           showToast('Removed from list');
@@ -1383,7 +1368,7 @@
       }
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
-          mediaType: 'anime',
+          mediaType: 'tv',
           itemIdAttr: 'data-id',
           getVisibleItemIds: () =>
             Array.from(document.querySelectorAll('.card[data-id]'))
