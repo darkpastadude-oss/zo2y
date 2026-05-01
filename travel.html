@@ -302,8 +302,9 @@
     .shell { padding: 12px; min-height: 220px; }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 220px));
       gap: 10px;
+      justify-content: center;
     }
     .empty {
       display: none;
@@ -527,7 +528,7 @@
         height: 52px;
         font-size: 16px;
       }
-      .grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 150px)); justify-content: center; }
       .ttl { font-size: 14px; }
       .ttl-flag { width: 18px; height: 12px; }
     }
