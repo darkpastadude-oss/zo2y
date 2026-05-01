@@ -802,8 +802,19 @@
     }
 
     function filterAnime(tvResults) {
-      // Temporarily disable filtering to test API
-      return Array.isArray(tvResults) ? tvResults : [];
+      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
+        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+        const name = String(tv.name || '').toLowerCase();
+        const overview = String(tv.overview || '').toLowerCase();
+        
+        // Include if: animation genre OR has anime keywords OR Japanese origin
+        const isAnimationGenre = genreIds.includes(16);
+        const hasAnimeKeywords = /anime|manga/.test(name + ' ' + overview);
+        const isJapaneseOrigin = originCountry.includes('JP');
+        
+        return isAnimationGenre || hasAnimeKeywords || isJapaneseOrigin;
+      });
     }
 
     async function ensureSupabase() {
