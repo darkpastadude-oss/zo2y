@@ -802,15 +802,17 @@
     }
 
     function filterAnime(tvResults) {
-      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
-        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
-        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+      return (Array.isArray(tvResults) ? tvResults : []).filter(show => {
+        const originalLanguage = String(show.original_language || '').toLowerCase();
+        const originCountry = Array.isArray(show.origin_country) ? show.origin_country : [];
+        const genreIds = Array.isArray(show.genre_ids) ? show.genre_ids : [];
         
-        // Only include Japanese animated TV shows
+        // Must be Japanese language, Japanese origin, and animation genre
+        const isJapaneseLanguage = originalLanguage === 'ja';
         const isJapaneseOrigin = originCountry.includes('JP');
         const isAnimationGenre = genreIds.includes(16);
         
-        return isJapaneseOrigin && isAnimationGenre;
+        return isJapaneseLanguage && isJapaneseOrigin && isAnimationGenre;
       });
     }
 
@@ -867,18 +869,38 @@
     async function loadAnimes(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let animes = [];
+      let apiTotalPages = 1;
 
       if (!query) {
+        // Load anime using TMDB discover with proper filters (load all pages)
         try {
-          const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=popularity.desc&page=1`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            const tvResults = Array.isArray(json?.results) ? json.results : [];
-            animes = filterAnime(tvResults);
+          let allAnimes = [];
+          let page = 1;
+          let hasMore = true;
+          
+          while (hasMore) {
+            const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=popularity.desc&page=${page}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              const filteredAnimes = filterAnime(tvResults);
+              allAnimes = allAnimes.concat(filteredAnimes);
+              
+              if (tvResults.length === 0 || page >= 500) {
+                hasMore = false;
+              } else {
+                page++;
+              }
+            } else {
+              hasMore = false;
+            }
           }
+          
+          animes = allAnimes;
+          apiTotalPages = Math.max(1, Math.ceil(animes.length / ANIMES_PAGE_SIZE));
         } catch (_err) {
-          console.error('Failed to load popular animes', _err);
+          console.error('Failed to load anime', _err);
           try {
             const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=1`;
             const res = await fetch(url);
@@ -886,48 +908,83 @@
               const json = await res.json();
               const tvResults = Array.isArray(json?.results) ? json.results : [];
               animes = filterAnime(tvResults);
+              apiTotalPages = Math.max(1, Math.ceil(animes.length / ANIMES_PAGE_SIZE));
             }
           } catch (_err2) {
-            console.error('Failed to load trending animes', _err2);
+            console.error('Failed to load trending anime', _err2);
           }
         }
       } else {
         const variations = getQueryVariations(query);
         for (const variation of variations) {
           try {
-            const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=1`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              const results = Array.isArray(json?.results) ? json.results : [];
-              const tvResults = results.filter((item) => item.media_type === 'tv');
-              const filteredAnimes = filterAnime(tvResults);
-              if (filteredAnimes.length > 0) {
-                animes = filteredAnimes;
-                break;
+            let allSearchResults = [];
+            let page = 1;
+            let hasMore = true;
+            
+            while (hasMore && page <= 5) {
+              const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${page}`;
+              const res = await fetch(url);
+              if (res.ok) {
+                const json = await res.json();
+                const results = Array.isArray(json?.results) ? json.results : [];
+                const tvResults = results.filter((item) => item.media_type === 'tv');
+                const filteredAnimes = filterAnime(tvResults);
+                allSearchResults = allSearchResults.concat(filteredAnimes);
+                
+                if (results.length === 0) {
+                  hasMore = false;
+                } else {
+                  page++;
+                }
+              } else {
+                hasMore = false;
               }
             }
+            
+            if (allSearchResults.length > 0) {
+              animes = allSearchResults;
+              apiTotalPages = Math.max(1, Math.ceil(animes.length / ANIMES_PAGE_SIZE));
+              break;
+            }
           } catch (_err) {
-            console.error('Failed to load animes with multi-search variation:', variation, _err);
+            console.error('Failed to load anime with multi-search variation:', variation, _err);
           }
         }
         
         if (animes.length === 0) {
           for (const variation of variations) {
             try {
-              const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=1`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const json = await res.json();
-                const tvResults = Array.isArray(json?.results) ? json.results : [];
-                const filteredAnimes = filterAnime(tvResults);
-                if (filteredAnimes.length > 0) {
-                  animes = filteredAnimes;
-                  break;
+              let allSearchResults = [];
+              let page = 1;
+              let hasMore = true;
+              
+              while (hasMore && page <= 5) {
+                const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=${page}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                  const json = await res.json();
+                  const tvResults = Array.isArray(json?.results) ? json.results : [];
+                  const filteredAnimes = filterAnime(tvResults);
+                  allSearchResults = allSearchResults.concat(filteredAnimes);
+                  
+                  if (tvResults.length === 0) {
+                    hasMore = false;
+                  } else {
+                    page++;
+                  }
+                } else {
+                  hasMore = false;
                 }
               }
+              
+              if (allSearchResults.length > 0) {
+                animes = allSearchResults;
+                apiTotalPages = Math.max(1, Math.ceil(animes.length / ANIMES_PAGE_SIZE));
+                break;
+              }
             } catch (_err) {
-              console.error('Failed to load animes with variation:', variation, _err);
+              console.error('Failed to load anime with variation:', variation, _err);
             }
           }
         }
@@ -944,8 +1001,7 @@
         genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
       })).filter((a) => a.id);
       
-      state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(state.animes.length / ANIMES_PAGE_SIZE));
+      state.totalPages = apiTotalPages;
     }
 
     async function loadListStatus() {
@@ -956,12 +1012,12 @@
       const ids = state.animes.map((anime) => anime.id);
       if (!ids.length) return;
       const { data } = await client
-        .from('tv_list_items')
-        .select('tv_id, list_type')
+        .from('anime_list_items')
+        .select('anime_id, list_type')
         .eq('user_id', currentUser.id)
-        .in('tv_id', ids);
+        .in('anime_id', ids);
       (data || []).forEach((row) => {
-        const id = String(row.tv_id || '');
+        const id = String(row.anime_id || '');
         if (!id) return;
         if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
         const bucket = state.listStatusMap.get(id);
@@ -995,7 +1051,8 @@
         return;
       }
       const start = (state.page - 1) * ANIMES_PAGE_SIZE;
-      const visibleItems = state.animes.slice(start, start + ANIMES_PAGE_SIZE);
+      const end = start + ANIMES_PAGE_SIZE;
+      const visibleItems = state.animes.slice(start, end);
       grid.innerHTML = visibleItems.map((anime) => {
         const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
         return `
