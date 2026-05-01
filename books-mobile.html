@@ -736,6 +736,30 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
     const BOOKS_PAGE_SIZE = 100;
+    const HOME_CHANNEL_TARGET_ITEMS = 16;
+
+    function isHomeSlowNetwork() {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (!connection) return false;
+      if (connection.saveData) return true;
+      const effectiveType = String(connection.effectiveType || '').toLowerCase();
+      return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
+    }
+
+    function isHomeCompactViewport() {
+      const width = Math.max(
+        window.innerWidth || 0,
+        document.documentElement?.clientWidth || 0,
+        0
+      );
+      return width < 768;
+    }
+
+    function getHomeChannelTargetItems() {
+      if (isHomeSlowNetwork()) return Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8);
+      if (isHomeCompactViewport()) return Math.max(10, HOME_CHANNEL_TARGET_ITEMS - 4);
+      return HOME_CHANNEL_TARGET_ITEMS;
+    }
 
     let supabaseClient = null;
     let currentUser = null;
