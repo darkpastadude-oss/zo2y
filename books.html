@@ -758,6 +758,7 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
 <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+<script src="js/pages/index-home-heavy-loaders.js?v=20260430c" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1073,8 +1074,52 @@
       }
     }
 
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     async function loadBooks(queryOverride = '') {
-      await loadBooksWithFallback(queryOverride);
+      const query = String(queryOverride || state.search || '').trim();
+      
+      if (!query) {
+        // Use heavy loader for trending/popular books with shuffling
+        if (window.__zo2yHomeHeavyLoaders && typeof window.__zo2yHomeHeavyLoaders.loadBooks === 'function') {
+          try {
+            const loaded = await window.__zo2yHomeHeavyLoaders.loadBooks();
+            const items = Array.isArray(loaded) ? loaded : [];
+            state.books = items.map((item) => ({
+              id: item.itemId || '',
+              title: item.title || 'Unknown Book',
+              authors: item.subtitle || 'Unknown Author',
+              description: '',
+              coverUrl: item.image || item.listImage || FALLBACK_BOOK_IMAGE,
+              publishedDate: '',
+              pageCount: 0
+            })).filter((b) => b.id);
+            
+            // Shuffle the books for each refresh
+            state.books = shuffleArray(state.books);
+            state.page = 1;
+            state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
+            return;
+          } catch (err) {
+            console.error('Heavy loader failed, falling back to API', err);
+          }
+        }
+      }
+      
+      // Fallback to API for search or if heavy loader fails
+      await loadBooksWithFallback(query);
+      
+      // Shuffle results if no search query
+      if (!query) {
+        state.books = shuffleArray(state.books);
+      }
     }
 
     async function loadListStatus() {
