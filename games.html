@@ -906,6 +906,11 @@
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const FALLBACK_IMAGE = '/newlogo.webp';
       const GAMES_PAGE_SIZE = 100;
+      const RAWG_API_KEY = ''; // RAWG doesn't require API key for basic requests
+      const RAWG_BASE = 'https://api.rawg.io/api';
+
+    // Cache for fetched cover URLs to avoid repeated API calls
+    const coverCache = new Map();
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1075,6 +1080,19 @@
         genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
       })).filter((g) => g.id);
       
+      // Fetch missing covers from RAWG API
+      const gamesWithoutCovers = state.games.filter(g => !g.cover || g.cover === '');
+      if (gamesWithoutCovers.length > 0) {
+        const coverPromises = gamesWithoutCovers.map(async (game) => {
+          const rawgCover = await fetchCoverFromRAWG(game.name);
+          if (rawgCover) {
+            game.cover = rawgCover;
+          }
+          return game;
+        });
+        await Promise.all(coverPromises);
+      }
+      
       state.totalPages = apiTotalPages;
     }
 
@@ -1094,6 +1112,39 @@
       if (!raw) return '';
       if (raw.startsWith('//')) return `https:${raw}`;
       return raw.replace(/^http:\/\//i, 'https://');
+    }
+
+    async function fetchCoverFromRAWG(gameName) {
+      if (!gameName) return '';
+      
+      // Check cache first
+      const cacheKey = gameName.toLowerCase().trim();
+      if (coverCache.has(cacheKey)) {
+        return coverCache.get(cacheKey);
+      }
+      
+      try {
+        // Search for the game on RAWG
+        const searchUrl = `${RAWG_BASE}/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(gameName)}&page_size=1`;
+        const response = await fetch(searchUrl);
+        if (!response.ok) return '';
+        
+        const data = await response.json();
+        if (!data.results || data.results.length === 0) return '';
+        
+        const game = data.results[0];
+        const coverUrl = game.background_image || '';
+        
+        if (coverUrl) {
+          coverCache.set(cacheKey, coverUrl);
+          return coverUrl;
+        }
+      } catch (err) {
+        console.error('Failed to fetch cover from RAWG:', err);
+      }
+      
+      coverCache.set(cacheKey, '');
+      return '';
     }
 
     function resolveGameCover(row) {
