@@ -611,7 +611,6 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
 <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
-<script src="js/pages/index-home-heavy-loaders.js?v=20260430c" defer></script>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -736,30 +735,6 @@
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
     const BOOKS_PAGE_SIZE = 100;
-    const HOME_CHANNEL_TARGET_ITEMS = 16;
-
-    function isHomeSlowNetwork() {
-      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-      if (!connection) return false;
-      if (connection.saveData) return true;
-      const effectiveType = String(connection.effectiveType || '').toLowerCase();
-      return effectiveType === 'slow-2g' || effectiveType === '2g' || effectiveType === '3g';
-    }
-
-    function isHomeCompactViewport() {
-      const width = Math.max(
-        window.innerWidth || 0,
-        document.documentElement?.clientWidth || 0,
-        0
-      );
-      return width < 768;
-    }
-
-    function getHomeChannelTargetItems() {
-      if (isHomeSlowNetwork()) return Math.max(8, HOME_CHANNEL_TARGET_ITEMS - 8);
-      if (isHomeCompactViewport()) return Math.max(10, HOME_CHANNEL_TARGET_ITEMS - 4);
-      return HOME_CHANNEL_TARGET_ITEMS;
-    }
 
     let supabaseClient = null;
     let currentUser = null;
@@ -952,34 +927,7 @@
     async function loadBooks(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       
-      if (!query) {
-        // Use heavy loader for trending/popular books with shuffling
-        if (window.__zo2yHomeHeavyLoaders && typeof window.__zo2yHomeHeavyLoaders.loadBooks === 'function') {
-          try {
-            const loaded = await window.__zo2yHomeHeavyLoaders.loadBooks();
-            const items = Array.isArray(loaded) ? loaded : [];
-            state.books = items.map((item) => ({
-              id: item.itemId || '',
-              title: item.title || 'Unknown Book',
-              authors: item.subtitle || 'Unknown Author',
-              description: '',
-              coverUrl: item.image || item.listImage || FALLBACK_BOOK_IMAGE,
-              publishedDate: '',
-              pageCount: 0
-            })).filter((b) => b.id);
-            
-            // Shuffle the books for each refresh
-            state.books = shuffleArray(state.books);
-            state.page = 1;
-            state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
-            return;
-          } catch (err) {
-            console.error('Heavy loader failed, falling back to API', err);
-          }
-        }
-      }
-      
-      // Fallback to API for search or if heavy loader fails
+      // Use API directly with shuffling
       await loadBooksWithFallback(query);
       
       // Shuffle results if no search query
