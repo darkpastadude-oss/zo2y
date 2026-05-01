@@ -329,6 +329,7 @@
       overflow: hidden;
       background: var(--card-2);
       min-height: 232px;
+      max-width: 220px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -1077,19 +1078,6 @@
         genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
       })).filter((g) => g.id);
       
-      // Fetch missing covers from RAWG API
-      const gamesWithoutCovers = state.games.filter(g => !g.cover || g.cover === '');
-      if (gamesWithoutCovers.length > 0) {
-        const coverPromises = gamesWithoutCovers.map(async (game) => {
-          const rawgCover = await fetchCoverFromRAWG(game.name);
-          if (rawgCover) {
-            game.cover = rawgCover;
-          }
-          return game;
-        });
-        await Promise.all(coverPromises);
-      }
-
       // Sort games: games with covers first, games without covers at the end
       state.games.sort((a, b) => {
         const aHasCover = a.cover && a.cover !== '' && a.cover !== FALLBACK_IMAGE;
