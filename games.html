@@ -318,7 +318,7 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
       gap: 11px;
       align-items: stretch;
     }
@@ -329,7 +329,6 @@
       overflow: hidden;
       background: var(--card-2);
       min-height: 232px;
-      max-width: 220px;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -921,7 +920,7 @@
       genre: '',
       platform: '',
       sort: 'popular',
-      page: 1,
+      page: Math.floor(Math.random() * 10) + 1,
       totalPages: 1,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
@@ -1168,7 +1167,9 @@
         return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
       }
       
-      return '';
+      // Fallback to placeholder.com with game name for missing covers
+      const gameName = String(row?.title || row?.name || 'Game').trim();
+      return `https://via.placeholder.com/300x400/1a2342/abc5e8?text=${encodeURIComponent(gameName.substring(0, 20))}`;
     }
 
     function handleImageError(img, gameName) {

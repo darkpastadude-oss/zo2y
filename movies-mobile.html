@@ -208,25 +208,9 @@
       font-size: 18px;
     }
 
-    .grid {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      align-items: stretch;
-    }
+    .grid { padding: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); gap: 12px; align-items: stretch; }
 
-    .card { 
-      border-radius: 12px; 
-      overflow: hidden; 
-      background: var(--card-2); 
-      min-height: 260px; 
-      max-width: 200px; 
-      display: flex; 
-      flex-direction: column; 
-      position: relative; 
-      transition: transform 0.2s ease;
-    }
+    .card { border-radius: 12px; overflow: hidden; background: var(--card-2); min-height: 260px; display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-2px); }
 
     .card-media {
