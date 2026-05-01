@@ -803,10 +803,14 @@
 
     function filterAnime(tvResults) {
       return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
         const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
         
-        // Only include Japanese origin shows
-        return originCountry.includes('JP');
+        // Only include Japanese animated TV shows
+        const isJapaneseOrigin = originCountry.includes('JP');
+        const isAnimationGenre = genreIds.includes(16);
+        
+        return isJapaneseOrigin && isAnimationGenre;
       });
     }
 
