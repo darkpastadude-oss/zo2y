@@ -325,7 +325,7 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
+      grid-template-columns: repeat(auto-fit, minmax(156px, 156px));
       gap: 11px;
       align-items: stretch;
     }
@@ -831,6 +831,22 @@
       </div>
     </div>
 
+    <section class="media-spotlight" id="moviesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured Movie</div>
+          <h2 id="moviesSpotlightTitle">Movie Title</h2>
+          <p class="media-spotlight-meta" id="moviesSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="moviesSpotlightSummary">Movie description goes here.</p>
+          <a class="media-spotlight-cta" id="moviesSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="moviesSpotlightImage" src="/newlogo.webp" alt="Movie poster">
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <h2>popular movies right now</h2>
@@ -903,7 +919,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const MOVIES_PAGE_SIZE = 18;
+    const MOVIES_PAGE_SIZE = 30;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1164,9 +1180,45 @@
       return parts.join(' | ') || 'Movie details';
     }
 
+    function renderMovieSpotlight(movie) {
+      const section = document.getElementById('moviesSpotlight');
+      if (!section || !movie) return;
+      const bg = document.getElementById('moviesSpotlightBg');
+      const titleEl = document.getElementById('moviesSpotlightTitle');
+      const metaEl = document.getElementById('moviesSpotlightMeta');
+      const summaryEl = document.getElementById('moviesSpotlightSummary');
+      const imgEl = document.getElementById('moviesSpotlightImage');
+      const openEl = document.getElementById('moviesSpotlightOpen');
+      
+      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+      const backdropUrl = movie.backdropPath ? `${BACKDROP_BASE}${movie.backdropPath}` : posterUrl;
+      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
+      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = movie.title || 'Movie Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Movie details';
+      if (summaryEl) summaryEl.textContent = movie.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${movie.title || 'Movie'} poster`;
+      }
+      if (openEl) openEl.href = `movie.html?id=${encodeURIComponent(movie.id)}`;
+    }
+
     function renderGrid() {
       const grid = document.getElementById('moviesGrid');
+      const spotlight = document.getElementById('moviesSpotlight');
       if (!grid) return;
+      
+      // Handle spotlight for single result
+      if (state.movies.length === 1) {
+        renderMovieSpotlight(state.movies[0]);
+      } else {
+        if (spotlight) spotlight.hidden = true;
+      }
+      
       if (!state.movies.length) {
         grid.innerHTML = '<div class="empty">No movies found.</div>';
         updatePagination();

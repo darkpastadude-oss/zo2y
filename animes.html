@@ -325,7 +325,7 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
+      grid-template-columns: repeat(auto-fit, minmax(156px, 156px));
       gap: 11px;
       align-items: stretch;
     }
@@ -831,6 +831,22 @@
       </div>
     </div>
 
+    <section class="media-spotlight" id="animesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="animesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured Anime</div>
+          <h2 id="animesSpotlightTitle">Anime Title</h2>
+          <p class="media-spotlight-meta" id="animesSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="animesSpotlightSummary">Anime description goes here.</p>
+          <a class="media-spotlight-cta" id="animesSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="animesSpotlightImage" src="/newlogo.webp" alt="Anime poster">
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <h2>popular anime right now</h2>
@@ -903,7 +919,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const ANIMES_PAGE_SIZE = 18;
+    const ANIMES_PAGE_SIZE = 30;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1182,9 +1198,45 @@
       return parts.join(' | ') || 'Anime details';
     }
 
+    function renderAnimeSpotlight(anime) {
+      const section = document.getElementById('animesSpotlight');
+      if (!section || !anime) return;
+      const bg = document.getElementById('animesSpotlightBg');
+      const titleEl = document.getElementById('animesSpotlightTitle');
+      const metaEl = document.getElementById('animesSpotlightMeta');
+      const summaryEl = document.getElementById('animesSpotlightSummary');
+      const imgEl = document.getElementById('animesSpotlightImage');
+      const openEl = document.getElementById('animesSpotlightOpen');
+      
+      const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
+      const backdropUrl = anime.backdropPath ? `${BACKDROP_BASE}${anime.backdropPath}` : posterUrl;
+      const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
+      const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = anime.name || 'Anime Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Anime details';
+      if (summaryEl) summaryEl.textContent = anime.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${anime.name || 'Anime'} poster`;
+      }
+      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(anime.id)}`;
+    }
+
     function renderGrid() {
       const grid = document.getElementById('animesGrid');
+      const spotlight = document.getElementById('animesSpotlight');
       if (!grid) return;
+      
+      // Handle spotlight for single result
+      if (state.animes.length === 1) {
+        renderAnimeSpotlight(state.animes[0]);
+      } else {
+        if (spotlight) spotlight.hidden = true;
+      }
+      
       if (!state.animes.length) {
         grid.innerHTML = '<div class="empty">No anime found.</div>';
         updatePagination();

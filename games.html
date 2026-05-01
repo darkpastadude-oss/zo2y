@@ -318,7 +318,7 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
+      grid-template-columns: repeat(auto-fit, minmax(156px, 156px));
       gap: 11px;
       align-items: stretch;
     }
@@ -834,6 +834,22 @@
       </div>
     </div>
 
+    <section class="media-spotlight" id="gamesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured Game</div>
+          <h2 id="gamesSpotlightTitle">Game Title</h2>
+          <p class="media-spotlight-meta" id="gamesSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="gamesSpotlightSummary">Game description goes here.</p>
+          <a class="media-spotlight-cta" id="gamesSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="gamesSpotlightImage" src="/newlogo.webp" alt="Game cover">
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <h2>popular games right now</h2>
@@ -1256,9 +1272,45 @@
       return parts.join(' | ') || 'Game details';
     }
 
+    function renderGameSpotlight(game) {
+      const section = document.getElementById('gamesSpotlight');
+      if (!section || !game) return;
+      const bg = document.getElementById('gamesSpotlightBg');
+      const titleEl = document.getElementById('gamesSpotlightTitle');
+      const metaEl = document.getElementById('gamesSpotlightMeta');
+      const summaryEl = document.getElementById('gamesSpotlightSummary');
+      const imgEl = document.getElementById('gamesSpotlightImage');
+      const openEl = document.getElementById('gamesSpotlightOpen');
+      
+      const coverUrl = game.cover || FALLBACK_IMAGE;
+      const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
+      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
+      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${coverUrl}")`;
+      if (titleEl) titleEl.textContent = game.name || 'Game Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Game details';
+      if (summaryEl) summaryEl.textContent = genres || 'No description available.';
+      if (imgEl) {
+        imgEl.src = coverUrl;
+        imgEl.alt = `${game.name || 'Game'} cover`;
+      }
+      if (openEl) openEl.href = `game.html?id=${encodeURIComponent(game.id)}`;
+    }
+
     function renderGrid() {
       const grid = document.getElementById('gamesGrid');
+      const spotlight = document.getElementById('gamesSpotlight');
       if (!grid) return;
+      
+      // Handle spotlight for single result
+      if (state.games.length === 1) {
+        renderGameSpotlight(state.games[0]);
+      } else {
+        if (spotlight) spotlight.hidden = true;
+      }
+      
       if (!state.games.length) {
         grid.innerHTML = '<div class="empty">No games found.</div>';
         updatePagination();

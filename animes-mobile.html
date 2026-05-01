@@ -315,6 +315,99 @@
     body.authenticated .authenticated-only {
       display: block;
     }
+
+    .media-spotlight {
+      width: 100%;
+      padding: 12px;
+    }
+
+    .media-spotlight[hidden] { display: none; }
+
+    .media-spotlight-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      min-height: 260px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      align-items: stretch;
+      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      box-shadow: 0 10px 24px rgba(0,0,0,0.26);
+    }
+
+    .media-spotlight-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38));
+      background-size: cover;
+      background-position: center center;
+    }
+
+    .media-spotlight-copy,
+    .media-spotlight-poster { position: relative; z-index: 1; }
+
+    .media-spotlight-copy {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .media-spotlight-kicker {
+      display: inline-flex;
+      width: fit-content;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(19,35,71,0.48);
+      color: #dbe7ff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .media-spotlight-copy h2 { margin: 0; font-size: 18px; line-height: 1.2; max-width: 20ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .media-spotlight-meta,
+    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.4; font-size: 12px; }
+    .media-spotlight-summary { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .media-spotlight-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .media-spotlight-poster {
+      display: none;
+    }
+
+    @media (min-width: 600px) {
+      .media-spotlight-shell {
+        grid-template-columns: minmax(0, 1fr) clamp(200px, 25vw, 280px);
+        min-height: 300px;
+      }
+      .media-spotlight-poster {
+        display: block;
+      }
+      .media-spotlight-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
@@ -361,6 +454,21 @@
         </div>
       </div>
     </div>
+    <section class="media-spotlight" id="animesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="animesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured Anime</div>
+          <h2 id="animesSpotlightTitle">Anime Title</h2>
+          <p class="media-spotlight-meta" id="animesSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="animesSpotlightSummary">Anime description goes here.</p>
+          <a class="media-spotlight-cta" id="animesSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="animesSpotlightImage" src="/newlogo.webp" alt="Anime poster">
+        </div>
+      </div>
+    </section>
     <section class="section">
       <div class="section-head">
         <h2>popular anime right now</h2>
@@ -487,8 +595,36 @@
     }
     function getAnimeListStatus(id) { const i=String(id||'').trim(), e={favorites:false,watched:false,watchlist:false}; if (!i)return e; if (!state.listStatusMap.has(i))state.listStatusMap.set(i,{...e}); return state.listStatusMap.get(i); }
     function getAnimeCardExtra(t) { const y=t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD', r=t.voteAverage?`Rating: ${t.voteAverage.toFixed(1)}/10`:''; return [y,r].filter(Boolean).join(' | ')||'Anime details'; }
+    function renderAnimeSpotlight(anime) {
+      const section = document.getElementById('animesSpotlight');
+      if (!section || !anime) return;
+      const bg = document.getElementById('animesSpotlightBg');
+      const titleEl = document.getElementById('animesSpotlightTitle');
+      const metaEl = document.getElementById('animesSpotlightMeta');
+      const summaryEl = document.getElementById('animesSpotlightSummary');
+      const imgEl = document.getElementById('animesSpotlightImage');
+      const openEl = document.getElementById('animesSpotlightOpen');
+      
+      const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
+      const backdropUrl = anime.backdropPath ? `${BACKDROP_BASE}${anime.backdropPath}` : posterUrl;
+      const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
+      const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = anime.name || 'Anime Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Anime details';
+      if (summaryEl) summaryEl.textContent = anime.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${anime.name || 'Anime'} poster`;
+      }
+      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(anime.id)}`;
+    }
     function renderGrid() {
-      const grid=document.getElementById('animesGrid'); if (!grid)return;
+      const grid=document.getElementById('animesGrid'); const spotlight=document.getElementById('animesSpotlight'); if (!grid)return;
+      // Handle spotlight for single result
+      if (state.animes.length === 1) { renderAnimeSpotlight(state.animes[0]); } else { if (spotlight) spotlight.hidden = true; }
       if (!state.animes.length) { grid.innerHTML='<div class="empty">No anime found.</div>'; updatePagination(); return; }
       grid.innerHTML=state.animes.map(a=>{ const p=a.posterPath?`${POSTER_BASE}${a.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(a.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(a.name)}" loading="lazy"></div><div class="card-meta"><p class="card-title">${escapeHtml(a.name)}</p><p class="card-sub">${escapeHtml(a.firstAirDate?new Date(a.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getAnimeCardExtra(a))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
       document.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); const c=b.closest('.card'); if(c&&typeof window.openIndexStyleListMenu==='function')window.openIndexStyleListMenu(c); }));

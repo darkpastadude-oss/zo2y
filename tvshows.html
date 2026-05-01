@@ -325,7 +325,7 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
+      grid-template-columns: repeat(auto-fit, minmax(156px, 156px));
       gap: 11px;
       align-items: stretch;
     }
@@ -831,6 +831,22 @@
       </div>
     </div>
 
+    <section class="media-spotlight" id="tvshowsSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="tvshowsSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured TV Show</div>
+          <h2 id="tvshowsSpotlightTitle">TV Show Title</h2>
+          <p class="media-spotlight-meta" id="tvshowsSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="tvshowsSpotlightSummary">TV show description goes here.</p>
+          <a class="media-spotlight-cta" id="tvshowsSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="tvshowsSpotlightImage" src="/newlogo.webp" alt="TV show poster">
+        </div>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <h2>popular TV shows right now</h2>
@@ -903,7 +919,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const TVSHOWS_PAGE_SIZE = 18;
+    const TVSHOWS_PAGE_SIZE = 30;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -1187,9 +1203,45 @@
       return parts.join(' | ') || 'TV Show details';
     }
 
+    function renderTvshowSpotlight(tvshow) {
+      const section = document.getElementById('tvshowsSpotlight');
+      if (!section || !tvshow) return;
+      const bg = document.getElementById('tvshowsSpotlightBg');
+      const titleEl = document.getElementById('tvshowsSpotlightTitle');
+      const metaEl = document.getElementById('tvshowsSpotlightMeta');
+      const summaryEl = document.getElementById('tvshowsSpotlightSummary');
+      const imgEl = document.getElementById('tvshowsSpotlightImage');
+      const openEl = document.getElementById('tvshowsSpotlightOpen');
+      
+      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/newlogo.webp';
+      const backdropUrl = tvshow.backdropPath ? `${BACKDROP_BASE}${tvshow.backdropPath}` : posterUrl;
+      const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
+      const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = tvshow.name || 'TV Show Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'TV Show details';
+      if (summaryEl) summaryEl.textContent = tvshow.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${tvshow.name || 'TV Show'} poster`;
+      }
+      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(tvshow.id)}`;
+    }
+
     function renderGrid() {
       const grid = document.getElementById('tvshowsGrid');
+      const spotlight = document.getElementById('tvshowsSpotlight');
       if (!grid) return;
+      
+      // Handle spotlight for single result
+      if (state.tvshows.length === 1) {
+        renderTvshowSpotlight(state.tvshows[0]);
+      } else {
+        if (spotlight) spotlight.hidden = true;
+      }
+      
       if (!state.tvshows.length) {
         grid.innerHTML = '<div class="empty">No tvshows found.</div>';
         updatePagination();
