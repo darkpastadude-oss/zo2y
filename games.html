@@ -1019,19 +1019,16 @@
                 searchQuery = searchQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
               }
 
-              const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
-              const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
-              const { data, error, count } = await searchQuery.range(rangeStart, rangeEnd);
+              // Fetch all results (no pagination) to sort by cover availability
+              const { data, error, count } = await searchQuery;
               if (error) throw error;
 
-              if (data && data.length > 0) {
-                games = data;
-                apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-                found = true;
-                break;
-              }
+              games = data || [];
+              apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+              found = true;
+              break;
             } catch (_err) {
-              console.error('Failed to load games with variation:', variation, _err);
+              console.error('Failed to search games with variation:', variation, _err);
             }
           }
           
@@ -1041,7 +1038,7 @@
             return;
           }
         } else {
-          // Load all games when no search query
+          // Load all games when no search query (no pagination yet)
           if (state.genre) {
             dbQuery = dbQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
           }
@@ -1058,9 +1055,8 @@
             dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
           }
 
-          const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
-          const rangeEnd = rangeStart + GAMES_PAGE_SIZE - 1;
-          const { data, error, count } = await dbQuery.range(rangeStart, rangeEnd);
+          // Fetch all results (no pagination) to sort by cover availability
+          const { data, error, count } = await dbQuery;
           if (error) throw error;
 
           games = data || [];
@@ -1070,6 +1066,7 @@
         console.error('Failed to load games', _err);
       }
 
+      // Map games with cover resolution
       state.games = games.map((game) => ({
         id: String(game.id || ''),
         name: game.title || 'Unknown Game',
@@ -1092,7 +1089,7 @@
         });
         await Promise.all(coverPromises);
       }
-      
+
       // Sort games: games with covers first, games without covers at the end
       state.games.sort((a, b) => {
         const aHasCover = a.cover && a.cover !== '' && a.cover !== FALLBACK_IMAGE;
@@ -1104,6 +1101,11 @@
         // Within same cover status, maintain existing sort order
         return 0;
       });
+
+      // Apply pagination after sorting
+      const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
+      const rangeEnd = rangeStart + GAMES_PAGE_SIZE;
+      state.games = state.games.slice(rangeStart, rangeEnd);
       
       state.totalPages = apiTotalPages;
     }
