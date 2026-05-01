@@ -257,9 +257,8 @@ main.container {
 .brand-grid {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 210px));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
-  justify-content: center;
 }
 
 .brand-card {
@@ -446,8 +445,7 @@ main.container {
   }
 
   .brand-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
-    justify-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   }
 
   .brand-spotlight {

@@ -325,10 +325,9 @@
     .grid {
       padding: 14px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(156px, 156px));
+      grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
       gap: 11px;
       align-items: stretch;
-      justify-content: center;
     }
 
     .card {
@@ -479,7 +478,7 @@
       .container { width: calc(100% - 16px); }
       body { padding-bottom: 86px; }
       .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
-      .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 110px)); gap: 10px; justify-content: center; }
+      .grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
       .media-spotlight-shell {
         grid-template-columns: 1fr;
       }
