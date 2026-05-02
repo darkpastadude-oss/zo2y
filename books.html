@@ -942,6 +942,7 @@
     }
 
     let searchDebounceTimer = null;
+    let booksFetchAbort = null;
     function normalizeQuery(query) {
       return String(query || '').trim().replace(/\s+/g, ' ');
     }
@@ -978,13 +979,17 @@
       const apiPageStart = Math.floor(startIndex / 40) + 1;
       const withinOffset = startIndex % 40;
       const needed = withinOffset + BOOKS_PAGE_SIZE;
-      const apiLimit = Math.min(120, Math.max(40, needed));
+      const apiLimit = 40;
+
+      if (booksFetchAbort) booksFetchAbort.abort();
+      booksFetchAbort = new AbortController();
+      const signal = booksFetchAbort.signal;
 
       if (!query) {
         // Load popular books when no search query
         try {
           const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
-          const res = await fetch(url);
+           const res = await fetch(url, { signal });
           if (res.ok) {
             const json = await res.json();
             books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
@@ -999,7 +1004,7 @@
         for (const variation of variations) {
           try {
               const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}&page=${apiPageStart}`;
-              const res = await fetch(url);
+              const res = await fetch(url, { signal });
               if (res.ok) {
                 const json = await res.json();
                 const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
@@ -1039,7 +1044,7 @@
         await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
-      }, 400);
+      }, 220);
     }
 
     async function ensureSupabase() {

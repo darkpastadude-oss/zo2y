@@ -872,9 +872,9 @@
       const visible = Math.max(cols * rows, cols * 2);
 
       // Mobile felt too sparse at 6-ish items; bias toward ~18 cards per page while staying a multiple of columns.
-      const desired = Math.max(18, visible);
+      const desired = Math.max(30, visible);
       const snapped = Math.ceil(desired / cols) * cols;
-      return Math.min(36, Math.max(cols * 2, snapped));
+      return Math.min(54, Math.max(cols * 2, snapped));
     }
 
     function escapeHtml(value) {
@@ -1116,23 +1116,32 @@
       coverHydrateAbort = new AbortController();
       const signal = coverHydrateAbort.signal;
 
-      const candidates = state.games
-        .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
-        .slice(0, 18);
-      if (!candidates.length) return;
+      const runBatch = async () => {
+        const candidates = state.games
+          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+          .slice(0, Math.max(18, Math.min(48, GAMES_PAGE_SIZE)));
+        if (!candidates.length) return false;
 
-      await Promise.all(
-        candidates.map(async (g) => {
-          const cover = await api.fetchCoverForTitle(g.name, signal);
-          if (!cover) return;
-          g.cover = cover;
-          const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
-          const img = card ? card.querySelector('img') : null;
-          if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
-            img.setAttribute('src', cover);
-          }
-        })
-      );
+        await Promise.all(
+          candidates.map(async (g) => {
+            const cover = await api.fetchCoverForTitle(g.name, signal);
+            if (!cover) return;
+            g.cover = cover;
+            const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
+            const img = card ? card.querySelector('img') : null;
+            if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
+              img.setAttribute('src', cover);
+            }
+          })
+        );
+        return true;
+      };
+
+      for (let i = 0; i < 2; i += 1) {
+        const did = await runBatch();
+        if (!did) break;
+        await new Promise((resolve) => window.setTimeout(resolve, 120));
+      }
     }
 
     function updatePagination() {

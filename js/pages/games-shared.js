@@ -133,6 +133,19 @@
     url.searchParams.set('page_size', '1');
     url.searchParams.set('title_only', '1');
 
+    const tryWikipediaSummary = async () => {
+      // No API key needed.
+      const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(String(title || '').trim())}`;
+      try {
+        const res = await fetch(wikiUrl, { method: 'GET', headers: { accept: 'application/json' }, signal: signal || undefined });
+        if (!res.ok) return '';
+        const json = await res.json();
+        return normalizeGameCoverUrl(json?.originalimage?.source || json?.thumbnail?.source || '');
+      } catch (_err) {
+        return '';
+      }
+    };
+
     try {
       const res = await fetch(url.toString(), {
         method: 'GET',
@@ -141,13 +154,20 @@
       });
       if (!res.ok) throw new Error(`cover lookup failed: ${res.status}`);
       const json = await res.json();
-      const first = Array.isArray(json?.results) ? json.results[0] : null;
-      const cover = normalizeGameCoverUrl(first?.cover || first?.image || '');
-      coverLookupCache.set(key, cover || '');
-      return cover || '';
+      const results = Array.isArray(json?.results) ? json.results : [];
+      const pick = results.find((r) => normalizeGameCoverUrl(r?.cover || r?.image || '')) || results[0] || null;
+      const cover = normalizeGameCoverUrl(pick?.cover || pick?.image || '');
+      if (cover) {
+        coverLookupCache.set(key, cover);
+        return cover;
+      }
+      const wikiCover = await tryWikipediaSummary();
+      coverLookupCache.set(key, wikiCover || '');
+      return wikiCover || '';
     } catch (_err) {
-      coverLookupCache.set(key, '');
-      return '';
+      const wikiCover = await tryWikipediaSummary();
+      coverLookupCache.set(key, wikiCover || '');
+      return wikiCover || '';
     }
   }
 
