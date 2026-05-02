@@ -1,6 +1,8 @@
 import crypto from "crypto";
 
 const rateLimitBuckets = new Map();
+const failedAuthAttempts = new Map();
+const csrfTokens = new Map();
 
 function nowMs() {
   return Date.now();
@@ -28,6 +30,224 @@ export function hashValue(value) {
   const text = String(value || "").trim();
   if (!text) return "";
   return crypto.createHash("sha256").update(text).digest("hex");
+}
+
+// Account lockout tracking
+const LOCKOUT_THRESHOLD = 5; // Failed attempts before lockout
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+// Simple CAPTCHA generation and validation
+export function generateMathCaptcha() {
+  const operators = ['+', '-'];
+  const operator = operators[Math.floor(Math.random() * operators.length)];
+  let num1, num2, answer;
+  
+  if (operator === '+') {
+    num1 = Math.floor(Math.random() * 10) + 1;
+    num2 = Math.floor(Math.random() * 10) + 1;
+    answer = num1 + num2;
+  } else {
+    num1 = Math.floor(Math.random() * 10) + 5;
+    num2 = Math.floor(Math.random() * 5) + 1;
+    answer = num1 - num2;
+  }
+  
+  const captchaId = crypto.randomBytes(16).toString('hex');
+  const captchaHash = crypto.createHash('sha256').update(String(answer)).digest('hex');
+  
+  return {
+    id: captchaId,
+    question: `${num1} ${operator} ${num2} = ?`,
+    hash: captchaHash
+  };
+}
+
+const captchaStore = new Map();
+
+export function storeCaptcha(captcha) {
+  captchaStore.set(captcha.id, {
+    hash: captcha.hash,
+    expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
+  });
+}
+
+export function validateCaptcha(captchaId, answer) {
+  const stored = captchaStore.get(captchaId);
+  
+  if (!stored) return false;
+  
+  // Check expiration
+  if (Date.now() > stored.expiresAt) {
+    captchaStore.delete(captchaId);
+    return false;
+  }
+  
+  const answerHash = crypto.createHash('sha256').update(String(answer)).digest('hex');
+  const isValid = answerHash === stored.hash;
+  
+  // Remove after validation (one-time use)
+  captchaStore.delete(captchaId);
+  
+  return isValid;
+}
+
+export function requireCaptcha(req, res, next) {
+  const captchaId = String(req.body?.captchaId || "").trim();
+  const captchaAnswer = String(req.body?.captchaAnswer || "").trim();
+  
+  if (!captchaId || !captchaAnswer) {
+    return res.status(400).json({
+      success: false,
+      message: "CAPTCHA is required",
+      requiresCaptcha: true
+    });
+  }
+  
+  if (!validateCaptcha(captchaId, captchaAnswer)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid CAPTCHA",
+      requiresCaptcha: true
+    });
+  }
+  
+  next();
+}
+
+// CSRF Token generation and validation
+const CSRF_TOKEN_TTL = 60 * 60 * 1000; // 1 hour
+
+export function generateCsrfToken(sessionId) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  
+  csrfTokens.set(tokenHash, {
+    sessionId: sessionId || 'anonymous',
+    createdAt: Date.now()
+  });
+  
+  return token;
+}
+
+export function validateCsrfToken(token, sessionId) {
+  if (!token) return false;
+  
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  const stored = csrfTokens.get(tokenHash);
+  
+  if (!stored) return false;
+  
+  // Check expiration
+  if (Date.now() - stored.createdAt > CSRF_TOKEN_TTL) {
+    csrfTokens.delete(tokenHash);
+    return false;
+  }
+  
+  // For authenticated sessions, verify session matches
+  if (sessionId && stored.sessionId !== 'anonymous' && stored.sessionId !== sessionId) {
+    return false;
+  }
+  
+  // One-time use - remove after validation
+  csrfTokens.delete(tokenHash);
+  
+  return true;
+}
+
+export function requireCsrf(req, res, next) {
+  const token = String(req.get('x-csrf-token') || req.body?.csrfToken || "").trim();
+  const sessionId = String(req.get('x-session-id') || "").trim();
+  
+  if (!token) {
+    return res.status(403).json({
+      success: false,
+      message: "CSRF token is required"
+    });
+  }
+  
+  if (!validateCsrfToken(token, sessionId)) {
+    return res.status(403).json({
+      success: false,
+      message: "Invalid or expired CSRF token"
+    });
+  }
+  
+  next();
+}
+
+export function getCsrfToken(req, res) {
+  const sessionId = String(req.get('x-session-id') || "").trim();
+  const token = generateCsrfToken(sessionId);
+  
+  res.setHeader('x-csrf-token', token);
+  return res.status(200).json({
+    csrfToken: token
+  });
+}
+
+export function recordFailedAuth(identifier) {
+  const key = hashValue(identifier);
+  const now = nowMs();
+  const attempts = failedAuthAttempts.get(key) || { count: 0, firstAttempt: now };
+  
+  // Reset if lockout period has expired
+  if (now - attempts.firstAttempt > LOCKOUT_DURATION_MS) {
+    attempts.count = 0;
+    attempts.firstAttempt = now;
+  }
+  
+  attempts.count += 1;
+  failedAuthAttempts.set(key, attempts);
+  
+  return {
+    count: attempts.count,
+    locked: attempts.count >= LOCKOUT_THRESHOLD,
+    lockoutRemaining: Math.max(0, LOCKOUT_DURATION_MS - (now - attempts.firstAttempt))
+  };
+}
+
+export function isAccountLocked(identifier) {
+  const key = hashValue(identifier);
+  const attempts = failedAuthAttempts.get(key);
+  
+  if (!attempts) return false;
+  
+  const now = nowMs();
+  
+  // Reset if lockout period has expired
+  if (now - attempts.firstAttempt > LOCKOUT_DURATION_MS) {
+    failedAuthAttempts.delete(key);
+    return false;
+  }
+  
+  return attempts.count >= LOCKOUT_THRESHOLD;
+}
+
+export function clearFailedAuth(identifier) {
+  const key = hashValue(identifier);
+  failedAuthAttempts.delete(key);
+}
+
+export function getLockoutInfo(identifier) {
+  const key = hashValue(identifier);
+  const attempts = failedAuthAttempts.get(key);
+  
+  if (!attempts) return { locked: false, attempts: 0, remainingMs: 0 };
+  
+  const now = nowMs();
+  const elapsed = now - attempts.firstAttempt;
+  
+  // Reset if lockout period has expired
+  if (elapsed > LOCKOUT_DURATION_MS) {
+    failedAuthAttempts.delete(key);
+    return { locked: false, attempts: 0, remainingMs: 0 };
+  }
+  
+  return {
+    locked: attempts.count >= LOCKOUT_THRESHOLD,
+    attempts: attempts.count,
+    remainingMs: Math.max(0, LOCKOUT_DURATION_MS - elapsed)
+  };
 }
 
 export function attachRequestContext(req, res, next) {

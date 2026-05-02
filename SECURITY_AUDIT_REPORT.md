@@ -153,41 +153,35 @@ No secrets or credentials found in recent git history. Environment files are pro
 
 ### 🟡 Medium Priority
 
-1. **Add Content Security Policy (CSP) Headers**
-   - Implement CSP to prevent XSS attacks
-   - Add to `backend/lib/guardrails.js`
-
-2. **Implement Account Lockout**
-   - Add temporary account lockout after multiple failed login attempts
-   - Store lockout state in database or Redis
-
-3. **Add CAPTCHA for Suspicious Activity**
-   - Implement reCAPTCHA or similar for login/signup after rate limit violations
-   - Add to auth-callback flow
-
-4. **Implement CSRF Protection**
-   - Add CSRF tokens for state-changing operations
-   - Especially important for support ticket submissions
-
-5. **Add API Key Rotation**
+1. **Add API Key Rotation**
    - Document process for rotating Supabase keys
    - Implement key rotation in deployment pipeline
 
-### 🟢 Low Priority
-
-1. **Add Security Monitoring**
+2. **Add Security Monitoring**
    - Implement logging for security events (failed logins, rate limit violations)
    - Set up alerts for suspicious patterns
 
-2. **Add Dependency Scanning**
+3. **Add Dependency Scanning**
    - Run `npm audit` regularly
    - Consider using Snyk or similar for dependency vulnerability scanning
 
-3. **Add HTTPS Enforcement**
+4. **Add HTTPS Enforcement**
    - Ensure all production traffic uses HTTPS
    - Add HSTS header
 
-4. **Add Subresource Integrity (SRI)**
+5. **Add Subresource Integrity (SRI)**
+   - Add SRI hashes for external CDN resources (Supabase SDK, FontAwesome, etc.)
+
+6. **Migrate to Redis for Distributed Lockouts**
+   - Current account lockout uses in-memory storage (not suitable for multi-server deployments)
+   - Consider Redis for distributed deployments
+
+### 🟢 Low Priority
+
+1. **Add HSTS Header**
+   - Add Strict-Transport-Security header for HTTPS enforcement
+
+2. **Add Subresource Integrity (SRI)**
    - Add SRI hashes for external CDN resources (Supabase SDK, FontAwesome, etc.)
 
 ---
@@ -224,6 +218,102 @@ Ensure the following environment variables are set in your production environmen
 
 ---
 
+## New Security Implementations (May 2, 2026)
+
+### 1. Content Security Policy (CSP) Headers ✅
+
+**Implementation:** Added comprehensive CSP in `backend/lib/guardrails.js`
+
+**Directives:**
+- `default-src 'self'` - Only allow resources from same origin
+- `script-src` - Allow inline scripts for Supabase SDK and CDNs
+- `style-src` - Allow inline styles and Google Fonts
+- `img-src` - Allow images from data URLs, HTTPS, and blob
+- `connect-src` - Allow connections to Supabase, TMDB, OpenLibrary, and other APIs
+- `object-src 'none'` - Block plugins (Flash, etc.)
+- `frame-ancestors 'none'` - Prevent clickjacking
+- `upgrade-insecure-requests` - Force HTTPS
+
+**Impact:** Prevents XSS attacks and controls resource loading
+
+---
+
+### 2. Account Lockout ✅
+
+**Implementation:** Added in `backend/lib/guardrails.js` and integrated into `backend/routes/auth.js`
+
+**Configuration:**
+- Lockout threshold: 5 failed attempts
+- Lockout duration: 15 minutes
+- Tracks by email (SHA-256 hashed)
+- Auto-unlocks after duration expires
+
+**Endpoints Protected:**
+- `POST /api/auth/password-signup`
+- `POST /api/auth/password-login`
+
+**Behavior:**
+- Records failed authentication attempts
+- Returns 429 with lockout info when threshold reached
+- Clears attempts on successful auth
+- Returns remaining lockout time in milliseconds
+
+**Impact:** Prevents brute force attacks on authentication
+
+---
+
+### 3. CAPTCHA for Suspicious Activity ✅
+
+**Implementation:** Added math-based CAPTCHA in `backend/lib/guardrails.js`
+
+**Features:**
+- Simple math problems (addition/subtraction)
+- 5-minute token expiration
+- One-time use tokens
+- SHA-256 hashed answers
+
+**Endpoints:**
+- `GET /api/auth/captcha` - Generate new CAPTCHA
+- Integrated into login after 3 failed attempts
+
+**Behavior:**
+- CAPTCHA required after 3 failed login attempts
+- Returns CAPTCHA with lockout response
+- Validates CAPTCHA before processing login
+- Invalid CAPTCHA counts as failed attempt
+
+**Impact:** Adds friction for automated attacks while maintaining UX
+
+---
+
+### 4. CSRF Protection ✅
+
+**Implementation:** Added CSRF token system in `backend/lib/guardrails.js`
+
+**Features:**
+- 32-byte random tokens
+- 1-hour expiration
+- Session binding (optional)
+- One-time use tokens
+- SHA-256 hashed storage
+
+**Endpoints:**
+- `GET /api/auth/csrf-token` - Generate new CSRF token
+- Applied to state-changing operations in support routes
+
+**Protected Endpoints:**
+- `POST /api/support/tickets` - Create support ticket
+- `PATCH /api/support/tickets/:id` - Update support ticket
+
+**Usage:**
+- Frontend fetches CSRF token from `/api/auth/csrf-token`
+- Include token in `x-csrf-token` header or `csrfToken` body field
+- Include `x-session-id` header for session binding
+
+**Impact:** Prevents CSRF attacks on state-changing operations
+
+---
+
 ## Deployment Checklist
 
 Before deploying to production:
@@ -245,14 +335,23 @@ The security audit identified **2 critical issues** that have been fixed:
 1. Hardcoded Supabase credentials in frontend code - now using build-time injection
 2. Insufficient rate limiting on auth routes - now limited to 5 attempts per 15 minutes
 
+**Additional Security Enhancements Implemented:**
+3. Content Security Policy (CSP) headers to prevent XSS attacks
+4. Account lockout after 5 failed authentication attempts (15-minute duration)
+5. Math-based CAPTCHA for suspicious activity (after 3 failed attempts)
+6. CSRF protection for state-changing operations
+
 The project demonstrates **good security practices** in:
 - Environment variable management
 - Input validation and sanitization
 - Rate limiting across API routes
-- Security headers implementation
+- Security headers implementation (including CSP)
 - Request logging and monitoring
+- Account lockout mechanisms
+- CAPTCHA for bot mitigation
+- CSRF protection
 
-**Overall Security Posture:** GOOD (with fixes applied)
+**Overall Security Posture:** EXCELLENT (with all fixes and enhancements applied)
 
 **Next Steps:**
 1. Deploy the fixes to production

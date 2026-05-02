@@ -1,5 +1,5 @@
 import express from "express";
-import { createRateLimiter, getClientIp, hashValue } from "../lib/guardrails.js";
+import { createRateLimiter, getClientIp, hashValue, requireCsrf } from "../lib/guardrails.js";
 import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
 
 const router = express.Router();
@@ -67,7 +67,7 @@ router.get("/health", (req, res) => {
   });
 });
 
-router.post("/tickets", async (req, res) => {
+router.post("/tickets", requireCsrf, async (req, res) => {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
     const honeypot = normalizeText(body.website, 120);
@@ -163,7 +163,7 @@ router.get("/tickets", requireSupportAdmin, async (req, res) => {
   }
 });
 
-router.patch("/tickets/:id", requireSupportAdmin, async (req, res) => {
+router.patch("/tickets/:id", requireSupportAdmin, requireCsrf, async (req, res) => {
   try {
     const client = supportStorage();
     if (!client) {

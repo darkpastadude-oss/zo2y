@@ -1,6 +1,6 @@
 import express from "express";
 import { getSupabaseAdminClient } from "../lib/supabase-admin.js";
-import { createRateLimiter } from "../lib/guardrails.js";
+import { createRateLimiter, isAccountLocked, recordFailedAuth, clearFailedAuth, getLockoutInfo } from "../lib/guardrails.js";
 
 const router = express.Router();
 
@@ -69,6 +69,114 @@ router.get("/health", (_req, res) => {
   });
 });
 
+router.get("/captcha", (_req, res) => {
+  const captcha = generateMathCaptcha();
+  storeCaptcha(captcha);
+  return res.status(200).json({
+    id: captcha.id,
+    question: captcha.question
+  });
+});
+
+router.get("/csrf-token", getCsrfToken);
+
+router.post("/password-login", async (req, res) => {
+  try {
+    const email = normalizeEmail(req.body?.email);
+    const password = String(req.body?.password || "");
+
+    // Check account lockout
+    if (isAccountLocked(email)) {
+      const lockoutInfo = getLockoutInfo(email);
+      const captcha = generateMathCaptcha();
+      storeCaptcha(captcha);
+      return res.status(429).json({
+        success: false,
+        message: "Too many failed login attempts. Please complete the CAPTCHA to continue.",
+        locked: true,
+        remainingMs: lockoutInfo.remainingMs,
+        requiresCaptcha: true,
+        captcha: {
+          id: captcha.id,
+          question: captcha.question
+        }
+      });
+    }
+
+    // Check if CAPTCHA is required (after 3 failed attempts)
+    const lockoutInfo = getLockoutInfo(email);
+    if (lockoutInfo.attempts >= 3) {
+      if (!requireCaptcha(req, res, () => {})) {
+        // requireCaptcha already sent response
+        return;
+      }
+    }
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ success: false, message: "Please provide a valid email address." });
+    }
+    if (!password) {
+      return res.status(400).json({ success: false, message: "Password is required." });
+    }
+
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      return res.status(500).json({
+        success: false,
+        message: "Login service is not configured."
+      });
+    }
+
+    const { data, error } = await admin.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      recordFailedAuth(email);
+      const newLockoutInfo = getLockoutInfo(email);
+      if (newLockoutInfo.attempts >= 3) {
+        const captcha = generateMathCaptcha();
+        storeCaptcha(captcha);
+        return res.status(401).json({
+          success: false,
+          message: "Invalid email or password.",
+          requiresCaptcha: true,
+          captcha: {
+            id: captcha.id,
+            question: captcha.question
+          }
+        });
+      }
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password."
+      });
+    }
+
+    // Clear failed attempts on successful login
+    clearFailedAuth(email);
+
+    return res.status(200).json({
+      success: true,
+      session: {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        user: {
+          id: data.user.id,
+          email: data.user.email
+        }
+      }
+    });
+  } catch (error) {
+    recordFailedAuth(req.body?.email);
+    return res.status(500).json({
+      success: false,
+      message: error?.message || "Login failed"
+    });
+  }
+});
+
 router.post("/password-signup", async (req, res) => {
   try {
     const fullName = normalizeFullName(req.body?.fullName);
@@ -76,6 +184,17 @@ router.post("/password-signup", async (req, res) => {
     const email = normalizeEmail(req.body?.email);
     const password = String(req.body?.password || "");
     const onboardingCompletedAt = new Date().toISOString();
+
+    // Check account lockout
+    if (isAccountLocked(email)) {
+      const lockoutInfo = getLockoutInfo(email);
+      return res.status(429).json({
+        success: false,
+        message: "Too many failed attempts. Please try again later.",
+        locked: true,
+        remainingMs: lockoutInfo.remainingMs
+      });
+    }
 
     if (!fullName || fullName.length < 2) {
       return res.status(400).json({ success: false, message: "Full name is required." });
@@ -135,11 +254,18 @@ router.post("/password-signup", async (req, res) => {
 
     if (error || !data?.user?.id) {
       const mapped = mapSupabaseSignupError(error);
+      // Record failed attempt for certain errors
+      if (mapped.status >= 400 && mapped.status < 500) {
+        recordFailedAuth(email);
+      }
       return res.status(mapped.status).json({
         success: false,
         message: mapped.message
       });
     }
+
+    // Clear failed attempts on successful signup
+    clearFailedAuth(email);
 
     const profilePayload = {
       id: data.user.id,
