@@ -1,4 +1,5 @@
 import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import path from "node:path";
 
 const rootDir = process.cwd();
@@ -66,6 +67,21 @@ async function copyRootStaticFiles() {
     if (!ALLOWED_ROOT_FILES.has(entry.name) && !ALLOWED_ROOT_FILE_EXTENSIONS.has(ext)) continue;
     await cp(path.join(rootDir, entry.name), path.join(distDir, entry.name));
   }
+}
+
+function execAsync(command, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, {
+      shell: true,
+      stdio: "inherit",
+      ...options
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`Command failed (${code}): ${command}`));
+    });
+  });
 }
 
 await rm(distDir, { recursive: true, force: true });
