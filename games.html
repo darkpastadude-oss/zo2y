@@ -803,11 +803,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular games right now</h1>
+      <h1>games</h1>
       <p>Discover trending video games from all platforms and save them to your game lists.</p>
       <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshGamesBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
+        <!-- Refresh Picks removed: it broke pagination ordering and caused cover-missing games to appear early. -->
       </div>
     </section>
     <section class="controls">
@@ -936,7 +936,7 @@
       genre: '',
       platform: '',
       sort: 'popular',
-      page: Math.floor(Math.random() * 10) + 1,
+      page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
@@ -1338,6 +1338,36 @@
 
       wireGridActions();
       updatePagination();
+      hydrateMissingCovers();
+    }
+
+    let coverHydrateAbort = null;
+    async function hydrateMissingCovers() {
+      // Fill missing covers on demand for visible items (no local seeding/storage).
+      const api = window.__zo2yGamesShared;
+      if (!api?.fetchCoverForTitle) return;
+
+      if (coverHydrateAbort) coverHydrateAbort.abort();
+      coverHydrateAbort = new AbortController();
+      const signal = coverHydrateAbort.signal;
+
+      const candidates = state.games
+        .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+        .slice(0, 18);
+      if (!candidates.length) return;
+
+      await Promise.all(
+        candidates.map(async (g) => {
+          const cover = await api.fetchCoverForTitle(g.name, signal);
+          if (!cover) return;
+          g.cover = cover;
+          const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
+          const img = card ? card.querySelector('img') : null;
+          if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
+            img.setAttribute('src', cover);
+          }
+        })
+      );
     }
 
     function updatePagination() {
@@ -1439,7 +1469,7 @@
       }
     }
 
-    document.getElementById('refreshGamesBtn')?.addEventListener('click', loadPage);
+    // Refresh Picks removed.
     document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
       const query = String(document.getElementById('q')?.value || '').trim();
       debounceSearch(query);

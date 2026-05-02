@@ -726,11 +726,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular games right now</h1>
+      <h1>games</h1>
       <p>Discover trending video games from all platforms and save them to your game lists.</p>
       <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshGamesBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <!-- Refresh removed (covers hydrate automatically; refresh also caused pagination/order confusion). -->
       </div>
     </section>
     <section class="controls">
@@ -1086,6 +1086,35 @@
 
       wireGridActions();
       updatePagination();
+      hydrateMissingCovers();
+    }
+
+    let coverHydrateAbort = null;
+    async function hydrateMissingCovers() {
+      const api = window.__zo2yGamesShared;
+      if (!api?.fetchCoverForTitle) return;
+
+      if (coverHydrateAbort) coverHydrateAbort.abort();
+      coverHydrateAbort = new AbortController();
+      const signal = coverHydrateAbort.signal;
+
+      const candidates = state.games
+        .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+        .slice(0, 18);
+      if (!candidates.length) return;
+
+      await Promise.all(
+        candidates.map(async (g) => {
+          const cover = await api.fetchCoverForTitle(g.name, signal);
+          if (!cover) return;
+          g.cover = cover;
+          const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
+          const img = card ? card.querySelector('img') : null;
+          if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
+            img.setAttribute('src', cover);
+          }
+        })
+      );
     }
 
     function updatePagination() {
@@ -1206,7 +1235,7 @@
       }
     }
 
-    document.getElementById('refreshGamesBtn')?.addEventListener('click', loadPage);
+    // Refresh removed.
     document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
       state.search = String(document.getElementById('q')?.value || '').trim();
       await loadPage();

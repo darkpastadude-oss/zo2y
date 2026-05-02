@@ -448,11 +448,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular music right now</h1>
+      <h1>music</h1>
       <p>Live chart-driven tracks and albums pulled into one current music feed.</p>
       <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">sources: Spotify + Apple / iTunes. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshMusicBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
+        <!-- Refresh Picks removed -->
       </div>
     </section>
     <section class="section">
@@ -1121,7 +1121,7 @@
       }
     }
 
-    document.getElementById('refreshMusicBtn')?.addEventListener('click', loadPage);
+    // Refresh removed.
     document.getElementById('searchMusicBtn')?.addEventListener('click', async () => {
       state.currentQuery = String(document.getElementById('musicPageSearch')?.value || '').trim();
       await loadPage();

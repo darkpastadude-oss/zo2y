@@ -791,11 +791,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular books right now</h1>
+      <h1>books</h1>
       <p>Discover trending books across all genres and save them to your book lists.</p>
       <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">sources: Google Books + Open Library. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshBooksBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
+        <!-- Refresh Picks removed -->
       </div>
     </section>
     <section class="controls">
@@ -1264,7 +1264,7 @@
       }
     }
 
-    document.getElementById('refreshBooksBtn')?.addEventListener('click', loadPage);
+    // Refresh removed.
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
       const query = String(document.getElementById('q')?.value || '').trim();
       debounceSearch(query);

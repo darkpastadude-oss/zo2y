@@ -711,11 +711,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular movies right now</h1>
+      <h1>movies</h1>
       <p>Discover trending movies from around the world and save them to your movie lists.</p>
       <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshMoviesBtn"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <!-- Refresh removed -->
       </div>
     </section>
     <section class="controls">
@@ -1178,7 +1178,7 @@
       }
     }
 
-    document.getElementById('refreshMoviesBtn')?.addEventListener('click', loadPage);
+    // Refresh removed.
     document.getElementById('moviesSearchBtn')?.addEventListener('click', async () => {
       state.search = String(document.getElementById('q')?.value || '').trim();
       await loadPage();

@@ -7,6 +7,8 @@
   const FALLBACK_IMAGE = '/newlogo.webp';
 
   let supabaseClient = null;
+  const IGDB_PROXY_BASE = '/api/igdb';
+  const coverLookupCache = new Map();
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
@@ -120,7 +122,38 @@
     }
   }
 
+  async function fetchCoverForTitle(title, signal) {
+    const key = String(title || '').trim().toLowerCase();
+    if (!key) return '';
+    if (coverLookupCache.has(key)) return coverLookupCache.get(key) || '';
+
+    const url = new URL(`${IGDB_PROXY_BASE}/games`, window.location.origin);
+    url.searchParams.set('search', String(title || '').trim().slice(0, 120));
+    url.searchParams.set('page', '1');
+    url.searchParams.set('page_size', '1');
+    url.searchParams.set('title_only', '1');
+
+    try {
+      const res = await fetch(url.toString(), {
+        method: 'GET',
+        headers: { 'accept': 'application/json' },
+        signal: signal || undefined
+      });
+      if (!res.ok) throw new Error(`cover lookup failed: ${res.status}`);
+      const json = await res.json();
+      const first = Array.isArray(json?.results) ? json.results[0] : null;
+      const cover = normalizeGameCoverUrl(first?.cover || first?.image || '');
+      coverLookupCache.set(key, cover || '');
+      return cover || '';
+    } catch (_err) {
+      coverLookupCache.set(key, '');
+      return '';
+    }
+  }
+
   window.__zo2yGamesShared = {
-    loadFeaturedGames
+    loadFeaturedGames,
+    resolveGameCover,
+    fetchCoverForTitle
   };
 })();

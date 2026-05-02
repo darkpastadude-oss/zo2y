@@ -426,10 +426,10 @@
 </header>
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular TV shows right now</h1>
+      <h1>TV shows</h1>
       <p>Discover trending TV shows from around the world and save them to your TV lists.</p>
       <div style="margin-top:6px;font-size:11px;color:var(--muted);">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
-      <div class="hero-actions"><button class="btn btn-primary" id="refreshTvshowsBtn"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
+      <div class="hero-actions"><!-- Refresh removed --></div>
     </section>
     <section class="controls">
       <input id="q" class="search-input" placeholder="Search TV shows, genres, years...">
@@ -648,7 +648,7 @@
       } catch(e) { console.error('TV show list toggle failed',e); status[listType]=prev; showToast('Could not update list',true);return{ok:false,saved:prev}; }finally{state.pendingQuickOps.delete(opKey);}
     }
     async function loadPage() { try{await initAuthUi();await loadTvshows();await loadListStatus();renderGrid();}catch(e){const g=document.getElementById('tvshowsGrid');if(g)g.innerHTML='<div class="empty">TV shows feed unavailable.</div>';}}
-    document.getElementById('refreshTvshowsBtn')?.addEventListener('click',loadPage);
+    // Refresh removed.
     document.getElementById('tvshowsSearchBtn')?.addEventListener('click',async()=>{state.search=String(document.getElementById('q')?.value||'').trim();await loadPage();});
     document.getElementById('q')?.addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();state.search=String(e.target.value||'').trim();await loadPage();});
     document.getElementById('tvshowsFilterBtn')?.addEventListener('click',()=>{document.getElementById('tvshowsFilterModal')?.classList.add('show');});

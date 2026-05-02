@@ -800,11 +800,11 @@
 
   <main class="container page-shell">
     <section class="hero">
-      <h1>popular TV shows right now</h1>
+      <h1>TV shows</h1>
       <p>Discover trending TV shows from around the world and save them to your TV lists.</p>
       <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <button class="btn btn-primary" id="refreshTvshowsBtn"><i class="fa-solid fa-rotate"></i> Refresh Picks</button>
+        <!-- Refresh Picks removed -->
       </div>
     </section>
     <section class="controls">
@@ -1374,7 +1374,7 @@
       }
     }
 
-    document.getElementById('refreshTvshowsBtn')?.addEventListener('click', loadPage);
+    // Refresh removed.
     document.getElementById('tvshowsSearchBtn')?.addEventListener('click', async () => {
       const query = String(document.getElementById('q')?.value || '').trim();
       debounceSearch(query);
