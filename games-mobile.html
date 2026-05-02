@@ -862,15 +862,19 @@
 
     function computeGridPageSize() {
       const grid = document.getElementById('gamesGrid');
-      if (!grid) return 30;
+      if (!grid) return 18;
       const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
       const gridTop = grid.getBoundingClientRect().top;
       const footerSpace = 160;
       const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
       const approxCardH = 340;
       const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
-      const target = Math.max(cols * rows, cols * 2);
-      return Math.min(90, target);
+      const visible = Math.max(cols * rows, cols * 2);
+
+      // Mobile felt too sparse at 6-ish items; bias toward ~18 cards per page while staying a multiple of columns.
+      const desired = Math.max(18, visible);
+      const snapped = Math.ceil(desired / cols) * cols;
+      return Math.min(36, Math.max(cols * 2, snapped));
     }
 
     function escapeHtml(value) {
