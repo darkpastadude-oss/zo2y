@@ -518,8 +518,8 @@
     }
     function renderGrid() {
       const grid=document.getElementById('animesGrid'); const spotlight=document.getElementById('animesSpotlight'); if (!grid)return;
-      // Handle spotlight for single result
-      if (state.animes.length === 1) { renderAnimeSpotlight(state.animes[0]); } else { if (spotlight) spotlight.hidden = true; }
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
       if (!state.animes.length) { grid.innerHTML='<div class="empty">No anime found.</div>'; updatePagination(); return; }
       grid.innerHTML=state.animes.map(a=>{ const p=a.posterPath?`${POSTER_BASE}${a.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(a.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(a.name)}" loading="lazy"></div><div class="card-meta"><p class="card-title">${escapeHtml(a.name)}</p><p class="card-sub">${escapeHtml(a.firstAirDate?new Date(a.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getAnimeCardExtra(a))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
       document.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); const c=b.closest('.card'); if(c&&typeof window.openIndexStyleListMenu==='function')window.openIndexStyleListMenu(c); }));

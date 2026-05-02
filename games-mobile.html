@@ -960,12 +960,8 @@
       const spotlight = document.getElementById('gamesSpotlight');
       if (!grid) return;
       
-      // Handle spotlight for single result
-      if (state.games.length === 1) {
-        renderGameSpotlight(state.games[0]);
-      } else {
-        if (spotlight) spotlight.hidden = true;
-      }
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
       
       if (!state.games.length) {
         grid.innerHTML = '<div class="empty">No games found.</div>';

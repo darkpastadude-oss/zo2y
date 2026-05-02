@@ -511,8 +511,8 @@
     }
     function renderGrid() {
       const grid=document.getElementById('tvshowsGrid'); const spotlight=document.getElementById('tvshowsSpotlight'); if (!grid)return;
-      // Handle spotlight for single result
-      if (state.tvshows.length === 1) { renderTvshowSpotlight(state.tvshows[0]); } else { if (spotlight) spotlight.hidden = true; }
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
       if (!state.tvshows.length) { grid.innerHTML='<div class="empty">No TV shows found.</div>'; updatePagination(); return; }
       const start=(state.page-1)*TVSHOWS_PAGE_SIZE, visible=state.tvshows.slice(start,start+TVSHOWS_PAGE_SIZE);
       grid.innerHTML=visible.map(t=>{ const p=t.posterPath?`${POSTER_BASE}${t.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(t.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(t.name)}" loading="lazy"></div><div class="card-meta"><p class="card-title">${escapeHtml(t.name)}</p><p class="card-sub">${escapeHtml(t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getTvshowCardExtra(t))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');

@@ -931,12 +931,8 @@
       const spotlight = document.getElementById('moviesSpotlight');
       if (!grid) return;
       
-      // Handle spotlight for single result
-      if (state.movies.length === 1) {
-        renderMovieSpotlight(state.movies[0]);
-      } else {
-        if (spotlight) spotlight.hidden = true;
-      }
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
       
       if (!state.movies.length) {
         grid.innerHTML = '<div class="empty">No movies found.</div>';
