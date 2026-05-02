@@ -830,7 +830,7 @@
       const TMDB_PROXY_BASE = '/api/tmdb';
       const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
       const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
-    const MOVIES_PAGE_SIZE = 18;
+      let MOVIES_PAGE_SIZE = 18;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -845,6 +845,21 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('moviesGrid');
+      if (!grid) return 18;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 160;
+      const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
+      const approxCardH = 330;
+      const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
+      const visible = Math.max(cols * rows, cols * 2);
+      const desired = Math.max(18, visible);
+      const snapped = Math.ceil(desired / cols) * cols;
+      return Math.min(36, Math.max(cols * 2, snapped));
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -922,6 +937,7 @@
     }
 
     async function loadMovies(queryOverride = '') {
+      MOVIES_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.currentQuery || '').trim();
       let movies = [];
 
