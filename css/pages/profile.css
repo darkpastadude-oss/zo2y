@@ -1074,62 +1074,68 @@
         /* === KEBAB MENU STYLES === */
         .list-card-actions { 
             position: absolute; 
-            top: 15px; 
-            right: 15px; 
+            top: 12px; 
+            right: 12px; 
             z-index: 10; 
         }
         
         .kebab-btn { 
-            background: rgba(11, 22, 51, 0.6); 
-            color: var(--white); 
-            border: none; 
-            width: 30px; 
-            height: 30px; 
-            border-radius: 50%; 
+            background: transparent; 
+            color: var(--muted); 
+            border: 1px solid transparent; 
+            width: 32px; 
+            height: 32px; 
+            border-radius: 8px; 
             cursor: pointer; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
-            transition: var(--transition); 
+            transition: all 0.15s ease;
         }
         
         .kebab-btn:hover { 
-            background: var(--accent); 
-            color: var(--bg); 
+            background: var(--bg-hover); 
+            color: var(--white); 
+            border-color: var(--border);
         }
         
         .kebab-dropdown { 
             position: absolute; 
-            top: 35px; 
+            top: calc(100% + 4px); 
             right: 0; 
             background: var(--card); 
             border: 1px solid var(--border); 
-            border-radius: var(--radius-sm); 
-            width: 120px; 
-            box-shadow: var(--shadow-lg); 
-            display: none; 
-            overflow: hidden; 
+            border-radius: 10px; 
+            min-width: 130px; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); 
+            opacity: 0; 
+            visibility: hidden; 
+            transform: translateY(-4px); 
+            transition: all 0.15s ease;
+            overflow: hidden;
+            z-index: 100;
         }
         
         .kebab-dropdown.show { 
-            display: block; 
-            animation: fadeIn 0.2s; 
+            opacity: 1; 
+            visibility: visible; 
+            transform: translateY(0); 
         }
         
         .kebab-item { 
-            padding: 10px 15px; 
+            padding: 10px 14px; 
             cursor: pointer; 
             font-size: 13px; 
+            font-weight: 500;
             color: var(--white); 
             display: flex; 
             align-items: center; 
             gap: 8px; 
-            transition: var(--transition); 
+            transition: background 0.15s ease;
         }
         
         .kebab-item:hover { 
             background: var(--bg-hover); 
-            color: var(--accent); 
         }
         
         .kebab-item.delete { 
@@ -4550,6 +4556,7 @@ header, .top-stripe, .section-nav {
     margin-bottom: 4px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

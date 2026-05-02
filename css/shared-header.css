@@ -1,13 +1,13 @@
 /* Shared exact header for all pages */
 :root {
-  --zo2y-header-bg: rgba(11, 22, 51, 0.92);
-  --zo2y-header-border: rgba(255, 255, 255, 0.14);
-  --zo2y-header-text: #e2ecff;
-  --zo2y-header-muted: #8ca3c7;
+  --zo2y-header-bg: rgba(10, 15, 30, 0.95);
+  --zo2y-header-border: rgba(255, 255, 255, 0.08);
+  --zo2y-header-text: #f9fafb;
+  --zo2y-header-muted: #9ca3af;
   --zo2y-header-accent: #f59e0b;
-  --zo2y-header-card: #132347;
-  --zo2y-rail-expanded: 300px;
-  --zo2y-rail-collapsed: 92px;
+  --zo2y-header-card: #1f2937;
+  --zo2y-rail-expanded: 280px;
+  --zo2y-rail-collapsed: 72px;
   --zo2y-rail-offset: 24px;
 }
 
@@ -47,7 +47,7 @@
   z-index: 1200;
   background: var(--zo2y-header-bg);
   border-bottom: 1px solid var(--zo2y-header-border);
-  backdrop-filter: blur(10px) saturate(170%);
+  backdrop-filter: blur(12px);
 }
 
 .zo2y-logo-anim {
@@ -56,29 +56,10 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
-  overflow: visible;
-  transition: transform 0.18s ease;
+  overflow: hidden;
+  transition: transform 0.2s ease;
   width: var(--logo-size, 44px);
   height: var(--logo-size, 44px);
-  --tongue-x: 50%;
-  --tongue-y: calc(var(--jaw-hinge-y) * 1%);
-  --tongue-length: clamp(20px, 64%, 52px);
-  --tongue-thickness: clamp(3px, 10%, 6px);
-  --tongue-color: #ff4d5d;
-  --tongue-highlight: #ff8fa0;
-  --eye-size: 34;
-  --eye-y: 46;
-  --eye-left: 20;
-  --eye-right: 80;
-  --eye-lid-color: #f39a2d;
-  --eye-white-size: 14;
-  --eye-white-color: #fdfcfb;
-  --pupil-size: 8;
-  --pupil-color: #111111;
-  --pupil-offset-x: 0;
-  --pupil-offset-y: 0;
-  --sweat-base: 0.14;
-  --jaw-hinge-y: 71;
 }
 
 .zo2y-logo-idle,
@@ -379,33 +360,12 @@
 
 .zo2y-logo-anim:hover,
 .zo2y-logo-anim:focus-within {
-  transform: none;
+  transform: scale(1.05);
 }
 
 .zo2y-logo-anim:hover img,
 .zo2y-logo-anim:focus-within img {
-  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.28)) saturate(1.08);
-}
-
-.zo2y-logo-anim:hover .zo2y-logo-sprite,
-.zo2y-logo-anim:focus-within .zo2y-logo-sprite {
-  animation: zo2y-logo-shake 420ms ease-in-out infinite;
-}
-
-.zo2y-logo-anim:hover .zo2y-logo-img.normal,
-.zo2y-logo-anim:focus-within .zo2y-logo-img.normal {
-  opacity: 0;
-}
-
-.zo2y-logo-anim:hover .zo2y-logo-img.scared,
-.zo2y-logo-anim:focus-within .zo2y-logo-img.scared {
-  opacity: 1;
-}
-
-.zo2y-logo-anim:hover .zo2y-logo-sweat,
-.zo2y-logo-anim:focus-within .zo2y-logo-sweat {
-  animation: zo2y-logo-sweat 1.2s ease-in-out infinite;
-  animation-delay: var(--sweat-delay, 0ms);
+  filter: brightness(1.1);
 }
 
 
@@ -514,25 +474,22 @@
   top: 0;
   left: 0;
   height: 100dvh;
-  width: min(88vw, 340px);
-  background: linear-gradient(180deg, rgba(9, 16, 30, 0.98) 0%, rgba(7, 14, 25, 0.99) 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+  width: min(88vw, 320px);
+  background: var(--zo2y-header-bg);
+  border-right: 1px solid var(--zo2y-header-border);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   z-index: 1600;
-  transform: translateX(-104%);
-  transition: transform 0.25s ease;
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   visibility: hidden;
   pointer-events: none;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
-  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px 11px calc(16px + env(safe-area-inset-bottom, 0px));
+  gap: 8px;
+  padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
@@ -573,19 +530,13 @@ body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
 .sidebar-brand-wordmark {
   display: inline-block;
   margin-left: 6px;
-  color: #f8f1e4;
-  font-family: "Outfit", "Inter", system-ui, sans-serif;
-  font-size: 24px;
-  font-weight: 800;
+  color: #f9fafb;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.02em;
   text-transform: lowercase;
-  text-shadow:
-    -1px -1px 0 #f59e0b,
-    1px -1px 0 #f59e0b,
-    -1px 1px 0 #f59e0b,
-    1px 1px 0 #f59e0b,
-    0 2px 10px rgba(245, 158, 11, 0.18);
 }
 
 .zo2y-mobile-drawer-close {
@@ -1110,21 +1061,19 @@ body.zo2y-mobile-menu-open {
 
   .zo2y-desktop-rail {
     position: fixed;
-    top: 14px;
-    left: 12px;
-    bottom: 14px;
+    top: 16px;
+    left: 16px;
+    bottom: 16px;
     width: var(--zo2y-rail-expanded);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background:
-      linear-gradient(180deg, rgba(15, 30, 64, 0.92), rgba(6, 16, 40, 0.96)),
-      radial-gradient(circle at 16% 10%, rgba(245, 158, 11, 0.12), transparent 52%);
-    box-shadow: 0 20px 42px rgba(2, 8, 24, 0.45);
-    padding: 14px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--zo2y-header-border);
+    background: var(--zo2y-header-bg);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    padding: 16px 12px;
     z-index: 1300;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     overflow: auto;
     -webkit-overflow-scrolling: touch;
   }

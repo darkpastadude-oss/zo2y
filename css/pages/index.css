@@ -1,18 +1,18 @@
 ﻿    :root {
-      --bg: #0b1633;
-      --bg-2: #0f1d40;
-      --card: #132347;
-      --card-2: #172b58;
-      --muted: #8ca3c7;
+      --bg: #0a0f1e;
+      --bg-2: #111827;
+      --card: #1f2937;
+      --card-2: #374151;
+      --muted: #9ca3af;
       --accent: #f59e0b;
-      --white: #ffffff;
-      --border: rgba(255,255,255,0.12);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --surface: rgba(12, 26, 57, 0.84);
-      --shadow: 0 12px 34px rgba(0,0,0,0.28);
+      --white: #f9fafb;
+      --border: rgba(255,255,255,0.08);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+      --surface: rgba(31, 41, 55, 0.8);
+      --shadow: 0 10px 25px rgba(0,0,0,0.2);
       --ok: #10b981;
-      --desktop-sidebar-expanded: 300px;
-      --desktop-sidebar-collapsed: 92px;
+      --desktop-sidebar-expanded: 280px;
+      --desktop-sidebar-collapsed: 72px;
       --desktop-shell-gap: 24px;
     }
 
@@ -21,10 +21,7 @@
     html, body {
       min-height: 100%;
       direction: ltr;
-      background:
-        radial-gradient(circle at 18% -8%, rgba(245, 158, 11, 0.16), transparent 35%),
-        radial-gradient(circle at 85% -12%, rgba(88, 130, 255, 0.22), transparent 42%),
-        var(--bg);
+      background: var(--bg);
       color: var(--white);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       overflow-x: hidden;
@@ -93,9 +90,7 @@
       position: absolute;
       inset: 0;
       z-index: -1;
-      background:
-        linear-gradient(100deg, rgba(6, 13, 28, 0.9) 0%, rgba(8, 16, 35, 0.7) 42%, rgba(13, 25, 52, 0.25) 100%),
-        radial-gradient(circle at 80% 22%, rgba(245, 158, 11, 0.24), transparent 40%);
+      background: linear-gradient(100deg, rgba(10, 15, 30, 0.85) 0%, rgba(17, 24, 39, 0.6) 50%, rgba(17, 24, 39, 0.2) 100%);
     }
 
     .spotlight.theme-music .spotlight-bg::after {
