@@ -44,6 +44,25 @@ export function applySecurityHeaders(_req, res, next) {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  
+  // Content Security Policy
+  const cspDirectives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+    "connect-src 'self' https://gfkhjbztayjyojsgdpgk.supabase.co https://api.supabase.com https://image.tmdb.org https://covers.openlibrary.org https://books.googleusercontent.com https://i.scdn.co https://images.igdb.com https://flagcdn.com https://commons.wikimedia.org https://restcountries.com https://www.thesportsdb.com",
+    "frame-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests"
+  ].join("; ");
+  
+  res.setHeader("Content-Security-Policy", cspDirectives);
+  
   next();
 }
 

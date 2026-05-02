@@ -5,10 +5,12 @@ import { createRateLimiter } from "../lib/guardrails.js";
 const router = express.Router();
 
 router.use(express.json({ limit: "48kb" }));
+
+// Stricter rate limiting for auth routes: 5 attempts per 15 minutes
 router.use(createRateLimiter({
   keyPrefix: "auth",
-  windowMs: 60_000,
-  max: 30
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5
 }));
 
 function normalizeEmail(value) {

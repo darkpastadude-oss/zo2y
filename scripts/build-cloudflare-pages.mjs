@@ -70,6 +70,11 @@ async function copyRootStaticFiles() {
 
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
+
+// Inject environment variables into source files before copying
+console.log("Injecting environment variables...");
+await execAsync("node scripts/inject-env-config.mjs");
+
 await copyRootStaticFiles();
 
 if (!(await exists(path.join(distDir, "_headers")))) {
