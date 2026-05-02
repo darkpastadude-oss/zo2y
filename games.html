@@ -1183,9 +1183,8 @@
         return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
       }
       
-      // Fallback to placeholder.com with game name for missing covers
-      const gameName = String(row?.title || row?.name || 'Game').trim();
-      return `https://via.placeholder.com/300x400/1a2342/abc5e8?text=${encodeURIComponent(gameName.substring(0, 20))}`;
+      // No remote placeholder (keeps offline + avoids 3rd party outages). We'll hydrate covers via `/api/igdb` when possible.
+      return '';
     }
 
     function handleImageError(img, gameName) {
@@ -1361,6 +1360,13 @@
           const cover = await api.fetchCoverForTitle(g.name, signal);
           if (!cover) return;
           g.cover = cover;
+          // Persist the URL back to Supabase when permitted (no local storage seeding).
+          try {
+            const client = await ensureSupabase();
+            if (client) {
+              await client.from('games').update({ cover_url: cover }).eq('id', g.id);
+            }
+          } catch (_err) {}
           const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
           const img = card ? card.querySelector('img') : null;
           if (img && img.getAttribute('src') === FALLBACK_IMAGE) {

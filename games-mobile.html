@@ -1108,6 +1108,12 @@
           const cover = await api.fetchCoverForTitle(g.name, signal);
           if (!cover) return;
           g.cover = cover;
+          try {
+            const client = await ensureSupabase();
+            if (client) {
+              await client.from('games').update({ cover_url: cover }).eq('id', g.id);
+            }
+          } catch (_err) {}
           const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
           const img = card ? card.querySelector('img') : null;
           if (img && img.getAttribute('src') === FALLBACK_IMAGE) {

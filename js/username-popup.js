@@ -361,7 +361,7 @@
     }
   }
 
-  function init() {
+  async function init() {
     addStyles();
     
     var popup = createPopup();
@@ -399,13 +399,26 @@
       });
     }
     
-    // Check if username is required or if user hasn't dismissed
-    if (isUsernameRequired() || !isDismissed()) {
-      // Small delay to let page load
-      setTimeout(function () {
-        showPopup();
-      }, 500);
+    // Only show when explicitly required and after auth is ready.
+    // (Prevents showing before login/signup or for users who already set a username.)
+    if (!isUsernameRequired()) return;
+
+    try {
+      if (window.ZO2Y_AUTH && window.ZO2Y_AUTH.getActiveSession) {
+        var client = window.ZO2Y_AUTH.ensureClient();
+        if (!client) return;
+        var session = await window.ZO2Y_AUTH.getActiveSession(client, { refreshIfNeeded: true });
+        if (!session || !session.user || !session.access_token) return;
+      } else {
+        return;
+      }
+    } catch (_err) {
+      return;
     }
+
+    setTimeout(function () {
+      showPopup();
+    }, 300);
   }
 
   // Expose functions for external use
@@ -419,8 +432,8 @@
 
   // Auto-init on load
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { void init(); });
   } else {
-    init();
+    void init();
   }
 })();
