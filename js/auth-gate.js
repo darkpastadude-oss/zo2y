@@ -1513,13 +1513,11 @@
   }
 
   function redirectToOnboarding(rawNext, userId) {
+    // Onboarding disabled - username popup will be shown instead
     var next = sanitizeNextPath(rawNext || 'index.html');
-    if (userId) {
-      markOnboardingPending(userId);
-      markOnboardingRedirectedThisSession(userId);
-    }
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
-    window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(next));
+    // Redirect to index instead of onboarding
+    window.location.replace(next);
   }
 
   function redirectToPostAuthTarget(rawNext, options) {

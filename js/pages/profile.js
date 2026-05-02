@@ -504,6 +504,7 @@
             }
 
             function maybeRedirectUsernameOnboarding() {
+                // Onboarding disabled - username popup will be shown instead
                 return false;
             }
 

@@ -80,6 +80,163 @@ router.get("/captcha", (_req, res) => {
 
 router.get("/csrf-token", getCsrfToken);
 
+router.get("/check-username", async (req, res) => {
+  try {
+    const username = normalizeUsername(req.query?.username);
+    
+    if (!isValidUsername(username)) {
+      return res.status(400).json({ 
+        success: false, 
+        available: false,
+        message: "Invalid username format" 
+      });
+    }
+
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      return res.status(500).json({ 
+        success: false, 
+        available: false,
+        message: "Service unavailable" 
+      });
+    }
+
+    const { data, error } = await admin
+      .from("user_profiles")
+      .select("id")
+      .eq("username", username)
+      .limit(1);
+
+    if (error) {
+      return res.status(500).json({ 
+        success: false, 
+        available: false,
+        message: "Could not check username" 
+      });
+    }
+
+    const isTaken = Array.isArray(data) && data.length > 0;
+    
+    return res.status(200).json({
+      success: true,
+      available: !isTaken,
+      username: username
+    });
+  } catch (error) {
+    return res.status(500).json({ 
+      success: false, 
+      available: false,
+      message: error?.message || "Could not check username" 
+    });
+  }
+});
+
+router.post("/save-username", async (req, res) => {
+  try {
+    const username = normalizeUsername(req.body?.username);
+    const accessToken = String(req.get("authorization") || "").trim().replace(/^bearer\s+/i, "");
+    
+    if (!isValidUsername(username)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid username format" 
+      });
+    }
+
+    if (!accessToken) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Authentication required" 
+      });
+    }
+
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Service unavailable" 
+      });
+    }
+
+    // Verify user and get user ID
+    const { data: userData, error: userError } = await admin.auth.getUser(accessToken);
+    
+    if (userError || !userData?.user?.id) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid session" 
+      });
+    }
+
+    const userId = userData.user.id;
+
+    // Check if username is already taken
+    const { data: existing, error: checkError } = await admin
+      .from("user_profiles")
+      .select("id")
+      .eq("username", username)
+      .limit(1);
+
+    if (checkError) {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Could not check username availability" 
+      });
+    }
+
+    const isTaken = Array.isArray(existing) && existing.length > 0;
+    
+    if (isTaken && existing[0].id !== userId) {
+      return res.status(409).json({ 
+        success: false, 
+        message: "That username is already taken" 
+      });
+    }
+
+    // Update user profile
+    const { error: updateError } = await admin
+      .from("user_profiles")
+      .upsert({
+        id: userId,
+        user_id: userId,
+        username: username,
+        full_name: username,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "id" });
+
+    if (updateError) {
+      return res.status(500).json({ 
+        success: false, 
+        message: "Could not save username" 
+      });
+    }
+
+    // Update user metadata
+    const { error: metadataError } = await admin.auth.admin.updateUserById(userId, {
+      user_metadata: {
+        username: username,
+        zo2y_username: username,
+        full_name: username,
+        name: username
+      }
+    });
+
+    if (metadataError) {
+      console.warn("Could not update user metadata:", metadataError.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      username: username
+    });
+  } catch (error) {
+    return res.status(500).json({ 
+      success: false, 
+      message: error?.message || "Could not save username" 
+    });
+  }
+});
+
 router.post("/password-login", async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email);
