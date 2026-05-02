@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -7,14 +6,28 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables
-dotenv.config({ path: join(__dirname, "..", ".env") });
+// Read from wrangler.toml
+const wranglerPath = join(__dirname, "..", "wrangler.toml");
+const wranglerContent = readFileSync(wranglerPath, "utf-8");
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Parse SUPABASE_URL from wrangler.toml
+const supabaseUrlMatch = wranglerContent.match(/SUPABASE_URL\s*=\s*"([^"]+)"/);
+const supabaseUrl = supabaseUrlMatch ? supabaseUrlMatch[1] : null;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error("Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env");
+// Get service role key from CLI argument or environment
+const supabaseServiceKey = process.argv[2] || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl) {
+  console.error("Error: Could not find SUPABASE_URL in wrangler.toml");
+  process.exit(1);
+}
+
+if (!supabaseServiceKey) {
+  console.error("Error: SUPABASE_SERVICE_ROLE_KEY is required");
+  console.error("\nRun with:");
+  console.error("  node scripts/clear-usernames.mjs YOUR_SERVICE_ROLE_KEY");
+  console.error("\nOr set as environment variable:");
+  console.error("  SUPABASE_SERVICE_ROLE_KEY=your_key node scripts/clear-usernames.mjs");
   process.exit(1);
 }
 
