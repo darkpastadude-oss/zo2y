@@ -892,7 +892,21 @@
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
-    const BOOKS_PAGE_SIZE = 100;
+    let BOOKS_PAGE_SIZE = 48;
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return 48;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const card = grid.querySelector('.card');
+      const cardH = card ? card.getBoundingClientRect().height : 360;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 120;
+      const availH = Math.max(240, window.innerHeight - gridTop - footerSpace);
+      const rows = Math.max(2, Math.min(7, Math.floor(availH / Math.max(220, cardH || 360))));
+      const target = Math.max(cols * rows, cols * 2);
+      return Math.min(120, target);
+    }
 
     let supabaseClient = null;
     let currentUser = null;
@@ -964,14 +978,20 @@
       let books = [];
       let apiTotalPages = 1;
 
+      BOOKS_PAGE_SIZE = computeGridPageSize();
+      const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
+      const apiPageStart = Math.floor(startIndex / 40) + 1;
+      const withinOffset = startIndex % 40;
+      const needed = withinOffset + BOOKS_PAGE_SIZE;
+      const apiLimit = Math.min(120, Math.max(40, needed));
+
       if (!query) {
         // Load popular books when no search query
         try {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=40&page=1&orderBy=relevance`;
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
           const res = await fetch(url);
           if (res.ok) {
             const json = await res.json();
-            console.log('Books API response:', json);
             books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
             apiTotalPages = json?.totalPages || json?.total || 1;
           }
@@ -983,18 +1003,17 @@
         const variations = getQueryVariations(query);
         for (const variation of variations) {
           try {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=40`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              console.log('Search API response:', json);
-              const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
-              if (results.length > 0) {
-                books = results;
-                apiTotalPages = json?.totalPages || json?.total || 1;
-                break;
+              const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}&page=${apiPageStart}`;
+              const res = await fetch(url);
+              if (res.ok) {
+                const json = await res.json();
+                const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
+                if (results.length > 0) {
+                  books = results;
+                  apiTotalPages = json?.totalPages || json?.total || 1;
+                  break;
+                }
               }
-            }
           } catch (_err) {
             console.error('Failed to load books with variation:', variation, _err);
           }
@@ -1010,8 +1029,11 @@
         publishedDate: book.publishedDate || book.published_date || '',
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id);
-      
-      state.totalPages = apiTotalPages;
+
+      state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
+
+      const roughTotal = apiTotalPages * 40;
+      state.totalPages = Math.max(1, Math.ceil(roughTotal / BOOKS_PAGE_SIZE));
     }
 
     function debounceSearch(query) {

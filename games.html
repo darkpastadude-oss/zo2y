@@ -921,7 +921,7 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const FALLBACK_IMAGE = '/newlogo.webp';
-      const GAMES_PAGE_SIZE = 100;
+      let GAMES_PAGE_SIZE = 60;
       const RAWG_API_KEY = ''; // RAWG doesn't require API key for basic requests
       const RAWG_BASE = 'https://api.rawg.io/api';
 
@@ -941,6 +941,20 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('gamesGrid');
+      if (!grid) return 60;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const card = grid.querySelector('.card');
+      const cardH = card ? card.getBoundingClientRect().height : 360;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 120;
+      const availH = Math.max(240, window.innerHeight - gridTop - footerSpace);
+      const rows = Math.max(2, Math.min(7, Math.floor(availH / Math.max(220, cardH || 360))));
+      const target = Math.max(cols * rows, cols * 2);
+      return Math.min(140, target);
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -999,6 +1013,8 @@
       let games = [];
       let apiTotalPages = 1;
 
+      GAMES_PAGE_SIZE = computeGridPageSize();
+
       const client = await ensureSupabase();
       if (!client) {
         state.games = [];
@@ -1040,9 +1056,9 @@
               if (error) throw error;
 
               games = data || [];
-              apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-              found = true;
-              break;
+               apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+               found = true;
+               break;
             } catch (_err) {
               console.error('Failed to search games with variation:', variation, _err);
             }
@@ -1076,9 +1092,9 @@
           if (error) throw error;
 
           games = data || [];
-          apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-        }
-      } catch (_err) {
+           apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+         }
+       } catch (_err) {
         console.error('Failed to load games', _err);
       }
 
@@ -1105,7 +1121,7 @@
         return 0;
       });
 
-      // Apply pagination after sorting
+      // Apply pagination after sorting (page size computed from grid so we never end on partial rows)
       const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
       const rangeEnd = rangeStart + GAMES_PAGE_SIZE;
       state.games = state.games.slice(rangeStart, rangeEnd);

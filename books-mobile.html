@@ -734,7 +734,7 @@
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
-    const BOOKS_PAGE_SIZE = 100;
+      let BOOKS_PAGE_SIZE = 18;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -748,6 +748,19 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return 18;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 160;
+      const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
+      const approxCardH = 330;
+      const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
+      const target = Math.max(cols * rows, cols * 2);
+      return Math.min(72, target);
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -802,6 +815,7 @@
     }
 
     async function loadBooksWithFallback(queryOverride = '') {
+      BOOKS_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
       let apiTotalPages = 1;

@@ -844,7 +844,7 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const FALLBACK_IMAGE = '/newlogo.webp';
-      const GAMES_PAGE_SIZE = 100;
+      let GAMES_PAGE_SIZE = 30;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -859,6 +859,19 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('gamesGrid');
+      if (!grid) return 30;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 160;
+      const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
+      const approxCardH = 340;
+      const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
+      const target = Math.max(cols * rows, cols * 2);
+      return Math.min(90, target);
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -936,6 +949,7 @@
     }
 
     async function loadGames() {
+      GAMES_PAGE_SIZE = computeGridPageSize();
       const client = await ensureSupabase();
       if (!client) return;
 
