@@ -247,21 +247,65 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
+    .taste-card-container {
+        margin: 0 12px 12px;
+    }
+
     .taste-card {
-        padding: 24px 20px;
-        border-radius: 12px;
+        padding: 20px 16px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #1a2c5a 0%, #0b1633 100%);
+        border: 2px solid rgba(245, 158, 11, 0.4);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+
+    .taste-card::before {
+        height: 3px;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+    }
+
+    .taste-header {
+        margin-bottom: 16px;
+    }
+
+    .taste-header > span {
+        font-size: 10px;
+        letter-spacing: 1.5px;
     }
 
     .taste-title {
-        font-size: 22px;
+        font-size: 24px;
+        margin: 10px 0 12px;
     }
 
     .taste-icon {
-        font-size: 28px;
+        font-size: 30px;
     }
 
     .taste-description {
         font-size: 14px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+
+    .taste-tags {
+        gap: 6px;
+        margin-bottom: 20px;
+    }
+
+    .taste-tag {
+        padding: 5px 12px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+
+    .taste-section {
+        margin-bottom: 20px;
+    }
+
+    .taste-section-title {
+        font-size: 11px;
+        margin-bottom: 12px;
     }
 
     .taste-picks {
@@ -269,13 +313,29 @@
         gap: 8px;
     }
 
+    .taste-pick-item {
+        border-radius: 6px;
+    }
+
+    .taste-pick-name {
+        font-size: 10px;
+        padding: 6px;
+    }
+
     .taste-stats {
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
+        margin-bottom: 20px;
     }
 
     .taste-stat {
-        padding: 12px;
+        padding: 12px 10px;
+        border-radius: 10px;
+    }
+
+    .taste-stat-label {
+        font-size: 10px;
+        letter-spacing: 0.8px;
     }
 
     .taste-stat-value {
@@ -285,20 +345,78 @@
     .taste-share-btn {
         font-size: 14px;
         padding: 12px 20px;
+        border-radius: 10px;
     }
 
     .taste-card-locked {
-        padding: 32px 24px;
+        padding: 28px 20px;
+        border-radius: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .taste-locked-icon {
+        font-size: 42px;
+    }
+
+    .taste-locked-content h3 {
+        font-size: 18px;
+    }
+
+    .taste-locked-content p {
+        font-size: 13px;
+    }
+
+    .taste-progress {
+        max-width: 180px;
+        height: 6px;
+    }
+
+    .taste-progress-text {
+        font-size: 11px;
     }
 }
 
 @media (max-width: 480px) {
+    .taste-card {
+        padding: 18px 14px;
+        border-radius: 14px;
+    }
+
+    .taste-title {
+        font-size: 20px;
+    }
+
+    .taste-icon {
+        font-size: 26px;
+    }
+
+    .taste-description {
+        font-size: 13px;
+    }
+
     .taste-picks {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
     }
 
     .taste-pick-item {
-        aspect-ratio: 16/9;
+        aspect-ratio: 2/3;
+    }
+
+    .taste-stats {
+        gap: 8px;
+    }
+
+    .taste-stat {
+        padding: 10px 8px;
+    }
+
+    .taste-stat-value {
+        font-size: 15px;
+    }
+
+    .taste-share-btn {
+        font-size: 13px;
+        padding: 11px 16px;
     }
 }
