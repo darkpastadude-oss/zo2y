@@ -48,12 +48,13 @@ const TasteIdentity = (function() {
         return tags || [];
     }
 
-    // Compute taste profile from user items
+    // Compute taste profile from user items (weighted by rating)
     function computeTasteProfile(items) {
         const scoreMap = {};
         
         items.forEach(item => {
             const tags = getItemTags(item);
+            // Weight by rating (higher rating = stronger influence)
             const weight = item.rating ? (item.rating / 5) : 1;
             
             tags.forEach(tag => {
@@ -62,6 +63,12 @@ const TasteIdentity = (function() {
                 }
                 scoreMap[tag] += weight;
             });
+        });
+        
+        // Normalize to 0-1 scale
+        const maxScore = Math.max(...Object.values(scoreMap), 1);
+        Object.keys(scoreMap).forEach(tag => {
+            scoreMap[tag] = scoreMap[tag] / maxScore;
         });
         
         return scoreMap;
@@ -77,52 +84,65 @@ const TasteIdentity = (function() {
         return sorted;
     }
 
-    // Match user traits to identity archetype
-    function matchIdentity(userTraits) {
-        if (!tagsData || !tagsData.identity_archetypes) {
-            return {
-                name: "The Explorer",
-                icon: "🔍",
-                traits: userTraits.slice(0, 3),
-                description: "Your taste is unique and still being discovered."
-            };
-        }
-
-        let bestMatch = null;
-        let bestScore = 0;
-
-        tagsData.identity_archetypes.forEach(archetype => {
-            const archetypeTraits = archetype.traits || [];
-            let matchScore = 0;
-
-            userTraits.forEach(userTrait => {
-                if (archetypeTraits.includes(userTrait)) {
-                    matchScore += 1;
-                }
-            });
-
-            if (matchScore > bestScore) {
-                bestScore = matchScore;
-                bestMatch = archetype;
+    // Deterministic identity generation based on tone + style axes
+    function generateDeterministicIdentity(scoreMap) {
+        // Define tone axes
+        const toneTraits = ['dark', 'emotional', 'chaotic'];
+        // Define style axes
+        const styleTraits = ['intellectual', 'cinematic', 'mainstream', 'experimental'];
+        
+        // Find highest tone
+        let highestTone = null;
+        let highestToneScore = 0;
+        toneTraits.forEach(trait => {
+            if (scoreMap[trait] && scoreMap[trait] > highestToneScore) {
+                highestToneScore = scoreMap[trait];
+                highestTone = trait;
             }
         });
-
-        // If no good match, return a default based on top trait
-        if (!bestMatch || bestScore === 0) {
-            const topTrait = userTraits[0] || 'eclectic';
-            return {
-                name: "The Curious Mind",
-                icon: "🧐",
-                traits: userTraits.slice(0, 3),
-                description: `You have a unique taste with a focus on ${topTrait} content.`
-            };
-        }
-
-        return bestMatch;
+        
+        // Find highest style
+        let highestStyle = null;
+        let highestStyleScore = 0;
+        styleTraits.forEach(trait => {
+            if (scoreMap[trait] && scoreMap[trait] > highestStyleScore) {
+                highestStyleScore = scoreMap[trait];
+                highestStyle = trait;
+            }
+        });
+        
+        // Fallback if no matches
+        if (!highestTone) highestTone = 'emotional';
+        if (!highestStyle) highestStyle = 'cinematic';
+        
+        // Deterministic identity mapping
+        const identityMap = {
+            'dark_intellectual': { name: 'The Shadow Analyst', icon: '🧠' },
+            'dark_cinematic': { name: 'The Noir Visionary', icon: '🎬' },
+            'dark_mainstream': { name: 'The Dark Binger', icon: '🌑' },
+            'dark_experimental': { name: 'The Avant-Garde Shadow', icon: '🖤' },
+            'emotional_intellectual': { name: 'The Cinematic Overthinker', icon: '🎭' },
+            'emotional_cinematic': { name: 'The Heartfelt Critic', icon: '💜' },
+            'emotional_mainstream': { name: 'The Feel-Good Fan', icon: '✨' },
+            'emotional_experimental': { name: 'The Emotional Explorer', icon: '🌊' },
+            'chaotic_intellectual': { name: 'The Chaos Theorist', icon: '🌀' },
+            'chaotic_cinematic': { name: 'The Wild Card', icon: '🃏' },
+            'chaotic_mainstream': { name: 'The Adrenaline Addict', icon: '⚡' },
+            'chaotic_experimental': { name: 'The Experimental Maverick', icon: '🎨' }
+        };
+        
+        const key = `${highestTone}_${highestStyle}`;
+        const identity = identityMap[key] || { name: 'The Curious Explorer', icon: '🔍' };
+        
+        return {
+            ...identity,
+            tone: highestTone,
+            style: highestStyle
+        };
     }
 
-    // Generate description based on traits
-    function generateDescription(traits) {
+    // Generate description based on traits (placeholder for LLM integration)
+    function generateDescription(traits, topItems) {
         if (!traits || traits.length === 0) {
             return "Your taste profile is still developing. Rate more items to unlock your full taste identity.";
         }
@@ -147,7 +167,12 @@ const TasteIdentity = (function() {
             'inspiring': 'inspiring and uplifting',
             'competitive': 'competitive and strategic',
             'whimsical': 'whimsical and creative',
-            'nostalgic': 'nostalgic and comforting'
+            'nostalgic': 'nostalgic and comforting',
+            'cinematic': 'cinematic and visually striking',
+            'intellectual': 'intellectually stimulating',
+            'mainstream': 'accessible and popular',
+            'experimental': 'bold and unconventional',
+            'chaotic': 'unpredictable and wild'
         };
 
         const traitDescriptions = traits.slice(0, 3).map(trait => 
@@ -163,27 +188,25 @@ const TasteIdentity = (function() {
         }
     }
 
-    // Get top picks based on behavior signals + trait matching
+    // Get top picks based on rating and trait alignment
     function getTopPicks(items, count = 3, scoreMap = {}) {
         if (!items || items.length === 0) return [];
         
         // Calculate final score for each item
         const scoredItems = items.map(item => {
-            let finalScore = item.itemScore || 0;
+            let finalScore = item.rating || 3; // Default to mid rating
             
             // Add trait matching bonus
-            if (item.title && scoreMap) {
-                const itemTraits = getItemTraits(item.title, item.media_type);
-                let traitMatches = 0;
-                
-                Object.keys(scoreMap).forEach(trait => {
-                    if (itemTraits.includes(trait)) {
-                        traitMatches++;
-                    }
-                });
-                
-                finalScore += (traitMatches * 2);
-            }
+            const itemTraits = getItemTags(item);
+            let traitMatches = 0;
+            
+            Object.keys(scoreMap).forEach(trait => {
+                if (itemTraits.includes(trait)) {
+                    traitMatches += scoreMap[trait];
+                }
+            });
+            
+            finalScore += (traitMatches * 2);
             
             return {
                 ...item,
@@ -191,114 +214,112 @@ const TasteIdentity = (function() {
             };
         });
         
-        // Filter out weak items (score < 2)
-        const strongItems = scoredItems.filter(item => item.finalScore >= 2);
-        
-        // If no strong items, just return recent items
-        if (strongItems.length === 0) {
-            const recentItems = [...items]
-                .filter(item => item.isRecent)
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            return recentItems.slice(0, count);
-        }
-        
         // Sort by final score
-        const sorted = strongItems.sort((a, b) => b.finalScore - a.finalScore);
+        const sorted = scoredItems.sort((a, b) => b.finalScore - a.finalScore);
         
         return sorted.slice(0, count);
     }
 
-    // Get traits for an item (simplified version)
-    function getItemTraits(title, mediaType) {
-        if (!title) return [];
-        
-        const titleLower = title.toLowerCase();
-        const traits = [];
-        
-        // Simple keyword matching for common traits
-        const traitKeywords = {
-            'dark': ['dark', 'noir', 'shadow', 'night', 'gothic', 'horror', 'thriller'],
-            'emotional': ['love', 'romance', 'drama', 'heart', 'feel', 'tear', 'cry'],
-            'intense': ['action', 'war', 'fight', 'battle', 'intense', 'extreme'],
-            'philosophical': ['mind', 'philosophy', 'think', 'question', 'meaning', 'exist'],
-            'atmospheric': ['atmosphere', 'mood', 'vibe', 'dream', 'surreal'],
-            'complex': ['complex', 'mystery', 'puzzle', 'twist', 'intricate'],
-            'light': ['comedy', 'fun', 'happy', 'joy', 'laugh', 'light'],
-            'adventure': ['adventure', 'journey', 'quest', 'explore', 'travel']
-        };
-        
-        Object.entries(traitKeywords).forEach(([trait, keywords]) => {
-            if (keywords.some(keyword => titleLower.includes(keyword))) {
-                traits.push(trait);
-            }
-        });
-        
-        return traits;
-    }
-
-    // Calculate rarity score based on item diversity and trait uniqueness
-    function calculateRarity(traits, items) {
-        if (!traits || traits.length === 0) return "Analyzing...";
+    // Calculate rarity using cosine similarity against global averages
+    function calculateRarity(scoreMap, items) {
+        if (!scoreMap || Object.keys(scoreMap).length === 0) return "Analyzing...";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "Discovering...";
 
-        // Calculate diversity based on media types
-        const mediaTypes = new Set(items.map(item => item.media_type));
-        const diversityScore = mediaTypes.size;
+        // Simulated global averages (in production, fetch from database)
+        const globalAverages = {
+            'dark': 0.4,
+            'emotional': 0.6,
+            'philosophical': 0.3,
+            'complex': 0.35,
+            'intense': 0.5,
+            'light': 0.55,
+            'epic': 0.45,
+            'beautiful': 0.4,
+            'realistic': 0.5,
+            'fantasy': 0.35,
+            'sci-fi': 0.3,
+            'action': 0.6,
+            'romantic': 0.5,
+            'adventurous': 0.45,
+            'psychological': 0.25,
+            'atmospheric': 0.3,
+            'inspiring': 0.4,
+            'competitive': 0.35,
+            'whimsical': 0.25,
+            'nostalgic': 0.4,
+            'cinematic': 0.45,
+            'intellectual': 0.3,
+            'mainstream': 0.6,
+            'experimental': 0.2,
+            'chaotic': 0.25
+        };
 
-        // Trait uniqueness based on how niche the traits are
-        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'experimental', 'avant-garde'];
-        const commonTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy'];
-        
-        let nicheCount = traits.filter(t => nicheTraits.includes(t.toLowerCase())).length;
-        let commonCount = traits.filter(t => commonTraits.includes(t.toLowerCase())).length;
+        // Calculate cosine similarity
+        let dotProduct = 0;
+        let userMagnitude = 0;
+        let globalMagnitude = 0;
 
-        // Calculate rarity percentage based on multiple factors
-        let rarityScore = 50; // Base score
-        
-        // Adjust for niche traits
-        rarityScore -= (nicheCount * 8);
-        
-        // Adjust for common traits
-        rarityScore += (commonCount * 5);
-        
-        // Adjust for diversity
-        rarityScore -= (diversityScore * 3);
-        
-        // Adjust for total items (more items = more accurate rarity)
-        if (totalItems > 50) rarityScore -= 5;
-        if (totalItems > 100) rarityScore -= 5;
+        Object.keys(scoreMap).forEach(trait => {
+            const userScore = scoreMap[trait] || 0;
+            const globalScore = globalAverages[trait] || 0.5;
+            
+            dotProduct += userScore * globalScore;
+            userMagnitude += userScore * userScore;
+            globalMagnitude += globalScore * globalScore;
+        });
 
-        // Clamp between 1 and 99
-        rarityScore = Math.max(1, Math.min(99, rarityScore));
+        userMagnitude = Math.sqrt(userMagnitude);
+        globalMagnitude = Math.sqrt(globalMagnitude);
 
-        return `Top ${rarityScore}%`;
+        if (userMagnitude === 0 || globalMagnitude === 0) return "Top 50%";
+
+        const similarity = dotProduct / (userMagnitude * globalMagnitude);
+        
+        // Convert similarity to rarity percentile (inverse)
+        const rarityPercentile = Math.round((1 - similarity) * 100);
+        
+        return `Top ${Math.max(1, Math.min(99, rarityPercentile))}%`;
     }
 
-    // Calculate compatibility based on trait specificity
-    function calculateCompatibility(traits, items) {
-        if (!traits || traits.length === 0) return "N/A";
+    // Calculate compatibility based on rating variance and niche score
+    function calculateCompatibility(scoreMap, items) {
+        if (!scoreMap || Object.keys(scoreMap).length === 0) return "N/A";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "N/A";
 
-        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'stylized', 'experimental'];
-        const mainstreamTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy', 'adventure'];
+        // Calculate rating variance
+        const ratings = items.map(item => item.rating || 3);
+        const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+        const variance = ratings.reduce((sum, r) => sum + Math.pow(r - avgRating, 2), 0) / ratings.length;
 
-        let nicheCount = traits.filter(t => nicheTraits.includes(t.toLowerCase())).length;
-        let mainstreamCount = traits.filter(t => mainstreamTraits.includes(t.toLowerCase())).length;
+        // Calculate niche vs mainstream score
+        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'experimental', 'avant-garde', 'chaotic'];
+        const mainstreamTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy', 'adventure', 'mainstream'];
+        
+        let nicheScore = 0;
+        let mainstreamScore = 0;
+        
+        Object.keys(scoreMap).forEach(trait => {
+            if (nicheTraits.includes(trait)) {
+                nicheScore += scoreMap[trait];
+            }
+            if (mainstreamTraits.includes(trait)) {
+                mainstreamScore += scoreMap[trait];
+            }
+        });
 
-        // Calculate compatibility based on trait balance
-        const totalTraits = traits.length;
-        const nicheRatio = nicheCount / totalTraits;
-        const mainstreamRatio = mainstreamCount / totalTraits;
+        // Determine compatibility
+        const isPicky = variance > 1.5; // High variance = picky
+        const isNiche = nicheScore > mainstreamScore;
 
-        if (nicheRatio >= 0.6) return "LOW (you're picky)";
-        if (nicheRatio >= 0.4) return "MEDIUM (you have specific tastes)";
-        if (mainstreamRatio >= 0.6) return "HIGH (easy to match)";
-        if (mainstreamRatio >= 0.4) return "MEDIUM-HIGH (balanced)";
-        return "MEDIUM (unique mix)";
+        if (isNiche && isPicky) return "Low (you're picky)";
+        if (isNiche) return "Medium (unique tastes)";
+        if (mainstreamScore > 0.6) return "High (you like popular stuff)";
+        if (isPicky) return "Medium (selective)";
+        return "High (easy to match)";
     }
 
     // Main function to generate full taste identity
@@ -314,8 +335,8 @@ const TasteIdentity = (function() {
                 identity: {
                     name: "The Explorer",
                     icon: "🔍",
-                    traits: ['curious', 'open-minded', 'adventurous'],
-                    description: "Your taste journey is just beginning. Start saving items to discover your unique taste identity."
+                    tone: 'emotional',
+                    style: 'cinematic'
                 },
                 traits: ['curious', 'open-minded', 'adventurous'],
                 description: "Your taste journey is just beginning. Start saving items to discover your unique taste identity.",
@@ -327,43 +348,13 @@ const TasteIdentity = (function() {
             };
         }
 
-        // Handle edge case: minimal interaction (no favorites, few completed items)
-        const hasFavorites = userItems.some(item => item.isFavorite);
-        const hasCompleted = userItems.some(item => item.isCompleted);
-        const strongItems = userItems.filter(item => (item.itemScore || 0) >= 2);
-        
-        if (!hasFavorites && !hasCompleted && strongItems.length < 3) {
-            // Show "current vibe" instead of deep analysis
-            const recentItems = [...userItems]
-                .filter(item => item.isRecent)
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .slice(0, 3);
-            
-            return {
-                unlocked: true,
-                identity: {
-                    name: "The Explorer",
-                    icon: "🔍",
-                    traits: ['curious', 'exploring', 'discovering'],
-                    description: "You're currently exploring. Save more favorites and complete items to unlock your full taste profile."
-                },
-                traits: ['curious', 'exploring', 'discovering'],
-                description: "You're currently exploring. Save more favorites and complete items to unlock your full taste profile.",
-                topPicks: recentItems,
-                rarity: "Building...",
-                compatibility: "N/A",
-                scoreMap: {},
-                isDefault: true
-            };
-        }
-
         const scoreMap = computeTasteProfile(userItems);
         const topTraits = getTopTraits(scoreMap);
-        const identity = matchIdentity(topTraits);
-        const description = generateDescription(topTraits);
+        const identity = generateDeterministicIdentity(scoreMap);
+        const description = generateDescription(topTraits, userItems.slice(0, 3));
         const topPicks = getTopPicks(userItems, 3, scoreMap);
-        const rarity = calculateRarity(topTraits, userItems);
-        const compatibility = calculateCompatibility(topTraits, userItems);
+        const rarity = calculateRarity(scoreMap, userItems);
+        const compatibility = calculateCompatibility(scoreMap, userItems);
 
         tasteProfile = {
             unlocked: true,
@@ -401,7 +392,7 @@ const TasteIdentity = (function() {
             }
 
             const canvas = await html2canvas(element, {
-                backgroundColor: '#0b1633',
+                backgroundColor: '#0f0f11',
                 scale: 2,
                 useCORS: true,
                 allowTaint: true
@@ -422,7 +413,7 @@ const TasteIdentity = (function() {
         }
     }
 
-    // Render taste card to DOM
+    // Render taste card to DOM (matches new CSS structure)
     function renderTasteCard(containerId, profile) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -430,60 +421,39 @@ const TasteIdentity = (function() {
         // Handle empty top picks
         const topPicksHtml = profile.topPicks && profile.topPicks.length > 0 
             ? profile.topPicks.map(item => {
-                // Get poster URL with fallback
                 const posterUrl = item.poster || item.image || item.cover_url || 
                                  item.poster_path || item.poster_url || '/newlogo.webp';
-                return `
-                <div class="taste-pick-item">
-                    <img src="${posterUrl}" alt="${item.title || item.name}" onerror="this.src='/newlogo.webp'" />
-                    <span class="taste-pick-name">${item.title || item.name}</span>
-                </div>
-            `}).join('')
-            : `<div class="taste-picks-empty"><p>Save items to see your top picks here</p></div>`;
+                return `<img src="${posterUrl}" alt="${item.title || item.name}" onerror="this.src='/newlogo.webp'" />`;
+            }).join('')
+            : `<div class="tc-grid-empty"><p>Save items to see your top picks here</p></div>`;
 
-        const traitsHtml = profile.traits.map(trait => `
-            <span class="taste-tag">${trait}</span>
-        `).join('');
+        const traitsHtml = profile.traits.slice(0, 4).map(trait => 
+            `<span>${trait}</span>`
+        ).join('');
 
         const isMobile = window.innerWidth <= 768;
         const cardClass = isMobile ? 'taste-card compact' : 'taste-card';
 
         container.innerHTML = `
             <div class="${cardClass}" id="tasteCardElement" onclick="TasteIdentity.toggleExpand(event)">
-                <div class="taste-header">
-                    <span>YOUR TASTE IDENTITY</span>
-                    <h1 class="taste-title">
-                        <span class="taste-icon">${profile.identity.icon}</span>
-                        ${profile.identity.name}
-                    </h1>
-                </div>
-                
-                <p class="taste-description">${profile.description}</p>
-                
-                <div class="taste-tags">
-                    ${traitsHtml}
-                </div>
-                
-                <div class="taste-section">
-                    <h3 class="taste-section-title">TOP PICKS</h3>
-                    <div class="taste-picks">
-                        ${topPicksHtml}
+                <div class="tc-header">YOUR TASTE IDENTITY</div>
+                <h1 class="tc-title">${profile.identity.name}</h1>
+                <p class="tc-desc">${profile.description}</p>
+                <div class="tc-tags">${traitsHtml}</div>
+                <div class="tc-section">TOP PICKS</div>
+                <div class="tc-grid">${topPicksHtml}</div>
+                <div class="tc-stats">
+                    <div>
+                        <span class="label">Rarity</span>
+                        <span class="value">${profile.rarity}</span>
+                    </div>
+                    <div>
+                        <span class="label">Compatibility</span>
+                        <span class="value">${profile.compatibility}</span>
                     </div>
                 </div>
-                
-                <div class="taste-stats">
-                    <div class="taste-stat">
-                        <span class="taste-stat-label">RARITY</span>
-                        <span class="taste-stat-value">${profile.rarity}</span>
-                    </div>
-                    <div class="taste-stat">
-                        <span class="taste-stat-label">COMPATIBILITY</span>
-                        <span class="taste-stat-value">${profile.compatibility}</span>
-                    </div>
-                </div>
-                
-                <button class="taste-share-btn" onclick="event.stopPropagation(); TasteIdentity.exportTasteCard('tasteCardElement')">
-                    <i class="fas fa-share-alt"></i> Share Your Taste
+                <button class="tc-share" onclick="event.stopPropagation(); TasteIdentity.exportTasteCard('tasteCardElement')">
+                    Share your taste
                 </button>
             </div>
         `;
@@ -505,7 +475,6 @@ const TasteIdentity = (function() {
         loadTagsData,
         computeTasteProfile,
         getTopTraits,
-        matchIdentity,
         toggleExpand
     };
 })();
