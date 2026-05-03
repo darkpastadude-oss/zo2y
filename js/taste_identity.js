@@ -163,19 +163,77 @@ const TasteIdentity = (function() {
         }
     }
 
-    // Get top picks from user items
-    function getTopPicks(items, count = 3) {
+    // Get top picks based on behavior signals + trait matching
+    function getTopPicks(items, count = 3, scoreMap = {}) {
         if (!items || items.length === 0) return [];
-
-        // Sort by rating if available, otherwise by recent
-        const sorted = [...items].sort((a, b) => {
-            if (a.rating && b.rating) {
-                return b.rating - a.rating;
+        
+        // Calculate final score for each item
+        const scoredItems = items.map(item => {
+            let finalScore = item.itemScore || 0;
+            
+            // Add trait matching bonus
+            if (item.title && scoreMap) {
+                const itemTraits = getItemTraits(item.title, item.media_type);
+                let traitMatches = 0;
+                
+                Object.keys(scoreMap).forEach(trait => {
+                    if (itemTraits.includes(trait)) {
+                        traitMatches++;
+                    }
+                });
+                
+                finalScore += (traitMatches * 2);
             }
-            return 0;
+            
+            return {
+                ...item,
+                finalScore: finalScore
+            };
         });
-
+        
+        // Filter out weak items (score < 2)
+        const strongItems = scoredItems.filter(item => item.finalScore >= 2);
+        
+        // If no strong items, just return recent items
+        if (strongItems.length === 0) {
+            const recentItems = [...items]
+                .filter(item => item.isRecent)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            return recentItems.slice(0, count);
+        }
+        
+        // Sort by final score
+        const sorted = strongItems.sort((a, b) => b.finalScore - a.finalScore);
+        
         return sorted.slice(0, count);
+    }
+
+    // Get traits for an item (simplified version)
+    function getItemTraits(title, mediaType) {
+        if (!title) return [];
+        
+        const titleLower = title.toLowerCase();
+        const traits = [];
+        
+        // Simple keyword matching for common traits
+        const traitKeywords = {
+            'dark': ['dark', 'noir', 'shadow', 'night', 'gothic', 'horror', 'thriller'],
+            'emotional': ['love', 'romance', 'drama', 'heart', 'feel', 'tear', 'cry'],
+            'intense': ['action', 'war', 'fight', 'battle', 'intense', 'extreme'],
+            'philosophical': ['mind', 'philosophy', 'think', 'question', 'meaning', 'exist'],
+            'atmospheric': ['atmosphere', 'mood', 'vibe', 'dream', 'surreal'],
+            'complex': ['complex', 'mystery', 'puzzle', 'twist', 'intricate'],
+            'light': ['comedy', 'fun', 'happy', 'joy', 'laugh', 'light'],
+            'adventure': ['adventure', 'journey', 'quest', 'explore', 'travel']
+        };
+        
+        Object.entries(traitKeywords).forEach(([trait, keywords]) => {
+            if (keywords.some(keyword => titleLower.includes(keyword))) {
+                traits.push(trait);
+            }
+        });
+        
+        return traits;
     }
 
     // Calculate rarity score based on item diversity and trait uniqueness
@@ -249,7 +307,7 @@ const TasteIdentity = (function() {
         
         userItems = items || [];
         
-        // Always return unlocked state - show default data if no ratings yet
+        // Handle edge case: no items at all
         if (userItems.length === 0) {
             return {
                 unlocked: true,
@@ -257,12 +315,42 @@ const TasteIdentity = (function() {
                     name: "The Explorer",
                     icon: "🔍",
                     traits: ['curious', 'open-minded', 'adventurous'],
-                    description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity."
+                    description: "Your taste journey is just beginning. Start saving items to discover your unique taste identity."
                 },
                 traits: ['curious', 'open-minded', 'adventurous'],
-                description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity.",
+                description: "Your taste journey is just beginning. Start saving items to discover your unique taste identity.",
                 topPicks: [],
                 rarity: "Discovering...",
+                compatibility: "N/A",
+                scoreMap: {},
+                isDefault: true
+            };
+        }
+
+        // Handle edge case: minimal interaction (no favorites, few completed items)
+        const hasFavorites = userItems.some(item => item.isFavorite);
+        const hasCompleted = userItems.some(item => item.isCompleted);
+        const strongItems = userItems.filter(item => (item.itemScore || 0) >= 2);
+        
+        if (!hasFavorites && !hasCompleted && strongItems.length < 3) {
+            // Show "current vibe" instead of deep analysis
+            const recentItems = [...userItems]
+                .filter(item => item.isRecent)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 3);
+            
+            return {
+                unlocked: true,
+                identity: {
+                    name: "The Explorer",
+                    icon: "🔍",
+                    traits: ['curious', 'exploring', 'discovering'],
+                    description: "You're currently exploring. Save more favorites and complete items to unlock your full taste profile."
+                },
+                traits: ['curious', 'exploring', 'discovering'],
+                description: "You're currently exploring. Save more favorites and complete items to unlock your full taste profile.",
+                topPicks: recentItems,
+                rarity: "Building...",
                 compatibility: "N/A",
                 scoreMap: {},
                 isDefault: true
@@ -273,7 +361,7 @@ const TasteIdentity = (function() {
         const topTraits = getTopTraits(scoreMap);
         const identity = matchIdentity(topTraits);
         const description = generateDescription(topTraits);
-        const topPicks = getTopPicks(userItems);
+        const topPicks = getTopPicks(userItems, 3, scoreMap);
         const rarity = calculateRarity(topTraits, userItems);
         const compatibility = calculateCompatibility(topTraits, userItems);
 
@@ -341,12 +429,16 @@ const TasteIdentity = (function() {
 
         // Handle empty top picks
         const topPicksHtml = profile.topPicks && profile.topPicks.length > 0 
-            ? profile.topPicks.map(item => `
+            ? profile.topPicks.map(item => {
+                // Get poster URL with fallback
+                const posterUrl = item.poster || item.image || item.cover_url || 
+                                 item.poster_path || item.poster_url || '/newlogo.webp';
+                return `
                 <div class="taste-pick-item">
-                    <img src="${item.poster || item.image || '/newlogo.webp'}" alt="${item.title || item.name}" />
+                    <img src="${posterUrl}" alt="${item.title || item.name}" onerror="this.src='/newlogo.webp'" />
                     <span class="taste-pick-name">${item.title || item.name}</span>
                 </div>
-            `).join('')
+            `}).join('')
             : `<div class="taste-picks-empty"><p>Save items to see your top picks here</p></div>`;
 
         const traitsHtml = profile.traits.map(trait => `

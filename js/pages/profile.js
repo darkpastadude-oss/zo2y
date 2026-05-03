@@ -13369,9 +13369,10 @@
             async function fetchUserRatedItems(userId) {
                 if (!supabase || !userId) return [];
                 
-                // Use list_items tables to get saved items
+                // Use list_items tables to get saved items with behavior signals
                 const tables = Object.values(MEDIA_ITEM_TABLES);
                 const allItems = [];
+                const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
                 
                 for (const table of tables) {
                     try {
@@ -13421,11 +13422,39 @@
                                 // Skip if no title
                                 if (!title) return;
                                 
+                                // Calculate behavior signals
+                                const isFavorite = metadata.is_favorite === true || 
+                                                  metadata.list_name?.toLowerCase().includes('favorite') ||
+                                                  item.list_name?.toLowerCase().includes('favorite');
+                                
+                                const isCompleted = metadata.status === 'completed' || 
+                                                   metadata.status === 'watched' ||
+                                                   metadata.status === 'read' ||
+                                                   metadata.watched === true ||
+                                                   metadata.read === true;
+                                
+                                const isRecent = item.created_at && item.created_at > thirtyDaysAgo;
+                                
+                                // Calculate item score based on behavior
+                                let itemScore = 0;
+                                if (isFavorite) itemScore += 5;
+                                if (isCompleted) itemScore += 3;
+                                if (isRecent) itemScore += 2;
+                                
+                                // Rating bonus if available
+                                const rating = item.rating || metadata.rating || 0;
+                                if (rating >= 4) itemScore += 2;
+                                
                                 allItems.push({
                                     title: title,
-                                    rating: item.rating || 0,
+                                    rating: rating,
                                     poster: poster,
-                                    media_type: mediaType
+                                    media_type: mediaType,
+                                    isFavorite: isFavorite,
+                                    isCompleted: isCompleted,
+                                    isRecent: isRecent,
+                                    itemScore: itemScore,
+                                    createdAt: item.created_at
                                 });
                             });
                         }
