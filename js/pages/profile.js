@@ -13374,11 +13374,11 @@
                 
                 for (const table of tables) {
                     try {
+                        // Fetch all items and filter for non-null ratings in JavaScript
                         const { data, error } = await supabase
                             .from(table)
                             .select('*')
-                            .eq('user_id', userId)
-                            .not('rating', 'is', null);
+                            .eq('user_id', userId);
                         
                         if (error) {
                             console.warn(`Failed to fetch items from ${table}:`, error);
@@ -13387,13 +13387,15 @@
                         
                         if (data && data.length > 0) {
                             data.forEach(item => {
-                                // Normalize item structure for taste identity
-                                allItems.push({
-                                    title: item.title || item.name || '',
-                                    rating: item.rating || 0,
-                                    poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || null,
-                                    media_type: table.replace('_list_items', '')
-                                });
+                                // Only include items with a rating
+                                if (item.rating && item.rating > 0) {
+                                    allItems.push({
+                                        title: item.title || item.name || '',
+                                        rating: item.rating || 0,
+                                        poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || null,
+                                        media_type: table.replace('_list_items', '')
+                                    });
+                                }
                             });
                         }
                     } catch (error) {
@@ -13410,7 +13412,10 @@
                 try {
                     const userItems = await fetchUserRatedItems(currentUser.id);
                     const tasteProfile = await TasteIdentity.generateTasteIdentity(userItems);
+                    
+                    // Render to both desktop and mobile containers
                     TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                    TasteIdentity.renderTasteCard('mobileTasteCardContainer', tasteProfile);
                 } catch (error) {
                     console.error('Error loading taste identity:', error);
                 }
