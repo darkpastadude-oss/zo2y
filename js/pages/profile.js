@@ -13426,11 +13426,33 @@
             async function loadTasteIdentity() {
                 if (!isViewingOwnProfile || !currentUser?.id) return;
                 
+                // Render default card immediately for instant load
+                const defaultProfile = {
+                    unlocked: true,
+                    identity: {
+                        name: "The Explorer",
+                        icon: "🔍",
+                        traits: ['curious', 'open-minded', 'adventurous'],
+                        description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity."
+                    },
+                    traits: ['curious', 'open-minded', 'adventurous'],
+                    description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity.",
+                    topPicks: [],
+                    rarity: "Discovering...",
+                    compatibility: "N/A",
+                    scoreMap: {},
+                    isDefault: true
+                };
+                
+                TasteIdentity.renderTasteCard('tasteCardContainer', defaultProfile);
+                TasteIdentity.renderTasteCard('mobileTasteCardContainer', defaultProfile);
+                
+                // Then load real data in background
                 try {
                     const userItems = await fetchUserRatedItems(currentUser.id);
                     const tasteProfile = await TasteIdentity.generateTasteIdentity(userItems);
                     
-                    // Render to both desktop and mobile containers
+                    // Update with real data
                     TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
                     TasteIdentity.renderTasteCard('mobileTasteCardContainer', tasteProfile);
                 } catch (error) {

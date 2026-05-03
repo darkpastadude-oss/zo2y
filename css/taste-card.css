@@ -137,6 +137,21 @@
     text-overflow: ellipsis;
 }
 
+.taste-picks-empty {
+    grid-column: 1 / -1;
+    padding: 20px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.taste-picks-empty p {
+    font-size: 13px;
+    color: rgba(203, 213, 225, 0.7);
+    margin: 0;
+}
+
 .taste-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;

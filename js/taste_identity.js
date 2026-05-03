@@ -219,12 +219,23 @@ const TasteIdentity = (function() {
         
         userItems = items || [];
         
-        if (userItems.length < 5) {
+        // Always return unlocked state - show default data if no ratings yet
+        if (userItems.length === 0) {
             return {
-                unlocked: false,
-                required: 5,
-                current: userItems.length,
-                message: "Rate more to unlock your taste profile"
+                unlocked: true,
+                identity: {
+                    name: "The Explorer",
+                    icon: "🔍",
+                    traits: ['curious', 'open-minded', 'adventurous'],
+                    description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity."
+                },
+                traits: ['curious', 'open-minded', 'adventurous'],
+                description: "Your taste journey is just beginning. Start rating items to discover your unique taste identity.",
+                topPicks: [],
+                rarity: "Discovering...",
+                compatibility: "N/A",
+                scoreMap: {},
+                isDefault: true
             };
         }
 
@@ -244,7 +255,8 @@ const TasteIdentity = (function() {
             topPicks: topPicks,
             rarity: rarity,
             compatibility: compatibility,
-            scoreMap: scoreMap
+            scoreMap: scoreMap,
+            isDefault: false
         };
 
         return tasteProfile;
@@ -297,32 +309,15 @@ const TasteIdentity = (function() {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        if (!profile.unlocked) {
-            container.innerHTML = `
-                <div class="taste-card taste-card-locked">
-                    <div class="taste-header">
-                        <span>YOUR TASTE IDENTITY</span>
-                    </div>
-                    <div class="taste-locked-content">
-                        <div class="taste-locked-icon">🔒</div>
-                        <h3>Rate More to Unlock</h3>
-                        <p>Rate ${profile.required - profile.current} more items to discover your taste identity</p>
-                        <div class="taste-progress">
-                            <div class="taste-progress-bar" style="width: ${(profile.current / profile.required) * 100}%"></div>
-                        </div>
-                        <span class="taste-progress-text">${profile.current}/${profile.required} items</span>
-                    </div>
+        // Handle empty top picks
+        const topPicksHtml = profile.topPicks && profile.topPicks.length > 0 
+            ? profile.topPicks.map(item => `
+                <div class="taste-pick-item">
+                    <img src="${item.poster || item.image || '/newlogo.webp'}" alt="${item.title || item.name}" />
+                    <span class="taste-pick-name">${item.title || item.name}</span>
                 </div>
-            `;
-            return;
-        }
-
-        const topPicksHtml = profile.topPicks.map(item => `
-            <div class="taste-pick-item">
-                <img src="${item.poster || item.image || '/newlogo.webp'}" alt="${item.title || item.name}" />
-                <span class="taste-pick-name">${item.title || item.name}</span>
-            </div>
-        `).join('');
+            `).join('')
+            : `<div class="taste-picks-empty"><p>Rate items to see your top picks here</p></div>`;
 
         const traitsHtml = profile.traits.map(trait => `
             <span class="taste-tag">${trait}</span>
