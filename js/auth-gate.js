@@ -854,29 +854,12 @@
         var profile = getAuthProfileSnapshot(user);
         var profileRow = await readAuthProfileRow(_client, userId);
         if (profileRow) {
-          var rowUsername = String(profileRow.username || '').trim();
           var rowFullName = String(profileRow.full_name || '').trim();
-          if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
-            profile.username = rowUsername;
-          }
           if (rowFullName) {
             profile.full_name = rowFullName.slice(0, 80);
           }
-        } else {
-          var authUsername = normalizeProfileUsername(
-            user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
-          );
-          if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
-            profile.username = authUsername;
-          }
         }
-        var needsUsername = profileNeedsConcreteUsername(profile, user);
-        var needsOnboarding = profileNeedsOnboarding(profile);
-        if (needsOnboarding) {
-          markOnboardingPending(userId);
-        } else {
-          clearOnboardingPending(userId);
-        }
+        clearOnboardingPending(userId);
         profileLabelCache.set(userId, {
           label: buildProfileLabelFromSources(user, profileRow || profile),
           savedAt: Date.now(),
@@ -886,8 +869,8 @@
           ok: true,
           created: false,
           profile: profile,
-          needsUsername: needsUsername,
-          needsOnboarding: needsOnboarding
+          needsUsername: false,
+          needsOnboarding: false
         };
       } catch (error) {
         return { ok: false, created: false, profile: null, needsUsername: false, needsOnboarding: false, error: error };
@@ -1513,11 +1496,10 @@
   }
 
   function redirectToOnboarding(rawNext, userId) {
+    // Onboarding disabled - redirect directly to target
     var next = sanitizeNextPath(rawNext || 'index.html');
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
-    markOnboardingPending(userId);
-    markOnboardingRedirectedThisSession(userId);
-    window.location.replace('onboarding.html?next=' + encodeURIComponent(next));
+    window.location.replace(next);
   }
 
   function redirectToPostAuthTarget(rawNext, options) {
@@ -1547,76 +1529,17 @@
       userId: String(session.user && session.user.id || '').trim() || null,
       next: nextPath
     });
-    if (flow === 'login') {
-      void persistReferralMetadata(client, session.user);
-      void ensureAuthProfile(client, session.user);
-      redirectToPostAuthTarget(nextPath, {
-        inPlace: opts.inPlace === true
-      });
-      return true;
-    }
+
+    void persistReferralMetadata(client, session.user);
+    void ensureAuthProfile(client, session.user);
+
     if (flow === 'signup') {
       var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
       if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
       void triggerWelcomeEmail(session, flow);
     }
 
-    void persistReferralMetadata(client, session.user);
-
-    var profileResult = await ensureAuthProfile(client, session.user);
-    if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
-      clearOnboardingPending(session.user.id);
-      redirectToPostAuthTarget(nextPath, {
-        inPlace: opts.inPlace === true
-      });
-      return true;
-    }
-
-    // Auto-generate username from email for Google sign-ups
-    if (flow === 'signup' && profileResult && profileResult.ok && profileResult.needsOnboarding) {
-      var emailPrefix = getUserEmailPrefix(session.user);
-      if (emailPrefix) {
-        var autoUsername = normalizeProfileUsername(emailPrefix);
-        if (isValidProfileUsername(autoUsername) && !isReservedProfileUsername(autoUsername)) {
-          try {
-            autoUsername = await ensureUsernameAvailable(client, autoUsername, session.user.id);
-            var profileRow = await syncUserProfileRecord(client, session.user, {
-              username: autoUsername,
-              full_name: autoUsername
-            });
-            var updateResult = await client.auth.updateUser({
-              data: {
-                username: autoUsername,
-                zo2y_username: autoUsername,
-                full_name: autoUsername,
-                name: autoUsername
-              }
-            });
-            if (!updateResult || !updateResult.error) {
-              clearOnboardingPending(session.user.id);
-              clearPendingPostAuthBootstrap();
-              redirectToPostAuthTarget(nextPath, {
-                inPlace: opts.inPlace === true
-              });
-              return true;
-            }
-          } catch (_autoError) {
-            // Fall through to onboarding if auto-generation fails
-          }
-        }
-      }
-    }
-
-    if (profileResult && profileResult.ok && profileResult.needsOnboarding) {
-      redirectToOnboarding(nextPath, session.user.id);
-      return true;
-    }
-
-    if (flow === 'signup') {
-      redirectToOnboarding(nextPath, session.user.id);
-      return true;
-    }
-
+    clearOnboardingPending(session.user.id);
     redirectToPostAuthTarget(nextPath, {
       inPlace: opts.inPlace === true
     });
@@ -1909,21 +1832,6 @@
         authenticated = !!(session && session.user);
         if (authenticated) {
           persistSessionSnapshot(session);
-        }
-
-        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
-          var userId = String(session.user.id || '').trim();
-          var onboardingParam = false;
-          try {
-            onboardingParam = new URLSearchParams(window.location.search || '').get('onboarding') === '1';
-          } catch (_errSearch) {}
-          if (userId && !onboardingParam) {
-            var profileResult = await ensureAuthProfile(client, session.user);
-            if (profileResult && profileResult.ok && profileResult.needsOnboarding && !wasOnboardingRedirectedThisSession(userId)) {
-              redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
-              return true;
-            }
-          }
         }
 
         applyShellState(authenticated, pageKey, {

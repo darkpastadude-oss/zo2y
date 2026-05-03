@@ -14,9 +14,7 @@ const AUTH_PAGE_PATHS = new Set([
   '/sign-up.html',
   '/signup',
   '/update-password',
-  '/update-password.html',
-  '/onboarding',
-  '/onboarding.html'
+  '/update-password.html'
 ]);
 
 const STATIC_ASSETS = [
@@ -38,7 +36,6 @@ const STATIC_ASSETS = [
   '/js/index-list-menu-adapter.js?v=20260317b',
   '/js/universal-search.js?v=20260421a',
   '/js/auth-gate.js?v=20260425e',
-  '/onboarding.html',
   '/js/production-runtime.js?v=20260422a',
   '/js/igdb-client.js?v=20260311c',
   '/js/mobile-webapp.js',

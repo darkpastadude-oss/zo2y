@@ -399,54 +399,15 @@
                 'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
                 'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
                 'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
-                'users', 'zo2y'
+                'users', 'zo2y', 'test'
             ]);
-
-            const PROFILE_ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
-            const PROFILE_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
-
-            function getOnboardingPendingKey(userId) {
-                return `${PROFILE_ONBOARDING_PENDING_PREFIX}${String(userId || '').trim()}`;
-            }
-
-            function hasOnboardingPending(userId) {
-                try {
-                    const key = getOnboardingPendingKey(userId);
-                    return localStorage.getItem(key) === '1';
-                } catch (_err) {
-                    return false;
-                }
-            }
-
-            function clearOnboardingPending(userId) {
-                try {
-                    const key = getOnboardingPendingKey(userId);
-                    localStorage.removeItem(key);
-                } catch (_err) {}
-            }
-
-            function markOnboardingShownThisSession(userId) {
-                try {
-                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
-                    sessionStorage.setItem(key, '1');
-                } catch (_err) {}
-            }
-
-            function wasOnboardingShownThisSession(userId) {
-                try {
-                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
-                    return sessionStorage.getItem(key) === '1';
-                } catch (_err) {
-                    return false;
-                }
-            }
 
             function normalizeProfileUsername(value) {
                 const normalized = String(value || '')
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['â€™]/g, '')
+                    .replace(/['â€]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -501,11 +462,6 @@
                 }
 
                 return normalizedUsername;
-            }
-
-            function maybeRedirectUsernameOnboarding() {
-                // Onboarding disabled - username popup will be shown instead
-                return false;
             }
 
             function setupMobileTabsHint() {
@@ -861,9 +817,6 @@
                             const k = localStorage.key(i);
                             if (!k) continue;
                             if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
-                            if (k.indexOf('zo2y-auth-onboarding-') === 0 || k.indexOf('zo2y_onboarding_') === 0) {
-                                localStorage.removeItem(k);
-                            }
                         }
                     } catch (_err3) {}
 
@@ -872,9 +825,6 @@
                             const k2 = sessionStorage.key(j);
                             if (!k2) continue;
                             if (/^sb-[a-z0-9]+-auth-token$/i.test(k2)) sessionStorage.removeItem(k2);
-                            if (k2.indexOf('zo2y-auth-onboarding-') === 0 || k2.indexOf('zo2y_onboarding_') === 0) {
-                                sessionStorage.removeItem(k2);
-                            }
                         }
                     } catch (_err4) {}
                 }
@@ -992,8 +942,6 @@
                 }
                 
                 updateProfileUI();
-                // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
-                if (maybeRedirectUsernameOnboarding()) return;
 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
@@ -1150,11 +1098,6 @@
                     ...basePayload,
                     user_id: currentUser.id
                 };
-
-                // Mark onboarding pending so the username picker pops instantly for fresh profiles.
-                try {
-                    localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
-                } catch (_err) {}
             }
 
             function normalizeProfileTheme(themeValue) {
