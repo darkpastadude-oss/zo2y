@@ -911,54 +911,68 @@
             transform: scale(1.05);
         }
 
-        /* === PROFILE HEADER === */
+        /* === PROFILE HEADER - SIMPLIFIED BOX LAYOUT === */
         .profile-header {
-            background: var(--card);
-            padding: 40px 0;
+            background: var(--bg);
+            padding: 32px 0;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 30px;
-        }
-
-        .profile-top {
-            display: flex;
-            align-items: flex-start;
-            gap: 24px;
             margin-bottom: 24px;
         }
 
-        .avatar-container {
-            position: relative;
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr 200px;
+            gap: 20px;
+            align-items: start;
         }
 
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
+        .profile-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: var(--transition);
+        }
+
+        .profile-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow);
+        }
+
+        /* Avatar & Info Card */
+        .profile-info-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar-large {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             background: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 42px;
             line-height: 1;
             text-align: center;
             font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol", sans-serif;
-            border: 3px solid var(--accent);
+            border: 4px solid var(--accent);
             cursor: pointer;
             transition: var(--transition);
             color: #0b1633;
+            margin-bottom: 16px;
         }
 
-        .profile-avatar:hover {
+        .profile-avatar-large:hover {
             transform: scale(1.05);
             border-color: #e69500;
         }
 
-        .profile-info {
-            flex: 1;
-        }
-
         .profile-name {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 4px;
             max-width: 100%;
@@ -968,44 +982,348 @@
         }
 
         .profile-username {
-            font-size: 16px;
+            font-size: 14px;
             color: var(--muted);
             margin-bottom: 12px;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .profile-bio {
-            font-size: 16px;
-            color: var(--muted);
-            margin-bottom: 16px;
-            max-width: 500px;
-        }
-
-        .profile-meta {
-            display: flex;
-            gap: 20px;
             font-size: 14px;
             color: var(--muted);
+            margin-bottom: 16px;
+            line-height: 1.5;
+            max-width: 100%;
         }
 
-        .meta-item {
+        /* Stats Card */
+        .profile-stats-card {
             display: flex;
-            align-items: center;
-            gap: 6px;
+            flex-direction: column;
         }
 
-        .profile-actions {
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Actions Card */
+        .profile-actions-card {
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
         }
 
-        .profile-info {
-            min-width: 0;
+        .action-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            border-color: var(--border);
+        }
+
+        .action-btn.danger {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        @media (max-width: 1024px) {
+            .profile-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .profile-actions-card {
+                grid-column: span 2;
+                flex-direction: row;
+            }
+            .action-btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            .profile-actions-card {
+                grid-column: span 1;
+                flex-direction: column;
+            }
+        }
+
+        /* === TASTE CARD STYLING === */
+        .taste-card-container {
+            margin-bottom: 32px;
+        }
+
+        .taste-card {
+            background: linear-gradient(135deg, var(--card) 0%, rgba(19, 35, 71, 0.8) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .taste-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #e69500);
+        }
+
+        .tc-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .tc-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--white), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tc-desc {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .tc-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .tc-tags span {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .tc-section {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .tc-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tc-grid img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .tc-grid-empty {
+            grid-column: span 3;
+            text-align: center;
+            padding: 24px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .tc-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .tc-stats > div {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+        }
+
+        .tc-stats .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .tc-stats .value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .tc-share {
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .tc-share:hover {
+            background: #e69500;
+            transform: translateY(-2px);
+        }
+
+        /* Mobile Taste Card */
+        .taste-card.compact {
+            padding: 20px;
+            cursor: pointer;
+        }
+
+        .taste-card.compact .tc-title {
+            font-size: 24px;
+        }
+
+        .taste-card.compact .tc-grid {
+            display: none;
+        }
+
+        .taste-card.compact .tc-stats {
+            display: none;
+        }
+
+        .taste-card.compact .tc-share {
+            display: none;
+        }
+
+        .taste-card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 400px;
+        }
+
+        .taste-card-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: none;
+        }
+
+        .taste-card-backdrop.active {
+            display: block;
+        }
+
+        .tc-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--white);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .taste-card {
+                padding: 24px;
+            }
+
+            .tc-title {
+                font-size: 24px;
+            }
+
+            .tc-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
 .profile-badges {

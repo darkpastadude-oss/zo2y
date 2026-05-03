@@ -1,4 +1,6 @@
-// ===== TASTE IDENTITY SYSTEM =====
+// ===== BEHAVIOR-BASED TASTE IDENTITY SYSTEM =====
+// Core Principle: What users save matters more than what they claim
+// Signal weighting based purely on behavior, not ratings
 
 const TasteIdentity = (function() {
     let tagsData = null;
@@ -48,14 +50,78 @@ const TasteIdentity = (function() {
         return tags || [];
     }
 
-    // Compute taste profile from user items (weighted by intent-based list weight)
+    // ===== BEHAVIOR SIGNAL WEIGHTING =====
+    // Favorites = +10 (strongest positive signal)
+    // Added to multiple lists = +7 (intent cluster)
+    // Completed = +6 (confirmation signal)
+    // Saved once (watchlist/intent) = +4 (intent signal)
+    // Re-added after removal = +3 (curiosity loop)
+    // Removed from list = -6 (negative signal)
+    // Dropped = -8 (strong negative signal)
+    
+    function computeBehaviorWeight(item) {
+        let weight = 0;
+        
+        // Check list membership
+        const listTypes = item.listTypes || [];
+        const listCount = listTypes.length;
+        
+        // Favorites: strongest positive signal
+        if (listTypes.includes('favorites') || item.isFavorite) {
+            weight += 10;
+        }
+        
+        // Multiple lists: intent cluster signal
+        if (listCount >= 2) {
+            weight += 7;
+        }
+        
+        // Completed/watched/read/played: confirmation signal
+        if (listTypes.includes('watched') || listTypes.includes('completed') || 
+            listTypes.includes('read') || listTypes.includes('listened') ||
+            listTypes.includes('visited') || listTypes.includes('tried') ||
+            listTypes.includes('owned')) {
+            weight += 6;
+        }
+        
+        // Watchlist/intent: weaker intent signal
+        if (listTypes.includes('watchlist') || listTypes.includes('readlist') ||
+            listTypes.includes('listenlist') || listTypes.includes('bucketlist') ||
+            listTypes.includes('wishlist') || listTypes.includes('want_to_try')) {
+            weight += 4;
+        }
+        
+        // Re-added after removal: curiosity loop
+        if (item.reAdded) {
+            weight += 3;
+        }
+        
+        // Removed: negative signal
+        if (item.removed) {
+            weight -= 6;
+        }
+        
+        // Dropped: strong negative signal
+        if (item.dropped) {
+            weight -= 8;
+        }
+        
+        // Minimum weight for any saved item
+        if (listCount > 0 && weight === 0) {
+            weight = 4; // Base intent signal
+        }
+        
+        return Math.max(0, weight);
+    }
+
+    // Compute taste profile from user items (weighted by behavior signals)
     function computeTasteProfile(items) {
         const scoreMap = {};
         
         items.forEach(item => {
             const tags = getItemTags(item);
-            // Use finalWeight which combines list intent (80%) + rating (20%)
-            const weight = item.finalWeight || item.listWeight || 0.5;
+            // Use pure behavior-based weight (NO ratings)
+            const weight = computeBehaviorWeight(item);
             
             tags.forEach(tag => {
                 if (!scoreMap[tag]) {
@@ -188,14 +254,14 @@ const TasteIdentity = (function() {
         }
     }
 
-    // Get top picks based on intent weight and trait alignment
+    // Get top picks based on behavior weight and trait alignment
     function getTopPicks(items, count = 3, scoreMap = {}) {
         if (!items || items.length === 0) return [];
         
         // Calculate final score for each item
         const scoredItems = items.map(item => {
-            // Use intent-based finalWeight as base score
-            let finalScore = item.finalWeight || item.listWeight || 0.5;
+            // Use behavior-based weight as base score
+            let finalScore = computeBehaviorWeight(item);
             
             // Add trait matching bonus
             const itemTraits = getItemTags(item);
@@ -221,22 +287,25 @@ const TasteIdentity = (function() {
         return sorted.slice(0, count);
     }
 
-    // Calculate rarity using cosine similarity against global averages (intent-based)
+    // Calculate rarity using cosine similarity against global averages (behavior-based)
     function calculateRarity(scoreMap, items) {
         if (!scoreMap || Object.keys(scoreMap).length === 0) return "Analyzing...";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "Discovering...";
 
-        // Calculate intent-based rarity factors
-        const favoriteCount = items.filter(i => i.isFavorite).length;
-        const customListCount = items.filter(i => i.listType === 'custom').length;
-        const watchlistCount = items.filter(i => i.isWatchlist).length;
+        // Calculate behavior-based rarity factors
+        const favoriteCount = items.filter(i => i.listTypes?.includes('favorites') || i.isFavorite).length;
+        const multiListCount = items.filter(i => (i.listTypes?.length || 0) >= 2).length;
+        const completedCount = items.filter(i => 
+            i.listTypes?.includes('watched') || i.listTypes?.includes('completed') ||
+            i.listTypes?.includes('read') || i.listTypes?.includes('listened')
+        ).length;
         
-        // Niche favorites = actually rare
-        // Mainstream watchlist = doesn't fake uniqueness
-        const intentScore = (favoriteCount * 1.0) + (customListCount * 0.8) - (watchlistCount * 0.3);
-        const intentRatio = intentScore / Math.max(totalItems, 1);
+        // Niche favorites + high completion = actually rare
+        // Pure watchlist = doesn't fake uniqueness
+        const behaviorScore = (favoriteCount * 1.0) + (multiListCount * 0.8) + (completedCount * 0.6);
+        const behaviorRatio = behaviorScore / Math.max(totalItems, 1);
 
         // Simulated global averages (in production, fetch from database)
         const globalAverages = {
@@ -299,21 +368,24 @@ const TasteIdentity = (function() {
         return `Top ${Math.max(1, Math.min(99, rarityPercentile))}%`;
     }
 
-    // Calculate compatibility based on intent signals and niche score
+    // Calculate compatibility based on behavior signals and niche score
     function calculateCompatibility(scoreMap, items) {
         if (!scoreMap || Object.keys(scoreMap).length === 0) return "N/A";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "N/A";
 
-        // Calculate intent-based signals
-        const favoriteCount = items.filter(i => i.isFavorite).length;
-        const watchlistCount = items.filter(i => i.isWatchlist).length;
-        const customListCount = items.filter(i => i.listType === 'custom').length;
+        // Calculate behavior-based signals
+        const favoriteCount = items.filter(i => i.listTypes?.includes('favorites') || i.isFavorite).length;
+        const multiListCount = items.filter(i => (i.listTypes?.length || 0) >= 2).length;
+        const completedCount = items.filter(i => 
+            i.listTypes?.includes('watched') || i.listTypes?.includes('completed') ||
+            i.listTypes?.includes('read') || i.listTypes?.includes('listened')
+        ).length;
         
-        // High favorites + low watchlist = picky (strong intent)
+        // High favorites + high completion = picky (strong intent)
         const intentRatio = favoriteCount / Math.max(totalItems, 1);
-        const watchlistRatio = watchlistCount / Math.max(totalItems, 1);
+        const completionRatio = completedCount / Math.max(totalItems, 1);
         
         // Calculate niche vs mainstream score
         const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'experimental', 'avant-garde', 'chaotic'];
@@ -332,11 +404,11 @@ const TasteIdentity = (function() {
         });
 
         const isNiche = nicheScore > mainstreamScore;
-        const isPicky = intentRatio > 0.4 && watchlistRatio < 0.3; // Strong favorites, weak watchlist
+        const isPicky = intentRatio > 0.4 && completionRatio > 0.3; // Strong favorites + completion
 
         if (isNiche && isPicky) return "Low (you're picky)";
         if (isNiche) return "Medium (unique tastes)";
-        if (mainstreamScore > 0.6 && watchlistRatio > 0.4) return "High (you like popular stuff)";
+        if (mainstreamScore > 0.6 && completionRatio > 0.4) return "High (you like popular stuff)";
         if (isPicky) return "Medium (selective)";
         return "High (easy to match)";
     }

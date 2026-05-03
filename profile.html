@@ -72,81 +72,57 @@
             </div>
         </div>
 
-        <!-- Profile Header -->
+        <!-- Profile Header - Simplified Box Layout -->
         <div class="profile-header">
             <div class="container">
-                <div class="profile-hero-card">
-                    <div class="profile-banner"></div>
-                    <div class="profile-header-body">
-                        <div class="profile-top">
-                            <div class="avatar-container">
-                                <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
-                                    @
-                                </div>
-                            </div>
+                <div class="profile-grid">
+                    <!-- Avatar & Info Box -->
+                    <div class="profile-card profile-info-card">
+                        <div class="profile-avatar-large" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
+                            @
+                        </div>
+                        <div class="profile-name" id="profileName">Loading...</div>
+                        <div class="profile-username" id="profileUsername">@username</div>
+                        <div class="profile-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                        <div class="profile-badges" id="profileBadges"></div>
+                    </div>
 
-                            <div class="profile-info">
-                                <div class="profile-name" id="profileName">
-                                    Loading...
-                                </div>
-                                <div class="profile-username" id="profileUsername">@username</div>
-                                <div class="profile-bio" id="profileBio">
-                                    No bio yet. Click edit to add one!
-                                </div>
-                                <div class="profile-meta">
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span id="profileLocation">Location not set</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span id="memberSince">Member since 2023</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-bookmark"></i>
-                                        <span id="visitedCountMeta">0 saved items</span>
-                                    </div>
-                                </div>
-                                <div class="profile-badges" id="profileBadges"></div>
+                    <!-- Stats Box -->
+                    <div class="profile-card profile-stats-card">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-value" id="visitedCount">0</div>
+                                <div class="stat-label">Saved</div>
                             </div>
-
-                            <div class="profile-actions">
-                                <div class="profile-actions-label">Quick actions</div>
-                                <div class="profile-actions-grid">
-                                    <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                                        <i class="fas fa-edit"></i> Edit Profile
-                                    </button>
-                                    <button class="btn btn-secondary d-none" id="followButton">
-                                        Follow
-                                    </button>
-                                    <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
-                                        <i class="fas fa-cog"></i> Settings
-                                    </button>
-                                    <button class="btn btn-secondary profile-logout-btn" onclick="ProfileManager.logout()" id="logoutActionBtn">
-                                        <i class="fas fa-sign-out-alt"></i> Logout
-                                    </button>
-                                </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="listsCount">0</div>
+                                <div class="stat-label">Lists</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="reviewsCount">0</div>
+                                <div class="stat-label">Reviews</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="followersCount">0</div>
+                                <div class="stat-label">Followers</div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="profile-stat-row" aria-label="Profile stats">
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="visitedCount">0</span>
-                                <span class="profile-stat-key">Saved</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="listsCount">0</span>
-                                <span class="profile-stat-key">Lists</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="reviewsCount">0</span>
-                                <span class="profile-stat-key">Reviews</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="followersCount">0</span>
-                                <span class="profile-stat-key">Followers</span>
-                            </div>
-                        </div>
+                    <!-- Actions Box -->
+                    <div class="profile-card profile-actions-card">
+                        <button class="action-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                        <button class="action-btn secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="action-btn secondary d-none" id="followButton">
+                            <i class="fas fa-user-plus"></i> Follow
+                        </button>
+                        <button class="action-btn danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
                     </div>
                 </div>
             </div>

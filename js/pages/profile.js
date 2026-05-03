@@ -13392,52 +13392,32 @@
                             continue;
                         }
 
-                        // Convert to taste identity format with list-based weights
-                        const processedItems = (listItems || []).map(item => {
+                        // Group items by their media ID to collect all listTypes
+                        const itemMap = new Map();
+
+                        (listItems || []).forEach(item => {
                             const listInfo = item[listTable] || {};
-                            const listType = item.list_type || 'custom';
-                            const listId = item.list_id || listType;
+                            const listType = (item.list_type || 'custom').toLowerCase();
+                            const itemId = item[itemField];
 
-                            // Determine list weight based on intent
-                            let listWeight = 0.5; // default
-                            if (listType === 'favorites') {
-                                listWeight = 1.0;
-                            } else if (listType === 'watchlist' || listType === 'readlist' || listType === 'listenlist' || listType === 'bucketlist' || listType === 'want_to_try' || listType === 'wishlist') {
-                                listWeight = 0.2;
-                            } else if (listType === 'watched' || listType === 'read' || listType === 'listened' || listType === 'visited' || listType === 'tried' || listType === 'owned') {
-                                listWeight = 0.5;
-                            } else if (listType === 'custom') {
-                                // Custom list - analyze title for intent
-                                const listTitle = (listInfo.title || '').toLowerCase();
-                                listWeight = 0.7; // base custom weight
+                            if (!itemId) return;
 
-                                // Boost for specific intent keywords
-                                if (listTitle.includes('sad') || listTitle.includes('cry') || listTitle.includes('emotional')) {
-                                    listWeight = 0.9;
-                                } else if (listTitle.includes('mind') || listTitle.includes('deep') || listTitle.includes('philosophy')) {
-                                    listWeight = 0.9;
-                                } else if (listTitle.includes('dark') || listTitle.includes('disturbing')) {
-                                    listWeight = 0.85;
-                                } else if (listTitle.includes('fun') || listTitle.includes('chill') || listTitle.includes('comfort')) {
-                                    listWeight = 0.8;
-                                }
+                            if (!itemMap.has(itemId)) {
+                                itemMap.set(itemId, {
+                                    title: item.title || item.name || '',
+                                    mediaType: mediaType,
+                                    listTypes: [],
+                                    poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
+                                });
                             }
 
-                            return {
-                                title: item.title || item.name || '',
-                                mediaType: mediaType,
-                                listType: listType,
-                                listId: listId,
-                                listTitle: listInfo.title || listType,
-                                listWeight: listWeight,
-                                finalWeight: listWeight,
-                                isFavorite: listType === 'favorites',
-                                isWatchlist: listType === 'watchlist' || listType === 'readlist' || listType === 'listenlist',
-                                poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
-                            };
+                            const itemData = itemMap.get(itemId);
+                            if (!itemData.listTypes.includes(listType)) {
+                                itemData.listTypes.push(listType);
+                            }
                         });
 
-                        allItems.push(...processedItems);
+                        allItems.push(...Array.from(itemMap.values()));
                     }
 
                     // Generate taste identity
