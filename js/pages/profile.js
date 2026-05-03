@@ -13369,14 +13369,40 @@
             async function fetchUserRatedItems(userId) {
                 if (!supabase || !userId) return [];
                 
-                // Use list_items tables to get saved items with behavior signals
+                // Fetch items with list context (intent-based signals)
                 const tables = Object.values(MEDIA_ITEM_TABLES);
+                const listTables = Object.values(CUSTOM_LIST_TABLES);
                 const allItems = [];
                 const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
                 
+                // Build list name map for intent detection
+                const listNameMap = new Map();
+                
+                // Fetch all custom lists for this user
+                for (const listTable of listTables) {
+                    try {
+                        const mediaType = Object.keys(CUSTOM_LIST_TABLES).find(key => CUSTOM_LIST_TABLES[key] === listTable);
+                        const { data: lists, error } = await supabase
+                            .from(listTable)
+                            .select('id, name, list_type')
+                            .eq('user_id', userId);
+                        
+                        if (!error && lists) {
+                            lists.forEach(list => {
+                                listNameMap.set(`${mediaType}:${list.id}`, {
+                                    name: list.name,
+                                    type: list.list_type || 'custom'
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.warn(`Error fetching lists from ${listTable}:`, error);
+                    }
+                }
+                
+                // Fetch list items with their list context
                 for (const table of tables) {
                     try {
-                        // Fetch all items from list
                         const mediaType = table.replace('_list_items', '');
                         const { data, error } = await supabase
                             .from(table)
@@ -13390,7 +13416,6 @@
                         
                         if (data && data.length > 0) {
                             data.forEach(item => {
-                                // Extract data from metadata JSONB field
                                 const metadata = item.metadata || {};
                                 let poster = null;
                                 let title = '';
@@ -13419,41 +13444,83 @@
                                     title = item.title || item.name || item.restaurant_name || '';
                                 }
                                 
-                                // Skip if no title
                                 if (!title) return;
                                 
-                                // Calculate behavior signals
+                                // Get list context
+                                const listId = item.list_id || metadata.list_id;
+                                const listKey = listId ? `${mediaType}:${listId}` : null;
+                                const listInfo = listKey ? listNameMap.get(listKey) : null;
+                                const listName = listInfo?.name || metadata.list_name || item.list_name || '';
+                                const listType = listInfo?.type || metadata.list_type || item.list_type || 'custom';
+                                
+                                // Calculate intent-based signals
                                 const isFavorite = metadata.is_favorite === true || 
-                                                  metadata.list_name?.toLowerCase().includes('favorite') ||
-                                                  item.list_name?.toLowerCase().includes('favorite');
+                                                  listName.toLowerCase().includes('favorite') ||
+                                                  listType === 'favorites';
+                                
+                                const isWatchlist = listType === 'watchlist' || 
+                                                   listType === 'readlist' ||
+                                                   listName.toLowerCase().includes('watch') ||
+                                                   listName.toLowerCase().includes('to read') ||
+                                                   listName.toLowerCase().includes('want to');
                                 
                                 const isCompleted = metadata.status === 'completed' || 
                                                    metadata.status === 'watched' ||
                                                    metadata.status === 'read' ||
+                                                   metadata.status === 'played' ||
                                                    metadata.watched === true ||
-                                                   metadata.read === true;
+                                                   metadata.read === true ||
+                                                   metadata.played === true;
                                 
                                 const isRecent = item.created_at && item.created_at > thirtyDaysAgo;
                                 
-                                // Calculate item score based on behavior
-                                let itemScore = 0;
-                                if (isFavorite) itemScore += 5;
-                                if (isCompleted) itemScore += 3;
-                                if (isRecent) itemScore += 2;
+                                // Calculate list weight based on intent hierarchy
+                                let listWeight = 0.3; // Default for custom lists
                                 
-                                // Rating bonus if available
+                                if (isFavorite) {
+                                    listWeight = 1.0; // "this is me"
+                                } else if (listType === 'watchlist' || isWatchlist) {
+                                    listWeight = 0.25; // "i'm interested"
+                                } else if (isCompleted) {
+                                    listWeight = 0.5; // "i consumed this"
+                                } else if (listType === 'custom') {
+                                    // Custom lists get 0.7-0.9 based on list name intent
+                                    listWeight = 0.8;
+                                    
+                                    // Boost for emotionally-charged list names
+                                    const lowerName = listName.toLowerCase();
+                                    if (lowerName.includes('sad') || lowerName.includes('emotional') || 
+                                        lowerName.includes('cry') || lowerName.includes('feels')) {
+                                        listWeight = 0.9;
+                                    }
+                                    // Boost for intellectual list names
+                                    if (lowerName.includes('mind') || lowerName.includes('deep') || 
+                                        lowerName.includes('think') || lowerName.includes('philosoph')) {
+                                        listWeight = 0.9;
+                                    }
+                                }
+                                
+                                // Rating (secondary signal, 20% weight)
                                 const rating = item.rating || metadata.rating || 0;
-                                if (rating >= 4) itemScore += 2;
+                                const ratingWeight = rating > 0 ? (rating / 5) : 0;
+                                
+                                // Hybrid scoring: list_weight * 0.8 + rating_weight * 0.2
+                                const finalWeight = (listWeight * 0.8) + (ratingWeight * 0.2);
                                 
                                 allItems.push({
                                     title: title,
                                     rating: rating,
                                     poster: poster,
                                     media_type: mediaType,
+                                    listWeight: listWeight,
+                                    ratingWeight: ratingWeight,
+                                    finalWeight: finalWeight,
+                                    listName: listName,
+                                    listType: listType,
                                     isFavorite: isFavorite,
                                     isCompleted: isCompleted,
+                                    isWatchlist: isWatchlist,
                                     isRecent: isRecent,
-                                    itemScore: itemScore,
                                     createdAt: item.created_at
                                 });
                             });

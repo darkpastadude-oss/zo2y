@@ -48,14 +48,14 @@ const TasteIdentity = (function() {
         return tags || [];
     }
 
-    // Compute taste profile from user items (weighted by rating)
+    // Compute taste profile from user items (weighted by intent-based list weight)
     function computeTasteProfile(items) {
         const scoreMap = {};
         
         items.forEach(item => {
             const tags = getItemTags(item);
-            // Weight by rating (higher rating = stronger influence)
-            const weight = item.rating ? (item.rating / 5) : 1;
+            // Use finalWeight which combines list intent (80%) + rating (20%)
+            const weight = item.finalWeight || item.listWeight || 0.5;
             
             tags.forEach(tag => {
                 if (!scoreMap[tag]) {
@@ -188,13 +188,14 @@ const TasteIdentity = (function() {
         }
     }
 
-    // Get top picks based on rating and trait alignment
+    // Get top picks based on intent weight and trait alignment
     function getTopPicks(items, count = 3, scoreMap = {}) {
         if (!items || items.length === 0) return [];
         
         // Calculate final score for each item
         const scoredItems = items.map(item => {
-            let finalScore = item.rating || 3; // Default to mid rating
+            // Use intent-based finalWeight as base score
+            let finalScore = item.finalWeight || item.listWeight || 0.5;
             
             // Add trait matching bonus
             const itemTraits = getItemTags(item);
@@ -220,12 +221,22 @@ const TasteIdentity = (function() {
         return sorted.slice(0, count);
     }
 
-    // Calculate rarity using cosine similarity against global averages
+    // Calculate rarity using cosine similarity against global averages (intent-based)
     function calculateRarity(scoreMap, items) {
         if (!scoreMap || Object.keys(scoreMap).length === 0) return "Analyzing...";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "Discovering...";
+
+        // Calculate intent-based rarity factors
+        const favoriteCount = items.filter(i => i.isFavorite).length;
+        const customListCount = items.filter(i => i.listType === 'custom').length;
+        const watchlistCount = items.filter(i => i.isWatchlist).length;
+        
+        // Niche favorites = actually rare
+        // Mainstream watchlist = doesn't fake uniqueness
+        const intentScore = (favoriteCount * 1.0) + (customListCount * 0.8) - (watchlistCount * 0.3);
+        const intentRatio = intentScore / Math.max(totalItems, 1);
 
         // Simulated global averages (in production, fetch from database)
         const globalAverages = {
@@ -278,23 +289,32 @@ const TasteIdentity = (function() {
         const similarity = dotProduct / (userMagnitude * globalMagnitude);
         
         // Convert similarity to rarity percentile (inverse)
-        const rarityPercentile = Math.round((1 - similarity) * 100);
+        let rarityPercentile = Math.round((1 - similarity) * 100);
+        
+        // Adjust based on intent ratio (high intent = more rare)
+        if (intentRatio > 0.5) rarityPercentile -= 10;
+        if (intentRatio > 0.7) rarityPercentile -= 15;
+        if (intentRatio < 0.2) rarityPercentile += 10;
         
         return `Top ${Math.max(1, Math.min(99, rarityPercentile))}%`;
     }
 
-    // Calculate compatibility based on rating variance and niche score
+    // Calculate compatibility based on intent signals and niche score
     function calculateCompatibility(scoreMap, items) {
         if (!scoreMap || Object.keys(scoreMap).length === 0) return "N/A";
         
         const totalItems = items ? items.length : 0;
         if (totalItems === 0) return "N/A";
 
-        // Calculate rating variance
-        const ratings = items.map(item => item.rating || 3);
-        const avgRating = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-        const variance = ratings.reduce((sum, r) => sum + Math.pow(r - avgRating, 2), 0) / ratings.length;
-
+        // Calculate intent-based signals
+        const favoriteCount = items.filter(i => i.isFavorite).length;
+        const watchlistCount = items.filter(i => i.isWatchlist).length;
+        const customListCount = items.filter(i => i.listType === 'custom').length;
+        
+        // High favorites + low watchlist = picky (strong intent)
+        const intentRatio = favoriteCount / Math.max(totalItems, 1);
+        const watchlistRatio = watchlistCount / Math.max(totalItems, 1);
+        
         // Calculate niche vs mainstream score
         const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'experimental', 'avant-garde', 'chaotic'];
         const mainstreamTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy', 'adventure', 'mainstream'];
@@ -311,13 +331,12 @@ const TasteIdentity = (function() {
             }
         });
 
-        // Determine compatibility
-        const isPicky = variance > 1.5; // High variance = picky
         const isNiche = nicheScore > mainstreamScore;
+        const isPicky = intentRatio > 0.4 && watchlistRatio < 0.3; // Strong favorites, weak watchlist
 
         if (isNiche && isPicky) return "Low (you're picky)";
         if (isNiche) return "Medium (unique tastes)";
-        if (mainstreamScore > 0.6) return "High (you like popular stuff)";
+        if (mainstreamScore > 0.6 && watchlistRatio > 0.4) return "High (you like popular stuff)";
         if (isPicky) return "Medium (selective)";
         return "High (easy to match)";
     }
