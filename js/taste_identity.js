@@ -532,3 +532,6 @@ const TasteIdentity = (function() {
         toggleExpand
     };
 })();
+
+// Expose to global scope for ProfileManager
+window.TasteIdentity = TasteIdentity;

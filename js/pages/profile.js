@@ -13443,9 +13443,13 @@
                     // Generate taste identity
                     const tasteProfile = await TasteIdentity.generateTasteIdentity(allItems);
 
-                    // Render taste card
+                    // Render taste card (both desktop and mobile)
                     if (typeof TasteIdentity.renderTasteCard === 'function') {
                         TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                        const mobileContainer = document.getElementById('mobileTasteCardContainer');
+                        if (mobileContainer) {
+                            TasteIdentity.renderTasteCard('mobileTasteCardContainer', tasteProfile);
+                        }
                     }
 
                 } catch (error) {

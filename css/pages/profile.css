@@ -6429,7 +6429,8 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 @media (max-width: 768px) {
   .taste-card-container {
-    margin: 20px 0;
+    margin: 16px 0;
+    padding: 0 16px;
   }
 
   .taste-card {
