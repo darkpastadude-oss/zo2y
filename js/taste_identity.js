@@ -178,39 +178,69 @@ const TasteIdentity = (function() {
         return sorted.slice(0, count);
     }
 
-    // Calculate rarity score (simulated)
-    function calculateRarity(traits) {
-        if (!traits || traits.length === 0) return "Top 50%";
+    // Calculate rarity score based on item diversity and trait uniqueness
+    function calculateRarity(traits, items) {
+        if (!traits || traits.length === 0) return "Analyzing...";
+        
+        const totalItems = items ? items.length : 0;
+        if (totalItems === 0) return "Discovering...";
 
-        // Simulate rarity based on trait combination
-        const rareTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical'];
-        const commonTraits = ['action', 'fun', 'light', 'emotional'];
+        // Calculate diversity based on media types
+        const mediaTypes = new Set(items.map(item => item.media_type));
+        const diversityScore = mediaTypes.size;
 
-        let rareCount = traits.filter(t => rareTraits.includes(t)).length;
-        let commonCount = traits.filter(t => commonTraits.includes(t)).length;
+        // Trait uniqueness based on how niche the traits are
+        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'experimental', 'avant-garde'];
+        const commonTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy'];
+        
+        let nicheCount = traits.filter(t => nicheTraits.includes(t.toLowerCase())).length;
+        let commonCount = traits.filter(t => commonTraits.includes(t.toLowerCase())).length;
 
-        if (rareCount >= 3) return "Top 5%";
-        if (rareCount >= 2) return "Top 12%";
-        if (rareCount >= 1 && commonCount <= 1) return "Top 18%";
-        if (rareCount >= 1) return "Top 25%";
-        if (commonCount >= 3) return "Top 45%";
-        return "Top 35%";
+        // Calculate rarity percentage based on multiple factors
+        let rarityScore = 50; // Base score
+        
+        // Adjust for niche traits
+        rarityScore -= (nicheCount * 8);
+        
+        // Adjust for common traits
+        rarityScore += (commonCount * 5);
+        
+        // Adjust for diversity
+        rarityScore -= (diversityScore * 3);
+        
+        // Adjust for total items (more items = more accurate rarity)
+        if (totalItems > 50) rarityScore -= 5;
+        if (totalItems > 100) rarityScore -= 5;
+
+        // Clamp between 1 and 99
+        rarityScore = Math.max(1, Math.min(99, rarityScore));
+
+        return `Top ${rarityScore}%`;
     }
 
-    // Calculate compatibility (simulated)
-    function calculateCompatibility(traits) {
+    // Calculate compatibility based on trait specificity
+    function calculateCompatibility(traits, items) {
         if (!traits || traits.length === 0) return "N/A";
+        
+        const totalItems = items ? items.length : 0;
+        if (totalItems === 0) return "N/A";
 
-        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'stylized'];
-        const mainstreamTraits = ['action', 'fun', 'light', 'emotional', 'romantic'];
+        const nicheTraits = ['philosophical', 'psychological', 'atmospheric', 'complex', 'whimsical', 'stylized', 'experimental'];
+        const mainstreamTraits = ['action', 'fun', 'light', 'emotional', 'romantic', 'comedy', 'adventure'];
 
-        let nicheCount = traits.filter(t => nicheTraits.includes(t)).length;
-        let mainstreamCount = traits.filter(t => mainstreamTraits.includes(t)).length;
+        let nicheCount = traits.filter(t => nicheTraits.includes(t.toLowerCase())).length;
+        let mainstreamCount = traits.filter(t => mainstreamTraits.includes(t.toLowerCase())).length;
 
-        if (nicheCount >= 3) return "LOW (you're picky)";
-        if (nicheCount >= 2) return "MEDIUM (you have specific tastes)";
-        if (mainstreamCount >= 3) return "HIGH (easy to match)";
-        return "MEDIUM (balanced tastes)";
+        // Calculate compatibility based on trait balance
+        const totalTraits = traits.length;
+        const nicheRatio = nicheCount / totalTraits;
+        const mainstreamRatio = mainstreamCount / totalTraits;
+
+        if (nicheRatio >= 0.6) return "LOW (you're picky)";
+        if (nicheRatio >= 0.4) return "MEDIUM (you have specific tastes)";
+        if (mainstreamRatio >= 0.6) return "HIGH (easy to match)";
+        if (mainstreamRatio >= 0.4) return "MEDIUM-HIGH (balanced)";
+        return "MEDIUM (unique mix)";
     }
 
     // Main function to generate full taste identity
@@ -244,8 +274,8 @@ const TasteIdentity = (function() {
         const identity = matchIdentity(topTraits);
         const description = generateDescription(topTraits);
         const topPicks = getTopPicks(userItems);
-        const rarity = calculateRarity(topTraits);
-        const compatibility = calculateCompatibility(topTraits);
+        const rarity = calculateRarity(topTraits, userItems);
+        const compatibility = calculateCompatibility(topTraits, userItems);
 
         tasteProfile = {
             unlocked: true,
@@ -317,14 +347,17 @@ const TasteIdentity = (function() {
                     <span class="taste-pick-name">${item.title || item.name}</span>
                 </div>
             `).join('')
-            : `<div class="taste-picks-empty"><p>Rate items to see your top picks here</p></div>`;
+            : `<div class="taste-picks-empty"><p>Save items to see your top picks here</p></div>`;
 
         const traitsHtml = profile.traits.map(trait => `
             <span class="taste-tag">${trait}</span>
         `).join('');
 
+        const isMobile = window.innerWidth <= 768;
+        const cardClass = isMobile ? 'taste-card compact' : 'taste-card';
+
         container.innerHTML = `
-            <div class="taste-card" id="tasteCardElement">
+            <div class="${cardClass}" id="tasteCardElement" onclick="TasteIdentity.toggleExpand(event)">
                 <div class="taste-header">
                     <span>YOUR TASTE IDENTITY</span>
                     <h1 class="taste-title">
@@ -357,11 +390,20 @@ const TasteIdentity = (function() {
                     </div>
                 </div>
                 
-                <button class="taste-share-btn" onclick="TasteIdentity.exportTasteCard('tasteCardElement')">
+                <button class="taste-share-btn" onclick="event.stopPropagation(); TasteIdentity.exportTasteCard('tasteCardElement')">
                     <i class="fas fa-share-alt"></i> Share Your Taste
                 </button>
             </div>
         `;
+    }
+
+    // Toggle expand on mobile
+    function toggleExpand(event) {
+        if (window.innerWidth <= 768) {
+            const card = event.currentTarget;
+            card.classList.toggle('compact');
+            card.classList.toggle('expanded');
+        }
     }
 
     return {
@@ -371,6 +413,7 @@ const TasteIdentity = (function() {
         loadTagsData,
         computeTasteProfile,
         getTopTraits,
-        matchIdentity
+        matchIdentity,
+        toggleExpand
     };
 })();

@@ -13375,10 +13375,15 @@
                 
                 for (const table of tables) {
                     try {
-                        // Fetch all items from list
+                        // Fetch all items from list with their parent data
+                        const mediaType = table.replace('_list_items', '');
+                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
+                        
+                        if (!itemField) continue;
+                        
                         const { data, error } = await supabase
                             .from(table)
-                            .select('*')
+                            .select(`*, ${itemField}(*)`)
                             .eq('user_id', userId);
                         
                         if (error) {
@@ -13388,12 +13393,30 @@
                         
                         if (data && data.length > 0) {
                             data.forEach(item => {
-                                // Include all saved items regardless of rating
+                                // Extract poster from parent item data
+                                const parentItem = item[itemField];
+                                let poster = null;
+                                
+                                if (parentItem && Array.isArray(parentItem) && parentItem.length > 0) {
+                                    const parent = parentItem[0];
+                                    poster = parent.poster_path || parent.poster_url || parent.cover_url || 
+                                             parent.image_url || parent.photo_url || parent.cover_image ||
+                                             parent.thumbnail || null;
+                                }
+                                
+                                // Fallback to item-level fields
+                                if (!poster) {
+                                    poster = item.poster_path || item.poster_url || item.cover_url || 
+                                             item.image_url || item.photo_url || null;
+                                }
+                                
                                 allItems.push({
-                                    title: item.title || item.name || item.restaurant_name || '',
+                                    title: item.title || item.name || item.restaurant_name || 
+                                           (parentItem && parentItem[0]?.title) || 
+                                           (parentItem && parentItem[0]?.name) || '',
                                     rating: item.rating || 0,
-                                    poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || item.photo_url || null,
-                                    media_type: table.replace('_list_items', '')
+                                    poster: poster,
+                                    media_type: mediaType
                                 });
                             });
                         }

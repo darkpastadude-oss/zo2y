@@ -5,14 +5,14 @@
 }
 
 .taste-card {
-    background: linear-gradient(135deg, #132347 0%, #0b1633 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    padding: 32px;
+    background: #0b1633;
+    border-radius: 20px;
+    border: 2px solid rgba(245, 158, 11, 0.5);
+    padding: 28px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 40px rgba(245, 158, 11, 0.1);
 }
 
 .taste-card::before {
@@ -21,8 +21,8 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f59e0b, #e69500, #f59e0b);
+    height: 3px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
 }
 
 .taste-card-locked {
@@ -34,39 +34,40 @@
 }
 
 .taste-header {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
 }
 
 .taste-header > span {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: rgba(245, 158, 11, 0.8);
+    color: rgba(245, 158, 11, 0.9);
     margin-bottom: 8px;
     display: block;
 }
 
 .taste-title {
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 800;
-    color: #ffffff;
-    margin: 12px 0 16px;
+    color: #f59e0b;
+    margin: 8px 0 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    line-height: 1.2;
+    gap: 10px;
+    line-height: 1.1;
+    text-transform: uppercase;
 }
 
 .taste-icon {
-    font-size: 32px;
+    font-size: 28px;
 }
 
 .taste-description {
-    font-size: 16px;
+    font-size: 15px;
     color: #cbd5e1;
-    line-height: 1.6;
-    margin-bottom: 24px;
+    line-height: 1.5;
+    margin-bottom: 20px;
     max-width: 600px;
 }
 
@@ -74,45 +75,46 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .taste-tag {
-    background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: #f59e0b;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 13px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(245, 158, 11, 0.6);
+    color: #ffffff;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: capitalize;
 }
 
 .taste-section {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .taste-section-title {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 14px;
 }
 
 .taste-picks {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 10px;
 }
 
 .taste-pick-item {
     aspect-ratio: 2/3;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 12px;
     overflow: hidden;
     position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .taste-pick-item img {
@@ -126,9 +128,9 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-    padding: 8px;
-    font-size: 11px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.95));
+    padding: 8px 6px;
+    font-size: 10px;
     font-weight: 600;
     color: #ffffff;
     text-align: center;
@@ -141,8 +143,8 @@
     grid-column: 1 / -1;
     padding: 20px;
     text-align: center;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
     border: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
@@ -155,21 +157,21 @@
 .taste-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 24px;
 }
 
 .taste-stat {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 14px;
+    padding: 14px;
     text-align: center;
 }
 
 .taste-stat-label {
     display: block;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -179,20 +181,20 @@
 
 .taste-stat-value {
     display: block;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 800;
     color: #f59e0b;
 }
 
 .taste-share-btn {
     width: 100%;
-    background: linear-gradient(135deg, #f59e0b 0%, #e69500 100%);
-    border: none;
-    border-radius: 12px;
+    background: transparent;
+    border: 2px solid #f59e0b;
+    border-radius: 14px;
     padding: 14px 24px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
-    color: #0b1633;
+    color: #f59e0b;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -202,8 +204,8 @@
 }
 
 .taste-share-btn:hover {
+    background: rgba(245, 158, 11, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
 }
 
 .taste-share-btn:active {
@@ -267,60 +269,88 @@
     }
 
     .taste-card {
-        padding: 20px 16px;
+        padding: 18px 14px;
         border-radius: 16px;
-        background: linear-gradient(135deg, #1a2c5a 0%, #0b1633 100%);
-        border: 2px solid rgba(245, 158, 11, 0.4);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+        border: 2px solid rgba(245, 158, 11, 0.5);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 30px rgba(245, 158, 11, 0.08);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .taste-card.compact {
+        padding: 14px 12px;
+    }
+
+    .taste-card.compact .taste-description,
+    .taste-card.compact .taste-section,
+    .taste-card.compact .taste-stats,
+    .taste-card.compact .taste-share-btn {
+        display: none;
+    }
+
+    .taste-card.compact .taste-tags {
+        margin-bottom: 0;
+    }
+
+    .taste-card.compact::after {
+        content: '▼';
+        position: absolute;
+        top: 14px;
+        right: 12px;
+        font-size: 12px;
+        color: rgba(245, 158, 11, 0.7);
+    }
+
+    .taste-card.expanded::after {
+        content: '▲';
     }
 
     .taste-card::before {
-        height: 3px;
-        background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b);
+        height: 2px;
     }
 
     .taste-header {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .taste-header > span {
-        font-size: 10px;
+        font-size: 9px;
         letter-spacing: 1.5px;
     }
 
     .taste-title {
-        font-size: 24px;
-        margin: 10px 0 12px;
+        font-size: 20px;
+        margin: 6px 0 10px;
     }
 
     .taste-icon {
-        font-size: 30px;
+        font-size: 24px;
     }
 
     .taste-description {
-        font-size: 14px;
-        margin-bottom: 20px;
-        line-height: 1.5;
+        font-size: 13px;
+        margin-bottom: 16px;
+        line-height: 1.4;
     }
 
     .taste-tags {
         gap: 6px;
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .taste-tag {
-        padding: 5px 12px;
-        font-size: 12px;
-        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 11px;
+        border-radius: 10px;
     }
 
     .taste-section {
-        margin-bottom: 20px;
+        margin-bottom: 16px;
     }
 
     .taste-section-title {
-        font-size: 11px;
-        margin-bottom: 12px;
+        font-size: 10px;
+        margin-bottom: 10px;
     }
 
     .taste-picks {
@@ -329,84 +359,84 @@
     }
 
     .taste-pick-item {
-        border-radius: 6px;
+        border-radius: 10px;
     }
 
     .taste-pick-name {
-        font-size: 10px;
-        padding: 6px;
+        font-size: 9px;
+        padding: 6px 4px;
     }
 
     .taste-stats {
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 20px;
+        gap: 8px;
+        margin-bottom: 16px;
     }
 
     .taste-stat {
-        padding: 12px 10px;
-        border-radius: 10px;
+        padding: 12px 8px;
+        border-radius: 12px;
     }
 
     .taste-stat-label {
-        font-size: 10px;
+        font-size: 9px;
         letter-spacing: 0.8px;
     }
 
     .taste-stat-value {
-        font-size: 16px;
+        font-size: 14px;
     }
 
     .taste-share-btn {
-        font-size: 14px;
-        padding: 12px 20px;
-        border-radius: 10px;
+        font-size: 13px;
+        padding: 12px 16px;
+        border-radius: 12px;
     }
 
     .taste-card-locked {
-        padding: 28px 20px;
+        padding: 24px 16px;
         border-radius: 16px;
         border: 2px solid rgba(255, 255, 255, 0.15);
     }
 
     .taste-locked-icon {
-        font-size: 42px;
+        font-size: 38px;
     }
 
     .taste-locked-content h3 {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .taste-locked-content p {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .taste-progress {
-        max-width: 180px;
-        height: 6px;
+        max-width: 160px;
+        height: 5px;
     }
 
     .taste-progress-text {
-        font-size: 11px;
+        font-size: 10px;
     }
 }
 
 @media (max-width: 480px) {
     .taste-card {
-        padding: 18px 14px;
+        padding: 16px 12px;
         border-radius: 14px;
     }
 
     .taste-title {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .taste-icon {
-        font-size: 26px;
+        font-size: 22px;
     }
 
     .taste-description {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .taste-picks {
@@ -419,19 +449,19 @@
     }
 
     .taste-stats {
-        gap: 8px;
+        gap: 6px;
     }
 
     .taste-stat {
-        padding: 10px 8px;
+        padding: 10px 6px;
     }
 
     .taste-stat-value {
-        font-size: 15px;
+        font-size: 13px;
     }
 
     .taste-share-btn {
-        font-size: 13px;
-        padding: 11px 16px;
+        font-size: 12px;
+        padding: 10px 14px;
     }
 }
