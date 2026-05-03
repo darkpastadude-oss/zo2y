@@ -33,6 +33,8 @@
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
   var EXPLICIT_SIGNOUT_TTL_MS = 1000 * 60 * 10;
+  var REDIRECT_RATE_LIMIT_WINDOW_MS = 3000;
+  var REDIRECT_RATE_LIMIT_MAX = 3;
 
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
@@ -88,7 +90,25 @@
 
   var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
 
+  var redirectHistory = [];
+  var redirectBlocked = false;
+
+  function checkRedirectRateLimit() {
+    if (redirectBlocked) return false;
+    var now = Date.now();
+    redirectHistory = redirectHistory.filter(function (ts) { return now - ts < REDIRECT_RATE_LIMIT_WINDOW_MS; });
+    if (redirectHistory.length >= REDIRECT_RATE_LIMIT_MAX) {
+      redirectBlocked = true;
+      console.error('Redirect rate limit exceeded - blocking further redirects to prevent infinite loop');
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#08132b;color:#f8fafc;font-family:system-ui;padding:24px;text-align:center;"><div><h1 style="margin:0 0 16px;font-size:24px;">Redirect loop detected</h1><p style="margin:0 0 24px;color:#9fb0cf;">Too many redirects occurred. Please refresh the page or clear your browser cache.</p><button onclick="location.reload()" style="padding:12px 24px;background:#ffb020;border:none;border-radius:8px;color:#08132b;font-weight:700;cursor:pointer;">Refresh Page</button></div></div>';
+      return false;
+    }
+    redirectHistory.push(now);
+    return true;
+  }
+
   function enforcePrimaryDomainRedirect() {
+    if (!checkRedirectRateLimit()) return false;
     var hostname = String(window.location && window.location.hostname || '').trim().toLowerCase();
     if (hostname !== LEGACY_WWW_DOMAIN) return false;
     try {
@@ -605,6 +625,7 @@
       window.history.replaceState({}, document.title, cleanTarget.pathname + cleanTarget.search + cleanTarget.hash);
       return true;
     }
+    if (!checkRedirectRateLimit()) return false;
     window.location.replace(cleanTarget.toString());
     return true;
   }
@@ -1496,6 +1517,7 @@
   }
 
   function redirectToOnboarding(rawNext, userId) {
+    if (!checkRedirectRateLimit()) return;
     // Onboarding disabled - redirect directly to target
     var next = sanitizeNextPath(rawNext || 'index.html');
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
@@ -1503,6 +1525,7 @@
   }
 
   function redirectToPostAuthTarget(rawNext, options) {
+    if (!checkRedirectRateLimit()) return false;
     var opts = options || {};
     var next = sanitizeNextPath(rawNext || 'index.html');
     if (opts.inPlace === true && getSanitizedCurrentPath() === next) {
@@ -1696,6 +1719,7 @@
   }
 
   function redirectToLogin(rawNext) {
+    if (!checkRedirectRateLimit()) return;
     window.location.replace(buildLoginRedirectTarget(rawNext));
   }
 
@@ -1731,6 +1755,7 @@
     if (!target.searchParams.has('next')) {
       target.searchParams.set('next', readRequestedNextPath(''));
     }
+    if (!checkRedirectRateLimit()) return false;
     window.location.replace(target.toString());
     return true;
   }
@@ -1787,7 +1812,9 @@
         });
         var fallback = new URL(flow === 'signup' ? 'sign-up.html' : 'login.html', window.location.origin);
         fallback.searchParams.set('next', nextPath);
-        window.location.replace(fallback.toString());
+        if (checkRedirectRateLimit()) {
+          window.location.replace(fallback.toString());
+        }
       }
     })();
 
