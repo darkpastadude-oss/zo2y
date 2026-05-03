@@ -33,8 +33,6 @@
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
   var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
   var EXPLICIT_SIGNOUT_TTL_MS = 1000 * 60 * 10;
-  var REDIRECT_RATE_LIMIT_WINDOW_MS = 3000;
-  var REDIRECT_RATE_LIMIT_MAX = 3;
 
   var PUBLIC_PAGE_KEYS = new Set([
     'index',
@@ -90,25 +88,7 @@
 
   var AUTH_ENTRY_PAGES = new Set(['login', 'sign-up', 'signup', 'auth-callback', 'update-password']);
 
-  var redirectHistory = [];
-  var redirectBlocked = false;
-
-  function checkRedirectRateLimit() {
-    if (redirectBlocked) return false;
-    var now = Date.now();
-    redirectHistory = redirectHistory.filter(function (ts) { return now - ts < REDIRECT_RATE_LIMIT_WINDOW_MS; });
-    if (redirectHistory.length >= REDIRECT_RATE_LIMIT_MAX) {
-      redirectBlocked = true;
-      console.error('Redirect rate limit exceeded - blocking further redirects to prevent infinite loop');
-      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#08132b;color:#f8fafc;font-family:system-ui;padding:24px;text-align:center;"><div><h1 style="margin:0 0 16px;font-size:24px;">Redirect loop detected</h1><p style="margin:0 0 24px;color:#9fb0cf;">Too many redirects occurred. Please refresh the page or clear your browser cache.</p><button onclick="location.reload()" style="padding:12px 24px;background:#ffb020;border:none;border-radius:8px;color:#08132b;font-weight:700;cursor:pointer;">Refresh Page</button></div></div>';
-      return false;
-    }
-    redirectHistory.push(now);
-    return true;
-  }
-
   function enforcePrimaryDomainRedirect() {
-    if (!checkRedirectRateLimit()) return false;
     var hostname = String(window.location && window.location.hostname || '').trim().toLowerCase();
     if (hostname !== LEGACY_WWW_DOMAIN) return false;
     try {
@@ -625,7 +605,6 @@
       window.history.replaceState({}, document.title, cleanTarget.pathname + cleanTarget.search + cleanTarget.hash);
       return true;
     }
-    if (!checkRedirectRateLimit()) return false;
     window.location.replace(cleanTarget.toString());
     return true;
   }
@@ -875,12 +854,29 @@
         var profile = getAuthProfileSnapshot(user);
         var profileRow = await readAuthProfileRow(_client, userId);
         if (profileRow) {
+          var rowUsername = String(profileRow.username || '').trim();
           var rowFullName = String(profileRow.full_name || '').trim();
+          if (rowUsername && !isPlaceholderProfileUsername(rowUsername, user)) {
+            profile.username = rowUsername;
+          }
           if (rowFullName) {
             profile.full_name = rowFullName.slice(0, 80);
           }
+        } else {
+          var authUsername = normalizeProfileUsername(
+            user && user.user_metadata && (user.user_metadata.zo2y_username || user.user_metadata.username) || ''
+          );
+          if (authUsername && !isPlaceholderProfileUsername(authUsername, user)) {
+            profile.username = authUsername;
+          }
         }
-        clearOnboardingPending(userId);
+        var needsUsername = profileNeedsConcreteUsername(profile, user);
+        var needsOnboarding = profileNeedsOnboarding(profile);
+        if (needsOnboarding) {
+          markOnboardingPending(userId);
+        } else {
+          clearOnboardingPending(userId);
+        }
         profileLabelCache.set(userId, {
           label: buildProfileLabelFromSources(user, profileRow || profile),
           savedAt: Date.now(),
@@ -890,8 +886,8 @@
           ok: true,
           created: false,
           profile: profile,
-          needsUsername: false,
-          needsOnboarding: false
+          needsUsername: needsUsername,
+          needsOnboarding: needsOnboarding
         };
       } catch (error) {
         return { ok: false, created: false, profile: null, needsUsername: false, needsOnboarding: false, error: error };
@@ -1517,15 +1513,16 @@
   }
 
   function redirectToOnboarding(rawNext, userId) {
-    if (!checkRedirectRateLimit()) return;
-    // Onboarding disabled - redirect directly to target
     var next = sanitizeNextPath(rawNext || 'index.html');
+    if (userId) {
+      markOnboardingPending(userId);
+      markOnboardingRedirectedThisSession(userId);
+    }
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
-    window.location.replace(next);
+    window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent(next));
   }
 
   function redirectToPostAuthTarget(rawNext, options) {
-    if (!checkRedirectRateLimit()) return false;
     var opts = options || {};
     var next = sanitizeNextPath(rawNext || 'index.html');
     if (opts.inPlace === true && getSanitizedCurrentPath() === next) {
@@ -1552,17 +1549,41 @@
       userId: String(session.user && session.user.id || '').trim() || null,
       next: nextPath
     });
-
-    void persistReferralMetadata(client, session.user);
-    void ensureAuthProfile(client, session.user);
-
+    if (flow === 'login') {
+      void persistReferralMetadata(client, session.user);
+      void ensureAuthProfile(client, session.user);
+      redirectToPostAuthTarget(nextPath, {
+        inPlace: opts.inPlace === true
+      });
+      return true;
+    }
     if (flow === 'signup') {
       var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
       if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
       void triggerWelcomeEmail(session, flow);
     }
 
-    clearOnboardingPending(session.user.id);
+    void persistReferralMetadata(client, session.user);
+
+    var profileResult = await ensureAuthProfile(client, session.user);
+    if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
+      clearOnboardingPending(session.user.id);
+      redirectToPostAuthTarget(nextPath, {
+        inPlace: opts.inPlace === true
+      });
+      return true;
+    }
+
+    if (profileResult && profileResult.ok && profileResult.needsOnboarding) {
+      redirectToOnboarding(nextPath, session.user.id);
+      return true;
+    }
+
+    if (flow === 'signup') {
+      redirectToOnboarding(nextPath, session.user.id);
+      return true;
+    }
+
     redirectToPostAuthTarget(nextPath, {
       inPlace: opts.inPlace === true
     });
@@ -1719,7 +1740,6 @@
   }
 
   function redirectToLogin(rawNext) {
-    if (!checkRedirectRateLimit()) return;
     window.location.replace(buildLoginRedirectTarget(rawNext));
   }
 
@@ -1755,7 +1775,6 @@
     if (!target.searchParams.has('next')) {
       target.searchParams.set('next', readRequestedNextPath(''));
     }
-    if (!checkRedirectRateLimit()) return false;
     window.location.replace(target.toString());
     return true;
   }
@@ -1812,9 +1831,7 @@
         });
         var fallback = new URL(flow === 'signup' ? 'sign-up.html' : 'login.html', window.location.origin);
         fallback.searchParams.set('next', nextPath);
-        if (checkRedirectRateLimit()) {
-          window.location.replace(fallback.toString());
-        }
+        window.location.replace(fallback.toString());
       }
     })();
 
@@ -1859,6 +1876,21 @@
         authenticated = !!(session && session.user);
         if (authenticated) {
           persistSessionSnapshot(session);
+        }
+
+        if (authenticated && !AUTH_ENTRY_PAGES.has(pageKey) && pageKey !== 'onboarding') {
+          var userId = String(session.user.id || '').trim();
+          var onboardingParam = false;
+          try {
+            onboardingParam = new URLSearchParams(window.location.search || '').get('onboarding') === '1';
+          } catch (_errSearch) {}
+          if (userId && !onboardingParam) {
+            var profileResult = await ensureAuthProfile(client, session.user);
+            if (profileResult && profileResult.ok && profileResult.needsOnboarding && !wasOnboardingRedirectedThisSession(userId)) {
+              redirectToOnboarding(window.location.pathname + window.location.search + window.location.hash, userId);
+              return true;
+            }
+          }
         }
 
         applyShellState(authenticated, pageKey, {
