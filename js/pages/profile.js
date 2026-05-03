@@ -13369,29 +13369,13 @@
             async function fetchUserRatedItems(userId) {
                 if (!supabase || !userId) return [];
                 
-                // Use review tables instead of list_items tables since they have rating columns
-                const reviewTables = {
-                    movie: 'movie_reviews',
-                    tv: 'tv_reviews',
-                    anime: 'anime_reviews',
-                    game: 'game_reviews',
-                    book: 'book_reviews',
-                    music: 'music_reviews',
-                    travel: 'travel_reviews',
-                    restaurant: 'journal_entries',
-                    fashion: 'fashion_reviews',
-                    food: 'food_reviews',
-                    car: 'car_reviews'
-                };
-                
+                // Use list_items tables to get saved items
+                const tables = Object.values(MEDIA_ITEM_TABLES);
                 const allItems = [];
                 
-                for (const [mediaType, table] of Object.entries(reviewTables)) {
+                for (const table of tables) {
                     try {
-                        // Skip games if disabled
-                        if (mediaType === 'game' && GAMES_DISABLED) continue;
-                        
-                        // Fetch all items and filter for non-null ratings in JavaScript
+                        // Fetch all items from list
                         const { data, error } = await supabase
                             .from(table)
                             .select('*')
@@ -13404,15 +13388,13 @@
                         
                         if (data && data.length > 0) {
                             data.forEach(item => {
-                                // Only include items with a rating
-                                if (item.rating && item.rating > 0) {
-                                    allItems.push({
-                                        title: item.title || item.name || item.restaurant_name || '',
-                                        rating: item.rating || 0,
-                                        poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || item.photo_url || null,
-                                        media_type: mediaType
-                                    });
-                                }
+                                // Include all saved items regardless of rating
+                                allItems.push({
+                                    title: item.title || item.name || item.restaurant_name || '',
+                                    rating: item.rating || 0,
+                                    poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || item.photo_url || null,
+                                    media_type: table.replace('_list_items', '')
+                                });
                             });
                         }
                     } catch (error) {
