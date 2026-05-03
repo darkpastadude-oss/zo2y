@@ -13387,7 +13387,17 @@
                             .select('id, name, list_type')
                             .eq('user_id', userId);
                         
-                        if (!error && lists) {
+                        // Handle 400 errors (table doesn't exist) gracefully
+                        if (error) {
+                            if (error.code === '42P01' || error.status === 400) {
+                                console.log(`Table ${listTable} does not exist, skipping`);
+                                continue;
+                            }
+                            console.warn(`Error fetching lists from ${listTable}:`, error);
+                            continue;
+                        }
+                        
+                        if (lists) {
                             lists.forEach(list => {
                                 listNameMap.set(`${mediaType}:${list.id}`, {
                                     name: list.name,

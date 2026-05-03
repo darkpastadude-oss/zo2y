@@ -72,13 +72,10 @@
 
 .tc-tags span {
     font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 999px;
-
-    background: rgba(255, 179, 71, 0.12);
+    padding: 4px 0;
     color: #ffb347;
-
-    border: 1px solid rgba(255, 179, 71, 0.3);
+    border-bottom: 2px solid #ffb347;
+    text-transform: capitalize;
 }
 
 /* 🎬 section label */
