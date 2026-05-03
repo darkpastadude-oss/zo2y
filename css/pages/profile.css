@@ -911,19 +911,71 @@
             transform: scale(1.05);
         }
 
-        /* === PROFILE HEADER - SIMPLIFIED BOX LAYOUT === */
+        /* === PROFILE HEADER - NORMAL HERO LAYOUT === */
         .profile-header {
-            background: var(--bg);
-            padding: 32px 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 24px;
+            background: transparent;
+            padding: 28px 0 18px;
+            border-bottom: 0;
+            margin-bottom: 16px;
         }
 
-        .profile-grid {
+        .profile-hero-card {
             display: grid;
-            grid-template-columns: 280px 1fr 200px;
-            gap: 20px;
+            gap: 24px;
+            background: linear-gradient(180deg, rgba(19, 35, 71, 0.96), rgba(11, 22, 51, 0.92));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.26);
+        }
+
+        .profile-top {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) minmax(240px, 320px);
             align-items: start;
+            gap: 24px;
+            margin-bottom: 0;
+        }
+
+        .profile-avatar-wrapper {
+            flex-shrink: 0;
+        }
+
+        .profile-info {
+            display: grid;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .profile-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .profile-card {
@@ -982,9 +1034,11 @@
         }
 
         .profile-username {
-            font-size: 14px;
+            font-size: 16px;
             color: var(--muted);
             margin-bottom: 12px;
+            font-weight: 600;
+            word-break: break-word;
         }
 
         .profile-bio {

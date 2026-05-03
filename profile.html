@@ -72,57 +72,61 @@
             </div>
         </div>
 
-        <!-- Profile Header - Simplified Box Layout -->
+        <!-- Profile Header - Normal Hero Layout -->
         <div class="profile-header">
             <div class="container">
-                <div class="profile-grid">
-                    <!-- Avatar & Info Box -->
-                    <div class="profile-card profile-info-card">
-                        <div class="profile-avatar-large" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
-                            @
-                        </div>
-                        <div class="profile-name" id="profileName">Loading...</div>
-                        <div class="profile-username" id="profileUsername">@username</div>
-                        <div class="profile-bio" id="profileBio">No bio yet. Click edit to add one!</div>
-                        <div class="profile-badges" id="profileBadges"></div>
-                    </div>
-
-                    <!-- Stats Box -->
-                    <div class="profile-card profile-stats-card">
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-value" id="visitedCount">0</div>
-                                <div class="stat-label">Saved</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="listsCount">0</div>
-                                <div class="stat-label">Lists</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="reviewsCount">0</div>
-                                <div class="stat-label">Reviews</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="followersCount">0</div>
-                                <div class="stat-label">Followers</div>
+                <div class="profile-hero-card">
+                    <div class="profile-top">
+                        <!-- Avatar -->
+                        <div class="profile-avatar-wrapper">
+                            <div class="profile-avatar-large" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
+                                @
                             </div>
                         </div>
+
+                        <!-- Info -->
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileName">Loading...</div>
+                            <div class="profile-username" id="profileUsername">@username</div>
+                            <div class="profile-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                            <div class="profile-badges" id="profileBadges"></div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="profile-actions">
+                            <button class="action-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            <button class="action-btn secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                            <button class="action-btn secondary d-none" id="followButton">
+                                <i class="fas fa-user-plus"></i> Follow
+                            </button>
+                            <button class="action-btn danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Actions Box -->
-                    <div class="profile-card profile-actions-card">
-                        <button class="action-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                            <i class="fas fa-edit"></i> Edit Profile
-                        </button>
-                        <button class="action-btn secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
-                            <i class="fas fa-cog"></i> Settings
-                        </button>
-                        <button class="action-btn secondary d-none" id="followButton">
-                            <i class="fas fa-user-plus"></i> Follow
-                        </button>
-                        <button class="action-btn danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
+                    <!-- Stats -->
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="visitedCount">0</div>
+                            <div class="stat-label">Saved</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="listsCount">0</div>
+                            <div class="stat-label">Lists</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="reviewsCount">0</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="followersCount">0</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
                     </div>
                 </div>
             </div>
