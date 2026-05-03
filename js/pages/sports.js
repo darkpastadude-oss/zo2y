@@ -1603,12 +1603,6 @@
     window.initIndexStyleListMenu({
       mediaType: 'sports',
       getCurrentUser: () => state.currentUser,
-      setCurrentUser: (user) => {
-        state.currentUser = user || null;
-        if (state.currentUser) {
-          loadFavorites().catch(() => {});
-        }
-      },
       ensureClient: ensureSupabase,
       notify: (message, isError) => showToast(message, isError ? 'error' : 'info'),
       getItemFromCard: (card) => {

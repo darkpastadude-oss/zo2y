@@ -4201,10 +4201,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       customMembershipByItem: new Map(),
       primingScopes: new Set()
     };
-    const homeItemMenuDom = {
-      quickContainer: null,
-      quickNodesByKey: new Map()
-    };
 
     function getHomeMenuItemCacheKey(mediaType, itemId) {
       const type = String(mediaType || '').toLowerCase();
@@ -4229,61 +4225,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         cloned[key] = !!status[key];
       });
       return cloned;
-    }
-
-    function vibrateHomeQuickAction(durationMs) {
-      try {
-        if (!durationMs) return;
-        if (!window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) return;
-        if (navigator && typeof navigator.vibrate === 'function') {
-          navigator.vibrate(Math.max(1, Number(durationMs) || 0));
-        }
-      } catch (_error) {}
-    }
-
-    function animateHomeQuickNode(key, kind) {
-      const node = homeItemMenuDom.quickNodesByKey.get(String(key || '').trim());
-      if (!node || typeof node.animate !== 'function') return;
-      const stateNode = node.querySelector('.menu-quick-state');
-      try {
-        const frames = kind === 'saved'
-          ? [
-              { transform: 'scale(0.985)', boxShadow: '0 0 0 rgba(245,158,11,0)', background: 'rgba(245, 158, 11, 0.12)' },
-              { transform: 'scale(1.02)', boxShadow: '0 0 0 8px rgba(245,158,11,0.18)', background: 'rgba(245, 158, 11, 0.22)' },
-              { transform: 'scale(1)', boxShadow: '0 0 0 rgba(245,158,11,0)', background: '' }
-            ]
-          : kind === 'removed'
-            ? [
-                { transform: 'scale(0.99)', boxShadow: '0 0 0 rgba(140,163,199,0)', background: 'rgba(255,255,255,0.04)' },
-                { transform: 'scale(1.012)', boxShadow: '0 0 0 7px rgba(140,163,199,0.12)', background: 'rgba(255,255,255,0.08)' },
-                { transform: 'scale(1)', boxShadow: '0 0 0 rgba(140,163,199,0)', background: '' }
-              ]
-            : [
-                { transform: 'translateX(0px)' },
-                { transform: 'translateX(-6px)' },
-                { transform: 'translateX(6px)' },
-                { transform: 'translateX(-4px)' },
-                { transform: 'translateX(4px)' },
-                { transform: 'translateX(0px)' }
-              ];
-        node.animate(frames, {
-          duration: kind === 'saved' ? 420 : 360,
-          easing: kind === 'error' ? 'ease-in-out' : 'cubic-bezier(.2,.9,.2,1)'
-        });
-        if (stateNode && typeof stateNode.animate === 'function') {
-          stateNode.animate([
-            { transform: 'scale(0.92)', opacity: 0.76 },
-            { transform: 'scale(1.06)', opacity: 1 },
-            { transform: 'scale(1)', opacity: 1 }
-          ], {
-            duration: 260,
-            easing: 'cubic-bezier(.2,.9,.2,1)'
-          });
-        }
-        if (kind === 'saved') vibrateHomeQuickAction(12);
-        else if (kind === 'removed') vibrateHomeQuickAction(8);
-        else vibrateHomeQuickAction(18);
-      } catch (_error) {}
     }
 
     function readHomeMenuQuickStatusCache(mediaType, itemId, rows) {
@@ -4597,80 +4538,49 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!quickContainer) return;
       if (!homeItemMenuState.quickRows.length) {
         quickContainer.innerHTML = '<div class="menu-empty menu-empty-rich"><div class="menu-empty-title">No quick saves here yet</div><div class="menu-empty-copy">This item type does not have fast-save rows right now, but custom lists can still help you organize it.</div></div>';
-        homeItemMenuDom.quickContainer = quickContainer;
-        homeItemMenuDom.quickNodesByKey.clear();
         return;
       }
       const hasStartedSaving = !homeCurrentUser?.id || !!homeItemMenuState.hasStartedSaving;
-      const nextKeys = homeItemMenuState.quickRows.map((row) => String(row?.key || '')).filter(Boolean);
-      const hasSameKeys = homeItemMenuDom.quickContainer === quickContainer
-        && homeItemMenuDom.quickNodesByKey.size === nextKeys.length
-        && nextKeys.every((key) => homeItemMenuDom.quickNodesByKey.has(key));
-
-      if (!hasSameKeys) {
-        homeItemMenuDom.quickContainer = quickContainer;
-        homeItemMenuDom.quickNodesByKey.clear();
-        quickContainer.innerHTML = `
-          ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
-          ${homeItemMenuState.quickRows.map((row) => `
-            <div class="menu-quick-item" data-quick-key="${row.key}" aria-busy="false" role="button" tabindex="0">
-              <div class="menu-quick-left">
-                <i class="${row.icon}"></i>
-                <span>${row.label}</span>
-              </div>
-              <span class="menu-quick-state"></span>
+      quickContainer.innerHTML = `
+        ${hasStartedSaving ? '' : '<div class="menu-helper">Tap once to save instantly. Use quick lists for speed, then build custom lists underneath.</div>'}
+        ${homeItemMenuState.quickRows.map((row) => {
+        const isActive = !!homeItemMenuState.quickStatus[row.key];
+        const isBusy = homeItemMenuState.pendingQuickKeys.has(row.key);
+        return `
+          <div class="menu-quick-item ${isActive ? 'active' : ''}" data-quick-key="${row.key}" aria-busy="${isBusy ? 'true' : 'false'}">
+            <div class="menu-quick-left">
+              <i class="${row.icon}"></i>
+              <span>${row.label}</span>
             </div>
-          `).join('')}`;
+            <span class="menu-quick-state">${isActive ? 'Saved' : 'Add'}</span>
+          </div>
+        `;
+      }).join('')}`;
 
-        quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
-          const key = String(node.getAttribute('data-quick-key') || '').trim();
+      quickContainer.querySelectorAll('.menu-quick-item').forEach((node) => {
+        node.addEventListener('click', async () => {
+          const key = node.getAttribute('data-quick-key');
           if (!key) return;
-          homeItemMenuDom.quickNodesByKey.set(key, node);
-          const runToggle = async () => {
-            if (homeItemMenuState.pendingQuickKeys.has(key)) return;
-            const payload = buildItemMenuPayload();
-            if (!payload) return;
-            const previousSaved = !!homeItemMenuState.quickStatus[key];
-            const nextSaved = !previousSaved;
-            const quickRows = homeItemMenuState.quickRows;
-            animateHomeQuickNode(key, nextSaved ? 'saved' : 'removed');
-            homeItemMenuState.pendingQuickKeys.add(key);
-            homeItemMenuState.quickStatus[key] = nextSaved;
-            writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
-            renderItemMenuQuickLists();
-            const saveResult = await saveToListFromHome({ ...payload, listType: key, nextSaved });
-            if (!saveResult?.ok) {
-              homeItemMenuState.quickStatus[key] = previousSaved;
-              animateHomeQuickNode(key, 'error');
-            } else if (typeof saveResult.saved === 'boolean') {
-              homeItemMenuState.quickStatus[key] = saveResult.saved;
-            }
-            writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
-            homeItemMenuState.pendingQuickKeys.delete(key);
-            renderItemMenuQuickLists();
-          };
-          node.addEventListener('click', () => void runToggle());
-          node.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              void runToggle();
-            }
-          });
+          if (homeItemMenuState.pendingQuickKeys.has(key)) return;
+          const payload = buildItemMenuPayload();
+          if (!payload) return;
+          const previousSaved = !!homeItemMenuState.quickStatus[key];
+          const nextSaved = !previousSaved;
+          const quickRows = homeItemMenuState.quickRows;
+          homeItemMenuState.pendingQuickKeys.add(key);
+          homeItemMenuState.quickStatus[key] = nextSaved;
+          writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
+          renderItemMenuQuickLists();
+          const saveResult = await saveToListFromHome({ ...payload, listType: key, nextSaved });
+          if (!saveResult?.ok) {
+            homeItemMenuState.quickStatus[key] = previousSaved;
+          } else if (typeof saveResult.saved === 'boolean') {
+            homeItemMenuState.quickStatus[key] = saveResult.saved;
+          }
+          writeHomeMenuQuickStatusCache(payload.mediaType, payload.itemId, homeItemMenuState.quickStatus, quickRows);
+          homeItemMenuState.pendingQuickKeys.delete(key);
+          renderItemMenuQuickLists();
         });
-      }
-
-      const helper = quickContainer.querySelector('.menu-helper');
-      if (helper) helper.style.display = hasStartedSaving ? 'none' : '';
-      homeItemMenuState.quickRows.forEach((row) => {
-        const key = String(row?.key || '').trim();
-        const node = homeItemMenuDom.quickNodesByKey.get(key);
-        if (!node) return;
-        const isActive = !!homeItemMenuState.quickStatus[key];
-        const isBusy = homeItemMenuState.pendingQuickKeys.has(key);
-        node.classList.toggle('active', isActive);
-        node.setAttribute('aria-busy', isBusy ? 'true' : 'false');
-        const stateNode = node.querySelector('.menu-quick-state');
-        if (stateNode) stateNode.textContent = isActive ? 'Saved' : 'Add';
       });
     }
 
