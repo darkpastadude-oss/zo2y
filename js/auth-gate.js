@@ -666,15 +666,15 @@
 
   function clearOnboardingPending(userId) {
     safeRemoveLocalStorage(getOnboardingPendingKey(userId));
-    safeRemoveSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim());
+    safeRemoveLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim());
   }
 
   function wasOnboardingRedirectedThisSession(userId) {
-    return safeGetSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim()) === '1';
+    return safeGetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim()) === '1';
   }
 
   function markOnboardingRedirectedThisSession(userId) {
-    safeSetSessionStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
+    safeSetLocalStorage(ONBOARDING_SESSION_PREFIX + String(userId || '').trim(), '1');
   }
 
   function normalizeProfileUsername(value, fallbackValue) {

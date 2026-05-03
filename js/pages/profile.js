@@ -997,6 +997,9 @@
                 
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
+                
+                // Load taste card in background
+                loadTasteCard().catch(err => console.error('Taste card error:', err));
             }
 
             async function loadOtherUserProfile() {
@@ -1858,6 +1861,117 @@
                 } catch (error) {
                     console.error('Error getting user stats:', error);
                     return { savedItemsCount: 0, listsCount: 0 };
+                }
+            }
+
+            async function loadTasteCard() {
+                if (!window.TasteIdentity || !supabase || !currentUser?.id) return;
+                
+                try {
+                    const userId = currentUser.id;
+                    const userItems = [];
+                    
+                    // Fetch items from all media tables with media details
+                    const mediaConfigs = [
+                        { 
+                            listTable: 'movie_list_items', 
+                            mediaTable: 'movies', 
+                            mediaType: 'movie', 
+                            idField: 'movie_id',
+                            mediaFields: 'id, title, poster_path, poster_url'
+                        },
+                        { 
+                            listTable: 'tv_list_items', 
+                            mediaTable: 'tv_shows', 
+                            mediaType: 'tv', 
+                            idField: 'tv_id',
+                            mediaFields: 'id, name, poster_path, poster_url'
+                        },
+                        { 
+                            listTable: 'anime_list_items', 
+                            mediaTable: 'anime', 
+                            mediaType: 'anime', 
+                            idField: 'anime_id',
+                            mediaFields: 'id, title, poster_path, poster_url'
+                        },
+                        { 
+                            listTable: 'game_list_items', 
+                            mediaTable: 'games', 
+                            mediaType: 'game', 
+                            idField: 'game_id',
+                            mediaFields: 'id, name, cover_url, poster_url'
+                        },
+                        { 
+                            listTable: 'book_list_items', 
+                            mediaTable: 'books', 
+                            mediaType: 'book', 
+                            idField: 'book_id',
+                            mediaFields: 'id, title, cover_url, poster_url'
+                        },
+                        { 
+                            listTable: 'music_list_items', 
+                            mediaTable: 'music', 
+                            mediaType: 'music', 
+                            idField: 'track_id',
+                            mediaFields: 'id, title, cover_url, poster_url'
+                        }
+                    ];
+                    
+                    for (const config of mediaConfigs) {
+                        try {
+                            // Fetch list items
+                            const { data: listItems, error: listError } = await supabase
+                                .from(config.listTable)
+                                .select(`${config.idField}, list_type, list_id, created_at`)
+                                .eq('user_id', userId)
+                                .limit(50);
+                            
+                            if (listError || !listItems || listItems.length === 0) continue;
+                            
+                            // Get unique media IDs
+                            const mediaIds = [...new Set(listItems.map(item => item[config.idField]))];
+                            
+                            // Fetch media details
+                            const { data: mediaData, error: mediaError } = await supabase
+                                .from(config.mediaTable)
+                                .select(config.mediaFields)
+                                .in('id', mediaIds);
+                            
+                            if (mediaError || !mediaData) continue;
+                            
+                            // Create media lookup map
+                            const mediaMap = new Map();
+                            mediaData.forEach(media => {
+                                mediaMap.set(media.id, media);
+                            });
+                            
+                            // Combine list items with media data
+                            listItems.forEach(item => {
+                                const media = mediaMap.get(item[config.idField]);
+                                if (media) {
+                                    userItems.push({
+                                        id: item[config.idField],
+                                        title: media.title || media.name || 'Unknown',
+                                        poster: media.poster_path || media.poster_url || media.cover_url || null,
+                                        mediaType: config.mediaType,
+                                        listTypes: [item.list_type],
+                                        listId: item.list_id,
+                                        createdAt: item.created_at
+                                    });
+                                }
+                            });
+                        } catch (err) {
+                            console.warn(`Failed to fetch ${config.listTable}:`, err);
+                        }
+                    }
+                    
+                    // Generate taste identity
+                    const tasteProfile = await window.TasteIdentity.generateTasteIdentity(userItems);
+                    
+                    // Render taste card
+                    window.TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                } catch (error) {
+                    console.error('Error loading taste card:', error);
                 }
             }
 
