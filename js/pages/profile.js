@@ -13375,15 +13375,11 @@
                 
                 for (const table of tables) {
                     try {
-                        // Fetch all items from list with their parent data
+                        // Fetch all items from list
                         const mediaType = table.replace('_list_items', '');
-                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
-                        
-                        if (!itemField) continue;
-                        
                         const { data, error } = await supabase
                             .from(table)
-                            .select(`*, ${itemField}(*)`)
+                            .select('*')
                             .eq('user_id', userId);
                         
                         if (error) {
@@ -13393,16 +13389,24 @@
                         
                         if (data && data.length > 0) {
                             data.forEach(item => {
-                                // Extract poster from parent item data
-                                const parentItem = item[itemField];
+                                // Extract data from metadata JSONB field
+                                const metadata = item.metadata || {};
                                 let poster = null;
+                                let title = '';
                                 
-                                if (parentItem && Array.isArray(parentItem) && parentItem.length > 0) {
-                                    const parent = parentItem[0];
-                                    poster = parent.poster_path || parent.poster_url || parent.cover_url || 
-                                             parent.image_url || parent.photo_url || parent.cover_image ||
-                                             parent.thumbnail || null;
-                                }
+                                // Try to get poster from metadata first
+                                if (metadata.poster_path) poster = metadata.poster_path;
+                                else if (metadata.poster_url) poster = metadata.poster_url;
+                                else if (metadata.cover_url) poster = metadata.cover_url;
+                                else if (metadata.image_url) poster = metadata.image_url;
+                                else if (metadata.photo_url) poster = metadata.photo_url;
+                                else if (metadata.cover_image) poster = metadata.cover_image;
+                                else if (metadata.thumbnail) poster = metadata.thumbnail;
+                                
+                                // Try to get title from metadata
+                                if (metadata.title) title = metadata.title;
+                                else if (metadata.name) title = metadata.name;
+                                else if (metadata.restaurant_name) title = metadata.restaurant_name;
                                 
                                 // Fallback to item-level fields
                                 if (!poster) {
@@ -13410,10 +13414,15 @@
                                              item.image_url || item.photo_url || null;
                                 }
                                 
+                                if (!title) {
+                                    title = item.title || item.name || item.restaurant_name || '';
+                                }
+                                
+                                // Skip if no title
+                                if (!title) return;
+                                
                                 allItems.push({
-                                    title: item.title || item.name || item.restaurant_name || 
-                                           (parentItem && parentItem[0]?.title) || 
-                                           (parentItem && parentItem[0]?.name) || '',
+                                    title: title,
                                     rating: item.rating || 0,
                                     poster: poster,
                                     media_type: mediaType
