@@ -14,8 +14,6 @@
   }
 
   var form = document.getElementById('signupForm');
-  var fullNameInput = document.getElementById('fullName');
-  var usernameInput = document.getElementById('username');
   var emailInput = document.getElementById('email');
   var passwordInput = document.getElementById('password');
   var googleButton = document.getElementById('googleSignup');
@@ -23,7 +21,7 @@
   var inviteBanner = document.getElementById('authInviteBanner');
   var loginLink = document.getElementById('altLoginLink');
 
-  if (!form || !fullNameInput || !usernameInput || !emailInput || !passwordInput || !submitButton || !googleButton) return;
+  if (!form || !emailInput || !passwordInput || !submitButton || !googleButton) return;
 
   var submitDefaultHtml = submitButton.innerHTML;
   var googleDefaultHtml = googleButton.innerHTML;
@@ -153,12 +151,10 @@
 
     clearMessages();
 
-    var fullName = String(fullNameInput.value || '').trim();
-    var username = normalizeUsername(usernameInput.value || '');
     var email = String(emailInput.value || '').trim();
     var password = String(passwordInput.value || '');
 
-    if (!fullName || !username || !email || !password) {
+    if (!email || !password) {
       showError('All fields are required.');
       track('signup_validation_error', { reason: 'missing_fields', path: window.location.pathname });
       return;
@@ -176,12 +172,6 @@
       return;
     }
 
-    if (!auth.isValidUsername(username)) {
-      showError('Username must be 3-30 characters and use only letters, numbers, or underscores.');
-      track('signup_validation_error', { reason: 'invalid_username', path: window.location.pathname });
-      return;
-    }
-
     setSubmitLoading(true);
 
     try {
@@ -191,8 +181,6 @@
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          fullName: fullName,
-          username: username,
           email: email,
           password: password
         })
@@ -244,14 +232,22 @@
       }, true);
       markFirstAction('first_signup_success', { method: 'password' });
       redirectInFlight = true;
-      showSuccess('Account created. Redirecting...');
+      showSuccess('Account created!');
 
-      await auth.finishAuthRedirect({
-        client: client,
-        session: signInResult.data.session,
-        flow: 'signup',
-        next: auth.readRequestedNextPath(window.location.search)
-      });
+      // Set flag to trigger username popup
+      if (window.ZO2Y_USERNAME_POPUP && typeof window.ZO2Y_USERNAME_POPUP.setRequired === 'function') {
+        window.ZO2Y_USERNAME_POPUP.setRequired(true);
+      }
+
+      // Redirect after short delay to allow popup to show
+      setTimeout(function () {
+        auth.finishAuthRedirect({
+          client: client,
+          session: signInResult.data.session,
+          flow: 'signup',
+          next: auth.readRequestedNextPath(window.location.search)
+        });
+      }, 500);
     } catch (error) {
       track('signup_error', {
         method: 'password',

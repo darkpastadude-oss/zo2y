@@ -83,49 +83,103 @@ router.get("/csrf-token", getCsrfToken);
 router.get("/check-username", async (req, res) => {
   try {
     const username = normalizeUsername(req.query?.username);
+    const accessToken = String(req.get("authorization") || "").trim().replace(/^bearer\s+/i, "");
     
-    if (!isValidUsername(username)) {
-      return res.status(400).json({ 
-        success: false, 
-        available: false,
-        message: "Invalid username format" 
+    // If username parameter provided, check availability
+    if (username) {
+      if (!isValidUsername(username)) {
+        return res.status(400).json({ 
+          success: false, 
+          available: false,
+          message: "Invalid username format" 
+        });
+      }
+
+      const admin = getSupabaseAdminClient();
+      if (!admin) {
+        return res.status(500).json({ 
+          success: false, 
+          available: false,
+          message: "Service unavailable" 
+        });
+      }
+
+      const { data, error } = await admin
+        .from("user_profiles")
+        .select("id")
+        .eq("username", username)
+        .limit(1);
+
+      if (error) {
+        return res.status(500).json({ 
+          success: false, 
+          available: false,
+          message: "Could not check username" 
+        });
+      }
+
+      const isTaken = Array.isArray(data) && data.length > 0;
+      
+      return res.status(200).json({
+        success: true,
+        available: !isTaken,
+        username: username
       });
     }
-
-    const admin = getSupabaseAdminClient();
-    if (!admin) {
-      return res.status(500).json({ 
-        success: false, 
-        available: false,
-        message: "Service unavailable" 
-      });
-    }
-
-    const { data, error } = await admin
-      .from("user_profiles")
-      .select("id")
-      .eq("username", username)
-      .limit(1);
-
-    if (error) {
-      return res.status(500).json({ 
-        success: false, 
-        available: false,
-        message: "Could not check username" 
-      });
-    }
-
-    const isTaken = Array.isArray(data) && data.length > 0;
     
-    return res.status(200).json({
-      success: true,
-      available: !isTaken,
-      username: username
+    // If no username parameter, check if current user has a username
+    if (accessToken) {
+      const admin = getSupabaseAdminClient();
+      if (!admin) {
+        return res.status(500).json({ 
+          success: false, 
+          has_username: false,
+          message: "Service unavailable" 
+        });
+      }
+
+      const { data: userData, error: userError } = await admin.auth.getUser(accessToken);
+      
+      if (userError || !userData?.user?.id) {
+        return res.status(401).json({ 
+          success: false, 
+          has_username: false,
+          message: "Invalid session" 
+        });
+      }
+
+      const userId = userData.user.id;
+
+      const { data: profile, error: profileError } = await admin
+        .from("user_profiles")
+        .select("username")
+        .eq("id", userId)
+        .limit(1);
+
+      if (profileError) {
+        return res.status(500).json({ 
+          success: false, 
+          has_username: false,
+          message: "Could not check profile" 
+        });
+      }
+
+      const hasUsername = Array.isArray(profile) && profile.length > 0 && profile[0].username;
+      
+      return res.status(200).json({
+        success: true,
+        has_username: !!hasUsername,
+        username: hasUsername ? profile[0].username : null
+      });
+    }
+    
+    return res.status(400).json({ 
+      success: false, 
+      message: "Username parameter or authorization required" 
     });
   } catch (error) {
     return res.status(500).json({ 
       success: false, 
-      available: false,
       message: error?.message || "Could not check username" 
     });
   }
@@ -211,13 +265,14 @@ router.post("/save-username", async (req, res) => {
       });
     }
 
-    // Update user metadata
+    // Update user metadata - clear needs_username flag
     const { error: metadataError } = await admin.auth.admin.updateUserById(userId, {
       user_metadata: {
         username: username,
         zo2y_username: username,
         full_name: username,
-        name: username
+        name: username,
+        needs_username: false
       }
     });
 
@@ -336,11 +391,8 @@ router.post("/password-login", async (req, res) => {
 
 router.post("/password-signup", async (req, res) => {
   try {
-    const fullName = normalizeFullName(req.body?.fullName);
-    const username = normalizeUsername(req.body?.username);
     const email = normalizeEmail(req.body?.email);
     const password = String(req.body?.password || "");
-    const onboardingCompletedAt = new Date().toISOString();
 
     // Check account lockout
     if (isAccountLocked(email)) {
@@ -353,15 +405,6 @@ router.post("/password-signup", async (req, res) => {
       });
     }
 
-    if (!fullName || fullName.length < 2) {
-      return res.status(400).json({ success: false, message: "Full name is required." });
-    }
-    if (!isValidUsername(username)) {
-      return res.status(400).json({
-        success: false,
-        message: "Username must be 3-30 characters and use only letters, numbers, or underscores."
-      });
-    }
     if (!isValidEmail(email)) {
       return res.status(400).json({ success: false, message: "Please provide a valid email address." });
     }
@@ -377,35 +420,12 @@ router.post("/password-signup", async (req, res) => {
       });
     }
 
-    const existingUsername = await admin
-      .from("user_profiles")
-      .select("id")
-      .eq("username", username)
-      .limit(1);
-    if (existingUsername.error) {
-      return res.status(500).json({
-        success: false,
-        message: existingUsername.error.message || "Could not verify username availability."
-      });
-    }
-    if (Array.isArray(existingUsername.data) && existingUsername.data.length > 0) {
-      return res.status(409).json({
-        success: false,
-        message: "That username is already taken."
-      });
-    }
-
     const { data, error } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: {
-        full_name: fullName,
-        name: fullName,
-        username,
-        zo2y_username: username,
-        onboarding_completed_at: onboardingCompletedAt,
-        zo2y_onboarded_at: onboardingCompletedAt
+        needs_username: true
       }
     });
 
@@ -424,24 +444,23 @@ router.post("/password-signup", async (req, res) => {
     // Clear failed attempts on successful signup
     clearFailedAuth(email);
 
+    // Create empty profile - username will be set later via popup
     const profilePayload = {
       id: data.user.id,
       user_id: data.user.id,
-      username,
-      full_name: fullName,
-      onboarding_completed_at: onboardingCompletedAt,
-      created_at: onboardingCompletedAt,
-      updated_at: onboardingCompletedAt
+      username: null,
+      full_name: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     let profileWrite = await admin
       .from("user_profiles")
       .upsert(profilePayload, { onConflict: "id" });
 
-    if (profileWrite.error && (shouldStripProfileColumn(profileWrite.error, "user_id") || shouldStripProfileColumn(profileWrite.error, "onboarding_completed_at"))) {
+    if (profileWrite.error && (shouldStripProfileColumn(profileWrite.error, "user_id"))) {
       const fallbackPayload = { ...profilePayload };
       if (shouldStripProfileColumn(profileWrite.error, "user_id")) delete fallbackPayload.user_id;
-      if (shouldStripProfileColumn(profileWrite.error, "onboarding_completed_at")) delete fallbackPayload.onboarding_completed_at;
       profileWrite = await admin
         .from("user_profiles")
         .upsert(fallbackPayload, { onConflict: "id" });
@@ -459,8 +478,7 @@ router.post("/password-signup", async (req, res) => {
       user: {
         id: data.user.id,
         email: data.user.email || email,
-        full_name: fullName,
-        username
+        needs_username: true
       }
     });
   } catch (error) {

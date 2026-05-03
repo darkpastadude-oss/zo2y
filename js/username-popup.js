@@ -361,6 +361,43 @@
     }
   }
 
+  async function checkUserNeedsUsername() {
+    try {
+      if (!window.ZO2Y_AUTH || !window.ZO2Y_AUTH.getActiveSession) return false;
+      var client = window.ZO2Y_AUTH.ensureClient();
+      if (!client) return false;
+      var session = await window.ZO2Y_AUTH.getActiveSession(client, { refreshIfNeeded: true });
+      if (!session || !session.user) return false;
+
+      // Check user metadata first
+      if (session.user.user_metadata && session.user.user_metadata.needs_username === true) {
+        return true;
+      }
+
+      // Check if user has a username in their profile
+      var accessToken = session.access_token;
+      var response = await fetch('/api/auth/check-username', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + accessToken
+        }
+      });
+      
+      if (response.ok) {
+        var data = await response.json();
+        // If user already has a username, don't show popup
+        if (data && data.has_username === true) {
+          return false;
+        }
+      }
+
+      // If we can't determine, check if explicitly required
+      return isUsernameRequired();
+    } catch (_err) {
+      return isUsernameRequired();
+    }
+  }
+
   async function init() {
     addStyles();
     
@@ -399,22 +436,9 @@
       });
     }
     
-    // Only show when explicitly required and after auth is ready.
-    // (Prevents showing before login/signup or for users who already set a username.)
-    if (!isUsernameRequired()) return;
-
-    try {
-      if (window.ZO2Y_AUTH && window.ZO2Y_AUTH.getActiveSession) {
-        var client = window.ZO2Y_AUTH.ensureClient();
-        if (!client) return;
-        var session = await window.ZO2Y_AUTH.getActiveSession(client, { refreshIfNeeded: true });
-        if (!session || !session.user || !session.access_token) return;
-      } else {
-        return;
-      }
-    } catch (_err) {
-      return;
-    }
+    // Check if user needs username
+    var needsUsername = await checkUserNeedsUsername();
+    if (!needsUsername) return;
 
     setTimeout(function () {
       showPopup();

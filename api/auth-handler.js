@@ -81,21 +81,9 @@ export default async function handler(req, res) {
 
   if (section === "password-signup" && method === "POST") {
     try {
-      const fullName = normalizeFullName(req.body?.fullName);
-      const username = normalizeUsername(req.body?.username);
       const email = normalizeEmail(req.body?.email);
       const password = String(req.body?.password || "");
-      const onboardingCompletedAt = new Date().toISOString();
 
-      if (!fullName || fullName.length < 2) {
-        return res.status(400).json({ success: false, message: "Full name is required." });
-      }
-      if (!isValidUsername(username)) {
-        return res.status(400).json({
-          success: false,
-          message: "Username must be 3-30 characters and use only letters, numbers, or underscores."
-        });
-      }
       if (!isValidEmail(email)) {
         return res.status(400).json({ success: false, message: "Please provide a valid email address." });
       }
@@ -111,35 +99,12 @@ export default async function handler(req, res) {
         });
       }
 
-      const existingUsername = await admin
-        .from("user_profiles")
-        .select("id")
-        .eq("username", username)
-        .limit(1);
-      if (existingUsername.error) {
-        return res.status(500).json({
-          success: false,
-          message: existingUsername.error.message || "Could not verify username availability."
-        });
-      }
-      if (Array.isArray(existingUsername.data) && existingUsername.data.length > 0) {
-        return res.status(409).json({
-          success: false,
-          message: "That username is already taken."
-        });
-      }
-
       const { data, error } = await admin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: fullName,
-          name: fullName,
-          username,
-          zo2y_username: username,
-          onboarding_completed_at: onboardingCompletedAt,
-          zo2y_onboarded_at: onboardingCompletedAt
+          needs_username: true
         }
       });
 
@@ -151,24 +116,23 @@ export default async function handler(req, res) {
         });
       }
 
+      // Create empty profile - username will be set later via popup
       const profilePayload = {
         id: data.user.id,
         user_id: data.user.id,
-        username,
-        full_name: fullName,
-        onboarding_completed_at: onboardingCompletedAt,
-        created_at: onboardingCompletedAt,
-        updated_at: onboardingCompletedAt
+        username: null,
+        full_name: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       let profileWrite = await admin
         .from("user_profiles")
         .upsert(profilePayload, { onConflict: "id" });
 
-      if (profileWrite.error && (shouldStripProfileColumn(profileWrite.error, "user_id") || shouldStripProfileColumn(profileWrite.error, "onboarding_completed_at"))) {
+      if (profileWrite.error && (shouldStripProfileColumn(profileWrite.error, "user_id"))) {
         const fallbackPayload = { ...profilePayload };
         if (shouldStripProfileColumn(profileWrite.error, "user_id")) delete fallbackPayload.user_id;
-        if (shouldStripProfileColumn(profileWrite.error, "onboarding_completed_at")) delete fallbackPayload.onboarding_completed_at;
         profileWrite = await admin
           .from("user_profiles")
           .upsert(fallbackPayload, { onConflict: "id" });
@@ -186,8 +150,7 @@ export default async function handler(req, res) {
         user: {
           id: data.user.id,
           email: data.user.email || email,
-          full_name: fullName,
-          username
+          needs_username: true
         }
       });
     } catch (error) {

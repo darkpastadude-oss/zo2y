@@ -83,6 +83,16 @@
       if (statusText) statusText.textContent = 'Opening Zo2y...';
       log('OAuth callback completed for user ' + session.user.id);
 
+      // Check if user needs username (new signup)
+      var needsUsername = session.user.user_metadata && session.user.user_metadata.needs_username === true;
+
+      if (needsUsername) {
+        // Set flag to trigger username popup
+        if (window.ZO2Y_USERNAME_POPUP && typeof window.ZO2Y_USERNAME_POPUP.setRequired === 'function') {
+          window.ZO2Y_USERNAME_POPUP.setRequired(true);
+        }
+      }
+
       await auth.finishAuthRedirect({
         client: client,
         session: session,
