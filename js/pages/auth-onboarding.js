@@ -119,10 +119,21 @@
     }
   }
 
+  usernameInput.addEventListener('input', function (event) {
+    var value = usernameInput.value || '';
+    var newValue = value.replace(/\s+/g, '');
+    if (value !== newValue) {
+      usernameInput.value = newValue;
+    }
+  });
+
   usernameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
       void completeOnboarding();
+    }
+    if (event.key === ' ') {
+      event.preventDefault();
     }
   });
 
