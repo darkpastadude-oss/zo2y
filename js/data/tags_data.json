@@ -1,0 +1,119 @@
+{
+  "media_tags": {
+    "fight_club": ["dark", "philosophical", "intense", "psychological", "realistic"],
+    "the_shawshank_redemption": ["emotional", "hopeful", "realistic", "dramatic", "inspiring"],
+    "interstellar": ["philosophical", "emotional", "sci-fi", "epic", "complex"],
+    "pulp_fiction": ["dark", "stylized", "dialogue-driven", "intense", "crime"],
+    "the_dark_knight": ["dark", "intense", "philosophical", "action", "realistic"],
+    "inception": ["complex", "philosophical", "mind-bending", "sci-fi", "action"],
+    "forrest_gump": ["emotional", "heartwarming", "light", "inspiring", "historical"],
+    "the_matrix": ["philosophical", "sci-fi", "action", "dark", "mind-bending"],
+    "goodfellas": ["dark", "intense", "crime", "realistic", "violent"],
+    "the_godfather": ["dark", "epic", "crime", "dramatic", "complex"],
+    "schindlers_list": ["emotional", "dark", "historical", "dramatic", "powerful"],
+    "spirited_away": ["whimsical", "emotional", "fantasy", "beautiful", "family"],
+    "parasite": ["dark", "satirical", "intense", "social", "thriller"],
+    "the_lion_king": ["emotional", "epic", "family", "inspiring", "animated"],
+    "toy_story": ["light", "heartwarming", "family", "fun", "nostalgic"],
+    "neon_genesis_evangelion": ["dark", "philosophical", "psychological", "complex", "mecha"],
+    "attack_on_titan": ["dark", "intense", "emotional", "action", "violent"],
+    "death_note": ["dark", "philosophical", "psychological", "thriller", "complex"],
+    "fullmetal_alchemist": ["emotional", "philosophical", "action", "complex", "epic"],
+    "one_piece": ["adventurous", "epic", "fun", "emotional", "long-form"],
+    "naruto": ["emotional", "epic", "action", "inspiring", "long-form"],
+    "cowboy_bebop": ["stylish", "dark", "cool", "atmospheric", "episodic"],
+    "steins_gate": ["complex", "philosophical", "sci-fi", "psychological", "thriller"],
+    "your_name": ["emotional", "romantic", "beautiful", "light", "fantasy"],
+    "demon_slayer": ["emotional", "action", "beautiful", "dark", "epic"],
+    "my_hero_academia": ["inspiring", "action", "fun", "emotional", "superhero"],
+    "breaking_bad": ["dark", "intense", "psychological", "crime", "complex"],
+    "game_of_thrones": ["dark", "epic", "political", "intense", "fantasy"],
+    "stranger_things": ["dark", "nostalgic", "thriller", "sci-fi", "emotional"],
+    "the_wire": ["dark", "realistic", "complex", "social", "crime"],
+    "the_sopranos": ["dark", "psychological", "crime", "complex", "dramatic"],
+    "friends": ["light", "fun", "comfort", "romantic", "nostalgic"],
+    "the_office": ["light", "fun", "comfort", "cringe", "relatable"],
+    "dark_souls": ["dark", "challenging", "atmospheric", "complex", "medieval"],
+    "the_witcher_3": ["dark", "epic", "complex", "atmospheric", "rpg"],
+    "red_dead_redemption_2": ["emotional", "epic", "realistic", "atmospheric", "western"],
+    "the_legend_of_zelda": ["adventurous", "epic", "beautiful", "fun", "fantasy"],
+    "minecraft": ["creative", "relaxing", "sandbox", "exploration", "endless"],
+    "overwatch": ["fast", "competitive", "team-based", "fun", "colorful"],
+    "league_of_legends": ["competitive", "complex", "strategic", "intense", "team-based"],
+    "valorant": ["competitive", "strategic", "intense", "tactical", "team-based"],
+    "elden_ring": ["dark", "challenging", "epic", "atmospheric", "complex"],
+    "god_of_war": ["epic", "emotional", "action", "dark", "mythological"],
+    "1984": ["dark", "philosophical", "political", "dystopian", "complex"],
+    "to_kill_a_mockingbird": ["emotional", "social", "inspiring", "dramatic", "classic"],
+    "the_catcher_in_the_rye": ["philosophical", "introspective", "realistic", "coming-of-age", "dark"],
+    "pride_and_prejudice": ["romantic", "light", "social", "classic", "witty"],
+    "the_great_gatsby": ["dark", "philosophical", "social", "beautiful", "tragic"],
+    "harry_potter": ["magical", "adventurous", "emotional", "epic", "fun"],
+    "the_hobbit": ["adventurous", "epic", "fantasy", "fun", "classic"],
+    "dune": ["epic", "philosophical", "complex", "sci-fi", "political"],
+    "the_hunger_games": ["dark", "intense", "dystopian", "action", "emotional"],
+    "lord_of_the_flies": ["dark", "philosophical", "psychological", "intense", "allegorical"]
+  },
+  "identity_archetypes": [
+    {
+      "name": "The Cinematic Overthinker",
+      "icon": "🧠",
+      "traits": ["dark", "philosophical", "complex", "psychological"],
+      "description": "You love slow, emotional, character-driven stories with dark themes and deep meanings."
+    },
+    {
+      "name": "The Adrenaline Addict",
+      "icon": "⚡",
+      "traits": ["fast", "action", "intense", "competitive"],
+      "description": "You thrive on high-energy content that keeps you on the edge of your seat."
+    },
+    {
+      "name": "The Soft Realist",
+      "icon": "💭",
+      "traits": ["emotional", "realistic", "romantic", "heartwarming"],
+      "description": "You enjoy grounded, emotional stories that feel authentic and touching."
+    },
+    {
+      "name": "The Epic Explorer",
+      "icon": "🗺️",
+      "traits": ["epic", "adventurous", "fantasy", "sci-fi"],
+      "description": "You love grand adventures and expansive worlds full of wonder."
+    },
+    {
+      "name": "The Dark Aesthete",
+      "icon": "🖤",
+      "traits": ["dark", "atmospheric", "beautiful", "stylized"],
+      "description": "You appreciate the beauty in darkness and moody, artistic content."
+    },
+    {
+      "name": "The Fun Seeker",
+      "icon": "🎉",
+      "traits": ["light", "fun", "whimsical", "colorful"],
+      "description": "You prefer content that's entertaining, lighthearted, and full of joy."
+    },
+    {
+      "name": "The Complex Mind",
+      "icon": "🔮",
+      "traits": ["complex", "mind-bending", "philosophical", "sci-fi"],
+      "description": "You love content that challenges your intellect and expands your mind."
+    },
+    {
+      "name": "The Emotional Soul",
+      "icon": "💜",
+      "traits": ["emotional", "inspiring", "hopeful", "beautiful"],
+      "description": "You connect deeply with content that moves the heart and inspires."
+    },
+    {
+      "name": "The Strategic Thinker",
+      "icon": "♟️",
+      "traits": ["strategic", "competitive", "complex", "tactical"],
+      "description": "You enjoy content that requires planning, skill, and strategic thinking."
+    },
+    {
+      "name": "The Genre Blender",
+      "icon": "🎭",
+      "traits": ["eclectic", "diverse", "experimental", "unique"],
+      "description": "You have diverse tastes and love content that breaks conventions."
+    }
+  ]
+}

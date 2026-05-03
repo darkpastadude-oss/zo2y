@@ -272,6 +272,9 @@
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
 
+                    // Load taste identity in background
+                    loadTasteIdentity().catch(err => console.error('Taste identity load error:', err));
+
                     // Load restaurants in background
                     if (ENABLE_RESTAURANTS) {
                         loadRestaurants().catch(err => console.error('Restaurant load error:', err));
@@ -13359,6 +13362,57 @@
                 } catch (error) {
                     console.error('Error updating profile:', error);
                     showToast(error?.message || 'Error updating profile', 'error');
+                }
+            }
+
+            // ===== TASTE IDENTITY =====
+            async function fetchUserRatedItems(userId) {
+                if (!supabase || !userId) return [];
+                
+                const tables = Object.values(MEDIA_ITEM_TABLES);
+                const allItems = [];
+                
+                for (const table of tables) {
+                    try {
+                        const { data, error } = await supabase
+                            .from(table)
+                            .select('*')
+                            .eq('user_id', userId)
+                            .not('rating', 'is', null);
+                        
+                        if (error) {
+                            console.warn(`Failed to fetch items from ${table}:`, error);
+                            continue;
+                        }
+                        
+                        if (data && data.length > 0) {
+                            data.forEach(item => {
+                                // Normalize item structure for taste identity
+                                allItems.push({
+                                    title: item.title || item.name || '',
+                                    rating: item.rating || 0,
+                                    poster: item.poster_path || item.poster_url || item.cover_url || item.image_url || null,
+                                    media_type: table.replace('_list_items', '')
+                                });
+                            });
+                        }
+                    } catch (error) {
+                        console.warn(`Error fetching from ${table}:`, error);
+                    }
+                }
+                
+                return allItems;
+            }
+
+            async function loadTasteIdentity() {
+                if (!isViewingOwnProfile || !currentUser?.id) return;
+                
+                try {
+                    const userItems = await fetchUserRatedItems(currentUser.id);
+                    const tasteProfile = await TasteIdentity.generateTasteIdentity(userItems);
+                    TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                } catch (error) {
+                    console.error('Error loading taste identity:', error);
                 }
             }
 

@@ -26,6 +26,8 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
 <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <link rel="stylesheet" href="css/taste-card.css?v=20260503a" />
+  <script src="js/taste_identity.js?v=20260503a" defer></script>
 </head>
 <body>
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -152,6 +154,11 @@
         </div>
 
         <div class="container">
+            <!-- Taste Identity Card -->
+            <div class="taste-card-container" id="tasteCardContainer">
+                <!-- Taste card will be rendered here by JavaScript -->
+            </div>
+
             <div class="profile-primary-nav-shell">
                 <div class="profile-primary-nav" role="tablist" aria-label="Profile sections">
                     <button class="profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
