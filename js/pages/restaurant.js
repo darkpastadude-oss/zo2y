@@ -15,7 +15,7 @@ let listManager = null;
 
 // ========== SUPABASE CONFIG ==========
 const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
+const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
 const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
 // ============================================

@@ -616,8 +616,8 @@
   <script>
   (() => {
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
-      const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || '__SUPABASE_ANON_KEY__';
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
     const COUNTRIES_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const CURATED_TRAVEL_DESTINATIONS = Array.isArray(window.ZO2Y_CURATED_TRAVEL_DESTINATIONS) ? window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.slice() : [];
     const CURATED_TRAVEL_PRIORITY = new Map(CURATED_TRAVEL_DESTINATIONS.map((entry, index) => [String(entry?.code || '').trim().toUpperCase(), index + 1]).filter((entry) => entry[0]));
