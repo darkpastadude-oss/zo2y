@@ -994,7 +994,10 @@
                 updateProfileUI();
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
-                
+
+                // Load taste identity in background
+                loadTasteIdentity().catch(err => console.error('Taste identity error:', err));
+
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
             }
@@ -13359,6 +13362,94 @@
                 } catch (error) {
                     console.error('Error updating profile:', error);
                     showToast(error?.message || 'Error updating profile', 'error');
+                }
+            }
+
+            // ===== TASTE IDENTITY INTEGRATION =====
+            async function loadTasteIdentity() {
+                if (!currentUser || !currentUser.id) return;
+
+                try {
+                    // Fetch all user's list items across all media types
+                    const mediaTypes = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'fashion', 'food', 'car'];
+                    const allItems = [];
+
+                    for (const mediaType of mediaTypes) {
+                        const itemTable = MEDIA_ITEM_TABLES[mediaType];
+                        const listTable = CUSTOM_LIST_TABLES[mediaType];
+                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
+
+                        if (!itemTable || !itemField) continue;
+
+                        // Fetch list items with list info
+                        const { data: listItems, error } = await supabase
+                            .from(itemTable)
+                            .select(`*, ${listTable}(title, id)`)
+                            .eq('user_id', currentUser.id);
+
+                        if (error) {
+                            console.error(`Error fetching ${mediaType} items:`, error);
+                            continue;
+                        }
+
+                        // Convert to taste identity format with list-based weights
+                        const processedItems = (listItems || []).map(item => {
+                            const listInfo = item[listTable] || {};
+                            const listType = item.list_type || 'custom';
+                            const listId = item.list_id || listType;
+
+                            // Determine list weight based on intent
+                            let listWeight = 0.5; // default
+                            if (listType === 'favorites') {
+                                listWeight = 1.0;
+                            } else if (listType === 'watchlist' || listType === 'readlist' || listType === 'listenlist' || listType === 'bucketlist' || listType === 'want_to_try' || listType === 'wishlist') {
+                                listWeight = 0.2;
+                            } else if (listType === 'watched' || listType === 'read' || listType === 'listened' || listType === 'visited' || listType === 'tried' || listType === 'owned') {
+                                listWeight = 0.5;
+                            } else if (listType === 'custom') {
+                                // Custom list - analyze title for intent
+                                const listTitle = (listInfo.title || '').toLowerCase();
+                                listWeight = 0.7; // base custom weight
+
+                                // Boost for specific intent keywords
+                                if (listTitle.includes('sad') || listTitle.includes('cry') || listTitle.includes('emotional')) {
+                                    listWeight = 0.9;
+                                } else if (listTitle.includes('mind') || listTitle.includes('deep') || listTitle.includes('philosophy')) {
+                                    listWeight = 0.9;
+                                } else if (listTitle.includes('dark') || listTitle.includes('disturbing')) {
+                                    listWeight = 0.85;
+                                } else if (listTitle.includes('fun') || listTitle.includes('chill') || listTitle.includes('comfort')) {
+                                    listWeight = 0.8;
+                                }
+                            }
+
+                            return {
+                                title: item.title || item.name || '',
+                                mediaType: mediaType,
+                                listType: listType,
+                                listId: listId,
+                                listTitle: listInfo.title || listType,
+                                listWeight: listWeight,
+                                finalWeight: listWeight,
+                                isFavorite: listType === 'favorites',
+                                isWatchlist: listType === 'watchlist' || listType === 'readlist' || listType === 'listenlist',
+                                poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
+                            };
+                        });
+
+                        allItems.push(...processedItems);
+                    }
+
+                    // Generate taste identity
+                    const tasteProfile = await TasteIdentity.generateTasteIdentity(allItems);
+
+                    // Render taste card
+                    if (typeof TasteIdentity.renderTasteCard === 'function') {
+                        TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                    }
+
+                } catch (error) {
+                    console.error('Error loading taste identity:', error);
                 }
             }
 

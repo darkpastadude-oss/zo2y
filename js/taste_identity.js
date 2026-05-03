@@ -438,15 +438,15 @@ const TasteIdentity = (function() {
         if (!container) return;
 
         // Handle empty top picks
-        const topPicksHtml = profile.topPicks && profile.topPicks.length > 0 
+        const topPicksHtml = profile.topPicks && profile.topPicks.length > 0
             ? profile.topPicks.map(item => {
-                const posterUrl = item.poster || item.image || item.cover_url || 
+                const posterUrl = item.poster || item.image || item.cover_url ||
                                  item.poster_path || item.poster_url || '/newlogo.webp';
                 return `<img src="${posterUrl}" alt="${item.title || item.name}" onerror="this.src='/newlogo.webp'" />`;
             }).join('')
             : `<div class="tc-grid-empty"><p>Save items to see your top picks here</p></div>`;
 
-        const traitsHtml = profile.traits.slice(0, 4).map(trait => 
+        const traitsHtml = profile.traits.slice(0, 4).map(trait =>
             `<span>${trait}</span>`
         ).join('');
 
@@ -474,16 +474,51 @@ const TasteIdentity = (function() {
                 <button class="tc-share" onclick="event.stopPropagation(); TasteIdentity.exportTasteCard('tasteCardElement')">
                     Share your taste
                 </button>
+                ${isMobile ? '<button class="tc-close" onclick="event.stopPropagation(); TasteIdentity.toggleExpand(event)" style="display:none;">✕</button>' : ''}
             </div>
         `;
     }
 
-    // Toggle expand on mobile
+    // Toggle expand on mobile with backdrop
     function toggleExpand(event) {
         if (window.innerWidth <= 768) {
             const card = event.currentTarget;
-            card.classList.toggle('compact');
-            card.classList.toggle('expanded');
+            const isExpanded = card.classList.contains('expanded');
+            
+            if (!isExpanded) {
+                // Create backdrop if it doesn't exist
+                let backdrop = document.getElementById('tasteCardBackdrop');
+                if (!backdrop) {
+                    backdrop = document.createElement('div');
+                    backdrop.id = 'tasteCardBackdrop';
+                    backdrop.className = 'taste-card-backdrop';
+                    document.body.appendChild(backdrop);
+                }
+                
+                // Show backdrop and expand card
+                backdrop.classList.add('active');
+                card.classList.remove('compact');
+                card.classList.add('expanded');
+                
+                // Close on backdrop click
+                backdrop.onclick = () => {
+                    card.classList.remove('expanded');
+                    card.classList.add('compact');
+                    backdrop.classList.remove('active');
+                };
+                
+                // Prevent body scroll
+                document.body.style.overflow = 'hidden';
+            } else {
+                // Close card
+                card.classList.remove('expanded');
+                card.classList.add('compact');
+                const backdrop = document.getElementById('tasteCardBackdrop');
+                if (backdrop) {
+                    backdrop.classList.remove('active');
+                }
+                document.body.style.overflow = '';
+            }
         }
     }
 
