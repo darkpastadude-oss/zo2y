@@ -2,8 +2,8 @@
         const ProfileManager = (function() {
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "https://gfkhjbztayjyojsgdpgk.supabase.co";
-            const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd";
+            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "__SUPABASE_URL__";
+            const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
@@ -399,15 +399,54 @@
                 'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
                 'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
                 'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',
-                'users', 'zo2y', 'test'
+                'users', 'zo2y'
             ]);
+
+            const PROFILE_ONBOARDING_PENDING_PREFIX = 'zo2y_onboarding_pending_v1_';
+            const PROFILE_ONBOARDING_SESSION_PREFIX = 'zo2y_onboarding_session_v1_';
+
+            function getOnboardingPendingKey(userId) {
+                return `${PROFILE_ONBOARDING_PENDING_PREFIX}${String(userId || '').trim()}`;
+            }
+
+            function hasOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    return localStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
+
+            function clearOnboardingPending(userId) {
+                try {
+                    const key = getOnboardingPendingKey(userId);
+                    localStorage.removeItem(key);
+                } catch (_err) {}
+            }
+
+            function markOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    sessionStorage.setItem(key, '1');
+                } catch (_err) {}
+            }
+
+            function wasOnboardingShownThisSession(userId) {
+                try {
+                    const key = `${PROFILE_ONBOARDING_SESSION_PREFIX}${String(userId || '').trim()}`;
+                    return sessionStorage.getItem(key) === '1';
+                } catch (_err) {
+                    return false;
+                }
+            }
 
             function normalizeProfileUsername(value) {
                 const normalized = String(value || '')
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['â€]/g, '')
+                    .replace(/['â€™]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -462,6 +501,11 @@
                 }
 
                 return normalizedUsername;
+            }
+
+            function maybeRedirectUsernameOnboarding() {
+                // Onboarding disabled - username popup will be shown instead
+                return false;
             }
 
             function setupMobileTabsHint() {
@@ -817,6 +861,9 @@
                             const k = localStorage.key(i);
                             if (!k) continue;
                             if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
+                            if (k.indexOf('zo2y-auth-onboarding-') === 0 || k.indexOf('zo2y_onboarding_') === 0) {
+                                localStorage.removeItem(k);
+                            }
                         }
                     } catch (_err3) {}
 
@@ -825,6 +872,9 @@
                             const k2 = sessionStorage.key(j);
                             if (!k2) continue;
                             if (/^sb-[a-z0-9]+-auth-token$/i.test(k2)) sessionStorage.removeItem(k2);
+                            if (k2.indexOf('zo2y-auth-onboarding-') === 0 || k2.indexOf('zo2y_onboarding_') === 0) {
+                                sessionStorage.removeItem(k2);
+                            }
                         }
                     } catch (_err4) {}
                 }
@@ -942,7 +992,9 @@
                 }
                 
                 updateProfileUI();
-
+                // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
+                if (maybeRedirectUsernameOnboarding()) return;
+                
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
             }
@@ -1098,6 +1150,11 @@
                     ...basePayload,
                     user_id: currentUser.id
                 };
+
+                // Mark onboarding pending so the username picker pops instantly for fresh profiles.
+                try {
+                    localStorage.setItem(getOnboardingPendingKey(currentUser.id), '1');
+                } catch (_err) {}
             }
 
             function normalizeProfileTheme(themeValue) {
@@ -1292,24 +1349,24 @@
                 if (foodTitle) foodTitle.textContent = `${userName}'s Food`;
                 if (carsTitle) carsTitle.textContent = `${userName}'s Cars`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
-                if (journalSubtitle) journalSubtitle.textContent = `View ${userName}'s food journal entries`;
-                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `View ${userName}'s restaurant collections`;
-                if (moviesSubtitle) moviesSubtitle.textContent = `View ${userName}'s movie reviews`;
-                if (tvSubtitle) tvSubtitle.textContent = `View ${userName}'s TV show reviews`;
-                if (animeSubtitle) animeSubtitle.textContent = `View ${userName}'s anime reviews`;
-                if (gamesSubtitle) gamesSubtitle.textContent = `View ${userName}'s game reviews`;
-                if (booksSubtitle) booksSubtitle.textContent = `View ${userName}'s book reviews`;
-                if (musicSubtitle) musicSubtitle.textContent = `View ${userName}'s music reviews`;
-                if (sportsSubtitle) sportsSubtitle.textContent = `View ${userName}'s sports teams`;
-                if (travelSubtitle) travelSubtitle.textContent = `View ${userName}'s travel destinations`;
-                if (fashionSubtitle) fashionSubtitle.textContent = `View ${userName}'s fashion brands`;
-                if (foodSubtitle) foodSubtitle.textContent = `View ${userName}'s food spots`;
-                if (carsSubtitle) carsSubtitle.textContent = `View ${userName}'s car brands`;
-                if (communitySubtitle) communitySubtitle.textContent = `View ${userName}'s community activity`;
+                if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
+                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
+                if (moviesSubtitle) moviesSubtitle.textContent = `${userName}'s favorite films`;
+                if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
+                if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
+                if (gamesSubtitle) gamesSubtitle.textContent = `${userName}'s favorite games`;
+                if (booksSubtitle) booksSubtitle.textContent = `${userName}'s favorite books`;
+                if (musicSubtitle) musicSubtitle.textContent = `${userName}'s favorite tracks`;
+                if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;
+                if (travelSubtitle) travelSubtitle.textContent = `${userName}'s saved countries and travel goals`;
+                if (fashionSubtitle) fashionSubtitle.textContent = `${userName}'s favorite fashion brands`;
+                if (foodSubtitle) foodSubtitle.textContent = `${userName}'s favorite food brands`;
+                if (carsSubtitle) carsSubtitle.textContent = `${userName}'s favorite car brands`;
+                if (communitySubtitle) communitySubtitle.textContent = `${userName}'s community connections`;
                 if (followersSectionTitle) followersSectionTitle.textContent = `${userName}'s Followers`;
                 if (followingSectionTitle) followingSectionTitle.textContent = `${userName}'s Following`;
                 if (viewingOtherProfileText) viewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
-                if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `Viewing ${userName}'s profile`;
+                if (mobileViewingOtherProfileText) mobileViewingOtherProfileText.textContent = `${userName}'s profile`;
                 
                 const mobileTabMovies = document.getElementById('mobileTabMovies');
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
@@ -13302,78 +13359,6 @@
                 } catch (error) {
                     console.error('Error updating profile:', error);
                     showToast(error?.message || 'Error updating profile', 'error');
-                }
-            }
-
-            // ===== TASTE IDENTITY INTEGRATION =====
-            async function loadTasteIdentity() {
-                if (!currentUser || !currentUser.id) return;
-
-                try {
-                    // Fetch all user's list items across all media types
-                    const mediaTypes = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'fashion', 'food', 'car'];
-                    const allItems = [];
-
-                    for (const mediaType of mediaTypes) {
-                        const itemTable = MEDIA_ITEM_TABLES[mediaType];
-                        const listTable = CUSTOM_LIST_TABLES[mediaType];
-                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
-
-                        if (!itemTable || !itemField) continue;
-
-                        // Fetch list items with list info
-                        const { data: listItems, error } = await supabase
-                            .from(itemTable)
-                            .select(`*, ${listTable}(title, id)`)
-                            .eq('user_id', currentUser.id);
-
-                        if (error) {
-                            console.error(`Error fetching ${mediaType} items:`, error);
-                            continue;
-                        }
-
-                        // Group items by their media ID to collect all listTypes
-                        const itemMap = new Map();
-
-                        (listItems || []).forEach(item => {
-                            const listInfo = item[listTable] || {};
-                            const listType = (item.list_type || 'custom').toLowerCase();
-                            const itemId = item[itemField];
-
-                            if (!itemId) return;
-
-                            if (!itemMap.has(itemId)) {
-                                itemMap.set(itemId, {
-                                    title: item.title || item.name || '',
-                                    mediaType: mediaType,
-                                    listTypes: [],
-                                    poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
-                                });
-                            }
-
-                            const itemData = itemMap.get(itemId);
-                            if (!itemData.listTypes.includes(listType)) {
-                                itemData.listTypes.push(listType);
-                            }
-                        });
-
-                        allItems.push(...Array.from(itemMap.values()));
-                    }
-
-                    // Generate taste identity
-                    const tasteProfile = await TasteIdentity.generateTasteIdentity(allItems);
-
-                    // Render taste card (both desktop and mobile)
-                    if (typeof TasteIdentity.renderTasteCard === 'function') {
-                        TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
-                        const mobileContainer = document.getElementById('mobileTasteCardContainer');
-                        if (mobileContainer) {
-                            TasteIdentity.renderTasteCard('mobileTasteCardContainer', tasteProfile);
-                        }
-                    }
-
-                } catch (error) {
-                    console.error('Error loading taste identity:', error);
                 }
             }
 
