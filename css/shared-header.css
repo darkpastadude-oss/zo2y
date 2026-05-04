@@ -368,6 +368,47 @@
   filter: brightness(1.1);
 }
 
+.zo2y-logo-anim:hover .zo2y-logo-face .zo2y-logo-img.normal,
+.zo2y-logo-anim:focus-within .zo2y-logo-face .zo2y-logo-img.normal {
+  opacity: 0;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-face .zo2y-logo-img.scared,
+.zo2y-logo-anim:focus-within .zo2y-logo-face .zo2y-logo-img.scared {
+  opacity: 1;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat {
+  opacity: 1;
+  animation: zo2y-logo-sweat 1.2s ease-in-out infinite;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat.sweat-1,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat.sweat-1 {
+  animation-delay: 0ms;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat.sweat-2,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat.sweat-2 {
+  animation-delay: 200ms;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat.sweat-3,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat.sweat-3 {
+  animation-delay: 400ms;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat.sweat-4,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat.sweat-4 {
+  animation-delay: 600ms;
+}
+
+.zo2y-logo-anim:hover .zo2y-logo-sweat.sweat-5,
+.zo2y-logo-anim:focus-within .zo2y-logo-sweat.sweat-5 {
+  animation-delay: 800ms;
+}
+
 
 .zo2y-shared-brand .zo2y-logo-anim {
   --logo-size: 44px;

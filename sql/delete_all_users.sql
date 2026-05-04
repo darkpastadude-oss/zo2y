@@ -1,74 +1,105 @@
--- Delete all user data - COMPLETE AUTH RESET
--- This will delete all users, profiles, and ALL related data
--- Must delete child tables first due to foreign key constraints
+-- Delete ALL users and their data completely
+-- This script removes ALL user-related data including auth.users
+-- Preserves only content catalogs (games, movies, brands, etc.)
 
 begin;
 
--- Delete all user-generated content (order matters for foreign keys)
-delete from public.review_reactions;
-delete from public.review_replies;
-delete from public.review_reactions; -- in case of any remaining
+-- Temporarily disable foreign key constraints to allow deletion
+SET session_replication_role = 'replica';
 
--- Delete all reviews across all content types
-delete from public.movie_reviews;
-delete from public.tv_reviews;
-delete from public.game_reviews;
-delete from public.book_reviews;
-delete from public.music_reviews;
-delete from public.anime_reviews;
-delete from public.travel_reviews;
-delete from public.fashion_reviews;
-delete from public.food_reviews;
-delete from public.car_reviews;
-delete from public.album_reviews;
+-- DELETE ALL USER-GENERATED CONTENT
 
--- Delete all list items
-delete from public.movie_list_items;
-delete from public.tv_list_items;
-delete from public.game_list_items;
-delete from public.book_list_items;
-delete from public.music_list_items;
-delete from public.anime_list_items;
-delete from public.travel_list_items;
-delete from public.fashion_list_items;
-delete from public.food_list_items;
-delete from public.car_list_items;
-delete from public.list_tier_ranks;
+-- Unified media lists (new schema)
+truncate table if exists public.media_list_items cascade;
+truncate table if exists public.media_lists cascade;
 
--- Delete all lists
-delete from public.movie_lists;
-delete from public.tv_lists;
-delete from public.game_lists;
-delete from public.book_lists;
-delete from public.music_lists;
-delete from public.anime_lists;
-delete from public.travel_lists;
-delete from public.fashion_lists;
-delete from public.food_lists;
-delete from public.car_lists;
-delete from public.lists;
-delete from public.lists_restraunts;
-delete from public.list_tier_meta;
-delete from public.list_collaborators;
+-- Reviews and reactions
+truncate table if exists public.review_reactions cascade;
+truncate table if exists public.review_replies cascade;
+truncate table if exists public.reviews cascade;
+truncate table if exists public.movie_reviews cascade;
+truncate table if exists public.tv_reviews cascade;
+truncate table if exists public.game_reviews cascade;
+truncate table if exists public.book_reviews cascade;
+truncate table if exists public.music_reviews cascade;
+truncate table if exists public.anime_reviews cascade;
+truncate table if exists public.travel_reviews cascade;
+truncate table if exists public.fashion_reviews cascade;
+truncate table if exists public.food_reviews cascade;
+truncate table if exists public.car_reviews cascade;
+truncate table if exists public.album_reviews cascade;
+truncate table if exists public.user_album_reviews cascade;
 
--- Delete user favorites
-delete from public.user_favorite_teams;
+-- Social features
+truncate table if exists public.social_comments cascade;
+truncate table if exists public.social_reactions cascade;
 
--- Delete profile data
-delete from public.profile_pinned_lists;
-delete from public.home_spotlight_cache;
-delete from public.user_activity_feed;
+-- Legacy list items
+truncate table if exists public.movie_list_items cascade;
+truncate table if exists public.tv_list_items cascade;
+truncate table if exists public.game_list_items cascade;
+truncate table if exists public.book_list_items cascade;
+truncate table if exists public.music_list_items cascade;
+truncate table if exists public.anime_list_items cascade;
+truncate table if exists public.travel_list_items cascade;
+truncate table if exists public.fashion_list_items cascade;
+truncate table if exists public.food_list_items cascade;
+truncate table if exists public.car_list_items cascade;
 
--- Delete user profiles
-delete from public.user_profiles;
+-- Tier lists
+truncate table if exists public.list_tier_ranks cascade;
+truncate table if exists public.tier_list_items cascade;
+truncate table if exists public.tier_lists cascade;
+truncate table if exists public.list_tier_meta cascade;
 
--- Delete auth users
+-- Legacy lists
+truncate table if exists public.movie_lists cascade;
+truncate table if exists public.tv_lists cascade;
+truncate table if exists public.game_lists cascade;
+truncate table if exists public.book_lists cascade;
+truncate table if exists public.music_lists cascade;
+truncate table if exists public.anime_lists cascade;
+truncate table if exists public.travel_lists cascade;
+truncate table if exists public.fashion_lists cascade;
+truncate table if exists public.food_lists cascade;
+truncate table if exists public.car_lists cascade;
+truncate table if exists public.lists cascade;
+truncate table if exists public.lists_restraunts cascade;
+truncate table if exists public.list_collaborators cascade;
+
+-- User-specific data
+truncate table if exists public.user_favorite_teams cascade;
+truncate table if exists public.notification_preferences cascade;
+truncate table if exists public.profile_pinned_lists cascade;
+truncate table if exists public.home_spotlight_cache cascade;
+truncate table if exists public.user_activity_feed cascade;
+truncate table if exists public.restaurant_submissions cascade;
+truncate table if exists public.support_tickets cascade;
+truncate table if exists public.analytics_events cascade;
+
+-- User profiles
+truncate table if exists public.user_profiles cascade;
+
+-- Travel plans
+truncate table if exists public.travel_plans cascade;
+
+-- Re-enable foreign key constraints
+SET session_replication_role = 'origin';
+
+-- Delete all auth users
 delete from auth.users;
 
 -- Reset sequences
-alter sequence public.user_profiles_id_seq restart with 1;
+alter sequence if exists public.user_profiles_id_seq restart with 1;
+alter sequence if exists public.media_lists_id_seq restart with 1;
+alter sequence if exists public.media_list_items_id_seq restart with 1;
+alter sequence if exists public.analytics_events_id_seq restart with 1;
+alter sequence if exists public.support_tickets_id_seq restart with 1;
+alter sequence if exists public.profile_pinned_lists_id_seq restart with 1;
 
 commit;
 
 -- Verify deletion
-select 'Deleted all user data' as status;
+select 'Deleted all users and their data completely' as status;
+select count(*) as remaining_auth_users from auth.users;
+select count(*) as remaining_user_profiles from public.user_profiles;

@@ -208,12 +208,12 @@
       font-size: 18px;
     }
 
-    .grid { 
-      padding: 12px; 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); 
-      gap: 12px; 
-      align-items: stretch; 
+    .grid {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: stretch;
     }
 
     .card { 
@@ -881,6 +881,15 @@
           platforms: Array.isArray(game.extra?.platforms) ? game.extra.platforms : [],
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
         })).filter((g) => g.id);
+
+        // Sort games: games with covers first, then games without covers
+        state.games.sort((a, b) => {
+          const aHasCover = a.cover && a.cover !== FALLBACK_IMAGE;
+          const bHasCover = b.cover && b.cover !== FALLBACK_IMAGE;
+          if (aHasCover && !bHasCover) return -1;
+          if (!aHasCover && bHasCover) return 1;
+          return 0;
+        });
 
         state.page = 1;
         state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));

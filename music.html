@@ -220,21 +220,39 @@
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
+      position: relative;
     }
     .section-search input {
       flex: 1;
       min-width: 220px;
-      height: 38px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card-2);
-      color: var(--white);
-      padding: 0 10px;
+      height: 41px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f2f7ff;
+      padding: 0 40px 0 12px;
+      font-size: 16px;
+      line-height: 1.2;
       outline: none;
     }
     .section-search input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+      border-color: rgba(245, 158, 11, 0.62);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+    }
+    .section-search .btn {
+      height: 41px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
+      color: #f2f7ff;
+      padding: 0 16px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .section-search .btn:hover {
+      border-color: rgba(245, 158, 11, 0.62);
+      color: #ffd995;
     }
 
     .grid {
