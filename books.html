@@ -940,6 +940,15 @@
 
     let searchDebounceTimer = null;
 
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     async function loadBooksWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
@@ -951,9 +960,12 @@
       const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
+        const subjects = ['fiction', 'literature', 'fantasy', 'science-fiction', 'mystery', 'romance'];
+        const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+        
         try {
           for (let p = apiPageStart; p <= apiPageStart + 6 && books.length < withinOffset + BOOKS_PAGE_SIZE; p += 1) {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${API_PAGE_SIZE}&page=${p}&orderBy=relevance`;
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${randomSubject}&limit=${API_PAGE_SIZE}&page=${p}&orderBy=relevance`;
             const res = await fetch(url);
             if (!res.ok) break;
             const json = await res.json();
@@ -995,6 +1007,10 @@
         seen.add(book.id);
         return true;
       });
+
+      if (!query && state.page === 1) {
+        state.books = shuffleArray(state.books);
+      }
 
       state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
 
