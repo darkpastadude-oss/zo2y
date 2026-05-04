@@ -2876,7 +2876,9 @@
           grid.appendChild(cachedFragment);
           queueWikipediaCoverBackfill(grid);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
-          const totalMatches = Number(cachedFeaturedPage.count || renderedCount) || renderedCount;
+          // For browsing (no query/filters), use high total pages to allow pagination through IGDB
+          const isBrowsing = !state.query && !state.activeGenre && !state.year && !state.platform;
+          const totalMatches = isBrowsing ? 50000 : (Number(cachedFeaturedPage.count || renderedCount) || renderedCount);
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
           state.hasMore = state.page < state.totalPages;
           updatePagination();
@@ -2918,7 +2920,9 @@
           grid.appendChild(fragment);
           queueWikipediaCoverBackfill(grid);
           if (empty) empty.style.display = renderedCount ? 'none' : 'block';
-          const totalMatches = Number(localPayload.count || renderedCount) || renderedCount;
+          // For browsing (no query/filters), use high total pages to allow pagination through IGDB
+          const isBrowsing = !state.query && !state.activeGenre && !state.year && !state.platform;
+          const totalMatches = isBrowsing ? 50000 : (Number(localPayload.count || renderedCount) || renderedCount);
           state.totalPages = Math.max(1, Math.ceil(totalMatches / pageSize));
           state.hasMore = state.page < state.totalPages;
           updatePagination();

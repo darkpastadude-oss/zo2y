@@ -987,64 +987,48 @@
       const signal = booksFetchAbort.signal;
 
       if (!query) {
-        // Load curated trending books on first page, otherwise use Google Books API for pagination
-        if (state.page === 1) {
-          const curatedSeeds = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) ? window.ZO2Y_CURATED_BOOK_SEEDS.slice(0, 100) : [];
-          if (curatedSeeds.length > 0) {
-            // Search for multiple curated books in parallel for faster loading
-            const searchQueries = curatedSeeds.map(seed => `${seed.title} ${seed.author}`).slice(0, 20);
-            const fetchPromises = searchQueries.map(searchQuery =>
-              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=5&page=1`, { signal })
-                .then(res => res.ok ? res.json() : null)
-                .catch(_err => {
-                  console.error('Failed to load curated book:', searchQuery, _err);
-                  return null;
-                })
-            );
-            const results = await Promise.all(fetchPromises);
-            for (const json of results) {
-              if (json) {
-                const bookResults = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
-                books = books.concat(bookResults);
+        // Use Google Books API for consistent pagination across all pages
+        try {
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
+           const res = await fetch(url, { signal });
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
+            apiTotalPages = json?.totalPages || json?.total || 1;
+            
+            // On first page, prepend curated books at the top
+            if (state.page === 1) {
+              const curatedSeeds = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) ? window.ZO2Y_CURATED_BOOK_SEEDS.slice(0, 50) : [];
+              if (curatedSeeds.length > 0) {
+                const searchQueries = curatedSeeds.map(seed => `${seed.title} ${seed.author}`).slice(0, 10);
+                const fetchPromises = searchQueries.map(searchQuery =>
+                  fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=3&page=1`, { signal })
+                    .then(res => res.ok ? res.json() : null)
+                    .catch(_err => null)
+                );
+                const curatedResults = await Promise.all(fetchPromises);
+                const curatedBooks = [];
+                for (const json of curatedResults) {
+                  if (json) {
+                    const bookResults = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
+                    curatedBooks.push(...bookResults);
+                  }
+                }
+                // Remove duplicates from curated books
+                const curatedSeen = new Set();
+                const uniqueCurated = curatedBooks.filter(book => {
+                  const id = book.id || String(book.googleBooksId || book._googleVolumeId || '');
+                  if (curatedSeen.has(id) || !id) return false;
+                  curatedSeen.add(id);
+                  return true;
+                });
+                // Prepend curated books, then API results
+                books = [...uniqueCurated, ...books];
               }
             }
-            // Remove duplicates by ID
-            const seen = new Set();
-            books = books.filter(book => {
-              const id = book.id || String(book.googleBooksId || book._googleVolumeId || '');
-              if (seen.has(id)) return false;
-              seen.add(id);
-              return true;
-            });
-            // For curated books, set a high total pages to allow pagination to continue
-            apiTotalPages = 1000;
-          } else {
-            // Fallback to popular books if no curated seeds
-            try {
-              const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
-               const res = await fetch(url, { signal });
-              if (res.ok) {
-                const json = await res.json();
-                books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-                apiTotalPages = json?.totalPages || json?.total || 1;
-              }
-            } catch (_err) {
-              console.error('Failed to load popular books', _err);
-            }
           }
-        } else {
-          // For pages beyond the first, use Google Books API with broad search
-          try {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
-             const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-              apiTotalPages = json?.totalPages || json?.total || 1;
-            }
-          } catch (_err) {
-            console.error('Failed to load popular books', _err);
-          }
+        } catch (_err) {
+          console.error('Failed to load popular books', _err);
         }
       } else {
         // Try search with variations
@@ -1078,10 +1062,17 @@
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id);
 
+      // Remove duplicates by ID across all books
+      const finalSeen = new Set();
+      state.books = state.books.filter(book => {
+        if (finalSeen.has(book.id)) return false;
+        finalSeen.add(book.id);
+        return true;
+      });
+
       state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
 
-      const roughTotal = apiTotalPages * 40;
-      state.totalPages = Math.max(1, Math.ceil(roughTotal / BOOKS_PAGE_SIZE));
+      state.totalPages = Math.max(1, apiTotalPages);
     }
 
     function debounceSearch(query) {

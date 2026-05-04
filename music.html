@@ -858,17 +858,19 @@
           }
         } else {
           const [trackRes, albumRes] = await Promise.allSettled([
-            fetch('/api/music/popular?limit=40&market=US'),
-            fetch('/api/music/popular-albums?limit=32&market=US&album_types=album')
+            fetch('/api/music/popular?limit=50&market=US'),
+            fetch('/api/music/popular-albums?limit=50&market=US&album_types=album')
           ]);
 
           if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
             const trackJson = await trackRes.value.json();
             trackRows = Array.isArray(trackJson.results) ? trackJson.results : [];
+            state.totalTracks = trackJson.total || trackRows.length || 1000;
           }
           if (albumRes.status === 'fulfilled' && albumRes.value?.ok) {
             const albumJson = await albumRes.value.json();
             albumRows = Array.isArray(albumJson.results) ? albumJson.results : [];
+            state.totalAlbums = albumJson.total || albumRows.length || 1000;
           }
         }
       } catch (_err) {
@@ -899,7 +901,9 @@
 
       state.tracks = mergedLive;
       state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(state.tracks.length / MUSIC_PAGE_SIZE));
+      // Use API total counts for pagination, fallback to loaded count
+      const totalItems = (state.totalTracks || 0) + (state.totalAlbums || 0);
+      state.totalPages = Math.max(1, Math.ceil(totalItems / MUSIC_PAGE_SIZE));
     }
 
     async function loadListStatus() {
