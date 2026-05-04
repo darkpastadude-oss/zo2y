@@ -1156,6 +1156,14 @@
         return true;
       });
 
+      state.games.sort((a, b) => {
+        const aHasCover = !!a.coverUrl;
+        const bHasCover = !!b.coverUrl;
+        if (aHasCover && !bHasCover) return -1;
+        if (!aHasCover && bHasCover) return 1;
+        return 0;
+      });
+
       state.games = state.games.slice(withinOffset, withinOffset + GAMES_PAGE_SIZE);
 
       if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
@@ -1168,22 +1176,28 @@
     }
 
     async function fetchWikipediaCovers() {
-      const client = await ensureSupabase();
-      if (!client) return;
-
       const gamesWithoutCovers = state.games.filter(g => !g.coverUrl && g.name);
       if (gamesWithoutCovers.length === 0) return;
 
       for (const game of gamesWithoutCovers.slice(0, 10)) {
         try {
-          const url = `${IGDB_PROXY_BASE}/games?search="${encodeURIComponent(game.name)}"&limit=1`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            const results = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
-            if (results.length > 0 && results[0].cover) {
-              game.coverUrl = `https://images.igdb.com/igdb/image/upload/t_cover_big/${results[0].cover}.jpg`;
-            }
+          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(game.name + ' video game')}&format=json&origin=*`;
+          const searchRes = await fetch(searchUrl);
+          if (!searchRes.ok) continue;
+          const searchJson = await searchRes.json();
+          const results = searchJson?.query?.search || [];
+          if (results.length === 0) continue;
+
+          const pageTitle = results[0].title;
+          const imageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+          const imageRes = await fetch(imageUrl);
+          if (!imageRes.ok) continue;
+          const imageJson = await imageRes.json();
+          
+          if (imageJson?.originalimage?.source) {
+            game.coverUrl = imageJson.originalimage.source;
+          } else if (imageJson?.thumbnail?.source) {
+            game.coverUrl = imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-');
           }
         } catch (_err) {
           console.error('Failed to fetch Wikipedia cover for', game.name, _err);

@@ -940,6 +940,29 @@
 
     let searchDebounceTimer = null;
 
+    const CURRENT_TOP_BOOK_SEEDS = [
+      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'A Court of Thorns and Roses', author: 'Sarah J. Maas', year: 2015 },
+      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Lessons in Chemistry', author: 'Bonnie Garmus', year: 2022 },
+      { title: 'Tomorrow, and Tomorrow, and Tomorrow', author: 'Gabrielle Zevin', year: 2022 },
+      { title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', year: 2017 },
+      { title: 'It Ends with Us', author: 'Colleen Hoover', year: 2016 },
+      { title: 'Verity', author: 'Colleen Hoover', year: 2018 },
+      { title: 'The Midnight Library', author: 'Matt Haig', year: 2020 },
+      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019 },
+      { title: 'Where the Crawdads Sing', author: 'Delia Owens', year: 2018 },
+      { title: 'The Alchemist', author: 'Paulo Coelho', year: 1988 },
+      { title: 'Atomic Habits', author: 'James Clear', year: 2018 },
+      { title: 'The Song of Achilles', author: 'Madeline Miller', year: 2011 },
+      { title: 'The Love Hypothesis', author: 'Ali Hazelwood', year: 2021 },
+      { title: 'The House in the Cerulean Sea', author: 'TJ Klune', year: 2020 },
+      { title: 'The Thursday Murder Club', author: 'Richard Osman', year: 2020 },
+      { title: 'The Midnight Gang', author: 'David Walliams', year: 2016 }
+    ];
+
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -947,6 +970,15 @@
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
       return arr;
+    }
+
+    function normalizeBookSeedText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
     async function loadBooksWithFallback(queryOverride = '') {
@@ -960,20 +992,42 @@
       const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
-        const subjects = ['fiction', 'literature', 'fantasy', 'science-fiction', 'mystery', 'romance'];
-        const randomSubject = subjects[Math.floor(Math.random() * subjects.length)];
+        const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
         
         try {
-          for (let p = apiPageStart; p <= apiPageStart + 6 && books.length < withinOffset + BOOKS_PAGE_SIZE; p += 1) {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${randomSubject}&limit=${API_PAGE_SIZE}&page=${p}&orderBy=relevance`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
-            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-            books = books.concat(batch);
-            if (!batch.length) break;
-          }
+          const [popularResult, trendingResult] = await Promise.allSettled([
+            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`),
+            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`)
+          ]);
+
+          const popularJson = popularResult.status === 'fulfilled' && popularResult.value.ok 
+            ? await popularResult.value.json() 
+            : null;
+          const trendingJson = trendingResult.status === 'fulfilled' && trendingResult.value.ok 
+            ? await trendingResult.value.json() 
+            : null;
+
+          const popularBooks = Array.isArray(popularJson?.books) ? popularJson.books : [];
+          const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
+
+          const seen = new Set();
+          const merged = [];
+          
+          [...popularBooks, ...trendingBooks].forEach((book) => {
+            const title = normalizeBookSeedText(book?.title || '');
+            const author = normalizeBookSeedText(book?.author || book?.authors?.[0] || '');
+            const key = `${title}::${author}`;
+            if (!title || seen.has(key)) return;
+            seen.add(key);
+            merged.push(book);
+          });
+
+          books = merged;
+          apiTotalResults = Math.max(
+            Number(popularJson?.meta?.numFound || 0),
+            Number(trendingJson?.meta?.numFound || 0),
+            books.length
+          );
         } catch (_err) {
           console.error('Failed to load popular books', _err);
         }
