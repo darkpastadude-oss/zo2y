@@ -983,7 +983,6 @@
       const prevBtn = document.getElementById('prevPageBtn');
       const nextBtn = document.getElementById('nextPageBtn');
       const info = document.getElementById('pageInfo');
-      state.totalPages = Math.max(1, Math.ceil(state.tracks.length / MUSIC_PAGE_SIZE));
       if (state.page > state.totalPages) state.page = state.totalPages;
       if (state.page < 1) state.page = 1;
       if (prevBtn) prevBtn.disabled = state.page <= 1;

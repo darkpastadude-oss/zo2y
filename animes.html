@@ -1002,6 +1002,7 @@
       let animes = [];
       let apiTotalPages = 1;
       let apiTotalResults = null;
+      let totalFilteredCount = null;
 
       ANIMES_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * ANIMES_PAGE_SIZE;
@@ -1024,6 +1025,12 @@
             animes = animes.concat(batch);
             if (!tvResults.length) break;
           }
+          // Estimate total filtered count based on filtering ratio
+          if (animes.length > 0 && apiTotalResults != null) {
+            const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+            const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+            totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+          }
         } catch (_err) {
           console.error('Failed to load anime', _err);
           // Fallback to trending if discover fails
@@ -1040,6 +1047,11 @@
               const batch = filterAnime(tvResults);
               animes = animes.concat(batch);
               if (!tvResults.length) break;
+            }
+            if (animes.length > 0 && apiTotalResults != null) {
+              const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+              const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+              totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
             }
           } catch (_err2) {
             console.error('Failed to load trending anime', _err2);
@@ -1092,6 +1104,12 @@
             }
           }
         }
+        // For search, use the filtered count directly since we fetch more pages
+        if (animes.length > 0 && apiTotalResults != null) {
+          const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+          const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+          totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+        }
       }
 
       state.animes = animes.map((anime) => ({
@@ -1107,7 +1125,10 @@
 
       state.animes = state.animes.slice(withinOffset, withinOffset + ANIMES_PAGE_SIZE);
 
-      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+      // Use estimated filtered count for pagination
+      if (typeof totalFilteredCount === 'number' && Number.isFinite(totalFilteredCount) && totalFilteredCount > 0) {
+        state.totalPages = Math.max(1, Math.ceil(totalFilteredCount / ANIMES_PAGE_SIZE));
+      } else if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
         state.totalPages = Math.max(1, Math.ceil(apiTotalResults / ANIMES_PAGE_SIZE));
       } else {
         const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;

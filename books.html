@@ -16,7 +16,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260419a" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
-<script src="js/data/curated-media.js?v=20260425g" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
@@ -890,11 +889,10 @@
 
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
-    let BOOKS_PAGE_SIZE = 48;
+      const API_PAGE_SIZE = 40;
+      let BOOKS_PAGE_SIZE = 30;
 
     function computeGridPageSize() {
       const grid = document.getElementById('booksGrid');
@@ -909,8 +907,6 @@
     const state = {
       books: [],
       search: '',
-      genre: '',
-      sort: 'popular',
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
@@ -943,112 +939,43 @@
     }
 
     let searchDebounceTimer = null;
-    let booksFetchAbort = null;
-    function normalizeQuery(query) {
-      return String(query || '').trim().replace(/\s+/g, ' ');
-    }
-
-    function getQueryVariations(query) {
-      const normalized = normalizeQuery(query);
-      if (!normalized) return [];
-      
-      const variations = [normalized];
-      
-      // Try without spaces for compound words
-      if (normalized.includes(' ')) {
-        variations.push(normalized.replace(/\s+/g, ''));
-      }
-      
-      // Try with spaces if no spaces
-      if (!normalized.includes(' ') && normalized.length > 3) {
-        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
-        if (spaced !== normalized.toLowerCase()) {
-          variations.push(spaced);
-        }
-      }
-      
-      return [...new Set(variations)];
-    }
 
     async function loadBooksWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
-      let apiTotalPages = 1;
+      let apiTotalResults = null;
 
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
-      const apiPageStart = Math.floor(startIndex / 40) + 1;
-      const withinOffset = startIndex % 40;
-      const needed = withinOffset + BOOKS_PAGE_SIZE;
-      const apiLimit = 40;
-
-      if (booksFetchAbort) booksFetchAbort.abort();
-      booksFetchAbort = new AbortController();
-      const signal = booksFetchAbort.signal;
+      const apiPageStart = Math.floor(startIndex / API_PAGE_SIZE) + 1;
+      const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
-        // Use Google Books API for consistent pagination across all pages
         try {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=${apiPageStart}&orderBy=relevance`;
-           const res = await fetch(url, { signal });
-          if (res.ok) {
+          for (let p = apiPageStart; p <= apiPageStart + 6 && books.length < withinOffset + BOOKS_PAGE_SIZE; p += 1) {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${API_PAGE_SIZE}&page=${p}&orderBy=relevance`;
+            const res = await fetch(url);
+            if (!res.ok) break;
             const json = await res.json();
-            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-            apiTotalPages = json?.totalPages || json?.total || 1;
-            
-            // On first page, prepend curated books at the top
-            if (state.page === 1) {
-              const curatedSeeds = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) ? window.ZO2Y_CURATED_BOOK_SEEDS.slice(0, 50) : [];
-              if (curatedSeeds.length > 0) {
-                const searchQueries = curatedSeeds.map(seed => `${seed.title} ${seed.author}`).slice(0, 10);
-                const fetchPromises = searchQueries.map(searchQuery =>
-                  fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=3&page=1`, { signal })
-                    .then(res => res.ok ? res.json() : null)
-                    .catch(_err => null)
-                );
-                const curatedResults = await Promise.all(fetchPromises);
-                const curatedBooks = [];
-                for (const json of curatedResults) {
-                  if (json) {
-                    const bookResults = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
-                    curatedBooks.push(...bookResults);
-                  }
-                }
-                // Remove duplicates from curated books
-                const curatedSeen = new Set();
-                const uniqueCurated = curatedBooks.filter(book => {
-                  const id = book.id || String(book.googleBooksId || book._googleVolumeId || '');
-                  if (curatedSeen.has(id) || !id) return false;
-                  curatedSeen.add(id);
-                  return true;
-                });
-                // Prepend curated books, then API results
-                books = [...uniqueCurated, ...books];
-              }
-            }
+            if (apiTotalResults == null) apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
+            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+            books = books.concat(batch);
+            if (!batch.length) break;
           }
         } catch (_err) {
           console.error('Failed to load popular books', _err);
         }
       } else {
-        // Try search with variations
-        const variations = getQueryVariations(query);
-        for (const variation of variations) {
-          try {
-              const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}&page=${apiPageStart}`;
-              const res = await fetch(url, { signal });
-              if (res.ok) {
-                const json = await res.json();
-                const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
-                if (results.length > 0) {
-                  books = results;
-                  apiTotalPages = json?.totalPages || json?.total || 1;
-                  break;
-                }
-              }
-          } catch (_err) {
-            console.error('Failed to load books with variation:', variation, _err);
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}`;
+        try {
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+            apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
           }
+        } catch (_err) {
+          console.error('Failed to search books', _err);
         }
       }
 
@@ -1062,17 +989,20 @@
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id);
 
-      // Remove duplicates by ID across all books
-      const finalSeen = new Set();
+      const seen = new Set();
       state.books = state.books.filter(book => {
-        if (finalSeen.has(book.id)) return false;
-        finalSeen.add(book.id);
+        if (seen.has(book.id)) return false;
+        seen.add(book.id);
         return true;
       });
 
       state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
 
-      state.totalPages = Math.max(1, apiTotalPages);
+      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / BOOKS_PAGE_SIZE));
+      } else {
+        state.totalPages = 1;
+      }
     }
 
     function debounceSearch(query) {
@@ -1083,7 +1013,7 @@
         await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
-      }, 220);
+      }, 400);
     }
 
     async function ensureSupabase() {
@@ -1133,27 +1063,6 @@
         if (loginBtn) loginBtn.style.display = 'inline-flex';
         if (signupBtn) signupBtn.style.display = 'inline-flex';
         if (profileBtn) profileBtn.style.display = 'none';
-      }
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    async function loadBooks(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      
-      // Use API directly with shuffling
-      await loadBooksWithFallback(query);
-      
-      // Shuffle results if no search query
-      if (!query) {
-        state.books = shuffleArray(state.books);
       }
     }
 
@@ -1316,7 +1225,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadBooks();
+        await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -1325,7 +1234,6 @@
       }
     }
 
-    // Refresh removed.
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
       const query = String(document.getElementById('q')?.value || '').trim();
       debounceSearch(query);
@@ -1340,12 +1248,6 @@
     document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
     });
-    document.getElementById('genre')?.addEventListener('change', (e) => {
-      state.genre = String(e.target.value || '').trim();
-    });
-    document.getElementById('sort')?.addEventListener('change', (e) => {
-      state.sort = String(e.target.value || 'popular').trim();
-    });
     document.getElementById('refresh')?.addEventListener('click', async () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
       await loadPage();
@@ -1353,14 +1255,14 @@
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
       if (state.page <= 1) return;
       state.page -= 1;
-      await loadBooks();
+      await loadBooksWithFallback();
       await loadListStatus();
       renderGrid();
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (state.page >= state.totalPages) return;
       state.page += 1;
-      await loadBooks();
+      await loadBooksWithFallback();
       await loadListStatus();
       renderGrid();
     });

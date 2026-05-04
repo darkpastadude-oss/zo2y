@@ -1003,6 +1003,7 @@
       let movies = [];
       let apiTotalPages = 1;
       let apiTotalResults = null;
+      let totalFilteredCount = null;
 
       MOVIES_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * MOVIES_PAGE_SIZE;
@@ -1089,6 +1090,12 @@
             }
           }
         }
+        // For search, estimate filtered count since multi-search includes all media types
+        if (movies.length > 0 && apiTotalResults != null) {
+          const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+          const filterRatio = movies.length / Math.min(fetchedRawCount, apiTotalResults);
+          totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+        }
       }
 
       state.movies = movies.map((movie) => ({
@@ -1104,7 +1111,10 @@
 
       state.movies = state.movies.slice(withinOffset, withinOffset + MOVIES_PAGE_SIZE);
 
-      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+      // Use estimated filtered count for pagination when searching
+      if (typeof totalFilteredCount === 'number' && Number.isFinite(totalFilteredCount) && totalFilteredCount > 0) {
+        state.totalPages = Math.max(1, Math.ceil(totalFilteredCount / MOVIES_PAGE_SIZE));
+      } else if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
         state.totalPages = Math.max(1, Math.ceil(apiTotalResults / MOVIES_PAGE_SIZE));
       } else {
         const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;
