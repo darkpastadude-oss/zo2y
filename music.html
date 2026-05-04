@@ -216,43 +216,35 @@
 
     .section-search {
       margin-top: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 56px 56px;
+      gap: 12px;
     }
     .section-search input {
-      flex: 1;
-      min-width: 220px;
-      height: 41px;
-      border-radius: 11px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.04);
-      color: #f2f7ff;
-      padding: 0 40px 0 12px;
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #10224a;
+      color: #fff;
+      padding: 0 18px;
       font-size: 16px;
-      line-height: 1.2;
-      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
     }
-    .section-search input:focus {
-      border-color: rgba(245, 158, 11, 0.62);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
-    }
-    .section-search .btn {
-      height: 41px;
-      border-radius: 11px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.04);
-      color: #f2f7ff;
+    .section-search .control-icon-btn {
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
       padding: 0 16px;
       cursor: pointer;
+      min-width: 92px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       font-weight: 700;
-      font-size: 13px;
-    }
-    .section-search .btn:hover {
-      border-color: rgba(245, 158, 11, 0.62);
-      color: #ffd995;
     }
 
     .grid {
@@ -479,8 +471,8 @@
         <p>Current chart signals and album momentum, refreshed into one feed.</p>
         <div class="section-search">
           <input id="musicPageSearch" type="text" placeholder="Search songs, artists, or albums..." />
-          <button class="btn" id="searchMusicBtn" type="button"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-          <button class="btn" id="clearMusicSearchBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Reset</button>
+          <button id="searchMusicBtn" class="control-icon-btn" type="button" aria-label="Search music"><i class="fas fa-search"></i></button>
+          <button id="clearMusicSearchBtn" class="control-icon-btn" type="button" aria-label="Clear search"><i class="fas fa-rotate-left"></i></button>
         </div>
       </div>
       <div class="grid" id="musicGrid"></div>
