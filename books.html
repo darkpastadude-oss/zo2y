@@ -227,6 +227,24 @@
       max-width: 1240px;
       margin: 12px auto 0;
     }
+
+    .did-you-mean {
+      max-width: 1240px;
+      margin: 8px auto 0;
+      padding: 0 16px;
+      font-size: 13px;
+      color: var(--muted);
+      display: none;
+    }
+
+    .did-you-mean-btn {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+    }
     .controls input, .controls select {
       height: 56px;
       border: 1px solid var(--border);
@@ -804,6 +822,7 @@
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
     </section>
+    <div id="didYouMean" class="did-you-mean" aria-live="polite"></div>
     <div class="control-modal" id="booksFilterModal" aria-hidden="true">
       <div class="control-modal-card">
         <div class="control-modal-head">
@@ -939,6 +958,79 @@
     }
 
     let searchDebounceTimer = null;
+    let searchAbortController = null;
+
+    function normalizeForMatch(value) {
+      return String(value || '')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function damerauLevenshtein(a, b, maxDistance = 3) {
+      const s = normalizeForMatch(a);
+      const t = normalizeForMatch(b);
+      if (!s || !t) return Number.POSITIVE_INFINITY;
+      if (Math.abs(s.length - t.length) > maxDistance) return Number.POSITIVE_INFINITY;
+      const w = t.length + 1;
+      const dp = new Array((s.length + 1) * w).fill(0);
+      const idx = (i, j) => i * w + j;
+      for (let i = 0; i <= s.length; i++) dp[idx(i, 0)] = i;
+      for (let j = 0; j <= t.length; j++) dp[idx(0, j)] = j;
+      for (let i = 1; i <= s.length; i++) {
+        let bestInRow = Number.POSITIVE_INFINITY;
+        for (let j = 1; j <= t.length; j++) {
+          const cost = s[i - 1] === t[j - 1] ? 0 : 1;
+          let v = Math.min(
+            dp[idx(i - 1, j)] + 1,
+            dp[idx(i, j - 1)] + 1,
+            dp[idx(i - 1, j - 1)] + cost
+          );
+          if (i > 1 && j > 1 && s[i - 1] === t[j - 2] && s[i - 2] === t[j - 1]) {
+            v = Math.min(v, dp[idx(i - 2, j - 2)] + cost);
+          }
+          dp[idx(i, j)] = v;
+          if (v < bestInRow) bestInRow = v;
+        }
+        if (bestInRow > maxDistance) return Number.POSITIVE_INFINITY;
+      }
+      return dp[idx(s.length, t.length)];
+    }
+
+    function updateDidYouMean(query, candidates = []) {
+      const el = document.getElementById('didYouMean');
+      if (!el) return;
+      const q = String(query || '').trim();
+      if (!q || q.length < 3) {
+        el.textContent = '';
+        el.style.display = 'none';
+        return;
+      }
+      const uniq = Array.from(new Set((candidates || []).map((c) => String(c || '').trim()).filter(Boolean))).slice(0, 60);
+      let best = '';
+      let bestScore = Number.POSITIVE_INFINITY;
+      for (const c of uniq) {
+        const score = damerauLevenshtein(q, c, 3);
+        if (score < bestScore) {
+          bestScore = score;
+          best = c;
+        }
+      }
+      if (!best || !Number.isFinite(bestScore) || bestScore > 2) {
+        el.textContent = '';
+        el.style.display = 'none';
+        return;
+      }
+      el.innerHTML = `Did you mean <button type="button" class="did-you-mean-btn">${escapeHtml(best)}</button>?`;
+      el.style.display = 'block';
+      el.querySelector('.did-you-mean-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('q');
+        if (input) input.value = best;
+        debounceSearch(best);
+      }, { once: true });
+    }
 
     const CURRENT_TOP_BOOK_SEEDS = [
       { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
@@ -1032,9 +1124,12 @@
           console.error('Failed to load popular books', _err);
         }
       } else {
-        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=intitle:${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&orderBy=relevance`;
+        // Use a broad query so author/title both match, then refine client-side.
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&orderBy=relevance`;
         try {
-          const res = await fetch(url);
+          if (searchAbortController) searchAbortController.abort();
+          searchAbortController = new AbortController();
+          const res = await fetch(url, { signal: searchAbortController.signal });
           if (res.ok) {
             const json = await res.json();
             books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
@@ -1064,6 +1159,13 @@
       });
 
       if (query) {
+        const nq = normalizeForMatch(query);
+        state.books = state.books.filter((b) => {
+          const t = normalizeForMatch(b.title);
+          const a = normalizeForMatch(b.authors);
+          return (t && t.includes(nq)) || (a && a.includes(nq));
+        });
+        updateDidYouMean(query, state.books.flatMap((b) => [b.title, ...String(b.authors || '').split(',').map(s => s.trim())]).filter(Boolean));
         state.books.sort((a, b) => {
           const aHasCover = !!a.coverUrl;
           const bHasCover = !!b.coverUrl;
@@ -1077,7 +1179,7 @@
           
           return 0;
         });
-      } else if (state.page === 1) {
+      } else if (state.page > 1) {
         state.books = shuffleArray(state.books);
       }
 
@@ -1098,7 +1200,7 @@
         await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
-      }, 400);
+      }, 150);
     }
 
     async function ensureSupabase() {

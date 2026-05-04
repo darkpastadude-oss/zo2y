@@ -1,0 +1,446 @@
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '16px';
+      el.style.right = '16px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '10px 14px';
+      el.style.borderRadius = '10px';
+      el.style.fontSize = '13px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+
+    let searchDebounceTimer = null;
+
+    async function loadGamesWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      let games = [];
+      let apiTotalResults = null;
+
+      GAMES_PAGE_SIZE = computeGridPageSize();
+      const startIndex = (state.page - 1) * GAMES_PAGE_SIZE;
+      const withinOffset = startIndex % GAMES_PAGE_SIZE;
+
+      const client = await ensureSupabase();
+      if (client) {
+        try {
+          let supabaseQuery = client
+            .from('games')
+            .select('*', { count: 'exact', head: false })
+            .order('rating', { ascending: false, nullsFirst: false })
+            .order('rating_count', { ascending: false, nullsFirst: false })
+            .range(startIndex, startIndex + GAMES_PAGE_SIZE - 1);
+
+          if (query) {
+            supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
+          }
+
+          const { data, error, count } = await supabaseQuery;
+          if (!error && Array.isArray(data)) {
+            games = data;
+            apiTotalResults = count;
+          }
+        } catch (_err) {
+          console.error('Failed to load games from Supabase', _err);
+        }
+      }
+
+      state.games = games.map((game) => ({
+        id: String(game.id || ''),
+        name: game.name || game.title || 'Unknown Game',
+        summary: game.summary || game.description || '',
+        coverUrl: game.cover_url || '',
+        heroUrl: game.hero_url || '',
+        rating: game.rating || 0,
+        releaseDate: game.release_date || (game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : '')
+      })).filter((g) => g.id);
+
+      const seen = new Set();
+      state.games = state.games.filter(game => {
+        if (seen.has(game.id)) return false;
+        seen.add(game.id);
+        return true;
+      });
+
+      state.games.sort((a, b) => {
+        const aHasCover = !!a.coverUrl;
+        const bHasCover = !!b.coverUrl;
+        if (aHasCover && !bHasCover) return -1;
+        if (!aHasCover && bHasCover) return 1;
+        return 0;
+      });
+
+      state.games = state.games.slice(withinOffset, withinOffset + GAMES_PAGE_SIZE);
+
+      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / GAMES_PAGE_SIZE));
+      } else {
+        state.totalPages = 1;
+      }
+
+      fetchWikipediaCovers();
+    }
+
+    async function fetchWikipediaCovers() {
+      const gamesWithoutCovers = state.games.filter(g => !g.coverUrl && g.name);
+      if (gamesWithoutCovers.length === 0) return;
+
+      const cacheKey = 'zo2y_wikipedia_game_covers';
+      let coverCache = {};
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) coverCache = JSON.parse(cached);
+      } catch (_err) {}
+
+      for (const game of gamesWithoutCovers.slice(0, 10)) {
+        const cacheKeyForGame = `game_${game.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        
+        if (coverCache[cacheKeyForGame]) {
+          game.coverUrl = coverCache[cacheKeyForGame];
+          continue;
+        }
+
+        try {
+          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(game.name + ' video game')}&format=json&origin=*`;
+          const searchRes = await fetch(searchUrl);
+          if (!searchRes.ok) continue;
+          const searchJson = await searchRes.json();
+          const results = searchJson?.query?.search || [];
+          if (results.length === 0) continue;
+
+          const pageTitle = results[0].title;
+          const imageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+          const imageRes = await fetch(imageUrl);
+          if (!imageRes.ok) continue;
+          const imageJson = await imageRes.json();
+          
+          let coverUrl = '';
+          if (imageJson?.originalimage?.source) {
+            coverUrl = imageJson.originalimage.source;
+          } else if (imageJson?.thumbnail?.source) {
+            coverUrl = imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-');
+          }
+
+          if (coverUrl) {
+            game.coverUrl = coverUrl;
+            coverCache[cacheKeyForGame] = coverUrl;
+            try {
+              localStorage.setItem(cacheKey, JSON.stringify(coverCache));
+            } catch (_err) {}
+          }
+        } catch (_err) {
+          console.error('Failed to fetch Wikipedia cover for', game.name, _err);
+        }
+      }
+
+      renderGrid();
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadGamesWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+        }
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.games.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.games.map((game) => game.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('game_list_items')
+        .select('game_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('game_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.game_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, toplay: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
+
+    function getGameListStatus(gameId) {
+      const id = String(gameId || '').trim();
+      const empty = { favorites: false, played: false, topplay: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getGameCardExtra(game) {
+      const year = game.releaseDate || '';
+      const rating = game.rating ? `Rating: ${game.rating.toFixed(1)}` : '';
+      const parts = [year, rating].filter(Boolean);
+      return parts.join(' | ') || 'Game details';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('gamesGrid');
+      if (!grid) return;
+      if (!state.games.length) {
+        grid.innerHTML = '<div class="empty">No games found.</div>';
+        updatePagination();
+        return;
+      }
+      grid.innerHTML = state.games.map((game) => {
+        const coverUrl = game.coverUrl;
+        if (!coverUrl) return '';
+        const loadingAttr = game.coverUrl.startsWith('http') ? 'lazy' : 'eager';
+        return `
+        <article class="card" data-id="${escapeHtml(game.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="${loadingAttr}">
+          </div>
+          <div class="card-meta">
+            <p class="card-title">${escapeHtml(game.name)}</p>
+            <p class="card-sub">${escapeHtml(game.releaseDate)}</p>
+            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const gameId = String(itemId || '').trim();
+      if (!gameId) return { ok: false, saved: false };
+      const game = state.games.find((row) => String(row.id || '').trim() === gameId);
+      if (!game) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getGameListStatus(gameId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${gameId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const { error } = await client.from('game_list_items').insert({
+            user_id: currentUser.id,
+            game_id: gameId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('game_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('game_id', gameId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
+        }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Game list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `game.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadGamesWithFallback();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('gamesGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Games feed unavailable right now.</div>';
+      }
+    }
+
+    document.getElementById('searchSubmitBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('searchInput')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('searchInput')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('filterToggleBtn')?.addEventListener('click', () => {
+      document.getElementById('filterModal')?.classList.add('active');
+    });
+    document.getElementById('closeFilterModalBtn')?.addEventListener('click', () => {
+      document.getElementById('filterModal')?.classList.remove('active');
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      await loadGamesWithFallback();
+      await loadListStatus();
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      await loadGamesWithFallback();
+      await loadListStatus();
+      renderGrid();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'games.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'game',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      loadPage();
+    });
+  </script>
+  <script src="js/production-runtime.js?v=20260422a" defer></script>
+</body>

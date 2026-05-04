@@ -7,6 +7,7 @@
   const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v2';
   const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
   const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260421a';
+  const UNIVERSAL_SEARCH_DIDYOUMEAN_SRC = 'js/universal-search-didyoumean.js?v=20260504a';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
@@ -254,6 +255,13 @@ const HEADER_HTML = `
       script.defer = true;
       script.dataset.zo2yUniversalSearch = '1';
       script.onload = () => {
+        if (!document.querySelector('script[data-zo2y-universal-search-didyoumean="1"]')) {
+          const addon = document.createElement('script');
+          addon.src = UNIVERSAL_SEARCH_DIDYOUMEAN_SRC;
+          addon.defer = true;
+          addon.dataset.zo2yUniversalSearchDidyoumean = '1';
+          document.head.appendChild(addon);
+        }
         flushQueuedUniversalSearchInits();
         resolve(window.initUniversalSearch);
       };
