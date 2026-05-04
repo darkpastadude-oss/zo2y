@@ -491,17 +491,34 @@
       color: #86efac;
       background: rgba(22,163,74,0.2);
     }
-    .pager {
+    .pagination {
+      padding: 0 14px 16px;
       display: flex;
-      justify-content: flex-end;
-      gap: 8px;
       align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
-    .info {
+    .page-btn {
+      min-width: 44px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .page-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .page-info {
       color: var(--muted);
       font-size: 13px;
-      min-width: 88px;
-      text-align: center;
     }
     .toast {
       position: fixed;
@@ -602,10 +619,10 @@
     <div id="empty" class="empty">No countries found.</div>
   </section>
 
-  <section class="pager">
-    <button id="prev"><i class="fas fa-chevron-left"></i> Prev</button>
-    <span id="pageInfo" class="info">Page 1/1</span>
-    <button id="next">Next <i class="fas fa-chevron-right"></i></button>
+  <section class="pagination">
+    <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+    <div class="page-info" id="pageInfo">Page 1 of 1</div>
+    <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
   </section>
 
   <script>
@@ -2034,12 +2051,12 @@
     }
 
     function syncPager() {
-      const prev = document.getElementById('prev');
-      const next = document.getElementById('next');
+      const prev = document.getElementById('prevPageBtn');
+      const next = document.getElementById('nextPageBtn');
       const info = document.getElementById('pageInfo');
       prev.disabled = state.page <= 1;
       next.disabled = !state.hasMore;
-      info.textContent = `Page ${state.page}/${state.totalPages}`;
+      info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
     function render() {
@@ -2254,8 +2271,8 @@
       let searchTimer = null;
       const searchInput = document.getElementById('q');
       const searchBtn = document.getElementById('travelSearchBtn');
-      const prevBtn = document.getElementById('prev');
-      const nextBtn = document.getElementById('next');
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
 
       if (searchInput) {
         searchInput.addEventListener('input', (event) => {
