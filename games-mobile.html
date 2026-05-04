@@ -893,10 +893,44 @@
 
         state.page = 1;
         state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
+
+        fetchWikipediaCovers();
       } catch (err) {
         console.error('Failed to load games', err);
         state.games = [];
       }
+    }
+
+    async function fetchWikipediaCovers() {
+      const gamesWithoutCovers = state.games.filter(g => !g.cover && g.name);
+      if (gamesWithoutCovers.length === 0) return;
+
+      for (const game of gamesWithoutCovers.slice(0, 10)) {
+        try {
+          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(game.name + ' video game')}&format=json&origin=*`;
+          const searchRes = await fetch(searchUrl);
+          if (!searchRes.ok) continue;
+          const searchJson = await searchRes.json();
+          const results = searchJson?.query?.search || [];
+          if (results.length === 0) continue;
+
+          const pageTitle = results[0].title;
+          const imageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
+          const imageRes = await fetch(imageUrl);
+          if (!imageRes.ok) continue;
+          const imageJson = await imageRes.json();
+          
+          if (imageJson?.originalimage?.source) {
+            game.cover = toHttpsUrl(imageJson.originalimage.source);
+          } else if (imageJson?.thumbnail?.source) {
+            game.cover = toHttpsUrl(imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-'));
+          }
+        } catch (_err) {
+          console.error('Failed to fetch Wikipedia cover for', game.name, _err);
+        }
+      }
+
+      renderGrid();
     }
 
     async function loadListStatus() {

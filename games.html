@@ -1122,28 +1122,11 @@
         }
       }
 
-      if (games.length === 0) {
-        try {
-          for (let p = 1; p <= 6 && games.length < withinOffset + GAMES_PAGE_SIZE; p += 1) {
-            const url = `${IGDB_PROXY_BASE}/games?sort=popularity desc&limit=${API_PAGE_SIZE}&offset=${(p - 1) * API_PAGE_SIZE}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null && typeof json?.count === 'number') apiTotalResults = json.count;
-            const batch = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
-            games = games.concat(batch);
-            if (!batch.length) break;
-          }
-        } catch (_err) {
-          console.error('Failed to load popular games from IGDB', _err);
-        }
-      }
-
       state.games = games.map((game) => ({
         id: String(game.id || ''),
         name: game.name || game.title || 'Unknown Game',
         summary: game.summary || game.description || '',
-        coverUrl: game.cover_url || game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '',
+        coverUrl: game.cover_url || '',
         heroUrl: game.hero_url || '',
         rating: game.rating || 0,
         releaseDate: game.release_date || (game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : '')
