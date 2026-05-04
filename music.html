@@ -214,13 +214,14 @@
     .section-head h2 { font-size: 23px; margin-bottom: 3px; }
     .section-head p { color: var(--muted); font-size: 13px; }
 
-    .section-search {
-      margin-top: 10px;
+    .controls {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 56px 56px;
       gap: 12px;
+      max-width: 1240px;
+      margin: 12px auto 0;
     }
-    .section-search input {
+    .controls input, .controls select {
       height: 56px;
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -231,20 +232,21 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    .section-search .control-icon-btn {
+    .controls button, .pager button {
       height: 56px;
       border: 1px solid var(--border);
       border-radius: 18px;
       background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       color: #0b1633;
-      padding: 0 16px;
+      padding: 0;
       cursor: pointer;
-      min-width: 92px;
-      display: inline-flex;
+    }
+    .control-icon-btn {
+      width: 56px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-weight: 700;
+      font-size: 18px;
     }
 
     .grid {
@@ -469,12 +471,12 @@
       <div class="section-head">
         <h2>popular music right now</h2>
         <p>Current chart signals and album momentum, refreshed into one feed.</p>
-        <div class="section-search">
-          <input id="musicPageSearch" type="text" placeholder="Search songs, artists, or albums..." />
-          <button id="searchMusicBtn" class="control-icon-btn" type="button" aria-label="Search music"><i class="fas fa-search"></i></button>
-          <button id="clearMusicSearchBtn" class="control-icon-btn" type="button" aria-label="Clear search"><i class="fas fa-rotate-left"></i></button>
-        </div>
       </div>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search songs, artists, or albums...">
+      <button id="musicSearchBtn" class="control-icon-btn" type="button" aria-label="Search music"><i class="fas fa-search"></i></button>
+      <button id="musicFilterBtn" class="control-icon-btn" type="button" aria-label="Open music filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
       <div class="grid" id="musicGrid"></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
