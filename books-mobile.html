@@ -597,8 +597,17 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
 <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
+  <div id="authBootstrapOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:9999;font-family:system-ui, -apple-system, Segoe UI, Roboto;">
+    <div style="text-align:center; color:#555">
+      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">Loading books...</div>
+      <div class="spinner" aria-label="loading" style="width:32px;height:32px;border:4px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin 1s linear infinite"></div>
+    </div>
+  </div>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -908,32 +917,6 @@
       return parts.join(' | ') || 'Book details';
     }
 
-    function renderMovieSpotlight(movie) {
-      const section = document.getElementById('moviesSpotlight');
-      if (!section || !movie) return;
-      const bg = document.getElementById('moviesSpotlightBg');
-      const titleEl = document.getElementById('moviesSpotlightTitle');
-      const metaEl = document.getElementById('moviesSpotlightMeta');
-      const summaryEl = document.getElementById('moviesSpotlightSummary');
-      const imgEl = document.getElementById('moviesSpotlightImage');
-      const openEl = document.getElementById('moviesSpotlightOpen');
-      
-      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
-      const backdropUrl = movie.backdropPath ? `${BACKDROP_BASE}${movie.backdropPath}` : posterUrl;
-      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
-      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
-      
-      section.hidden = false;
-      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
-      if (titleEl) titleEl.textContent = movie.title || 'Movie Title';
-      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Movie details';
-      if (summaryEl) summaryEl.textContent = movie.overview || 'No description available.';
-      if (imgEl) {
-        imgEl.src = posterUrl;
-        imgEl.alt = `${movie.title || 'Movie'} poster`;
-      }
-      if (openEl) openEl.href = `movie.html?id=${encodeURIComponent(movie.id)}`;
-    }
 
     function renderGrid() {
       const grid = document.getElementById('booksGrid');
@@ -1082,12 +1065,16 @@
     async function loadPage() {
       try {
         await initAuthUi();
+        const overlay = document.getElementById('authBootstrapOverlay');
+        if (overlay) overlay.style.display = 'none';
         await loadBooks();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
         const grid = document.getElementById('booksGrid');
         if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
+        const overlay = document.getElementById('authBootstrapOverlay');
+        if (overlay) overlay.style.display = 'none';
       }
     }
 
