@@ -90,7 +90,7 @@
       padding: 18px 16px;
       background:
         linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
-        url("https://images.unsplash.com/photo-1552820728-8b83bb6b2b0d?auto=format&fit=crop&w=800&q=80") center/cover;
+        url("https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=800&q=80") center/cover;
       box-shadow: 0 10px 28px rgba(0,0,0,0.26);
     }
     .hero h1 { font-size: 26px; line-height: 1.1; }
@@ -208,29 +208,14 @@
       font-size: 18px;
     }
 
-    .grid {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      align-items: stretch;
-    }
+    .grid { padding: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); gap: 12px; align-items: stretch; }
 
-    .card { 
-      border-radius: 12px; 
-      overflow: hidden; 
-      background: var(--card-2); 
-      min-height: 260px; 
-      display: flex; 
-      flex-direction: column; 
-      position: relative; 
-      transition: transform 0.2s ease;
-    }
+    .card { border-radius: 12px; overflow: hidden; background: var(--card-2); min-height: 260px; display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-2px); }
 
     .card-media {
       width: 100%;
-      aspect-ratio: 3/4;
+      aspect-ratio: 2/3;
       background: linear-gradient(135deg, #102545 0%, #0b1c35 100%);
       overflow: hidden;
     }
@@ -635,14 +620,14 @@
   <main class="container page-shell">
     <section class="hero">
       <h1>games</h1>
-      <p>Discover trending video games from all platforms and save them to your game lists.</p>
+      <p>Discover trending games from around the world and save them to your game lists.</p>
       <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
-        <!-- Refresh removed (covers hydrate automatically; refresh also caused pagination/order confusion). -->
+        <!-- Refresh removed -->
       </div>
     </section>
     <section class="controls">
-      <input id="q" class="search-input" placeholder="Search games, genres, platforms...">
+      <input id="q" class="search-input" placeholder="Search games, genres, years...">
       <button id="gamesSearchBtn" class="control-icon-btn" type="button" aria-label="Search games"><i class="fas fa-search"></i></button>
       <button id="gamesFilterBtn" class="control-icon-btn" type="button" aria-label="Open game filters"><i class="fas fa-sliders-h"></i></button>
     </section>
@@ -654,7 +639,7 @@
         </div>
         <div class="control-modal-grid">
           <select id="genre"><option value="">All Genres</option></select>
-          <select id="platform"><option value="">All Platforms</option></select>
+          <select id="year"><option value="">All Years</option></select>
           <select id="sort">
             <option value="popular">popular right now</option>
             <option value="name">Name A-Z</option>
@@ -668,7 +653,7 @@
     <section class="section">
       <div class="section-head">
         <h2>popular games right now</h2>
-        <p>Trending games across all platforms.</p>
+        <p>Trending games across all genres.</p>
       </div>
       <div class="grid" id="gamesGrid"></div>
       <div class="pagination">
@@ -730,13 +715,13 @@
     </div>
   </div>
 
-  <script src="/js/pages/games-shared.js?v=20260428a"></script>
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-      const FALLBACK_IMAGE = '/newlogo.webp';
-      let GAMES_PAGE_SIZE = 30;
+      const IGDB_PROXY_BASE = '/api/igdb';
+      const FALLBACK_GAME_IMAGE = '/newlogo.webp';
+      let GAMES_PAGE_SIZE = 18;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -744,7 +729,7 @@
       games: [],
       search: '',
       genre: '',
-      platform: '',
+      year: '',
       sort: 'popular',
       page: 1,
       totalPages: 1,
@@ -759,11 +744,9 @@
       const gridTop = grid.getBoundingClientRect().top;
       const footerSpace = 160;
       const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
-      const approxCardH = 340;
+      const approxCardH = 330;
       const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
       const visible = Math.max(cols * rows, cols * 2);
-
-      // Mobile felt too sparse at 6-ish items; bias toward ~18 cards per page while staying a multiple of columns.
       const desired = Math.max(30, visible);
       const snapped = Math.ceil(desired / cols) * cols;
       return Math.min(54, Math.max(cols * 2, snapped));
@@ -794,31 +777,31 @@
       setTimeout(() => el.remove(), 2000);
     }
 
-    function toHttpsUrl(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      if (raw.startsWith('//')) return `https:${raw}`;
-      return raw.replace(/^http:\/\//i, 'https://');
-    }
-
-    function resolveGameCover(row) {
-      const raw = String(row?.cover_url || row?.cover || row?.image || '').trim();
-      if (!raw || raw === '[object Object]') return '';
-      return toHttpsUrl(raw);
-    }
-
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
-      if (window.__ZO2Y_SUPABASE_CLIENT) {
-        supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
         return supabaseClient;
       }
-      if (!window.supabase) return null;
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
-      });
-      window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-      return supabaseClient;
+      return null;
     }
 
     async function initAuthUi() {
@@ -844,116 +827,46 @@
       }
     }
 
-    async function loadGames() {
+    async function loadGames(queryOverride = '') {
       GAMES_PAGE_SIZE = computeGridPageSize();
-      const client = await ensureSupabase();
-      if (!client) return;
-
-      let query = client.from('games').select('*');
-
-      if (state.search) {
-        query = query.ilike('title', `%${state.search}%`);
-      }
-
-      if (state.genre) {
-        query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
-      }
-
-      if (state.sort === 'name') {
-        query = query.order('title', { ascending: true });
-      } else if (state.sort === 'released') {
-        query = query.order('release_date', { ascending: false, nullsFirst: false });
-      } else {
-        query = query.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
-      }
+      const query = String(queryOverride || state.search || '').trim();
+      let games = [];
 
       try {
-        const { data, error } = await query.limit(200);
-        if (error) throw error;
-
-        state.games = (Array.isArray(data) ? data : []).map((game) => ({
-          id: String(game.id || ''),
-          name: game.title || 'Unknown Game',
-          summary: game.description || '',
-          cover: resolveGameCover(game),
-          releaseDate: game.release_date || '',
-          rating: game.rating || 0,
-          platforms: Array.isArray(game.extra?.platforms) ? game.extra.platforms : [],
-          genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-        })).filter((g) => g.id);
-
-        // Sort games: games with covers first, then games without covers
-        state.games.sort((a, b) => {
-          const aHasCover = !!a.cover;
-          const bHasCover = !!b.cover;
-          if (aHasCover && !bHasCover) return -1;
-          if (!aHasCover && bHasCover) return 1;
-          return 0;
-        });
-
-        state.page = 1;
-        state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
-
-        fetchWikipediaCovers();
-      } catch (err) {
-        console.error('Failed to load games', err);
-        state.games = [];
-      }
-    }
-
-    async function fetchWikipediaCovers() {
-      const gamesWithoutCovers = state.games.filter(g => !g.cover && g.name);
-      if (gamesWithoutCovers.length === 0) return;
-
-      const cacheKey = 'zo2y_wikipedia_game_covers';
-      let coverCache = {};
-      try {
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) coverCache = JSON.parse(cached);
-      } catch (_err) {}
-
-      for (const game of gamesWithoutCovers.slice(0, 10)) {
-        const cacheKeyForGame = `game_${game.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        
-        if (coverCache[cacheKeyForGame]) {
-          game.cover = toHttpsUrl(coverCache[cacheKeyForGame]);
-          continue;
+        const endpoint = query ? 'search' : 'trending';
+        const params = query ? { q: query, limit: 50 } : { limit: 50 };
+        const url = `${IGDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          games = Array.isArray(json?.results) ? json.results : [];
         }
-
-        try {
-          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(game.name + ' video game')}&format=json&origin=*`;
-          const searchRes = await fetch(searchUrl);
-          if (!searchRes.ok) continue;
-          const searchJson = await searchRes.json();
-          const results = searchJson?.query?.search || [];
-          if (results.length === 0) continue;
-
-          const pageTitle = results[0].title;
-          const imageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
-          const imageRes = await fetch(imageUrl);
-          if (!imageRes.ok) continue;
-          const imageJson = await imageRes.json();
-          
-          let coverUrl = '';
-          if (imageJson?.originalimage?.source) {
-            coverUrl = imageJson.originalimage.source;
-          } else if (imageJson?.thumbnail?.source) {
-            coverUrl = imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-');
-          }
-
-          if (coverUrl) {
-            game.cover = toHttpsUrl(coverUrl);
-            coverCache[cacheKeyForGame] = coverUrl;
-            try {
-              localStorage.setItem(cacheKey, JSON.stringify(coverCache));
-            } catch (_err) {}
-          }
-        } catch (_err) {
-          console.error('Failed to fetch Wikipedia cover for', game.name, _err);
-        }
+      } catch (_err) {
+        console.error('Failed to load games', _err);
       }
 
-      renderGrid();
+      state.games = games.map((game) => {
+        const id = String(game.id || '').trim();
+        const title = game.name || 'Unknown Game';
+        const coverUrl = game.cover ? game.cover.replace('http:', 'https:') : FALLBACK_GAME_IMAGE;
+        const releaseDate = game.first_release_date || game.release_dates?.[0]?.date || '';
+        const year = releaseDate ? new Date(releaseDate).getFullYear() : 'TBD';
+        const rating = game.rating ? (game.rating / 20).toFixed(1) : '';
+        const genres = Array.isArray(game.genres) ? game.genres.map(g => g.name).slice(0, 2).join(' | ') : 'Video Game';
+        return {
+          id,
+          title,
+          coverUrl,
+          releaseDate,
+          year,
+          rating,
+          genres,
+          summary: game.summary || ''
+        };
+      }).filter((g) => g.id);
+      
+      state.page = 1;
+      state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
     }
 
     async function loadListStatus() {
@@ -971,7 +884,7 @@
       (data || []).forEach((row) => {
         const id = String(row.game_id || '');
         if (!id) return;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, backlog: false });
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, toplay: false });
         const bucket = state.listStatusMap.get(id);
         if (row.list_type in bucket) bucket[row.list_type] = true;
       });
@@ -979,7 +892,7 @@
 
     function getGameListStatus(gameId) {
       const id = String(gameId || '').trim();
-      const empty = { favorites: false, played: false, backlog: false };
+      const empty = { favorites: false, played: false, toplay: false };
       if (!id) return empty;
       if (!state.listStatusMap.has(id)) {
         state.listStatusMap.set(id, { ...empty });
@@ -988,38 +901,38 @@
     }
 
     function getGameCardExtra(game) {
-      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
-      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
-      const parts = [genres, rating].filter(Boolean);
+      const year = game.year || 'TBD';
+      const rating = game.rating ? `Rating: ${game.rating}/5` : '';
+      const genres = game.genres || 'Video Game';
+      const parts = [year, rating, genres].filter(Boolean);
       return parts.join(' | ') || 'Game details';
     }
 
-    function renderGameSpotlight(game) {
-      const section = document.getElementById('gamesSpotlight');
-      if (!section || !game) return;
-      const bg = document.getElementById('gamesSpotlightBg');
-      const titleEl = document.getElementById('gamesSpotlightTitle');
-      const metaEl = document.getElementById('gamesSpotlightMeta');
-      const summaryEl = document.getElementById('gamesSpotlightSummary');
-      const imgEl = document.getElementById('gamesSpotlightImage');
-      const openEl = document.getElementById('gamesSpotlightOpen');
+    function renderMovieSpotlight(movie) {
+      const section = document.getElementById('moviesSpotlight');
+      if (!section || !movie) return;
+      const bg = document.getElementById('moviesSpotlightBg');
+      const titleEl = document.getElementById('moviesSpotlightTitle');
+      const metaEl = document.getElementById('moviesSpotlightMeta');
+      const summaryEl = document.getElementById('moviesSpotlightSummary');
+      const imgEl = document.getElementById('moviesSpotlightImage');
+      const openEl = document.getElementById('moviesSpotlightOpen');
       
-      const coverUrl = game.cover;
-      if (!coverUrl) return;
-      const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
-      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
-      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+      const backdropUrl = movie.backdropPath ? `${BACKDROP_BASE}${movie.backdropPath}` : posterUrl;
+      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
+      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
       
       section.hidden = false;
-      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${coverUrl}")`;
-      if (titleEl) titleEl.textContent = game.name || 'Game Title';
-      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Game details';
-      if (summaryEl) summaryEl.textContent = genres || 'No description available.';
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = movie.title || 'Movie Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Movie details';
+      if (summaryEl) summaryEl.textContent = movie.overview || 'No description available.';
       if (imgEl) {
-        imgEl.src = coverUrl;
-        imgEl.alt = `${game.name || 'Game'} cover`;
+        imgEl.src = posterUrl;
+        imgEl.alt = `${movie.title || 'Movie'} poster`;
       }
-      if (openEl) openEl.href = `game.html?id=${encodeURIComponent(game.id)}`;
+      if (openEl) openEl.href = `movie.html?id=${encodeURIComponent(movie.id)}`;
     }
 
     function renderGrid() {
@@ -1038,18 +951,15 @@
       const start = (state.page - 1) * GAMES_PAGE_SIZE;
       const visibleItems = state.games.slice(start, start + GAMES_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((game) => {
-        const coverUrl = game.cover;
-        if (!coverUrl) return '';
-        const loadingAttr = coverUrl.startsWith('http') ? 'lazy' : 'eager';
-        const year = game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBD';
+        const posterUrl = game.coverUrl || FALLBACK_GAME_IMAGE;
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="${loadingAttr}">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(game.title)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(game.name)}</p>
-            <p class="card-sub">${escapeHtml(year)}</p>
+            <p class="card-title">${escapeHtml(game.title)}</p>
+            <p class="card-sub">${escapeHtml(game.year || 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
@@ -1061,45 +971,6 @@
 
       wireGridActions();
       updatePagination();
-      hydrateMissingCovers();
-    }
-
-    let coverHydrateAbort = null;
-    async function hydrateMissingCovers() {
-      const api = window.__zo2yGamesShared;
-      if (!api?.fetchCoverForTitle) return;
-
-      if (coverHydrateAbort) coverHydrateAbort.abort();
-      coverHydrateAbort = new AbortController();
-      const signal = coverHydrateAbort.signal;
-
-      const runBatch = async () => {
-        const candidates = state.games
-          .filter((g) => !g.cover)
-          .slice(0, Math.max(18, Math.min(48, GAMES_PAGE_SIZE)));
-        if (!candidates.length) return false;
-
-        const results = await Promise.allSettled(
-          candidates.map(async (g) => {
-            const cover = await fetchWikipediaCover(g.name);
-            if (cover) {
-              g.cover = cover;
-              const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
-              const img = card ? card.querySelector('img') : null;
-              if (img) {
-                img.setAttribute('src', cover);
-              }
-            }
-          })
-        );
-        return results.some(r => r.status === 'fulfilled');
-      };
-
-      for (let i = 0; i < 2; i += 1) {
-        const did = await runBatch();
-        if (!did) break;
-        await new Promise((resolve) => window.setTimeout(resolve, 120));
-      }
     }
 
     function updatePagination() {
@@ -1118,8 +989,8 @@
       if (!client || !game?.id) return false;
       const payload = {
         id: String(game.id),
-        title: game.name || '',
-        cover_url: game.cover || '',
+        title: game.title || '',
+        cover_url: game.coverUrl || FALLBACK_GAME_IMAGE,
         updated_at: new Date().toISOString()
       };
       const { error } = await client.from('games').upsert(payload, { onConflict: 'id' });
@@ -1240,8 +1111,8 @@
     document.getElementById('genre')?.addEventListener('change', (e) => {
       state.genre = String(e.target.value || '').trim();
     });
-    document.getElementById('platform')?.addEventListener('change', (e) => {
-      state.platform = String(e.target.value || '').trim();
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
     });
     document.getElementById('sort')?.addEventListener('change', (e) => {
       state.sort = String(e.target.value || 'popular').trim();

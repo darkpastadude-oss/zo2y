@@ -208,24 +208,9 @@
       font-size: 18px;
     }
 
-    .grid {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 12px;
-      align-items: stretch;
-    }
+    .grid { padding: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); gap: 12px; align-items: stretch; }
 
-    .card {
-      border-radius: 12px;
-      overflow: hidden;
-      background: var(--card-2);
-      min-height: 260px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      transition: transform 0.2s ease;
-    }
+    .card { border-radius: 12px; overflow: hidden; background: var(--card-2); min-height: 260px; display: flex; flex-direction: column; }
     .card:hover { transform: translateY(-2px); }
 
     .card-media {
@@ -598,6 +583,7 @@
     body.authenticated .authenticated-only {
       display: block;
     }
+
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -634,8 +620,8 @@
   <main class="container page-shell">
     <section class="hero">
       <h1>books</h1>
-      <p>Discover trending books across all genres and save them to your book lists.</p>
-      <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">sources: Google Books + Open Library. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+      <p>Discover trending books from around the world and save them to your book lists.</p>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: Google Books. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
         <!-- Refresh removed -->
       </div>
@@ -653,6 +639,7 @@
         </div>
         <div class="control-modal-grid">
           <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
           <select id="sort">
             <option value="popular">popular right now</option>
             <option value="name">Name A-Z</option>
@@ -742,10 +729,10 @@
       books: [],
       search: '',
       genre: '',
+      year: '',
       sort: 'popular',
       page: 1,
       totalPages: 1,
-      loading: false,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
@@ -788,114 +775,6 @@
       el.textContent = message;
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 2000);
-    }
-
-    let searchDebounceTimer = null;
-    let booksFetchAbort = null;
-    function normalizeQuery(query) {
-      return String(query || '').trim().replace(/\s+/g, ' ');
-    }
-
-    function getQueryVariations(query) {
-      const normalized = normalizeQuery(query);
-      if (!normalized) return [];
-      
-      const variations = [normalized];
-      
-      // Try without spaces for compound words
-      if (normalized.includes(' ')) {
-        variations.push(normalized.replace(/\s+/g, ''));
-      }
-      
-      // Try with spaces if no spaces
-      if (!normalized.includes(' ') && normalized.length > 3) {
-        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
-        if (spaced !== normalized.toLowerCase()) {
-          variations.push(spaced);
-        }
-      }
-      
-      return [...new Set(variations)];
-    }
-
-    let activeLoadRequestId = 0;
-
-    async function loadBooksWithFallback(queryOverride = '') {
-      const requestId = ++activeLoadRequestId;
-      state.loading = true;
-      renderGrid();
-      BOOKS_PAGE_SIZE = computeGridPageSize();
-      const query = String(queryOverride || state.search || '').trim();
-      let books = [];
-      let apiTotalPages = 1;
-      const apiLimit = 40;
-
-      if (booksFetchAbort) booksFetchAbort.abort();
-      booksFetchAbort = new AbortController();
-      const signal = booksFetchAbort.signal;
-
-      if (!query) {
-        // Load popular books when no search query
-        try {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
-          const res = await fetch(url, { signal });
-          if (res.ok) {
-            const json = await res.json();
-            console.log('Books API response:', json);
-            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-            apiTotalPages = json?.totalPages || json?.total || 1;
-          }
-        } catch (_err) {
-          console.error('Failed to load popular books', _err);
-        }
-      } else {
-        // Try search with variations
-        const variations = getQueryVariations(query);
-        for (const variation of variations) {
-          try {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}`;
-            const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              console.log('Search API response:', json);
-              const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
-              if (results.length > 0) {
-                books = results;
-                apiTotalPages = json?.totalPages || json?.total || 1;
-                break;
-              }
-            }
-          } catch (_err) {
-            console.error('Failed to load books with variation:', variation, _err);
-          }
-        }
-      }
-
-      if (requestId !== activeLoadRequestId) return;
-
-      state.books = books.map((book) => ({
-        id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
-        title: book.title || book.name || 'Unknown Book',
-        authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
-        description: book.description || '',
-        coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
-        publishedDate: book.publishedDate || book.published_date || '',
-        pageCount: book.pageCount || book.page_count || 0
-      })).filter((b) => b.id);
-      
-      state.totalPages = apiTotalPages;
-      state.loading = false;
-    }
-
-    function debounceSearch(query) {
-      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(async () => {
-        state.search = query;
-        state.page = 1;
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      }, 120);
     }
 
     async function ensureSupabase() {
@@ -948,25 +827,47 @@
       }
     }
 
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
     async function loadBooks(queryOverride = '') {
+      BOOKS_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.search || '').trim();
-      
-      // Use API directly with shuffling
-      await loadBooksWithFallback(query);
-      
-      // Shuffle results if no search query
-      if (!query) {
-        state.books = shuffleArray(state.books);
+      let books = [];
+
+      try {
+        const endpoint = query ? 'search' : 'trending';
+        const params = query ? { q: query, maxResults: 40 } : { maxResults: 40 };
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          books = Array.isArray(json?.items) ? json.items : [];
+        }
+      } catch (_err) {
+        console.error('Failed to load books', _err);
       }
+
+      state.books = books.map((book) => {
+        const info = book.volumeInfo || {};
+        const id = String(book.id || info?.id || '').trim();
+        const title = info?.title || 'Unknown Book';
+        const authors = Array.isArray(info?.authors) ? info.authors.join(', ') : 'Unknown Author';
+        const publishedDate = info?.publishedDate || '';
+        const yearMatch = publishedDate.match(/\d{4}/);
+        const year = yearMatch ? yearMatch[0] : 'TBD';
+        const thumbnail = info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '';
+        const posterUrl = thumbnail ? thumbnail.replace('http:', 'https:') : FALLBACK_BOOK_IMAGE;
+        return {
+          id,
+          title,
+          authors,
+          posterUrl,
+          publishedDate,
+          year,
+          description: info?.description || ''
+        };
+      }).filter((b) => b.id);
+      
+      state.page = 1;
+      state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
     }
 
     async function loadListStatus() {
@@ -1001,34 +902,64 @@
     }
 
     function getBookCardExtra(book) {
-      const year = book.publishedDate ? new Date(book.publishedDate).getFullYear() : '';
-      const pages = book.pageCount ? `${book.pageCount} pages` : '';
-      const parts = [year, pages].filter(Boolean);
+      const year = book.year || 'TBD';
+      const authors = book.authors || 'Unknown Author';
+      const parts = [year, authors].filter(Boolean);
       return parts.join(' | ') || 'Book details';
+    }
+
+    function renderMovieSpotlight(movie) {
+      const section = document.getElementById('moviesSpotlight');
+      if (!section || !movie) return;
+      const bg = document.getElementById('moviesSpotlightBg');
+      const titleEl = document.getElementById('moviesSpotlightTitle');
+      const metaEl = document.getElementById('moviesSpotlightMeta');
+      const summaryEl = document.getElementById('moviesSpotlightSummary');
+      const imgEl = document.getElementById('moviesSpotlightImage');
+      const openEl = document.getElementById('moviesSpotlightOpen');
+      
+      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+      const backdropUrl = movie.backdropPath ? `${BACKDROP_BASE}${movie.backdropPath}` : posterUrl;
+      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
+      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = movie.title || 'Movie Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Movie details';
+      if (summaryEl) summaryEl.textContent = movie.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${movie.title || 'Movie'} poster`;
+      }
+      if (openEl) openEl.href = `movie.html?id=${encodeURIComponent(movie.id)}`;
     }
 
     function renderGrid() {
       const grid = document.getElementById('booksGrid');
+      const spotlight = document.getElementById('booksSpotlight');
       if (!grid) return;
+      
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
+      
       if (!state.books.length) {
-        grid.innerHTML = state.loading
-          ? '<div class="empty">Loading books...</div>'
-          : '<div class="empty">No books found.</div>';
+        grid.innerHTML = '<div class="empty">No books found.</div>';
         updatePagination();
         return;
       }
       const start = (state.page - 1) * BOOKS_PAGE_SIZE;
       const visibleItems = state.books.slice(start, start + BOOKS_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((book) => {
-        const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
+        const posterUrl = book.posterUrl || FALLBACK_BOOK_IMAGE;
         return `
         <article class="card" data-id="${escapeHtml(book.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
           </div>
           <div class="card-meta">
             <p class="card-title">${escapeHtml(book.title)}</p>
-            <p class="card-sub">${escapeHtml(book.authors)}</p>
+            <p class="card-sub">${escapeHtml(book.year || 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
@@ -1059,8 +990,7 @@
       const payload = {
         id: String(book.id),
         title: book.title || '',
-        authors: book.authors || '',
-        cover_url: book.coverUrl || '',
+        poster_url: book.posterUrl || FALLBACK_BOOK_IMAGE,
         updated_at: new Date().toISOString()
       };
       const { error } = await client.from('books').upsert(payload, { onConflict: 'id' });
@@ -1163,18 +1093,14 @@
 
     // Refresh removed.
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
-      const query = String(document.getElementById('q')?.value || '').trim();
-      debounceSearch(query);
-    });
-    document.getElementById('q')?.addEventListener('input', async (e) => {
-      const query = String(e.target.value || '').trim();
-      debounceSearch(query);
+      state.search = String(document.getElementById('q')?.value || '').trim();
+      await loadPage();
     });
     document.getElementById('q')?.addEventListener('keydown', async (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      const query = String(e.target.value || '').trim();
-      debounceSearch(query);
+      state.search = String(e.target.value || '').trim();
+      await loadPage();
     });
     document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.add('show');
@@ -1184,6 +1110,9 @@
     });
     document.getElementById('genre')?.addEventListener('change', (e) => {
       state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
     });
     document.getElementById('sort')?.addEventListener('change', (e) => {
       state.sort = String(e.target.value || 'popular').trim();
