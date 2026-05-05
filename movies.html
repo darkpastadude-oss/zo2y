@@ -832,22 +832,6 @@
       </div>
     </div>
 
-    <section class="media-spotlight" id="moviesSpotlight" hidden>
-      <div class="media-spotlight-shell">
-        <div class="media-spotlight-bg" id="moviesSpotlightBg"></div>
-        <div class="media-spotlight-copy">
-          <div class="media-spotlight-kicker">Featured Movie</div>
-          <h2 id="moviesSpotlightTitle">Movie Title</h2>
-          <p class="media-spotlight-meta" id="moviesSpotlightMeta">Year | Rating</p>
-          <p class="media-spotlight-summary" id="moviesSpotlightSummary">Movie description goes here.</p>
-          <a class="media-spotlight-cta" id="moviesSpotlightOpen" href="#">View Details</a>
-        </div>
-        <div class="media-spotlight-poster">
-          <img id="moviesSpotlightImage" src="/newlogo.webp" alt="Movie poster">
-        </div>
-      </div>
-    </section>
-
     <section class="section">
       <div class="section-head">
         <h2>popular movies right now</h2>
@@ -1254,15 +1238,7 @@
 
     function renderGrid() {
       const grid = document.getElementById('moviesGrid');
-      const spotlight = document.getElementById('moviesSpotlight');
       if (!grid) return;
-      
-      // Handle spotlight for single result
-      if (state.movies.length === 1) {
-        renderMovieSpotlight(state.movies[0]);
-      } else {
-        if (spotlight) spotlight.hidden = true;
-      }
       
       if (!state.movies.length) {
         grid.innerHTML = '<div class="empty">No movies found.</div>';
