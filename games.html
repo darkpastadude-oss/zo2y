@@ -1158,6 +1158,16 @@
         return;
       }
       const uniq = Array.from(new Set((candidates || []).map((c) => String(c || '').trim()).filter(Boolean))).slice(0, 60);
+      
+      // Check if there's an exact match in the results
+      const qNormalized = normalizeForMatch(q);
+      const hasExactMatch = uniq.some(title => normalizeForMatch(title) === qNormalized);
+      if (hasExactMatch) {
+        el.textContent = '';
+        el.style.display = 'none';
+        return;
+      }
+      
       let best = '';
       let bestScore = Number.POSITIVE_INFINITY;
       for (const c of uniq) {
@@ -1234,28 +1244,26 @@
         return true;
       });
 
-      const isRemoteCover = (url) => /^https?:\/\//i.test(String(url || '').trim());
-      const isLocalCover = (url) => {
-        const raw = String(url || '').trim();
-        if (!raw) return false;
-        if (isRemoteCover(raw)) return false;
-        return raw.startsWith('/') || raw.startsWith('./') || raw.startsWith('../') || raw.includes('/images/') || raw.includes('/assets/');
-      };
+      // Sort games: local covers first, remote covers second, no covers last
       state.games.sort((a, b) => {
-        const aLocal = isLocalCover(a.coverUrl);
-        const bLocal = isLocalCover(b.coverUrl);
-        if (aLocal && !bLocal) return -1;
-        if (!aLocal && bLocal) return 1;
-
-        const aRemote = isRemoteCover(a.coverUrl);
-        const bRemote = isRemoteCover(b.coverUrl);
-        if (aRemote && !bRemote) return -1;
-        if (!aRemote && bRemote) return 1;
-
-        const aHas = !!String(a.coverUrl || '').trim();
-        const bHas = !!String(b.coverUrl || '').trim();
-        if (aHas && !bHas) return -1;
-        if (!aHas && bHas) return 1;
+        const aCover = String(a.coverUrl || '').trim();
+        const bCover = String(b.coverUrl || '').trim();
+        
+        const aHasLocal = aCover && (aCover.startsWith('/') || aCover.startsWith('./') || aCover.startsWith('../') || aCover.includes('/images/') || aCover.includes('/assets/'));
+        const bHasLocal = bCover && (bCover.startsWith('/') || bCover.startsWith('./') || bCover.startsWith('../') || bCover.includes('/images/') || bCover.includes('/assets/'));
+        
+        if (aHasLocal && !bHasLocal) return -1;
+        if (!aHasLocal && bHasLocal) return 1;
+        
+        const aHasRemote = aCover && /^https?:\/\//i.test(aCover);
+        const bHasRemote = bCover && /^https?:\/\//i.test(bCover);
+        
+        if (aHasRemote && !bHasRemote) return -1;
+        if (!aHasRemote && bHasRemote) return 1;
+        
+        if (aCover && !bCover) return -1;
+        if (!aCover && bCover) return 1;
+        
         return 0;
       });
 
@@ -1322,7 +1330,7 @@
             if (imageJson?.originalimage?.source) {
               coverUrl = imageJson.originalimage.source;
             } else if (imageJson?.thumbnail?.source) {
-              coverUrl = imageJson.thumbnail.source.replace(/\/\\d+px-/, '/500px-');
+              coverUrl = imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-');
             }
 
             if (coverUrl) {
@@ -1339,6 +1347,30 @@
       });
 
       await Promise.allSettled(workers);
+      
+      // Re-sort games after fetching covers to move games with newly fetched covers to the front
+      state.games.sort((a, b) => {
+        const aCover = String(a.coverUrl || '').trim();
+        const bCover = String(b.coverUrl || '').trim();
+        
+        const aHasLocal = aCover && (aCover.startsWith('/') || aCover.startsWith('./') || aCover.startsWith('../') || aCover.includes('/images/') || aCover.includes('/assets/'));
+        const bHasLocal = bCover && (bCover.startsWith('/') || bCover.startsWith('./') || bCover.startsWith('../') || bCover.includes('/images/') || bCover.includes('/assets/'));
+        
+        if (aHasLocal && !bHasLocal) return -1;
+        if (!aHasLocal && bHasLocal) return 1;
+        
+        const aHasRemote = aCover && /^https?:\/\//i.test(aCover);
+        const bHasRemote = bCover && /^https?:\/\//i.test(bCover);
+        
+        if (aHasRemote && !bHasRemote) return -1;
+        if (!aHasRemote && bHasRemote) return 1;
+        
+        if (aCover && !bCover) return -1;
+        if (!aCover && bCover) return 1;
+        
+        return 0;
+      });
+      
       renderGrid();
     }
 

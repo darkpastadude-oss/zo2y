@@ -100,6 +100,11 @@
       const uniq = Array.from(new Set(titles)).slice(0, 40);
       if (!uniq.length) return hide();
 
+      // Check if there's an exact match in the results
+      const qNormalized = normalizeForMatch(q);
+      const hasExactMatch = uniq.some(title => normalizeForMatch(title) === qNormalized);
+      if (hasExactMatch) return hide();
+
       let best = '';
       let bestScore = Number.POSITIVE_INFINITY;
       for (const c of uniq) {
