@@ -842,13 +842,37 @@
       let books = [];
 
       try {
-        const endpoint = query ? 'search' : 'trending';
-        const params = query ? { q: query, page: 1, limit: 40 } : { period: 'weekly', limit: 40 };
-        const url = `${GOOGLE_BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          books = Array.isArray(json?.books) ? json.books : [];
+        if (query) {
+          const params = { q: query, page: 1, limit: 500 };
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : [];
+          }
+        } else {
+          const [trendingRes, popularRes] = await Promise.allSettled([
+            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=500`),
+            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?page=1&limit=500&subject=fiction&language=en&orderBy=relevance`)
+          ]);
+          
+          const trendingBooks = trendingRes.status === 'fulfilled' && trendingRes.value.ok 
+            ? (await trendingRes.value.json())?.books || [] 
+            : [];
+          const popularBooks = popularRes.status === 'fulfilled' && popularRes.value.ok 
+            ? (await popularRes.value.json())?.books || [] 
+            : [];
+          
+          const seen = new Set();
+          const merged = [];
+          [...trendingBooks, ...popularBooks].forEach((book) => {
+            const key = `${book.title}::${book.author || book.author_name?.[0]}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              merged.push(book);
+            }
+          });
+          books = merged;
         }
       } catch (_err) {
         console.error('Failed to load books', _err);
@@ -860,6 +884,7 @@
         author: book.author || book.author_name?.[0] || 'Unknown Author',
         year: book.year || book.first_publish_year || '',
         cover: book.cover || book.coverImage || '',
+        posterUrl: book.cover || book.coverImage || '',
         overview: book.description || ''
       })).filter((b) => b.id);
       
@@ -900,19 +925,14 @@
 
     function getBookCardExtra(book) {
       const year = book.year || 'TBD';
-      const authors = book.authors || 'Unknown Author';
+      const authors = book.author || 'Unknown Author';
       const parts = [year, authors].filter(Boolean);
       return parts.join(' | ') || 'Book details';
     }
 
-
     function renderGrid() {
       const grid = document.getElementById('booksGrid');
-      const spotlight = document.getElementById('booksSpotlight');
       if (!grid) return;
-      
-      // Spotlight disabled (always show grid).
-      if (spotlight) spotlight.hidden = true;
       
       if (!state.books.length) {
         grid.innerHTML = '<div class="empty">No books found.</div>';
@@ -922,15 +942,15 @@
       const start = (state.page - 1) * BOOKS_PAGE_SIZE;
       const visibleItems = state.books.slice(start, start + BOOKS_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((book) => {
-        const posterUrl = book.posterUrl || FALLBACK_BOOK_IMAGE;
+        const posterUrl = book.posterUrl || book.cover || FALLBACK_BOOK_IMAGE;
         return `
         <article class="card" data-id="${escapeHtml(book.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${FALLBACK_BOOK_IMAGE}'">
           </div>
           <div class="card-meta">
             <p class="card-title">${escapeHtml(book.title)}</p>
-            <p class="card-sub">${escapeHtml(book.year || 'TBD')}</p>
+            <p class="card-sub">${escapeHtml(book.author || 'Unknown Author')}${book.year ? ` • ${book.year}` : ''}</p>
             <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
@@ -1066,16 +1086,30 @@
       }
     }
 
-    // Refresh removed.
+    function debounceSearch(query) {
+      clearTimeout(window.booksSearchDebounce);
+      window.booksSearchDebounce = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadBooks();
+        await loadListStatus();
+        renderGrid();
+      }, 300);
+    }
+
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
-      state.search = String(document.getElementById('q')?.value || '').trim();
-      await loadPage();
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('q')?.addEventListener('keydown', async (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      state.search = String(e.target.value || '').trim();
-      await loadPage();
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
     });
     document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.add('show');

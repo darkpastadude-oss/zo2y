@@ -888,13 +888,37 @@
       let books = [];
 
       try {
-        const endpoint = query ? 'search' : 'trending';
-        const params = query ? { q: query, page: 1, limit: 100 } : { period: 'weekly', limit: 100 };
-        const url = `${BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          books = Array.isArray(json?.books) ? json.books : [];
+        if (query) {
+          const params = { q: query, page: 1, limit: 500 };
+          const url = `${BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : [];
+          }
+        } else {
+          const [trendingRes, popularRes] = await Promise.allSettled([
+            fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=500`),
+            fetch(`${BOOKS_PROXY_BASE}/popular?page=1&limit=500&subject=fiction&language=en&orderBy=relevance`)
+          ]);
+          
+          const trendingBooks = trendingRes.status === 'fulfilled' && trendingRes.value.ok 
+            ? (await trendingRes.value.json())?.books || [] 
+            : [];
+          const popularBooks = popularRes.status === 'fulfilled' && popularRes.value.ok 
+            ? (await popularRes.value.json())?.books || [] 
+            : [];
+          
+          const seen = new Set();
+          const merged = [];
+          [...trendingBooks, ...popularBooks].forEach((book) => {
+            const key = `${book.title}::${book.author || book.author_name?.[0]}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              merged.push(book);
+            }
+          });
+          books = merged;
         }
       } catch (_err) {
         console.error('Failed to load books', _err);
@@ -949,245 +973,246 @@
         return;
       }
 
-      pageBooks.forEach((book) => {
-        const card = document.createElement('div');
-        card.className = 'card';
+      grid.innerHTML = pageBooks.map((book) => {
         const coverUrl = book.cover ? (book.cover.startsWith('http') ? book.cover : `${POSTER_BASE}/${book.cover}-L.jpg`) : '/newlogo.webp';
-        
-        card.innerHTML = `
-          <div class="card-media">
-            <img src="${coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='/newlogo.webp'">
-          </div>
-          <div class="card-meta">
-            <div class="card-title">${escapeHtml(book.title)}</div>
-            <div class="card-sub">${escapeHtml(book.author)}${book.year ? ` • ${book.year}` : ''}</div>
-            <div class="card-extra">${escapeHtml(book.overview || 'No description available.')}</div>
-          </div>
-          <div class="card-actions">
-            <button class="icon-btn" data-action="favorites" data-book-id="${book.id}"><i class="fas fa-heart"></i></button>
-            <button class="icon-btn" data-action="readlist" data-book-id="${book.id}"><i class="fas fa-bookmark"></i></button>
-          </div>
+        return `
+          <article class="card" data-id="${escapeHtml(book.id)}">
+            <div class="card-media">
+              <img src="${coverUrl}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='/newlogo.webp'">
+            </div>
+            <div class="card-meta">
+              <div class="card-title">${escapeHtml(book.title)}</div>
+              <div class="card-sub">${escapeHtml(book.author)}${book.year ? ` • ${book.year}` : ''}</div>
+              <div class="card-extra">${escapeHtml(book.overview || 'No description available.')}</div>
+            </div>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </article>
         `;
-        
-        card.querySelectorAll('.icon-btn').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const action = btn.dataset.action;
-            const bookId = btn.dataset.bookId;
-            toggleListStatus(bookId, action, btn);
-          });
-        });
-        
-        grid.appendChild(card);
-      });
+      }).join('');
 
+      wireGridActions();
       updatePagination();
-      updateCardButtons();
     }
 
     function updatePagination() {
       const prevBtn = document.getElementById('prevPageBtn');
       const nextBtn = document.getElementById('nextPageBtn');
-      const pageInfo = document.getElementById('pageInfo');
-      
+      const info = document.getElementById('pageInfo');
+      state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
       if (prevBtn) prevBtn.disabled = state.page <= 1;
       if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (pageInfo) pageInfo.textContent = `Page ${state.page} of ${state.totalPages}`;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    function updateCardButtons() {
-      document.querySelectorAll('.icon-btn').forEach(btn => {
-        const bookId = btn.dataset.bookId;
-        const action = btn.dataset.action;
-        const status = state.listStatusMap.get(bookId);
-        const isActive = status && status[action];
-        
-        if (isActive) {
-          btn.style.color = 'var(--accent)';
-          btn.style.borderColor = 'var(--accent)';
+    function getBookListStatus(bookId) {
+      const key = String(bookId || '').trim();
+      if (!state.listStatusMap.has(key)) {
+        state.listStatusMap.set(key, { favorites: false, read: false, readlist: false });
+      }
+      return state.listStatusMap.get(key);
+    }
+
+    async function upsertBookRecord(client, book) {
+      if (!client || !book?.id) return false;
+      const payload = {
+        id: String(book.id),
+        title: book.title || '',
+        authors: book.author || '',
+        cover_url: book.cover || '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('books').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Book upsert failed', error);
+        return false;
+      }
+      return true;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const bookId = String(itemId || '').trim();
+      if (!bookId) return { ok: false, saved: false };
+      const book = state.books.find((row) => String(row.id || '').trim() === bookId);
+      if (!book) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getBookListStatus(bookId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${bookId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const ok = await upsertBookRecord(client, book);
+          if (!ok) throw new Error('Book upsert failed');
+          const { error } = await client.from('book_list_items').insert({
+            user_id: currentUser.id,
+            book_id: bookId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
         } else {
-          btn.style.color = '#d7e8ff';
-          btn.style.borderColor = 'var(--border)';
+          const { error } = await client
+            .from('book_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('book_id', bookId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
         }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Book list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `book.html?id=${encodeURIComponent(id)}`;
+        });
       });
     }
 
-    async function toggleListStatus(bookId, listType, btn) {
-      const client = await ensureSupabase();
-      if (!client || !currentUser) {
-        showToast('Please sign in to save books', true);
-        return;
-      }
-
-      const status = state.listStatusMap.get(bookId) || { favorites: false, read: false, readlist: false };
-      const isActive = status[listType];
-      const nextActive = !isActive;
-
-      if (nextActive) {
-        const { error } = await client
-          .from('book_list_items')
-          .upsert({ user_id: currentUser.id, book_id: bookId, list_type: listType }, {
-            onConflict: 'user_id,book_id,list_type'
-          });
-        
-        if (error) {
-          showToast('Could not add to list', true);
-          return;
-        }
-        
-        if (!state.listStatusMap.has(bookId)) {
-          state.listStatusMap.set(bookId, { favorites: false, read: false, readlist: false });
-        }
-        state.listStatusMap.get(bookId)[listType] = true;
-        showToast('Added to list');
-      } else {
-        const { error } = await client
-          .from('book_list_items')
-          .delete()
-          .eq('user_id', currentUser.id)
-          .eq('book_id', bookId)
-          .eq('list_type', listType);
-        
-        if (error) {
-          showToast('Could not remove from list', true);
-          return;
-        }
-        
-        if (state.listStatusMap.has(bookId)) {
-          state.listStatusMap.get(bookId)[listType] = false;
-        }
-        showToast('Removed from list');
-      }
-
-      updateCardButtons();
-    }
-
-    function wireUI() {
-      const searchInput = document.getElementById('q');
-      const searchBtn = document.getElementById('booksSearchBtn');
-      const filterBtn = document.getElementById('booksFilterBtn');
-      const filterModal = document.getElementById('booksFilterModal');
-      const filterCloseBtn = document.getElementById('booksFilterCloseBtn');
-      const refreshBtn = document.getElementById('refresh');
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const categorySelect = document.getElementById('category');
-      const yearSelect = document.getElementById('year');
-      const sortSelect = document.getElementById('sort');
-
-      if (searchInput) {
-        searchInput.addEventListener('input', debounce(async () => {
-          state.search = searchInput.value.trim();
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        }, 300));
-      }
-
-      if (searchBtn) {
-        searchBtn.addEventListener('click', async () => {
-          state.search = searchInput.value.trim();
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        });
-      }
-
-      if (filterBtn && filterModal) {
-        filterBtn.addEventListener('click', () => {
-          filterModal.classList.add('show');
-        });
-      }
-
-      if (filterCloseBtn && filterModal) {
-        filterCloseBtn.addEventListener('click', () => {
-          filterModal.classList.remove('show');
-        });
-      }
-
-      if (filterModal) {
-        filterModal.addEventListener('click', (e) => {
-          if (e.target === filterModal) {
-            filterModal.classList.remove('show');
-          }
-        });
-      }
-
-      if (refreshBtn) {
-        refreshBtn.addEventListener('click', async () => {
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        });
-      }
-
-      if (prevBtn) {
-        prevBtn.addEventListener('click', async () => {
-          if (state.page > 1) {
-            state.page -= 1;
-            renderBooks();
-          }
-        });
-      }
-
-      if (nextBtn) {
-        nextBtn.addEventListener('click', async () => {
-          if (state.page < state.totalPages) {
-            state.page += 1;
-            renderBooks();
-          }
-        });
-      }
-
-      if (categorySelect) {
-        categorySelect.addEventListener('change', async () => {
-          state.category = categorySelect.value;
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        });
-      }
-
-      if (yearSelect) {
-        yearSelect.addEventListener('change', async () => {
-          state.year = yearSelect.value;
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        });
-      }
-
-      if (sortSelect) {
-        sortSelect.addEventListener('change', async () => {
-          state.sort = sortSelect.value;
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderBooks();
-        });
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadBooks();
+        await loadListStatus();
+        renderBooks();
+      } catch (_err) {
+        const grid = document.getElementById('booksGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
       }
     }
 
-    function debounce(fn, wait) {
-      let timeout;
-      return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn(...args), wait);
-      };
+    function debounceSearch(query) {
+      clearTimeout(window.booksSearchDebounce);
+      window.booksSearchDebounce = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadBooks();
+        await loadListStatus();
+        renderBooks();
+      }, 300);
     }
 
-    (async function init() {
-      wireUI();
-      await initAuthUi();
-      await loadBooks();
-      await loadListStatus();
+    document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.add('show');
+    });
+    document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('category')?.addEventListener('change', (e) => {
+      state.category = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
       renderBooks();
-    })();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      renderBooks();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'books.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      loadPage();
+    });
   </script>
   <script src="js/production-runtime.js?v=20260422a" defer></script>
 </body>
