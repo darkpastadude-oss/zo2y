@@ -1137,16 +1137,16 @@
       }
 
       async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !movieId) return;
+        if (!supabaseClient || !currentUser || !bookId) return;
         const { data, error } = await supabaseClient
-          .from('movie_list_items')
+          .from('book_list_items')
           .select('list_type')
           .eq('user_id', currentUser.id)
-          .eq('movie_id', movieId);
+          .eq('book_id', bookId);
         if (error) return;
         listStatus.favorites = false;
-        listStatus.watched = false;
-        listStatus.watchlist = false;
+        listStatus.read = false;
+        listStatus.toread = false;
         (data || []).forEach(item => {
           if (listStatus[item.list_type] !== undefined) {
             listStatus[item.list_type] = true;
@@ -1157,7 +1157,7 @@
 
       async function loadCustomLists() {
         if (!supabaseClient || !currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'movie');
+        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'book');
       }
 
       async function openMovieListsModal() {
