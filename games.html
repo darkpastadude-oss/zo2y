@@ -1107,7 +1107,7 @@
     }
 
     let searchDebounceTimer = null;
-    let searchAbortController = null;
+    let activeLoadRequestId = 0;
 
     function normalizeForMatch(value) {
       return String(value || '')
@@ -1182,6 +1182,7 @@
     }
 
     async function loadGamesWithFallback(queryOverride = '') {
+      const requestId = ++activeLoadRequestId;
       const query = String(queryOverride || state.search || '').trim();
       let games = [];
       let apiTotalResults = null;
@@ -1204,9 +1205,7 @@
             supabaseQuery = supabaseQuery.or(`title.ilike.%${query}%,name.ilike.%${query}%`);
           }
 
-          if (searchAbortController) searchAbortController.abort();
-          searchAbortController = new AbortController();
-          const { data, error, count } = await supabaseQuery.abortSignal(searchAbortController.signal);
+          const { data, error, count } = await supabaseQuery;
           if (!error && Array.isArray(data)) {
             games = data;
             apiTotalResults = count;
@@ -1215,6 +1214,8 @@
           console.error('Failed to load games from Supabase', _err);
         }
       }
+
+      if (requestId !== activeLoadRequestId) return;
 
       state.games = games.map((game) => ({
         id: String(game.id || ''),

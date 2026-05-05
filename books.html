@@ -928,6 +928,7 @@
       search: '',
       page: 1,
       totalPages: 1,
+      loading: false,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
@@ -1073,10 +1074,16 @@
         .trim();
     }
 
+    let activeLoadRequestId = 0;
+
     async function loadBooksWithFallback(queryOverride = '') {
+      const requestId = ++activeLoadRequestId;
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
       let apiTotalResults = null;
+
+      state.loading = true;
+      renderGrid();
 
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
@@ -1125,7 +1132,7 @@
         }
       } else {
         // Use a broad query so author/title both match, then refine client-side.
-        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&orderBy=relevance`;
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&orderBy=relevance&_=${Date.now()}`;
         try {
           if (searchAbortController) searchAbortController.abort();
           searchAbortController = new AbortController();
@@ -1139,6 +1146,8 @@
           console.error('Failed to search books', _err);
         }
       }
+
+      if (requestId !== activeLoadRequestId) return;
 
       state.books = books.map((book) => ({
         id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
@@ -1190,6 +1199,8 @@
       } else {
         state.totalPages = 1;
       }
+
+      state.loading = false;
     }
 
     function debounceSearch(query) {
@@ -1295,7 +1306,9 @@
       const grid = document.getElementById('booksGrid');
       if (!grid) return;
       if (!state.books.length) {
-        grid.innerHTML = '<div class="empty">No books found.</div>';
+        grid.innerHTML = state.loading
+          ? '<div class="empty">Loading books...</div>'
+          : '<div class="empty">No books found.</div>';
         updatePagination();
         return;
       }

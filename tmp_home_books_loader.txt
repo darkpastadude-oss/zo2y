@@ -1,0 +1,118 @@
+
+      return [];
+    }
+
+    // HOME BOOKS (override): keep this loader in lockstep with `books.html`.
+    // We intentionally redeclare `loadBooks` here so it wins over any older/broken implementation above.
+    async function loadBooks(signal) {
+      const targetCount = getHomeChannelTargetItems();
+      const BOOKS_PER_PAGE = Math.max(20, targetCount);
+      const minHealthy = Math.min(Number(targetCount || 0) || 0, 8) || 8;
+
+      const setBooksDebug = (stage, detail = {}) => {
+        try {
+          window.__zo2yHomeBooksDebug = {
+            stage: String(stage || '').trim() || 'unknown',
+            detail: detail && typeof detail === 'object' ? detail : {},
+            at: new Date().toISOString()
+          };
+        } catch (_error) {}
+      };
+
+      const BOOKS_CACHE_BUSTER = '20260325a';
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+      const FALLBACK_BOOK_IMAGE = '/images/landing-wall-poster.svg';
+
+      function normalizeBookSeedText(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function slugifyBookPart(value) {
+        return String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 64);
+      }
+
+      function getBookEntryId(item, idx = 0) {
+        const id = String(item?.id || '').trim();
+        if (id) return id;
+        const titleSlug = slugifyBookPart(item?.title || `book-${idx}`);
+        const authorSlug = slugifyBookPart(item?.author || '');
+        const year = String(item?.year || '').trim();
+        return `search-${titleSlug}-${authorSlug || 'unknown'}-${year || 'na'}`;
+      }
+
+      async function booksFetch(path, params = {}) {
+        const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
+        const endpoint = normalizedPath === '/search.json'
+          ? `${GOOGLE_BOOKS_PROXY_BASE}/search`
+          : `${GOOGLE_BOOKS_PROXY_BASE}${normalizedPath}`;
+        const url = new URL(endpoint, window.location.origin);
+        Object.entries(params || {}).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          if (Array.isArray(value)) {
+            value.forEach((entry) => {
+              if (entry === undefined || entry === null || entry === '') return;
+              url.searchParams.append(key, String(entry));
+            });
+            return;
+          }
+          url.searchParams.set(key, String(value));
+        });
+        url.searchParams.set('cb', BOOKS_CACHE_BUSTER);
+        // Match the older "auth works" snapshot: always hit the network for books/search/pagination.
+        // This avoids persisting empty arrays into local caches when the network hiccups.
+        url.searchParams.set('_', String(Date.now()));
+
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+        let res;
+        try {
+          try {
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              signal: signal || controller.signal,
+              cache: 'no-store'
+            });
+          } catch (error) {
+            const isAbort = error && (error.name === 'AbortError' || String(error?.message || '').toLowerCase().includes('aborted'));
+            if (!isAbort) throw error;
+            res = await fetch(url.toString(), {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store'
+            });
+          }
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+
+        if (!res.ok) throw new Error(`Books API error ${res.status}`);
+        const json = await res.json();
+        const booksRaw = Array.isArray(json?.books) ? json.books : [];
+        const books = booksRaw
+          .map((entry) => ({
+            id: String(entry?.id || '').trim(),
+            title: String(entry?.title || '').trim(),
+            author: String(entry?.author || '').trim(),
+            year: Number(entry?.year || 0) || null,
+            cover: toHttpsUrl(entry?.cover || ''),
+            source: String(entry?.source || '').trim()
+          }))
+          .filter((entry) => entry.title);
+        const numFound = Number(json?.meta?.numFound || json?.numFound || json?.count || json?.totalItems || books.length) || books.length;
+        return { books, numFound };
+      }
+
+      async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
+        return booksFetch('/popular', {
+          page,
+          limit,
+          subject: 'fiction',
