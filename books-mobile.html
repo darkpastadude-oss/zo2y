@@ -842,13 +842,31 @@
       let books = [];
 
       try {
-        const endpoint = query ? 'search' : 'trending';
-        const params = query ? { q: query, maxResults: 40 } : { maxResults: 40 };
-        const url = `${GOOGLE_BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          books = Array.isArray(json?.items) ? json.items : [];
+        if (query) {
+          const params = { q: query, maxResults: 40 };
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.items) ? json.items : [];
+          }
+        } else {
+          const now = new Date();
+          const currentYear = now.getUTCFullYear();
+          const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear}`);
+          const params = new URLSearchParams({
+            limit: '40',
+            page: '1',
+            language: 'en',
+            orderBy: 'newest',
+            q: bookReleaseQuery
+          });
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?${params.toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : [];
+          }
         }
       } catch (_err) {
         console.error('Failed to load books', _err);

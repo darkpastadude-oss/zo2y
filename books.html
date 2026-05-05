@@ -2158,40 +2158,24 @@
           if (state.year) params.first_publish_year = state.year;
           
           if (!hasActiveFilters && isFirstPage) {
-            // Load top 100 popular books for first page
-            const [popularResult, trendingResult] = await Promise.allSettled([
-              booksFetch('/popular', {
-                page: 1,
-                limit: 50,
-                subject: state.activeCategory || 'fiction',
-                language: BOOKS_LANGUAGE,
-                orderBy: 'relevance'
-              }),
-              booksFetch('/trending', {
-                period: 'weekly',
-                limit: 50
-              })
-            ]);
+            // Load popular books using the same method as index.html
+            const now = new Date();
+            const currentYear = now.getUTCFullYear();
+            const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear}`);
             
-            const popular = popularResult.status === 'fulfilled' ? popularResult.value : { books: [], numFound: 0 };
-            const trending = trendingResult.status === 'fulfilled' ? trendingResult.value : { books: [], numFound: 0 };
-            
-            const popularBooks = Array.isArray(popular?.books) ? popular.books : [];
-            const trendingBooks = Array.isArray(trending?.books) ? trending.books : [];
-            
-            // Merge and dedupe
-            const seen = new Set();
-            const merged = [];
-            [...trendingBooks, ...popularBooks].forEach(book => {
-              const key = `${String(book?.title || '').trim().toLowerCase()}::${String(book?.author || '').trim().toLowerCase()}`;
-              if (!key || seen.has(key)) return;
-              seen.add(key);
-              merged.push(book);
+            const popularResult = await booksFetch('/popular', {
+              limit: BOOKS_INITIAL_LOAD_COUNT,
+              page: 1,
+              language: 'en',
+              orderBy: 'newest',
+              q: bookReleaseQuery
             });
             
+            const popularBooks = Array.isArray(popularResult?.books) ? popularResult.books : [];
+            
             data = {
-              books: merged.slice(0, BOOKS_INITIAL_LOAD_COUNT),
-              numFound: Math.max(Number(popular?.numFound || 0), Number(trending?.numFound || 0), merged.length)
+              books: popularBooks.slice(0, BOOKS_INITIAL_LOAD_COUNT),
+              numFound: Number(popularResult?.numFound || popularBooks.length)
             };
           } else {
             // Search with filters
