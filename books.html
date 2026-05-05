@@ -888,8 +888,8 @@
       let books = [];
 
       try {
-        const endpoint = query ? 'search' : 'popular';
-        const params = query ? { q: query, page: 1, limit: 100 } : { page: 1, limit: 100 };
+        const endpoint = query ? 'search' : 'trending';
+        const params = query ? { q: query, page: 1, limit: 100 } : { period: 'weekly', limit: 100 };
         const url = `${BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
         const res = await fetch(url);
         if (res.ok) {

@@ -842,56 +842,26 @@
       let books = [];
 
       try {
-        if (query) {
-          const params = { q: query, maxResults: 40 };
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            books = Array.isArray(json?.items) ? json.items : [];
-          }
-        } else {
-          const now = new Date();
-          const currentYear = now.getUTCFullYear();
-          const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear}`);
-          const params = new URLSearchParams({
-            limit: '40',
-            page: '1',
-            language: 'en',
-            orderBy: 'newest',
-            q: bookReleaseQuery
-          });
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?${params.toString()}`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            books = Array.isArray(json?.books) ? json.books : [];
-          }
+        const endpoint = query ? 'search' : 'trending';
+        const params = query ? { q: query, page: 1, limit: 40 } : { period: 'weekly', limit: 40 };
+        const url = `${GOOGLE_BOOKS_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const json = await res.json();
+          books = Array.isArray(json?.books) ? json.books : [];
         }
       } catch (_err) {
         console.error('Failed to load books', _err);
       }
 
-      state.books = books.map((book) => {
-        const info = book.volumeInfo || {};
-        const id = String(book.id || info?.id || '').trim();
-        const title = info?.title || 'Unknown Book';
-        const authors = Array.isArray(info?.authors) ? info.authors.join(', ') : 'Unknown Author';
-        const publishedDate = info?.publishedDate || '';
-        const yearMatch = publishedDate.match(/\d{4}/);
-        const year = yearMatch ? yearMatch[0] : 'TBD';
-        const thumbnail = info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '';
-        const posterUrl = thumbnail ? thumbnail.replace('http:', 'https:') : FALLBACK_BOOK_IMAGE;
-        return {
-          id,
-          title,
-          authors,
-          posterUrl,
-          publishedDate,
-          year,
-          description: info?.description || ''
-        };
-      }).filter((b) => b.id);
+      state.books = books.map((book) => ({
+        id: String(book.id || book.key || `book-${Math.random()}`),
+        title: book.title || 'Unknown Book',
+        author: book.author || book.author_name?.[0] || 'Unknown Author',
+        year: book.year || book.first_publish_year || '',
+        cover: book.cover || book.coverImage || '',
+        overview: book.description || ''
+      })).filter((b) => b.id);
       
       state.page = 1;
       state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
