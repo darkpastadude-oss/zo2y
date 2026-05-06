@@ -5,8 +5,8 @@
   /* Colors - Dark Theme */
   --color-bg-primary: #0a0f1e;
   --color-bg-secondary: #111827;
-  --color-bg-tertiary: #1f2937;
-  --color-bg-elevated: #1e293b;
+  --color-bg-tertiary: #232b42;
+  --color-bg-elevated: #232b42;
   
   --color-text-primary: #f9fafb;
   --color-text-secondary: #9ca3af;
@@ -263,7 +263,7 @@
 
 /* Cards */
 .card {
-  background: var(--color-bg-secondary);
+  background: #232b42;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
@@ -279,7 +279,7 @@
 .dropdown {
   position: absolute;
   min-width: 180px;
-  background: var(--color-bg-elevated);
+  background: #232b42;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-2);
@@ -347,7 +347,7 @@
   right: 0;
   top: calc(100% + var(--space-2));
   min-width: 140px;
-  background: var(--color-bg-elevated);
+  background: #232b42;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-2);
@@ -412,7 +412,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.95);
-  background: var(--color-bg-secondary);
+  background: #232b42;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   padding: var(--space-6);

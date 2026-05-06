@@ -88,7 +88,7 @@
     padding: 10px 16px 10px 40px; 
     border-radius: 20px; 
     border: 1px solid var(--border); 
-    background: var(--card); 
+    background: #232b42; 
     color: var(--white); 
     outline: none; 
     font-size: 14px; 
@@ -127,7 +127,7 @@
   }
 
   .btn { 
-    background: var(--card); 
+    background: #232b42; 
     border: 1px solid var(--border); 
     color: var(--white); 
     padding: 8px 16px; 
@@ -161,7 +161,7 @@
   .grid-size-buttons {
     display: flex;
     gap: 4px;
-    background: var(--card);
+    background: #232b42;
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 4px;
@@ -206,7 +206,7 @@
   }
 
   .items-select {
-    background: var(--card);
+    background: #232b42;
     border: 1px solid var(--border);
     color: var(--white);
     padding: 6px 12px;
@@ -233,7 +233,7 @@
   }
 
   .filter-chip {
-    background: var(--card);
+    background: #232b42;
     border: 1px solid var(--border);
     color: var(--white);
     padding: 6px 12px;
@@ -302,7 +302,7 @@
   }
 
   .sort-select {
-    background: var(--card);
+    background: #232b42;
     border: 1px solid var(--border);
     color: var(--white);
     padding: 8px 12px;
@@ -341,7 +341,7 @@
 
   /* Restaurant Card */
   .restaurant-card { 
-    background: var(--card); 
+    background: #232b42; 
     border-radius: 16px; 
     overflow: hidden; 
     box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
@@ -419,7 +419,7 @@
     top: 50%;
     left: 100%;
     transform: translateY(-50%) translateX(10px);
-    background: var(--card);
+    background: #232b42;
     border: 2px solid var(--accent);
     border-radius: 12px;
     padding: 10px 14px;
@@ -477,7 +477,7 @@
     top: -10px;
     right: 0;
     transform: translateX(0) translateY(-100%);
-    background: var(--card);
+    background: #232b42;
     border: 2px solid var(--cloud-color);
     border-radius: 12px;
     padding: 12px 16px;
@@ -545,7 +545,7 @@
     top: 100%;
     right: 0;
     margin-top: 8px;
-    background: var(--card);
+    background: #232b42;
     border: 2px solid var(--accent);
     border-radius: 12px;
     padding: 10px 14px;
@@ -701,7 +701,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--card);
+    background: #232b42;
     padding: 12px 16px;
     border-top: 1px solid var(--border);
     z-index: 900;
@@ -754,7 +754,7 @@
   .mobile-pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background: var(--card);
+    background: #232b42;
     border-color: var(--border);
     color: var(--muted);
   }
@@ -1067,7 +1067,7 @@
   }
 
   .skeleton-card {
-    background: var(--card);
+    background: #232b42;
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid var(--border);
@@ -1126,7 +1126,7 @@
   }
 
   .actions-content {
-    background: var(--card);
+    background: #232b42;
     border-radius: 20px;
     padding: 30px;
     max-width: 400px;
@@ -1261,7 +1261,7 @@
   }
 
   .custom-lists-content {
-    background: var(--card);
+    background: #232b42;
     border-radius: 20px;
     padding: 30px;
     max-width: 500px;
@@ -1620,7 +1620,7 @@
   }
 
   .auth-prompt-content {
-    background: var(--card);
+    background: #232b42;
     border-radius: 20px;
     padding: 40px;
     max-width: 480px;
@@ -1731,7 +1731,7 @@
   }
 
   .custom-notification {
-    background: var(--card);
+    background: #232b42;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 18px;

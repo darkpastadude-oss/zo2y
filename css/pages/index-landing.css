@@ -1882,7 +1882,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
       height: 42px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: var(--card);
+      background: #232b42;
       color: var(--white);
       padding: 0 14px 0 34px;
       outline: none;
@@ -1933,7 +1933,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
 
     .btn {
       border: 1px solid var(--border);
-      background: var(--card);
+      background: #232b42;
       color: var(--white);
       height: 40px;
       padding: 0 14px;

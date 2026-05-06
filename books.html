@@ -886,10 +886,13 @@
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
+      
+      const grid = document.getElementById('booksGrid');
+      if (grid) grid.innerHTML = '<div class="empty" style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px;"></i><div>Loading books...</div></div>';
 
       try {
         if (query) {
-          const params = { q: query, page: 1, limit: 500 };
+          const params = { q: query, page: 1, limit: 1000 };
           const url = `${BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
           const res = await fetch(url);
           if (res.ok) {
@@ -898,8 +901,8 @@
           }
         } else {
           const [trendingRes, popularRes] = await Promise.allSettled([
-            fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=500`),
-            fetch(`${BOOKS_PROXY_BASE}/popular?page=1&limit=500&subject=fiction&language=en&orderBy=relevance`)
+            fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=1000`),
+            fetch(`${BOOKS_PROXY_BASE}/popular?page=1&limit=1000&subject=fiction&language=en&orderBy=relevance`)
           ]);
           
           const trendingBooks = trendingRes.status === 'fulfilled' && trendingRes.value.ok 
@@ -1131,7 +1134,7 @@
         await loadBooks();
         await loadListStatus();
         renderBooks();
-      }, 300);
+      }, 150);
     }
 
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {

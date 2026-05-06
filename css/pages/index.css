@@ -1,8 +1,8 @@
 ﻿    :root {
       --bg: #0a0f1e;
       --bg-2: #111827;
-      --card: #1f2937;
-      --card-2: #374151;
+      --card: #232b42;
+      --card-2: #232b42;
       --muted: #9ca3af;
       --accent: #f59e0b;
       --white: #f9fafb;
@@ -672,7 +672,7 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
-      background: var(--card-2);
+      background: #232b42;
       scroll-snap-align: start;
       min-height: 232px;
       position: relative;
@@ -1079,7 +1079,7 @@
     }
 
     .rail.games-rail .card {
-      background: var(--card);
+      background: #232b42;
       border: none;
       border-radius: 14px;
       overflow: hidden;
@@ -1278,7 +1278,7 @@
       transform: translate(-50%, -50%);
       width: min(94vw, 400px);
       border-radius: 14px;
-      background: var(--card);
+      background: #232b42;
       border: 1px solid var(--border);
       box-shadow: var(--shadow);
       padding: 12px;
@@ -1380,7 +1380,7 @@
 
     .modal-content {
       width: min(420px, 100%);
-      background: var(--card);
+      background: #232b42;
       border: 1px solid var(--border);
       border-radius: 18px;
       box-shadow: var(--shadow);
@@ -1524,7 +1524,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: var(--card);
+      background: #232b42;
       border: 1px solid var(--border);
       border-radius: 20px;
       width: 100%;
@@ -2987,7 +2987,7 @@
 
       /* Movies-style mobile card surface */
       .rail .card {
-        background: var(--card) !important;
+        background: #232b42 !important;
         border: 0 !important;
         box-shadow: none !important;
         border-radius: 14px !important;
@@ -3073,7 +3073,7 @@
       }
 
       .rail.games-rail .card {
-        background: var(--card) !important;
+        background: #232b42 !important;
         border: 0 !important;
         border-radius: 14px !important;
         min-height: 0 !important;
