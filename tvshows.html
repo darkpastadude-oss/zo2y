@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260508c"></script>
-  <script src="/js/bootstrap-auth.js?v=20260508c" defer></script>
+  <script src="/js/auth-gate.js?v=20260509c"></script>
+  <script src="/js/bootstrap-auth.js?v=20260509c" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - TV Shows</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260508c" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260508c" defer></script>
+  <script src="js/list-utils.js?v=20260509c" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260509c" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
@@ -335,17 +335,24 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
-      background: var(--card-2);
+      background: #232b42;
+      scroll-snap-align: start;
       min-height: 232px;
-      display: flex;
-      flex-direction: column;
       position: relative;
       transition: border-color 0.2s ease, transform 0.2s ease;
-      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
     }
+
     .card:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
+    }
+
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+      overflow: visible;
     }
 
     .card-media {
@@ -358,13 +365,72 @@
       overflow: hidden;
       position: relative;
     }
-    .card-media img { width: 100%; height: 100%; object-fit: contain; transform: scale(1.001); }
 
-    .card-meta { padding: 9px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .card-title { font-size: 13px; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px; margin-bottom: 0; }
-    .card-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 17px; }
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: scale(1.001);
+    }
+
+    .card-media.cover img {
+      object-fit: cover;
+    }
+
+    .card-meta {
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+    }
+
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 36px;
+      margin-bottom: 0;
+    }
+
+    .card-sub {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 17px;
+    }
+
     .card-extra {
-      color: #abc5e8;
+      margin-top: 4px;
+      color: #a9b9da;
       font-size: 12px;
       line-height: 1.35;
       display: -webkit-box;
@@ -372,8 +438,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
       min-height: 32px;
-      margin-top: auto;
-      padding-top: 2px;
     }
 
     .card-actions {
@@ -763,11 +827,11 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260508c" />
-  <script src="/js/mobile-webapp.js?v=20260508c" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260508c">
-<script src="js/shared-header.js?v=20260508c" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260508c" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260509c" />
+  <script src="/js/mobile-webapp.js?v=20260509c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260509c">
+<script src="js/shared-header.js?v=20260509c" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260509c" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1271,9 +1335,12 @@
             <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(tvshow.name)}</p>
-            <p class="card-sub">${escapeHtml(tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD')}</p>
-            <p class="card-extra">${escapeHtml(getTvshowCardExtra(tvshow))}</p>
+            <div class="card-meta-top">
+              <div class="card-type"><i class="fas fa-tv"></i> TV Show</div>
+            </div>
+            <div class="card-name">${escapeHtml(tvshow.name)}</div>
+            <div class="card-sub">${escapeHtml(tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD')}</div>
+            <div class="card-extra">${escapeHtml(getTvshowCardExtra(tvshow))}</div>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
             </div>
@@ -1467,6 +1534,6 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260508c" defer></script>
+  <script src="js/production-runtime.js?v=20260509c" defer></script>
 </body>
 </html>
