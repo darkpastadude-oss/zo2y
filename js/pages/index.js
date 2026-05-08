@@ -6160,11 +6160,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         homeNewReleasesRefreshScheduled = false;
         void refreshHomeNewReleases(feedMap, options);
       };
-      if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(() => run(), { timeout: isHomeCompactViewport() ? 1800 : 1200 });
-      } else {
-        window.setTimeout(run, isHomeCompactViewport() ? 900 : 500);
-      }
+      window.setTimeout(run, 100);
     }
 
     function normalizeHomeFeedMap(feedMap) {
