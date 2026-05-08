@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
   <link rel="preconnect" href="https://books.googleusercontent.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="js/list-utils.js?v=20260509c" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260509c" defer></script>
+<script src="js/list-utils.js?v=20260510a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260510a" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     :root {
@@ -1251,6 +1251,20 @@
       if (state.page <= 1) return;
       state.page -= 1;
       renderBooks();
+    });
+    document.getElementById('closeCreateModalBtn')?.addEventListener('click', () => {
+      const modal = document.getElementById('createListModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    });
+    document.getElementById('cancelCreateBtn')?.addEventListener('click', () => {
+      const modal = document.getElementById('createListModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+      }
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (!state.hasMore || state.isLoading) return;
