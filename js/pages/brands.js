@@ -523,10 +523,9 @@
           <p class="card-name">${escapeHtml(brand.name)}</p>
           <button class="card-menu-btn" aria-label="Add to list"><i class="fas fa-ellipsis-v"></i></button>
         </div>
-        <p class="card-sub">${brand.category ? `<span class="brand-chip">${escapeHtml(brand.category)}</span>` : ''}</p>
+        <p class="card-sub">${brand.category ? `<span class="card-type">${escapeHtml(brand.category)}</span>` : ''}</p>
         ${brand.country ? `<p class="card-extra">${escapeHtml(brand.country)}</p>` : ''}
       </div>
-      <div class="brand-card-desc">${escapeHtml(brand.description || '')}</div>
     `;
 
     const menuBtn = card.querySelector('.card-menu-btn');
