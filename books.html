@@ -858,6 +858,8 @@
       sort: 'popular',
       page: 1,
       totalPages: 1,
+      isLoading: false,
+      hasMore: true,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
@@ -946,62 +948,68 @@
       }
     }
 
-    async function loadBooks(queryOverride = '') {
+    async function loadBooks(queryOverride = '', page = 1, append = false) {
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.search || '').trim();
-      let books = [];
+      const batchSize = 60;
+      
+      if (!append) {
+        state.books = [];
+        state.page = 1;
+        state.hasMore = true;
+      }
       
       const grid = document.getElementById('booksGrid');
-      if (grid) grid.innerHTML = '<div class="empty" style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px;"></i><div>Loading books...</div></div>';
+      if (!append && grid) grid.innerHTML = '<div class="empty" style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px;"></i><div>Loading books...</div></div>';
+
+      if (state.isLoading) return;
+      state.isLoading = true;
 
       try {
+        let books = [];
+        
         if (query) {
-          const params = { q: query, page: 1, limit: 1000 };
+          const params = { q: query, page: page, limit: batchSize };
           const url = `${BOOKS_PROXY_BASE}/search?${new URLSearchParams(params).toString()}`;
           const res = await fetch(url);
           if (res.ok) {
             const json = await res.json();
             books = Array.isArray(json?.books) ? json.books : [];
+            state.hasMore = books.length >= batchSize;
           }
         } else {
-          const [trendingRes, popularRes] = await Promise.allSettled([
-            fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=1000`),
-            fetch(`${BOOKS_PROXY_BASE}/popular?page=1&limit=1000&subject=fiction&language=en&orderBy=relevance`)
-          ]);
-          
-          const trendingBooks = trendingRes.status === 'fulfilled' && trendingRes.value.ok 
-            ? (await trendingRes.value.json())?.books || [] 
-            : [];
-          const popularBooks = popularRes.status === 'fulfilled' && popularRes.value.ok 
-            ? (await popularRes.value.json())?.books || [] 
-            : [];
-          
-          const seen = new Set();
-          const merged = [];
-          [...trendingBooks, ...popularBooks].forEach((book) => {
-            const key = `${book.title}::${book.author || book.author_name?.[0]}`;
-            if (!seen.has(key)) {
-              seen.add(key);
-              merged.push(book);
-            }
-          });
-          books = merged;
+          const params = { page: page, limit: batchSize, subject: 'fiction', language: 'en', orderBy: 'relevance' };
+          const url = `${BOOKS_PROXY_BASE}/popular?${new URLSearchParams(params).toString()}`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : [];
+            state.hasMore = books.length >= batchSize;
+          }
         }
+
+        const newBooks = books.map((book) => ({
+          id: String(book.id || book.key || `book-${Math.random()}`),
+          title: book.title || 'Unknown Book',
+          author: book.author || book.author_name?.[0] || 'Unknown Author',
+          year: book.year || book.first_publish_year || '',
+          cover: book.cover || book.coverImage || '',
+          overview: book.description || ''
+        })).filter((b) => b.id);
+
+        if (append) {
+          state.books = [...state.books, ...newBooks];
+        } else {
+          state.books = newBooks;
+        }
+        
+        state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
       } catch (_err) {
         console.error('Failed to load books', _err);
+        state.hasMore = false;
+      } finally {
+        state.isLoading = false;
       }
-
-      state.books = books.map((book) => ({
-        id: String(book.id || book.key || `book-${Math.random()}`),
-        title: book.title || 'Unknown Book',
-        author: book.author || book.author_name?.[0] || 'Unknown Author',
-        year: book.year || book.first_publish_year || '',
-        cover: book.cover || book.coverImage || '',
-        overview: book.description || ''
-      })).filter((b) => b.id);
-      
-      state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
     }
 
     async function loadListStatus() {
@@ -1070,12 +1078,17 @@
       const prevBtn = document.getElementById('prevPageBtn');
       const nextBtn = document.getElementById('nextPageBtn');
       const info = document.getElementById('pageInfo');
+      
       state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
       if (state.page > state.totalPages) state.page = state.totalPages;
       if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+      
+      if (prevBtn) prevBtn.style.display = 'none';
+      if (nextBtn) {
+        nextBtn.disabled = !state.hasMore || state.isLoading;
+        nextBtn.innerHTML = state.isLoading ? '<i class="fas fa-spinner fa-spin"></i> Loading...' : '<i class="fas fa-plus"></i> Load More';
+      }
+      if (info) info.textContent = `${state.books.length} books loaded`;
     }
 
     function getBookListStatus(bookId) {
@@ -1198,7 +1211,7 @@
       window.booksSearchDebounce = setTimeout(async () => {
         state.search = query;
         state.page = 1;
-        await loadBooks();
+        await loadBooks(query, 1, false);
         await loadListStatus();
         renderBooks();
       }, 150);
@@ -1239,9 +1252,11 @@
       state.page -= 1;
       renderBooks();
     });
-    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
-      if (state.page >= state.totalPages) return;
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (!state.hasMore || state.isLoading) return;
       state.page += 1;
+      await loadBooks('', state.page, true);
+      await loadListStatus();
       renderBooks();
     });
 

@@ -614,7 +614,7 @@ export default async function handler(req, res) {
 
   if (section === "search") {
     try {
-      const limit = clampInt(query.limit, 1, 40, 20);
+      const limit = clampInt(query.limit, 1, 200, 40);
       const page = clampInt(query.page, 1, 1000, 1);
       const orderByRaw = String(query.orderBy || "").trim().toLowerCase();
       const orderBy = orderByRaw === "newest" ? "newest" : "relevance";
@@ -664,7 +664,7 @@ export default async function handler(req, res) {
 
   if (section === "popular") {
     try {
-      const limit = clampInt(query.limit, 1, 40, 20);
+      const limit = clampInt(query.limit, 1, 200, 40);
       const page = clampInt(query.page, 1, 1000, 1);
       const subject = String(query.subject || "fiction").trim() || "fiction";
       const q = String(query.q || "").trim() || `subject:${subject}`;
@@ -718,7 +718,7 @@ export default async function handler(req, res) {
     try {
       const periodRaw = String(query.period || "weekly").trim().toLowerCase();
       const period = ["daily", "weekly", "monthly"].includes(periodRaw) ? periodRaw : "weekly";
-      const limit = clampInt(query.limit, 1, 40, 20);
+      const limit = clampInt(query.limit, 1, 200, 40);
 
       const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
       const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
