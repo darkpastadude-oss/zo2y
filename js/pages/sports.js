@@ -1414,10 +1414,11 @@
 
   function buildCard(team) {
     const card = document.createElement('article');
-    card.className = 'sports-card';
+    card.className = 'card';
     card.dataset.teamId = team.id;
     card.dataset.itemId = team.id;
     card.dataset.title = team.name;
+    card.dataset.mediaType = 'sports';
     card.tabIndex = 0;
 
     const mediaImage = team.badge || FALLBACK_IMAGE;
@@ -1432,30 +1433,24 @@
     card.dataset.listImage = logo;
     card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
     const leagueChip = team.league
-      ? `<span class="sports-card-chip sports-card-chip-league">${escapeHtml(team.league)}</span>`
-      : `<span class="sports-card-chip sports-card-chip-league">Team spotlight</span>`;
+      ? `<span class="card-type">${escapeHtml(team.league)}</span>`
+      : `<span class="card-type">Team spotlight</span>`;
     const sportChip = team.sport
-      ? `<span class="sports-card-chip sports-card-chip-sport">${sportIcon ? `<i class="fas ${sportIcon}" aria-hidden="true"></i>` : ''}<span>${escapeHtml(team.sport)}</span></span>`
+      ? `<span class="card-type">${sportIcon ? `<i class="fas ${sportIcon}" aria-hidden="true"></i>` : ''}<span>${escapeHtml(team.sport)}</span></span>`
       : '';
 
     card.innerHTML = `
-      <div class="sports-card-media is-loading">
+      <div class="card-media is-loading-media">
         <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} banner" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-        <div class="sports-card-logo is-loading">
-          <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(logo)}" data-fallback-src="${escapeHtml(FALLBACK_BADGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-        </div>
       </div>
-      <div class="sports-card-body">
-        <div class="sports-card-title">${escapeHtml(team.name)}</div>
-        <div class="sports-card-meta">${leagueChip}${sportChip}</div>
-        ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(team.stadium)}</span></div>` : ''}
-        <div class="sports-card-actions">
-          ${showMenu ? `
-            <button class="card-menu-btn" type="button" aria-label="Add to lists">
-              <i class="fas fa-ellipsis"></i>
-            </button>
-          ` : ''}
+      <div class="card-meta">
+        <span class="card-type"><i class="fas fa-futbol"></i> Sports</span>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(team.name)}</p>
+          ${showMenu ? `<button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis"></i></button>` : ''}
         </div>
+        <p class="card-sub">${leagueChip}${sportChip}</p>
+        ${team.stadium ? `<p class="card-extra"><i class="fas fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(team.stadium)}</span></p>` : ''}
       </div>
     `;
 

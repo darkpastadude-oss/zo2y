@@ -507,22 +507,24 @@
   }
 
   function createCard(brand) {
-    const card = document.createElement('div');
-    card.className = 'brand-card card';
+    const card = document.createElement('article');
+    card.className = 'card';
     card.setAttribute('data-item-id', brand.id);
+    card.setAttribute('data-media-type', BRAND_TYPE);
     if (brand.logo) card.setAttribute('data-list-image', brand.logo);
 
     card.innerHTML = `
-      <button class="card-menu-btn" aria-label="Add to list">
-        <i class="fas fa-ellipsis-v"></i>
-      </button>
-      <div class="brand-card-logo is-loading">
+      <div class="card-media brand-cover is-loading-media">
         <img src="${BRAND_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(brand.logo || '/newlogo.webp')}" data-ready="0" alt="${escapeHtml(brand.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
       </div>
-      <div class="brand-card-name">${escapeHtml(brand.name)}</div>
-      <div class="brand-card-meta">
-        ${brand.category ? `<span class="brand-chip">${escapeHtml(brand.category)}</span>` : ''}
-        ${brand.country ? `<span>${escapeHtml(brand.country)}</span>` : ''}
+      <div class="card-meta">
+        <span class="card-type"><i class="fa-solid ${BRAND_ICON}"></i> ${escapeHtml(BRAND_LABEL)}</span>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(brand.name)}</p>
+          <button class="card-menu-btn" aria-label="Add to list"><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+        <p class="card-sub">${brand.category ? `<span class="brand-chip">${escapeHtml(brand.category)}</span>` : ''}</p>
+        ${brand.country ? `<p class="card-extra">${escapeHtml(brand.country)}</p>` : ''}
       </div>
       <div class="brand-card-desc">${escapeHtml(brand.description || '')}</div>
     `;
