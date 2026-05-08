@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-  <script src="/js/auth-gate.js?v=20260508c"></script>
-  <script src="/js/bootstrap-auth.js?v=20260508c" defer></script>
-  <script src="js/data/curated-media.js?v=20260508c"></script>
+  <script src="/js/auth-gate.js?v=20260509c"></script>
+  <script src="/js/bootstrap-auth.js?v=20260509c" defer></script>
+  <script src="js/data/curated-media.js?v=20260509c"></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex">
   <title>Zo2y - Travel</title>
   <meta name="description" content="Browse countries, save travel lists, and open country pages with reviews.">
@@ -14,8 +14,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260508c" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260508c" defer></script>
+  <script src="js/list-utils.js?v=20260509c" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260509c" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -324,159 +324,108 @@
     }
     .card {
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      background: #0f2147;
-      cursor: pointer;
+      background: #232b42;
+      scroll-snap-align: start;
+      min-height: 232px;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.2s ease;
       display: flex;
       flex-direction: column;
-      min-height: 290px;
     }
-    .card-photo-wrap {
-      position: relative;
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+      overflow: visible;
+    }
+
+    .card-media {
       width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #10224a;
-      overflow: hidden;
-    }
-    .card-photo-wrap.no-photo {
-      background:
-        radial-gradient(circle at 22% 18%, rgba(245,158,11,0.22), transparent 32%),
-        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
-    }
-    .card-photo-fallback {
-      position: absolute;
-      inset: 0;
+      aspect-ratio: 2/3;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
       display: grid;
       place-items: center;
-      padding: 16px;
-      text-align: center;
-      background: linear-gradient(180deg, rgba(7,16,34,0.14), rgba(7,16,34,0.58));
-    }
-    .card-photo-fallback::after {
-      content: "";
-      position: absolute;
-      inset: auto 0 0;
-      height: 42%;
-      background: linear-gradient(180deg, rgba(11,22,51,0), rgba(11,22,51,0.7));
-      pointer-events: none;
-    }
-    .card-photo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-    }
-    .card-photo-stage {
-      position: absolute;
-      inset: 0;
+      color: var(--muted);
       overflow: hidden;
-      z-index: 2;
-    }
-    .card-photo-stage.is-loading::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
-        linear-gradient(160deg, rgba(23,43,88,0.96), rgba(11,22,51,0.98));
-      background-size: 220px 100%, 100% 100%;
-      background-repeat: no-repeat;
-      animation: travelImageShimmer 1.15s linear infinite;
-      z-index: 0;
-      pointer-events: none;
-    }
-    .card-photo-stage img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
       position: relative;
-      z-index: 1;
-      opacity: 0;
-      filter: blur(10px);
-      transition: opacity 220ms ease, filter 220ms ease;
     }
-    .card-photo-stage img[data-ready="1"] {
-      opacity: 1;
-      filter: blur(0);
-    }
-    .card-photo-badges {
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: flex-end;
-      z-index: 3;
-    }
-    .card-photo-label {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
-      color: #f8fafc;
-      background: rgba(15, 23, 42, 0.7);
-      border: 1px solid rgba(255,255,255,0.2);
-      backdrop-filter: blur(6px);
-    }
-    .card-photo-label[data-kind="city"] {
-      background: rgba(59, 130, 246, 0.72);
-    }
-    .card-photo-label[data-kind="nature"] {
-      background: rgba(34, 197, 94, 0.72);
-    }
-    .card-photo-wrap.no-photo .card-photo-fallback {
-      z-index: 1;
-    }
-    .body { padding: 10px; display: grid; gap: 6px; flex: 1; }
-    .row { display: flex; justify-content: space-between; gap: 8px; }
-    .ttl {
-      margin: 0;
-      font-size: 17px;
-      line-height: 1.25;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      max-width: 100%;
-    }
-    .ttl-flag {
-      width: 20px;
-      height: 14px;
-      border-radius: 3px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.28);
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(9, 20, 44, 0.9);
-    }
-    .ttl-flag img {
+
+    .card-media img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
+      transform: scale(1.001);
     }
-    .ttl-flag.is-empty img {
-      display: none;
+
+    .card-meta {
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
     }
-    .ttl-text {
-      min-width: 0;
+
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 36px;
+      margin-bottom: 0;
+    }
+
+    .card-sub {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      display: inline-block;
-      max-width: 100%;
+      min-height: 17px;
     }
-    .code { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-    .meta, .sub { font-size: 12px; }
-    .meta { color: #dce8ff; }
-    .sub { color: var(--muted); }
+
+    .card-extra {
+      margin-top: 4px;
+      color: #a9b9da;
+      font-size: 12px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 32px;
+    }
     .card-menu-btn {
       width: 32px;
       height: 32px;
@@ -564,9 +513,9 @@
       to { background-position: calc(100% + 220px) 0, 0 0; }
     }
   </style>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260508c">
-<script src="js/shared-header.js?v=20260508c" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260508c" />
+  <link rel="stylesheet" href="css/shared-header.css?v=20260509c">
+<script src="js/shared-header.js?v=20260509c" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260509c" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -2081,62 +2030,30 @@
       }
       empty.style.display = 'none';
 
-      const buildPhotoShellMarkup = (item) => {
-        const initialVariant = getStableTravelCardVariant(item);
-        const hasPhoto = !!initialVariant?.src;
-        return `
-          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
-            <div class="card-photo-fallback"></div>
-            ${hasPhoto ? `
-              <div class="card-photo-stage is-loading" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">
-                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(initialVariant.src)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${String(initialVariant.label || 'Scenic').toLowerCase()} view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-                <div class="card-photo-badges" aria-hidden="true">
-                  <span class="card-photo-label" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">${escapeHtml(initialVariant.label || 'Scenic')}</span>
-                </div>
-              </div>
-            ` : ''}
-          </div>
-        `;
-      };
 
-      const updateCardPhotoMarkup = (item) => {
-        const card = grid.querySelector(`.card[data-country-code="${item.code}"]`);
-        const wrap = card && card.querySelector('.card-photo-wrap');
-        if (!card || !wrap) return;
-        const hero = item.photo || item.photoCity || item.photoNature || '';
-        card.setAttribute('data-image', hero);
-        wrap.outerHTML = buildPhotoShellMarkup(item);
-        wireTravelImages(card);
-        primeTravelImages(card);
-      };
 
       pageRows.forEach((item) => {
         const node = document.createElement('article');
         node.className = 'card';
         node.setAttribute('data-country-code', item.code);
-        node.setAttribute('data-list-image', item.flag);
-        const heroImage = item.photo || item.photoCity || item.photoNature || '';
-        node.setAttribute('data-image', heroImage);
         node.innerHTML = `
-          ${buildPhotoShellMarkup(item)}
-          <div class="body">
-            <div class="row">
-              <div>
-                <h2 class="ttl">
-                  <span class="ttl-flag"><img src="${escapeHtml(item.flag)}" alt="" aria-hidden="true" loading="lazy" onerror="this.onerror=null;this.remove(); this.parentElement.classList.add('is-empty');"></span>
-                  <span class="ttl-text">${escapeHtml(stripLeadingFlagEmoji(item.name))}</span>
-                </h2>
-                <div class="code">${escapeHtml(item.code)}</div>
-              </div>
-              <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+          <div class="card-media">
+            ${item.photo || item.photoCity || item.photoNature ? `<img src="${escapeHtml(item.photo || item.photoCity || item.photoNature)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
+          </div>
+          <div class="card-meta">
+            <div class="card-meta-top">
+              <div class="card-type"><i class="fas fa-plane"></i> Travel</div>
             </div>
-            <div class="meta">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
-            <div class="sub">${escapeHtml([
+            <div class="card-name">${escapeHtml(stripLeadingFlagEmoji(item.name))}</div>
+            <div class="card-sub">${escapeHtml(item.capital ? `Capital: ${item.capital}` : 'Capital: N/A')}</div>
+            <div class="card-extra">${escapeHtml([
               item.popularityRank ? `Live rank #${item.popularityRank}` : '',
               item.region,
               item.subregion
             ].filter(Boolean).join(' | ') || 'Region unavailable')}</div>
-            <div class="sub">${escapeHtml(item.cities && item.cities.length ? `Cities: ${item.cities.join(', ')}` : 'Cities: N/A')}</div>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
           </div>
         `;
 
@@ -2145,7 +2062,7 @@
           window.location.href = `country.html?code=${encodeURIComponent(item.code)}`;
         });
 
-        const menuBtn = node.querySelector('.card-menu-btn');
+        const menuBtn = node.querySelector('.menu-btn');
         if (menuBtn) {
           menuBtn.addEventListener('click', (event) => {
             event.stopPropagation();
@@ -2155,35 +2072,9 @@
         grid.appendChild(node);
       });
 
-      wireTravelImages(grid);
-      primeTravelImages(grid);
-
       state.hasMore = end < count;
       syncPager();
       syncAllCardStatuses();
-      void hydrateScenicCountryPhotos(pageRows).then(() => {
-        pageRows.forEach((item) => {
-          const nextPhoto = String(item.photo || '').trim();
-          if (!nextPhoto && !item.photoCity && !item.photoNature) return;
-          updateCardPhotoMarkup(item);
-        });
-
-        const runLifestyleHydration = () => {
-          void hydrateLifestyleCountryPhotos(pageRows).then(() => {
-            pageRows.forEach((item) => {
-              if (!item.photoCity && !item.photoNature) return;
-              updateCardPhotoMarkup(item);
-            });
-          }).catch(() => {});
-        };
-
-        if (getTravelLifestyleHydrationLimit() <= 0) return;
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(runLifestyleHydration, { timeout: 2000 });
-        } else {
-          window.setTimeout(runLifestyleHydration, 500);
-        }
-      }).catch(() => {});
     }
 
     async function loadTravelListStatus() {
@@ -2365,7 +2256,7 @@
     document.addEventListener('DOMContentLoaded', () => { void init(); });
   })();
   </script>
-  <script src="js/production-runtime.js?v=20260508c" defer></script>
+  <script src="js/production-runtime.js?v=20260509c" defer></script>
 </body>
 </html>
 
