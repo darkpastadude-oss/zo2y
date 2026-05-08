@@ -2079,9 +2079,14 @@
 
         /* Unified custom-list modal (matches index/menu adapter UI) */
         #createListModal.menu-modal {
+            display: none;
             z-index: 10000;
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(5px);
+        }
+
+        #createListModal.menu-modal.active {
+            display: flex;
         }
 
         #createListModal .menu-modal-content {
