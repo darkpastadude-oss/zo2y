@@ -7,7 +7,7 @@
   <script src="/js/auth-gate.js?v=20260509c"></script>
   <script src="/js/bootstrap-auth.js?v=20260509c" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
-  <meta name="cache-bust" content="v=20260510b" />
+  <meta name="cache-bust" content="v=20260510c" />
   <title>Zo2y - Books</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -921,6 +921,78 @@
       }
     }
 
+    const SEEDED_BOOK_TITLES = [
+      'The Secret History',
+      'Normal People',
+      'The Song of Achilles',
+      'Circe',
+      'A Little Life',
+      'The Bell Jar',
+      'The Picture of Dorian Gray',
+      'If We Were Villains',
+      'The Seven Husbands of Evelyn Hugo',
+      'Cleopatra and Frankenstein',
+      'On Earth We\'re Briefly Gorgeous',
+      'Norwegian Wood',
+      'Kafka on the Shore',
+      'The Virgin Suicides',
+      'My Year of Rest and Relaxation',
+      'The Midnight Library',
+      'Babel',
+      'The Invisible Life of Addie LaRue',
+      'Six of Crows',
+      'The Cruel Prince',
+      'Fourth Wing',
+      'A Court of Thorns and Roses',
+      'A Court of Mist and Fury',
+      'Shatter Me',
+      'Twisted Love',
+      'Haunting Adeline',
+      'It Ends with Us',
+      'Verity',
+      'Beach Read',
+      'Love and Other Words',
+      'Better Than the Movies',
+      'Red, White & Royal Blue',
+      'Pride and Prejudice',
+      'Jane Eyre',
+      'Wuthering Heights',
+      'The Great Gatsby',
+      'Crime and Punishment',
+      'No Longer Human',
+      'White Nights',
+      'The Metamorphosis',
+      'The Book Thief',
+      'The Night Circus',
+      'Legends & Lattes',
+      'The Atlas Six',
+      'From Blood and Ash',
+      'Crescent City',
+      'Throne of Glass',
+      'Lightlark',
+      'The Love Hypothesis',
+      'Powerless'
+    ];
+
+    async function fetchSeededBooks() {
+      const results = [];
+      for (const title of SEEDED_BOOK_TITLES) {
+        try {
+          const res = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(title)}&limit=1`);
+          if (res.ok) {
+            const json = await res.json();
+            const books = Array.isArray(json?.books) ? json.books : [];
+            if (books.length > 0) {
+              results.push(books[0]);
+            }
+          }
+        } catch (_err) {
+          console.warn(`Failed to fetch seeded book: ${title}`);
+        }
+      }
+      return results;
+    }
+
     async function loadBooks(queryOverride = '', page = 1, append = false) {
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const query = String(queryOverride || state.search || '').trim();
@@ -951,6 +1023,11 @@
             state.hasMore = books.length >= batchSize;
           }
         } else {
+          let seededBooks = [];
+          if (!append && page === 1) {
+            seededBooks = await fetchSeededBooks();
+          }
+          
           let trendingBooks = [];
           let popularBooks = [];
           
@@ -974,7 +1051,8 @@
           
           const seen = new Set();
           const merged = [];
-          [...trendingBooks, ...popularBooks].forEach((book) => {
+          
+          [...seededBooks, ...trendingBooks, ...popularBooks].forEach((book) => {
             const key = `${book.title}::${book.author || book.author_name?.[0]}`;
             if (!seen.has(key)) {
               seen.add(key);
