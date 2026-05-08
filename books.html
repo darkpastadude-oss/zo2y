@@ -7,6 +7,7 @@
   <script src="/js/auth-gate.js?v=20260509c"></script>
   <script src="/js/bootstrap-auth.js?v=20260509c" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <meta name="cache-bust" content="v=20260510b" />
   <title>Zo2y - Books</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -978,14 +979,38 @@
             state.hasMore = books.length >= batchSize;
           }
         } else {
-          const params = { page: page, limit: batchSize, subject: 'fiction', language: 'en', orderBy: 'relevance' };
-          const url = `${BOOKS_PROXY_BASE}/popular?${new URLSearchParams(params).toString()}`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            books = Array.isArray(json?.books) ? json.books : [];
-            state.hasMore = books.length >= batchSize;
+          let trendingBooks = [];
+          let popularBooks = [];
+          
+          try {
+            const trendingRes = await fetch(`${BOOKS_PROXY_BASE}/trending?period=weekly&limit=${batchSize}`);
+            if (trendingRes.ok) {
+              trendingBooks = (await trendingRes.json())?.books || [];
+            }
+          } catch (_err) {
+            console.warn('Trending endpoint failed, using popular only');
           }
+          
+          try {
+            const popularRes = await fetch(`${BOOKS_PROXY_BASE}/popular?page=${page}&limit=${batchSize}&orderBy=relevance`);
+            if (popularRes.ok) {
+              popularBooks = (await popularRes.json())?.books || [];
+            }
+          } catch (_err) {
+            console.error('Popular endpoint failed');
+          }
+          
+          const seen = new Set();
+          const merged = [];
+          [...trendingBooks, ...popularBooks].forEach((book) => {
+            const key = `${book.title}::${book.author || book.author_name?.[0]}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              merged.push(book);
+            }
+          });
+          books = merged;
+          state.hasMore = books.length >= batchSize;
         }
 
         const newBooks = books.map((book) => ({
@@ -1251,20 +1276,6 @@
       if (state.page <= 1) return;
       state.page -= 1;
       renderBooks();
-    });
-    document.getElementById('closeCreateModalBtn')?.addEventListener('click', () => {
-      const modal = document.getElementById('createListModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-      }
-    });
-    document.getElementById('cancelCreateBtn')?.addEventListener('click', () => {
-      const modal = document.getElementById('createListModal');
-      if (modal) {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-      }
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (!state.hasMore || state.isLoading) return;
