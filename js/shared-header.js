@@ -983,9 +983,7 @@ const HEADER_HTML = `
     const logos = Array.from(document.querySelectorAll('[data-zo2y-logo="1"]'));
     if (!logos.length) return false;
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const canTrackPointer = !prefersReducedMotion
-      && window.matchMedia
-      && window.matchMedia('(pointer: fine)').matches;
+    const canTrackPointer = !prefersReducedMotion;
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const shouldReduceEffects = !!(connection && (connection.saveData || ['slow-2g', '2g', '3g'].includes(String(connection.effectiveType || '').toLowerCase())));
 
@@ -1006,6 +1004,9 @@ const HEADER_HTML = `
       logo.dataset.zo2yLogoWired = '1';
       logo.classList.toggle('is-idle', !prefersReducedMotion);
       trackedLogos.add(logo);
+
+      logo.style.setProperty('--pupil-offset-x', '0');
+      logo.style.setProperty('--pupil-offset-y', '0');
 
       const triggerTongue = () => {
         logo.classList.remove('is-tongue');
@@ -1062,10 +1063,66 @@ const HEADER_HTML = `
         }
       }
 
-      if (prefersReducedMotion || shouldReduceEffects) return;
+      if (prefersReducedMotion || shouldReduceEffects) {
+        if (!window.__ZO2Y_LOGO_TRACKING_BOUND) {
+          window.__ZO2Y_LOGO_TRACKING_BOUND = true;
+          let rafId = null;
 
-      const minDelay = 3800;
-      const maxDelay = 9200;
+          const applyOffsets = (clientX, clientY) => {
+            collectTrackedLogos().forEach((logo) => {
+              const rect = logo.getBoundingClientRect();
+              if (!rect.width || !rect.height) return;
+              const cx = rect.left + rect.width / 2;
+              const cy = rect.top + rect.height / 2;
+              const dx = clientX - cx;
+              const dy = clientY - cy;
+              const distance = Math.hypot(dx, dy) || 1;
+              const maxOffset = Math.min(rect.width, rect.height) * 0.12;
+              const strength = Math.min(1, distance / 160);
+              const offsetX = (dx / distance) * maxOffset * strength;
+              const offsetY = (dy / distance) * maxOffset * strength;
+              logo.style.setProperty('--pupil-offset-x', offsetX.toFixed(2));
+              logo.style.setProperty('--pupil-offset-y', offsetY.toFixed(2));
+            });
+          };
+
+          const resetOffsets = () => {
+            collectTrackedLogos().forEach((logo) => {
+              logo.style.setProperty('--pupil-offset-x', '0');
+              logo.style.setProperty('--pupil-offset-y', '0');
+            });
+          };
+
+          const handlePointerMove = (event) => {
+            if (rafId) cancelAnimationFrame(rafId);
+            const { clientX, clientY } = event;
+            window.__ZO2Y_LOGO_LAST_POINTER = { clientX, clientY };
+            rafId = requestAnimationFrame(() => applyOffsets(clientX, clientY));
+          };
+
+          const reapplyLastPointer = () => {
+            const point = window.__ZO2Y_LOGO_LAST_POINTER;
+            if (!point || typeof point.clientX !== 'number' || typeof point.clientY !== 'number') return;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => applyOffsets(point.clientX, point.clientY));
+          };
+
+          document.addEventListener('pointermove', handlePointerMove, { passive: true });
+          document.addEventListener('mousemove', handlePointerMove, { passive: true });
+          window.addEventListener('resize', reapplyLastPointer, { passive: true });
+          window.addEventListener('scroll', reapplyLastPointer, { passive: true });
+
+          window.addEventListener('mouseleave', resetOffsets);
+          window.addEventListener('pointerleave', resetOffsets);
+          window.addEventListener('blur', resetOffsets);
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) resetOffsets();
+          });
+        }
+        return;
+      }
+
+      const blinkDelay = 5000;
       const blinkDuration = 180;
 
       const runBlink = () => {
@@ -1075,14 +1132,13 @@ const HEADER_HTML = `
       };
 
       const scheduleBlink = () => {
-        const delay = Math.round(minDelay + Math.random() * (maxDelay - minDelay));
         logo._blinkTimer = window.setTimeout(() => {
           runBlink();
           scheduleBlink();
-        }, delay);
+        }, blinkDelay);
       };
 
-      logo._initialBlinkTimer = window.setTimeout(runBlink, 700 + Math.random() * 500);
+      logo._initialBlinkTimer = window.setTimeout(runBlink, 700);
       scheduleBlink();
     });
 
@@ -1172,18 +1228,20 @@ const HEADER_HTML = `
     window.__ZO2Y_LOGO_WIRE_GUARD = true;
 
     let attempts = 0;
-    const maxAttempts = 6;
+    const maxAttempts = 12;
     const retry = () => {
       attempts += 1;
       const ok = wireLogoAnim();
       if (ok) return;
       if (attempts >= maxAttempts) return;
-      setTimeout(retry, 120 * attempts);
+      setTimeout(retry, 100 * attempts);
     };
 
     // Try now + next frame.
     retry();
     requestAnimationFrame(retry);
+    setTimeout(retry, 200);
+    setTimeout(retry, 500);
 
     if (window.__ZO2Y_LOGO_MOUNT_OBSERVER) return;
     try {
