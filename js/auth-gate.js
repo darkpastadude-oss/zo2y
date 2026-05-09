@@ -1,9 +1,9 @@
 (function () {
   'use strict';
 
-  var PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
-  var SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+  var PROJECT_REF = '__SUPABASE_PROJECT_REF__';
+  var SUPABASE_URL = '__SUPABASE_URL__';
+  var SUPABASE_KEY = '__SUPABASE_ANON_KEY__';
 
   var STORAGE_KEY = 'zo2y-auth-v2';
   var LEGACY_STORAGE_KEY = 'zo2y-auth-v1';

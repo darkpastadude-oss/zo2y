@@ -1,6 +1,6 @@
 (() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
   const params = new URLSearchParams(window.location.search);

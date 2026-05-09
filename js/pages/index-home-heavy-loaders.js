@@ -2,7 +2,7 @@
   if (window.__zo2yHomeHeavyLoaders) return;
 
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
