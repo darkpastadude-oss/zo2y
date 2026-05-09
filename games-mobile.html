@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260428a"></script>
-  <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
+  <script src="/js/auth-gate.js?v=20260509c"></script>
+  <script src="/js/bootstrap-auth.js?v=20260509c" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Games</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,20 +14,24 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260419a" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
+  <script src="js/list-utils.js?v=20260509c" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260509c" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/pages/index.css?v=20260510g" />
+  <link rel="stylesheet" href="css/pages/index-landing.css?v=20260508c" />
+  <link rel="stylesheet" href="css/shared-header.css?v=20260510h" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260508c" />
   <style>
     :root {
-      --bg: #0b1633;
-      --card: #132347;
-      --card-2: #172b58;
-      --muted: #8ca3c7;
+      --bg: #0a0f1e;
+      --card: #1f2937;
+      --card-2: #374151;
+      --muted: #9ca3af;
       --accent: #f59e0b;
-      --white: #fff;
-      --border: rgba(255,255,255,0.12);
-      --surface: rgba(12, 26, 57, 0.84);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --white: #f9fafb;
+      --border: rgba(255,255,255,0.08);
+      --surface: rgba(31, 41, 55, 0.8);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,6 +49,13 @@
     a { color: inherit; text-decoration: none; }
 
     .container { width: calc(100% - 16px); margin: 0 auto; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+      gap: 12px;
+      min-height: 200px;
+    }
 
     header {
       position: sticky;
@@ -208,55 +219,113 @@
       font-size: 18px;
     }
 
-    .grid {
-      padding: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      align-items: stretch;
+    .grid { 
+      padding: 12px; 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); 
+      gap: 12px; 
+      align-items: stretch; 
     }
 
-    .card { 
-      border-radius: 12px; 
-      overflow: hidden; 
-      background: var(--card-2); 
-      min-height: 260px; 
-      display: flex; 
-      flex-direction: column; 
-      position: relative; 
-      transition: transform 0.2s ease;
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: #232b42;
+      scroll-snap-align: start;
+      min-height: 232px;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      display: flex;
+      flex-direction: column;
     }
-    .card:hover { transform: translateY(-2px); }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card.menu-open,
+    .card.menu-open:hover {
+      transform: none;
+      overflow: visible;
+    }
 
     .card-media {
       width: 100%;
-      aspect-ratio: 3/4;
-      background: linear-gradient(135deg, #102545 0%, #0b1c35 100%);
+      aspect-ratio: 2/3;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
       overflow: hidden;
+      position: relative;
     }
-    .card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-    .card-meta { padding: 8px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .card-title { font-size: 13px; font-weight: 700; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-extra {
-      color: #abc5e8;
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: scale(1.001);
+    }
+
+    .card-media.cover img {
+      object-fit: cover;
+    }
+
+    .card-meta {
+      padding: 12px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       font-size: 11px;
-      line-height: 1.3;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      width: fit-content;
+    }
+
+    .card-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 28px;
-      margin-top: auto;
-      padding-top: 2px;
+      min-height: 36px;
+      margin-bottom: 0;
+    }
+
+    .card-sub {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 17px;
     }
 
     .card-actions {
-      display: grid;
-      grid-template-columns: auto auto;
-      gap: 5px;
-      margin-top: 5px;
+      display: inline-flex;
       justify-content: end;
     }
     .icon-btn {
@@ -607,13 +676,13 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
-  <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
-<script src="js/shared-header.js?v=20260428a" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260509c" />
+  <script src="/js/mobile-webapp.js?v=20260509c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260510h">
+<script src="js/shared-header.js?v=20260510g" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260509c" />
 </head>
-<body>
+<body data-nav-page="games">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -730,7 +799,7 @@
     </div>
   </div>
 
-  <script src="/js/pages/games-shared.js?v=20260428a"></script>
+  <script src="/js/pages/games-shared.js?v=20260509c"></script>
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
@@ -882,15 +951,6 @@
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
         })).filter((g) => g.id);
 
-        // Sort games: games with covers first, then games without covers
-        state.games.sort((a, b) => {
-          const aHasCover = a.cover && a.cover !== FALLBACK_IMAGE;
-          const bHasCover = b.cover && b.cover !== FALLBACK_IMAGE;
-          if (aHasCover && !bHasCover) return -1;
-          if (!aHasCover && bHasCover) return 1;
-          return 0;
-        });
-
         state.page = 1;
         state.totalPages = Math.max(1, Math.ceil(state.games.length / GAMES_PAGE_SIZE));
       } catch (err) {
@@ -988,12 +1048,14 @@
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(game.name)}</p>
-            <p class="card-sub">${escapeHtml(year)}</p>
-            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
-            <div class="card-actions">
-              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>
+            <div class="card-meta-top">
+              <div class="card-name">${escapeHtml(game.name)}</div>
+              <div class="card-actions">
+                <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
             </div>
+            <div class="card-sub">${escapeHtml(year)}</div>
           </div>
         </article>
       `;
@@ -1239,6 +1301,6 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260307a" defer></script>
+  <script src="js/production-runtime.js?v=20260509c" defer></script>
 </body>
 </html>

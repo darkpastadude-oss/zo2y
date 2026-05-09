@@ -1,411 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/js/auth-gate.js?v=20260428a"></script>
   <script src="/js/bootstrap-auth.js?v=20260425a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
-  <title>Zo2y - Games</title>
+  <title>Games ? Zo2y</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/pages/index.css?v=20260510g" />
+  <link rel="stylesheet" href="css/pages/index-landing.css?v=20260508c" />
+  <link rel="stylesheet" href="css/shared-header.css?v=20260510h" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260508c" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
+  <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script>
-    // Allow games browsing even when IGDB is not configured by accepting a Wikipedia-only backend.
-    window.ZO2Y_REQUIRE_IGDB = false;
-  </script>
-  <script src="js/igdb-client.js?v=20260311c"></script>
-  <script src="js/list-utils.js?v=20260422a"></script>
-  <script src="js/index-list-menu-adapter.js?v=20260317b"></script>
+  <script src="js/list-utils.js?v=20260419a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
+  <script src="js/shared-header.js?v=20260428a" defer></script>
+  <script src="js/pages/games.js?v=20260419a" defer></script>
   <style>
     :root {
-      --bg: #0b1633;
-      --card: #132347;
-      --muted: #8ca3c7;
+      --bg: #0a0f1e;
+      --card: #1f2937;
+      --card-2: #374151;
+      --muted: #9ca3af;
       --accent: #f59e0b;
-      --glass: rgba(255,255,255,0.03);
-      --white: #ffffff;
-      --border: rgba(255,255,255,0.1);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      --surface: rgba(19, 35, 71, 0.6);
-      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
-      --shadow: 0 10px 30px rgba(0,0,0,0.3);
-      --info: #3b82f6;
-      --success: #10b981;
-      --error: #ef4444;
+      --white: #f9fafb;
+      --border: rgba(255,255,255,0.08);
+      --surface: rgba(31, 41, 55, 0.8);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background:
+        radial-gradient(circle at 18% -10%, rgba(245,158,11,0.18), transparent 35%),
+        radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
+        var(--bg);
+      color: var(--white);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+    }
+
     body {
       margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--white);
-      overflow-x: hidden;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      inset: -20% 0 0 0;
-      background: var(--radial-glow);
-      pointer-events: none;
-      z-index: -2;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
-      opacity: 0.25;
-      pointer-events: none;
-      z-index: -3;
+      padding: 0;
+      overflow-y: scroll;
+      padding-bottom: 18px;
     }
 
     a { color: inherit; text-decoration: none; }
 
-    /* Header to match index/game */
-    .nav {
+    .container { width: min(1240px, calc(100% - 28px)); margin: 0 auto; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+      gap: 20px;
+      min-height: 200px;
+    }
+
+    header {
       position: sticky;
       top: 0;
-      z-index: 1000;
-      padding: 14px 16px;
+      z-index: 100;
       backdrop-filter: blur(10px) saturate(180%);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
     }
 
-    .nav-container {
+    .header-inner {
+      min-height: 72px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-      gap: 12px;
+      gap: 14px;
+      padding: 12px 0;
+      flex-wrap: wrap;
     }
 
-    .logo {
-      height: 40px;
-      width: auto;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+
+    .search-wrap { flex: 1; min-width: 210px; max-width: 420px; position: relative; margin-left: 8px; }
+    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; }
+    .search {
+      width: 100%; height: 42px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
+      color: var(--white); padding: 0 14px 0 34px; outline: none;
     }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
 
-    .logo:hover { transform: scale(1.05); }
-
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-shrink: 0;
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .top-nav { display: inline-flex; align-items: center; gap: 8px; opacity: 0.92; }
+    .nav-pill {
+      border: 1px solid transparent; color: #e2ecff; background: transparent; border-radius: 999px; font-size: 12px;
+      font-weight: 600; padding: 8px 10px; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
     }
-
-    .nav a.ghost {
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      white-space: nowrap;
-    }
-
-    .nav a.ghost:hover { color: var(--accent); background: rgba(245, 158, 11, 0.05); }
-
-    .account-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .account-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .account-btn.logged-in {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.4);
-      color: var(--accent);
-    }
-
+    .nav-pill.active, .nav-pill:hover { border-color: var(--border); color: var(--accent); background: rgba(255,255,255,0.04); }
+    .auth-actions { display: inline-flex; align-items: center; gap: 8px; }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      cursor: pointer;
-      text-decoration: none;
-      font-size: 14px;
-      transition: all 0.2s ease;
+      border: 1px solid var(--border); background: var(--card); color: var(--white); height: 40px; padding: 0 14px;
+      border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     }
+    .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
 
-    .btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
+    .page-shell { margin-top: 18px; display: grid; gap: 16px; }
 
     .hero {
-      max-width: 1200px;
-      margin: 24px auto 0;
-      padding: 0 20px;
-    }
-
-    .hero h1 {
-      font-size: 28px;
-      margin: 0 0 8px 0;
-    }
-
-    .hero p {
-      margin: 0;
-      color: var(--muted);
-    }
-
-    .media-spotlight {
-      max-width: 1200px;
-      margin: 18px auto 0;
-      padding: 0 20px;
-    }
-
-    .media-spotlight[hidden] {
-      display: none;
-    }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 18px;
       border: 1px solid var(--border);
-        min-height: 298px;
-        max-height: 298px;
-      display: grid;
-        grid-template-columns: minmax(0, 1fr) clamp(214px, 21vw, 282px);
-      gap: 0;
-      align-items: stretch;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("https://images.unsplash.com/photo-1552820728-8b83bb6b2b0d?auto=format&fit=crop&w=1600&q=80") center/cover;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
     }
+    .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }
+    .hero p { color: #d3e5ff; margin-top: 10px; max-width: 650px; line-height: 1.45; }
+    .hero-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.74), rgba(10,19,39,0.40));
-      background-size: cover;
-      background-position: center center;
-      transform: scale(1.02);
-    }
 
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-    .media-spotlight-copy {
-      padding: 22px 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: flex-start;
-      min-width: 0;
-    }
-
-    .media-spotlight-kicker { display: none; }
-
-    .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
-
-    .media-spotlight-meta {
-      font-size: 13px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
+    .section {
+      background: rgba(19, 35, 71, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.22);
       overflow: hidden;
     }
-
-    .media-spotlight-summary {
-      font-size: 14px;
-      max-width: 36ch;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .media-spotlight-poster {
-        padding: 16px 10px;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      height: 100%;
-      min-height: 100%;
-      border-left: 1px solid rgba(255,255,255,0.08);
-      background: linear-gradient(180deg, rgba(11, 22, 49, 0.72), rgba(8, 16, 36, 0.9));
-    }
-
-    .media-spotlight-poster img {
-      width: auto;
-      height: auto;
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      object-position: center center;
-      border-radius: 0;
-      box-shadow: none;
-      background: transparent;
-      padding: 0;
-    }
-
-    .media-spotlight-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 4px; }
+    .section-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .section-head h2 { font-size: 23px; margin-bottom: 3px; }
+    .section-head p { color: var(--muted); font-size: 13px; }
 
     .controls {
-      max-width: 1200px;
-      margin: 16px auto 0;
-      padding: 0 20px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 56px 56px;
       gap: 12px;
-      align-items: center;
+      max-width: 1240px;
+      margin: 12px auto 0;
     }
-
-    .search-input {
-      width: 100%;
-      min-width: 0;
+    .controls input, .controls select {
       height: 56px;
-      padding: 0 18px;
-      border-radius: 18px;
       border: 1px solid var(--border);
+      border-radius: 18px;
       background: #10224a;
-      color: var(--white);
-      outline: none;
+      color: #fff;
+      padding: 0 18px;
       font-size: 16px;
-      box-sizing: border-box;
+      -webkit-appearance: none;
+      appearance: none;
     }
-
-    .filter-select {
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1f40;
-      color: var(--white);
-      outline: none;
-      min-width: 200px;
-      font-size: 16px;
-    }
-
-    .small-input {
-      max-width: 140px;
-    }
-
-    .chip-row {
-      max-width: 1200px;
-      margin: 10px auto 0;
-      padding: 0 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .filter-launch-btn,
-    .search-submit-btn {
-      width: 56px;
-      min-width: 56px;
+    .controls button, .pager button {
       height: 56px;
-      justify-content: center;
-      padding: 0;
-      border-radius: 18px;
       border: 1px solid var(--border);
+      border-radius: 18px;
       background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       color: #0b1633;
+      padding: 0;
       cursor: pointer;
     }
-
-    .filter-launch-btn:hover,
-    .filter-launch-btn:focus-visible,
-    .search-submit-btn:hover,
-    .search-submit-btn:focus-visible {
-      border-color: var(--accent);
+    .control-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
     }
-
-    .filter-launch-btn i,
-    .search-submit-btn i {
-      margin: 0;
+    .control-modal.show {
+      display: flex;
     }
-
-    .filter-form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 8px;
-    }
-
-    .filter-form-grid > * {
-      min-width: 0;
-      max-width: 100%;
-    }
-
-    .filter-form-grid .search-input,
-    .filter-form-grid .filter-select {
-      width: 100%;
-      min-width: 0;
-      max-width: 100%;
-      box-sizing: border-box;
-    }
-
-    .chip {
-      padding: 6px 10px;
-      border-radius: 999px;
+    .control-modal-card {
+      width: min(480px, 100%);
+      border-radius: 18px;
       border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--muted);
-      font-size: 12px;
+      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+      padding: 16px;
+    }
+    .control-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .control-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .control-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
       cursor: pointer;
     }
-
-    .chip.active {
-      border-color: var(--accent);
-      color: var(--accent);
+    .control-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .control-modal-grid select,
+    .control-modal-action {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #10224a;
+      color: #fff;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+    .control-modal-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--card);
+      color: #fff;
+      cursor: pointer;
     }
 
     .grid {
-      max-width: 1110px;
-      margin: 24px auto 60px;
-      padding: 0 20px;
+      padding: 14px;
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 202px));
-      gap: 16px;
+      grid-template-columns: repeat(6, 156px);
+      gap: 11px;
       align-items: stretch;
       justify-content: center;
-      justify-items: stretch;
     }
 
     .card {
-      background: var(--card);
-      border: none;
+      border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
+      background: #232b42;
+      scroll-snap-align: start;
+      min-height: 232px;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.2s ease;
       display: flex;
       flex-direction: column;
-      min-height: 300px;
-      transition: all 0.2s ease;
-      position: relative;
-          }
+    }
 
     .card:hover {
+      border-color: var(--accent);
       transform: translateY(-2px);
     }
 
@@ -415,134 +268,134 @@
       overflow: visible;
     }
 
-    .card .card-media {
-      position: relative;
+    .card-media {
       width: 100%;
-      aspect-ratio: 2 / 3;
-      background: #0f1f40;
-      background-size: cover;
-      background-position: center center;
+      aspect-ratio: 2/3;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
       overflow: hidden;
-    }
-
-    .card .card-media::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(9, 18, 36, 0.2) 0%, rgba(9, 18, 36, 0.45) 100%);
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .card .card-media img {
       position: relative;
-      z-index: 1;
+    }
+
+    .card-media img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-      background: transparent;
-      padding: 0;
-      filter: none;
-    }
-
-    .card .card-media.game-media {
-      background-color: #111f41;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .card .card-media.game-media img {
       object-fit: contain;
-      object-position: center center;
-      padding: 8px;
+      transform: scale(1.001);
     }
 
-    .card .card-media.game-media.portrait-poster img {
+    .card-media.cover img {
       object-fit: cover;
-      object-position: center center;
-      padding: 0;
-    }
-
-    .card .card-media.game-media.plain-logo {
-      background: transparent !important;
-      background-image: none !important;
-    }
-
-    .card .card-media.game-media.plain-logo::before,
-    .card .card-media.game-media.plain-logo::after {
-      display: none;
-    }
-
-    .card .card-media.game-media.plain-logo img {
-      padding: 0;
-      filter: none;
-    }
-
-    .card .card-media.game-media::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 50% 18%, rgba(255,255,255,0.12), rgba(255,255,255,0) 42%),
-        linear-gradient(180deg, rgba(9, 18, 36, 0.18) 0%, rgba(9, 18, 36, 0.72) 100%);
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    .card-body {
-      padding: 12px 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex: 1;
-      min-height: 0;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.35;
-      margin: 0;
-      order: 1;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
     .card-meta {
-      font-size: 12px;
-      color: var(--muted);
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
     }
 
-    .card-desc {
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.45;
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
+    }
+
+    .card-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 34px;
-      margin-top: 2px;
+      min-height: 36px;
+      margin-bottom: 0;
     }
 
-    .empty {
-      max-width: 1200px;
-      margin: 40px auto;
-      padding: 0 20px;
+    .card-sub {
       color: var(--muted);
-      text-align: center;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: 17px;
     }
 
-    .pagination {
-      padding: 0 14px 16px;
+    .card-actions {
+      display: inline-flex;
+      justify-content: end;
+    }
+    .icon-btn {
+      height: 32px; width: 32px; border-radius: 9px; border: 1px solid var(--border);
+      background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .mini-btn {
+      height: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9);
+      color: #d7e8ff; font-size: 12px; padding: 0 10px; cursor: pointer;
+    }
+    .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .menu {
+      position: absolute;
+      right: 10px;
+      bottom: 44px;
+      width: 190px;
+      background: #0e284b;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+      padding: 8px;
+      display: none;
+      z-index: 12;
+    }
+    .menu.open { display: block; }
+    .menu button {
+      width: 100%; border: 1px solid var(--border); background: transparent; color: #eef4ff; border-radius: 8px;
+      padding: 8px; font-size: 12px; margin-bottom: 6px; text-align: left; cursor: pointer;
+    }
+    .menu button:last-child { margin-bottom: 0; }
+    .menu button:hover { border-color: var(--accent); color: var(--accent); }
+    .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
+
+    .empty { color: var(--muted); font-size: 13px; padding: 20px; }
+
+    .control-icon-btn {
+      width: 56px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      font-size: 18px;
+    }
+    .pagination {
+      max-width: 1240px;
+      margin: 12px auto 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      align-items: center;
     }
     .page-btn {
       min-width: 44px;
@@ -565,251 +418,64 @@
     .page-info {
       color: var(--muted);
       font-size: 13px;
+      min-width: 88px;
+      text-align: center;
     }
-
-    .card-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      order: 3;
-      margin-top: auto;
-    }
-
-    .card-menu-wrap {
-      position: relative;
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-
-    .menu-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(19, 35, 71, 0.9);
-      color: var(--white);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-
-    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .list-menu {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .list-menu.open { display: flex; }
-
-    .list-menu-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 380px;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: var(--shadow);
-      animation: menuFadeIn 0.2s ease;
-    }
-
-    .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-
-    .list-action {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      transition: all 0.2s ease;
-      margin-bottom: 6px;
-    }
-
-    .list-action:last-child { margin-bottom: 0; }
-    .list-action:hover { border-color: var(--accent); color: var(--accent); }
-    .list-action.active {
-      background: rgba(245, 158, 11, 0.12);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 12px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      z-index: 2000;
-      box-shadow: var(--shadow);
-    }
-    .notification.success { background: var(--success); color: white; }
-    .notification.error { background: var(--error); color: white; }
-    .notification.info { background: var(--info); color: white; }
 
     .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      padding: 20px;
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(6, 12, 28, 0.72); z-index: 240; padding: 16px;
     }
     .modal.active { display: flex; }
     .modal-content {
-      width: 100%;
-      max-width: 520px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
+      width: min(420px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px;
     }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .modal-title { font-size: 18px; font-weight: 700; }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--white);
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .modal-list {
-      display: grid;
-      gap: 8px;
-      max-height: 240px;
-      overflow: auto;
-      margin-bottom: 12px;
-    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .modal-list { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; padding: 6px 0; }
     .modal-list-item {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px;
+      border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); cursor: pointer;
     }
-    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
-    .list-edit-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .modal-list-item.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(245, 158, 11, 0.12);
-    }
-    .modal-input {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
+    .modal-list-item.active { border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
+    .modal-input { display: flex; gap: 8px; margin-top: 8px; }
     .modal-input input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1f40;
-      color: var(--white);
-      outline: none;
-    }
-    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .icon-option {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
-
-    .page-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      flex: 1; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-2);
+      color: var(--white); padding: 0 10px;
     }
 
-    .page-info {
-      color: var(--muted);
-      font-size: 13px;
+    @media (max-width: 860px) {
+      .top-nav { display: none; }
     }
 
-    @media (max-width: 1100px) {
-      .grid { grid-template-columns: repeat(4, minmax(0, 202px)); justify-content: center; }
-    }
-
-    @media (max-width: 780px) {
-      .grid { grid-template-columns: repeat(3, minmax(0, 202px)); justify-content: center; }
-    }
-
-    @media (max-width: 600px) {
-      .hero h1 { font-size: 22px; }
-      .grid { gap: 12px; }
-      .card .card-media { aspect-ratio: 2 / 3; }
+    @media (max-width: 760px) {
+      .container { width: calc(100% - 16px); }
+      body { padding-bottom: 86px; }
+      .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
+      .grid { grid-template-columns: repeat(3, 110px); gap: 10px; justify-content: center; }
     }
 
     .menu-modal {
       display: none;
       position: fixed;
+      z-index: 10000;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100dvw;
+      height: 100dvh;
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(5px);
-      z-index: 10000;
+      padding: 0;
       align-items: center;
       justify-content: center;
-      padding: 16px;
     }
-
     .menu-modal.active {
       display: flex;
     }
-
     .menu-modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -817,15 +483,8 @@
       max-width: 380px;
       max-height: 80vh;
       overflow-y: auto;
-      box-shadow: var(--shadow);
-      animation: menuFadeIn 0.2s ease;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
     }
-
-    @keyframes menuFadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
     .menu-modal-header {
       display: flex;
       align-items: center;
@@ -833,14 +492,12 @@
       padding: 16px 20px;
       border-bottom: 1px solid var(--border);
     }
-
     .menu-modal-header h3 {
       font-size: 18px;
       font-weight: 600;
       color: var(--white);
       margin: 0;
     }
-
     .menu-modal-close {
       background: transparent;
       border: none;
@@ -855,61 +512,203 @@
       border-radius: 8px;
       transition: all 0.2s ease;
     }
-
     .menu-modal-close:hover {
       background: rgba(255, 255, 255, 0.1);
       color: var(--white);
     }
-
     .menu-modal-body {
       padding: 16px 20px;
     }
-
     .menu-quick-lists {
       display: flex;
       flex-direction: column;
       gap: 8px;
       margin-bottom: 20px;
     }
-
-    .menu-custom-section {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
+    .menu-quick-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
-
+    .menu-quick-item:hover {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-quick-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-quick-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-quick-left i {
+      width: 20px;
+      color: var(--accent);
+    }
+    .menu-quick-left span {
+      font-weight: 500;
+    }
+    .menu-quick-state {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .menu-custom-section {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
     .menu-custom-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px;
-      font-size: 12px;
       color: var(--muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 14px;
     }
-
     .menu-create-list-btn {
       background: transparent;
       border: 1px solid var(--border);
-      color: var(--accent);
-      border-radius: 6px;
-      padding: 4px 8px;
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 20px;
       font-size: 12px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       transition: all 0.2s ease;
     }
-
     .menu-create-list-btn:hover {
-      background: rgba(245, 158, 11, 0.1);
       border-color: var(--accent);
+      color: var(--accent);
     }
-
     .menu-custom-lists {
       display: flex;
       flex-direction: column;
       gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .menu-custom-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-custom-item:hover {
+      border-color: var(--accent);
+    }
+    .menu-custom-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-custom-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .menu-custom-left i {
+      width: 18px;
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .menu-custom-left span {
+      font-size: 14px;
+    }
+    .menu-custom-state {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .menu-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-option {
+      height: 44px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .menu-icon-option:hover {
+      border-color: var(--accent);
+    }
+    .menu-icon-option.selected {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-icon-option i {
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .menu-icon-option.selected i {
+      color: var(--accent);
+    }
+    .menu-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .menu-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-btn-secondary {
+      background: var(--card-2);
+      color: var(--white);
+    }
+    .menu-btn-secondary:hover {
+      border-color: var(--accent);
+    }
+    .menu-btn-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+    }
+    .menu-btn-primary:hover {
+      opacity: 0.9;
+    }
+    .authenticated-only {
+      display: none;
+    }
+    body.authenticated .authenticated-only {
+      display: block;
     }
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -919,14 +718,13 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260329b" />
-<script src="/js/mobile-webapp.js?v=20260424b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260319b">
-<script src="js/shared-header.js?v=20260424f" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
-  <link rel="stylesheet" href="/css/pages/media-spotlight.css?v=20260418a">
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260509c" />
+  <script src="/js/mobile-webapp.js?v=20260509c" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260510h">
+<script src="js/shared-header.js?v=20260510g" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260509c" />
 </head>
-<body>
+<body data-nav-page="games">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -956,92 +754,130 @@
   </div>
 </header>
 
-  <section class="hero">
-    <h1>Games</h1>
-    <p>Discover trending and popular games from the Zo2y game catalog.</p>
-  </section>
-
-  <section class="media-spotlight" id="gamesSpotlight" hidden>
-    <div class="media-spotlight-shell">
-      <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
-      <div class="media-spotlight-copy">
-        <h2 id="gamesSpotlightTitle">Loading?</h2>
-        <p class="media-spotlight-meta" id="gamesSpotlightMeta"></p>
-        <p class="media-spotlight-summary" id="gamesSpotlightSummary"></p>
-        <div class="media-spotlight-actions">
-          <a class="btn" id="gamesSpotlightOpen" href="#">Open game</a>
+  <main class="container page-shell">
+    <section class="hero">
+      <h1>games</h1>
+      <p>Discover trending video games from all platforms and save them to your game lists.</p>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+      <div class="hero-actions">
+        <!-- Refresh Picks removed: it broke pagination ordering and caused cover-missing games to appear early. -->
+      </div>
+    </section>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search games, genres, platforms...">
+      <button id="gamesSearchBtn" class="control-icon-btn" type="button" aria-label="Search games"><i class="fas fa-search"></i></button>
+      <button id="gamesFilterBtn" class="control-icon-btn" type="button" aria-label="Open game filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="gamesFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter games</div>
+          <button class="control-modal-close" id="gamesFilterCloseBtn" type="button" aria-label="Close game filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="platform"><option value="">All Platforms</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
         </div>
       </div>
-      <div class="media-spotlight-poster">
-        <img id="gamesSpotlightImage" src="/newlogo.webp" alt="Game spotlight cover" loading="eager" decoding="async" referrerpolicy="no-referrer">
-      </div>
     </div>
-  </section>
 
-  <div class="controls">
-    <input id="searchInput" class="search-input" type="text" placeholder="Search games..." />
-    <button class="btn search-submit-btn" id="searchSubmitBtn" type="button" aria-label="Search games">
-      <i class="fas fa-search"></i>
-    </button>
-    <button class="btn filter-launch-btn" id="filterToggleBtn" type="button" aria-label="Open filters">
-      <i class="fas fa-sliders-h"></i>
-    </button>
-  </div>
-  <div id="activeFilters" class="chip-row"></div>
-  <div class="modal" id="filterModal">
-    <div class="modal-content filter-modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Filter games</div>
-        <button class="modal-close" id="closeFilterModalBtn">&times;</button>
+    <section class="section">
+      <div class="section-head">
+        <h2>popular games right now</h2>
+        <p>Trending games across all platforms.</p>
       </div>
-      <div class="filter-form-grid">
-        <select id="genreSelect" class="filter-select">
-          <option value="">All Genres</option>
-        </select>
-        <input id="yearInput" class="search-input" type="number" min="1900" max="2100" placeholder="Year" />
-        <input id="platformInput" class="search-input full-span" type="text" placeholder="Platform (e.g., PC, PlayStation, Xbox)" />
+      <div class="grid" id="gamesGrid"></div>
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <div id="gamesGrid" class="grid"></div>
-  <div id="emptyState" class="empty" style="display:none;">No games found.</div>
-  <div class="pagination">
-    <button class="page-btn" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i></button>
-    <div class="page-info" id="pageInfo">Page 1</div>
-    <button class="page-btn" id="nextPageBtn" disabled><i class="fas fa-chevron-right"></i></button>
-  </div>
-
-  <div class="modal" id="gameListsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Custom Game Lists</div>
-        <button class="modal-close" id="closeGameListsBtn">&times;</button>
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
       </div>
-      <div class="modal-list" id="gameListsContainer"></div>
-      <div class="modal-input">
-        <input type="text" id="newGameListName" placeholder="New list name..." maxlength="50">
-        <button class="btn" id="createGameListBtn">Create</button>
-      </div>
-      <div class="icon-options" id="gameListIconOptions">
-        <button class="icon-option selected" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
-        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
-      </div>
-      <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn" id="saveGameListsBtn">Save Changes</button>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
       </div>
     </div>
   </div>
 
-    <script>
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content" style="max-width: 320px;">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/pages/games-shared.js?v=20260509c"></script>
+  <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      const IGDB_PROXY_BASE = '/api/igdb';
-      const FALLBACK_GAME_IMAGE = '/newlogo.webp';
-      const API_PAGE_SIZE = 50;
-      let GAMES_PAGE_SIZE = 30;
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const FALLBACK_IMAGE = '/newlogo.webp';
+      let GAMES_PAGE_SIZE = 60;
+      const RAWG_API_KEY = ''; // RAWG doesn't require API key for basic requests
+      const RAWG_BASE = 'https://api.rawg.io/api';
+
+    // Cache for fetched cover URLs to avoid repeated API calls
+    const coverCache = new Map();
+
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      games: [],
+      search: '',
+      genre: '',
+      platform: '',
+      sort: 'popular',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
 
     function computeGridPageSize() {
       const grid = document.getElementById('gamesGrid');
@@ -1050,17 +886,6 @@
       const rows = 3;
       return cols * rows;
     }
-
-    let supabaseClient = null;
-    let currentUser = null;
-    const state = {
-      games: [],
-      search: '',
-      page: 1,
-      totalPages: 1,
-      listStatusMap: new Map(),
-      pendingQuickOps: new Set()
-    };
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1088,123 +913,151 @@
     }
 
     let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
 
-    async function loadGamesWithFallback(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadGamesWithFallback() {
+      const query = String(state.search || '').trim();
       let games = [];
-      let apiTotalResults = null;
+      let apiTotalPages = 1;
 
       GAMES_PAGE_SIZE = computeGridPageSize();
-      const startIndex = (state.page - 1) * GAMES_PAGE_SIZE;
-      const withinOffset = startIndex % GAMES_PAGE_SIZE;
 
       const client = await ensureSupabase();
-      if (client) {
-        try {
-          let supabaseQuery = client
-            .from('games')
-            .select('*', { count: 'exact', head: false })
-            .order('rating', { ascending: false, nullsFirst: false })
-            .order('rating_count', { ascending: false, nullsFirst: false })
-            .range(startIndex, startIndex + GAMES_PAGE_SIZE - 1);
-
-          if (query) {
-            supabaseQuery = supabaseQuery.ilike('title', `%${query}%`);
-          }
-
-          const { data, error, count } = await supabaseQuery;
-          if (!error && Array.isArray(data)) {
-            games = data;
-            apiTotalResults = count;
-          }
-        } catch (_err) {
-          console.error('Failed to load games from Supabase', _err);
-        }
+      if (!client) {
+        state.games = [];
+        state.totalPages = 1;
+        return;
       }
 
-      if (games.length === 0) {
-        try {
-          for (let p = 1; p <= 6 && games.length < withinOffset + GAMES_PAGE_SIZE; p += 1) {
-            const url = `${IGDB_PROXY_BASE}/games?sort=popularity desc&limit=${API_PAGE_SIZE}&offset=${(p - 1) * API_PAGE_SIZE}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null && typeof json?.count === 'number') apiTotalResults = json.count;
-            const batch = Array.isArray(json?.data) ? json.data : (Array.isArray(json) ? json : []);
-            games = games.concat(batch);
-            if (!batch.length) break;
+      try {
+        let dbQuery = client.from('games').select('*', { count: 'exact' });
+
+        if (query) {
+          // Try search with variations
+          const variations = getQueryVariations(query);
+          let found = false;
+          
+          for (const variation of variations) {
+            try {
+              let searchQuery = client.from('games').select('*', { count: 'exact' });
+              searchQuery = searchQuery.ilike('title', `%${variation}%`);
+
+              if (state.genre) {
+                searchQuery = searchQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
+              }
+
+              if (state.platform) {
+                searchQuery = searchQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+              }
+
+              if (state.sort === 'name') {
+                searchQuery = searchQuery.order('title', { ascending: true });
+              } else if (state.sort === 'released') {
+                searchQuery = searchQuery.order('release_date', { ascending: false, nullsFirst: false });
+              } else {
+                searchQuery = searchQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+              }
+
+              // Fetch all results (no pagination) to sort by cover availability
+              const { data, error, count } = await searchQuery;
+              if (error) throw error;
+
+              games = data || [];
+               apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+               found = true;
+               break;
+            } catch (_err) {
+              console.error('Failed to search games with variation:', variation, _err);
+            }
           }
-        } catch (_err) {
-          console.error('Failed to load popular games from IGDB', _err);
-        }
+          
+          if (!found) {
+            state.games = [];
+            state.totalPages = 1;
+            return;
+          }
+        } else {
+          // Load all games when no search query (no pagination yet)
+          if (state.genre) {
+            dbQuery = dbQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
+          }
+
+          if (state.platform) {
+            dbQuery = dbQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+          }
+
+          if (state.sort === 'name') {
+            dbQuery = dbQuery.order('title', { ascending: true });
+          } else if (state.sort === 'released') {
+            dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false });
+          } else {
+            dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+          }
+
+          // Fetch all results (no pagination) to sort by cover availability
+          const { data, error, count } = await dbQuery;
+          if (error) throw error;
+
+          games = data || [];
+           apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+         }
+       } catch (_err) {
+        console.error('Failed to load games', _err);
       }
 
+      // Map games with cover resolution
       state.games = games.map((game) => ({
         id: String(game.id || ''),
-        name: game.name || game.title || 'Unknown Game',
-        summary: game.summary || game.description || '',
-        coverUrl: game.cover_url || game.cover ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${game.cover}.jpg` : '',
-        heroUrl: game.hero_url || '',
+        name: game.title || 'Unknown Game',
+        summary: game.description || '',
+        cover: resolveGameCover(game),
+        firstReleaseDate: game.release_date || '',
         rating: game.rating || 0,
-        releaseDate: game.release_date || (game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : '')
+        genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
       })).filter((g) => g.id);
-
-      const seen = new Set();
-      state.games = state.games.filter(game => {
-        if (seen.has(game.id)) return false;
-        seen.add(game.id);
-        return true;
-      });
-
+      
+      // Sort games: games with covers first, games without covers at the end
       state.games.sort((a, b) => {
-        const aHasCover = !!a.coverUrl;
-        const bHasCover = !!b.coverUrl;
+        const aHasCover = a.cover && a.cover !== '' && a.cover !== FALLBACK_IMAGE;
+        const bHasCover = b.cover && b.cover !== '' && b.cover !== FALLBACK_IMAGE;
+        
         if (aHasCover && !bHasCover) return -1;
         if (!aHasCover && bHasCover) return 1;
+        
+        // Within same cover status, maintain existing sort order
         return 0;
       });
 
-      state.games = state.games.slice(withinOffset, withinOffset + GAMES_PAGE_SIZE);
-
-      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / GAMES_PAGE_SIZE));
-      } else {
-        state.totalPages = 1;
-      }
-
-      fetchWikipediaCovers();
-    }
-
-    async function fetchWikipediaCovers() {
-      const gamesWithoutCovers = state.games.filter(g => !g.coverUrl && g.name);
-      if (gamesWithoutCovers.length === 0) return;
-
-      for (const game of gamesWithoutCovers.slice(0, 10)) {
-        try {
-          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(game.name + ' video game')}&format=json&origin=*`;
-          const searchRes = await fetch(searchUrl);
-          if (!searchRes.ok) continue;
-          const searchJson = await searchRes.json();
-          const results = searchJson?.query?.search || [];
-          if (results.length === 0) continue;
-
-          const pageTitle = results[0].title;
-          const imageUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`;
-          const imageRes = await fetch(imageUrl);
-          if (!imageRes.ok) continue;
-          const imageJson = await imageRes.json();
-          
-          if (imageJson?.originalimage?.source) {
-            game.coverUrl = imageJson.originalimage.source;
-          } else if (imageJson?.thumbnail?.source) {
-            game.coverUrl = imageJson.thumbnail.source.replace(/\/\d+px-/, '/500px-');
-          }
-        } catch (_err) {
-          console.error('Failed to fetch Wikipedia cover for', game.name, _err);
-        }
-      }
-
-      renderGrid();
+      // Apply pagination after sorting (page size computed from grid so we never end on partial rows)
+      const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
+      const rangeEnd = rangeStart + GAMES_PAGE_SIZE;
+      state.games = state.games.slice(rangeStart, rangeEnd);
+      
+      state.totalPages = apiTotalPages;
     }
 
     function debounceSearch(query) {
@@ -1218,31 +1071,86 @@
       }, 400);
     }
 
+    function toHttpsUrl(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      return raw.replace(/^http:\/\//i, 'https://');
+    }
+
+    async function fetchCoverFromRAWG(gameName) {
+      if (!gameName) return '';
+      
+      // Check cache first
+      const cacheKey = gameName.toLowerCase().trim();
+      if (coverCache.has(cacheKey)) {
+        return coverCache.get(cacheKey);
+      }
+      
+      try {
+        // Search for the game on RAWG
+        const searchUrl = `${RAWG_BASE}/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(gameName)}&page_size=1`;
+        const response = await fetch(searchUrl);
+        if (!response.ok) return '';
+        
+        const data = await response.json();
+        if (!data.results || data.results.length === 0) return '';
+        
+        const game = data.results[0];
+        const coverUrl = game.background_image || '';
+        
+        if (coverUrl) {
+          coverCache.set(cacheKey, coverUrl);
+          return coverUrl;
+        }
+      } catch (err) {
+        console.error('Failed to fetch cover from RAWG:', err);
+      }
+      
+      coverCache.set(cacheKey, '');
+      return '';
+    }
+
+    function resolveGameCover(row) {
+      // Try multiple cover sources
+      const raw = String(row?.cover_url || row?.cover || row?.image || '').trim();
+      if (raw && raw !== '[object Object]') {
+        return toHttpsUrl(raw);
+      }
+      
+      // Try IGDB cover
+      const igdbCover = row?.extra?.cover?.url;
+      if (igdbCover) {
+        return toHttpsUrl(igdbCover.startsWith('//') ? `https:${igdbCover}` : igdbCover);
+      }
+      
+      // Try Steam cover if steam_appid is available
+      const steamAppId = row?.extra?.steam_appid || row?.steam_appid;
+      if (steamAppId) {
+        return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
+      }
+      
+      // No remote placeholder (keeps offline + avoids 3rd party outages). We'll hydrate covers via `/api/igdb` when possible.
+      return '';
+    }
+
+    function handleImageError(img, gameName) {
+      img.src = FALLBACK_IMAGE;
+      img.alt = gameName || 'Game cover not available';
+    }
+
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
-      const authRuntime = window.ZO2Y_AUTH || null;
-      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-        await authRuntime.waitForSupabase(8000);
-      } else {
-        const startedAt = Date.now();
-        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-          await new Promise((resolve) => setTimeout(resolve, 40));
-        }
-      }
-      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-        if (supabaseClient) return supabaseClient;
-      }
-      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-        supabaseClient = window.supabase.createClient(
-          window.__ZO2Y_SUPABASE_CONFIG.url,
-          window.__ZO2Y_SUPABASE_CONFIG.key,
-          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-        );
-        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      if (window.__ZO2Y_SUPABASE_CLIENT) {
+        supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
         return supabaseClient;
       }
-      return null;
+      if (!window.supabase) return null;
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: 'zo2y-auth-v2' }
+      });
+      window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      return supabaseClient;
     }
 
     async function initAuthUi() {
@@ -1268,6 +1176,10 @@
       }
     }
 
+    async function loadGames() {
+      await loadGamesWithFallback();
+    }
+
     async function loadListStatus() {
       state.listStatusMap = new Map();
       if (!currentUser?.id || !state.games.length) return;
@@ -1283,7 +1195,7 @@
       (data || []).forEach((row) => {
         const id = String(row.game_id || '');
         if (!id) return;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, toplay: false });
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, played: false, backlog: false });
         const bucket = state.listStatusMap.get(id);
         if (row.list_type in bucket) bucket[row.list_type] = true;
       });
@@ -1291,7 +1203,7 @@
 
     function getGameListStatus(gameId) {
       const id = String(gameId || '').trim();
-      const empty = { favorites: false, played: false, topplay: false };
+      const empty = { favorites: false, played: false, backlog: false };
       if (!id) return empty;
       if (!state.listStatusMap.has(id)) {
         state.listStatusMap.set(id, { ...empty });
@@ -1300,34 +1212,69 @@
     }
 
     function getGameCardExtra(game) {
-      const year = game.releaseDate || '';
-      const rating = game.rating ? `Rating: ${game.rating.toFixed(1)}` : '';
-      const parts = [year, rating].filter(Boolean);
+      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
+      const parts = [genres, rating].filter(Boolean);
       return parts.join(' | ') || 'Game details';
+    }
+
+    function renderGameSpotlight(game) {
+      const section = document.getElementById('gamesSpotlight');
+      if (!section || !game) return;
+      const bg = document.getElementById('gamesSpotlightBg');
+      const titleEl = document.getElementById('gamesSpotlightTitle');
+      const metaEl = document.getElementById('gamesSpotlightMeta');
+      const summaryEl = document.getElementById('gamesSpotlightSummary');
+      const imgEl = document.getElementById('gamesSpotlightImage');
+      const openEl = document.getElementById('gamesSpotlightOpen');
+      
+      const coverUrl = game.cover || FALLBACK_IMAGE;
+      const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
+      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
+      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${coverUrl}")`;
+      if (titleEl) titleEl.textContent = game.name || 'Game Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Game details';
+      if (summaryEl) summaryEl.textContent = genres || 'No description available.';
+      if (imgEl) {
+        imgEl.src = coverUrl;
+        imgEl.alt = `${game.name || 'Game'} cover`;
+      }
+      if (openEl) openEl.href = `game.html?id=${encodeURIComponent(game.id)}`;
     }
 
     function renderGrid() {
       const grid = document.getElementById('gamesGrid');
+      const spotlight = document.getElementById('gamesSpotlight');
       if (!grid) return;
+      
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
+      
       if (!state.games.length) {
         grid.innerHTML = '<div class="empty">No games found.</div>';
         updatePagination();
         return;
       }
       grid.innerHTML = state.games.map((game) => {
-        const coverUrl = game.coverUrl || FALLBACK_GAME_IMAGE;
+        const coverUrl = game.cover || FALLBACK_IMAGE;
+        const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(game.name)}</p>
-            <p class="card-sub">${escapeHtml(game.releaseDate)}</p>
-            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
-            <div class="card-actions">
-              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>
+            <div class="card-meta-top">
+              <div class="card-name">${escapeHtml(game.name)}</div>
+              <div class="card-actions">
+                <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
             </div>
+            <div class="card-sub">${escapeHtml(year)}</div>
           </div>
         </article>
       `;
@@ -1335,6 +1282,49 @@
 
       wireGridActions();
       updatePagination();
+      hydrateMissingCovers();
+    }
+
+    let coverHydrateAbort = null;
+    async function hydrateMissingCovers() {
+      // Fill missing covers on demand for visible items (no local seeding/storage).
+      const api = window.__zo2yGamesShared;
+      if (!api?.fetchCoverForTitle) return;
+
+      if (coverHydrateAbort) coverHydrateAbort.abort();
+      coverHydrateAbort = new AbortController();
+      const signal = coverHydrateAbort.signal;
+
+      const runBatch = async () => {
+        const candidates = state.games
+          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+          .slice(0, Math.max(18, Math.min(48, GAMES_PAGE_SIZE)));
+        if (!candidates.length) return false;
+
+        await Promise.all(
+          candidates.map(async (g) => {
+            const cover = await api.fetchCoverForTitle(g.name, signal);
+            if (!cover) return;
+            g.cover = cover;
+            const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
+            const img = card ? card.querySelector('img') : null;
+            if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
+              img.setAttribute('src', cover);
+            }
+          })
+        );
+        return true;
+      };
+
+      // Keep trying a couple batches while the browser is idle to maximize filled covers.
+      for (let i = 0; i < 3; i += 1) {
+        const did = await runBatch();
+        if (!did) break;
+        await new Promise((resolve) => {
+          if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 650 });
+          else window.setTimeout(resolve, 120);
+        });
+      }
     }
 
     function updatePagination() {
@@ -1427,7 +1417,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadGamesWithFallback();
+        await loadGames();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -1436,31 +1426,45 @@
       }
     }
 
-    document.getElementById('searchSubmitBtn')?.addEventListener('click', async () => {
-      const query = String(document.getElementById('searchInput')?.value || '').trim();
+    // Refresh Picks removed.
+    document.getElementById('gamesSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
       debounceSearch(query);
     });
-    document.getElementById('searchInput')?.addEventListener('input', async (e) => {
+    document.getElementById('q')?.addEventListener('input', async (e) => {
       const query = String(e.target.value || '').trim();
       debounceSearch(query);
     });
-    document.getElementById('filterToggleBtn')?.addEventListener('click', () => {
-      document.getElementById('filterModal')?.classList.add('active');
+    document.getElementById('gamesFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('gamesFilterModal')?.classList.add('show');
     });
-    document.getElementById('closeFilterModalBtn')?.addEventListener('click', () => {
-      document.getElementById('filterModal')?.classList.remove('active');
+    document.getElementById('gamesFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('gamesFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('platform')?.addEventListener('change', (e) => {
+      state.platform = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('gamesFilterModal')?.classList.remove('show');
+      await loadPage();
     });
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
       if (state.page <= 1) return;
       state.page -= 1;
-      await loadGamesWithFallback();
+      await loadGames();
       await loadListStatus();
       renderGrid();
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (state.page >= state.totalPages) return;
       state.page += 1;
-      await loadGamesWithFallback();
+      await loadGames();
       await loadListStatus();
       renderGrid();
     });
@@ -1504,73 +1508,6 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260422a" defer></script>
+  <script src="js/production-runtime.js?v=20260509c" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
