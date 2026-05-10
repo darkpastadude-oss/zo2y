@@ -1248,10 +1248,7 @@
     }
 
     function getAnimeCardExtra(anime) {
-      const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
-      const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
-      const parts = [year, rating].filter(Boolean);
-      return parts.join(' | ') || 'Anime details';
+      return '';
     }
 
     function renderAnimeSpotlight(anime) {
@@ -1311,7 +1308,10 @@
             <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(anime.name)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(anime.name)}</p>
+            <span class="card-type"><i class="fa-solid fa-dragon"></i> Anime</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(anime.name)}</p>
+            </div>
             <p class="card-sub">${escapeHtml(anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getAnimeCardExtra(anime))}</p>
             <div class="card-actions">

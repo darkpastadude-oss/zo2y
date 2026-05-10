@@ -1232,10 +1232,7 @@
     }
 
     function getTvshowCardExtra(tvshow) {
-      const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
-      const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
-      const parts = [year, rating].filter(Boolean);
-      return parts.join(' | ') || 'TV Show details';
+      return '';
     }
 
     function renderTvshowSpotlight(tvshow) {
@@ -1295,7 +1292,10 @@
             <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(tvshow.name)}</p>
+            <span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(tvshow.name)}</p>
+            </div>
             <p class="card-sub">${escapeHtml(tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getTvshowCardExtra(tvshow))}</p>
             <div class="card-actions">

@@ -489,7 +489,7 @@
       (data||[]).forEach(r=>{ const id=String(r.anime_id||''); if (!id)return; if (!state.listStatusMap.has(id))state.listStatusMap.set(id,{favorites:false,watched:false,watchlist:false}); const b=state.listStatusMap.get(id); if (r.list_type in b)b[r.list_type]=true; });
     }
     function getAnimeListStatus(id) { const i=String(id||'').trim(), e={favorites:false,watched:false,watchlist:false}; if (!i)return e; if (!state.listStatusMap.has(i))state.listStatusMap.set(i,{...e}); return state.listStatusMap.get(i); }
-    function getAnimeCardExtra(t) { const y=t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD', r=t.voteAverage?`Rating: ${t.voteAverage.toFixed(1)}/10`:''; return [y,r].filter(Boolean).join(' | ')||'Anime details'; }
+    function getAnimeCardExtra(t) { return ''; }
     function renderAnimeSpotlight(anime) {
       const section = document.getElementById('animesSpotlight');
       if (!section || !anime) return;
@@ -521,7 +521,7 @@
       // Spotlight disabled (always show grid).
       if (spotlight) spotlight.hidden = true;
       if (!state.animes.length) { grid.innerHTML='<div class="empty">No anime found.</div>'; updatePagination(); return; }
-      grid.innerHTML=state.animes.map(a=>{ const p=a.posterPath?`${POSTER_BASE}${a.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(a.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(a.name)}" loading="lazy"></div><div class="card-meta"><p class="card-title">${escapeHtml(a.name)}</p><p class="card-sub">${escapeHtml(a.firstAirDate?new Date(a.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getAnimeCardExtra(a))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
+      grid.innerHTML=state.animes.map(a=>{ const p=a.posterPath?`${POSTER_BASE}${a.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(a.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(a.name)}" loading="lazy"></div><div class="card-meta"><span class="card-type"><i class="fa-solid fa-dragon"></i> Anime</span><div class="card-meta-top"><p class="card-title">${escapeHtml(a.name)}</p></div><p class="card-sub">${escapeHtml(a.firstAirDate?new Date(a.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getAnimeCardExtra(a))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
       document.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); const c=b.closest('.card'); if(c&&typeof window.openIndexStyleListMenu==='function')window.openIndexStyleListMenu(c); }));
       document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',e=>{if(e.target.closest('.menu-btn'))return; const i=String(c.getAttribute('data-id')||'').trim(); if(i)window.location.href=`tvshow.html?id=${encodeURIComponent(i)}`; }));
       updatePagination();

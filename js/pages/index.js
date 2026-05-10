@@ -204,8 +204,6 @@
       { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
       { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
       { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
-      { id: '112875', title: 'Elden Ring', release: '2022-02-25', cover: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
-      { id: '1942', title: 'Cyberpunk 2077', release: '2020-12-10', cover: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
       { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
@@ -9444,7 +9442,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadGames(signal, options = {}) {
       // Keep homepage games logic identical to the previously working implementation (commit b57da823).
       // This version pulls from the existing `/api/igdb/games` aggregator instead of Supabase tables.
-      const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 18 : 28);
+      const targetCount = Math.max(getHomeChannelTargetItems(), isHomeSlowNetwork() ? 8 : 12);
       const cacheBust = options?.cacheBust ? Date.now() : 0;
       const cacheParams = cacheBust ? { cache_bust: cacheBust } : {};
       const cachedGameItems = readHomeItemsCache(
@@ -9458,7 +9456,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return item;
         }
       );
-      const toFallbackGameItems = () => HOME_GAMES_FALLBACK_ITEMS
+      const toFallbackGameItems = () => shuffleArray(HOME_GAMES_FALLBACK_ITEMS)
         .map((row) => ({
           mediaType: 'game',
           itemId: row.id,
@@ -9536,7 +9534,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
           .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
           .slice(0, Math.max(targetCount * 2, 24));
-        if (!options?.cacheBust && localItems.length >= Math.min(targetCount, 12)) {
+        if (!options?.cacheBust && localItems.length >= Math.min(targetCount, 4)) {
           const rotatedLocal = shuffleArray(localItems).slice(0, targetCount);
           writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedLocal);
           return rotatedLocal;

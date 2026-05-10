@@ -893,10 +893,7 @@
     }
 
     function getMovieCardExtra(movie) {
-      const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
-      const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
-      const parts = [year, rating].filter(Boolean);
-      return parts.join(' | ') || 'Movie details';
+      return '';
     }
 
     function renderMovieSpotlight(movie) {
@@ -949,7 +946,10 @@
             <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(movie.title)}</p>
+            <span class="card-type"><i class="fa-solid fa-film"></i> Movie</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(movie.title)}</p>
+            </div>
             <p class="card-sub">${escapeHtml(movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getMovieCardExtra(movie))}</p>
             <div class="card-actions">

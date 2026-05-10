@@ -991,10 +991,7 @@
     }
 
     function getGameCardExtra(game) {
-      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
-      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
-      const parts = [genres, rating].filter(Boolean);
-      return parts.join(' | ') || 'Game details';
+      return '';
     }
 
     function renderGameSpotlight(game) {

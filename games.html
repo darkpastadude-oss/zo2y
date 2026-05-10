@@ -1212,10 +1212,7 @@
     }
 
     function getGameCardExtra(game) {
-      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
-      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
-      const parts = [genres, rating].filter(Boolean);
-      return parts.join(' | ') || 'Game details';
+      return '';
     }
 
     function renderGameSpotlight(game) {
@@ -1267,14 +1264,15 @@
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
           </div>
           <div class="card-meta">
-            <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>
+            <span class="card-type"><i class="fa-solid fa-gamepad"></i> Game</span>
             <div class="card-meta-top">
-              <div class="card-name">${escapeHtml(game.name)}</div>
-              <div class="card-actions">
-                <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-              </div>
+              <p class="card-name">${escapeHtml(game.title)}</p>
             </div>
-            <div class="card-sub">${escapeHtml(year)}</div>
+            <p class="card-sub">${escapeHtml(game.releaseDate ? game.releaseDate.slice(0, 4) : 'Game')}</p>
+            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
           </div>
         </article>
       `;
