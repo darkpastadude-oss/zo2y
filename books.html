@@ -827,7 +827,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid" id="booksGrid"><div class="empty" style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px;"></i><div>Loading books...</div></div></div>
+      <div class="grid" id="booksGrid">Loading books...</div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -1168,7 +1168,10 @@
     }
 
     function getBookCardExtra(book) {
-      return '';
+      const year = book.publishedDate ? new Date(book.publishedDate).getFullYear() : '';
+      const pages = book.pageCount ? `${book.pageCount} pages` : '';
+      const parts = [year, pages].filter(Boolean);
+      return parts.join(' | ') || 'Book details';
     }
 
     function renderGrid() {
@@ -1187,11 +1190,8 @@
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
-            <div class="card-meta-top">
-              <p class="card-title">${escapeHtml(book.title)}</p>
-            </div>
-            <p class="card-sub">${escapeHtml(book.authors ? book.authors.join(', ') : 'Unknown')}</p>
+            <p class="card-title">${escapeHtml(book.title)}</p>
+            <p class="card-sub">${escapeHtml(book.authors)}</p>
             <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
             <div class="card-actions">
               <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
