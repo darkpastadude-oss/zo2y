@@ -1023,25 +1023,11 @@ const HEADER_HTML = `
           }
         });
 
-        // Mobile logo click behavior: first click for animation, second click to navigate
+        // Mobile logo click behavior: navigate immediately on first click
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
         if (isMobile) {
-          let clickCount = 0;
-          let clickTimer = null;
-
           anchor.addEventListener('click', (event) => {
-            clickCount++;
-            if (clickCount === 1) {
-              event.preventDefault();
-              triggerTongue();
-              clickTimer = window.setTimeout(() => {
-                clickCount = 0;
-              }, 500);
-            } else if (clickCount === 2) {
-              window.clearTimeout(clickTimer);
-              clickCount = 0;
-              // Allow default navigation
-            }
+            // Allow default navigation immediately
           });
         }
       }
