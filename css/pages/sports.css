@@ -793,7 +793,13 @@ select {
   color: #fecaca;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
+  .sports-hero {
+    display: none !important;
+  }
+}
+
+@media (max-width: 740px) {
   .sports-main {
     width: min(100%, calc(100% - 28px));
     gap: 18px;
