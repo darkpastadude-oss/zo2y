@@ -98,6 +98,27 @@
       color: var(--white); padding: 0 14px 0 34px; outline: none;
     }
     .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
+    
+    .hero-image {
+      margin-top: 20px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    
+    .hero-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-image {
+        display: none;
+      }
+    }
+
 
     .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .top-nav { display: inline-flex; align-items: center; gap: 8px; opacity: 0.92; }
@@ -310,26 +331,29 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      font-size: 11px;
+      font-size: 10px;
       color: #dbe7ff;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 999px;
-      padding: 3px 8px;
-      margin-bottom: 3px;
+      padding: 2px 6px;
+      margin-bottom: 2px;
       width: fit-content;
+      flex-shrink: 0;
     }
 
     .card-name {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.3;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 36px;
+      min-height: 32px;
       margin-bottom: 0;
+      flex: 1;
+      word-break: break-word;
     }
 
     .card-sub {
@@ -346,9 +370,10 @@
       justify-content: end;
     }
     .icon-btn {
-      height: 32px; width: 32px; border-radius: 9px; border: 1px solid var(--border);
+      height: 28px; width: 28px; border-radius: 8px; border: 1px solid var(--border);
       background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer;
+      font-size: 14px;
     }
     .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -759,6 +784,9 @@
       <h1>games</h1>
       <p>Discover trending video games from all platforms and save them to your game lists.</p>
       <div class="mt-2 text-xs text-muted opacity-86">source: IGDB. <a href="credits.html" class="text-accent">all credits</a></div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=800&q=80" alt="Gaming controller" />
+      </div>
       <div class="hero-actions">
         <!-- Refresh Picks removed: it broke pagination ordering and caused cover-missing games to appear early. -->
       </div>
