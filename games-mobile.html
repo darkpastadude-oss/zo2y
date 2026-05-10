@@ -101,7 +101,7 @@
       padding: 18px 16px;
       background:
         linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
-        url("https://images.unsplash.com/photo-1552820728-8b83bb6b2b0d?auto=format&fit=crop&w=800&q=80") center/cover;
+        url("https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=800&q=80") center/cover;
       box-shadow: 0 10px 28px rgba(0,0,0,0.26);
     }
     .hero h1 { font-size: 26px; line-height: 1.1; }
@@ -667,9 +667,6 @@
     body.authenticated .authenticated-only {
       display: block;
     }
-    .hero {
-      display: none !important;
-    }
 
   </style>
   <meta name="theme-color" content="#0b1633" />
@@ -699,7 +696,7 @@
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
 </div>
   </div>
 </header>
@@ -708,7 +705,7 @@
     <section class="hero">
       <h1>games</h1>
       <p>Discover trending video games from all platforms and save them to your game lists.</p>
-      <div class="mt-2 text-xs text-muted opacity-86">source: IGDB. <a href="credits.html" class="text-accent">all credits</a></div>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
         <!-- Refresh removed (covers hydrate automatically; refresh also caused pagination/order confusion). -->
       </div>
@@ -773,7 +770,7 @@
   </div>
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content max-w-320">
+    <div class="menu-modal-content" style="max-width: 320px;">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
@@ -994,7 +991,10 @@
     }
 
     function getGameCardExtra(game) {
-      return '';
+      const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
+      const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
+      const parts = [genres, rating].filter(Boolean);
+      return parts.join(' | ') || 'Game details';
     }
 
     function renderGameSpotlight(game) {
