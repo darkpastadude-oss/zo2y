@@ -1168,10 +1168,7 @@
     }
 
     function getBookCardExtra(book) {
-      const year = book.publishedDate ? new Date(book.publishedDate).getFullYear() : '';
-      const pages = book.pageCount ? `${book.pageCount} pages` : '';
-      const parts = [year, pages].filter(Boolean);
-      return parts.join(' | ') || 'Book details';
+      return '';
     }
 
     function renderGrid() {
@@ -1190,7 +1187,10 @@
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(book.title)}</p>
+            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(book.title)}</p>
+            </div>
             <p class="card-sub">${escapeHtml(book.authors)}</p>
             <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
             <div class="card-actions">
