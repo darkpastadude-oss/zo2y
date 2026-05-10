@@ -563,7 +563,7 @@
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
 </div>
   </div>
 </header>
@@ -610,7 +610,7 @@
       <p>Real travel photos from this destination.</p>
     </div>
     <div id="galleryGrid" class="gallery-grid">
-      <div class="empty" style="grid-column: 1 / -1;">Loading gallery...</div>
+      <div class="empty grid-col-full">Loading gallery...</div>
     </div>
   </section>
 
@@ -644,10 +644,10 @@
       <h2>Travel Planner</h2>
       <p>Save your city picks, activities, budget, and notes for this country.</p>
     </div>
-    <div id="plannerAuthNote" class="planner-auth-note" style="display:none">
+    <div id="plannerAuthNote" class="planner-auth-note hidden">
       Please <a href="login.html">sign in</a> to save your travel plan.
     </div>
-    <form id="plannerForm" class="planner-form" style="display:none">
+    <form id="plannerForm" class="planner-form hidden">
       <div class="planner-grid">
         <div class="planner-field">
           <label for="plannerCitiesInput">Cities (comma separated)</label>
@@ -690,21 +690,21 @@
   </section>
 
   <section class="reviews">
-    <h2 style="margin:0 0 8px">Travel Reviews</h2>
+    <h2 class="mb-2">Travel Reviews</h2>
     <div class="stats">
       <div class="s"><div id="avg" class="sv">-</div><div class="sl">Average</div></div>
       <div class="s"><div id="count" class="sv">0</div><div class="sl">Reviews</div></div>
     </div>
     <div id="reviewList" class="list"><div class="empty">Loading reviews...</div></div>
     <div class="form">
-      <div id="authMsg" class="empty" style="display:none">Please <a href="login.html">sign in</a> to leave a review.</div>
-      <form id="reviewForm" style="display:none">
-        <div style="font-size:13px;color:var(--muted)">Your rating</div>
+      <div id="authMsg" class="empty hidden">Please <a href="login.html">sign in</a> to leave a review.</div>
+      <form id="reviewForm" class="hidden">
+        <div class="text-sm text-muted">Your rating</div>
         <div class="stars" id="stars"></div>
         <textarea id="comment" maxlength="500" placeholder="Share your travel experience..."></textarea>
         <div class="row">
           <button class="btn" type="submit" id="saveBtn">Submit Review</button>
-          <button class="btn" type="button" id="cancelBtn" style="display:none">Cancel Edit</button>
+          <button class="btn hidden" type="button" id="cancelBtn">Cancel Edit</button>
         </div>
       </form>
     </div>

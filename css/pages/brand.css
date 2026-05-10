@@ -1,9 +1,17 @@
 :root {
-  --brand-bg: #0b1633;
-  --brand-card: #132347;
-  --brand-border: rgba(255, 255, 255, 0.12);
-  --brand-accent: #f59e0b;
-  --brand-muted: rgba(226, 236, 255, 0.7);
+  /* Design System Variables (aligned with design-system.css) */
+  --color-bg-primary: #0b1633;
+  --color-bg-tertiary: #132347;
+  --color-border: rgba(255, 255, 255, 0.12);
+  --color-accent: #f59e0b;
+  --color-text-secondary: rgba(226, 236, 255, 0.7);
+  
+  /* Brand-specific Variables (for brand pages) */
+  --brand-bg: var(--color-bg-primary);
+  --brand-card: var(--color-bg-tertiary);
+  --brand-border: var(--color-border);
+  --brand-accent: var(--color-accent);
+  --brand-muted: var(--color-text-secondary);
 }
 
 * { box-sizing: border-box; }

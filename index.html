@@ -83,11 +83,11 @@
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 </head>
 <body>
-  <div id="appRoot" style="display:none;">
-  <div id="authBootstrapOverlay" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;z-index:9999;font-family:system-ui, -apple-system, Segoe UI, Roboto;">
-    <div style="text-align:center; color:#555">
-      <div style="font-size:18px; font-weight:600; margin-bottom:8px;">Loading your feed...</div>
-      <div class="spinner" aria-label="loading" style="width:32px;height:32px;border:4px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin 1s linear infinite"></div>
+  <div id="appRoot" class="hidden">
+  <div id="authBootstrapOverlay" class="position-fixed inset-0 flex items-center justify-center bg-white z-9999 font-system-ui">
+    <div class="text-center text-gray-500">
+      <div class="text-lg font-semibold mb-2">Loading your feed...</div>
+      <div class="spinner w-32 h-32 border-4 border-gray-300 border-t-gray-800 rounded-full" aria-label="loading" style="animation:spin 1s linear infinite"></div>
     </div>
   </div>
   <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
@@ -232,7 +232,7 @@
             <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
             <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
             <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
-            <div class="spotlight-meta" hidden aria-hidden="true" style="display:none!important;margin:0!important;padding:0!important;">
+            <div class="spotlight-meta hidden" aria-hidden="true">
               <span class="chip" id="spotlightReason"></span>
               <span class="chip" id="spotlightTrend"></span>
             </div>
@@ -385,7 +385,7 @@
   </div>
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content" style="max-width: 320px;">
+    <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>

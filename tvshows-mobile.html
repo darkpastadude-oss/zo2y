@@ -328,7 +328,7 @@
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
     </div>
   </div>
 </header>
@@ -336,7 +336,7 @@
     <section class="hero">
       <h1>TV shows</h1>
       <p>Discover trending TV shows from around the world and save them to your TV lists.</p>
-      <div style="margin-top:6px;font-size:11px;color:var(--muted);">source: TMDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+      <div class="mt-2 text-xs text-muted">source: TMDB. <a href="credits.html" class="text-accent">all credits</a></div>
       <div class="hero-actions"><!-- Refresh removed --></div>
     </section>
     <section class="controls">
@@ -393,7 +393,7 @@
   </div>
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content" style="max-width: 320px;">
+    <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>

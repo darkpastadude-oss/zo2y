@@ -101,9 +101,40 @@
 .mt-1 { margin-top: var(--space-1); }
 .mt-2 { margin-top: var(--space-2); }
 .mt-3 { margin-top: var(--space-3); }
-.mt-4 { margin-top: var(--space-4); }
 .mt-6 { margin-top: var(--space-6); }
 .mt-8 { margin-top: var(--space-8); }
+.mt-10 { margin-top: 10px; }
+
+.mt-0 {
+  margin-top: 0;
+}
+
+.min-w-290 {
+  min-width: 290px;
+}
+
+.white-space-pre-wrap {
+  white-space: pre-wrap;
+}
+
+.max-w-320 {
+  max-width: 320px;
+}
+
+.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.position-fixed {
+  position: fixed;
+}
+
+.z-9999 {
+  z-index: 9999;
+}
 
 .mb-1 { margin-bottom: var(--space-1); }
 .mb-2 { margin-bottom: var(--space-2); }
@@ -130,6 +161,10 @@
 .text-lg { font-size: var(--font-size-lg); }
 .text-xl { font-size: var(--font-size-xl); }
 
+.text-xs-custom {
+  font-size: 0.8rem;
+}
+
 .font-medium { font-weight: var(--font-weight-medium); }
 .font-semibold { font-weight: var(--font-weight-semibold); }
 .font-bold { font-weight: var(--font-weight-bold); }
@@ -138,6 +173,58 @@
 .text-secondary { color: var(--color-text-secondary); }
 .text-tertiary { color: var(--color-text-tertiary); }
 .text-accent { color: var(--color-accent); }
+
+.text-muted-light {
+  color: #cbd5e1;
+}
+
+.text-gray-500 {
+  color: #555;
+}
+
+.bg-white {
+  background: #fff;
+}
+
+.font-system-ui {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.w-32 {
+  width: 32px;
+}
+
+.w-16 {
+  width: 16px;
+}
+
+.h-32 {
+  height: 32px;
+}
+
+.h-16 {
+  height: 16px;
+}
+
+.border-4 {
+  border-width: 4px;
+}
+
+.border-2 {
+  border-width: 2px;
+}
+
+.border-gray-300 {
+  border-color: #ccc;
+}
+
+.border-t-gray-800 {
+  border-top-color: #333;
+}
+
+.opacity-86 {
+  opacity: 0.86;
+}
 
 /* Display */
 .hidden { display: none !important; }
@@ -149,9 +236,14 @@
 .items-center { align-items: center; }
 .justify-center { justify-content: center; }
 .justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
 .gap-2 { gap: var(--space-2); }
 .gap-3 { gap: var(--space-3); }
 .gap-4 { gap: var(--space-4); }
+
+.grid-col-full {
+  grid-column: 1 / -1;
+}
 
 /* Border Radius */
 .rounded-sm { border-radius: var(--radius-sm); }

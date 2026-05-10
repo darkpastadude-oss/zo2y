@@ -1085,7 +1085,7 @@
     if (state.leagueTeamsPending.has(key)) return state.leagueTeamsPending.get(key);
 
     const pending = (async () => {
-      const payload = await fetchSportsDb('search_all_teams.php', { l: league }, 9000);
+      const payload = await window.ZO2Y_SPORTSDB.request('search_all_teams.php', { l: league }, 9000);
       const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean).map(applySportsAssetOverride) : [];
       state.leagueTeamsCache.set(key, teams);
       state.leagueTeamsPending.delete(key);
@@ -1156,38 +1156,6 @@
     }, 2800);
   }
 
-  function resolveSportsDbBase() {
-    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
-    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
-    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
-    const prefix = base.startsWith('/') ? '' : '/';
-    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
-  }
-
-  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
-    const path = String(endpoint || '').trim().replace(/^\/+/, '');
-    if (!path) return null;
-    const url = new URL(`${resolveSportsDbBase()}/${path}`);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') return;
-      url.searchParams.set(key, value);
-    });
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    let timer = null;
-    try {
-      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: controller ? controller.signal : undefined
-      });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (_err) {
-      return null;
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  }
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
@@ -1787,7 +1755,7 @@
     if (picks.length < FEATURED_TEAMS_LIMIT) {
       const seeds = SEED_TEAMS.slice(0, FEATURED_TEAMS_LIMIT);
       const seedResponses = await Promise.allSettled(
-        seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed }))
+        seeds.map((seed) => window.ZO2Y_SPORTSDB.request('searchteams.php', { t: seed }))
       );
       seedResponses.forEach((result) => {
         if (!result || result.status !== 'fulfilled') return;
@@ -1862,8 +1830,8 @@
 
     const searchQueries = buildSearchQueries(trimmed);
     const searchRequests = searchQueries.length
-      ? searchQueries.map((query) => fetchSportsDb('searchteams.php', { t: query }))
-      : [fetchSportsDb('searchteams.php', { t: trimmed })];
+      ? searchQueries.map((query) => window.ZO2Y_SPORTSDB.request('searchteams.php', { t: query }))
+      : [window.ZO2Y_SPORTSDB.request('searchteams.php', { t: trimmed })];
     const [searchResponses, fallbackTeams] = await Promise.all([
       Promise.allSettled(searchRequests),
       getFallbackTeams(trimmed)
@@ -1926,7 +1894,7 @@
       });
       return true;
     }
-    const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
+    const payload = await window.ZO2Y_SPORTSDB.request('lookupteam.php', { id: teamId });
     const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
     const team = mapTeam(teamRaw);
     if (!team) {

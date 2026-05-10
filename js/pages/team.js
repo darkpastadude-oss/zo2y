@@ -129,38 +129,6 @@
     }, 2800);
   }
 
-  function resolveSportsDbBase() {
-    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
-    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
-    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
-    const prefix = base.startsWith('/') ? '' : '/';
-    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
-  }
-
-  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 9000) {
-    const path = String(endpoint || '').trim().replace(/^\/+/, '');
-    if (!path) return null;
-    const url = new URL(`${resolveSportsDbBase()}/${path}`);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') return;
-      url.searchParams.set(key, value);
-    });
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    let timer = null;
-    try {
-      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: controller ? controller.signal : undefined
-      });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (_err) {
-      return null;
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  }
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
@@ -472,27 +440,27 @@
     let teamRaw = null;
 
     if (teamId) {
-      const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
+      const payload = await window.ZO2Y_SPORTSDB.request('lookupteam.php', { id: teamId }, 9000);
       teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
       if (teamRaw && teamName) {
         const queryName = normalizeTeamName(teamName);
         const resultName = normalizeTeamName(teamRaw?.strTeam || '');
         if (queryName && resultName && queryName !== resultName) {
-          const fallback = await fetchSportsDb('searchteams.php', { t: teamName });
+          const fallback = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
           const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
           const best = pickBestTeamMatch(teams, criteria);
           if (best) teamRaw = best;
         }
       }
       if (!teamRaw && teamName) {
-        const fallback = await fetchSportsDb('searchteams.php', { t: teamName });
+        const fallback = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
         const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
         if (teams.length) {
           teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];
         }
       }
     } else if (teamName) {
-      const payload = await fetchSportsDb('searchteams.php', { t: teamName });
+      const payload = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];

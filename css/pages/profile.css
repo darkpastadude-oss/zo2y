@@ -1,22 +1,33 @@
 /* === DARK BLUE THEME VARIABLES === */
         :root {
-            --bg: #0b1633;
-            --card: #132347;
-            --muted: #cbd5e1;
-            --accent: #f59e0b;
-            --glass: rgba(255,255,255,0.03);
-            --white: #ffffff;
-            --border: rgba(255,255,255,0.1);
-            --bg-hover: #1a2c5a;
-            --error: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            /* Design System Variables (aligned with design-system.css) */
+            --color-bg-primary: #0b1633;
+            --color-bg-tertiary: #132347;
+            --color-text-primary: #ffffff;
+            --color-text-secondary: #cbd5e1;
+            --color-accent: #f59e0b;
+            --color-border: rgba(255,255,255,0.1);
+            --color-bg-hover: #1a2c5a;
+            --color-error: #ef4444;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
             
+            /* Custom Variables (page-specific) */
+            --glass: rgba(255,255,255,0.03);
             --radius: 12px;
             --radius-sm: 8px;
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
             --transition: all 0.3s ease;
+            
+            /* Legacy Aliases (for backward compatibility during migration) */
+            --bg: var(--color-bg-primary);
+            --card: var(--color-bg-tertiary);
+            --muted: var(--color-text-secondary);
+            --accent: var(--color-accent);
+            --white: var(--color-text-primary);
+            --border: var(--color-border);
+            --bg-hover: var(--color-bg-hover);
         }
 
         /* === BASE STYLES === */
@@ -57,41 +68,181 @@
         }
 
         body.profile-theme-navy {
-            --bg: #0b1633;
-            --card: #132347;
-            --accent: #f59e0b;
-            --bg-hover: #1a2c5a;
-            --border: rgba(255,255,255,0.1);
+            --color-bg-primary: #0b1633;
+            --color-bg-tertiary: #132347;
+            --color-accent: #f59e0b;
+            --color-bg-hover: #1a2c5a;
+            --color-border: rgba(255,255,255,0.1);
+            /* Legacy Aliases */
+            --bg: var(--color-bg-primary);
+            --card: var(--color-bg-tertiary);
+            --accent: var(--color-accent);
+            --bg-hover: var(--color-bg-hover);
+            --border: var(--color-border);
         }
 
         body.profile-theme-ocean {
-            --bg: #071f2b;
-            --card: #0e3144;
-            --accent: #22d3ee;
-            --bg-hover: #14465f;
-            --border: rgba(198, 241, 255, 0.18);
+            --color-bg-primary: #071f2b;
+            --color-bg-tertiary: #0e3144;
+            --color-accent: #22d3ee;
+            --color-bg-hover: #14465f;
+            --color-border: rgba(198, 241, 255, 0.18);
+            /* Legacy Aliases */
+            --bg: var(--color-bg-primary);
+            --card: var(--color-bg-tertiary);
+            --accent: var(--color-accent);
+            --bg-hover: var(--color-bg-hover);
+            --border: var(--color-border);
         }
 
         body.profile-theme-sunset {
-            --bg: #2a1328;
-            --card: #44204a;
-            --accent: #fb923c;
-            --bg-hover: #5d2b64;
-            --border: rgba(255, 222, 192, 0.22);
+            --color-bg-primary: #2a1328;
+            --color-bg-tertiary: #44204a;
+            --color-accent: #fb923c;
+            --color-bg-hover: #5d2b64;
+            --color-border: rgba(255, 222, 192, 0.22);
+            /* Legacy Aliases */
+            --bg: var(--color-bg-primary);
+            --card: var(--color-bg-tertiary);
+            --accent: var(--color-accent);
+            --bg-hover: var(--color-bg-hover);
+            --border: var(--color-border);
         }
 
         body.profile-theme-forest {
-            --bg: #102015;
-            --card: #1c3526;
-            --accent: #84cc16;
-            --bg-hover: #2a4934;
-            --border: rgba(218, 255, 188, 0.2);
+            --color-bg-primary: #102015;
+            --color-bg-tertiary: #1c3526;
+            --color-accent: #84cc16;
+            --color-bg-hover: #2a4934;
+            --color-border: rgba(218, 255, 188, 0.2);
+            /* Legacy Aliases */
+            --bg: var(--color-bg-primary);
+            --card: var(--color-bg-tertiary);
+            --accent: var(--color-accent);
+            --bg-hover: var(--color-bg-hover);
+            --border: var(--color-border);
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 20px;
+        }
+
+        /* === UTILITY CLASSES === */
+        .hidden {
+            display: none !important;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .gap-sm {
+            gap: 8px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-0 {
+            margin-bottom: 0 !important;
+        }
+
+        .mb-4 {
+            margin-bottom: 4px;
+        }
+
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+
+        .mb-16 {
+            margin-bottom: 16px;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .mt-8 {
+            margin-top: 8px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .btn-base {
+            padding: 8px 12px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        .mt-4 {
+            margin-top: 4px;
+        }
+
+        .mt-6 {
+            margin-top: 6px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-18 {
+            margin-bottom: 18px;
+        }
+
+        .text-muted {
+            color: var(--color-text-secondary);
+        }
+
+        .d-block {
+            display: block;
+        }
+
+        .d-grid {
+            display: grid;
+        }
+
+        .gap-10 {
+            gap: 10px;
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+
+        .position-absolute {
+            position: absolute;
+        }
+
+        .position-relative {
+            position: relative;
+        }
+
+        .left-20 {
+            left: 20px;
+        }
+
+        .top-50 {
+            top: 50%;
+        }
+
+        .transform-y-50 {
+            transform: translateY(-50%);
         }
 
         /* === UNIFIED COLLECTION CARD === */

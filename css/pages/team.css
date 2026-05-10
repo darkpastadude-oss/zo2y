@@ -1,14 +1,27 @@
 :root {
-  --bg: #0b1633;
-  --card: #132347;
-  --card-2: #172b58;
-  --muted: #8ca3c7;
-  --accent: #f59e0b;
-  --accent-strong: #ffb84d;
-  --white: #ffffff;
-  --border: rgba(255,255,255,0.12);
+  /* Design System Variables (aligned with design-system.css) */
+  --color-bg-primary: #0b1633;
+  --color-bg-tertiary: #132347;
+  --color-bg-elevated: #172b58;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #8ca3c7;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #ffb84d;
+  --color-border: rgba(255,255,255,0.12);
+  
+  /* Custom Variables (page-specific) */
   --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
   --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+  
+  /* Legacy Aliases (for backward compatibility during migration) */
+  --bg: var(--color-bg-primary);
+  --card: var(--color-bg-tertiary);
+  --card-2: var(--color-bg-elevated);
+  --muted: var(--color-text-secondary);
+  --accent: var(--color-accent);
+  --accent-strong: var(--color-accent-hover);
+  --white: var(--color-text-primary);
+  --border: var(--color-border);
 }
 
 * { box-sizing: border-box; }

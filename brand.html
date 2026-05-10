@@ -55,7 +55,7 @@
 
     <section id="reviews-section" class="section reviews">
       <h2>Brand Reviews</h2>
-      <div class="reviews-sort-controls" id="reviewsSortControls" style="display: none;">
+      <div class="reviews-sort-controls hidden" id="reviewsSortControls">
         <span class="sort-label">Sort by:</span>
         <select class="sort-select" id="sortSelect">
           <option value="latest">Latest</option>
@@ -69,7 +69,7 @@
       <div class="reviews-container" id="reviewsList"></div>
       <div class="review-form-section">
         <h3>Share Your Thoughts</h3>
-        <form id="review-form" style="display: none;">
+        <form id="review-form" class="hidden">
           <div class="rating-input">
             <label>Your Rating:</label>
             <div class="stars-rating">
@@ -91,7 +91,7 @@
             <button type="submit" class="btn submit-review-btn">
               <span class="btn-text">Submit Review</span>
             </button>
-            <button type="button" class="btn secondary cancel-edit-btn" style="display: none;">Cancel Edit</button>
+            <button type="button" class="btn secondary cancel-edit-btn hidden">Cancel Edit</button>
           </div>
         </form>
         <div id="auth-prompt" class="auth-prompt">
@@ -102,7 +102,7 @@
     </section>
   </main>
 
-  <div id="brandActionCard" class="card" style="display:none;" data-item-id="">
+  <div id="brandActionCard" class="card hidden" data-item-id="">
     <div class="card-title"></div>
     <div class="card-meta"></div>
     <img src="" alt="" />
@@ -130,7 +130,7 @@
   </div>
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content" style="max-width: 320px;">
+    <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
