@@ -1283,12 +1283,7 @@
       const spotlight = document.getElementById('animesSpotlight');
       if (!grid) return;
       
-      // Handle spotlight for single result
-      if (state.animes.length === 1) {
-        renderAnimeSpotlight(state.animes[0]);
-      } else {
-        if (spotlight) spotlight.hidden = true;
-      }
+      if (spotlight) spotlight.hidden = true;
       
       if (!state.animes.length) {
         grid.innerHTML = '<div class="empty">No anime found.</div>';

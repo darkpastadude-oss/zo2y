@@ -1267,12 +1267,7 @@
       const spotlight = document.getElementById('tvshowsSpotlight');
       if (!grid) return;
       
-      // Handle spotlight for single result
-      if (state.tvshows.length === 1) {
-        renderTvshowSpotlight(state.tvshows[0]);
-      } else {
-        if (spotlight) spotlight.hidden = true;
-      }
+      if (spotlight) spotlight.hidden = true;
       
       if (!state.tvshows.length) {
         grid.innerHTML = '<div class="empty">No tvshows found.</div>';
