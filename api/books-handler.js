@@ -720,14 +720,26 @@ export default async function handler(req, res) {
       const period = ["daily", "weekly", "monthly"].includes(periodRaw) ? periodRaw : "weekly";
       const limit = clampInt(query.limit, 1, 40, 20);
 
-      const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
-      const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
-      const json = upstream.ok ? await upstream.json() : {};
-      const works = Array.isArray(json?.works) ? json.works : [];
-      let docs = dedupeDocs(
-        works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
-        limit
-      );
+      let docs = [];
+      let source = "google-books-fallback";
+
+      try {
+        const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
+        const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
+        if (upstream.ok) {
+          const json = await upstream.json();
+          const works = Array.isArray(json?.works) ? json.works : [];
+          docs = dedupeDocs(
+            works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
+            limit
+          );
+          if (docs.length > 0) {
+            source = "openlibrary-trending";
+          }
+        }
+      } catch (_olError) {
+        // Open Library failed, will use Google Books fallback
+      }
 
       if (!docs.length) {
         const popular = await fetchGoogleDocs({
@@ -738,19 +750,6 @@ export default async function handler(req, res) {
           language: "en"
         });
         docs = Array.isArray(popular.docs) ? popular.docs : [];
-        res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-        const enriched = await enrichMissingCoversWithGoogle(docs, 8);
-        const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
-        return res.json({
-          ok: true,
-          books,
-          meta: {
-            source: "google-books-fallback",
-            period,
-            limit,
-            numFound: books.length
-          }
-        });
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
@@ -760,7 +759,7 @@ export default async function handler(req, res) {
         ok: true,
         books,
         meta: {
-          source: "openlibrary-trending",
+          source,
           period,
           limit,
           numFound: books.length
