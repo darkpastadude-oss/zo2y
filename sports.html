@@ -26,6 +26,29 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c">
   <script src="js/shared-header.js?v=20260428a" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
+  <style>
+    .brand-hero {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("https://images.unsplash.com/photo-1461896836934- voices-1?auto=format&fit=crop&w=1600&q=80") center/cover;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+      margin-bottom: 20px;
+    }
+    .brand-hero h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.04;
+      margin: 0 0 10px 0;
+    }
+    .brand-hero p {
+      color: #d3e5ff;
+      margin: 0;
+      max-width: 650px;
+      line-height: 1.45;
+    }
+  </style>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -59,30 +82,9 @@
 </header>
 
   <main class="sports-main">
-    <section class="sports-hero" id="sportsHero">
-      <div class="sports-hero-media" id="sportsHeroMedia"></div>
-      <div class="sports-hero-logo-wrap">
-        <img class="sports-hero-logo" id="sportsHeroLogo" src="/file.svg" alt="" />
-      </div>
-      <div class="sports-hero-content">
-        <div class="sports-kicker">Sports spotlight</div>
-        <h1 class="sports-hero-title" id="sportsHeroTitle">Find your team</h1>
-        <p class="sports-hero-subtitle" id="sportsHeroSubtitle">Search teams, save favorites to your profile, and build a sports corner that matches your taste.</p>
-        <div class="sports-hero-meta" id="sportsHeroMeta">
-          <span class="sports-hero-pill">100-team cross-sport shortlist</span>
-          <span class="sports-hero-pill">Football, basketball, F1, cricket, rugby, more</span>
-        </div>
-      </div>
-      <div class="sports-hero-card is-empty" id="sportsHeroCard">
-        <div class="sports-hero-card-media">
-          <img id="sportsHeroBadge" src="/file.svg" alt="Team logo" />
-        </div>
-        <div class="sports-hero-card-body">
-          <div class="sports-hero-card-title" id="sportsHeroTeam">Team spotlight</div>
-          <div class="sports-hero-card-meta" id="sportsHeroLeague">Search for a team to see details.</div>
-          <div class="sports-hero-card-stadium" id="sportsHeroStadium"></div>
-        </div>
-      </div>
+    <section class="brand-hero">
+      <h1>Sports</h1>
+      <p>Track your favorite teams, browse leagues, and save sports to your Zo2y profile.</p>
     </section>
 
     <section class="sports-search">

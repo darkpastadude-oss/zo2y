@@ -27,28 +27,35 @@
 <script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
   <script src="js/shared-header.js?v=20260428a" defer></script>
   <script src="js/pages/brands.js?v=20260419a" defer></script>
+  <style>
+    .brand-hero {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80") center/cover;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+      margin-bottom: 20px;
+    }
+    .brand-hero h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.04;
+      margin: 0 0 10px 0;
+    }
+    .brand-hero p {
+      color: #d3e5ff;
+      margin: 0;
+      max-width: 650px;
+      line-height: 1.45;
+    }
+  </style>
 </head>
 <body data-brand-type="car" data-nav-page="cars">
   <main class="container">
-    <div class="page-header">
-      <h1 id="pageTitle">Cars</h1>
-      <p id="pageSubtitle"></p>
-    </div>
-
-    <section class="brand-spotlight" id="brandSpotlight" hidden>
-      <div class="brand-spotlight-bg" id="brandSpotlightBg"></div>
-      <div class="brand-spotlight-copy">
-        <span class="brand-spotlight-kicker" id="brandSpotlightKicker">Spotlight</span>
-        <h2 id="brandSpotlightTitle">Loading spotlight...</h2>
-        <p class="brand-spotlight-meta" id="brandSpotlightMeta"></p>
-        <p class="brand-spotlight-summary" id="brandSpotlightSummary"></p>
-        <div class="brand-spotlight-actions">
-          <a class="brand-spotlight-btn" id="brandSpotlightOpen" href="#">Open brand</a>
-        </div>
-      </div>
-      <div class="brand-spotlight-logo">
-        <img id="brandSpotlightLogo" src="/newlogo.webp" alt="Brand spotlight logo" loading="eager" decoding="async" referrerpolicy="no-referrer">
-      </div>
+    <section class="brand-hero">
+      <h1>Cars</h1>
+      <p>Discover car brands from around the world and save your favorites to your profile.</p>
     </section>
 
     <div class="controls">
