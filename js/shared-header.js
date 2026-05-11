@@ -1175,6 +1175,25 @@ const HEADER_HTML = `
     } catch (_err) {}
   }
 
+  function wireMobileLogoLinks() {
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+    if (!isMobile) return;
+
+    const logoLinks = document.querySelectorAll('.zo2y-shared-brand, .zo2y-mobile-wordmark, .zo2y-mobile-drawer-brand, .zo2y-desktop-rail-brand');
+    logoLinks.forEach((link) => {
+      if (link.dataset.zo2yLogoClickWired === '1') return;
+      link.dataset.zo2yLogoClickWired = '1';
+      link.addEventListener('click', (event) => {
+        const href = link.getAttribute('href');
+        if (href && (href === 'index.html' || href === '/index.html' || href === '/')) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.location.href = 'index.html';
+        }
+      });
+    });
+  }
+
   function wireSearchButton() {
     const warmSearch = () => {
       void loadUniversalSearchScript();
@@ -1246,6 +1265,7 @@ const HEADER_HTML = `
         wireMobileAccordions();
         wireDesktopRailCollapse();
         wireAuthStateSync();
+        wireMobileLogoLinks();
         void syncAuthHeaderState();
       }, { once: true });
       return;
@@ -1263,6 +1283,7 @@ const HEADER_HTML = `
     wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
+    wireMobileLogoLinks();
     window.addEventListener('zo2y-auth-gate-verified', () => {
       void syncAuthHeaderState();
     });
