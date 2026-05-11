@@ -50,6 +50,39 @@
     .card-media { aspect-ratio: 2/3; background: linear-gradient(135deg, #102545 0%, #0b1c35 100%); overflow: hidden; }
     .card-media img { width: 100%; height: 100%; object-fit: cover; }
     .card-meta { padding: 3px; display: flex; flex-direction: column; gap: 1px; flex: 1; }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
+    }
+
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
     .card-title { font-size: 13px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .card-sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-extra { color: #abc5e8; font-size: 11px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: auto; }
@@ -321,7 +354,7 @@
 
   </style>
   <meta name="theme-color" content="#0b1633" />
-  <link rel="stylesheet" href="css/shared-header.css?v=20260511c">
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511e" />
   <script src="js/shared-header.js?v=20260511c" defer></script>
 </head>
 <body>

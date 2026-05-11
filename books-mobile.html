@@ -237,6 +237,39 @@
     .card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .card-meta { padding: 3px; display: flex; flex-direction: column; gap: 1px; flex: 1; }
+
+    .card-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #dbe7ff;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 3px;
+      width: fit-content;
+    }
+
+    .card-meta-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
     .card-title { font-size: 13px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .card-sub { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-extra {
@@ -611,7 +644,7 @@
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260511d">
 <script src="js/shared-header.js?v=20260511d" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511d" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511e" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
