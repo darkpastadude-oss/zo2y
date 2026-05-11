@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="css/pages/index.css?v=20260510g" />
   <link rel="stylesheet" href="css/pages/index-landing.css?v=20260508c" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c" />
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260508c" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511f" />
   <style>
     :root {
       --bg: #0b1633;
@@ -222,7 +222,7 @@
     .grid { 
       padding: 12px; 
       display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(140px, 140px)); 
+      grid-template-columns: repeat(auto-fill, minmax(160px, 160px)); 
       gap: 12px; 
       align-items: stretch; 
     }
@@ -274,10 +274,10 @@
     }
 
     .card-meta {
-      padding: 12px 14px 16px;
+      padding: 2px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 1px;
       flex: 1;
       min-height: 0;
     }
@@ -293,35 +293,34 @@
     .card-type {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      font-size: 11px;
+      gap: 4px;
+      font-size: 10px;
       color: #dbe7ff;
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 999px;
-      padding: 3px 8px;
+      padding: 2px 6px;
       width: fit-content;
     }
 
     .card-name {
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
-      line-height: 1.35;
+      line-height: 1.2;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
-      min-height: 36px;
       margin-bottom: 0;
     }
 
     .card-sub {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 10px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      min-height: 17px;
+      min-height: 15px;
     }
 
     .card-actions {
