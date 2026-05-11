@@ -1013,7 +1013,10 @@ const HEADER_HTML = `
         }, 420);
       };
 
-      logo.addEventListener('pointerdown', triggerTongue, { passive: true });
+      const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
+      if (!isMobile) {
+        logo.addEventListener('pointerdown', triggerTongue, { passive: true });
+      }
 
       const anchor = logo.closest('a');
       if (anchor) {
