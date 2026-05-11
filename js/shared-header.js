@@ -1027,7 +1027,8 @@ const HEADER_HTML = `
         const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
         if (isMobile) {
           anchor.addEventListener('click', (event) => {
-            // Allow default navigation immediately
+            // Force navigation to index.html
+            window.location.href = 'index.html';
           });
         }
       }
