@@ -873,7 +873,7 @@
           <a class="media-spotlight-cta" id="tvshowsSpotlightOpen" href="#">View Details</a>
         </div>
         <div class="media-spotlight-poster">
-          <img id="tvshowsSpotlightImage" src="/newlogo.webp" alt="TV show poster">
+          <img id="tvshowsSpotlightImage" src="/images/fallback/tv.svg" alt="TV show poster">
         </div>
       </div>
     </section>
@@ -1058,13 +1058,11 @@
       const needed = withinOffset + TVSHOWS_PAGE_SIZE;
 
       if (!query) {
-        // Randomly choose between popular and newly released on each refresh
-        const useNewlyReleased = Math.random() > 0.5;
-        const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-        // Load popular TV shows when no search query (more comprehensive than trending)
+        // Proper shuffling: shuffle between *current popular* TV shows.
         try {
-          for (let p = apiPageStart; p <= apiPageStart + 6 && tvshows.length < needed; p += 1) {
-            const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=${sortBy}&page=${p}`;
+          const pool = [];
+          for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
+            const url = `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`;
             const res = await fetch(url);
             if (!res.ok) break;
             const json = await res.json();
@@ -1072,15 +1070,16 @@
             apiTotalPages = json?.total_pages || apiTotalPages || 1;
             const tvResults = Array.isArray(json?.results) ? json.results : [];
             const filtered = filterNonAnime(tvResults);
-            tvshows = tvshows.concat(filtered);
+            pool.push(...filtered);
             if (!tvResults.length) break;
           }
+          tvshows = shuffleArray(pool);
         } catch (_err) {
           console.error('Failed to load popular tvshows', _err);
-          // Fallback to trending if discover fails
+          // Fallback to trending if popular fails
           try {
-            tvshows = [];
-            for (let p = apiPageStart; p <= apiPageStart + 6 && tvshows.length < needed; p += 1) {
+            const pool = [];
+            for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
               const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
               const res = await fetch(url);
               if (!res.ok) break;
@@ -1089,9 +1088,10 @@
               apiTotalPages = json?.total_pages || apiTotalPages || 1;
               const tvResults = Array.isArray(json?.results) ? json.results : [];
               const filtered = filterNonAnime(tvResults);
-              tvshows = tvshows.concat(filtered);
+              pool.push(...filtered);
               if (!tvResults.length) break;
             }
+            tvshows = shuffleArray(pool);
           } catch (_err2) {
             console.error('Failed to load trending tvshows', _err2);
           }
@@ -1300,7 +1300,7 @@
       const imgEl = document.getElementById('tvshowsSpotlightImage');
       const openEl = document.getElementById('tvshowsSpotlightOpen');
       
-      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/newlogo.webp';
+      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/images/fallback/tv.svg';
       const backdropUrl = tvshow.backdropPath ? `${BACKDROP_BASE}${tvshow.backdropPath}` : posterUrl;
       const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
       const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
@@ -1330,7 +1330,7 @@
         return;
       }
       grid.innerHTML = state.tvshows.map((tvshow) => {
-        let posterUrl = '/newlogo.webp';
+        let posterUrl = '/images/fallback/tv.svg';
         if (tvshow.posterPath) {
           posterUrl = `${POSTER_BASE}${tvshow.posterPath}`;
         } else if (tvshow.backdropPath) {
@@ -1339,7 +1339,7 @@
         return `
         <article class="card" data-id="${escapeHtml(tvshow.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy" onerror="this.src='/images/fallback/tv.svg'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span>

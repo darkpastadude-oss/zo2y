@@ -767,7 +767,7 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
+      const FALLBACK_BOOK_IMAGE = '/images/fallback/book.svg';
       let BOOKS_PAGE_SIZE = 18;
 
     let supabaseClient = null;
@@ -881,26 +881,24 @@
       const signal = booksFetchAbort.signal;
 
       if (!query) {
-        // Randomly choose between popular and newly released (trending) on each refresh
-        const useTrending = Math.random() > 0.5;
-        
         try {
-          if (useTrending) {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${apiLimit}`;
-            const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-              apiTotalPages = json?.totalPages || json?.total || 1;
-            }
-          } else {
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
-            const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              console.log('Books API response:', json);
-              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-              apiTotalPages = json?.totalPages || json?.total || 1;
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
+          const res = await fetch(url, { signal });
+          if (res.ok) {
+            const json = await res.json();
+            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
+            apiTotalPages = json?.totalPages || json?.total || 1;
+          }
+
+          // Blend in trending after popular for variety on refresh (but keep popular first).
+          if (books.length < apiLimit * 0.75) {
+            const trendingUrl = `${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${apiLimit}`;
+            const trendingRes = await fetch(trendingUrl, { signal });
+            if (trendingRes.ok) {
+              const json = await trendingRes.json();
+              const trending = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
+              books = books.concat(trending);
+              apiTotalPages = Math.max(apiTotalPages || 1, json?.totalPages || json?.total || 1);
             }
           }
         } catch (_err) {
@@ -939,7 +937,7 @@
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
-      if (!query && state.page === 1) {
+      if (!query && state.page > 1) {
         state.books = shuffleArray(state.books);
       }
 
@@ -1019,13 +1017,8 @@
     async function loadBooks(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       
-      // Use API directly with shuffling
+      // Use API directly (popular first for initial pages)
       await loadBooksWithFallback(query);
-      
-      // Shuffle results if no search query
-      if (!query) {
-        state.books = shuffleArray(state.books);
-      }
     }
 
     async function loadListStatus() {
@@ -1078,7 +1071,7 @@
         return `
         <article class="card" data-id="${escapeHtml(book.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>

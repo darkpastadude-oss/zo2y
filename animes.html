@@ -873,7 +873,7 @@
           <a class="media-spotlight-cta" id="animesSpotlightOpen" href="#">View Details</a>
         </div>
         <div class="media-spotlight-poster">
-          <img id="animesSpotlightImage" src="/newlogo.webp" alt="Anime poster">
+          <img id="animesSpotlightImage" src="/images/fallback/anime.svg" alt="Anime poster">
         </div>
       </div>
     </section>
@@ -1059,9 +1059,8 @@
       const needed = withinOffset + ANIMES_PAGE_SIZE;
 
       if (!query) {
-        // Randomly choose between popular and newly released on each refresh
-        const useNewlyReleased = Math.random() > 0.5;
-        const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+        // Keep this feed "popular right now" and shuffle results for variety.
+        const sortBy = 'popularity.desc';
         // Load anime using TMDB discover with proper filters
         try {
           for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
@@ -1174,7 +1173,7 @@
         genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
       })).filter((a) => a.id && isDateWithinAcceptableRange(a.firstAirDate));
 
-      if (!query && state.page === 1) {
+      if (!query && state.page <= 3) {
         state.animes = shuffleArray(state.animes);
       }
 
@@ -1316,7 +1315,7 @@
       const imgEl = document.getElementById('animesSpotlightImage');
       const openEl = document.getElementById('animesSpotlightOpen');
       
-      const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/newlogo.webp';
+      const posterUrl = anime.posterPath ? `${POSTER_BASE}${anime.posterPath}` : '/images/fallback/anime.svg';
       const backdropUrl = anime.backdropPath ? `${BACKDROP_BASE}${anime.backdropPath}` : posterUrl;
       const year = anime.firstAirDate ? new Date(anime.firstAirDate).getFullYear() : 'TBD';
       const rating = anime.voteAverage ? `Rating: ${anime.voteAverage.toFixed(1)}/10` : '';
@@ -1346,7 +1345,7 @@
         return;
       }
       grid.innerHTML = state.animes.map((anime) => {
-        let posterUrl = '/newlogo.webp';
+        let posterUrl = '/images/fallback/anime.svg';
         if (anime.posterPath) {
           posterUrl = `${POSTER_BASE}${anime.posterPath}`;
         } else if (anime.backdropPath) {
@@ -1355,7 +1354,7 @@
         return `
         <article class="card" data-id="${escapeHtml(anime.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(anime.name)}" loading="lazy">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(anime.name)}" loading="lazy" onerror="this.src='/images/fallback/anime.svg'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-dragon"></i> Anime</span>

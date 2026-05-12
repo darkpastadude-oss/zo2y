@@ -887,15 +887,26 @@
             movies = Array.isArray(json?.results) ? json.results : [];
           }
         } else {
-          // Randomly choose between popular and newly released on each refresh
-          const useNewlyReleased = Math.random() > 0.5;
-          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-          const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=1`;
-          const res = await fetch(url);
-          if (res.ok) {
+          // Proper shuffling: shuffle *current popular* movies (not discover sorting).
+          const pool = [];
+          for (let p = 1; p <= 4; p += 1) {
+            const res = await fetch(`${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`);
+            if (!res.ok) break;
             const json = await res.json();
-            movies = Array.isArray(json?.results) ? json.results : [];
+            const batch = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...batch);
+            if (!batch.length) break;
           }
+
+          if (!pool.length) {
+            const fallback = await fetch(`${TMDB_PROXY_BASE}/trending/movie/week?page=1`);
+            if (fallback.ok) {
+              const json = await fallback.json();
+              pool.push(...(Array.isArray(json?.results) ? json.results : []));
+            }
+          }
+
+          movies = shuffleArray(pool);
         }
       } catch (_err) {
         console.error('Failed to load movies', _err);
@@ -961,7 +972,7 @@
       const imgEl = document.getElementById('moviesSpotlightImage');
       const openEl = document.getElementById('moviesSpotlightOpen');
       
-      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+      const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/images/fallback/movie.svg';
       const backdropUrl = movie.backdropPath ? `${BACKDROP_BASE}${movie.backdropPath}` : posterUrl;
       const year = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD';
       const rating = movie.voteAverage ? `Rating: ${movie.voteAverage.toFixed(1)}/10` : '';
@@ -994,11 +1005,11 @@
       const start = (state.page - 1) * MOVIES_PAGE_SIZE;
       const visibleItems = state.movies.slice(start, start + MOVIES_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((movie) => {
-        const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/newlogo.webp';
+        const posterUrl = movie.posterPath ? `${POSTER_BASE}${movie.posterPath}` : '/images/fallback/movie.svg';
         return `
         <article class="card" data-id="${escapeHtml(movie.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)}" loading="lazy">
+            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(movie.title)}" loading="lazy" onerror="this.src='/images/fallback/movie.svg'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-film"></i> Movie</span>

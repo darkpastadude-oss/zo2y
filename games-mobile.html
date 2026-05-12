@@ -803,7 +803,7 @@
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-      const FALLBACK_IMAGE = '/newlogo.webp';
+      const FALLBACK_IMAGE = '/images/fallback/game.svg';
       let GAMES_PAGE_SIZE = 30;
 
     let supabaseClient = null;
@@ -972,8 +972,19 @@
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
         })).filter((g) => g.id && isDateWithinAcceptableRange(g.releaseDate));
 
-        if (!state.search && state.page === 1) {
-          state.games = shuffleArray(state.games);
+        const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
+        if (!state.search) {
+          const withCover = state.games.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
+          const localCovers = withCover.filter((g) => isLocalCover(g.cover));
+          const otherCovers = withCover.filter((g) => !isLocalCover(g.cover));
+          const noCover = state.games.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
+
+          const shouldShuffleFront = state.page <= 3;
+          state.games = [
+            ...(shouldShuffleFront ? shuffleArray(localCovers) : localCovers),
+            ...(shouldShuffleFront ? shuffleArray(otherCovers) : otherCovers),
+            ...noCover
+          ];
         }
 
         state.page = 1;
@@ -1070,7 +1081,7 @@
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>

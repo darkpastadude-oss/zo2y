@@ -921,7 +921,7 @@
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const FALLBACK_BOOK_IMAGE = '/newlogo.webp';
+      const FALLBACK_BOOK_IMAGE = '/images/fallback/book.svg';
       const API_PAGE_SIZE = 40;
       let BOOKS_PAGE_SIZE = 30;
 
@@ -1035,22 +1035,22 @@
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
         
         try {
-          // Randomly choose between popular and newly released (trending) on each refresh
-          const useTrending = Math.random() > 0.5;
-          
-          if (useTrending) {
+          // Keep the first pages reliably "popular right now" for fast, consistent loading.
+          const popularResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`);
+          if (popularResult.ok) {
+            const popularJson = await popularResult.json();
+            books = Array.isArray(popularJson?.books) ? popularJson.books : [];
+            apiTotalResults = Number(popularJson?.meta?.numFound || 0);
+          }
+
+          // Blend in trending (after popular) if we still need more variety for larger screens.
+          if (books.length < BOOKS_PER_PAGE * 0.75) {
             const trendingResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`);
             if (trendingResult.ok) {
               const trendingJson = await trendingResult.json();
-              books = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-              apiTotalResults = Number(trendingJson?.meta?.numFound || 0);
-            }
-          } else {
-            const popularResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`);
-            if (popularResult.ok) {
-              const popularJson = await popularResult.json();
-              books = Array.isArray(popularJson?.books) ? popularJson.books : [];
-              apiTotalResults = Number(popularJson?.meta?.numFound || 0);
+              const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
+              books = books.concat(trendingBooks);
+              apiTotalResults = Math.max(apiTotalResults || 0, Number(trendingJson?.meta?.numFound || 0));
             }
           }
         } catch (_err) {
@@ -1087,7 +1087,8 @@
         return true;
       });
 
-      if (!query && state.page === 1) {
+      // Keep the first page stable (popular first), shuffle additional pages for variety.
+      if (!query && state.page > 1) {
         state.books = shuffleArray(state.books);
       }
 
@@ -1209,7 +1210,7 @@
         return `
         <article class="card" data-id="${escapeHtml(book.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>

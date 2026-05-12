@@ -525,12 +525,26 @@
           const res=await fetch(url);
           if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
         } else {
-          // Randomly choose between popular and newly released on each refresh
-          const useNewlyReleased = Math.random() > 0.5;
-          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-          const url=`${TMDB_PROXY_BASE}/discover/tv?sort_by=${sortBy}&page=1`;
-          const res=await fetch(url);
-          if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
+          const pool = [];
+          for (let p = 1; p <= 3; p += 1) {
+            const res = await fetch(`${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`);
+            if (!res.ok) break;
+            const json = await res.json();
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...filterNonAnime(tvResults));
+            if (!tvResults.length) break;
+          }
+
+          if (!pool.length) {
+            const res = await fetch(`${TMDB_PROXY_BASE}/trending/tv/week?page=1`);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              pool.push(...filterNonAnime(tvResults));
+            }
+          }
+
+          tvshows = shuffleArray(pool);
         }
       } catch(e) { console.error('Failed to load tvshows',e); }
       state.tvshows=tvshows.map(t=>({id:String(t.id||''),name:t.name||t.title||'Unknown TV Show',posterPath:t.poster_path||'',firstAirDate:t.first_air_date||'',voteAverage:t.vote_average||0})).filter(t=>t.id && isDateWithinAcceptableRange(t.firstAirDate));
@@ -558,7 +572,7 @@
       const imgEl = document.getElementById('tvshowsSpotlightImage');
       const openEl = document.getElementById('tvshowsSpotlightOpen');
       
-      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/newlogo.webp';
+      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/images/fallback/tv.svg';
       const backdropUrl = tvshow.backdropPath ? `${BACKDROP_BASE}${tvshow.backdropPath}` : posterUrl;
       const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
       const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
@@ -580,7 +594,7 @@
       if (spotlight) spotlight.hidden = true;
       if (!state.tvshows.length) { grid.innerHTML='<div class="empty">No TV shows found.</div>'; updatePagination(); return; }
       const start=(state.page-1)*TVSHOWS_PAGE_SIZE, visible=state.tvshows.slice(start,start+TVSHOWS_PAGE_SIZE);
-      grid.innerHTML=visible.map(t=>{ const p=t.posterPath?`${POSTER_BASE}${t.posterPath}`:'/newlogo.webp'; return `<article class="card" data-id="${escapeHtml(t.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(t.name)}" loading="lazy"></div><div class="card-meta"><span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span><div class="card-meta-top"><p class="card-title">${escapeHtml(t.name)}</p></div><p class="card-sub">${escapeHtml(t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getTvshowCardExtra(t))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
+      grid.innerHTML=visible.map(t=>{ const p=t.posterPath?`${POSTER_BASE}${t.posterPath}`:'/images/fallback/tv.svg'; return `<article class="card" data-id="${escapeHtml(t.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(t.name)}" loading="lazy" onerror="this.src='/images/fallback/tv.svg'"></div><div class="card-meta"><span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span><div class="card-meta-top"><p class="card-title">${escapeHtml(t.name)}</p></div><p class="card-sub">${escapeHtml(t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getTvshowCardExtra(t))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
       document.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); const c=b.closest('.card'); if(c&&typeof window.openIndexStyleListMenu==='function')window.openIndexStyleListMenu(c); }));
       document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',e=>{if(e.target.closest('.menu-btn'))return; const i=String(c.getAttribute('data-id')||'').trim(); if(i)window.location.href=`tvshow.html?id=${encodeURIComponent(i)}`; }));
       updatePagination();

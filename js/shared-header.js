@@ -1025,15 +1025,6 @@ const HEADER_HTML = `
             triggerTongue();
           }
         });
-
-        // Mobile logo click behavior: navigate immediately on first click
-        const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
-        if (isMobile) {
-          anchor.addEventListener('click', (event) => {
-            // Force navigation to index.html
-            window.location.href = 'index.html';
-          });
-        }
       }
 
       if (prefersReducedMotion || shouldReduceEffects) return;
@@ -1191,9 +1182,10 @@ const HEADER_HTML = `
         if (href && (href === 'index.html' || href === '/index.html' || href === '/')) {
           event.preventDefault();
           event.stopPropagation();
-          window.location.href = 'index.html';
+          if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+          window.location.assign('index.html');
         }
-      });
+      }, { capture: true });
     });
   }
 
