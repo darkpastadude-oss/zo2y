@@ -970,7 +970,10 @@
           rating: game.rating || 0,
           platforms: Array.isArray(game.extra?.platforms) ? game.extra.platforms : [],
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-        })).filter((g) => g.id && isDateWithinAcceptableRange(g.releaseDate));
+        })).filter((g) => {
+          const hasLocalCover = g.cover && g.cover !== '' && g.cover !== FALLBACK_IMAGE;
+          return g.id && isDateWithinAcceptableRange(g.releaseDate) && hasLocalCover;
+        });
 
         const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
         if (!state.search) {
