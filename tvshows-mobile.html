@@ -469,6 +469,24 @@
     const state = { tvshows: [], search: '', genre: '', year: '', sort: 'popular', page: 1, totalPages: 1, listStatusMap: new Map(), pendingQuickOps: new Set() };
     function computeGridPageSize() { const grid=document.getElementById('tvshowsGrid'); if(!grid) return 18; const cols=getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length||1; const top=grid.getBoundingClientRect().top; const avail=Math.max(220, window.innerHeight - top - 160); const rows=Math.max(2, Math.min(7, Math.floor(avail / 330))); const visible=Math.max(cols*rows, cols*2); const desired=Math.max(30, visible); const snapped=Math.ceil(desired/cols)*cols; return Math.min(54, Math.max(cols*2, snapped)); }
     function escapeHtml(v) { return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
     function showToast(m, isError) { const el=document.createElement('div');el.style.position='fixed';el.style.top='12px';el.style.right='12px';el.style.zIndex='9999';el.style.background=isError?'#dc2626':'#f59e0b';el.style.color='#fff';el.style.padding='8px 12px';el.style.borderRadius='8px';el.style.fontSize='12px';el.textContent=m;document.body.appendChild(el);setTimeout(()=>el.remove(),2000); }
     async function ensureSupabase() {
       if (supabaseClient) return supabaseClient;
@@ -515,7 +533,10 @@
           if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
         }
       } catch(e) { console.error('Failed to load tvshows',e); }
-      state.tvshows=tvshows.map(t=>({id:String(t.id||''),name:t.name||t.title||'Unknown TV Show',posterPath:t.poster_path||'',firstAirDate:t.first_air_date||'',voteAverage:t.vote_average||0})).filter(t=>t.id);
+      state.tvshows=tvshows.map(t=>({id:String(t.id||''),name:t.name||t.title||'Unknown TV Show',posterPath:t.poster_path||'',firstAirDate:t.first_air_date||'',voteAverage:t.vote_average||0})).filter(t=>t.id && isDateWithinAcceptableRange(t.firstAirDate));
+      if (!q && state.page === 1) {
+        state.tvshows = shuffleArray(state.tvshows);
+      }
       state.page=1; state.totalPages=Math.max(1,Math.ceil(state.tvshows.length/TVSHOWS_PAGE_SIZE));
     }
     async function loadListStatus() {

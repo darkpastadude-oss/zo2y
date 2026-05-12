@@ -807,6 +807,24 @@
         .replace(/'/g, '&#039;');
     }
 
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     function showToast(message, isError = false) {
       const el = document.createElement('div');
       el.style.position = 'fixed';
@@ -919,8 +937,12 @@
         coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
         publishedDate: book.publishedDate || book.published_date || '',
         pageCount: book.pageCount || book.page_count || 0
-      })).filter((b) => b.id);
-      
+      })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
+
+      if (!query && state.page === 1) {
+        state.books = shuffleArray(state.books);
+      }
+
       state.totalPages = apiTotalPages;
     }
 

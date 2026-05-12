@@ -1027,6 +1027,24 @@
       return [...new Set(variations)];
     }
 
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     async function loadTvshowsWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let tvshows = [];
@@ -1136,7 +1154,11 @@
         firstAirDate: tvshow.first_air_date || '',
         voteAverage: tvshow.vote_average || 0,
         genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
-      })).filter((t) => t.id);
+      })).filter((t) => t.id && isDateWithinAcceptableRange(t.firstAirDate));
+
+      if (!query && state.page === 1) {
+        state.tvshows = shuffleArray(state.tvshows);
+      }
 
       state.tvshows = state.tvshows.slice(withinOffset, withinOffset + TVSHOWS_PAGE_SIZE);
 

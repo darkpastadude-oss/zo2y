@@ -939,6 +939,24 @@
       return [...new Set(variations)];
     }
 
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     async function loadGamesWithFallback() {
       const query = String(state.search || '').trim();
       let games = [];
@@ -1042,19 +1060,23 @@
         firstReleaseDate: game.release_date || '',
         rating: game.rating || 0,
         genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-      })).filter((g) => g.id);
-      
+      })).filter((g) => g.id && isDateWithinAcceptableRange(g.firstReleaseDate));
+
       // Sort games: games with covers first, games without covers at the end
       state.games.sort((a, b) => {
         const aHasCover = a.cover && a.cover !== '' && a.cover !== FALLBACK_IMAGE;
         const bHasCover = b.cover && b.cover !== '' && b.cover !== FALLBACK_IMAGE;
-        
+
         if (aHasCover && !bHasCover) return -1;
         if (!aHasCover && bHasCover) return 1;
-        
+
         // Within same cover status, maintain existing sort order
         return 0;
       });
+
+      if (!query && state.page === 1) {
+        state.games = shuffleArray(state.games);
+      }
 
       // Apply pagination after sorting (page size computed from grid so we never end on partial rows)
       const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;

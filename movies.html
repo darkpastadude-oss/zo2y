@@ -1018,7 +1018,6 @@
       
       // Try with spaces if no spaces
       if (!normalized.includes(' ') && normalized.length > 3) {
-        // Try adding space at common compound word boundaries
         const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
         if (spaced !== normalized.toLowerCase()) {
           variations.push(spaced);
@@ -1026,6 +1025,15 @@
       }
       
       return [...new Set(variations)];
+    }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
     }
 
     async function loadMoviesWithFallback(queryOverride = '') {
@@ -1140,7 +1148,7 @@
         releaseDate: movie.release_date || '',
         voteAverage: movie.vote_average || 0,
         genreIds: Array.isArray(movie.genre_ids) ? movie.genre_ids : []
-      })).filter((m) => m.id);
+      })).filter((m) => m.id && isDateWithinAcceptableRange(m.releaseDate));
 
       state.movies = state.movies.slice(withinOffset, withinOffset + MOVIES_PAGE_SIZE);
 

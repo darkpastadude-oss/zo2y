@@ -1027,6 +1027,24 @@
       return [...new Set(variations)];
     }
 
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
     async function loadAnimesWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let animes = [];
@@ -1154,7 +1172,11 @@
         firstAirDate: anime.first_air_date || '',
         voteAverage: anime.vote_average || 0,
         genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
-      })).filter((a) => a.id);
+      })).filter((a) => a.id && isDateWithinAcceptableRange(a.firstAirDate));
+
+      if (!query && state.page === 1) {
+        state.animes = shuffleArray(state.animes);
+      }
 
       state.animes = state.animes.slice(withinOffset, withinOffset + ANIMES_PAGE_SIZE);
 

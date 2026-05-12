@@ -1012,6 +1012,15 @@
         .trim();
     }
 
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
     async function loadBooksWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
@@ -1069,7 +1078,7 @@
         coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
         publishedDate: book.publishedDate || book.published_date || '',
         pageCount: book.pageCount || book.page_count || 0
-      })).filter((b) => b.id);
+      })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
       const seen = new Set();
       state.books = state.books.filter(book => {
