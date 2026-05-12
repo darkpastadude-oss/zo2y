@@ -807,6 +807,22 @@
       return date <= twoYearsFromNow;
     }
 
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const TOP_POPULAR_MOVIE_IDS = [
+      '27205', '155', '238', '497', '680', '550', '278', '299534', '239', '122',
+      '19995', '157336', '603', '354912', '299536', '1552', '475557', '533535', '872585', '569094',
+      '438631', '940551', '787699', '848538', '921636', '1072790', '1011985', '968051', '866398',
+      '572802', '848378'
+    ];
+
     function showToast(message, isError = false) {
       const el = document.createElement('div');
       el.style.position = 'fixed';
@@ -887,14 +903,29 @@
             movies = Array.isArray(json?.results) ? json.results : [];
           }
         } else {
-          // Randomly choose between popular and newly released on each refresh
-          const useNewlyReleased = Math.random() > 0.5;
-          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-          const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=1`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            movies = Array.isArray(json?.results) ? json.results : [];
+          // Load specific top popular movies by ID
+          try {
+            const shuffledIds = shuffleArray(TOP_POPULAR_MOVIE_IDS);
+            for (const movieId of shuffledIds) {
+              const url = `${TMDB_PROXY_BASE}/movie/${movieId}`;
+              const res = await fetch(url);
+              if (!res.ok) continue;
+              const json = await res.json();
+              if (json && json.id) {
+                movies.push(json);
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load popular movies by ID', _err);
+            // Fallback to discover
+            const useNewlyReleased = Math.random() > 0.5;
+            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+            const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=1`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              movies = Array.isArray(json?.results) ? json.results : [];
+            }
           }
         }
       } catch (_err) {

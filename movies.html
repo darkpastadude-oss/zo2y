@@ -1036,6 +1036,21 @@
       return date <= twoYearsFromNow;
     }
 
+    const TOP_POPULAR_MOVIE_IDS = [
+      '27205', '155', '238', '497', '680', '550', '278', '299534', '239', '122',
+      '19995', '157336', '603', '354912', '299536', '1552', '475557', '533535', '872585', '569094',
+      '438631', '940551', '787699', '848538', '921636', '1072790', '1011985', '968051', '866398',
+      '572802', '848378',
+      '848438', '968489', '933260', '956983', '872010', '912614', '940551', '787699', '848538',
+      '921636', '1072790', '1011985', '968051', '866398', '572802', '848378', '848438', '968489',
+      '933260', '956983', '872010', '912614', '940551', '787699', '848538', '921636', '1072790',
+      '1011985', '968051', '866398', '572802', '848378', '848438', '968489', '933260', '956983',
+      '872010', '912614', '940551', '787699', '848538', '921636', '1072790', '1011985', '968051',
+      '866398', '572802', '848378', '848438', '968489', '933260', '956983', '872010', '912614',
+      '940551', '787699', '848538', '921636', '1072790', '1011985', '968051', '866398', '572802',
+      '848378', '848438', '968489', '933260', '956983', '872010', '912614'
+    ];
+
     async function loadMoviesWithFallback(queryOverride = '') {
       const query = String(queryOverride || state.search || '').trim();
       let movies = [];
@@ -1050,29 +1065,29 @@
       const needed = withinOffset + MOVIES_PAGE_SIZE;
 
       if (!query) {
-        // Randomly choose between popular and newly released on each refresh
-        const useNewlyReleased = Math.random() > 0.5;
-        const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-        // Load popular movies when no search query (more comprehensive than trending)
+        // Load specific top popular movies by ID
         try {
-          for (let p = apiPageStart; p <= apiPageStart + 6 && movies.length < needed; p += 1) {
-            const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=${p}`;
+          const shuffledIds = shuffleArray(TOP_POPULAR_MOVIE_IDS);
+          for (const movieId of shuffledIds) {
+            if (movies.length >= needed) break;
+            const url = `${TMDB_PROXY_BASE}/movie/${movieId}`;
             const res = await fetch(url);
-            if (!res.ok) break;
+            if (!res.ok) continue;
             const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const batch = Array.isArray(json?.results) ? json.results : [];
-            movies = movies.concat(batch);
-            if (!batch.length) break;
+            if (json && json.id) {
+              movies.push(json);
+            }
           }
+          apiTotalResults = movies.length;
+          apiTotalPages = 1;
         } catch (_err) {
-          console.error('Failed to load popular movies', _err);
-          // Fallback to trending if discover fails
+          console.error('Failed to load popular movies by ID', _err);
+          // Fallback to discover if ID fetch fails
           try {
-            movies = [];
+            const useNewlyReleased = Math.random() > 0.5;
+            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
             for (let p = apiPageStart; p <= apiPageStart + 6 && movies.length < needed; p += 1) {
-              const url = `${TMDB_PROXY_BASE}/trending/movie/week?page=${p}`;
+              const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=${p}`;
               const res = await fetch(url);
               if (!res.ok) break;
               const json = await res.json();
@@ -1083,7 +1098,7 @@
               if (!batch.length) break;
             }
           } catch (_err2) {
-            console.error('Failed to load trending movies', _err2);
+            console.error('Failed to load popular movies', _err2);
           }
         }
       } else {

@@ -1060,18 +1060,9 @@
         firstReleaseDate: game.release_date || '',
         rating: game.rating || 0,
         genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-      })).filter((g) => g.id && isDateWithinAcceptableRange(g.firstReleaseDate));
-
-      // Sort games: games with covers first, games without covers at the end
-      state.games.sort((a, b) => {
-        const aHasCover = a.cover && a.cover !== '' && a.cover !== FALLBACK_IMAGE;
-        const bHasCover = b.cover && b.cover !== '' && b.cover !== FALLBACK_IMAGE;
-
-        if (aHasCover && !bHasCover) return -1;
-        if (!aHasCover && bHasCover) return 1;
-
-        // Within same cover status, maintain existing sort order
-        return 0;
+      })).filter((g) => {
+        const hasLocalCover = g.cover && g.cover !== '' && g.cover !== FALLBACK_IMAGE;
+        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate) && hasLocalCover;
       });
 
       if (!query && state.page === 1) {
