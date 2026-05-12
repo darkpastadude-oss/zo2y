@@ -632,7 +632,7 @@
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260511c">
 <script src="js/shared-header.js?v=20260511c" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511f" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -870,13 +870,23 @@
       let movies = [];
 
       try {
-        const endpoint = query ? 'search/movie' : 'trending/movie/week';
-        const params = query ? { query, page: 1 } : {};
-        const url = `${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const json = await res.json();
-          movies = Array.isArray(json?.results) ? json.results : [];
+        if (query) {
+          const url = `${TMDB_PROXY_BASE}/search/movie?query=${encodeURIComponent(query)}&page=1`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            movies = Array.isArray(json?.results) ? json.results : [];
+          }
+        } else {
+          // Randomly choose between popular and newly released on each refresh
+          const useNewlyReleased = Math.random() > 0.5;
+          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+          const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=1`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const json = await res.json();
+            movies = Array.isArray(json?.results) ? json.results : [];
+          }
         }
       } catch (_err) {
         console.error('Failed to load movies', _err);

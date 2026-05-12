@@ -354,7 +354,7 @@
 
   </style>
   <meta name="theme-color" content="#0b1633" />
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511f" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
   <script src="js/shared-header.js?v=20260511c" defer></script>
 </head>
 <body>
@@ -503,7 +503,10 @@
       let animes=[];
       if (!q) {
         try {
-          const url=`${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=popularity.desc&page=${state.page}`;
+          // Randomly choose between popular and newly released on each refresh
+          const useNewlyReleased = Math.random() > 0.5;
+          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+          const url=`${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${state.page}`;
           const res=await fetch(url);
           if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; animes=filterAnime(tvResults); }
         } catch(e) { console.error('Failed to load anime',e); }

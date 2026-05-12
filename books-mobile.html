@@ -644,7 +644,7 @@
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260511d">
 <script src="js/shared-header.js?v=20260511d" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511f" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -863,15 +863,27 @@
       const signal = booksFetchAbort.signal;
 
       if (!query) {
-        // Load popular books when no search query
+        // Randomly choose between popular and newly released (trending) on each refresh
+        const useTrending = Math.random() > 0.5;
+        
         try {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
-          const res = await fetch(url, { signal });
-          if (res.ok) {
-            const json = await res.json();
-            console.log('Books API response:', json);
-            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-            apiTotalPages = json?.totalPages || json?.total || 1;
+          if (useTrending) {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${apiLimit}`;
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
+              apiTotalPages = json?.totalPages || json?.total || 1;
+            }
+          } else {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              console.log('Books API response:', json);
+              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
+              apiTotalPages = json?.totalPages || json?.total || 1;
+            }
           }
         } catch (_err) {
           console.error('Failed to load popular books', _err);

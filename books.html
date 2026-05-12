@@ -789,7 +789,7 @@
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260511d">
 <script src="js/shared-header.js?v=20260511d" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511e" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1026,39 +1026,24 @@
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
         
         try {
-          const [popularResult, trendingResult] = await Promise.allSettled([
-            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`),
-            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`)
-          ]);
-
-          const popularJson = popularResult.status === 'fulfilled' && popularResult.value.ok 
-            ? await popularResult.value.json() 
-            : null;
-          const trendingJson = trendingResult.status === 'fulfilled' && trendingResult.value.ok 
-            ? await trendingResult.value.json() 
-            : null;
-
-          const popularBooks = Array.isArray(popularJson?.books) ? popularJson.books : [];
-          const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-
-          const seen = new Set();
-          const merged = [];
+          // Randomly choose between popular and newly released (trending) on each refresh
+          const useTrending = Math.random() > 0.5;
           
-          [...popularBooks, ...trendingBooks].forEach((book) => {
-            const title = normalizeBookSeedText(book?.title || '');
-            const author = normalizeBookSeedText(book?.author || book?.authors?.[0] || '');
-            const key = `${title}::${author}`;
-            if (!title || seen.has(key)) return;
-            seen.add(key);
-            merged.push(book);
-          });
-
-          books = merged;
-          apiTotalResults = Math.max(
-            Number(popularJson?.meta?.numFound || 0),
-            Number(trendingJson?.meta?.numFound || 0),
-            books.length
-          );
+          if (useTrending) {
+            const trendingResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`);
+            if (trendingResult.ok) {
+              const trendingJson = await trendingResult.json();
+              books = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
+              apiTotalResults = Number(trendingJson?.meta?.numFound || 0);
+            }
+          } else {
+            const popularResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`);
+            if (popularResult.ok) {
+              const popularJson = await popularResult.json();
+              books = Array.isArray(popularJson?.books) ? popularJson.books : [];
+              apiTotalResults = Number(popularJson?.meta?.numFound || 0);
+            }
+          }
         } catch (_err) {
           console.error('Failed to load popular books', _err);
         }

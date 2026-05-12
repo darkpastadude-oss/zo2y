@@ -797,7 +797,7 @@
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260511c">
 <script src="js/shared-header.js?v=20260511c" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511e" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -1040,10 +1040,13 @@
       const needed = withinOffset + TVSHOWS_PAGE_SIZE;
 
       if (!query) {
+        // Randomly choose between popular and newly released on each refresh
+        const useNewlyReleased = Math.random() > 0.5;
+        const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
         // Load popular TV shows when no search query (more comprehensive than trending)
         try {
           for (let p = apiPageStart; p <= apiPageStart + 6 && tvshows.length < needed; p += 1) {
-            const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=popularity.desc&page=${p}`;
+            const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=${sortBy}&page=${p}`;
             const res = await fetch(url);
             if (!res.ok) break;
             const json = await res.json();

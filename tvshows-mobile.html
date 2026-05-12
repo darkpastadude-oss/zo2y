@@ -354,7 +354,7 @@
 
   </style>
   <meta name="theme-color" content="#0b1633" />
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511f" />
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
   <script src="js/shared-header.js?v=20260511c" defer></script>
 </head>
 <body>
@@ -502,10 +502,18 @@
       const q=String(qOverride||state.currentQuery||'').trim();
       let tvshows=[];
       try {
-        const endpoint=q?'search/tv':'trending/tv/week', params=q?{query,q,page:1}:{};
-        const url=`${TMDB_PROXY_BASE}/${endpoint}?${new URLSearchParams(params).toString()}`;
-        const res=await fetch(url);
-        if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
+        if (q) {
+          const url=`${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(q)}&page=1`;
+          const res=await fetch(url);
+          if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
+        } else {
+          // Randomly choose between popular and newly released on each refresh
+          const useNewlyReleased = Math.random() > 0.5;
+          const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+          const url=`${TMDB_PROXY_BASE}/discover/tv?sort_by=${sortBy}&page=1`;
+          const res=await fetch(url);
+          if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
+        }
       } catch(e) { console.error('Failed to load tvshows',e); }
       state.tvshows=tvshows.map(t=>({id:String(t.id||''),name:t.name||t.title||'Unknown TV Show',posterPath:t.poster_path||'',firstAirDate:t.first_air_date||'',voteAverage:t.vote_average||0})).filter(t=>t.id);
       state.page=1; state.totalPages=Math.max(1,Math.ceil(state.tvshows.length/TVSHOWS_PAGE_SIZE));
