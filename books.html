@@ -1052,10 +1052,9 @@
       const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
-        const needed = Math.max(40, BOOKS_PAGE_SIZE * 2);
-        
+        const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
+
         try {
-<<<<<<< HEAD
           // Keep the first pages reliably "popular right now" for fast, consistent loading.
           const popularResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`);
           if (popularResult.ok) {
@@ -1073,35 +1072,9 @@
               books = books.concat(trendingBooks);
               apiTotalResults = Math.max(apiTotalResults || 0, Number(trendingJson?.meta?.numFound || 0));
             }
-=======
-          // Load specific top popular books by ID
-          const shuffledIds = shuffleArray(TOP_POPULAR_BOOK_IDS);
-          for (const bookId of shuffledIds) {
-            if (books.length >= needed) break;
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/books/${bookId}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              if (json && json.id) {
-                books.push(json);
-              }
-            }
           }
-          apiTotalResults = books.length;
         } catch (_err) {
-          console.error('Failed to load popular books by ID', _err);
-          // Fallback to trending if ID fetch fails
-          try {
-            const trendingResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${needed}`);
-            if (trendingResult.ok) {
-              const trendingJson = await trendingResult.json();
-              books = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-              apiTotalResults = Number(trendingJson?.meta?.numFound || 0);
-            }
-          } catch (_err2) {
-            console.error('Failed to load trending books', _err2);
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
-          }
+          console.error('Failed to load popular books', _err);
         }
       } else {
         const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}`;

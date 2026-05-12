@@ -1177,13 +1177,31 @@ const HEADER_HTML = `
     logoLinks.forEach((link) => {
       if (link.dataset.zo2yLogoClickWired === '1') return;
       link.dataset.zo2yLogoClickWired = '1';
+
+      const shouldForceHome = () => {
+        const href = link.getAttribute('href');
+        return href && (href === 'index.html' || href === '/index.html' || href === '/');
+      };
+
+      const forceHome = (event) => {
+        if (!shouldForceHome()) return;
+        if (event) {
+          try { event.preventDefault(); } catch (_e) {}
+          try { event.stopPropagation(); } catch (_e) {}
+          try { event.stopImmediatePropagation(); } catch (_e) {}
+        }
+        // Navigate immediately (fixes "first tap plays animation, second tap navigates")
+        window.location.assign('index.html');
+      };
+
+      // Prefer pointer/touch start so we redirect on the first tap.
+      link.addEventListener('pointerdown', forceHome, { capture: true });
+      link.addEventListener('touchstart', forceHome, { capture: true, passive: false });
+
       link.addEventListener('click', (event) => {
         const href = link.getAttribute('href');
         if (href && (href === 'index.html' || href === '/index.html' || href === '/')) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-          window.location.assign('index.html');
+          forceHome(event);
         }
       }, { capture: true });
     });

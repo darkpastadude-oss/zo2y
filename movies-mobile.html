@@ -903,7 +903,6 @@
             movies = Array.isArray(json?.results) ? json.results : [];
           }
         } else {
-<<<<<<< HEAD
           // Proper shuffling: shuffle *current popular* movies (not discover sorting).
           const pool = [];
           for (let p = 1; p <= 4; p += 1) {
@@ -913,31 +912,6 @@
             const batch = Array.isArray(json?.results) ? json.results : [];
             pool.push(...batch);
             if (!batch.length) break;
-=======
-          // Load specific top popular movies by ID
-          try {
-            const shuffledIds = shuffleArray(TOP_POPULAR_MOVIE_IDS);
-            for (const movieId of shuffledIds) {
-              const url = `${TMDB_PROXY_BASE}/movie/${movieId}`;
-              const res = await fetch(url);
-              if (!res.ok) continue;
-              const json = await res.json();
-              if (json && json.id) {
-                movies.push(json);
-              }
-            }
-          } catch (_err) {
-            console.error('Failed to load popular movies by ID', _err);
-            // Fallback to discover
-            const useNewlyReleased = Math.random() > 0.5;
-            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-            const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=1`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              movies = Array.isArray(json?.results) ? json.results : [];
-            }
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
           }
 
           if (!pool.length) {

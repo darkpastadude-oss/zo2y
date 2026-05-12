@@ -8,10 +8,10 @@
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Games ? Zo2y</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/pages/index.css?v=20260510g" />
-  <link rel="stylesheet" href="css/pages/index-landing.css?v=20260508c" />
-  <link rel="stylesheet" href="css/shared-header.css?v=20260510h" />
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260511g" />
+  <link rel="stylesheet" href="/css/pages/index.css?v=20260510g" />
+  <link rel="stylesheet" href="/css/pages/index-landing.css?v=20260508c" />
+  <link rel="stylesheet" href="/css/shared-header.css?v=20260510h" />
+  <link rel="stylesheet" href="/css/global-lowercase.css?v=20260511g" />
   <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -24,10 +24,9 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260419a" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
-  <script src="js/shared-header.js?v=20260428a" defer></script>
-  <script src="js/pages/games.js?v=20260419a" defer></script>
+  <script src="/js/list-utils.js?v=20260419a" defer></script>
+  <script src="/js/index-list-menu-adapter.js?v=20260428a" defer></script>
+  <script src="/js/shared-header.js?v=20260428a" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -121,7 +120,7 @@
       padding: clamp(20px, 4vw, 34px);
       background:
         linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
-        url("https://images.unsplash.com/photo-1612287232817-6028609b2e04?auto=format&fit=crop&w=1600&q=80") center/cover;
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7));
       box-shadow: 0 14px 36px rgba(0,0,0,0.26);
     }
     .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }

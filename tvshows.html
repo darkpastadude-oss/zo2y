@@ -1126,29 +1126,18 @@
       const needed = withinOffset + TVSHOWS_PAGE_SIZE;
 
       if (!query) {
-<<<<<<< HEAD
         // Proper shuffling: shuffle between *current popular* TV shows.
         try {
           const pool = [];
           for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
             const url = `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`;
-=======
-        // Load specific top popular TV shows by ID
-        try {
-          const shuffledIds = shuffleArray(TOP_POPULAR_TVSHOW_IDS);
-          for (const tvshowId of shuffledIds) {
-            if (tvshows.length >= needed) break;
-            const url = `${TMDB_PROXY_BASE}/tv/${tvshowId}`;
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
             const res = await fetch(url);
-            if (!res.ok) continue;
+            if (!res.ok) break;
             const json = await res.json();
-<<<<<<< HEAD
             if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
             apiTotalPages = json?.total_pages || apiTotalPages || 1;
             const tvResults = Array.isArray(json?.results) ? json.results : [];
-            const filtered = filterNonAnime(tvResults);
-            pool.push(...filtered);
+            pool.push(...filterNonAnime(tvResults));
             if (!tvResults.length) break;
           }
           tvshows = shuffleArray(pool);
@@ -1159,35 +1148,18 @@
             const pool = [];
             for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
               const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
-=======
-            if (json && json.id) {
-              tvshows.push(json);
-            }
-          }
-          apiTotalResults = tvshows.length;
-          apiTotalPages = 1;
-        } catch (_err) {
-          console.error('Failed to load popular TV shows by ID', _err);
-          // Fallback to discover if ID fetch fails
-          try {
-            const useNewlyReleased = Math.random() > 0.5;
-            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-            for (let p = apiPageStart; p <= apiPageStart + 6 && tvshows.length < needed; p += 1) {
-              const url = `${TMDB_PROXY_BASE}/discover/tv?sort_by=${sortBy}&page=${p}`;
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
               const res = await fetch(url);
               if (!res.ok) break;
               const json = await res.json();
               if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
               apiTotalPages = json?.total_pages || apiTotalPages || 1;
               const tvResults = Array.isArray(json?.results) ? json.results : [];
-              const filtered = filterNonAnime(tvResults);
-              pool.push(...filtered);
+              pool.push(...filterNonAnime(tvResults));
               if (!tvResults.length) break;
             }
             tvshows = shuffleArray(pool);
           } catch (_err2) {
-            console.error('Failed to load popular tvshows', _err2);
+            console.error('Failed to load trending tvshows', _err2);
           }
         }
       } else {

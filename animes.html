@@ -1275,35 +1275,33 @@
       const needed = withinOffset + ANIMES_PAGE_SIZE;
 
       if (!query) {
-<<<<<<< HEAD
         // Keep this feed "popular right now" and shuffle results for variety.
         const sortBy = 'popularity.desc';
-        // Load anime using TMDB discover with proper filters
-=======
-        // Load specific top popular anime by ID
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
         try {
-          const shuffledIds = shuffleArray(TOP_POPULAR_ANIME_IDS);
-          for (const animeId of shuffledIds) {
-            if (animes.length >= needed) break;
-            const url = `${TMDB_PROXY_BASE}/tv/${animeId}`;
+          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
+            const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
             const res = await fetch(url);
-            if (!res.ok) continue;
+            if (!res.ok) break;
             const json = await res.json();
-            if (json && json.id) {
-              animes.push(json);
-            }
+            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+            apiTotalPages = json?.total_pages || apiTotalPages || 1;
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            const batch = filterAnime(tvResults);
+            animes = animes.concat(batch);
+            if (!tvResults.length) break;
           }
-          apiTotalResults = animes.length;
-          apiTotalPages = 1;
+          if (animes.length > 0 && apiTotalResults != null) {
+            const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+            const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+            totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+          }
         } catch (_err) {
-          console.error('Failed to load popular anime by ID', _err);
-          // Fallback to discover if ID fetch fails
+          console.error('Failed to load anime', _err);
+          // Fallback to trending if discover fails
           try {
-            const useNewlyReleased = Math.random() > 0.5;
-            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
+            animes = [];
             for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
-              const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
+              const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
               const res = await fetch(url);
               if (!res.ok) break;
               const json = await res.json();
@@ -1320,7 +1318,7 @@
               totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
             }
           } catch (_err2) {
-            console.error('Failed to load anime', _err2);
+            console.error('Failed to load trending anime', _err2);
           }
         }
       } else {

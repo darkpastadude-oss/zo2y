@@ -901,7 +901,6 @@
       const signal = booksFetchAbort.signal;
 
       if (!query) {
-<<<<<<< HEAD
         try {
           const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
           const res = await fetch(url, { signal });
@@ -911,7 +910,7 @@
             apiTotalPages = json?.totalPages || json?.total || 1;
           }
 
-          // Blend in trending after popular for variety on refresh (but keep popular first).
+          // Blend in trending after popular for variety (but keep popular first).
           if (books.length < apiLimit * 0.75) {
             const trendingUrl = `${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${apiLimit}`;
             const trendingRes = await fetch(trendingUrl, { signal });
@@ -920,38 +919,10 @@
               const trending = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
               books = books.concat(trending);
               apiTotalPages = Math.max(apiTotalPages || 1, json?.totalPages || json?.total || 1);
-=======
-        const needed = Math.max(40, BOOKS_PAGE_SIZE * 2);
-        
-        try {
-          // Load specific top popular books by ID
-          const shuffledIds = shuffleArray(TOP_POPULAR_BOOK_IDS);
-          for (const bookId of shuffledIds) {
-            if (books.length >= needed) break;
-            const url = `${GOOGLE_BOOKS_PROXY_BASE}/books/${bookId}`;
-            const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              if (json && json.id) {
-                books.push(json);
-              }
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
             }
           }
-          apiTotalPages = books.length;
         } catch (_err) {
-          console.error('Failed to load popular books by ID', _err);
-          // Fallback to trending if ID fetch fails
-          try {
-            const trendingResult = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${needed}`, { signal });
-            if (trendingResult.ok) {
-              const trendingJson = await trendingResult.json();
-              books = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-              apiTotalPages = trendingJson?.totalPages || 1;
-            }
-          } catch (_err2) {
-            console.error('Failed to load trending books', _err2);
-          }
+          console.error('Failed to load popular books', _err);
         }
       } else {
         // Try search with variations

@@ -1065,25 +1065,14 @@
       const needed = withinOffset + MOVIES_PAGE_SIZE;
 
       if (!query) {
-<<<<<<< HEAD
         // Proper shuffling: shuffle between *current popular* movies.
-        // Pull a few pages of `/movie/popular` and shuffle the combined pool.
         try {
           const pool = [];
           for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
             const url = `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`;
-=======
-        // Load specific top popular movies by ID
-        try {
-          const shuffledIds = shuffleArray(TOP_POPULAR_MOVIE_IDS);
-          for (const movieId of shuffledIds) {
-            if (movies.length >= needed) break;
-            const url = `${TMDB_PROXY_BASE}/movie/${movieId}`;
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
             const res = await fetch(url);
-            if (!res.ok) continue;
+            if (!res.ok) break;
             const json = await res.json();
-<<<<<<< HEAD
             if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
             apiTotalPages = json?.total_pages || apiTotalPages || 1;
             const batch = Array.isArray(json?.results) ? json.results : [];
@@ -1098,22 +1087,6 @@
             const pool = [];
             for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
               const url = `${TMDB_PROXY_BASE}/trending/movie/week?page=${p}`;
-=======
-            if (json && json.id) {
-              movies.push(json);
-            }
-          }
-          apiTotalResults = movies.length;
-          apiTotalPages = 1;
-        } catch (_err) {
-          console.error('Failed to load popular movies by ID', _err);
-          // Fallback to discover if ID fetch fails
-          try {
-            const useNewlyReleased = Math.random() > 0.5;
-            const sortBy = useNewlyReleased ? 'release_date.desc' : 'popularity.desc';
-            for (let p = apiPageStart; p <= apiPageStart + 6 && movies.length < needed; p += 1) {
-              const url = `${TMDB_PROXY_BASE}/discover/movie?sort_by=${sortBy}&page=${p}`;
->>>>>>> c255f714db2f86b87b3ea1030e3ee9544a28f321
               const res = await fetch(url);
               if (!res.ok) break;
               const json = await res.json();
@@ -1125,7 +1098,7 @@
             }
             movies = shuffleArray(pool);
           } catch (_err2) {
-            console.error('Failed to load popular movies', _err2);
+            console.error('Failed to load trending movies', _err2);
           }
         }
       } else {
