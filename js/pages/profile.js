@@ -8990,16 +8990,48 @@
                 };
 
                 try {
-                    const { data, error } = await supabase
-                        .from('user_favorite_teams')
-                        .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
+                    let favorites = null;
+                    let favoritesError = null;
+                    try {
+                        const { data, error } = await supabase
+                            .from('user_favorite_teams')
+                            .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
+                            .eq('user_id', userId)
+                            .order('created_at', { ascending: false });
+                        favorites = data || null;
+                        favoritesError = error || null;
+                    } catch (error) {
+                        favorites = null;
+                        favoritesError = error;
+                    }
 
-                    if (error) throw error;
+                    // Some deployments might be missing the FK relationship metadata required for embedded selects.
+                    // Fall back to a two-step lookup (team_id -> teams) if the embedded query fails.
+                    if (favoritesError) {
+                        const { data: fallbackFavorites, error: fallbackError } = await supabase
+                            .from('user_favorite_teams')
+                            .select('team_id, created_at')
+                            .eq('user_id', userId)
+                            .order('created_at', { ascending: false });
+                        if (fallbackError) throw fallbackError;
+                        const teamIds = (fallbackFavorites || [])
+                            .map((row) => String(row?.team_id || '').trim())
+                            .filter(Boolean);
+                        if (!teamIds.length) {
+                            favorites = [];
+                        } else {
+                            const { data: teams, error: teamsError } = await supabase
+                                .from('teams')
+                                .select('id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url')
+                                .in('id', teamIds);
+                            if (teamsError) throw teamsError;
+                            const teamMap = new Map((teams || []).map((team) => [String(team?.id || '').trim(), team]));
+                            favorites = teamIds.map((id) => ({ team_id: id, teams: teamMap.get(id) })).filter((row) => row.teams);
+                        }
+                    }
                     if (renderToken !== renderSportsToken) return;
 
-                    const teams = (data || [])
+                    const teams = (favorites || [])
                         .map((row) => row?.teams || row?.team || row)
                         .filter(Boolean);
 
