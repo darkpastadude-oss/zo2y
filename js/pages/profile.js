@@ -5827,6 +5827,90 @@
                 return hero || cover || '/newlogo.webp';
             }
 
+            const profileGameCoverLookupCache = new Map();
+            let profileGameCoverHydrateAbort = null;
+
+            function isProfileGameCoverMissing(url) {
+                const src = String(url || '').trim();
+                if (!src) return true;
+                return src === '/newlogo.webp';
+            }
+
+            async function fetchProfileGameCoverForTitle(title, signal) {
+                const api = window.__zo2yGamesShared;
+                if (!api?.fetchCoverForTitle) return '';
+                const rawTitle = String(title || '').trim();
+                if (!rawTitle) return '';
+                const key = rawTitle.toLowerCase();
+                if (profileGameCoverLookupCache.has(key)) return profileGameCoverLookupCache.get(key) || '';
+                try {
+                    const cover = await api.fetchCoverForTitle(rawTitle, signal);
+                    const safeCover = String(cover || '').trim();
+                    profileGameCoverLookupCache.set(key, safeCover || '');
+                    return safeCover || '';
+                } catch (_err) {
+                    profileGameCoverLookupCache.set(key, '');
+                    return '';
+                }
+            }
+
+            async function hydrateMissingProfileGameCovers(pending = []) {
+                const api = window.__zo2yGamesShared;
+                if (!api?.fetchCoverForTitle) return;
+                const candidates = Array.isArray(pending) ? pending.filter(Boolean) : [];
+                if (!candidates.length) return;
+
+                if (profileGameCoverHydrateAbort) profileGameCoverHydrateAbort.abort();
+                profileGameCoverHydrateAbort = new AbortController();
+                const signal = profileGameCoverHydrateAbort.signal;
+
+                const runBatch = async () => {
+                    const batch = candidates
+                        .filter((entry) => {
+                            const img = entry?.img;
+                            if (!img || !img.isConnected) return false;
+                            return isProfileGameCoverMissing(img.getAttribute('src'));
+                        })
+                        .slice(0, 24);
+                    if (!batch.length) return false;
+
+                    await Promise.all(batch.map(async (entry) => {
+                        const title = entry?.title;
+                        const cover = await fetchProfileGameCoverForTitle(title, signal);
+                        if (!cover) return;
+
+                        const img = entry?.img;
+                        if (img && img.isConnected && isProfileGameCoverMissing(img.getAttribute('src'))) {
+                            img.setAttribute('src', cover);
+                        }
+
+                        const gameId = String(entry?.gameId || '').trim();
+                        if (gameId) writePreviewAssetCache('game', gameId, cover);
+
+                        const game = entry?.game;
+                        if (game && typeof game === 'object') {
+                            game.cover = cover;
+                            game.cover_url = cover;
+                            if (!game.hero && !game.hero_url) {
+                                game.hero = cover;
+                                game.hero_url = cover;
+                            }
+                        }
+                    }));
+
+                    return true;
+                };
+
+                for (let i = 0; i < 3; i += 1) {
+                    const did = await runBatch();
+                    if (!did) break;
+                    await new Promise((resolve) => {
+                        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 650 });
+                        else window.setTimeout(resolve, 120);
+                    });
+                }
+            }
+
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
                 if (!row || typeof row !== 'object') return null;
                 const idValue = row.id ?? fallbackId;
@@ -9629,7 +9713,12 @@
                     } else if (contentType === 'game') {
                         await Promise.all(missingIds.map(async (id) => {
                             const game = await fetchGameDetails(id);
-                            const imageUrl = normalizeGameImageSource(game);
+                            const title = String(game?.title || game?.name || game?.slug || '').trim();
+                            let imageUrl = normalizeGameImageSource(game);
+                            if (isProfileGameCoverMissing(imageUrl) && title) {
+                                const hydratedCover = await fetchProfileGameCoverForTitle(title);
+                                if (hydratedCover) imageUrl = hydratedCover;
+                            }
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         }));
                     } else if (contentType === 'tv') {
@@ -10593,6 +10682,7 @@
                 })));
 
                 container.innerHTML = '';
+                const pendingCoverHydration = [];
 
                 for (let index = 0; index < games.length; index += 1) {
                     const entry = games[index];
@@ -10643,6 +10733,18 @@
                         itemCard.dataset.tierItemId = resolvedGameId;
                     }
                     container.appendChild(itemCard);
+
+                    if (isProfileGameCoverMissing(gameImage)) {
+                        const img = itemCard.querySelector('img.collection-item-image');
+                        if (img) {
+                            pendingCoverHydration.push({
+                                gameId: resolvedGameId,
+                                title: gameTitle,
+                                img,
+                                game
+                            });
+                        }
+                    }
                 }
 
                 wireTierDragAndDrop(
@@ -10651,6 +10753,10 @@
                     canReorderList ? listId : null,
                     canReorderList ? listType : 'default'
                 );
+
+                if (pendingCoverHydration.length) {
+                    void hydrateMissingProfileGameCovers(pendingCoverHydration);
+                }
             }
 
             async function showBookDetail(listId, listType, isMobile) {
