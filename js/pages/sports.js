@@ -1357,17 +1357,18 @@
 
   function wireSportsImages(scope) {
     const root = scope || document;
-    root.querySelectorAll('img[data-sports-image]').forEach((img) => {
+    // Match the index.html card image contract (brands page uses the same).
+    root.querySelectorAll('img[data-home-image="1"]').forEach((img) => {
       const wrap = img.closest('.card-media');
       const fallback = String(img.getAttribute('data-fallback-src') || '').trim();
       const markReady = () => {
-        img.setAttribute('data-ready', '1');
+        img.setAttribute('data-image-ready', '1');
         if (wrap) wrap.classList.remove('is-loading-media');
       };
       const handleError = () => {
         if (fallback && img.src !== fallback) {
           img.removeAttribute('data-defer-src');
-          img.setAttribute('data-ready', '0');
+          img.setAttribute('data-image-ready', '0');
           img.src = fallback;
           return;
         }
@@ -1421,7 +1422,7 @@
     card.innerHTML = `
       <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
       <div class="card-media brand-cover is-loading-media">
-        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-home-image="1" data-image-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
       </div>
       <div class="card-meta">
         <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
