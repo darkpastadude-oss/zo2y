@@ -1060,8 +1060,8 @@
         rating: game.rating || 0,
         genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
       })).filter((g) => {
-        const hasLocalCover = g.cover && g.cover !== '' && g.cover !== FALLBACK_IMAGE;
-        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate) && hasLocalCover;
+        // Only filter by ID and date, not by cover availability
+        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
       // Front pages should be the games with locally sourced covers (official cover bucket).
@@ -1134,6 +1134,48 @@
         }
       } catch (err) {
         console.error('Failed to fetch cover from RAWG:', err);
+      }
+      
+      coverCache.set(cacheKey, '');
+      return '';
+    }
+
+    async function fetchCoverFromWikipedia(gameName) {
+      if (!gameName) return '';
+      
+      // Check cache first
+      const cacheKey = `wiki:${gameName.toLowerCase().trim()}`;
+      if (coverCache.has(cacheKey)) {
+        return coverCache.get(cacheKey);
+      }
+      
+      try {
+        // Search Wikipedia for the game
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(gameName)}&format=json&origin=*`;
+        const response = await fetch(searchUrl);
+        if (!response.ok) return '';
+        
+        const data = await response.json();
+        if (!data.query?.search || data.query.search.length === 0) return '';
+        
+        // Get the first result's page ID
+        const pageId = data.query.search[0].pageid;
+        
+        // Get page image info
+        const imageUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&piprop=original&pageids=${pageId}&format=json&origin=*`;
+        const imageResponse = await fetch(imageUrl);
+        if (!imageResponse.ok) return '';
+        
+        const imageData = await imageResponse.json();
+        const pageData = imageData.query?.pages?.[pageId];
+        const coverUrl = pageData?.original?.source || '';
+        
+        if (coverUrl) {
+          coverCache.set(cacheKey, coverUrl);
+          return coverUrl;
+        }
+      } catch (err) {
+        console.error('Failed to fetch cover from Wikipedia:', err);
       }
       
       coverCache.set(cacheKey, '');
@@ -1332,7 +1374,19 @@
 
         await Promise.all(
           candidates.map(async (g) => {
-            const cover = await api.fetchCoverForTitle(g.name, signal);
+            // Try the shared API first
+            let cover = await api.fetchCoverForTitle(g.name, signal);
+            
+            // If that fails, try RAWG
+            if (!cover) {
+              cover = await fetchCoverFromRAWG(g.name);
+            }
+            
+            // If that fails, try Wikipedia
+            if (!cover) {
+              cover = await fetchCoverFromWikipedia(g.name);
+            }
+            
             if (!cover) return;
             g.cover = cover;
             const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
