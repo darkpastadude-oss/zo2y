@@ -330,6 +330,7 @@
     filterLeagueModal: document.getElementById('sportsFilterLeagueModal'),
     resultsTitle: document.getElementById('sportsResultsTitle'),
     resultsSubtitle: document.getElementById('sportsResultsSubtitle'),
+    count: document.getElementById('sportsCount'),
     grid: document.getElementById('sportsGrid'),
     empty: document.getElementById('sportsEmpty'),
     loading: document.getElementById('sportsLoading'),
@@ -1465,6 +1466,7 @@
 
     if (ui.resultsTitle && options.title) ui.resultsTitle.textContent = options.title;
     if (ui.resultsSubtitle && options.subtitle) ui.resultsSubtitle.textContent = options.subtitle;
+    if (ui.count) ui.count.textContent = `${list.length} teams shown`;
 
     if (!list.length) {
       if (ui.empty) {
