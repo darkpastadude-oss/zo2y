@@ -176,11 +176,12 @@
 
   function wireBrandImageState(scope) {
     const root = scope || document;
-    root.querySelectorAll('.brand-card-logo img').forEach((img) => {
-      const wrap = img.closest('.brand-card-logo');
+    // Index-style card images (matches css/pages/index.css)
+    root.querySelectorAll('img[data-home-image="1"]').forEach((img) => {
+      const wrap = img.closest('.card-media');
       const markReady = () => {
-        img.setAttribute('data-ready', '1');
-        if (wrap) wrap.classList.remove('is-loading');
+        img.setAttribute('data-image-ready', '1');
+        if (wrap) wrap.classList.remove('is-loading-media');
       };
       const handleError = () => {
         const fallback = '/newlogo.webp';
@@ -507,24 +508,66 @@
   }
 
   function createCard(brand) {
-    const card = document.createElement('div');
-    card.className = 'brand-card card';
-    card.setAttribute('data-item-id', brand.id);
-    if (brand.logo) card.setAttribute('data-list-image', brand.logo);
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.tabIndex = 0;
+
+    const id = String(brand.id || brand.slug || brand.domain || brand.name || '').trim();
+    const href = `brand.html?type=${encodeURIComponent(BRAND_TYPE)}&id=${encodeURIComponent(id)}`;
+    const title = String(brand.name || '').trim() || 'Brand';
+    const subtitle = [brand.category, brand.country].filter(Boolean).join(' • ') || BRAND_LABEL;
+    const extra = String(brand.description || '').trim() || ' ';
+    const image = String(brand.logo || '/newlogo.webp').trim();
+
+    // Dataset fields used by the index-style list menu adapter
+    card.dataset.href = href;
+    card.dataset.title = title;
+    card.dataset.subtitle = subtitle;
+    card.dataset.mediaType = BRAND_TYPE;
+    card.dataset.itemId = id;
+    card.dataset.image = image;
+    card.dataset.listImage = image;
+
+    const showMenu = typeof window.openIndexStyleListMenu === 'function';
+    const trailingControl = showMenu
+      ? `
+        <div class="card-menu-wrap">
+          <button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+      `
+      : `
+        <div class="card-menu-wrap">
+          <a class="card-open-link" href="${escapeHtml(href)}" aria-label="Open brand"><i class="fas fa-arrow-up-right-from-square"></i></a>
+        </div>
+      `;
+
+    const iconClass = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
+    const label = BRAND_TYPE === 'food' ? 'Food' : (BRAND_TYPE === 'car' ? 'Cars' : 'Fashion');
 
     card.innerHTML = `
-      <button class="card-menu-btn" aria-label="Add to list">
-        <i class="fas fa-ellipsis-v"></i>
-      </button>
-      <div class="brand-card-logo is-loading">
-        <img src="${BRAND_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(brand.logo || '/newlogo.webp')}" data-ready="0" alt="${escapeHtml(brand.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+      <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
+      <div class="card-media brand-cover is-loading-media">
+        <img
+          src="${BRAND_IMAGE_PLACEHOLDER}"
+          data-defer-src="${escapeHtml(image)}"
+          data-fallback-image="/newlogo.webp"
+          data-home-image="1"
+          data-image-ready="0"
+          alt="${escapeHtml(title)} logo"
+          loading="lazy"
+          decoding="async"
+          referrerpolicy="no-referrer"
+        />
       </div>
-      <div class="brand-card-name">${escapeHtml(brand.name)}</div>
-      <div class="brand-card-meta">
-        ${brand.category ? `<span class="brand-chip">${escapeHtml(brand.category)}</span>` : ''}
-        ${brand.country ? `<span>${escapeHtml(brand.country)}</span>` : ''}
+      <div class="card-meta">
+        <span class="card-type"><i class="fa-solid ${escapeHtml(iconClass)}"></i> ${escapeHtml(label)}</span>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(title)}</p>
+          ${trailingControl}
+        </div>
+        <p class="card-sub">${escapeHtml(subtitle)}</p>
+        <p class="card-extra">${escapeHtml(extra)}</p>
       </div>
-      <div class="brand-card-desc">${escapeHtml(brand.description || '')}</div>
     `;
 
     const menuBtn = card.querySelector('.card-menu-btn');
@@ -535,9 +578,18 @@
       });
     }
 
-    card.addEventListener('click', () => {
-      const id = encodeURIComponent(brand.id || brand.slug || brand.domain || brand.name);
-      window.location.href = `brand.html?type=${encodeURIComponent(BRAND_TYPE)}&id=${id}`;
+    const navigate = () => {
+      window.location.href = href;
+    };
+
+    card.addEventListener('click', (event) => {
+      if (event?.target?.closest?.('.card-menu-btn') || event?.target?.closest?.('.card-open-link')) return;
+      navigate();
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      navigate();
     });
 
     return card;
