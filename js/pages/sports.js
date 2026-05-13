@@ -1139,7 +1139,7 @@
 
   function setActiveCard(teamId) {
     if (!ui.grid) return;
-    ui.grid.querySelectorAll('.sports-card').forEach((card) => {
+    ui.grid.querySelectorAll('.card[data-media-type="sports"]').forEach((card) => {
       const cardId = card.getAttribute('data-team-id');
       card.classList.toggle('is-active', !!teamId && cardId === String(teamId));
     });
@@ -1357,11 +1357,11 @@
   function wireSportsImages(scope) {
     const root = scope || document;
     root.querySelectorAll('img[data-sports-image]').forEach((img) => {
-      const wrap = img.closest('.sports-card-media, .sports-card-logo');
+      const wrap = img.closest('.card-media');
       const fallback = String(img.getAttribute('data-fallback-src') || '').trim();
       const markReady = () => {
         img.setAttribute('data-ready', '1');
-        if (wrap) wrap.classList.remove('is-loading');
+        if (wrap) wrap.classList.remove('is-loading-media');
       };
       const handleError = () => {
         if (fallback && img.src !== fallback) {
@@ -1382,48 +1382,54 @@
 
   function buildCard(team) {
     const card = document.createElement('article');
-    card.className = 'sports-card';
+    card.className = 'card';
     card.dataset.teamId = team.id;
     card.dataset.itemId = team.id;
     card.dataset.title = team.name;
+    card.dataset.mediaType = 'sports';
     card.tabIndex = 0;
+
+    const href = buildTeamDetailUrl(team);
+    card.dataset.href = href;
 
     const mediaImage = team.badge || FALLBACK_IMAGE;
     const logo = team.badge || FALLBACK_BADGE;
     const usesBannerOnly = false;
     const usesBadgeOnly = !!team.badge;
-    const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
-    const sportIcon = getSportIconClass(team.sport);
     const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
-    card.dataset.subtitle = metaLine;
+    const subtitleText = team.league || 'Sports';
+    const extraText = team.stadium || [team.sport, team.country].filter(Boolean).join(' • ') || 'Team';
+    card.dataset.subtitle = [team.league, team.sport].filter(Boolean).join(' | ') || subtitleText;
     card.dataset.image = mediaImage;
     card.dataset.listImage = logo;
     card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
-    const leagueChip = team.league
-      ? `<span class="sports-card-chip sports-card-chip-league">${escapeHtml(team.league)}</span>`
-      : `<span class="sports-card-chip sports-card-chip-league">Team spotlight</span>`;
-    const sportChip = team.sport
-      ? `<span class="sports-card-chip sports-card-chip-sport">${sportIcon ? `<i class="fas ${sportIcon}" aria-hidden="true"></i>` : ''}<span>${escapeHtml(team.sport)}</span></span>`
-      : '';
+    const trailingControl = showMenu
+      ? `
+        <div class="card-menu-wrap">
+          <button class="card-menu-btn" type="button" aria-label="Add to lists">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+        </div>
+      `
+      : `
+        <div class="card-menu-wrap">
+          <a class="card-open-link" href="${escapeHtml(href)}" aria-label="Open team"><i class="fas fa-arrow-up-right-from-square"></i></a>
+        </div>
+      `;
 
     card.innerHTML = `
-      <div class="sports-card-media is-loading">
-        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} banner" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-        <div class="sports-card-logo is-loading">
-          <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(logo)}" data-fallback-src="${escapeHtml(FALLBACK_BADGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-        </div>
+      <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
+      <div class="card-media brand-cover is-loading-media">
+        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
       </div>
-      <div class="sports-card-body">
-        <div class="sports-card-title">${escapeHtml(team.name)}</div>
-        <div class="sports-card-meta">${leagueChip}${sportChip}</div>
-        ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(team.stadium)}</span></div>` : ''}
-        <div class="sports-card-actions">
-          ${showMenu ? `
-            <button class="card-menu-btn" type="button" aria-label="Add to lists">
-              <i class="fas fa-ellipsis"></i>
-            </button>
-          ` : ''}
+      <div class="card-meta">
+        <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(team.name)}</p>
+          ${trailingControl}
         </div>
+        <p class="card-sub">${escapeHtml(subtitleText)}</p>
+        <p class="card-extra">${escapeHtml(extraText)}</p>
       </div>
     `;
 
@@ -1437,7 +1443,8 @@
       });
     }
 
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (event) => {
+      if (event?.target?.closest?.('.card-menu-btn') || event?.target?.closest?.('.card-open-link')) return;
       navigateToTeam(team);
     });
 
@@ -1550,10 +1557,10 @@
     if (!card) return null;
     const id = String(fallbackId || card.getAttribute('data-team-id') || card.dataset.itemId || '').trim();
     if (!id) return null;
-    const title = String(card.dataset.title || card.querySelector('.sports-card-title')?.textContent || id).trim();
-    const subtitle = String(card.dataset.subtitle || card.querySelector('.sports-card-meta')?.textContent || '').trim();
+    const title = String(card.dataset.title || card.querySelector('.card-name')?.textContent || id).trim();
+    const subtitle = String(card.dataset.subtitle || card.querySelector('.card-sub')?.textContent || '').trim();
     const [league, sport] = subtitle.split('|').map((value) => String(value || '').trim());
-    const logo = String(card.dataset.listImage || card.querySelector('.sports-card-logo img')?.getAttribute('src') || '').trim();
+    const logo = String(card.dataset.listImage || card.querySelector('.card-media img')?.getAttribute('src') || '').trim();
     return {
       id,
       name: title || id,
@@ -1586,7 +1593,7 @@
       },
       getVisibleItemIds: () => {
         if (!ui.grid) return [];
-        return Array.from(ui.grid.querySelectorAll('.sports-card'))
+        return Array.from(ui.grid.querySelectorAll('.card[data-media-type="sports"]'))
           .map((card) => String(card.getAttribute('data-team-id') || card.dataset.itemId || '').trim())
           .filter(Boolean);
       },

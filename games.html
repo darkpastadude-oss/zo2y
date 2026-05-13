@@ -289,6 +289,17 @@
       object-fit: cover;
     }
 
+    .card-media-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
     .card-meta {
       padding: 9px;
       display: flex;
@@ -1206,8 +1217,11 @@
     }
 
     function handleImageError(img, gameName) {
-      img.src = FALLBACK_IMAGE;
-      img.alt = gameName || 'Game cover not available';
+      // Replace image with icon fallback
+      const fallbackDiv = document.createElement('div');
+      fallbackDiv.className = 'card-media-fallback';
+      fallbackDiv.innerHTML = '<i class="fas fa-gamepad"></i>';
+      img.parentNode.replaceChild(fallbackDiv, img);
     }
 
     async function ensureSupabase() {
@@ -1330,12 +1344,13 @@
         return;
       }
       grid.innerHTML = state.games.map((game) => {
-        const coverUrl = game.cover || FALLBACK_IMAGE;
+        const coverUrl = game.cover || '';
         const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
+        const hasCover = coverUrl && coverUrl !== FALLBACK_IMAGE;
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
+            ${hasCover ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'card-media-fallback\\'><i class=\\'fas fa-gamepad\\'></i></div>';">` : '<div class="card-media-fallback"><i class="fas fa-gamepad"></i></div>'}
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>

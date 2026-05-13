@@ -358,6 +358,18 @@
       position: relative;
     }
     .card-media img { width: 100%; height: 100%; object-fit: contain; transform: scale(1.001); }
+    .card-media.cover img { object-fit: cover; }
+
+    .card-media-fallback {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      color: var(--muted);
+      opacity: 0.5;
+    }
 
     .card-meta { padding: 4px; display: flex; flex-direction: column; gap: 1px; flex: 1; }
 
@@ -1396,16 +1408,17 @@
         return;
       }
       grid.innerHTML = state.tvshows.map((tvshow) => {
-        let posterUrl = '/images/fallback/tv.svg';
+        let posterUrl = '';
         if (tvshow.posterPath) {
           posterUrl = `${POSTER_BASE}${tvshow.posterPath}`;
         } else if (tvshow.backdropPath) {
           posterUrl = `${BACKDROP_BASE}${tvshow.backdropPath}`;
         }
+        const hasCover = posterUrl && posterUrl !== '/images/fallback/tv.svg';
         return `
         <article class="card" data-id="${escapeHtml(tvshow.id)}">
           <div class="card-media">
-            <img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy" onerror="this.src='/images/fallback/tv.svg'">
+            ${hasCover ? `<img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'card-media-fallback\\'><i class=\\'fa-solid fa-tv\\'></i></div>';">` : '<div class="card-media-fallback"><i class="fa-solid fa-tv"></i></div>'}
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span>

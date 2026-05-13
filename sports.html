@@ -50,7 +50,7 @@
     }
   </style>
 </head>
-<body>
+<body class="sports-page">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -82,9 +82,30 @@
 </header>
 
   <main class="sports-main">
-    <section class="brand-hero">
-      <h1>Sports</h1>
-      <p>Track your favorite teams, browse leagues, and save sports to your Zo2y profile.</p>
+    <section class="sports-hero" id="sportsHero">
+      <div class="sports-hero-media" id="sportsHeroMedia"></div>
+      <div class="sports-hero-logo-wrap">
+        <img class="sports-hero-logo" id="sportsHeroLogo" src="/file.svg" alt="" />
+      </div>
+      <div class="sports-hero-content">
+        <div class="sports-kicker">Sports spotlight</div>
+        <h1 class="sports-hero-title" id="sportsHeroTitle">Find your team</h1>
+        <p class="sports-hero-subtitle" id="sportsHeroSubtitle">Search teams, save favorites to your profile, and build a sports corner that matches your taste.</p>
+        <div class="sports-hero-meta" id="sportsHeroMeta">
+          <span class="sports-hero-pill">Powered by TheSportsDB</span>
+          <span class="sports-hero-pill">Save teams to your profile</span>
+        </div>
+      </div>
+      <div class="sports-hero-card is-empty" id="sportsHeroCard">
+        <div class="sports-hero-card-media">
+          <img id="sportsHeroBadge" src="/file.svg" alt="Team logo" />
+        </div>
+        <div class="sports-hero-card-body">
+          <div class="sports-hero-card-title" id="sportsHeroTeam">Team spotlight</div>
+          <div class="sports-hero-card-meta" id="sportsHeroLeague">Search for a team to see details.</div>
+          <div class="sports-hero-card-stadium" id="sportsHeroStadium"></div>
+        </div>
+      </div>
     </section>
 
     <section class="sports-search">
