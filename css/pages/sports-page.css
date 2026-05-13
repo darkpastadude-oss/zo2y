@@ -1,0 +1,6 @@
+/* Wrapper file.
+   The Sports page references /css/pages/sports-page.css in production paths,
+   while the compiled stylesheet lives in /dist/css/pages/sports-page.css. */
+
+@import url("../../dist/css/pages/sports-page.css");
+

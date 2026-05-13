@@ -1,0 +1,6 @@
+/* Wrapper file.
+   Some pages reference /css/pages/brands.css, while the compiled stylesheet lives in /dist/css/pages/brands.css.
+   Keeping this file prevents “unstyled / broken” brand pages (fashion, cars, food, etc.). */
+
+@import url("../../dist/css/pages/brands.css");
+
