@@ -9,6 +9,8 @@
   let supabaseClient = null;
   const IGDB_PROXY_BASE = '/api/igdb';
   const coverLookupCache = new Map();
+  const COVER_STORAGE_PREFIX = 'zo2y_game_cover_cache_v1:';
+  const COVER_STORAGE_TTL_MS = 1000 * 60 * 60 * 24 * 21; // 21 days
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
@@ -55,6 +57,92 @@
     });
     window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
     return supabaseClient;
+  }
+
+  function getCoverStorageKey(title) {
+    const safe = String(title || '').trim().toLowerCase();
+    if (!safe) return '';
+    return `${COVER_STORAGE_PREFIX}${safe}`;
+  }
+
+  function readCachedCoverFromStorage(title) {
+    const key = getCoverStorageKey(title);
+    if (!key) return '';
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(key) : '';
+      if (!raw) return '';
+      const parsed = JSON.parse(raw);
+      const url = normalizeGameCoverUrl(parsed?.url || '');
+      const savedAt = Number(parsed?.t || 0);
+      if (!url) return '';
+      if (!Number.isFinite(savedAt) || (Date.now() - savedAt) > COVER_STORAGE_TTL_MS) {
+        window.localStorage?.removeItem(key);
+        return '';
+      }
+      return url;
+    } catch (_err) {
+      return '';
+    }
+  }
+
+  function writeCachedCoverToStorage(title, url) {
+    const key = getCoverStorageKey(title);
+    const safeUrl = normalizeGameCoverUrl(url);
+    if (!key || !safeUrl) return;
+    try {
+      window.localStorage?.setItem(key, JSON.stringify({ url: safeUrl, t: Date.now() }));
+    } catch (_err) {}
+  }
+
+  async function fetchWikipediaCoverCandidate(title, signal) {
+    const q = String(title || '').trim().slice(0, 160);
+    if (!q) return '';
+
+    const wikiBase = 'https://en.wikipedia.org/w/api.php';
+    const searchUrl = new URL(wikiBase);
+    searchUrl.searchParams.set('origin', '*');
+    searchUrl.searchParams.set('action', 'query');
+    searchUrl.searchParams.set('format', 'json');
+    searchUrl.searchParams.set('list', 'search');
+    searchUrl.searchParams.set('srsearch', q);
+    searchUrl.searchParams.set('srlimit', '1');
+    searchUrl.searchParams.set('srprop', '');
+
+    try {
+      const searchRes = await fetch(searchUrl.toString(), {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        signal: signal || undefined
+      });
+      if (!searchRes.ok) return '';
+      const searchJson = await searchRes.json().catch(() => null);
+      const first = Array.isArray(searchJson?.query?.search) ? searchJson.query.search[0] : null;
+      const pageTitle = String(first?.title || '').trim();
+      if (!pageTitle) return '';
+
+      const pageUrl = new URL(wikiBase);
+      pageUrl.searchParams.set('origin', '*');
+      pageUrl.searchParams.set('action', 'query');
+      pageUrl.searchParams.set('format', 'json');
+      pageUrl.searchParams.set('prop', 'pageimages');
+      pageUrl.searchParams.set('piprop', 'original|thumbnail');
+      pageUrl.searchParams.set('pithumbsize', '900');
+      pageUrl.searchParams.set('redirects', '1');
+      pageUrl.searchParams.set('titles', pageTitle);
+
+      const pageRes = await fetch(pageUrl.toString(), {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        signal: signal || undefined
+      });
+      if (!pageRes.ok) return '';
+      const pageJson = await pageRes.json().catch(() => null);
+      const pages = pageJson?.query?.pages || {};
+      const page = Object.values(pages || {}).find(Boolean) || null;
+      return normalizeGameCoverUrl(page?.original?.source || page?.thumbnail?.source || '');
+    } catch (_err) {
+      return '';
+    }
   }
 
   async function loadFeaturedGames(signal, options = {}) {
@@ -133,18 +221,11 @@
     url.searchParams.set('page_size', '1');
     url.searchParams.set('title_only', '1');
 
-    const tryWikipediaSummary = async () => {
-      // No API key needed.
-      const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(String(title || '').trim())}`;
-      try {
-        const res = await fetch(wikiUrl, { method: 'GET', headers: { accept: 'application/json' }, signal: signal || undefined });
-        if (!res.ok) return '';
-        const json = await res.json();
-        return normalizeGameCoverUrl(json?.originalimage?.source || json?.thumbnail?.source || '');
-      } catch (_err) {
-        return '';
-      }
-    };
+    const cached = readCachedCoverFromStorage(title);
+    if (cached) {
+      coverLookupCache.set(key, cached);
+      return cached;
+    }
 
     try {
       const res = await fetch(url.toString(), {
@@ -159,14 +240,17 @@
       const cover = normalizeGameCoverUrl(pick?.cover || pick?.image || '');
       if (cover) {
         coverLookupCache.set(key, cover);
+        writeCachedCoverToStorage(title, cover);
         return cover;
       }
-      const wikiCover = await tryWikipediaSummary();
+      const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
       coverLookupCache.set(key, wikiCover || '');
+      if (wikiCover) writeCachedCoverToStorage(title, wikiCover);
       return wikiCover || '';
     } catch (_err) {
-      const wikiCover = await tryWikipediaSummary();
+      const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
       coverLookupCache.set(key, wikiCover || '');
+      if (wikiCover) writeCachedCoverToStorage(title, wikiCover);
       return wikiCover || '';
     }
   }

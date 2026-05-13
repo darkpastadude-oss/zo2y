@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/igdb-client.js?v=20260311c"></script>
+  <script src="js/pages/games-shared.js?v=20260509c"></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -1087,7 +1088,25 @@
         document.getElementById('title').textContent = title;
         document.getElementById('overview').textContent = description || 'No description available.';
         document.getElementById('meta').textContent = metaParts.join(' | ');
-        document.getElementById('poster').src = resolveGameImageSource(data) || 'images/placeholder.jpg';
+        const posterEl = document.getElementById('poster');
+        const resolvedPoster = resolveGameImageSource(data) || 'images/placeholder.jpg';
+        if (posterEl) posterEl.src = resolvedPoster;
+
+        // If the main payload didn't include a cover, hydrate a best-effort cover via the shared resolver (cached + open sources).
+        if (
+          posterEl
+          && window.__zo2yGamesShared?.fetchCoverForTitle
+          && (resolvedPoster.includes('placeholder.jpg') || resolvedPoster === IGDB_FALLBACK_IMAGE || resolvedPoster === '/newlogo.webp')
+        ) {
+          window.__zo2yGamesShared.fetchCoverForTitle(title)
+            .then((cover) => {
+              if (!cover || !posterEl.isConnected) return;
+              if (posterEl.getAttribute('src') === resolvedPoster) {
+                posterEl.setAttribute('src', cover);
+              }
+            })
+            .catch(() => {});
+        }
 
         const genres = normalizeGameGenres(extra);
         const tags = document.getElementById('tags');

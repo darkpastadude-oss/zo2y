@@ -1389,19 +1389,8 @@
 
         await Promise.all(
           candidates.map(async (g) => {
-            // Try the shared API first
-            let cover = await api.fetchCoverForTitle(g.name, signal);
-            
-            // If that fails, try RAWG
-            if (!cover) {
-              cover = await fetchCoverFromRAWG(g.name);
-            }
-            
-            // If that fails, try Wikipedia
-            if (!cover) {
-              cover = await fetchCoverFromWikipedia(g.name);
-            }
-            
+            // Use the shared cover resolver (same-origin + cached) to avoid CORS issues.
+            const cover = await api.fetchCoverForTitle(g.name, signal);
             if (!cover) return;
             g.cover = cover;
             const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
