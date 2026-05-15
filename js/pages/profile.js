@@ -5664,8 +5664,9 @@
                 if (window.location.pathname + window.location.search !== url) {
                     history.pushState({}, '', url);
                 }
+                const isMobile = window.innerWidth <= 768;
                 if (currentTab !== tabName) {
-                    showTab(tabName, { skipUrlSync: true, skipRender: true });
+                    showTab(tabName, { skipUrlSync: true, skipRender: true, skipDetailReset: isMobile });
                 }
                 try {
                     await showCollectionDetail(String(listId), normalizedType, resolvedListType);
