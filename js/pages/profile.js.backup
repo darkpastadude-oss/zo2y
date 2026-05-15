@@ -2,7 +2,7 @@
         const ProfileManager = (function() {
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "https://gfkhjbztayjyojsgdpgk.supabase.co";
+            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "__SUPABASE_URL__";
             const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
@@ -1872,11 +1872,6 @@
                     const userItems = [];
                     
                     // Fetch items from all media tables with media details
-                    // NOTE: These tables do NOT share a universal "poster_url" schema.
-                    // Keep these field lists aligned with our Supabase SQL schemas:
-                    // - games: id,title,cover_url,hero_url
-                    // - books: id,title,thumbnail
-                    // - tracks: id,name,image_url
                     const mediaConfigs = [
                         { 
                             listTable: 'movie_list_items', 
@@ -1904,21 +1899,21 @@
                             mediaTable: 'games', 
                             mediaType: 'game', 
                             idField: 'game_id',
-                            mediaFields: 'id, title, cover_url, hero_url'
+                            mediaFields: 'id, name, cover_url, poster_url'
                         },
                         { 
                             listTable: 'book_list_items', 
                             mediaTable: 'books', 
                             mediaType: 'book', 
                             idField: 'book_id',
-                            mediaFields: 'id, title, thumbnail'
+                            mediaFields: 'id, title, cover_url, poster_url'
                         },
                         { 
                             listTable: 'music_list_items', 
-                            mediaTable: 'tracks', 
+                            mediaTable: 'music', 
                             mediaType: 'music', 
                             idField: 'track_id',
-                            mediaFields: 'id, name, image_url'
+                            mediaFields: 'id, title, cover_url, poster_url'
                         }
                     ];
                     
@@ -1937,54 +1932,12 @@
                             const mediaIds = [...new Set(listItems.map(item => item[config.idField]))];
                             
                             // Fetch media details
-                            // Some collections use BIGINT ids (games), others use TEXT ids (books/tracks).
-                            // PostgREST will return 400 if the "in" list type doesn't match column type.
-                            let mediaData = null;
-                            let mediaError = null;
-
-                            const coerceIdForType = (id) => {
-                                if (config.mediaType === 'game') {
-                                    const numericId = Number(id);
-                                    return Number.isFinite(numericId) ? numericId : String(id);
-                                }
-                                return String(id);
-                            };
-
-                            try {
-                                const coerced = mediaIds.map(coerceIdForType);
-                                const query = supabase
-                                    .from(config.mediaTable)
-                                    .select(config.mediaFields)
-                                    .in('id', coerced);
-                                const result = await query;
-                                mediaData = result.data;
-                                mediaError = result.error;
-                            } catch (err) {
-                                console.warn(`Supabase .in() query failed for ${config.mediaTable}:`, err);
-                                mediaError = err;
-                            }
-
-                            // If .in() fails, try fetching individually (robust across id type mismatches).
-                            if (mediaError || !mediaData) {
-                                mediaData = [];
-                                for (const id of mediaIds) {
-                                    try {
-                                        const coercedId = coerceIdForType(id);
-                                        const result = await supabase
-                                            .from(config.mediaTable)
-                                            .select(config.mediaFields)
-                                            .eq('id', coercedId)
-                                            .maybeSingle();
-                                        if (result.data && !result.error) {
-                                            mediaData.push(result.data);
-                                        }
-                                    } catch (err) {
-                                        console.warn(`Failed to fetch ${config.mediaType} with id ${id}:`, err);
-                                    }
-                                }
-                            }
-
-                            if (!mediaData || mediaData.length === 0) continue;
+                            const { data: mediaData, error: mediaError } = await supabase
+                                .from(config.mediaTable)
+                                .select(config.mediaFields)
+                                .in('id', mediaIds);
+                            
+                            if (mediaError || !mediaData) continue;
                             
                             // Create media lookup map
                             const mediaMap = new Map();
@@ -1994,25 +1947,12 @@
                             
                             // Combine list items with media data
                             listItems.forEach(item => {
-                                const rawItemId = item[config.idField];
-                                const lookupKey = config.mediaType === 'game'
-                                    ? Number(rawItemId)
-                                    : String(rawItemId);
-
-                                const media = mediaMap.get(lookupKey) || mediaMap.get(String(rawItemId)) || mediaMap.get(Number(rawItemId));
+                                const media = mediaMap.get(item[config.idField]);
                                 if (media) {
                                     userItems.push({
                                         id: item[config.idField],
                                         title: media.title || media.name || 'Unknown',
-                                        poster: (
-                                            media.poster_path ||
-                                            media.poster_url ||
-                                            media.cover_url ||
-                                            media.hero_url ||
-                                            media.thumbnail ||
-                                            media.image_url ||
-                                            null
-                                        ),
+                                        poster: media.poster_path || media.poster_url || media.cover_url || null,
                                         mediaType: config.mediaType,
                                         listTypes: [item.list_type],
                                         listId: item.list_id,
@@ -13803,6 +13743,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
 
 
 

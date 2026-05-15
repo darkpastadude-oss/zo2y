@@ -1,6 +1,6 @@
 (() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
   const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
@@ -1731,7 +1731,9 @@
     const localManifestRows = await ensureSportsAssetManifest().catch(() => []);
     if (Array.isArray(localManifestRows) && localManifestRows.length) {
       const localTeams = rankFeaturedTeams(localManifestRows.map(applySportsAssetOverride));
-      if (localTeams.length >= 24) {
+      // Always render whatever the manifest provides.
+      // If the SportsDB proxy is unreachable, this keeps the page from looking empty.
+      if (localTeams.length) {
         writeSportsFeaturedCache(localTeams);
         state.lastResults = localTeams;
         state.lastQuery = '';

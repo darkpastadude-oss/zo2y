@@ -1344,13 +1344,17 @@
         return;
       }
       grid.innerHTML = state.games.map((game) => {
-        const coverUrl = game.cover || '';
+        const coverUrl = game.cover || FALLBACK_IMAGE;
         const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
-        const hasCover = coverUrl && coverUrl !== FALLBACK_IMAGE;
         return `
         <article class="card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
-            ${hasCover ? `<img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'card-media-fallback\\'><i class=\\'fas fa-gamepad\\'></i></div>';">` : '<div class="card-media-fallback"><i class="fas fa-gamepad"></i></div>'}
+            <img
+              src="${escapeHtml(coverUrl)}"
+              alt="${escapeHtml(game.name)}"
+              loading="lazy"
+              onerror="this.onerror=null; this.src='${escapeHtml(FALLBACK_IMAGE)}';"
+            >
           </div>
           <div class="card-meta">
             <span class="card-type"><i class="fas fa-gamepad"></i> Game</span>
@@ -1395,8 +1399,11 @@
             g.cover = cover;
             const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
             const img = card ? card.querySelector('img') : null;
-            if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
-              img.setAttribute('src', cover);
+            if (img) {
+              const current = String(img.getAttribute('src') || '').trim();
+              if (!current || current === FALLBACK_IMAGE) {
+                img.setAttribute('src', cover);
+              }
             }
           })
         );

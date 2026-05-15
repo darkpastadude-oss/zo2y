@@ -181,6 +181,8 @@ main.container {
 
 .controls-meta {
   margin-top: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .controls-meta span {
