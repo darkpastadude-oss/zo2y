@@ -9639,22 +9639,22 @@
                 const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
                 const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
-                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
+                        <button type="button" class="collection-kebab-btn" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <div class="collection-dropdown" id="collection-${normalizedType}-${list.id}">
                             ${canPinCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
+                                <div class="collection-dropdown-item" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
                                     <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
                                 </div>
                             ` : ''}
                             ${canEditCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
+                                <div class="collection-dropdown-item" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </div>
                             ` : ''}
                             ${canDeleteCollection ? `
-                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
+                                <div class="collection-dropdown-item danger" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </div>
                             ` : ''}
@@ -9686,13 +9686,15 @@
                                 ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
                             </div>
                         </div>
-                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
+                        <button type="button" class="collection-view-btn" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             View all ->
                         </button>
                     </div>
                 `;
 
-                card.onclick = () => openCollectionPage(routeListId, normalizedType, routeListType);
+                // IMPORTANT: use the card's list id/type, not the current route params.
+                // On mobile, the route params are often empty, which caused taps to "reset" the page.
+                card.onclick = () => openCollectionPage(safeListId, normalizedType, safeListType);
 
                 // Hydrate preview images in the background to keep first paint instant.
                 if (previewIds.length) {
@@ -13792,6 +13794,11 @@
                 showCreateListTypeModal,
                 createListForType,
                 logout,
+                // Restaurant lists (legacy lists section) uses these handlers via inline onclick.
+                // Desktop worked because those clicks tend to hit the "View all" button;
+                // on mobile the full card tap path depends on these being exported.
+                showList,
+                showMobileList,
                 removeFromList,
                 escapeHtml
             };
@@ -13803,8 +13810,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
-
-
 
 
 

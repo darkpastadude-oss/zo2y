@@ -70,7 +70,10 @@
     const path = String(endpoint || '').trim().replace(/^\/+/, '');
     if (!path) return null;
     
-    const url = new URL(`${base}/${path}`);
+    // `base` can be a relative path like "/api/sportsdb". `new URL('/api/...')` throws
+    // unless we provide a base origin, which previously caused ALL requests to return null
+    // (and the sports pages would show no teams without obvious console errors).
+    const url = new URL(`${base}/${path}`, window.location.origin);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value === null || value === undefined || value === '') return;
       url.searchParams.set(key, value);
