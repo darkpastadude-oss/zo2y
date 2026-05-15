@@ -827,9 +827,12 @@
   }
 
   function getActiveFilters() {
-    const sport = normalizeFilterValue(ui.filterSport?.value || ui.filterSportModal?.value || '');
-    const country = normalizeFilterValue(ui.filterCountry?.value || ui.filterCountryModal?.value || '');
-    const league = normalizeFilterValue(ui.filterLeague?.value || ui.filterLeagueModal?.value || '');
+    let sport = normalizeFilterValue(ui.filterSport?.value || ui.filterSportModal?.value || '');
+    let country = normalizeFilterValue(ui.filterCountry?.value || ui.filterCountryModal?.value || '');
+    let league = normalizeFilterValue(ui.filterLeague?.value || ui.filterLeagueModal?.value || '');
+    if (sport === 'all') sport = '';
+    if (country === 'all') country = '';
+    if (league === 'all') league = '';
     return { sport, country, league };
   }
 
