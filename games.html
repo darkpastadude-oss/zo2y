@@ -1069,7 +1069,8 @@
         cover: resolveGameCover(game),
         firstReleaseDate: game.release_date || '',
         rating: game.rating || 0,
-        genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
+        genres: Array.isArray(game.extra?.genres) ? game.extra.genres : [],
+        steamAppId: game?.extra?.steam_appid || game?.steam_appid || ''
       })).filter((g) => {
         // Only filter by ID and date, not by cover availability
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
@@ -1207,7 +1208,7 @@
       }
       
       // Try Steam cover if steam_appid is available
-      const steamAppId = row?.extra?.steam_appid || row?.steam_appid;
+      const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamAppId;
       if (steamAppId) {
         return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
       }
@@ -1377,47 +1378,83 @@
 
     let coverHydrateAbort = null;
     async function hydrateMissingCovers() {
-      // Fill missing covers on demand for visible items (no local seeding/storage).
-      const api = window.__zo2yGamesShared;
-      if (!api?.fetchCoverForTitle) return;
+      // Be aggressive on hydration: for the current page, attempt multiple sources until
+      // every visible card has a real cover (when possible).
+      const shared = window.__zo2yGamesShared;
 
       if (coverHydrateAbort) coverHydrateAbort.abort();
       coverHydrateAbort = new AbortController();
       const signal = coverHydrateAbort.signal;
 
-      const runBatch = async () => {
-        const candidates = state.games
-          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
-          .slice(0, Math.max(18, Math.min(48, GAMES_PAGE_SIZE)));
-        if (!candidates.length) return false;
+      const isMissing = (g) => !g?.cover || g.cover === FALLBACK_IMAGE;
 
-        await Promise.all(
-          candidates.map(async (g) => {
-            // Use the shared cover resolver (same-origin + cached) to avoid CORS issues.
-            const cover = await api.fetchCoverForTitle(g.name, signal);
-            if (!cover) return;
-            g.cover = cover;
-            const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
-            const img = card ? card.querySelector('img') : null;
-            if (img) {
-              const current = String(img.getAttribute('src') || '').trim();
-              if (!current || current === FALLBACK_IMAGE) {
-                img.setAttribute('src', cover);
-              }
-            }
-          })
-        );
-        return true;
+      const updateCardCover = (gameId, coverUrl) => {
+        const card = document.querySelector(`.card[data-id="${CSS.escape(String(gameId))}"]`);
+        const img = card ? card.querySelector('img') : null;
+        if (!img) return;
+        const current = String(img.getAttribute('src') || '').trim();
+        if (!current || current === FALLBACK_IMAGE) {
+          img.setAttribute('src', coverUrl);
+        }
       };
 
-      // Keep trying a couple batches while the browser is idle to maximize filled covers.
-      for (let i = 0; i < 3; i += 1) {
-        const did = await runBatch();
-        if (!did) break;
-        await new Promise((resolve) => {
-          if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 650 });
-          else window.setTimeout(resolve, 120);
+      const resolveCoverForGame = async (g) => {
+        if (!g?.name) return '';
+        if (signal.aborted) return '';
+
+        // 1) Same-origin cover resolver (cached + avoids CORS)
+        if (shared?.fetchCoverForTitle) {
+          const cover = await shared.fetchCoverForTitle(g.name, signal);
+          if (cover) return cover;
+        }
+
+        // 2) Steam header if available
+        const steamId = String(g.steamAppId || '').trim();
+        if (steamId) {
+          return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamId}/header.jpg`;
+        }
+
+        // 3) RAWG (usually has broad coverage)
+        const rawgCover = await fetchCoverFromRAWG(g.name);
+        if (rawgCover) return rawgCover;
+
+        // 4) Wikipedia page image fallback
+        return await fetchCoverFromWikipedia(g.name);
+      };
+
+      const mapWithConcurrency = async (items, limit, fn) => {
+        const results = new Array(items.length);
+        let index = 0;
+        const workers = Array.from({ length: Math.max(1, limit) }).map(async () => {
+          while (index < items.length) {
+            const currentIndex = index++;
+            if (signal.aborted) return;
+            try {
+              results[currentIndex] = await fn(items[currentIndex], currentIndex);
+            } catch (_err) {
+              results[currentIndex] = null;
+            }
+          }
         });
+        await Promise.all(workers);
+        return results;
+      };
+
+      // Retry loop: keep going while there are missing covers, up to N rounds.
+      for (let round = 0; round < 6; round += 1) {
+        const candidates = state.games.filter(isMissing);
+        if (!candidates.length) break;
+
+        await mapWithConcurrency(candidates, 6, async (g) => {
+          if (!isMissing(g)) return;
+          const cover = await resolveCoverForGame(g);
+          if (!cover) return;
+          g.cover = cover;
+          updateCardCover(g.id, cover);
+        });
+
+        // small breather to avoid hammering external sources
+        await new Promise((resolve) => window.setTimeout(resolve, 120 + round * 60));
       }
     }
 
