@@ -10243,16 +10243,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTvSection');
                     const detailSection = document.getElementById('mobileTvDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTvGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10440,16 +10431,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileAnimeSection');
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileAnimeGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10637,16 +10619,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileGamesSection');
                     const detailSection = document.getElementById('mobileGameDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileGamesGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10858,16 +10831,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileBooksSection');
                     const detailSection = document.getElementById('mobileBookDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileBooksGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11056,16 +11020,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMusicSection');
                     const detailSection = document.getElementById('mobileMusicDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMusicGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11247,16 +11202,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTravelSection');
                     const detailSection = document.getElementById('mobileTravelDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTravelGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11446,16 +11392,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFashionSection');
                     const detailSection = document.getElementById('mobileFashionDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFashionGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11635,16 +11572,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileCarsSection');
                     const detailSection = document.getElementById('mobileCarsDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileCarsGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11811,16 +11739,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFoodSection');
                     const detailSection = document.getElementById('mobileFoodDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFoodGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -12017,12 +11936,6 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileBooksGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('book-detail-view');
@@ -12483,12 +12396,6 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTvGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('tv-detail-view');
@@ -12512,12 +12419,6 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileAnimeGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('anime-detail-view');
@@ -12541,12 +12442,6 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileGamesGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('game-detail-view');

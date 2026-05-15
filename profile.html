@@ -1531,29 +1531,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileMusicDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMusicDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileMusicDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="music">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileMusicDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileMusicListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileMusicListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileMusicItems"></div>
+            <!-- Music Detail View -->
+            <div class="mobile-section" id="mobileMusicDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMusicDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileMusicDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="music">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileMusicDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileMusicItems"></div>
             </div>
 
             <!-- Sports Section -->
@@ -1605,29 +1606,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileTravelDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTravelDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileTravelDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileTravelDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="travel">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileTravelDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileTravelListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileTravelListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileTravelItems"></div>
+            <!-- Travel Detail View -->
+            <div class="mobile-section" id="mobileTravelDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTravelDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileTravelDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileTravelDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="travel">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileTravelDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileTravelItems"></div>
             </div>
 
             <!-- Fashion Section -->
@@ -1655,29 +1657,32 @@
                         </button>
                     </div>
                 </div>
-
-                <div id="mobileFashionDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileFashionDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="fashion">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                <div id="mobileFashionItems"></div>
             </div>
+
+        </section>
+
+        <!-- Fashion Detail View -->
+        <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
+            <div class="mobile-section-title">
+                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <span id="mobileFashionDetailTitle">Collection</span>
+            </div>
+            <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
+            <div class="collection-view-toggle mb-10" data-media="fashion">
+                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
+                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
+            </div>
+            <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
+                    <i class="fas fa-pen"></i> Edit
+                </button>
+                <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <div id="mobileFashionItems"></div>
         </div>
 
         <!-- Cars Section -->
@@ -1705,80 +1710,82 @@
                     </button>
                 </div>
             </div>
+        </div>
 
-            <div id="mobileCarsDetailSection" class="hidden mt-16">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </button>
-                    <span id="mobileCarsDetailTitle">Collection</span>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="car">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
-                </div>
-                <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
-                <div id="mobileCarsItems"></div>
+        <!-- Cars Detail View -->
+        <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
+            <div class="mobile-section-title">
+                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <span id="mobileCarsDetailTitle">Collection</span>
             </div>
+            <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
+            <div class="collection-view-toggle mb-10" data-media="car">
+                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
+                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
+            </div>
+            <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
+                    <i class="fas fa-pen"></i> Edit
+                </button>
+                <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <div id="mobileCarsItems"></div>
         </div>
 
         <!-- Food Section -->
-            <div class="mobile-section" id="mobileFoodSection">
-                <div class="mobile-section-title">
-                    <span id="mobileFoodTitle">My Food</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
-                            <i class="fas fa-burger"></i> Browse
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
-
-                <div class="collection-grid" id="mobileFoodGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <h3 class="mobile-empty-title">No Food Lists Yet</h3>
-                        <p class="mobile-empty-description">Save brands to see them here.</p>
-                        <button class="mobile-action-btn" onclick="window.location.href='food.html'">
-                            <i class="fas fa-burger"></i> Explore Food
-                        </button>
-                    </div>
-                </div>
-
-                <div id="mobileFoodDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileFoodDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="food">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileFoodItems"></div>
+        <div class="mobile-section" id="mobileFoodSection">
+            <div class="mobile-section-title">
+                <span id="mobileFoodTitle">My Food</span>
+                <div class="d-flex gap-sm">
+                    <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
+                        <i class="fas fa-burger"></i> Browse
+                    </button>
                 </div>
             </div>
+            <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
+
+            <div class="collection-grid" id="mobileFoodGrid">
+                <div class="mobile-empty-state">
+                    <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                    <h3 class="mobile-empty-title">No Food Lists Yet</h3>
+                    <p class="mobile-empty-description">Save brands to see them here.</p>
+                    <button class="mobile-action-btn" onclick="window.location.href='food.html'">
+                        <i class="fas fa-burger"></i> Explore Food
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Food Detail View -->
+        <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
+            <div class="mobile-section-title">
+                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
+                    <i class="fas fa-arrow-left"></i> Back
+                </button>
+                <span id="mobileFoodDetailTitle">Collection</span>
+            </div>
+            <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
+            <div class="collection-view-toggle mb-10" data-media="food">
+                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
+                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
+            </div>
+            <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
+                    <i class="fas fa-pen"></i> Edit
+                </button>
+                <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <div id="mobileFoodItems"></div>
+        </div>
             </section>
         </div>
 
