@@ -5665,14 +5665,14 @@
                     history.pushState({}, '', url);
                 }
                 const isMobile = window.innerWidth <= 768;
-                if (currentTab !== tabName) {
-                    showTab(tabName, { skipUrlSync: true, skipRender: true, skipDetailReset: isMobile });
-                }
                 try {
                     await showCollectionDetail(String(listId), normalizedType, resolvedListType);
                 } catch (error) {
                     console.error('Unable to open collection:', error);
                     showToast('Unable to open this collection', 'error');
+                }
+                if (currentTab !== tabName) {
+                    showTab(tabName, { skipUrlSync: true, skipRender: true, skipDetailReset: isMobile });
                 }
             }
 
@@ -8067,8 +8067,10 @@
                     : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
                 if (safeTab === currentTab && alreadyActive) return;
 
-                resetDetailPanels();
-                currentMediaDetail = null;
+                if (!options.skipDetailReset) {
+                    resetDetailPanels();
+                    currentMediaDetail = null;
+                }
 
                 if (!options.skipPrimarySync) {
                     if (safeTab === 'community') {
@@ -8089,6 +8091,13 @@
                 
                 if (isMobile) {
                     document.querySelectorAll('.mobile-section').forEach(section => {
+                        // Skip hiding sections that contain visible detail sections if skipDetailReset is true
+                        if (options.skipDetailReset) {
+                            const detailSection = section.querySelector('[id*="DetailSection"]');
+                            if (detailSection && detailSection.style.display === 'block') {
+                                return;
+                            }
+                        }
                         section.style.display = 'none';
                         section.classList.remove('active');
                     });
@@ -10048,16 +10057,7 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMoviesSection');
                     const detailSection = document.getElementById('mobileMovieDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMoviesGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -12315,12 +12315,6 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMoviesGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('movie-detail-view');

@@ -886,7 +886,9 @@
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
-      pendingQuickOps: new Set()
+      pendingQuickOps: new Set(),
+      popularRotationKey: '',
+      popularRotation: null
     };
 
     function computeGridPageSize() {
@@ -1029,11 +1031,10 @@
             return;
           }
         } else {
-          // Randomly choose between popular and newly released on each refresh
-          const useNewlyReleased = Math.random() > 0.5;
-          const effectiveSort = useNewlyReleased ? 'released' : 'popular';
+          // Front page: default to currently popular games.
+          const effectiveSort = state.sort === 'name' ? 'name' : 'popular';
           
-          // Load all games when no search query (no pagination yet)
+          // Only load a popular pool (not the entire table), then shuffle a subset for the first pages.
           if (state.genre) {
             dbQuery = dbQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
           }
@@ -1050,12 +1051,15 @@
             dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
           }
 
-          // Fetch all results (no pagination) to sort by cover availability
-          const { data, error, count } = await dbQuery;
+          // Fetch a pool of popular results so we can shuffle/rotate between "popular right now" titles
+          // without pulling the entire dataset.
+          const poolSize = Math.min(Math.max(GAMES_PAGE_SIZE * 10, 240), 800);
+          const { data, error, count } = await dbQuery.range(0, poolSize - 1);
           if (error) throw error;
 
           games = data || [];
-           apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
+          const effectiveCount = Math.min(Number(count || 0), poolSize);
+          apiTotalPages = Math.max(1, Math.ceil(effectiveCount / GAMES_PAGE_SIZE));
          }
        } catch (_err) {
         console.error('Failed to load games', _err);
@@ -1106,6 +1110,8 @@
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
         state.page = 1;
+        state.popularRotationKey = '';
+        state.popularRotation = null;
         await loadGamesWithFallback();
         await loadListStatus();
         renderGrid();

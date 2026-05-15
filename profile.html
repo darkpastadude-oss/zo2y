@@ -1210,29 +1210,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileMovieDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMovieDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileMovieDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="movie">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileMovieDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileMovieListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileMovieListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileMovieItems"></div>
+            <!-- Movie Detail View -->
+            <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMovieDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileMovieDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="movie">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileMovieDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileMovieItems"></div>
             </div>
 
             <!-- TV Shows Section -->
@@ -1260,29 +1261,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileTvDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTvDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileTvDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="tv">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileTvDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileTvListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileTvListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileTvItems"></div>
+            <!-- TV Detail View -->
+            <div class="mobile-section" id="mobileTvDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTvDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileTvDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="tv">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileTvDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileTvItems"></div>
             </div>
 
             <!-- Anime Section -->
@@ -1310,32 +1312,33 @@
                         </button>
                     </div>
                 </div>
-
-                <div id="mobileAnimeDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideAnimeDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileAnimeDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileAnimeDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="anime">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileAnimeDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileAnimeItems"></div>
-                </div>
             </div>
 
-            <!-- Books Section -->
+            <!-- Anime Detail View -->
+            <div class="mobile-section" id="mobileAnimeDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideAnimeDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileAnimeDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileAnimeDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="anime">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileAnimeDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileAnimeItems"></div>
+            </div>
+
+            <!-- Games Section -->
             <div class="mobile-section" id="mobileGamesSection">
                 <div class="mobile-section-title">
                     <span id="mobileGamesTitle">My Games</span>
@@ -1360,29 +1363,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileGameDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideGameDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileGameDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="game">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileGameDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileGameListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileGameListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileGameItems"></div>
+            <!-- Games Detail View -->
+            <div class="mobile-section" id="mobileGameDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideGameDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileGameDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="game">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileGameDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileGameItems"></div>
             </div>
 
             <!-- Books Section -->
@@ -1410,29 +1414,30 @@
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div id="mobileBookDetailSection" class="hidden mt-16">
-                    <div class="mobile-section-title">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideBookDetail()">
-                            <i class="fas fa-arrow-left"></i> Back
-                        </button>
-                        <span id="mobileBookDetailTitle">Collection</span>
-                    </div>
-                    <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
-                    <div class="collection-view-toggle mb-10" data-media="book">
-                        <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)"><i class="fas fa-th"></i></button>
-                        <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)"><i class="fas fa-list"></i></button>
-                    </div>
-                    <div id="mobileBookDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                        <button class="mobile-action-btn secondary btn-base" id="mobileBookListEditBtn">
-                            <i class="fas fa-pen"></i> Edit
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" id="mobileBookListDeleteBtn">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </div>
-                    <div id="mobileBookItems"></div>
+            <!-- Books Detail View -->
+            <div class="mobile-section" id="mobileBookDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideBookDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileBookDetailTitle">Collection</span>
                 </div>
+                <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="book">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileBookDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileBookItems"></div>
             </div>
             </section>
 
