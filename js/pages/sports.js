@@ -1,6 +1,6 @@
-(() => {
+﻿(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
   const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
@@ -19,44 +19,6 @@
   const SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;
   const SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_sports_asset_manifest_v4';
   const SPORTS_ASSET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-
-  async function requestSportsDb(endpoint, params = {}, timeoutMs = 8000) {
-    const path = String(endpoint || '').trim().replace(/^\/+/, '');
-    if (!path) return null;
-
-    // 1) Prefer the same-origin proxy (via sportsdb-client.js).
-    try {
-      if (window.ZO2Y_SPORTSDB && typeof window.ZO2Y_SPORTSDB.request === 'function') {
-        const proxied = await window.ZO2Y_SPORTSDB.request(path, params, timeoutMs);
-        if (proxied) return proxied;
-      }
-    } catch (_err) {}
-
-    // 2) Fallback to direct SportsDB API if proxy is unreachable.
-    const url = new URL(`${SPORTSDB_DIRECT_BASE}/${path}`);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') return;
-      url.searchParams.set(key, String(value));
-    });
-
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    let timer = null;
-    try {
-      if (controller) timer = window.setTimeout(() => controller.abort(), Math.max(2500, Number(timeoutMs || 8000)));
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-        signal: controller ? controller.signal : undefined,
-        credentials: 'omit'
-      });
-      if (!response.ok) return null;
-      return await response.json().catch(() => null);
-    } catch (_err) {
-      return null;
-    } finally {
-      if (timer) window.clearTimeout(timer);
-    }
-  }
   const FALLBACK_LEAGUES = Array.isArray(window.ZO2Y_SPORTS_FALLBACK_LEAGUES) && window.ZO2Y_SPORTS_FALLBACK_LEAGUES.length
     ? window.ZO2Y_SPORTS_FALLBACK_LEAGUES.slice()
     : [
@@ -368,11 +330,11 @@
     filterLeagueModal: document.getElementById('sportsFilterLeagueModal'),
     resultsTitle: document.getElementById('sportsResultsTitle'),
     resultsSubtitle: document.getElementById('sportsResultsSubtitle'),
-    count: document.getElementById('sportsCount'),
     grid: document.getElementById('sportsGrid'),
     empty: document.getElementById('sportsEmpty'),
     loading: document.getElementById('sportsLoading'),
-    toast: document.getElementById('sportsToast')
+    toast: document.getElementById('sportsToast'),
+    count: document.getElementById('sportsCount')
   };
 
   function escapeHtml(value) {
@@ -397,7 +359,7 @@
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]+/g, '')
-      .replace(/['â€™]/g, '')
+      .replace(/['├óΓé¼Γäó]/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
   }
@@ -827,12 +789,9 @@
   }
 
   function getActiveFilters() {
-    let sport = normalizeFilterValue(ui.filterSport?.value || ui.filterSportModal?.value || '');
-    let country = normalizeFilterValue(ui.filterCountry?.value || ui.filterCountryModal?.value || '');
-    let league = normalizeFilterValue(ui.filterLeague?.value || ui.filterLeagueModal?.value || '');
-    if (sport === 'all') sport = '';
-    if (country === 'all') country = '';
-    if (league === 'all') league = '';
+    const sport = normalizeFilterValue(ui.filterSport?.value || ui.filterSportModal?.value || '');
+    const country = normalizeFilterValue(ui.filterCountry?.value || ui.filterCountryModal?.value || '');
+    const league = normalizeFilterValue(ui.filterLeague?.value || ui.filterLeagueModal?.value || '');
     return { sport, country, league };
   }
 
@@ -1127,7 +1086,7 @@
     if (state.leagueTeamsPending.has(key)) return state.leagueTeamsPending.get(key);
 
     const pending = (async () => {
-      const payload = await requestSportsDb('search_all_teams.php', { l: league }, 9000);
+      const payload = await fetchSportsDb('search_all_teams.php', { l: league }, 9000);
       const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean).map(applySportsAssetOverride) : [];
       state.leagueTeamsCache.set(key, teams);
       state.leagueTeamsPending.delete(key);
@@ -1181,7 +1140,7 @@
 
   function setActiveCard(teamId) {
     if (!ui.grid) return;
-    ui.grid.querySelectorAll('.card[data-media-type="sports"]').forEach((card) => {
+    ui.grid.querySelectorAll('.sports-card').forEach((card) => {
       const cardId = card.getAttribute('data-team-id');
       card.classList.toggle('is-active', !!teamId && cardId === String(teamId));
     });
@@ -1198,6 +1157,38 @@
     }, 2800);
   }
 
+  function resolveSportsDbBase() {
+    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+    const prefix = base.startsWith('/') ? '' : '/';
+    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
+  }
+
+  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
+    const path = String(endpoint || '').trim().replace(/^\/+/, '');
+    if (!path) return null;
+    const url = new URL(`${resolveSportsDbBase()}/${path}`);
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === '') return;
+      url.searchParams.set(key, value);
+    });
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timer = null;
+    try {
+      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: controller ? controller.signal : undefined
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (_err) {
+      return null;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
@@ -1398,18 +1389,17 @@
 
   function wireSportsImages(scope) {
     const root = scope || document;
-    // Match the index.html card image contract (brands page uses the same).
-    root.querySelectorAll('img[data-home-image="1"]').forEach((img) => {
-      const wrap = img.closest('.card-media');
+    root.querySelectorAll('img[data-sports-image]').forEach((img) => {
+      const wrap = img.closest('.sports-card-media, .sports-card-logo');
       const fallback = String(img.getAttribute('data-fallback-src') || '').trim();
       const markReady = () => {
-        img.setAttribute('data-image-ready', '1');
-        if (wrap) wrap.classList.remove('is-loading-media');
+        img.setAttribute('data-ready', '1');
+        if (wrap) wrap.classList.remove('is-loading');
       };
       const handleError = () => {
         if (fallback && img.src !== fallback) {
           img.removeAttribute('data-defer-src');
-          img.setAttribute('data-image-ready', '0');
+          img.setAttribute('data-ready', '0');
           img.src = fallback;
           return;
         }
@@ -1429,54 +1419,36 @@
     card.dataset.teamId = team.id;
     card.dataset.itemId = team.id;
     card.dataset.title = team.name;
-    card.dataset.mediaType = 'sports';
     card.tabIndex = 0;
 
-    const href = buildTeamDetailUrl(team);
-    card.dataset.href = href;
-
     const mediaImage = team.badge || FALLBACK_IMAGE;
-    const logo = team.badge || FALLBACK_BADGE;
-    const usesBannerOnly = false;
-    const usesBadgeOnly = !!team.badge;
+    const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
     const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
-    const subtitleText = team.league || 'Sports';
-    const extraText = team.stadium || [team.sport, team.country].filter(Boolean).join(' • ') || 'Team';
-    card.dataset.subtitle = [team.league, team.sport].filter(Boolean).join(' | ') || subtitleText;
+    card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
-    card.dataset.listImage = logo;
-    card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
-    const trailingControl = showMenu
-      ? `
-        <div class="card-menu-wrap">
-          <button class="card-menu-btn" type="button" aria-label="Add to lists">
-            <i class="fas fa-ellipsis-v"></i>
-          </button>
-        </div>
-      `
-      : `
-        <div class="card-menu-wrap">
-          <a class="card-open-link" href="${escapeHtml(href)}" aria-label="Open team"><i class="fas fa-arrow-up-right-from-square"></i></a>
-        </div>
-      `;
 
     card.innerHTML = `
-      <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-      <div class="card-media brand-cover is-loading-media">
-        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-home-image="1" data-image-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+      <div class="card-media">
+        <img
+          src="${escapeHtml(mediaImage)}"
+          alt="${escapeHtml(team.name)}"
+          loading="lazy"
+          onerror="this.onerror=null; this.src='${escapeHtml(FALLBACK_IMAGE)}';"
+        >
       </div>
       <div class="card-meta">
-        <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
+        <span class="card-type"><i class="fas fa-futbol"></i> Team</span>
         <div class="card-meta-top">
-          <p class="card-name">${escapeHtml(team.name)}</p>
-          ${trailingControl}
+          <div class="card-name">${escapeHtml(team.name)}</div>
+          <div class="card-actions">
+            <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+          </div>
         </div>
-        <p class="card-sub">${escapeHtml(subtitleText)}</p>
-        <p class="card-extra">${escapeHtml(extraText)}</p>
+        <div class="card-sub">${escapeHtml(metaLine)}</div>
       </div>
     `;
 
-    const menuBtn = card.querySelector('.card-menu-btn');
+    const menuBtn = card.querySelector('.menu-btn');
     if (menuBtn && showMenu) {
       menuBtn.addEventListener('click', (event) => {
         event.stopPropagation();
@@ -1486,8 +1458,7 @@
       });
     }
 
-    card.addEventListener('click', (event) => {
-      if (event?.target?.closest?.('.card-menu-btn') || event?.target?.closest?.('.card-open-link')) return;
+    card.addEventListener('click', () => {
       navigateToTeam(team);
     });
 
@@ -1515,6 +1486,7 @@
         ui.empty.textContent = options.emptyMessage || 'No teams found. Try another search.';
         ui.empty.classList.add('visible');
       }
+      if (ui.count) ui.count.textContent = '0 teams shown';
       setLoading(false);
       return;
     }
@@ -1528,13 +1500,6 @@
       fragment.appendChild(buildCard(team));
     });
     ui.grid.appendChild(fragment);
-    wireSportsImages(ui.grid);
-    primeSportsImages(ui.grid);
-
-    if (!options.keepHero && list.length) {
-      setHeroTeam(list[0]);
-      setActiveCard(list[0].id);
-    }
 
     syncSavedButtons();
   }
@@ -1601,10 +1566,10 @@
     if (!card) return null;
     const id = String(fallbackId || card.getAttribute('data-team-id') || card.dataset.itemId || '').trim();
     if (!id) return null;
-    const title = String(card.dataset.title || card.querySelector('.card-name')?.textContent || id).trim();
-    const subtitle = String(card.dataset.subtitle || card.querySelector('.card-sub')?.textContent || '').trim();
+    const title = String(card.dataset.title || card.querySelector('.sports-card-title')?.textContent || id).trim();
+    const subtitle = String(card.dataset.subtitle || card.querySelector('.sports-card-meta')?.textContent || '').trim();
     const [league, sport] = subtitle.split('|').map((value) => String(value || '').trim());
-    const logo = String(card.dataset.listImage || card.querySelector('.card-media img')?.getAttribute('src') || '').trim();
+    const logo = String(card.dataset.listImage || card.querySelector('.sports-card-logo img')?.getAttribute('src') || '').trim();
     return {
       id,
       name: title || id,
@@ -1622,6 +1587,12 @@
     window.initIndexStyleListMenu({
       mediaType: 'sports',
       getCurrentUser: () => state.currentUser,
+      setCurrentUser: (user) => {
+        state.currentUser = user || null;
+        if (state.currentUser) {
+          loadFavorites().catch(() => {});
+        }
+      },
       ensureClient: ensureSupabase,
       notify: (message, isError) => showToast(message, isError ? 'error' : 'info'),
       getItemFromCard: (card) => {
@@ -1637,7 +1608,7 @@
       },
       getVisibleItemIds: () => {
         if (!ui.grid) return [];
-        return Array.from(ui.grid.querySelectorAll('.card[data-media-type="sports"]'))
+        return Array.from(ui.grid.querySelectorAll('.sports-card'))
           .map((card) => String(card.getAttribute('data-team-id') || card.dataset.itemId || '').trim())
           .filter(Boolean);
       },
@@ -1772,9 +1743,7 @@
     const localManifestRows = await ensureSportsAssetManifest().catch(() => []);
     if (Array.isArray(localManifestRows) && localManifestRows.length) {
       const localTeams = rankFeaturedTeams(localManifestRows.map(applySportsAssetOverride));
-      // Always render whatever the manifest provides.
-      // If the SportsDB proxy is unreachable, this keeps the page from looking empty.
-      if (localTeams.length) {
+      if (localTeams.length >= 24) {
         writeSportsFeaturedCache(localTeams);
         state.lastResults = localTeams;
         state.lastQuery = '';
@@ -1808,7 +1777,7 @@
     if (picks.length < FEATURED_TEAMS_LIMIT) {
       const seeds = SEED_TEAMS.slice(0, FEATURED_TEAMS_LIMIT);
       const seedResponses = await Promise.allSettled(
-        seeds.map((seed) => requestSportsDb('searchteams.php', { t: seed }, 9000))
+        seeds.map((seed) => fetchSportsDb('searchteams.php', { t: seed }))
       );
       seedResponses.forEach((result) => {
         if (!result || result.status !== 'fulfilled') return;
@@ -1883,8 +1852,8 @@
 
     const searchQueries = buildSearchQueries(trimmed);
     const searchRequests = searchQueries.length
-      ? searchQueries.map((query) => requestSportsDb('searchteams.php', { t: query }, 9000))
-      : [requestSportsDb('searchteams.php', { t: trimmed }, 9000)];
+      ? searchQueries.map((query) => fetchSportsDb('searchteams.php', { t: query }))
+      : [fetchSportsDb('searchteams.php', { t: trimmed })];
     const [searchResponses, fallbackTeams] = await Promise.all([
       Promise.allSettled(searchRequests),
       getFallbackTeams(trimmed)
@@ -1947,7 +1916,7 @@
       });
       return true;
     }
-    const payload = await requestSportsDb('lookupteam.php', { id: teamId }, 9000);
+    const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
     const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
     const team = mapTeam(teamRaw);
     if (!team) {

@@ -3,7 +3,7 @@
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
             const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "https://gfkhjbztayjyojsgdpgk.supabase.co";
-            const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+            const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd";
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
@@ -994,12 +994,9 @@
                 updateProfileUI();
                 // Enforce the dedicated onboarding username flow (no email-derived fallbacks).
                 if (maybeRedirectUsernameOnboarding()) return;
-                
+
                 // Load stats in background (don't block UI)
                 updateStats().catch(err => console.error('Stats error:', err));
-                
-                // Load taste card in background
-                loadTasteCard().catch(err => console.error('Taste card error:', err));
             }
 
             async function loadOtherUserProfile() {
@@ -1861,177 +1858,6 @@
                 } catch (error) {
                     console.error('Error getting user stats:', error);
                     return { savedItemsCount: 0, listsCount: 0 };
-                }
-            }
-
-            async function loadTasteCard() {
-                if (!window.TasteIdentity || !supabase || !currentUser?.id) return;
-                
-                try {
-                    const userId = currentUser.id;
-                    const userItems = [];
-                    
-                    // Fetch items from all media tables with media details
-                    // NOTE: These tables do NOT share a universal "poster_url" schema.
-                    // Keep these field lists aligned with our Supabase SQL schemas:
-                    // - games: id,title,cover_url,hero_url
-                    // - books: id,title,thumbnail
-                    // - tracks: id,name,image_url
-                    const mediaConfigs = [
-                        { 
-                            listTable: 'movie_list_items', 
-                            mediaTable: 'movies', 
-                            mediaType: 'movie', 
-                            idField: 'movie_id',
-                            mediaFields: 'id, title, poster_path, poster_url'
-                        },
-                        { 
-                            listTable: 'tv_list_items', 
-                            mediaTable: 'tv_shows', 
-                            mediaType: 'tv', 
-                            idField: 'tv_id',
-                            mediaFields: 'id, name, poster_path, poster_url'
-                        },
-                        { 
-                            listTable: 'anime_list_items', 
-                            mediaTable: 'anime', 
-                            mediaType: 'anime', 
-                            idField: 'anime_id',
-                            mediaFields: 'id, title, poster_path, poster_url'
-                        },
-                        { 
-                            listTable: 'game_list_items', 
-                            mediaTable: 'games', 
-                            mediaType: 'game', 
-                            idField: 'game_id',
-                            mediaFields: 'id, title, cover_url, hero_url'
-                        },
-                        { 
-                            listTable: 'book_list_items', 
-                            mediaTable: 'books', 
-                            mediaType: 'book', 
-                            idField: 'book_id',
-                            mediaFields: 'id, title, thumbnail'
-                        },
-                        { 
-                            listTable: 'music_list_items', 
-                            mediaTable: 'tracks', 
-                            mediaType: 'music', 
-                            idField: 'track_id',
-                            mediaFields: 'id, name, image_url'
-                        }
-                    ];
-                    
-                    for (const config of mediaConfigs) {
-                        try {
-                            // Fetch list items
-                            const { data: listItems, error: listError } = await supabase
-                                .from(config.listTable)
-                                .select(`${config.idField}, list_type, list_id, created_at`)
-                                .eq('user_id', userId)
-                                .limit(50);
-                            
-                            if (listError || !listItems || listItems.length === 0) continue;
-                            
-                            // Get unique media IDs
-                            const mediaIds = [...new Set(listItems.map(item => item[config.idField]))];
-                            
-                            // Fetch media details
-                            // Some collections use BIGINT ids (games), others use TEXT ids (books/tracks).
-                            // PostgREST will return 400 if the "in" list type doesn't match column type.
-                            let mediaData = null;
-                            let mediaError = null;
-
-                            const coerceIdForType = (id) => {
-                                if (config.mediaType === 'game') {
-                                    const numericId = Number(id);
-                                    return Number.isFinite(numericId) ? numericId : String(id);
-                                }
-                                return String(id);
-                            };
-
-                            try {
-                                const coerced = mediaIds.map(coerceIdForType);
-                                const query = supabase
-                                    .from(config.mediaTable)
-                                    .select(config.mediaFields)
-                                    .in('id', coerced);
-                                const result = await query;
-                                mediaData = result.data;
-                                mediaError = result.error;
-                            } catch (err) {
-                                console.warn(`Supabase .in() query failed for ${config.mediaTable}:`, err);
-                                mediaError = err;
-                            }
-
-                            // If .in() fails, try fetching individually (robust across id type mismatches).
-                            if (mediaError || !mediaData) {
-                                mediaData = [];
-                                for (const id of mediaIds) {
-                                    try {
-                                        const coercedId = coerceIdForType(id);
-                                        const result = await supabase
-                                            .from(config.mediaTable)
-                                            .select(config.mediaFields)
-                                            .eq('id', coercedId)
-                                            .maybeSingle();
-                                        if (result.data && !result.error) {
-                                            mediaData.push(result.data);
-                                        }
-                                    } catch (err) {
-                                        console.warn(`Failed to fetch ${config.mediaType} with id ${id}:`, err);
-                                    }
-                                }
-                            }
-
-                            if (!mediaData || mediaData.length === 0) continue;
-                            
-                            // Create media lookup map
-                            const mediaMap = new Map();
-                            mediaData.forEach(media => {
-                                mediaMap.set(media.id, media);
-                            });
-                            
-                            // Combine list items with media data
-                            listItems.forEach(item => {
-                                const rawItemId = item[config.idField];
-                                const lookupKey = config.mediaType === 'game'
-                                    ? Number(rawItemId)
-                                    : String(rawItemId);
-
-                                const media = mediaMap.get(lookupKey) || mediaMap.get(String(rawItemId)) || mediaMap.get(Number(rawItemId));
-                                if (media) {
-                                    userItems.push({
-                                        id: item[config.idField],
-                                        title: media.title || media.name || 'Unknown',
-                                        poster: (
-                                            media.poster_path ||
-                                            media.poster_url ||
-                                            media.cover_url ||
-                                            media.hero_url ||
-                                            media.thumbnail ||
-                                            media.image_url ||
-                                            null
-                                        ),
-                                        mediaType: config.mediaType,
-                                        listTypes: [item.list_type],
-                                        listId: item.list_id,
-                                        createdAt: item.created_at
-                                    });
-                                }
-                            });
-                        } catch (err) {
-                            console.warn(`Failed to fetch ${config.listTable}:`, err);
-                        }
-                    }
-                    
-                    // Generate taste identity
-                    const tasteProfile = await window.TasteIdentity.generateTasteIdentity(userItems);
-                    
-                    // Render taste card
-                    window.TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
-                } catch (error) {
-                    console.error('Error loading taste card:', error);
                 }
             }
 
@@ -5664,7 +5490,9 @@
                 if (window.location.pathname + window.location.search !== url) {
                     history.pushState({}, '', url);
                 }
-                const isMobile = window.innerWidth <= 768;
+                if (currentTab !== tabName) {
+                    showTab(tabName, { skipUrlSync: true, skipRender: true });
+                }
                 try {
                     await showCollectionDetail(String(listId), normalizedType, resolvedListType);
                 } catch (error) {
@@ -5886,90 +5714,6 @@
                     ...shortScreens
                 ]);
                 return hero || cover || '/newlogo.webp';
-            }
-
-            const profileGameCoverLookupCache = new Map();
-            let profileGameCoverHydrateAbort = null;
-
-            function isProfileGameCoverMissing(url) {
-                const src = String(url || '').trim();
-                if (!src) return true;
-                return src === '/newlogo.webp';
-            }
-
-            async function fetchProfileGameCoverForTitle(title, signal) {
-                const api = window.__zo2yGamesShared;
-                if (!api?.fetchCoverForTitle) return '';
-                const rawTitle = String(title || '').trim();
-                if (!rawTitle) return '';
-                const key = rawTitle.toLowerCase();
-                if (profileGameCoverLookupCache.has(key)) return profileGameCoverLookupCache.get(key) || '';
-                try {
-                    const cover = await api.fetchCoverForTitle(rawTitle, signal);
-                    const safeCover = String(cover || '').trim();
-                    profileGameCoverLookupCache.set(key, safeCover || '');
-                    return safeCover || '';
-                } catch (_err) {
-                    profileGameCoverLookupCache.set(key, '');
-                    return '';
-                }
-            }
-
-            async function hydrateMissingProfileGameCovers(pending = []) {
-                const api = window.__zo2yGamesShared;
-                if (!api?.fetchCoverForTitle) return;
-                const candidates = Array.isArray(pending) ? pending.filter(Boolean) : [];
-                if (!candidates.length) return;
-
-                if (profileGameCoverHydrateAbort) profileGameCoverHydrateAbort.abort();
-                profileGameCoverHydrateAbort = new AbortController();
-                const signal = profileGameCoverHydrateAbort.signal;
-
-                const runBatch = async () => {
-                    const batch = candidates
-                        .filter((entry) => {
-                            const img = entry?.img;
-                            if (!img || !img.isConnected) return false;
-                            return isProfileGameCoverMissing(img.getAttribute('src'));
-                        })
-                        .slice(0, 24);
-                    if (!batch.length) return false;
-
-                    await Promise.all(batch.map(async (entry) => {
-                        const title = entry?.title;
-                        const cover = await fetchProfileGameCoverForTitle(title, signal);
-                        if (!cover) return;
-
-                        const img = entry?.img;
-                        if (img && img.isConnected && isProfileGameCoverMissing(img.getAttribute('src'))) {
-                            img.setAttribute('src', cover);
-                        }
-
-                        const gameId = String(entry?.gameId || '').trim();
-                        if (gameId) writePreviewAssetCache('game', gameId, cover);
-
-                        const game = entry?.game;
-                        if (game && typeof game === 'object') {
-                            game.cover = cover;
-                            game.cover_url = cover;
-                            if (!game.hero && !game.hero_url) {
-                                game.hero = cover;
-                                game.hero_url = cover;
-                            }
-                        }
-                    }));
-
-                    return true;
-                };
-
-                for (let i = 0; i < 3; i += 1) {
-                    const did = await runBatch();
-                    if (!did) break;
-                    await new Promise((resolve) => {
-                        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 650 });
-                        else window.setTimeout(resolve, 120);
-                    });
-                }
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
@@ -8068,8 +7812,8 @@
                 if (safeTab === currentTab && alreadyActive) return;
 
                 if (!options.skipDetailReset) {
-                    resetDetailPanels();
-                    currentMediaDetail = null;
+                resetDetailPanels();
+                currentMediaDetail = null;
                 }
 
                 if (!options.skipPrimarySync) {
@@ -9060,48 +8804,16 @@
                 };
 
                 try {
-                    let favorites = null;
-                    let favoritesError = null;
-                    try {
-                        const { data, error } = await supabase
-                            .from('user_favorite_teams')
-                            .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
-                            .eq('user_id', userId)
-                            .order('created_at', { ascending: false });
-                        favorites = data || null;
-                        favoritesError = error || null;
-                    } catch (error) {
-                        favorites = null;
-                        favoritesError = error;
-                    }
+                    const { data, error } = await supabase
+                        .from('user_favorite_teams')
+                        .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
 
-                    // Some deployments might be missing the FK relationship metadata required for embedded selects.
-                    // Fall back to a two-step lookup (team_id -> teams) if the embedded query fails.
-                    if (favoritesError) {
-                        const { data: fallbackFavorites, error: fallbackError } = await supabase
-                            .from('user_favorite_teams')
-                            .select('team_id, created_at')
-                            .eq('user_id', userId)
-                            .order('created_at', { ascending: false });
-                        if (fallbackError) throw fallbackError;
-                        const teamIds = (fallbackFavorites || [])
-                            .map((row) => String(row?.team_id || '').trim())
-                            .filter(Boolean);
-                        if (!teamIds.length) {
-                            favorites = [];
-                        } else {
-                            const { data: teams, error: teamsError } = await supabase
-                                .from('teams')
-                                .select('id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url')
-                                .in('id', teamIds);
-                            if (teamsError) throw teamsError;
-                            const teamMap = new Map((teams || []).map((team) => [String(team?.id || '').trim(), team]));
-                            favorites = teamIds.map((id) => ({ team_id: id, teams: teamMap.get(id) })).filter((row) => row.teams);
-                        }
-                    }
+                    if (error) throw error;
                     if (renderToken !== renderSportsToken) return;
 
-                    const teams = (favorites || [])
+                    const teams = (data || [])
                         .map((row) => row?.teams || row?.team || row)
                         .filter(Boolean);
 
@@ -9649,22 +9361,22 @@
                 const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
                 const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
                     <div class="collection-card-actions">
-                        <button type="button" class="collection-kebab-btn" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
+                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <div class="collection-dropdown" id="collection-${normalizedType}-${list.id}">
                             ${canPinCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
                                     <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
                                 </div>
                             ` : ''}
                             ${canEditCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
+                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-edit"></i> Edit
                                 </div>
                             ` : ''}
                             ${canDeleteCollection ? `
-                                <div class="collection-dropdown-item danger" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
+                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </div>
                             ` : ''}
@@ -9696,15 +9408,13 @@
                                 ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
                             </div>
                         </div>
-                        <button type="button" class="collection-view-btn" onclick="event.preventDefault(); event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
+                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             View all ->
                         </button>
                     </div>
                 `;
 
-                // IMPORTANT: use the card's list id/type, not the current route params.
-                // On mobile, the route params are often empty, which caused taps to "reset" the page.
-                card.onclick = () => openCollectionPage(safeListId, normalizedType, safeListType);
+                card.onclick = () => openCollectionPage(routeListId, normalizedType, routeListType);
 
                 // Hydrate preview images in the background to keep first paint instant.
                 if (previewIds.length) {
@@ -9817,12 +9527,7 @@
                     } else if (contentType === 'game') {
                         await Promise.all(missingIds.map(async (id) => {
                             const game = await fetchGameDetails(id);
-                            const title = String(game?.title || game?.name || game?.slug || '').trim();
-                            let imageUrl = normalizeGameImageSource(game);
-                            if (isProfileGameCoverMissing(imageUrl) && title) {
-                                const hydratedCover = await fetchProfileGameCoverForTitle(title);
-                                if (hydratedCover) imageUrl = hydratedCover;
-                            }
+                            const imageUrl = normalizeGameImageSource(game);
                             if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
                         }));
                     } else if (contentType === 'tv') {
@@ -10057,7 +9762,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMoviesSection');
                     const detailSection = document.getElementById('mobileMovieDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMoviesGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10243,7 +9957,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTvSection');
                     const detailSection = document.getElementById('mobileTvDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTvGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10431,7 +10154,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileAnimeSection');
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileAnimeGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10619,7 +10351,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileGamesSection');
                     const detailSection = document.getElementById('mobileGameDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileGamesGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -10750,7 +10491,6 @@
                 })));
 
                 container.innerHTML = '';
-                const pendingCoverHydration = [];
 
                 for (let index = 0; index < games.length; index += 1) {
                     const entry = games[index];
@@ -10801,18 +10541,6 @@
                         itemCard.dataset.tierItemId = resolvedGameId;
                     }
                     container.appendChild(itemCard);
-
-                    if (isProfileGameCoverMissing(gameImage)) {
-                        const img = itemCard.querySelector('img.collection-item-image');
-                        if (img) {
-                            pendingCoverHydration.push({
-                                gameId: resolvedGameId,
-                                title: gameTitle,
-                                img,
-                                game
-                            });
-                        }
-                    }
                 }
 
                 wireTierDragAndDrop(
@@ -10821,17 +10549,22 @@
                     canReorderList ? listId : null,
                     canReorderList ? listType : 'default'
                 );
-
-                if (pendingCoverHydration.length) {
-                    void hydrateMissingProfileGameCovers(pendingCoverHydration);
-                }
             }
 
             async function showBookDetail(listId, listType, isMobile) {
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileBooksSection');
                     const detailSection = document.getElementById('mobileBookDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileBooksGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11020,7 +10753,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMusicSection');
                     const detailSection = document.getElementById('mobileMusicDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMusicGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11202,7 +10944,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTravelSection');
                     const detailSection = document.getElementById('mobileTravelDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTravelGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11392,7 +11143,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFashionSection');
                     const detailSection = document.getElementById('mobileFashionDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFashionGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11572,7 +11332,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileCarsSection');
                     const detailSection = document.getElementById('mobileCarsDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileCarsGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11739,7 +11508,16 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFoodSection');
                     const detailSection = document.getElementById('mobileFoodDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
+                    if (mainSection) {
+                        mainSection.style.display = 'block';
+                        mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileFoodGrid');
+                        if (titleEl) titleEl.style.display = 'none';
+                        if (subtitleEl) subtitleEl.style.display = 'none';
+                        if (gridEl) gridEl.style.display = 'none';
+                    }
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
@@ -11936,6 +11714,12 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileBooksGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('book-detail-view');
@@ -12228,6 +12012,12 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileMoviesGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('movie-detail-view');
@@ -12396,6 +12186,12 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileTvGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('tv-detail-view');
@@ -12419,6 +12215,12 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileAnimeGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('anime-detail-view');
@@ -12442,6 +12244,12 @@
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
+                        const titleEl = mainSection.querySelector('.mobile-section-title');
+                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
+                        const gridEl = document.getElementById('mobileGamesGrid');
+                        if (titleEl) titleEl.style.display = '';
+                        if (subtitleEl) subtitleEl.style.display = '';
+                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('game-detail-view');
@@ -13566,6 +13374,78 @@
                 }
             }
 
+            // ===== TASTE IDENTITY INTEGRATION =====
+            async function loadTasteIdentity() {
+                if (!currentUser || !currentUser.id) return;
+
+                try {
+                    // Fetch all user's list items across all media types
+                    const mediaTypes = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'fashion', 'food', 'car'];
+                    const allItems = [];
+
+                    for (const mediaType of mediaTypes) {
+                        const itemTable = MEDIA_ITEM_TABLES[mediaType];
+                        const listTable = CUSTOM_LIST_TABLES[mediaType];
+                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
+
+                        if (!itemTable || !itemField) continue;
+
+                        // Fetch list items with list info
+                        const { data: listItems, error } = await supabase
+                            .from(itemTable)
+                            .select(`*, ${listTable}(title, id)`)
+                            .eq('user_id', currentUser.id);
+
+                        if (error) {
+                            console.error(`Error fetching ${mediaType} items:`, error);
+                            continue;
+                        }
+
+                        // Group items by their media ID to collect all listTypes
+                        const itemMap = new Map();
+
+                        (listItems || []).forEach(item => {
+                            const listInfo = item[listTable] || {};
+                            const listType = (item.list_type || 'custom').toLowerCase();
+                            const itemId = item[itemField];
+
+                            if (!itemId) return;
+
+                            if (!itemMap.has(itemId)) {
+                                itemMap.set(itemId, {
+                                    title: item.title || item.name || '',
+                                    mediaType: mediaType,
+                                    listTypes: [],
+                                    poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
+                                });
+                            }
+
+                            const itemData = itemMap.get(itemId);
+                            if (!itemData.listTypes.includes(listType)) {
+                                itemData.listTypes.push(listType);
+                            }
+                        });
+
+                        allItems.push(...Array.from(itemMap.values()));
+                    }
+
+                    // Generate taste identity
+                    const tasteProfile = await TasteIdentity.generateTasteIdentity(allItems);
+
+                    // Render taste card (both desktop and mobile)
+                    if (typeof TasteIdentity.renderTasteCard === 'function') {
+                        TasteIdentity.renderTasteCard('tasteCardContainer', tasteProfile);
+                        const mobileContainer = document.getElementById('mobileTasteCardContainer');
+                        if (mobileContainer) {
+                            TasteIdentity.renderTasteCard('mobileTasteCardContainer', tasteProfile);
+                        }
+                    }
+
+                } catch (error) {
+                    console.error('Error loading taste identity:', error);
+                }
+            }
+
             // ===== UTILITY FUNCTIONS =====
             function updateMobileStats() {
                 // Stats are already updated in updateStatsUI
@@ -13700,6 +13580,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             ProfileManager.initialize();
         });
+
+
+
 
 
 
