@@ -9,10 +9,9 @@
   <title>Sports ? Zo2y</title>
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <!-- Use the same card + modal CSS as index.html (1:1 parity across pages) -->
   <link rel="stylesheet" href="css/pages/index.css?v=20260513a" />
   <link rel="stylesheet" href="css/pages/brands.css?v=20260417f" />
-  <link rel="stylesheet" href="css/pages/sports-page.css?v=20260513a" />
+  <link rel="stylesheet" href="css/pages/sports-page.css?v=20260516a" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260430c" />
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260308a" />
 
@@ -29,18 +28,17 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260308a" />
   <script src="/js/mobile-webapp.js?v=20260424b" defer></script>
 
-  <script src="js/data/curated-media.js?v=20260425g" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260419a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
   <script src="js/shared-header.js?v=20260428a" defer></script>
 
   <script src="js/sportsdb-client.js?v=20260510a" defer></script>
-  <script src="js/pages/sports.js?v=20260513a" defer></script>
+  <script src="js/pages/sports.js?v=20260516a" defer></script>
+
   <style>
-    /* Match Fashion hero style, but with sports spotlight imagery */
     .brand-hero.sports-hero {
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      border: 1px solid var(--border);
       border-radius: 24px;
       padding: clamp(18px, 4vw, 28px);
       background:
@@ -68,7 +66,7 @@
   <main class="container">
     <section class="brand-hero sports-hero" aria-label="Sports header">
       <h1>Sports</h1>
-      <p>Search teams across all sports. Tap a team to open details and add it to Favorites or your custom lists.</p>
+      <p>Search teams, filter quickly, and save them to Favorites or your lists.</p>
     </section>
 
     <div class="controls sports-search-bar">
@@ -131,12 +129,12 @@
 
     <section class="sports-results" aria-label="Sports results">
       <div class="sports-results-head">
-        <h2 id="sportsResultsTitle">Featured teams</h2>
-        <p id="sportsResultsSubtitle">Current relevant teams across football, basketball, baseball, and more.</p>
+        <h2 id="sportsResultsTitle">All teams</h2>
+        <p id="sportsResultsSubtitle">Teams loaded from local storage + your saved teams + TheSportsDB.</p>
       </div>
       <div class="sports-loading" id="sportsLoading">Loading teams...</div>
       <div class="sports-empty" id="sportsEmpty">No teams found. Try another search.</div>
-      <div class="brand-grid sports-grid" id="sportsGrid"></div>
+      <div class="sports-grid" id="sportsGrid"></div>
     </section>
   </main>
 
@@ -187,3 +185,4 @@
   </div>
 </body>
 </html>
+

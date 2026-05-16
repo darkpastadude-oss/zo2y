@@ -5,6 +5,7 @@
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const FALLBACK_IMAGE = '/newlogo.webp';
+  const COVER_STORAGE_ENABLED = window.ZO2Y_GAME_COVER_STORAGE !== false;
 
   let supabaseClient = null;
   const IGDB_PROXY_BASE = '/api/igdb';
@@ -66,6 +67,7 @@
   }
 
   function readCachedCoverFromStorage(title) {
+    if (!COVER_STORAGE_ENABLED) return '';
     const key = getCoverStorageKey(title);
     if (!key) return '';
     try {
@@ -86,6 +88,7 @@
   }
 
   function writeCachedCoverToStorage(title, url) {
+    if (!COVER_STORAGE_ENABLED) return;
     const key = getCoverStorageKey(title);
     const safeUrl = normalizeGameCoverUrl(url);
     if (!key || !safeUrl) return;
