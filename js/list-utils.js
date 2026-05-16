@@ -71,12 +71,12 @@
       defaultIcon: 'fas fa-car'
     },
     sports: {
-      listTable: null,
-      itemsTable: null,
+      listTable: 'sports_lists',
+      itemsTable: 'sports_list_items',
       itemIdField: 'team_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
-      disableCustomLists: true
+      disableCustomLists: false
     },
     restaurant: {
       listTable: 'lists',

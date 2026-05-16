@@ -272,6 +272,8 @@
     currentUser: null,
     favorites: new Set(),
     heroTeam: null,
+    leagueIndex: [],
+    leagueIndexLoaded: false,
     teamMap: new Map(),
     searchTimer: null,
     searchSeq: 0,
@@ -298,7 +300,7 @@
       league: 'Ultimate Fighting Championship',
       country: 'United States',
       stadium: '',
-      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/92/Ultimate_Fighting_Championship_logo.svg/320px-Ultimate_Fighting_Championship_logo.svg.png'
+      badge: '/assets/sports/ufc-logo.svg'
     }
   ];
 
@@ -334,7 +336,8 @@
     empty: document.getElementById('sportsEmpty'),
     loading: document.getElementById('sportsLoading'),
     toast: document.getElementById('sportsToast'),
-    count: document.getElementById('sportsCount')
+    count: document.getElementById('sportsCount'),
+    popularRail: document.getElementById('sportsPopularRail')
   };
 
   function escapeHtml(value) {
@@ -849,6 +852,16 @@
       if (country) countries.add(country);
       if (league) leagues.add(league);
     });
+
+    if (Array.isArray(state.leagueIndex) && state.leagueIndex.length) {
+      state.leagueIndex.forEach((row) => {
+        if (!row) return;
+        if (row.sport) sports.add(row.sport);
+        if (row.country) countries.add(row.country);
+        if (row.league) leagues.add(row.league);
+      });
+    }
+
     const sportList = Array.from(sports).sort((a, b) => a.localeCompare(b));
     const countryList = Array.from(countries).sort((a, b) => a.localeCompare(b));
     const leagueList = Array.from(leagues).sort((a, b) => a.localeCompare(b));
@@ -1189,37 +1202,27 @@
       if (timer) clearTimeout(timer);
     }
   }
-  function resolveSportsDbBase() {
-    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
-    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
-    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
-    const prefix = base.startsWith('/') ? '' : '/';
-    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
-  }
 
-  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
-    const path = String(endpoint || '').trim().replace(/^\/+/, '');
-    if (!path) return null;
-    const url = new URL(`${resolveSportsDbBase()}/${path}`);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') return;
-      url.searchParams.set(key, value);
-    });
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    let timer = null;
+  async function ensureLeagueIndex() {
+    if (state.leagueIndexLoaded) return state.leagueIndex.slice();
+    state.leagueIndexLoaded = true;
     try {
-      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: controller ? controller.signal : undefined
-      });
-      if (!response.ok) return null;
-      return await response.json();
+      const payload = await fetchSportsDb('all_leagues.php', {}, 9000);
+      const rows = Array.isArray(payload?.leagues) ? payload.leagues : [];
+      state.leagueIndex = rows.map((row) => {
+        if (!row) return null;
+        const league = String(row?.strLeague || row?.league || '').trim();
+        if (!league) return null;
+        return {
+          league,
+          sport: String(row?.strSport || row?.sport || '').trim(),
+          country: String(row?.strCountry || row?.country || '').trim()
+        };
+      }).filter(Boolean);
     } catch (_err) {
-      return null;
-    } finally {
-      if (timer) clearTimeout(timer);
+      state.leagueIndex = [];
     }
+    return state.leagueIndex.slice();
   }
 
   function mapTeam(raw) {
@@ -1486,6 +1489,30 @@
     return card;
   }
 
+  function renderPopularTeams(teams) {
+    if (!ui.popularRail) return;
+    const list = Array.isArray(teams) ? teams : [];
+    const normalized = (value) => normalizeSearchText(String(value || '').trim());
+    const seeds = CURRENT_RELEVANT_TEAMS.slice();
+    const seedSet = new Set(seeds.map((name) => normalized(name)).filter(Boolean));
+    const picks = list
+      .filter((team) => seedSet.has(normalized(team?.name)))
+      .sort((a, b) => seedIndex(seeds, a?.name) - seedIndex(seeds, b?.name))
+      .slice(0, 18);
+
+    ui.popularRail.innerHTML = '';
+    if (!picks.length) return;
+    const fragment = document.createDocumentFragment();
+    picks.forEach((team) => fragment.appendChild(buildTeamCard(team)));
+    ui.popularRail.appendChild(fragment);
+  }
+
+  function seedIndex(seeds, value) {
+    const target = normalizeSearchText(value);
+    const idx = (Array.isArray(seeds) ? seeds : []).findIndex((seed) => normalizeSearchText(seed) === target);
+    return idx >= 0 ? idx : 9999;
+  }
+
   function renderTeams(teams, options = {}) {
     if (!ui.grid) return;
     const list = Array.isArray(teams) ? teams : [];
@@ -1517,6 +1544,22 @@
 
     if (ui.count) ui.count.textContent = `${list.length} teams shown`;
     syncSavedButtons();
+  }
+
+  function renderDidYouMean(query, pool = []) {
+    if (!ui.resultsSubtitle) return '';
+    const q = String(query || '').trim();
+    if (!q) return '';
+    const helper = window.ZO2Y_DID_YOU_MEAN;
+    if (!helper?.suggest) return '';
+    const names = (Array.isArray(pool) ? pool : [])
+      .map((team) => String(team?.name || '').trim())
+      .filter(Boolean);
+    const suggestion = helper.suggest(q, names, { maxDistance: 4 });
+    if (!suggestion) return '';
+    if (normalizeSearchText(suggestion) === normalizeSearchText(q)) return '';
+    ui.resultsSubtitle.textContent = `No results for "${q}". Showing "${suggestion}".`;
+    return suggestion;
   }
 
   async function ensureSupabase() {
@@ -1784,6 +1827,8 @@
       loadSavedTeamsFromSupabase().catch(() => [])
     ]);
 
+    await ensureLeagueIndex().catch(() => []);
+
     const apiTeams = [];
     const shouldHydrateApi = (manifestTeams.length + savedTeams.length) < 1200;
     if (shouldHydrateApi) {
@@ -1809,6 +1854,7 @@
     state.lastQuery = '';
     updateFilterOptions(merged);
     const filtered = applyTeamFilters(merged);
+    renderPopularTeams(merged);
 
     renderTeams(filtered, {
       title: 'All teams',
@@ -1902,6 +1948,22 @@
     updateFilterOptions(teams);
     const filteredTeams = applyTeamFilters(teams);
 
+    if (!filteredTeams.length) {
+      const suggestion = renderDidYouMean(trimmed, teams);
+      if (suggestion) {
+        const next = teams.filter((t) => normalizeSearchText(t?.name) === normalizeSearchText(suggestion));
+        if (next.length) {
+          renderTeams(next, {
+            title: `Results for "${suggestion}"`,
+            subtitle: `${next.length} teams found`,
+            emptyMessage: 'No teams found. Try another search or adjust filters.'
+          });
+          renderSearchSuggestions(suggestion, next);
+          return;
+        }
+      }
+    }
+
     renderTeams(filteredTeams, {
       title: `Results for "${trimmed}"`,
       subtitle: filteredTeams.length ? `${filteredTeams.length} teams found` : 'No matching teams yet',
@@ -1948,18 +2010,32 @@
     return true;
   }
 
-  function handleFilterChange() {
+  async function hydrateLeagueIfNeeded() {
+    const selectedLeague = String(ui.filterLeague?.value || ui.filterLeagueModal?.value || '').trim();
+    if (!selectedLeague || selectedLeague.toLowerCase() === 'all') return false;
+    const key = normalizeSearchText(selectedLeague);
+    if (state.leagueTeamsCache.has(key)) return false;
+    const teams = await loadLeagueTeams(selectedLeague).catch(() => []);
+    if (!teams.length) return false;
+    state.lastResults = dedupeTeams([...(state.lastResults || []), ...teams]);
+    return true;
+  }
+
+  async function handleFilterChange() {
     clearSearchSuggestions();
     const list = Array.isArray(state.lastResults) ? state.lastResults : [];
     if (!list.length) {
       loadFeaturedTeams().catch(() => {});
       return;
     }
-    const filtered = applyTeamFilters(list);
-    const title = state.lastQuery ? `Results for "${state.lastQuery}"` : 'Featured teams';
+
+    const didHydrate = await hydrateLeagueIfNeeded().catch(() => false);
+    const working = didHydrate ? (Array.isArray(state.lastResults) ? state.lastResults : list) : list;
+    const filtered = applyTeamFilters(working);
+    const title = state.lastQuery ? `Results for "${state.lastQuery}"` : 'All teams';
     const subtitle = state.lastQuery
       ? (filtered.length ? `${filtered.length} teams found` : 'No matching teams yet')
-      : 'Current relevant teams across football, basketball, baseball, hockey, cricket, and more.';
+      : `${filtered.length} teams shown`;
     renderTeams(filtered, {
       title,
       subtitle,

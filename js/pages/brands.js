@@ -601,6 +601,25 @@
     grid.innerHTML = '';
     updateCount(filtered.length);
     if (!filtered.length) {
+      const q = String(searchInput?.value || '').trim();
+      const helper = window.ZO2Y_DID_YOU_MEAN;
+      if (q && helper?.suggest) {
+        const suggestion = helper.suggest(q, allBrands.map((b) => b?.name).filter(Boolean), { maxDistance: 4 });
+        if (suggestion && helper.normalize(suggestion) !== helper.normalize(q)) {
+          const matches = allBrands.filter((b) => helper.normalize(b?.name) === helper.normalize(suggestion));
+          if (matches.length) {
+            updateCount(matches.length);
+            grid.innerHTML = `<div class="empty-state">No results for "${escapeHtml(q)}". Showing "${escapeHtml(suggestion)}".</div>`;
+            const fragment = document.createDocumentFragment();
+            matches.forEach((brand) => fragment.appendChild(createCard(brand)));
+            grid.appendChild(fragment);
+            wireBrandImageState(grid);
+            primeBrandImages(grid);
+            updateBrandSpotlight(matches);
+            return;
+          }
+        }
+      }
       grid.innerHTML = `<div class="empty-state">No ${escapeHtml(BRAND_LABEL)} brands found.</div>`;
       return;
     }

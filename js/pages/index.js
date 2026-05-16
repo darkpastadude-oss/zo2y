@@ -10327,7 +10327,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
         { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
         { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
-        { title: 'UFC', image: 'https://upload.wikimedia.org/wikipedia/en/9/92/Ultimate_Fighting_Championship_logo.svg' }
+        { title: 'UFC', image: '/assets/sports/ufc-logo.svg' }
       ],
       food: [
         { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },

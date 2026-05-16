@@ -32,6 +32,7 @@
   <script src="js/list-utils.js?v=20260419a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
   <script src="js/shared-header.js?v=20260428a" defer></script>
+  <script src="js/did-you-mean.js?v=20260516a" defer></script>
 
   <script src="js/sportsdb-client.js?v=20260510a" defer></script>
   <script src="js/pages/sports.js?v=20260516a" defer></script>
@@ -129,6 +130,12 @@
 
     <section class="sports-results" aria-label="Sports results">
       <div class="sports-results-head">
+        <h2>Popular teams</h2>
+        <p>Quick picks you can save instantly.</p>
+      </div>
+      <div class="rail unified-rail" id="sportsPopularRail"></div>
+
+      <div class="sports-results-head">
         <h2 id="sportsResultsTitle">All teams</h2>
         <p id="sportsResultsSubtitle">Teams loaded from local storage + your saved teams + TheSportsDB.</p>
       </div>
@@ -185,4 +192,3 @@
   </div>
 </body>
 </html>
-

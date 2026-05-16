@@ -1261,6 +1261,43 @@ const HEADER_HTML = `
     });
   }
 
+  function wireControlModals() {
+    const buttons = Array.from(document.querySelectorAll('button.control-icon-btn[id]'))
+      .filter((btn) => /Filter(Btn|ToggleBtn)$/i.test(String(btn.id || '')));
+
+    buttons.forEach((btn) => {
+      const id = String(btn.id || '').trim();
+      if (!id) return;
+      if (btn.dataset.zo2yModalWired === '1') return;
+
+      const modalId = id.replace(/FilterToggleBtn$/i, 'FilterModal').replace(/FilterBtn$/i, 'FilterModal');
+      const closeId = id.replace(/FilterToggleBtn$/i, 'FilterCloseBtn').replace(/FilterBtn$/i, 'FilterCloseBtn');
+      const modal = document.getElementById(modalId);
+      if (!modal) return;
+
+      const closeBtn = document.getElementById(closeId) || modal.querySelector('.control-modal-close');
+      const open = () => {
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+      };
+      const close = () => {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      };
+
+      btn.addEventListener('click', open);
+      if (closeBtn) closeBtn.addEventListener('click', close);
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) close();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
+
+      btn.dataset.zo2yModalWired = '1';
+    });
+  }
+
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
     const currentPage = normalizePageName(window.location.pathname);
@@ -1292,6 +1329,7 @@ const HEADER_HTML = `
     applyMobileHeaderState();
     window.addEventListener('resize', applyMobileHeaderState);
     wireSearchButton();
+    wireControlModals();
     wireMobileDrawer();
     wireMobileAccordions();
     wireDesktopRailCollapse();

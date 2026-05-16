@@ -643,6 +643,11 @@ begin
     when 'game' then list_table := 'game_lists';
     when 'book' then list_table := 'book_lists';
     when 'music' then list_table := 'music_lists';
+    when 'travel' then list_table := 'travel_lists';
+    when 'fashion' then list_table := 'fashion_lists';
+    when 'food' then list_table := 'food_lists';
+    when 'car' then list_table := 'car_lists';
+    when 'sports' then list_table := 'sports_lists';
     when 'restaurant' then list_table := 'lists';
     else
       return;

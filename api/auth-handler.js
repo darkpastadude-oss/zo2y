@@ -33,6 +33,13 @@ function shouldStripProfileColumn(error, columnName) {
   return String(error?.message || "").toLowerCase().includes(String(columnName || "").toLowerCase());
 }
 
+function profileUpsertNeedsFallback(error, columnName) {
+  const msg = String(error?.message || "").toLowerCase();
+  if (!msg) return false;
+  if (columnName && msg.includes(String(columnName).toLowerCase())) return true;
+  return msg.includes("column") && msg.includes("does not exist");
+}
+
 function mapSupabaseSignupError(error) {
   const message = String(error?.message || "").trim() || "Signup failed";
   const normalized = message.toLowerCase();
@@ -136,6 +143,15 @@ export default async function handler(req, res) {
         profileWrite = await admin
           .from("user_profiles")
           .upsert(fallbackPayload, { onConflict: "id" });
+      }
+
+      if (profileWrite.error && profileUpsertNeedsFallback(profileWrite.error, "id")) {
+        const fallbackPayload = { ...profilePayload };
+        // Some deployments use `user_id` as the primary key instead of `id`.
+        if (profileUpsertNeedsFallback(profileWrite.error, "id")) delete fallbackPayload.id;
+        profileWrite = await admin
+          .from("user_profiles")
+          .upsert(fallbackPayload, { onConflict: "user_id" });
       }
 
       if (profileWrite.error) {
