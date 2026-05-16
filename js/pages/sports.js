@@ -1189,6 +1189,38 @@
       if (timer) clearTimeout(timer);
     }
   }
+  function resolveSportsDbBase() {
+    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
+    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
+    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
+    const prefix = base.startsWith('/') ? '' : '/';
+    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
+  }
+
+  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
+    const path = String(endpoint || '').trim().replace(/^\/+/, '');
+    if (!path) return null;
+    const url = new URL(`${resolveSportsDbBase()}/${path}`);
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === '') return;
+      url.searchParams.set(key, value);
+    });
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    let timer = null;
+    try {
+      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: controller ? controller.signal : undefined
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (_err) {
+      return null;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
@@ -1415,7 +1447,7 @@
 
   function buildCard(team) {
     const card = document.createElement('article');
-    card.className = 'card';
+    card.className = 'sports-card';
     card.dataset.teamId = team.id;
     card.dataset.itemId = team.id;
     card.dataset.title = team.name;
@@ -1423,28 +1455,38 @@
 
     const mediaImage = team.badge || FALLBACK_IMAGE;
     const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    const metaLine = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
+    const sportIcon = getSportIconClass(team.sport);
     const showMenu = SPORTS_LISTS_ENABLED && typeof window.openIndexStyleListMenu === 'function';
     card.dataset.subtitle = metaLine;
     card.dataset.image = mediaImage;
+    card.dataset.listImage = logo;
+    card.dataset.mediaFit = (usesBannerOnly || usesBadgeOnly) ? 'contain' : 'cover';
+    const leagueChip = team.league
+      ? `<span class="sports-card-chip sports-card-chip-league">${escapeHtml(team.league)}</span>`
+      : `<span class="sports-card-chip sports-card-chip-league">Team spotlight</span>`;
+    const sportChip = team.sport
+      ? `<span class="sports-card-chip sports-card-chip-sport">${sportIcon ? `<i class="fas ${sportIcon}" aria-hidden="true"></i>` : ''}<span>${escapeHtml(team.sport)}</span></span>`
+      : '';
 
     card.innerHTML = `
-      <div class="card-media">
-        <img
-          src="${escapeHtml(mediaImage)}"
-          alt="${escapeHtml(team.name)}"
-          loading="lazy"
-          onerror="this.onerror=null; this.src='${escapeHtml(FALLBACK_IMAGE)}';"
-        >
-      </div>
-      <div class="card-meta">
-        <span class="card-type"><i class="fas fa-futbol"></i> Team</span>
-        <div class="card-meta-top">
-          <div class="card-name">${escapeHtml(team.name)}</div>
-          <div class="card-actions">
-            <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-          </div>
+      <div class="sports-card-media is-loading">
+        <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(mediaImage)}" data-fallback-src="${escapeHtml(FALLBACK_IMAGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} banner" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
+        <div class="sports-card-logo is-loading">
+          <img src="${SPORTS_IMAGE_PLACEHOLDER}" data-defer-src="${escapeHtml(logo)}" data-fallback-src="${escapeHtml(FALLBACK_BADGE)}" data-sports-image="1" data-ready="0" alt="${escapeHtml(team.name)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
         </div>
-        <div class="card-sub">${escapeHtml(metaLine)}</div>
+      </div>
+      <div class="sports-card-body">
+        <div class="sports-card-title">${escapeHtml(team.name)}</div>
+        <div class="sports-card-meta">${leagueChip}${sportChip}</div>
+        ${team.stadium ? `<div class="sports-card-stadium"><i class="fas fa-location-dot" aria-hidden="true"></i><span>${escapeHtml(team.stadium)}</span></div>` : ''}
+        <div class="sports-card-actions">
+          ${showMenu ? `
+            <button class="card-menu-btn" type="button" aria-label="Add to lists">
+              <i class="fas fa-ellipsis"></i>
+            </button>
+          ` : ''}
+        </div>
       </div>
     `;
 
@@ -1479,7 +1521,6 @@
 
     if (ui.resultsTitle && options.title) ui.resultsTitle.textContent = options.title;
     if (ui.resultsSubtitle && options.subtitle) ui.resultsSubtitle.textContent = options.subtitle;
-    if (ui.count) ui.count.textContent = `${list.length} teams shown`;
 
     if (!list.length) {
       if (ui.empty) {
@@ -1587,6 +1628,12 @@
     window.initIndexStyleListMenu({
       mediaType: 'sports',
       getCurrentUser: () => state.currentUser,
+      setCurrentUser: (user) => {
+        state.currentUser = user || null;
+        if (state.currentUser) {
+          loadFavorites().catch(() => {});
+        }
+      },
       setCurrentUser: (user) => {
         state.currentUser = user || null;
         if (state.currentUser) {
