@@ -2118,9 +2118,7 @@
 
       })).filter((g) => {
 
-        const hasLocalCover = g.cover && g.cover !== '' && g.cover !== FALLBACK_IMAGE;
-
-        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate) && hasLocalCover;
+        return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
 
       });
 
