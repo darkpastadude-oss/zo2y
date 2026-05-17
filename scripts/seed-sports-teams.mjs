@@ -74,7 +74,7 @@ const teams = [
   { name: 'Aston Villa', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Villa Park' },
   { name: 'Bournemouth', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Vitality Stadium' },
   { name: 'Brentford', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Gtech Community Stadium' },
-  { name: 'Brighton', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Amex Stadium' },
+  { name: 'Brighton and Hove Albion', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Amex Stadium' },
   { name: 'Chelsea', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Stamford Bridge' },
   { name: 'Crystal Palace', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Selhurst Park' },
   { name: 'Everton', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Goodison Park' },
@@ -87,8 +87,8 @@ const teams = [
   { name: 'Newcastle United', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'St James Park' },
   { name: 'Nottingham Forest', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'City Ground' },
   { name: 'Southampton', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'St Marys Stadium' },
-  { name: 'Tottenham', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Tottenham Hotspur Stadium' },
-  { name: 'West Ham', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'London Stadium' },
+  { name: 'Tottenham Hotspur', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Tottenham Hotspur Stadium' },
+  { name: 'West Ham United', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'London Stadium' },
   { name: 'Wolverhampton Wanderers', sport: 'Football', league: 'English Premier League', country: 'England', stadium: 'Molineux Stadium' },
 
   // === SPANISH LA LIGA ===
@@ -379,10 +379,10 @@ const teams = [
   { name: 'Chicago Blackhawks', sport: 'Ice Hockey', league: 'NHL', country: 'USA', stadium: 'United Center' },
 
   // === FORMULA 1 (Teams/Constructors) ===
-  { name: 'Red Bull Racing', sport: 'Motorsport', league: 'Formula 1', country: 'Austria', stadium: '' },
-  { name: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', country: 'Italy', stadium: '' },
-  { name: 'Mercedes', sport: 'Motorsport', league: 'Formula 1', country: 'Germany', stadium: '' },
-  { name: 'McLaren', sport: 'Motorsport', league: 'Formula 1', country: 'UK', stadium: '' },
+  { name: 'Oracle Red Bull Racing', sport: 'Motorsport', league: 'Formula 1', country: 'Austria', stadium: '' },
+  { name: 'Scuderia Ferrari HP', sport: 'Motorsport', league: 'Formula 1', country: 'Italy', stadium: '' },
+  { name: 'Mercedes-AMG PETRONAS Formula One Team', sport: 'Motorsport', league: 'Formula 1', country: 'Germany', stadium: '' },
+  { name: 'McLaren Formula 1 Team', sport: 'Motorsport', league: 'Formula 1', country: 'UK', stadium: '' },
   { name: 'Aston Martin', sport: 'Motorsport', league: 'Formula 1', country: 'UK', stadium: '' },
   { name: 'Alpine', sport: 'Motorsport', league: 'Formula 1', country: 'France', stadium: '' },
   { name: 'Williams', sport: 'Motorsport', league: 'Formula 1', country: 'UK', stadium: '' },

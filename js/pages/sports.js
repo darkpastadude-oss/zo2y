@@ -2,9 +2,6 @@
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-  const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
-  const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
-  const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
   const FALLBACK_IMAGE = '/newlogo.webp';
   const FALLBACK_BADGE = '/file.svg';
   const SPORTS_LISTS_ENABLED = window.ZO2Y_SPORTS_LISTS !== false;
@@ -309,14 +306,10 @@
     currentUser: null,
     favorites: new Set(),
     heroTeam: null,
-    leagueIndex: [],
-    leagueIndexLoaded: false,
     teamMap: new Map(),
     searchTimer: null,
     searchSeq: 0,
     searchCache: new Map(),
-    leagueTeamsCache: new Map(),
-    leagueTeamsPending: new Map(),
     lastResults: [],
     lastQuery: ''
   };
@@ -337,7 +330,107 @@
       league: 'Ultimate Fighting Championship',
       country: 'United States',
       stadium: '',
-      badge: '/assets/sports/ufc-logo.svg'
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/UFC_Logo.svg/200px-UFC_Logo.svg.png'
+    },
+    {
+      id: 'atletico-madrid',
+      sportsDbId: '',
+      name: 'Atletico Madrid',
+      sport: 'Football',
+      league: 'Spanish La Liga',
+      country: 'Spain',
+      stadium: 'Wanda Metropolitano',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/200px-Atletico_Madrid_2017_logo.svg.png'
+    },
+    {
+      id: 'psg',
+      sportsDbId: '',
+      name: 'PSG',
+      sport: 'Football',
+      league: 'French Ligue 1',
+      country: 'France',
+      stadium: 'Parc des Princes',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/200px-Paris_Saint-Germain_F.C..svg.png'
+    },
+    {
+      id: 'sao-paulo',
+      sportsDbId: '',
+      name: 'Sao Paulo',
+      sport: 'Football',
+      league: 'Brazilian Serie A',
+      country: 'Brazil',
+      stadium: 'Morumbi',
+      badge: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Brasao_do_Sao_Paulo_Futebol_Clube.svg/200px-Brasao_do_Sao_Paulo_Futebol_Clube.svg.png'
+    },
+    {
+      id: 'wbc',
+      sportsDbId: '',
+      name: 'WBC',
+      sport: 'Boxing',
+      league: 'World Boxing Council',
+      country: 'Mexico',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/World_Boxing_Council_logo.svg/200px-World_Boxing_Council_logo.svg.png'
+    },
+    {
+      id: 'wba',
+      sportsDbId: '',
+      name: 'WBA',
+      sport: 'Boxing',
+      league: 'World Boxing Association',
+      country: 'Panama',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0e/World_Boxing_Association_logo.svg/200px-World_Boxing_Association_logo.svg.png'
+    },
+    {
+      id: 'ibf',
+      sportsDbId: '',
+      name: 'IBF',
+      sport: 'Boxing',
+      league: 'International Boxing Federation',
+      country: 'USA',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/18/International_Boxing_Federation_logo.svg/200px-International_Boxing_Federation_logo.svg.png'
+    },
+    {
+      id: 'wbo',
+      sportsDbId: '',
+      name: 'WBO',
+      sport: 'Boxing',
+      league: 'World Boxing Organization',
+      country: 'Puerto Rico',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4d/World_Boxing_Organization_logo.svg/200px-World_Boxing_Organization_logo.svg.png'
+    },
+    {
+      id: 'glory-kickboxing',
+      sportsDbId: '',
+      name: 'Glory Kickboxing',
+      sport: 'Kickboxing',
+      league: 'Glory',
+      country: 'Netherlands',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Glory_Kickboxing_logo.svg/200px-Glory_Kickboxing_logo.svg.png'
+    },
+    {
+      id: 'one-championship',
+      sportsDbId: '',
+      name: 'ONE Championship',
+      sport: 'Kickboxing',
+      league: 'ONE Championship',
+      country: 'Singapore',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2f/ONE_Championship_logo.svg/200px-ONE_Championship_logo.svg.png'
+    },
+    {
+      id: 'k-1',
+      sportsDbId: '',
+      name: 'K-1',
+      sport: 'Kickboxing',
+      league: 'K-1',
+      country: 'Japan',
+      stadium: '',
+      badge: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3e/K-1_logo.svg/200px-K-1_logo.svg.png'
     }
   ];
 
@@ -891,15 +984,6 @@
       if (league) leagues.add(league);
     });
 
-    if (Array.isArray(state.leagueIndex) && state.leagueIndex.length) {
-      state.leagueIndex.forEach((row) => {
-        if (!row) return;
-        if (row.sport) sports.add(row.sport);
-        if (row.country) countries.add(row.country);
-        if (row.league) leagues.add(row.league);
-      });
-    }
-
     const sportList = Array.from(sports).sort((a, b) => a.localeCompare(b));
     const countryList = Array.from(countries).sort((a, b) => a.localeCompare(b));
     const leagueList = Array.from(leagues).sort((a, b) => a.localeCompare(b));
@@ -1028,43 +1112,6 @@
     return matches >= minMatch;
   }
 
-  function getCachedTeams() {
-    const bucket = sportsAssetManifestRows.slice();
-    state.leagueTeamsCache.forEach((teams) => {
-      if (Array.isArray(teams)) bucket.push(...teams);
-    });
-    return dedupeTeams(bucket);
-  }
-
-  function pickFallbackLeagues(query) {
-    const q = normalizeSearchText(query);
-    if (!q) return [];
-    const tokens = stripSearchStopwords(q.split(' ').filter(Boolean));
-    const aliasMatches = [];
-    Object.entries(LEAGUE_ALIAS_MAP).forEach(([key, leagues]) => {
-      if (!key || !q.includes(key)) return;
-      (Array.isArray(leagues) ? leagues : []).forEach((league) => aliasMatches.push(league));
-    });
-    const matches = FALLBACK_LEAGUES.filter((league) => {
-      const leagueText = normalizeSearchText(league);
-      return tokens.some((token) => leagueText.includes(token));
-    });
-    const sportConfig = getSportSearchConfig(query);
-    const sportLeagues = Array.isArray(sportConfig?.leagues) ? sportConfig.leagues : [];
-    const combined = [...aliasMatches, ...matches, ...sportLeagues].filter(Boolean);
-    if (combined.length) {
-      const seen = new Set();
-      return combined.filter((league) => {
-        const key = normalizeSearchText(league);
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    }
-    if (q.length <= 3) return SHORT_FALLBACK_LEAGUES;
-    return FALLBACK_LEAGUES;
-  }
-
   function clearSearchSuggestions() {
     if (!ui.searchSuggest) return;
     ui.searchSuggest.classList.remove('show');
@@ -1081,9 +1128,9 @@
     const list = Array.isArray(items) && items.length
       ? items
       : (() => {
-        const cachedTeams = getCachedTeams();
-        const semanticMatches = getSemanticMatches(cachedTeams, q).teams;
-        const fuzzyMatches = cachedTeams.filter((team) => teamMatchesQuery(team, q));
+        const pool = Array.isArray(state.lastResults) ? state.lastResults : [];
+        const semanticMatches = getSemanticMatches(pool, q).teams;
+        const fuzzyMatches = pool.filter((team) => teamMatchesQuery(team, q));
         const candidatePool = semanticMatches.length
           ? dedupeTeams([...semanticMatches, ...fuzzyMatches])
           : fuzzyMatches;
@@ -1184,44 +1231,6 @@
     return arr;
   }
 
-  async function loadLeagueTeams(league) {
-    const key = normalizeSearchText(league);
-    if (!key) return [];
-    if (state.leagueTeamsCache.has(key)) return state.leagueTeamsCache.get(key);
-    if (state.leagueTeamsPending.has(key)) return state.leagueTeamsPending.get(key);
-
-    const pending = (async () => {
-      const payload = await fetchSportsDb('search_all_teams.php', { l: league }, 9000);
-      const teams = Array.isArray(payload?.teams) ? payload.teams.map(mapTeam).filter(Boolean).map(applySportsAssetOverride) : [];
-      state.leagueTeamsCache.set(key, teams);
-      state.leagueTeamsPending.delete(key);
-      return teams;
-    })();
-
-    state.leagueTeamsPending.set(key, pending);
-    return pending;
-  }
-
-  async function getFallbackTeams(query) {
-    const q = normalizeSearchText(query);
-    if (!q) return [];
-    const semanticLocal = getSemanticMatches(sportsAssetManifestRows, query).teams;
-    const fuzzyLocal = sportsAssetManifestRows.filter((team) => teamMatchesQuery(team, query));
-    const localMatches = dedupeTeams([...semanticLocal, ...fuzzyLocal]);
-    if (localMatches.length >= 12) return rankTeamsByQuery(localMatches, query);
-    const leagues = pickFallbackLeagues(query).slice(0, 12);
-    const responses = await Promise.all(leagues.map((league) => loadLeagueTeams(league)));
-    const matches = [...localMatches];
-    responses.forEach((teams) => {
-      const semanticLeagueMatches = getSemanticMatches(teams || [], query).teams;
-      matches.push(...semanticLeagueMatches);
-      (teams || []).forEach((team) => {
-        if (teamMatchesQuery(team, query)) matches.push(team);
-      });
-    });
-    return dedupeTeams(matches);
-  }
-
   function buildTeamDetailUrl(team) {
     const params = new URLSearchParams();
     const numericId = /^\d+$/.test(String(team?.sportsDbId || team?.id || '').trim())
@@ -1260,87 +1269,6 @@
     showToast._timer = window.setTimeout(() => {
       ui.toast.classList.remove('show');
     }, 2800);
-  }
-
-  function resolveSportsDbBase() {
-    const prefersDirect = window.ZO2Y_SPORTSDB_DIRECT === true || window.ZO2Y_SPORTSDB_DIRECT === '1';
-    const base = prefersDirect ? SPORTSDB_DIRECT_BASE : SPORTSDB_PROXY_BASE;
-    if (/^https?:\/\//i.test(base)) return base.replace(/\/+$/, '');
-    const prefix = base.startsWith('/') ? '' : '/';
-    return `${window.location.origin}${prefix}${base}`.replace(/\/+$/, '');
-  }
-
-  async function fetchSportsDb(endpoint, params = {}, timeoutMs = 8000) {
-    const path = String(endpoint || '').trim().replace(/^\/+/, '');
-    if (!path) return null;
-    const url = new URL(`${resolveSportsDbBase()}/${path}`);
-    Object.entries(params || {}).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') return;
-      url.searchParams.set(key, value);
-    });
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    let timer = null;
-    try {
-      if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
-      const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' },
-        signal: controller ? controller.signal : undefined
-      });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch (_err) {
-      return null;
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  }
-
-  async function ensureLeagueIndex() {
-    if (state.leagueIndexLoaded) return state.leagueIndex.slice();
-    state.leagueIndexLoaded = true;
-    try {
-      const payload = await fetchSportsDb('all_leagues.php', {}, 9000);
-      const rows = Array.isArray(payload?.leagues) ? payload.leagues : [];
-      state.leagueIndex = rows.map((row) => {
-        if (!row) return null;
-        const league = String(row?.strLeague || row?.league || '').trim();
-        if (!league) return null;
-        return {
-          league,
-          sport: String(row?.strSport || row?.sport || '').trim(),
-          country: String(row?.strCountry || row?.country || '').trim()
-        };
-      }).filter(Boolean);
-    } catch (_err) {
-      state.leagueIndex = [];
-    }
-    return state.leagueIndex.slice();
-  }
-
-  function mapTeam(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    const override = getSportsAssetOverride(raw);
-    const name = String(raw.strTeam || '').trim();
-    const rawId = String(raw.idTeam || '').trim();
-    const sportsDbId = /^\d+$/.test(rawId) ? rawId : String(override?.sportsDbId || override?.id || '').trim();
-    const resolvedName = String(override?.name || name).trim();
-    if (!resolvedName) return null;
-    const team = {
-      id: sportsDbId || resolvedName,
-      sportsDbId,
-      name: resolvedName,
-      sport: String(override?.sport || raw.strSport || '').trim(),
-      league: String(override?.league || raw.strLeague || '').trim(),
-      country: String(override?.country || raw.strCountry || '').trim(),
-      stadium: String(override?.stadium || raw.strStadium || '').trim(),
-      badge: toHttps(override?.badge || raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
-      banner: '',
-      fanart: '',
-      stadiumThumb: '',
-      jersey: ''
-    };
-    team.searchText = buildTeamSearchText(team);
-    return team;
   }
 
   function setLoading(isLoading, message) {
