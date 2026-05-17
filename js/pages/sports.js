@@ -8,7 +8,8 @@
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
-    'psg': '/assets/sports-badges/psg.png',
+    'psg': '/assets/sports-badges/paris-saint-germain.png',
+    'paris saint germain': '/assets/sports-badges/paris-saint-germain.png',
     'sao paulo': '/assets/sports-badges/sao-paulo.png',
     'ufc': '/assets/sports-badges/ufc.png',
     'wbc': '/assets/sports-badges/wbc.png',
@@ -17,7 +18,43 @@
     'wbo': '/assets/sports-badges/wbo.png',
     'glory kickboxing': '/assets/sports-badges/glory-kickboxing.png',
     'one championship': '/assets/sports-badges/one-championship.png',
-    'k-1': '/assets/sports-badges/k-1.png'
+    'k-1': '/assets/sports-badges/k-1.png',
+    'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
+    'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
+    'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+    'oracle red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+    'mercedes': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+    'mercedes-amg petronas formula one team': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+    'mclaren': '/assets/sports-badges/mclaren-formula-1-team.png',
+    'mclaren formula 1 team': '/assets/sports-badges/mclaren-formula-1-team.png',
+    'aston martin': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+    'aston martin aramco formula one team': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+    'alpine': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+    'bwt alpine formula one team': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+    'williams': '/assets/sports-badges/williams-racing.png',
+    'williams racing': '/assets/sports-badges/williams-racing.png',
+    'rb': '/assets/sports-badges/visa-cash-app-rb-formula-one-team.png',
+    'visa cash app rb formula one team': '/assets/sports-badges/visa-cash-app-rb-formula-one-team.png',
+    'kick sauber': '/assets/sports-badges/stake-f1-team-kick-sauber.png',
+    'stake f1 team kick sauber': '/assets/sports-badges/stake-f1-team-kick-sauber.png',
+    'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
+    'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
+    'top rank': '/assets/sports-badges/top-rank.png',
+    'golden boy promotions': '/assets/sports-badges/golden-boy-promotions.png',
+    'matchroom boxing': '/assets/sports-badges/matchroom-boxing.png',
+    'queensberry promotions': '/assets/sports-badges/queensberry-promotions.png',
+    'pbc': '/assets/sports-badges/premier-boxing-champions.png',
+    'premier boxing champions': '/assets/sports-badges/premier-boxing-champions.png',
+    'boxxer': '/assets/sports-badges/boxxer.png',
+    'wasserman boxing': '/assets/sports-badges/wasserman-boxing.png',
+    'mgb promotions': '/assets/sports-badges/mgb-promotions.png',
+    'wako': '/assets/sports-badges/wako.png',
+    'iska': '/assets/sports-badges/iska.png',
+    'wmc': '/assets/sports-badges/wmc.png',
+    'ifma': '/assets/sports-badges/ifma.png',
+    'wkn': '/assets/sports-badges/wkn.png',
+    'enfusion': '/assets/sports-badges/enfusion.png',
+    'krush': '/assets/sports-badges/krush.png'
   };
 
   const grid = document.getElementById('sportsGrid');
@@ -38,10 +75,25 @@
   let currentUser = null;
   let allTeams = [];
   let localBadgeMap = {};
-  let favorites = new Set();
+  let localBadgeMapLower = {};
 
-  function normalize(v) {
-    return String(v || '').toLowerCase().trim();
+  async function loadLocalManifest() {
+    try {
+      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
+      if (!res.ok) return;
+      localBadgeMap = await res.json();
+      Object.entries(localBadgeMap).forEach(([name, path]) => {
+        localBadgeMapLower[name.toLowerCase()] = path;
+      });
+    } catch (_) {}
+  }
+
+  function getBadge(team) {
+    const nameKey = normalize(team.name);
+    if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
+    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
+    if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
+    return FALLBACK_BADGE;
   }
 
   function escapeHtml(v) {
