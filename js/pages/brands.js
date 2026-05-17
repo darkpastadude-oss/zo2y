@@ -215,6 +215,14 @@
     logo: document.getElementById('brandSpotlightLogo'),
     open: document.getElementById('brandSpotlightOpen')
   };
+  const searchInput = document.getElementById('brandSearch');
+  const searchBtn = document.getElementById('brandSearchBtn');
+  const categorySelect = document.getElementById('brandCategory');
+  const filterBtn = document.getElementById('brandFilterBtn');
+  const filterModal = document.getElementById('brandFilterModal');
+  const filterCloseBtn = document.getElementById('brandFilterCloseBtn');
+  const countText = document.getElementById('brandCount');
+  const didYouMeanText = document.getElementById('brandDidYouMean');
   const BRAND_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
       <rect width='24' height='24' fill='#10224a'/>
