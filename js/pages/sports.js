@@ -391,6 +391,13 @@
     if (filterSport) filterSport.addEventListener('change', renderGrid);
     if (filterLeague) filterLeague.addEventListener('change', renderGrid);
 
+    document.querySelectorAll('#sportsTags .sports-search-tag').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = btn.dataset.q;
+        renderGrid();
+      });
+    });
+
     if (filterBtn && filterModal) {
       filterBtn.addEventListener('click', () => {
         filterModal.classList.add('show');
