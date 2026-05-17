@@ -76,6 +76,11 @@
   let allTeams = [];
   let localBadgeMap = {};
   let localBadgeMapLower = {};
+  let favorites = new Set();
+
+  function normalize(v) {
+    return String(v || '').toLowerCase().trim();
+  }
 
   async function loadLocalManifest() {
     try {
@@ -124,21 +129,6 @@
       currentUser = data?.session?.user || null;
       return currentUser;
     } catch (_) { return null; }
-  }
-
-  async function loadLocalManifest() {
-    try {
-      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
-      if (!res.ok) return;
-      localBadgeMap = await res.json();
-    } catch (_) {}
-  }
-
-  function getBadge(team) {
-    const nameKey = normalize(team.name);
-    if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
-    return FALLBACK_BADGE;
   }
 
   async function loadFavorites() {
