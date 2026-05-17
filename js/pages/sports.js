@@ -240,6 +240,8 @@
     'carabao cup': ['EFL Cup'],
     'fa cup': ['FA Cup'],
     'la liga': ['Spanish La Liga'],
+    'lal iga': ['Spanish La Liga'],
+    'laliga': ['Spanish La Liga'],
     'copa del rey': ['Copa del Rey'],
     'serie a': ['Italian Serie A'],
     'coppa italia': ['Coppa Italia'],
@@ -936,11 +938,11 @@
   function buildTeamSearchText(team) {
     if (!team) return '';
     const parts = [
-      team.name,
-      team.league,
-      team.sport,
-      team.country,
-      team.stadium
+      team.name || team.strTeam,
+      team.league || team.strLeague,
+      team.sport || team.strSport,
+      team.country || team.strCountry,
+      team.stadium || team.strStadium
     ].filter(Boolean).join(' ');
     return normalizeSearchText(parts);
   }
@@ -956,10 +958,10 @@
     if (!tokens.length) return false;
     const haystack = getTeamSearchText(team);
     if (!haystack) return false;
-    const name = normalizeSearchText(team?.name || '');
-    const league = normalizeSearchText(team?.league || '');
-    const country = normalizeSearchText(team?.country || '');
-    const sport = normalizeSearchText(team?.sport || '');
+    const name = normalizeSearchText(team?.name || team?.strTeam || '');
+    const league = normalizeSearchText(team?.league || team?.strLeague || '');
+    const country = normalizeSearchText(team?.country || team?.strCountry || '');
+    const sport = normalizeSearchText(team?.sport || team?.strSport || '');
     const words = haystack.split(' ').filter(Boolean);
     
     // Exact name match is highest priority
@@ -1588,8 +1590,8 @@
     const seeds = CURRENT_RELEVANT_TEAMS.slice();
     const seedSet = new Set(seeds.map((name) => normalized(name)).filter(Boolean));
     const picks = list
-      .filter((team) => seedSet.has(normalized(team?.name)))
-      .sort((a, b) => seedIndex(seeds, a?.name) - seedIndex(seeds, b?.name))
+      .filter((team) => seedSet.has(normalized(team?.name || team?.strTeam)))
+      .sort((a, b) => seedIndex(seeds, a?.name || a?.strTeam) - seedIndex(seeds, b?.name || b?.strTeam))
       .slice(0, 18);
 
     ui.popularRail.innerHTML = '';

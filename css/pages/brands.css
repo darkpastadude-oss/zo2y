@@ -507,8 +507,10 @@ main.container {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 12px !important;
     margin-bottom: 6px !important;
+    width: 100% !important;
+    padding-right: 2px !important;
   }
 
   .brand-grid .card-meta-header .card-type {
@@ -516,6 +518,7 @@ main.container {
     max-width: none !important;
     overflow: visible !important;
     white-space: nowrap !important;
+    flex-shrink: 0 !important;
   }
 
   .brand-grid .card-meta-header .card-menu-wrap {
