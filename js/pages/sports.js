@@ -95,19 +95,26 @@
     const client = await ensureSupabase();
     if (!client) return [];
     try {
-      const { data } = await client
+      const { data, error } = await client
         .from('teams')
         .select('id,name,sport,league,stadium')
         .order('name')
         .limit(5000);
-      return (data || []).map(row => ({
+      if (error) {
+        console.error('Supabase query error:', error);
+        return [];
+      }
+      const teams = (data || []).map(row => ({
         id: String(row.id || '').trim(),
         name: String(row.name || '').trim(),
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
       })).filter(t => t.name);
-    } catch (_) {
+      console.log(`Loaded ${teams.length} teams from Supabase`);
+      return teams;
+    } catch (err) {
+      console.error('Error loading teams:', err);
       return [];
     }
   }
