@@ -485,8 +485,29 @@ main.container {
     min-height: 112px !important;
   }
 
+  .brand-grid .card-type {
+    max-width: calc(100% - 40px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    margin-bottom: 8px !important;
+  }
+
   .brand-grid .card-meta-top {
     gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .brand-grid .card-menu-wrap {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-grid .card-name {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .brand-grid .card-sub {

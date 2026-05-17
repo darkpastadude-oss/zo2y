@@ -953,8 +953,29 @@ select {
     min-height: 112px !important;
   }
 
+  .sports-grid .card-type {
+    max-width: calc(100% - 40px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    margin-bottom: 8px !important;
+  }
+
   .sports-grid .card-meta-top {
     gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .sports-grid .card-menu-wrap {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .sports-grid .card-name {
+    flex: 1 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .sports-grid .card-sub {
