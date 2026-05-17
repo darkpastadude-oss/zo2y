@@ -8734,6 +8734,48 @@
                 return safe;
             }
 
+            const SPORTS_MANIFEST_CACHE_KEY = 'zo2y_sports_manifest_v1';
+            const SPORTS_MANIFEST_TTL = 1000 * 60 * 60 * 24 * 7;
+            let sportsManifestMap = null;
+
+            async function loadSportsManifest() {
+                if (sportsManifestMap) return sportsManifestMap;
+                try {
+                    const cached = localStorage.getItem(SPORTS_MANIFEST_CACHE_KEY);
+                    if (cached) {
+                        const parsed = JSON.parse(cached);
+                        if (Date.now() - parsed.ts < SPORTS_MANIFEST_TTL) {
+                            sportsManifestMap = parsed.map;
+                            return sportsManifestMap;
+                        }
+                    }
+                } catch (_) {}
+                try {
+                    const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+                    const supabaseUrl = String(supabaseConfig.url || '').trim();
+                    if (!supabaseUrl) return {};
+                    const res = await fetch(`${supabaseUrl}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`, { cache: 'force-cache' });
+                    if (!res.ok) return {};
+                    const data = await res.json();
+                    const teams = Array.isArray(data?.teams) ? data.teams : [];
+                    const map = {};
+                    teams.forEach(t => {
+                        if (t.name) map[t.name.toLowerCase().trim()] = t.badge || '';
+                    });
+                    sportsManifestMap = map;
+                    try { localStorage.setItem(SPORTS_MANIFEST_CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch (_) {}
+                    return map;
+                } catch (_) { return {}; }
+            }
+
+            function getSportsBadge(team, logoUrl) {
+                const direct = normalizeSportsImageUrl(logoUrl);
+                if (direct) return direct;
+                const name = String(team?.name || '').toLowerCase().trim();
+                if (sportsManifestMap && sportsManifestMap[name]) return sportsManifestMap[name];
+                return FALLBACK_BOOK_IMAGE;
+            }
+
             async function removeFavoriteTeam(teamId) {
                 if (!teamId) return false;
                 if (!currentUser?.id) {
@@ -8761,9 +8803,8 @@
                 const league = String(team?.league || team?.strLeague || '').trim();
                 const sport = String(team?.sport || team?.strSport || '').trim();
                 const stadium = String(team?.stadium || team?.strStadium || '').trim();
-                const logo = normalizeSportsImageUrl(team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
-                const subtitle = [league, sport].filter(Boolean).join(' â€¢ ') || 'Team';
-                const logoImage = logo || FALLBACK_BOOK_IMAGE;
+                const logoImage = getSportsBadge(team, team?.logo_url || team?.strTeamBadge || team?.strTeamLogo || '');
+                const subtitle = [league, sport].filter(Boolean).join(' • ') || 'Team';
                 const canRemove = !!options?.canRemove && !!id;
 
                 const card = document.createElement('div');
@@ -8814,6 +8855,7 @@
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderSportsToken;
+                await loadSportsManifest();
                 const renderEmptyState = () => {
                     grid.innerHTML = `
                         <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
