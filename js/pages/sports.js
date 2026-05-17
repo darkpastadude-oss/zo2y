@@ -5,6 +5,11 @@
 
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
+  const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
+        <rect width='24' height='24' fill='#10224a'/>
+      </svg>
+    `)}`;
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
@@ -77,28 +82,10 @@
   let localBadgeMap = {};
   let localBadgeMapLower = {};
   let favorites = new Set();
+  let imageObserver = null;
 
   function normalize(v) {
     return String(v || '').toLowerCase().trim();
-  }
-
-  async function loadLocalManifest() {
-    try {
-      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
-      if (!res.ok) return;
-      localBadgeMap = await res.json();
-      Object.entries(localBadgeMap).forEach(([name, path]) => {
-        localBadgeMapLower[name.toLowerCase()] = path;
-      });
-    } catch (_) {}
-  }
-
-  function getBadge(team) {
-    const nameKey = normalize(team.name);
-    if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
-    if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
-    return FALLBACK_BADGE;
   }
 
   function escapeHtml(v) {
@@ -131,6 +118,31 @@
     } catch (_) { return null; }
   }
 
+  async function loadLocalManifest() {
+    try {
+      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
+      if (!res.ok) {
+        console.warn('[sports] Manifest fetch failed:', res.status);
+        return;
+      }
+      localBadgeMap = await res.json();
+      Object.entries(localBadgeMap).forEach(([name, path]) => {
+        localBadgeMapLower[name.toLowerCase()] = path;
+      });
+      console.log('[sports] Manifest loaded:', Object.keys(localBadgeMap).length, 'entries');
+    } catch (err) {
+      console.error('[sports] Manifest error:', err);
+    }
+  }
+
+  function getBadge(team) {
+    const nameKey = normalize(team.name);
+    if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
+    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
+    if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
+    return FALLBACK_BADGE;
+  }
+
   async function loadFavorites() {
     const client = ensureSupabase();
     if (!client || !currentUser) return;
@@ -145,10 +157,7 @@
 
   async function loadTeams() {
     const client = ensureSupabase();
-    if (!client) {
-      console.error('[sports] No supabase client');
-      return [];
-    }
+    if (!client) return [];
     try {
       const { data, error, count } = await client
         .from('teams')
@@ -156,7 +165,7 @@
         .order('name')
         .limit(5000);
       if (error) {
-        console.error('[sports] Supabase teams error:', error);
+        console.error('[sports] Supabase error:', error);
         return [];
       }
       const teams = (data || []).map(row => ({
@@ -166,18 +175,20 @@
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
       })).filter(t => t.name);
-      console.log(`[sports] Loaded ${teams.length} teams (count: ${count})`);
+      console.log(`[sports] Loaded ${teams.length} teams`);
       return teams;
     } catch (err) {
-      console.error('[sports] Error loading teams:', err);
+      console.error('[sports] Load error:', err);
       return [];
     }
   }
 
   async function toggleFavorite(team) {
     const client = ensureSupabase();
-    if (!client) { showToast('Sign in to save teams.', true); return; }
-    if (!currentUser) { showToast('Sign in to save teams.', true); return; }
+    if (!client || !currentUser) {
+      showToast('Sign in to save teams.', true);
+      return;
+    }
     try {
       if (favorites.has(team.id)) {
         await client.from('user_favorite_teams').delete()
@@ -210,9 +221,7 @@
       if (btn) {
         const saved = favorites.has(id);
         btn.classList.toggle('saved', saved);
-        btn.innerHTML = saved
-          ? '<i class="fas fa-check"></i>'
-          : '<i class="fas fa-heart"></i>';
+        btn.innerHTML = saved ? '<i class="fas fa-check"></i>' : '<i class="fas fa-heart"></i>';
       }
     });
   }
@@ -227,9 +236,62 @@
     showToast._t = setTimeout(() => el.classList.remove('show'), 2800);
   }
 
+  function getImageObserver() {
+    if (imageObserver) return imageObserver;
+    if (typeof window.IntersectionObserver !== 'function') return null;
+    imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const img = entry.target;
+        observer.unobserve(img);
+        const src = img.getAttribute('data-home-src');
+        if (src) {
+          img.removeAttribute('data-home-src');
+          img.src = src;
+        }
+      });
+    }, { rootMargin: '300px 0px', threshold: 0.01 });
+    return imageObserver;
+  }
+
+  function primeImages(scope) {
+    const root = scope || document;
+    const images = Array.from(root.querySelectorAll('img[data-home-src]'));
+    if (!images.length) return;
+    const observer = getImageObserver();
+    if (!observer) {
+      images.forEach(img => {
+        const src = img.getAttribute('data-home-src');
+        if (src) { img.removeAttribute('data-home-src'); img.src = src; }
+      });
+      return;
+    }
+    images.forEach(img => observer.observe(img));
+  }
+
+  function wireImageState(scope) {
+    const root = scope || document;
+    root.querySelectorAll('img[data-home-image="1"]').forEach(img => {
+      const wrap = img.closest('.card-media');
+      const markReady = () => {
+        img.setAttribute('data-image-ready', '1');
+        if (wrap) wrap.classList.remove('is-loading-media');
+      };
+      const handleError = () => {
+        const fallback = img.getAttribute('data-fallback-image');
+        if (fallback && !img.src.endsWith(fallback)) {
+          img.src = fallback;
+        }
+        markReady();
+      };
+      img.addEventListener('load', markReady);
+      img.addEventListener('error', handleError);
+      if (img.complete && !img.hasAttribute('data-home-src')) markReady();
+    });
+  }
+
   function createCard(team) {
     const badge = getBadge(team);
-    const saved = favorites.has(team.id);
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.teamId = team.id;
@@ -247,10 +309,15 @@
 
     card.innerHTML = `
       <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-      <div class="card-media brand-cover">
+      <div class="card-media brand-cover is-loading-media">
         <img
-          src="${escapeHtml(badge)}"
+          src="${HOME_IMAGE_PLACEHOLDER}"
+          data-home-src="${escapeHtml(badge)}"
+          data-fallback-image="${FALLBACK_BADGE}"
+          data-home-image="1"
+          data-image-ready="0"
           alt="${escapeHtml(title)} badge"
+          loading="lazy"
           decoding="async"
           referrerpolicy="no-referrer"
         />
@@ -258,7 +325,9 @@
       <div class="card-meta">
         <div class="card-meta-header">
           <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
-          <button class="card-save-btn ${saved ? 'saved' : ''}" type="button" aria-label="Save">${saved ? '<i class="fas fa-check"></i>' : '<i class="fas fa-heart"></i>'}</button>
+          <div class="card-menu-wrap">
+            <button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+          </div>
         </div>
         <div class="card-meta-top">
           <p class="card-name">${escapeHtml(title)}</p>
@@ -268,16 +337,16 @@
       </div>
     `;
 
-    const saveBtn = card.querySelector('.card-save-btn');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', e => {
+    const menuBtn = card.querySelector('.card-menu-btn');
+    if (menuBtn && typeof window.openIndexStyleListMenu === 'function') {
+      menuBtn.addEventListener('click', e => {
         e.stopPropagation();
-        toggleFavorite(team);
+        window.openIndexStyleListMenu(card);
       });
     }
 
     card.addEventListener('click', e => {
-      if (e.target.closest('.card-save-btn')) return;
+      if (e.target.closest('.card-menu-btn')) return;
       window.location.href = href;
     });
 
@@ -325,7 +394,8 @@
     const fragment = document.createDocumentFragment();
     filtered.forEach(t => fragment.appendChild(createCard(t)));
     grid.appendChild(fragment);
-    syncSaveButtons();
+    wireImageState(grid);
+    primeImages(grid);
   }
 
   function populateFilters() {
@@ -386,28 +456,53 @@
         }
       });
     }
+  }
 
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.sports-search-bar')) {
-        document.getElementById('sportsSuggest')?.classList.remove('show');
-      }
+  function initMenuBridge() {
+    if (typeof window.initIndexStyleListMenu !== 'function') return;
+    window.initIndexStyleListMenu({
+      mediaType: 'sports',
+      getCurrentUser: () => currentUser,
+      ensureClient: ensureSupabase,
+      toggleDefaultList: async ({ itemId, listType, nextSaved }) => {
+        const client = ensureSupabase();
+        if (!client || !currentUser) return { ok: false };
+        try {
+          if (nextSaved === false) {
+            await client.from('user_favorite_teams').delete()
+              .eq('user_id', currentUser.id).eq('team_id', itemId);
+            favorites.delete(itemId);
+            return { ok: true, saved: false };
+          }
+          await client.from('teams').upsert({
+            id: itemId, name: allTeams.find(t => t.id === itemId)?.name || '',
+            sport: allTeams.find(t => t.id === itemId)?.sport || null,
+            league: allTeams.find(t => t.id === itemId)?.league || null,
+            logo_url: getBadge(allTeams.find(t => t.id === itemId) || {})
+          }, { onConflict: 'id' });
+          await client.from('user_favorite_teams').upsert(
+            { user_id: currentUser.id, team_id: itemId },
+            { onConflict: 'user_id,team_id' }
+          );
+          favorites.add(itemId);
+          syncSaveButtons();
+          return { ok: true, saved: true };
+        } catch (_) {
+          return { ok: false };
+        }
+      },
+      notify: (msg, isError) => showToast(msg, isError),
     });
   }
 
   async function boot() {
-    console.log('[sports] boot starting');
     wireEvents();
     await loadLocalManifest();
-    console.log('[sports] local manifest loaded:', Object.keys(localBadgeMap).length, 'badges');
     const client = await ensureSupabase();
-    console.log('[sports] supabase client:', client ? 'OK' : 'NULL');
     await loadSession();
-    console.log('[sports] session loaded, user:', currentUser?.id || 'none');
+    initMenuBridge();
     await loadFavorites();
-    console.log('[sports] favorites loaded:', favorites.size);
-
     allTeams = await loadTeams();
-    console.log('[sports] teams loaded:', allTeams.length);
     populateFilters();
     renderGrid();
   }
