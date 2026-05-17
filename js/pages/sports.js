@@ -93,8 +93,43 @@
     : [
       'Real Madrid',
       'Barcelona',
+      'Atletico Madrid',
+      'Girona',
+      'Athletic Bilbao',
+      'Real Sociedad',
+      'Villarreal',
+      'Real Betis',
+      'Sevilla',
+      'Valencia',
       'Liverpool',
       'Manchester City',
+      'Arsenal',
+      'Chelsea',
+      'Manchester United',
+      'Tottenham',
+      'Newcastle United',
+      'Aston Villa',
+      'Brighton',
+      'West Ham',
+      'Inter Milan',
+      'AC Milan',
+      'Juventus',
+      'Napoli',
+      'Roma',
+      'Lazio',
+      'Atalanta',
+      'Fiorentina',
+      'Bayern Munich',
+      'Borussia Dortmund',
+      'RB Leipzig',
+      'Bayer Leverkusen',
+      'Eintracht Frankfurt',
+      'VfB Stuttgart',
+      'PSG',
+      'Marseille',
+      'Monaco',
+      'Lyon',
+      'Lille',
       'Al Ahly',
       'Zamalek',
       'UFC'
@@ -931,6 +966,23 @@
     if (name === q) return true;
     if (name.startsWith(q)) return true;
     
+    // Check if query is a known league alias - if so, require league match
+    const normalizedQuery = normalizeSearchText(query);
+    let isLeagueQuery = false;
+    let targetLeagues = [];
+    Object.entries(LEAGUE_ALIAS_MAP).forEach(([alias, leagues]) => {
+      if (normalizedQuery === normalizeSearchText(alias) || normalizedQuery.includes(normalizeSearchText(alias))) {
+        isLeagueQuery = true;
+        leagues.forEach((l) => targetLeagues.push(normalizeSearchText(l)));
+      }
+    });
+    
+    // For league queries, require the team's league to match one of the target leagues
+    if (isLeagueQuery && league) {
+      const leagueMatches = targetLeagues.some((tl) => league === tl || league.includes(tl) || tl.includes(league));
+      if (!leagueMatches) return false;
+    }
+    
     // Check if all tokens match somewhere
     let matches = 0;
     tokens.forEach((token) => {
@@ -940,10 +992,13 @@
         matches += 1;
         return;
       }
-      // Check league
-      if (league.includes(token)) {
-        matches += 1;
-        return;
+      // Check league with word-boundary awareness for short tokens
+      if (league) {
+        const leagueWordMatch = league.split(' ').some((word) => word === token || word.startsWith(token));
+        if (leagueWordMatch) {
+          matches += 1;
+          return;
+        }
       }
       // Check country
       if (country.includes(token)) {
