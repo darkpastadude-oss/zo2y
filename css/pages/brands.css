@@ -259,13 +259,10 @@ main.container {
 .brand-grid {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 180px));
   gap: 16px;
   justify-content: start;
-}
-
-.brand-grid .card {
-  max-width: 240px;
+  align-content: start;
 }
 
 .brand-card {
@@ -398,9 +395,17 @@ main.container {
 }
 
 .empty-state {
-  margin-top: 40px;
+  margin-top: 24px;
   text-align: center;
   color: var(--brand-muted);
+  padding: 20px;
+  grid-column: 1 / -1;
+  justify-self: start;
+  width: 100%;
+}
+
+.empty-state + .card {
+  grid-column: 1;
 }
 
 @media (max-width: 900px) {
@@ -452,12 +457,10 @@ main.container {
   }
 
   .brand-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 140px));
+    gap: 12px;
     justify-content: start;
-  }
-
-  .brand-grid .card {
-    max-width: 100%;
+    align-content: start;
   }
 
   .brand-spotlight {

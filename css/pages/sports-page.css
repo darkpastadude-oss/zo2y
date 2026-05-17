@@ -1,5 +1,11 @@
 /* Sports page styles (cards are sourced from css/pages/index.css for 1:1 parity) */
 
+/* Hide popular teams section */
+.sports-results > .sports-results-head:first-of-type,
+.sports-results > .unified-rail#sportsPopularRail {
+  display: none !important;
+}
+
 .sports-spotlight .brand-spotlight-logo img {
   width: min(100%, 520px);
   max-height: 220px;
@@ -66,6 +72,8 @@
   padding: 22px 10px;
   font-size: 13px;
   display: none;
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 
 .sports-loading.visible,
@@ -77,13 +85,10 @@
 .sports-grid {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
   gap: 12px;
   justify-content: start;
-}
-
-.sports-grid .card {
-  max-width: 220px;
+  align-content: start;
 }
 
 /* Suggestions + quick searches (wired by js/pages/sports.js) */
@@ -214,10 +219,10 @@
 
 @media (max-width: 640px) {
   .sports-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-  .sports-grid .card {
-    max-width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
+    gap: 10px;
+    justify-content: start;
+    align-content: start;
   }
   .sports-spotlight .brand-spotlight-logo {
     display: none;

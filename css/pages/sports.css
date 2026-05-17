@@ -550,8 +550,10 @@ select {
 .sports-grid {
   padding: 12px 20px 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
   gap: 12px;
+  justify-content: start;
+  align-content: start;
 }
 
 /* ===== Index-style cards (used on Sports page) ===== */
@@ -922,9 +924,11 @@ select {
   }
 
   .sports-grid {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
+    gap: 10px;
     padding: 12px 16px 18px;
+    justify-content: start;
+    align-content: start;
   }
 
 
