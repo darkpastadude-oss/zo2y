@@ -1924,47 +1924,75 @@
   async function loadFeaturedTeams() {
     clearTeamUrl();
     setLoading(true, 'Loading teams...');
-    loadSportsAssetManifestFromStorage();
 
-    const [manifestTeams, savedTeams] = await Promise.all([
-      ensureSportsAssetManifest().catch(() => []),
-      loadSavedTeamsFromSupabase().catch(() => [])
-    ]);
-
-    await ensureLeagueIndex().catch(() => []);
-
-    const apiTeams = [];
-    const shouldHydrateApi = (manifestTeams.length + savedTeams.length) < 1200;
-    if (shouldHydrateApi) {
-      const leagues = FEATURED_LEAGUES.slice();
-      const responses = await Promise.allSettled(leagues.map((league) => loadLeagueTeams(league)));
-      responses.forEach((result) => {
-        if (!result || result.status !== 'fulfilled') return;
-        const teams = Array.isArray(result.value) ? result.value : [];
-        teams.forEach((team) => {
-          if (!team || !team.name) return;
-          apiTeams.push(team);
-        });
+    const client = await ensureSupabase();
+    if (!client) {
+      setLoading(false);
+      renderTeams([], {
+        title: 'All teams',
+        subtitle: 'Database not available',
+        emptyMessage: 'Could not connect to database.'
       });
+      return;
     }
 
-    const merged = dedupeTeams([
-      ...(Array.isArray(manifestTeams) ? manifestTeams : []),
-      ...(Array.isArray(savedTeams) ? savedTeams : []),
-      ...(Array.isArray(apiTeams) ? apiTeams : [])
-    ].map(applySportsAssetOverride).filter(Boolean));
+    try {
+      const { data: rows } = await client
+        .from('teams')
+        .select('id,name,sport,league,logo_url,banner_url,stadium,stadium_url,jersey_url,fanart_url')
+        .order('name')
+        .limit(5000);
 
-    state.lastResults = merged;
-    state.lastQuery = '';
-    updateFilterOptions(merged);
-    const filtered = applyTeamFilters(merged);
-    renderPopularTeams(merged);
+      const localTeams = (rows || []).map((row) => {
+        if (!row) return null;
+        const id = String(row.id || '').trim();
+        const name = String(row.name || '').trim();
+        if (!id && !name) return null;
+        return {
+          id,
+          sportsDbId: id,
+          name: name || id,
+          sport: String(row.sport || '').trim(),
+          league: String(row.league || '').trim(),
+          country: '',
+          stadium: String(row.stadium || '').trim(),
+          badge: toHttps(row.logo_url || ''),
+          banner: toHttps(row.banner_url || ''),
+          fanart: toHttps(row.fanart_url || ''),
+          stadiumThumb: toHttps(row.stadium_url || ''),
+          jersey: toHttps(row.jersey_url || '')
+        };
+      }).filter(Boolean);
 
-    renderTeams(filtered, {
-      title: 'All teams',
-      subtitle: `${filtered.length} teams shown`,
-      emptyMessage: 'No teams match your filters yet.'
-    });
+      await ensureSportsAssetManifest().catch(() => {});
+
+      const merged = localTeams.map((team) => {
+        const override = getSportsAssetOverride(team);
+        if (override && override.badge) {
+          return { ...team, badge: override.badge };
+        }
+        return team;
+      });
+
+      state.lastResults = merged;
+      state.lastQuery = '';
+      updateFilterOptions(merged);
+      const filtered = applyTeamFilters(merged);
+      renderPopularTeams(merged);
+
+      renderTeams(filtered, {
+        title: 'All teams',
+        subtitle: `${filtered.length} teams shown`,
+        emptyMessage: 'No teams match your filters yet.'
+      });
+    } catch (_err) {
+      setLoading(false);
+      renderTeams([], {
+        title: 'All teams',
+        subtitle: 'Failed to load teams',
+        emptyMessage: 'Could not load teams from database.'
+      });
+    }
   }
 
   async function searchTeams(query, options = {}) {
@@ -1979,14 +2007,13 @@
     setLoading(true, `Searching "${trimmed}"...`);
     const cacheKey = normalizeSearchText(trimmed);
 
-    // LOCAL ONLY: Query Supabase teams table directly
     const client = await ensureSupabase();
     if (!client) {
       setLoading(false);
       renderTeams([], {
         title: `Results for "${trimmed}"`,
-        subtitle: 'Supabase not available',
-        emptyMessage: 'Could not connect to local team database.'
+        subtitle: 'Database not available',
+        emptyMessage: 'Could not connect to database.'
       });
       return;
     }
@@ -1994,22 +2021,22 @@
     try {
       const { data: rows } = await client
         .from('teams')
-        .select('id,name,sport,league,logo_url,banner_url,stadium,stadium_url,jersey_url,fanart_url,country')
+        .select('id,name,sport,league,logo_url,banner_url,stadium,stadium_url,jersey_url,fanart_url')
         .or(`name.ilike.%${trimmed}%,league.ilike.%${trimmed}%,sport.ilike.%${trimmed}%`)
-        .limit(300);
+        .limit(500);
 
       const localTeams = (rows || []).map((row) => {
         if (!row) return null;
         const id = String(row.id || '').trim();
         const name = String(row.name || '').trim();
         if (!id && !name) return null;
-        const team = {
-          id: id || name,
+        return {
+          id,
           sportsDbId: id,
           name: name || id,
           sport: String(row.sport || '').trim(),
           league: String(row.league || '').trim(),
-          country: String(row.country || '').trim(),
+          country: '',
           stadium: String(row.stadium || '').trim(),
           badge: toHttps(row.logo_url || ''),
           banner: toHttps(row.banner_url || ''),
@@ -2017,11 +2044,22 @@
           stadiumThumb: toHttps(row.stadium_url || ''),
           jersey: toHttps(row.jersey_url || '')
         };
-        team.searchText = buildTeamSearchText(team);
-        return team;
       }).filter(Boolean);
 
-      if (!localTeams.length) {
+      await ensureSportsAssetManifest().catch(() => {});
+
+      const merged = localTeams.map((team) => {
+        const override = getSportsAssetOverride(team);
+        if (override && override.badge) {
+          return { ...team, badge: override.badge };
+        }
+        return team;
+      });
+
+      const fuzzyMatches = merged.filter((team) => teamMatchesQuery(team, trimmed));
+      const ranked = rankTeamsByQuery(fuzzyMatches.length ? fuzzyMatches : merged, trimmed);
+
+      if (!ranked.length) {
         setLoading(false);
         renderTeams([], {
           title: `Results for "${trimmed}"`,
@@ -2030,9 +2068,6 @@
         });
         return;
       }
-
-      const fuzzyMatches = localTeams.filter((team) => teamMatchesQuery(team, trimmed));
-      const ranked = rankTeamsByQuery(fuzzyMatches.length ? fuzzyMatches : localTeams, trimmed);
 
       state.searchCache.set(cacheKey, ranked);
       state.lastResults = ranked;
@@ -2060,50 +2095,65 @@
   async function loadTeamById(teamId) {
     if (!teamId) return false;
     setLoading(true, 'Loading team details...');
-    loadSportsAssetManifestFromStorage();
-    const localTeam = sportsAssetManifestById.get(String(teamId).trim()) || null;
-    if (localTeam) {
-      setHeroTeam(localTeam);
-      setActiveCard(localTeam.id);
-      state.lastResults = [localTeam];
+
+    const client = await ensureSupabase();
+    if (!client) {
+      setLoading(false);
+      return false;
+    }
+
+    try {
+      const { data: row } = await client
+        .from('teams')
+        .select('id,name,sport,league,logo_url,banner_url,stadium,stadium_url,jersey_url,fanart_url')
+        .eq('id', teamId)
+        .single();
+
+      if (!row) {
+        setLoading(false);
+        return false;
+      }
+
+      const team = {
+        id: String(row.id || '').trim(),
+        sportsDbId: String(row.id || '').trim(),
+        name: String(row.name || '').trim(),
+        sport: String(row.sport || '').trim(),
+        league: String(row.league || '').trim(),
+        country: '',
+        stadium: String(row.stadium || '').trim(),
+        badge: toHttps(row.logo_url || ''),
+        banner: toHttps(row.banner_url || ''),
+        fanart: toHttps(row.fanart_url || ''),
+        stadiumThumb: toHttps(row.stadium_url || ''),
+        jersey: toHttps(row.jersey_url || '')
+      };
+
+      await ensureSportsAssetManifest().catch(() => {});
+      const override = getSportsAssetOverride(team);
+      if (override && override.badge) {
+        team.badge = override.badge;
+      }
+
+      setHeroTeam(team);
+      setActiveCard(team.id);
+      state.lastResults = [team];
       state.lastQuery = '';
-      updateFilterOptions([localTeam]);
-      renderTeams([localTeam], {
+      updateFilterOptions([team]);
+      renderTeams([team], {
         title: 'Team spotlight',
         subtitle: 'Save this team to your profile.',
         keepHero: true
       });
       return true;
-    }
-    const payload = await fetchSportsDb('lookupteam.php', { id: teamId });
-    const teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
-    const team = mapTeam(teamRaw);
-    if (!team) {
+    } catch (_err) {
       setLoading(false);
       return false;
     }
-    setHeroTeam(team);
-    setActiveCard(team.id);
-    state.lastResults = [team];
-    state.lastQuery = '';
-    updateFilterOptions([team]);
-    renderTeams([team], {
-      title: 'Team spotlight',
-      subtitle: 'Save this team to your profile.',
-      keepHero: true
-    });
-    return true;
   }
 
   async function hydrateLeagueIfNeeded() {
-    const selectedLeague = String(ui.filterLeague?.value || ui.filterLeagueModal?.value || '').trim();
-    if (!selectedLeague || selectedLeague.toLowerCase() === 'all') return false;
-    const key = normalizeSearchText(selectedLeague);
-    if (state.leagueTeamsCache.has(key)) return false;
-    const teams = await loadLeagueTeams(selectedLeague).catch(() => []);
-    if (!teams.length) return false;
-    state.lastResults = dedupeTeams([...(state.lastResults || []), ...teams]);
-    return true;
+    return false;
   }
 
   async function handleFilterChange() {
