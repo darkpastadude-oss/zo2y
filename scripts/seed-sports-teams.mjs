@@ -434,7 +434,6 @@ async function seedTeams() {
       name: team.name,
       sport: team.sport,
       league: team.league,
-      country: team.country,
       stadium: team.stadium || '',
       logo_url: '',
       banner_url: '',
