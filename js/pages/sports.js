@@ -3,21 +3,21 @@
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
-  const MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
   const FALLBACK_BADGE = '/file.svg';
+  const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
 
   const BADGE_OVERRIDES = {
-    'atletico madrid': 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/200px-Atletico_Madrid_2017_logo.svg.png',
-    'psg': 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a7/Paris_Saint-Germain_F.C..svg/200px-Paris_Saint-Germain_F.C..svg.png',
-    'sao paulo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Brasao_do_Sao_Paulo_Futebol_Clube.svg/200px-Brasao_do_Sao_Paulo_Futebol_Clube.svg.png',
-    'ufc': 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/UFC_Logo.svg/200px-UFC_Logo.svg.png',
-    'wbc': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/World_Boxing_Council_logo.svg/200px-World_Boxing_Council_logo.svg.png',
-    'wba': 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0e/World_Boxing_Association_logo.svg/200px-World_Boxing_Association_logo.svg.png',
-    'ibf': 'https://upload.wikimedia.org/wikipedia/en/thumb/1/18/International_Boxing_Federation_logo.svg/200px-International_Boxing_Federation_logo.svg.png',
-    'wbo': 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4d/World_Boxing_Organization_logo.svg/200px-World_Boxing_Organization_logo.svg.png',
-    'glory kickboxing': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Glory_Kickboxing_logo.svg/200px-Glory_Kickboxing_logo.svg.png',
-    'one championship': 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2f/ONE_Championship_logo.svg/200px-ONE_Championship_logo.svg.png',
-    'k-1': 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3e/K-1_logo.svg/200px-K-1_logo.svg.png'
+    'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
+    'psg': '/assets/sports-badges/psg.png',
+    'sao paulo': '/assets/sports-badges/sao-paulo.png',
+    'ufc': '/assets/sports-badges/ufc.png',
+    'wbc': '/assets/sports-badges/wbc.png',
+    'wba': '/assets/sports-badges/wba.png',
+    'ibf': '/assets/sports-badges/ibf.png',
+    'wbo': '/assets/sports-badges/wbo.png',
+    'glory kickboxing': '/assets/sports-badges/glory-kickboxing.png',
+    'one championship': '/assets/sports-badges/one-championship.png',
+    'k-1': '/assets/sports-badges/k-1.png'
   };
 
   const grid = document.getElementById('sportsGrid');
@@ -37,7 +37,7 @@
   let supabaseClient = null;
   let currentUser = null;
   let allTeams = [];
-  let manifestMap = {};
+  let localBadgeMap = {};
   let favorites = new Set();
 
   function normalize(v) {
@@ -74,41 +74,18 @@
     } catch (_) { return null; }
   }
 
-  async function loadManifest() {
+  async function loadLocalManifest() {
     try {
-      const cached = localStorage.getItem('zo2y_sports_manifest_v1');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Date.now() - parsed.ts < 1000 * 60 * 60 * 24 * 7 && parsed.teams) {
-          parsed.teams.forEach(t => {
-            if (t.name) manifestMap[normalize(t.name)] = t.badge || '';
-          });
-          return;
-        }
-      }
-    } catch (_) {}
-
-    try {
-      const res = await fetch(MANIFEST_URL, { cache: 'force-cache' });
+      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
       if (!res.ok) return;
-      const data = await res.json();
-      const teams = Array.isArray(data?.teams) ? data.teams : (Array.isArray(data) ? data : []);
-      teams.forEach(t => {
-        if (t.name) manifestMap[normalize(t.name)] = t.badge || '';
-      });
-      try {
-        localStorage.setItem('zo2y_sports_manifest_v1', JSON.stringify({
-          ts: Date.now(),
-          teams: teams.map(t => ({ name: t.name, badge: t.badge }))
-        }));
-      } catch (_) {}
+      localBadgeMap = await res.json();
     } catch (_) {}
   }
 
   function getBadge(team) {
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    if (manifestMap[nameKey]) return manifestMap[nameKey];
+    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     return FALLBACK_BADGE;
   }
 
@@ -131,7 +108,6 @@
       return [];
     }
     try {
-      console.log('[sports] Querying teams table...');
       const { data, error, count } = await client
         .from('teams')
         .select('id,name,sport,league,stadium', { count: 'exact' })
@@ -229,15 +205,10 @@
 
     card.innerHTML = `
       <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-      <div class="card-media brand-cover is-loading-media">
+      <div class="card-media brand-cover">
         <img
-          src="${FALLBACK_BADGE}"
-          data-defer-src="${escapeHtml(badge)}"
-          data-fallback-image="${FALLBACK_BADGE}"
-          data-home-image="1"
-          data-image-ready="0"
+          src="${escapeHtml(badge)}"
           alt="${escapeHtml(title)} badge"
-          loading="lazy"
           decoding="async"
           referrerpolicy="no-referrer"
         />
@@ -312,8 +283,6 @@
     const fragment = document.createDocumentFragment();
     filtered.forEach(t => fragment.appendChild(createCard(t)));
     grid.appendChild(fragment);
-    wireImageState(grid);
-    primeImages(grid);
     syncSaveButtons();
   }
 
@@ -332,49 +301,6 @@
       filterLeague.innerHTML = '<option value="all">All leagues</option>' +
         [...leagues].sort().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
     }
-  }
-
-  function wireImageState(scope) {
-    const root = scope || document;
-    root.querySelectorAll('img[data-home-image="1"]').forEach(img => {
-      const wrap = img.closest('.card-media');
-      const markReady = () => {
-        img.setAttribute('data-image-ready', '1');
-        if (wrap) wrap.classList.remove('is-loading-media');
-      };
-      const handleError = () => {
-        const fallback = FALLBACK_BADGE;
-        if (img.src.endsWith(fallback)) { markReady(); return; }
-        img.removeAttribute('data-defer-src');
-        img.src = fallback;
-      };
-      img.addEventListener('load', markReady);
-      img.addEventListener('error', handleError);
-      if (img.complete && !img.hasAttribute('data-defer-src')) markReady();
-    });
-  }
-
-  function primeImages(scope) {
-    const root = scope || document;
-    const images = Array.from(root.querySelectorAll('img[data-defer-src]'));
-    if (!images.length) return;
-    if (typeof window.IntersectionObserver !== 'function') {
-      images.forEach(img => {
-        const src = String(img.getAttribute('data-defer-src') || '').trim();
-        if (src) { img.removeAttribute('data-defer-src'); img.src = src; }
-      });
-      return;
-    }
-    const observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const img = entry.target;
-        obs.unobserve(img);
-        const src = String(img.getAttribute('data-defer-src') || '').trim();
-        if (src) { img.removeAttribute('data-defer-src'); img.src = src; }
-      });
-    }, { rootMargin: '260px 0px', threshold: 0.01 });
-    images.forEach(img => observer.observe(img));
   }
 
   function wireEvents() {
@@ -429,12 +355,12 @@
   async function boot() {
     console.log('[sports] boot starting');
     wireEvents();
+    await loadLocalManifest();
+    console.log('[sports] local manifest loaded:', Object.keys(localBadgeMap).length, 'badges');
     const client = await ensureSupabase();
     console.log('[sports] supabase client:', client ? 'OK' : 'NULL');
     await loadSession();
     console.log('[sports] session loaded, user:', currentUser?.id || 'none');
-    await loadManifest();
-    console.log('[sports] manifest loaded, entries:', Object.keys(manifestMap).length);
     await loadFavorites();
     console.log('[sports] favorites loaded:', favorites.size);
 
