@@ -73,12 +73,17 @@
   display: block;
 }
 
-/* Grid matches the Fashion page behavior (auto-fit) */
+/* Grid with fixed card sizing - prevents cards from expanding with few results */
 .sports-grid {
   margin-top: 22px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
+  justify-content: start;
+}
+
+.sports-grid .card {
+  max-width: 220px;
 }
 
 /* Suggestions + quick searches (wired by js/pages/sports.js) */
@@ -210,6 +215,9 @@
 @media (max-width: 640px) {
   .sports-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .sports-grid .card {
+    max-width: 100%;
   }
   .sports-spotlight .brand-spotlight-logo {
     display: none;

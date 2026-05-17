@@ -805,9 +805,9 @@
       const teamSport = normalizeSearchText(team?.sport || '');
       const teamCountry = normalizeSearchText(team?.country || '');
       const teamLeague = normalizeSearchText(team?.league || '');
-      if (sport && !teamSport.includes(sport)) return false;
-      if (country && !teamCountry.includes(country)) return false;
-      if (league && !teamLeague.includes(league)) return false;
+      if (sport && !teamSport.includes(sport) && sport !== teamSport) return false;
+      if (country && !teamCountry.includes(country) && country !== teamCountry) return false;
+      if (league && !teamLeague.includes(league) && league !== teamLeague) return false;
       return true;
     });
   }
@@ -920,20 +920,54 @@
     if (!tokens.length) return false;
     const haystack = getTeamSearchText(team);
     if (!haystack) return false;
+    const name = normalizeSearchText(team?.name || '');
+    const league = normalizeSearchText(team?.league || '');
+    const country = normalizeSearchText(team?.country || '');
+    const sport = normalizeSearchText(team?.sport || '');
     const words = haystack.split(' ').filter(Boolean);
+    
+    // Exact name match is highest priority
+    if (name === q) return true;
+    if (name.startsWith(q)) return true;
+    
+    // Check if all tokens match somewhere
     let matches = 0;
     tokens.forEach((token) => {
       if (!token) return;
+      // Check name first (highest priority)
+      if (name.includes(token)) {
+        matches += 1;
+        return;
+      }
+      // Check league
+      if (league.includes(token)) {
+        matches += 1;
+        return;
+      }
+      // Check country
+      if (country.includes(token)) {
+        matches += 1;
+        return;
+      }
+      // Check sport
+      if (sport.includes(token)) {
+        matches += 1;
+        return;
+      }
+      // Check full haystack
       if (haystack.includes(token)) {
         matches += 1;
         return;
       }
+      // Prefix match on words
       if (words.some((word) => word.startsWith(token))) {
         matches += 1;
       }
     });
-    const minMatch = tokens.length <= 2 ? tokens.length : Math.max(2, Math.ceil(tokens.length * 0.6));
-    return matches >= Math.min(tokens.length, minMatch);
+    
+    // Require at least 1 token match for short queries, half for longer
+    const minMatch = tokens.length <= 1 ? 1 : Math.max(1, Math.ceil(tokens.length * 0.5));
+    return matches >= minMatch;
   }
 
   function getCachedTeams() {

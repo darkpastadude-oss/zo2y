@@ -488,17 +488,123 @@
     `;
   }
 
+  function normalizeBrandSearch(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
   function getFilteredBrands() {
-    const search = String(searchInput?.value || '').trim().toLowerCase();
+    const search = String(searchInput?.value || '').trim();
     const category = String(categorySelect?.value || 'all').toLowerCase();
-    return allBrands.filter((brand) => {
-      if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return false;
-      if (!search) return true;
-      return brand.name.toLowerCase().includes(search)
-        || brand.category.toLowerCase().includes(search)
-        || brand.description.toLowerCase().includes(search)
-        || brand.country.toLowerCase().includes(search);
-    });
+    
+    // If no search query, just apply category filter
+    if (!search) {
+      return allBrands.filter((brand) => {
+        if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return false;
+        return true;
+      });
+    }
+    
+    const searchNormalized = normalizeBrandSearch(search);
+    const searchTokens = searchNormalized.split(/\s+/).filter(Boolean);
+    
+    if (!searchTokens.length) {
+      return allBrands.filter((brand) => {
+        if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return false;
+        return true;
+      });
+    }
+    
+    // Score and rank results for better accuracy
+    const scored = allBrands
+      .map((brand) => {
+        if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return null;
+        
+        const brandName = normalizeBrandSearch(brand.name || '');
+        const brandCategory = normalizeBrandSearch(brand.category || '');
+        const brandDescription = normalizeBrandSearch(brand.description || '');
+        const brandCountry = normalizeBrandSearch(brand.country || '');
+        const brandTags = Array.isArray(brand.tags) ? brand.tags.map(t => normalizeBrandSearch(t)).join(' ') : '';
+        
+        let score = 0;
+        let matchCount = 0;
+        
+        // Build searchable fields
+        const nameWords = brandName.split(' ').filter(Boolean);
+        const searchableText = `${brandName} ${brandCategory} ${brandDescription} ${brandCountry} ${brandTags}`;
+        
+        // Check each search token
+        searchTokens.forEach((token) => {
+          // Exact name match (highest priority)
+          if (brandName === token) {
+            score += 100;
+            matchCount++;
+            return;
+          }
+          
+          // Name starts with token
+          if (brandName.startsWith(token)) {
+            score += 80;
+            matchCount++;
+            return;
+          }
+          
+          // Name contains token
+          if (brandName.includes(token)) {
+            score += 60;
+            matchCount++;
+            return;
+          }
+          
+          // Category match
+          if (brandCategory.includes(token)) {
+            score += 40;
+            matchCount++;
+            return;
+          }
+          
+          // Country match
+          if (brandCountry.includes(token)) {
+            score += 35;
+            matchCount++;
+            return;
+          }
+          
+          // Tags match
+          if (brandTags.includes(token)) {
+            score += 30;
+            matchCount++;
+            return;
+          }
+          
+          // Description match (lowest priority)
+          if (searchableText.includes(token)) {
+            score += 10;
+            matchCount++;
+            return;
+          }
+        });
+        
+        // Bonus for matching all tokens
+        if (matchCount === searchTokens.length) {
+          score += 50;
+        }
+        
+        // Only include brands that matched at least one token
+        if (matchCount === 0) return null;
+        
+        return { brand, score };
+      })
+      .filter(Boolean);
+    
+    // Sort by score (highest first)
+    scored.sort((a, b) => b.score - a.score);
+    
+    return scored.map(item => item.brand);
   }
 
   function updateCount(count) {
