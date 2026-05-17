@@ -1696,7 +1696,7 @@
 
 
 
-  <script src="js/pages/games-shared.js?v=20260509c"></script>
+  <script src="js/pages/games-shared.js?v=20260517a"></script>
 
   <script>
 
@@ -2020,11 +2020,17 @@
 
           if (!found) {
 
-            state.games = [];
-
-            state.totalPages = 1;
-
-            return;
+            // Fallback to Wikipedia search if no results from Supabase
+            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
+            if (wikiGames && wikiGames.length) {
+              games = wikiGames;
+              apiTotalPages = Math.max(1, Math.ceil(games.length / GAMES_PAGE_SIZE));
+              found = true;
+            } else {
+              state.games = [];
+              state.totalPages = 1;
+              return;
+            }
 
           }
 
@@ -2095,27 +2101,23 @@
 
 
       // Map games with cover resolution
-
-      state.games = games.map((game) => ({
-
-        id: String(game.id || ''),
-
-        name: game.title || 'Unknown Game',
-
-        summary: game.description || '',
-
-        cover: resolveGameCover(game),
-
-        firstReleaseDate: game.release_date || '',
-
-        rating: game.rating || 0,
-
-        genres: Array.isArray(game.extra?.genres) ? game.extra.genres : []
-
-      })).filter((g) => {
-
+      // Handle both Supabase games and Wikipedia fallback games
+      state.games = games.map((game) => {
+        const isWiki = game.source === 'wikipedia';
+        return {
+          id: String(game.id || ''),
+          name: game.title || game.name || 'Unknown Game',
+          summary: game.description || game.summary || '',
+          cover: resolveGameCover(game),
+          firstReleaseDate: game.release_date || game.releaseDate || game.firstReleaseDate || '',
+          rating: game.rating || 0,
+          genres: Array.isArray(game.extra?.genres) ? game.extra.genres : (Array.isArray(game.genres) ? game.genres : []),
+          source: game.source || 'supabase'
+        };
+      }).filter((g) => {
+        // For Wikipedia games, don't filter by date range since dates might be incomplete
+        if (g.source === 'wikipedia') return g.id && g.name;
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
-
       });
 
 

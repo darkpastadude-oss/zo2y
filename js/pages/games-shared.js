@@ -12,6 +12,9 @@
   const coverLookupCache = new Map();
   const COVER_STORAGE_PREFIX = 'zo2y_game_cover_cache_v1:';
   const COVER_STORAGE_TTL_MS = 1000 * 60 * 60 * 24 * 21; // 21 days
+  const GAME_SEARCH_CACHE_PREFIX = 'zo2y_game_search_cache_v1:';
+  const GAME_SEARCH_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const gameSearchCache = new Map();
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
@@ -258,9 +261,162 @@
     }
   }
 
+  function getGameSearchCacheKey(query) {
+    const safe = String(query || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    if (!safe) return '';
+    return `${GAME_SEARCH_CACHE_PREFIX}${safe}`;
+  }
+
+  function readCachedGameSearch(query) {
+    const key = getGameSearchCacheKey(query);
+    if (!key) return null;
+    if (gameSearchCache.has(key)) return gameSearchCache.get(key);
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(key) : '';
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed?.t || 0);
+      if (!Number.isFinite(savedAt) || (Date.now() - savedAt) > GAME_SEARCH_TTL_MS) {
+        window.localStorage?.removeItem(key);
+        return null;
+      }
+      const games = Array.isArray(parsed?.games) ? parsed.games : [];
+      gameSearchCache.set(key, games);
+      return games;
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function writeCachedGameSearch(query, games) {
+    const key = getGameSearchCacheKey(query);
+    if (!key || !Array.isArray(games) || !games.length) return;
+    try {
+      window.localStorage?.setItem(key, JSON.stringify({ t: Date.now(), games }));
+      gameSearchCache.set(key, games);
+    } catch (_err) {}
+  }
+
+  function normalizeWikiGameTitle(title) {
+    const t = String(title || '').trim();
+    if (!t) return '';
+    const cleaned = t
+      .replace(/\s*\([^)]*\)\s*$/g, '')
+      .replace(/\s*\(video game\)\s*$/gi, '')
+      .replace(/\s*\(game\)\s*$/gi, '')
+      .replace(/\s*\(series\)\s*$/gi, '')
+      .replace(/\s*\(franchise\)\s*$/gi, '')
+      .trim();
+    return cleaned || t;
+  }
+
+  function extractYearFromWikiSnippet(snippet) {
+    const match = String(snippet || '').match(/\b(19[7-9]\d|20[0-2]\d)\b/);
+    return match ? match[1] : '';
+  }
+
+  async function searchGamesFromWikipedia(query, signal, limit = 12) {
+    const q = String(query || '').trim();
+    if (!q) return [];
+
+    const cached = readCachedGameSearch(q);
+    if (cached && cached.length) return cached;
+
+    const wikiBase = 'https://en.wikipedia.org/w/api.php';
+    const searchUrl = new URL(wikiBase);
+    searchUrl.searchParams.set('origin', '*');
+    searchUrl.searchParams.set('action', 'query');
+    searchUrl.searchParams.set('format', 'json');
+    searchUrl.searchParams.set('list', 'search');
+    searchUrl.searchParams.set('srsearch', `${q} video game`);
+    searchUrl.searchParams.set('srlimit', String(Math.min(limit * 2, 20)));
+    searchUrl.searchParams.set('srprop', 'snippet|titlesnippet|sectionsnippet');
+    searchUrl.searchParams.set('srwhat', 'text');
+
+    try {
+      const searchRes = await fetch(searchUrl.toString(), {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        signal: signal || undefined
+      });
+      if (!searchRes.ok) return [];
+      const searchJson = await searchRes.json().catch(() => null);
+      const results = Array.isArray(searchJson?.query?.search) ? searchJson.query.search : [];
+      if (!results.length) return [];
+
+      const titles = results
+        .map(r => normalizeWikiGameTitle(r?.title))
+        .filter(Boolean)
+        .slice(0, limit);
+
+      if (!titles.length) return [];
+
+      const pageUrl = new URL(wikiBase);
+      pageUrl.searchParams.set('origin', '*');
+      pageUrl.searchParams.set('action', 'query');
+      pageUrl.searchParams.set('format', 'json');
+      pageUrl.searchParams.set('prop', 'pageimages|extracts|info');
+      pageUrl.searchParams.set('piprop', 'original|thumbnail');
+      pageUrl.searchParams.set('pithumbsize', '600');
+      pageUrl.searchParams.set('exintro', '1');
+      pageUrl.searchParams.set('explaintext', '1');
+      pageUrl.searchParams.set('redirects', '1');
+      pageUrl.searchParams.set('titles', titles.join('|'));
+
+      const pageRes = await fetch(pageUrl.toString(), {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        signal: signal || undefined
+      });
+      if (!pageRes.ok) return [];
+      const pageJson = await pageRes.json().catch(() => null);
+      const pages = pageJson?.query?.pages || {};
+
+      const games = [];
+      const seen = new Set();
+      for (const page of Object.values(pages)) {
+        if (!page || page?.missing) continue;
+        const title = normalizeWikiGameTitle(page?.title || '');
+        if (!title || seen.has(title.toLowerCase())) continue;
+        seen.add(title.toLowerCase());
+
+        const cover = normalizeGameCoverUrl(page?.thumbnail?.source || page?.original?.source || '');
+        const extract = String(page?.extract || '').trim();
+        const year = extractYearFromWikiSnippet(extract);
+
+        games.push({
+          id: `wiki_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+          name: title,
+          title: title,
+          summary: extract.slice(0, 300),
+          description: extract,
+          cover: cover || '',
+          cover_url: cover || '',
+          firstReleaseDate: year ? `${year}-01-01` : '',
+          release_date: year ? `${year}-01-01` : '',
+          releaseDate: year ? `${year}-01-01` : '',
+          rating: 0,
+          rating_count: 0,
+          source: 'wikipedia',
+          genres: [],
+          platforms: [],
+          extra: { source: 'wikipedia' }
+        });
+
+        if (games.length >= limit) break;
+      }
+
+      writeCachedGameSearch(q, games);
+      return games;
+    } catch (_err) {
+      return [];
+    }
+  }
+
   window.__zo2yGamesShared = {
     loadFeaturedGames,
     resolveGameCover,
-    fetchCoverForTitle
+    fetchCoverForTitle,
+    searchGamesFromWikipedia
   };
 })();

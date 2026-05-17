@@ -5805,9 +5805,30 @@
 
                     const normalized = normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey };
                     return cacheGameRecord(normalized);
-                } catch (_err) {
-                    return null;
-                }
+                } catch (_err) {}
+
+                // Fallback to Wikipedia search if game not found in Supabase or IGDB
+                try {
+                    const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(cacheKey, null, 1);
+                    if (wikiGames && wikiGames.length) {
+                        const wikiGame = wikiGames[0];
+                        const normalized = {
+                            id: wikiGame.id,
+                            title: wikiGame.name || wikiGame.title,
+                            description: wikiGame.summary || wikiGame.description,
+                            cover_url: wikiGame.cover || wikiGame.cover_url,
+                            hero_url: '',
+                            release_date: wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate,
+                            rating: wikiGame.rating || 0,
+                            rating_count: 0,
+                            source: 'wikipedia',
+                            extra: wikiGame.extra || {}
+                        };
+                        return cacheGameRecord(normalized);
+                    }
+                } catch (_err) {}
+
+                return null;
             }
 
             async function fetchMusicDetails(trackId) {

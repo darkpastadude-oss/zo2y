@@ -46,16 +46,167 @@
           { id: 'dfe029f5-dee4-434a-bb6c-5015bc36c334', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', description: 'French luxury fashion.' }
         ]);
 
+  const BRAND_TYPO_MAP = {
+    mac: ['mcdonalds', "mcdonald's"], macdonalds: ['mcdonalds', "mcdonald's"], mcdonald: ['mcdonalds', "mcdonald's"], mcd: ['mcdonalds', "mcdonald's"], mcdonalds: ['mcdonalds', "mcdonald's"], macd: ['mcdonalds', "mcdonald's"],
+    bk: ['burger king'], bking: ['burger king'], burgking: ['burger king'], burgerking: ['burger king'], 'burger king': ['burger king'],
+    kfc: ['kfc'], kfcs: ['kfc'], kcf: ['kfc'], kentucky: ['kfc'], 'kentucky fried chicken': ['kfc'],
+    sbux: ['starbucks'], starbcks: ['starbucks'], starbuck: ['starbucks'], starbuks: ['starbucks'], starbux: ['starbucks'], starbucks: ['starbucks'], starbu: ['starbucks'], starbuc: ['starbucks'], starbuk: ['starbucks'],
+    subway: ['subway'], sub: ['subway'], subways: ['subway'], subwy: ['subway'],
+    tb: ['taco bell'], tacobell: ['taco bell'], taco: ['taco bell'], 'taco bell': ['taco bell'],
+    dominos: ["domino's"], domino: ["domino's"], "domino's": ["domino's"],
+    pizzahut: ['pizza hut'], 'pizza hut': ['pizza hut'], ph: ['pizza hut'], phut: ['pizza hut'], pizza: ['pizza hut'],
+    wendys: ["wendy's"], wendy: ["wendy's"], "wendy's": ["wendy's"],
+    chickfila: ['chick-fil-a'], 'chick-fil-a': ['chick-fil-a'], cfa: ['chick-fil-a'], chick: ['chick-fil-a'],
+    fiveguys: ['five guys'], 'five guys': ['five guys'], five: ['five guys'],
+    inandout: ['in-n-out'], 'in-n-out': ['in-n-out'], ino: ['in-n-out'],
+    chipotle: ['chipotle'], chip: ['chipotle'], cmg: ['chipotle mexican grill'], 'chipotle mexican grill': ['chipotle mexican grill'],
+    panera: ['panera bread'], 'panera bread': ['panera bread'],
+    sonic: ['sonic'],
+    arbys: ["arby's"], arby: ["arby's"], "arby's": ["arby's"],
+    carls: ["carl's jr"], carl: ["carl's jr"], "carl's jr": ["carl's jr"],
+    jackinthebox: ['jack in the box'], 'jack in the box': ['jack in the box'], jib: ['jack in the box'], jack: ['jack in the box'],
+    popeyes: ["popeye's"], popeye: ["popeye's"], "popeye's": ["popeye's"],
+    daveandbusters: ["dave & buster's"], "dave & buster's": ["dave & buster's"], dave: ["dave & buster's"],
+    hooters: ['hooters'],
+    applebees: ["applebee's"], "applebee's": ["applebee's"], apple: ["applebee's"],
+    olivegarden: ['olive garden'], 'olive garden': ['olive garden'], og: ['olive garden'], olive: ['olive garden'],
+    redlobster: ['red lobster'], 'red lobster': ['red lobster'], red: ['red lobster'],
+    longhorn: ['longhorn steakhouse'], 'longhorn steakhouse': ['longhorn steakhouse'],
+    outback: ['outback steakhouse'], 'outback steakhouse': ['outback steakhouse'],
+    texasroadhouse: ['texas roadhouse'], 'texas roadhouse': ['texas roadhouse'], tr: ['texas roadhouse'], texas: ['texas roadhouse'],
+    crackerbarrel: ['cracker barrel'], 'cracker barrel': ['cracker barrel'], cb: ['cracker barrel'], cracker: ['cracker barrel'],
+    dennys: ["denny's"], denny: ["denny's"], "denny's": ["denny's"],
+    ihop: ['ihop'],
+    wafflehouse: ['waffle house'], 'waffle house': ['waffle house'], wh: ['waffle house'], waffle: ['waffle house'],
+    golden: ['golden corral'], corral: ['golden corral'], 'golden corral': ['golden corral'], gc: ['golden corral'],
+    buffalowildwings: ['buffalo wild wings'], 'buffalo wild wings': ['buffalo wild wings'], bww: ['buffalo wild wings'], buffalo: ['buffalo wild wings'],
+    zaxbys: ["zaxby's"], zaxby: ["zaxby's"], "zaxby's": ["zaxby's"],
+    culvers: ["culver's"], culver: ["culver's"], "culver's": ["culver's"],
+    whataburger: ['whataburger'], wb: ['whataburger'],
+    elpollo: ['el pollo loco'], 'el pollo loco': ['el pollo loco'], epl: ['el pollo loco'], pollo: ['el pollo loco'],
+    deltaco: ['del taco'], 'del taco': ['del taco'], del: ['del taco'],
+    checkers: ['checkers'], rallys: ['raleys'],
+    whitecastle: ['white castle'], 'white castle': ['white castle'], wc: ['white castle'], white: ['white castle'],
+    krystal: ['krystal'],
+    harveys: ["harvey's"], harvey: ["harvey's"], "harvey's": ["harvey's"],
+    bojhangles: ["bojangles'"], bojangles: ["bojangles'"], "bojangles'": ["bojangles'"],
+    churchs: ["church's chicken"], 'churchs chicken': ["church's chicken"], church: ["church's chicken"],
+    longjohn: ["long john silver's"], 'long john silvers': ["long john silver's"], ljs: ["long john silver's"], silvers: ["long john silver's"],
+    aww: ["a&w"], aw: ["a&w"], 'a and w': ["a&w"],
+    greatamerican: ['great american cookies'],
+    cinnabon: ['cinnabon'],
+    auntieannes: ["auntie anne's"], "auntie anne's": ["auntie anne's"], auntie: ["auntie anne's"],
+    jamba: ['jamba juice'], 'jamba juice': ['jamba juice'],
+    smoothie: ['smoothie king'], 'smoothie king': ['smoothie king'],
+    baskin: ['baskin robbins'], 'baskin robbins': ['baskin robbins'], br31: ['baskin robbins'], robbins: ['baskin robbins'],
+    coldstone: ['cold stone creamery'], 'cold stone': ['cold stone creamery'], cold: ['cold stone creamery'],
+    menchie: ["menchie's"], "menchie's": ["menchie's"],
+    yogurtland: ['yogurtland'],
+    pinkberry: ['pinkberry'],
+    sweetgreen: ['sweetgreen'], 'sweet green': ['sweetgreen'],
+    qdoba: ['qdoba'],
+    moes: ["moe's southwest grill"], "moe's": ["moe's southwest grill"],
+    freal: ['freal'],
+    shake: ['shake shack'], 'shake shack': ['shake shack'], shack: ['shake shack'],
+    smashburger: ['smashburger'], smash: ['smashburger'],
+    habit: ['the habit burger grill'], 'the habit': ['the habit burger grill'],
+    umami: ['umami burger'], 'umami burger': ['umami burger'],
+    fatburger: ['fatburger'], fat: ['fatburger'],
+    johnny: ["johnny rockets"], 'johnny rockets': ["johnny rockets"], rockets: ["johnny rockets"],
+    hardrock: ['hard rock cafe'], 'hard rock': ['hard rock cafe'], hard: ['hard rock cafe'],
+    planet: ['planet hollywood'], 'planet hollywood': ['planet hollywood'], hollywood: ['planet hollywood'],
+    rainforest: ['rainforest cafe'], 'rainforest cafe': ['rainforest cafe'],
+    bucadibeppo: ["buca di beppo"], "buca di beppo": ["buca di beppo"],
+    carrabbas: ["carrabba's italian grill"], "carrabba's": ["carrabba's italian grill"], carrabba: ["carrabba's italian grill"],
+    maggianos: ["maggiano's little italy"], "maggiano's": ["maggiano's little italy"], magiano: ["maggiano's little italy"],
+    pfg: ['p.f. changs'], 'p f changs': ['p.f. changs'], 'p.f. changs': ['p.f. changs'], changs: ['p.f. changs'],
+    peiwei: ['pei wei'], 'pei wei': ['pei wei'],
+    panda: ['panda express'], 'panda express': ['panda express'],
+    teriyaki: ['teriyaki madness'], 'teriyaki madness': ['teriyaki madness'],
+    benihana: ['benihana'],
+    nobu: ['nobu'],
+    bmw: ['bmw'], mercedes: ['mercedes-benz', 'mercedes benz'], benz: ['mercedes-benz', 'mercedes benz'], vw: ['volkswagen'], volkswagen: ['volkswagen'],
+    chevy: ['chevrolet'], ford: ['ford'], honda: ['honda'], toyota: ['toyota'], nissan: ['nissan'], hyundai: ['hyundai'], kia: ['kia'],
+    mazda: ['mazda'], subaru: ['subaru'], jeep: ['jeep'], ram: ['ram'], dodge: ['dodge'], chrysler: ['chrysler'], buick: ['buick'],
+    cadillac: ['cadillac'], gmc: ['gmc'], lincoln: ['lincoln'], tesla: ['tesla'], audi: ['audi'], porsche: ['porsche'],
+    ferrari: ['ferrari'], lamborghini: ['lamborghini'], maserati: ['maserati'], bentley: ['bentley'],
+    rolls: ['rolls-royce'], 'rolls royce': ['rolls-royce'], aston: ['aston martin'], 'aston martin': ['aston martin'],
+    mclaren: ['mclaren'], bugatti: ['bugatti'], lotus: ['lotus'], alfa: ['alfa romeo'], 'alfa romeo': ['alfa romeo'],
+    fiat: ['fiat'], saab: ['saab'], volvo: ['volvo'], jaguar: ['jaguar'], land: ['land rover'], 'land rover': ['land rover'],
+    range: ['range rover'], 'range rover': ['range rover'], mini: ['mini'], smart: ['smart'],
+    polestar: ['polestar'], rivian: ['rivian'], lucid: ['lucid'], byd: ['byd'],
+    nike: ['nike'], adidas: ['adidas'], puma: ['puma'], reebok: ['reebok'],
+    newbalance: ['new balance'], 'new balance': ['new balance'], nb: ['new balance'],
+    underarmour: ['under armour'], 'under armour': ['under armour'], ua: ['under armour'],
+    asics: ['asics'], saucony: ['saucony'], brooks: ['brooks'], hoka: ['hoka'],
+    on: ['on running'], 'on running': ['on running'], salomon: ['salomon'], merrell: ['merrell'],
+    timberland: ['timberland'], timber: ['timberland'],
+    drmartens: ['dr. martens'], 'dr martens': ['dr. martens'], docs: ['dr. martens'],
+    converse: ['converse'], vans: ['vans'], sketchers: ['skechers'], skechers: ['skechers'],
+    crocs: ['crocs'], birkenstock: ['birkenstock'], birken: ['birkenstock'],
+    ugg: ['ugg'], uggs: ['ugg'], allbirds: ['allbirds'], rothy: ['rothy'], rothys: ['rothy'],
+    zara: ['zara'], hm: ['h&m', 'h and m'], 'h&m': ['h&m', 'h and m'], 'h and m': ['h&m', 'h and m'],
+    uniqlo: ['uniqlo'], gap: ['gap'], oldnavy: ['old navy'], 'old navy': ['old navy'], old: ['old navy'],
+    bananarepublic: ['banana republic'], 'banana republic': ['banana republic'],
+    americaneagle: ['american eagle'], 'american eagle': ['american eagle'], ae: ['american eagle'],
+    abercrombie: ['abercrombie & fitch'], 'abercrombie fitch': ['abercrombie & fitch'], af: ['abercrombie & fitch'],
+    hollister: ['hollister'], urban: ['urban outfitters'], 'urban outfitters': ['urban outfitters'],
+    freepeople: ['free people'], 'free people': ['free people'], free: ['free people'], anthropologie: ['anthropologie'], madewell: ['madewell'],
+    jcrew: ['j.crew'], 'j crew': ['j.crew'], 'j.crew': ['j.crew'],
+    ralphlauren: ['ralph lauren'], 'ralph lauren': ['ralph lauren'], polo: ['ralph lauren', 'polo ralph lauren'],
+    tommy: ['tommy hilfiger'], 'tommy hilfiger': ['tommy hilfiger'],
+    calvinklein: ['calvin klein'], 'calvin klein': ['calvin klein'], ck: ['calvin klein'],
+    lacoste: ['lacoste'], levi: ["levi's"], "levi's": ["levi's"], levis: ["levi's"],
+    wrangler: ['wrangler'], lee: ['lee'], dickies: ['dickies'], carhartt: ['carhartt'],
+    patagonia: ['patagonia'], northface: ['the north face'], 'the north face': ['the north face'], tnfs: ['the north face'],
+    columbia: ['columbia'], arcteryx: ['arcteryx'], mammut: ['mammut'], marmot: ['marmot'],
+    lululemon: ['lululemon'], lululemen: ['lululemon'], lulu: ['lululemon'], athleta: ['athleta'],
+    alo: ['alo yoga'], 'alo yoga': ['alo yoga'],
+    gucci: ['gucci'], prada: ['prada'], lv: ['louis vuitton'], 'louis vuitton': ['louis vuitton'],
+    chanel: ['chanel'], dior: ['dior'], fendi: ['fendi'], celine: ['celine'],
+    bottega: ['bottega veneta'], 'bottega veneta': ['bottega veneta'], bv: ['bottega veneta'],
+    valentino: ['valentino'], givenchy: ['givenchy'], balenciaga: ['balenciaga'],
+    ysl: ['saint laurent', 'ysl'], 'saint laurent': ['saint laurent', 'ysl'],
+    burberry: ['burberry'], hermes: ['hermes', 'hermès'], 'hermès': ['hermes', 'hermès'],
+    moncler: ['moncler'], canada: ['canada goose'], 'canada goose': ['canada goose'],
+    stoneisland: ['stone island'], 'stone island': ['stone island'],
+    acnestudios: ['acne studios'], 'acne studios': ['acne studios'],
+    offwhite: ['off-white'], 'off white': ['off-white'], supreme: ['supreme'], palace: ['palace'], stussy: ['stussy'],
+    bape: ['a bathing ape', 'bape'], 'a bathing ape': ['a bathing ape', 'bape'],
+    kenzo: ['kenzo'], sacai: ['sacai'],
+    comme: ['comme des garcons'], 'comme des garcons': ['comme des garcons'], cdg: ['comme des garcons'],
+    yohji: ['yohji yamamoto'], 'yohji yamamoto': ['yohji yamamoto'],
+    issey: ['issey miyake'], 'issey miyake': ['issey miyake'],
+    fjallraven: ['fjallraven'], 'fjall raven': ['fjallraven'],
+    helly: ['helly hansen'], 'helly hansen': ['helly hansen'], hh: ['helly hansen']
+  };
+
+  function normalizeBrandSearch(value) {
+    return String(value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  function expandBrandSearchTokens(query) {
+    const normalized = normalizeBrandSearch(query);
+    if (!normalized) return [];
+    const tokens = normalized.split(/\s+/).filter(Boolean);
+    const expanded = new Set(tokens);
+    tokens.forEach(token => {
+      const aliases = BRAND_TYPO_MAP[token];
+      if (aliases) aliases.forEach(alias => normalizeBrandSearch(alias).split(/\s+/).forEach(t => expanded.add(t)));
+    });
+    const noSpace = normalized.replace(/\s+/g, '');
+    const fullAliases = BRAND_TYPO_MAP[noSpace];
+    if (fullAliases) fullAliases.forEach(alias => normalizeBrandSearch(alias).split(/\s+/).forEach(t => expanded.add(t)));
+    return Array.from(expanded);
+  }
+
   const grid = document.getElementById('brandGrid');
-  const searchInput = document.getElementById('brandSearch');
-  const searchBtn = document.getElementById('brandSearchBtn');
-  const categorySelect = document.getElementById('brandCategory');
-  const filterBtn = document.getElementById('brandFilterBtn');
-  const filterModal = document.getElementById('brandFilterModal');
-  const filterCloseBtn = document.getElementById('brandFilterCloseBtn');
-  const countText = document.getElementById('brandCount');
   const spotlight = {
-    section: document.getElementById('brandSpotlight'),
     bg: document.getElementById('brandSpotlightBg'),
     kicker: document.getElementById('brandSpotlightKicker'),
     title: document.getElementById('brandSpotlightTitle'),
@@ -503,6 +654,7 @@
     
     // If no search query, just apply category filter
     if (!search) {
+      clearDidYouMean();
       return allBrands.filter((brand) => {
         if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return false;
         return true;
@@ -511,8 +663,10 @@
     
     const searchNormalized = normalizeBrandSearch(search);
     const searchTokens = searchNormalized.split(/\s+/).filter(Boolean);
+    const expandedTokens = expandBrandSearchTokens(search);
     
     if (!searchTokens.length) {
+      clearDidYouMean();
       return allBrands.filter((brand) => {
         if (category !== 'all' && String(brand.category || '').toLowerCase() !== category) return false;
         return true;
@@ -537,8 +691,8 @@
         const nameWords = brandName.split(' ').filter(Boolean);
         const searchableText = `${brandName} ${brandCategory} ${brandDescription} ${brandCountry} ${brandTags}`;
         
-        // Check each search token
-        searchTokens.forEach((token) => {
+        // Check each search token (including expanded aliases)
+        expandedTokens.forEach((token) => {
           // Exact name match (highest priority)
           if (brandName === token) {
             score += 100;
@@ -590,7 +744,7 @@
         });
         
         // Bonus for matching all tokens
-        if (matchCount === searchTokens.length) {
+        if (matchCount >= searchTokens.length) {
           score += 50;
         }
         
@@ -706,6 +860,8 @@
     const filtered = getFilteredBrands();
     grid.innerHTML = '';
     updateCount(filtered.length);
+    clearDidYouMean();
+    
     if (!filtered.length) {
       const q = String(searchInput?.value || '').trim();
       const helper = window.ZO2Y_DID_YOU_MEAN;
@@ -715,7 +871,7 @@
           const matches = allBrands.filter((b) => helper.normalize(b?.name) === helper.normalize(suggestion));
           if (matches.length) {
             updateCount(matches.length);
-            grid.innerHTML = `<div class="empty-state">No results for "${escapeHtml(q)}". Showing "${escapeHtml(suggestion)}".</div>`;
+            showDidYouMean(q, suggestion);
             const fragment = document.createDocumentFragment();
             matches.forEach((brand) => fragment.appendChild(createCard(brand)));
             grid.appendChild(fragment);
@@ -726,6 +882,7 @@
           }
         }
       }
+      showDidYouMean(q, null);
       grid.innerHTML = `<div class="empty-state">No ${escapeHtml(BRAND_LABEL)} brands found.</div>`;
       return;
     }
@@ -735,6 +892,19 @@
     wireBrandImageState(grid);
     primeBrandImages(grid);
     updateBrandSpotlight(filtered);
+  }
+
+  function clearDidYouMean() {
+    if (didYouMeanText) didYouMeanText.textContent = '';
+  }
+
+  function showDidYouMean(query, suggestion) {
+    if (!didYouMeanText) return;
+    if (!suggestion) {
+      didYouMeanText.textContent = '';
+      return;
+    }
+    didYouMeanText.textContent = `Showing "${suggestion}" instead of "${query}"`;
   }
 
   async function loadSession() {

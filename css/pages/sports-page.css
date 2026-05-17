@@ -87,8 +87,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 160px));
   gap: 12px;
-  justify-content: start;
-  align-content: start;
 }
 
 /* Suggestions + quick searches (wired by js/pages/sports.js) */
@@ -188,6 +186,24 @@
   letter-spacing: -0.03em;
 }
 
+.did-you-mean-sports {
+  color: var(--accent);
+  font-weight: 600;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  background: rgba(245, 158, 11, 0.08) !important;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.did-you-mean-sports:empty {
+  display: none;
+}
+
 .sports-results-head p {
   margin: 0;
   color: var(--muted);
@@ -219,10 +235,13 @@
 
 @media (max-width: 640px) {
   .sports-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 150px));
-    gap: 10px;
-    justify-content: start;
-    align-content: start;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .sports-grid .card {
+    min-width: 0 !important;
+    max-width: none !important;
   }
   .sports-spotlight .brand-spotlight-logo {
     display: none;

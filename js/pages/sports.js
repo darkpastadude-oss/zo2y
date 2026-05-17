@@ -337,6 +337,7 @@
     loading: document.getElementById('sportsLoading'),
     toast: document.getElementById('sportsToast'),
     count: document.getElementById('sportsCount'),
+    didYouMean: document.getElementById('sportsDidYouMean'),
     popularRail: document.getElementById('sportsPopularRail')
   };
 
@@ -1552,6 +1553,7 @@
     const list = Array.isArray(teams) ? teams : [];
     ui.grid.innerHTML = '';
     state.teamMap.clear();
+    clearSportsDidYouMean();
 
     if (ui.resultsTitle && options.title) ui.resultsTitle.textContent = options.title;
     if (ui.resultsSubtitle && options.subtitle) ui.resultsSubtitle.textContent = options.subtitle;
@@ -1580,8 +1582,17 @@
     syncSavedButtons();
   }
 
+  function clearSportsDidYouMean() {
+    if (ui.didYouMean) ui.didYouMean.textContent = '';
+  }
+
+  function showSportsDidYouMean(query, suggestion) {
+    if (!ui.didYouMean) return;
+    if (!suggestion) { ui.didYouMean.textContent = ''; return; }
+    ui.didYouMean.textContent = `Showing "${suggestion}" instead of "${query}"`;
+  }
+
   function renderDidYouMean(query, pool = []) {
-    if (!ui.resultsSubtitle) return '';
     const q = String(query || '').trim();
     if (!q) return '';
     const helper = window.ZO2Y_DID_YOU_MEAN;
@@ -1592,7 +1603,7 @@
     const suggestion = helper.suggest(q, names, { maxDistance: 4 });
     if (!suggestion) return '';
     if (normalizeSearchText(suggestion) === normalizeSearchText(q)) return '';
-    ui.resultsSubtitle.textContent = `No results for "${q}". Showing "${suggestion}".`;
+    showSportsDidYouMean(q, suggestion);
     return suggestion;
   }
 
