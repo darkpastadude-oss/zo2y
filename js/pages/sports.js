@@ -1969,7 +1969,6 @@
 
   async function searchTeams(query, options = {}) {
     const trimmed = String(query || '').trim();
-    const seq = ++state.searchSeq;
     if (!trimmed) {
       clearSearchSuggestions();
       await loadFeaturedTeams();
@@ -1979,101 +1978,83 @@
     if (!options.preserveUrl) clearTeamUrl();
     setLoading(true, `Searching "${trimmed}"...`);
     const cacheKey = normalizeSearchText(trimmed);
-    const cached = state.searchCache.get(cacheKey);
-    if (cached && cached.length && !options.forceNetwork) {
-      state.lastResults = cached;
-      state.lastQuery = trimmed;
-      updateFilterOptions(cached);
-      const filteredCached = applyTeamFilters(cached);
-      renderTeams(filteredCached, {
+
+    // LOCAL ONLY: Query Supabase teams table directly
+    const client = await ensureSupabase();
+    if (!client) {
+      setLoading(false);
+      renderTeams([], {
         title: `Results for "${trimmed}"`,
-        subtitle: `${filteredCached.length} teams found`,
-        emptyMessage: 'No teams found. Try another search.'
+        subtitle: 'Supabase not available',
+        emptyMessage: 'Could not connect to local team database.'
       });
+      return;
     }
 
-    const cachedTeams = getCachedTeams();
-    const semanticCached = getSemanticMatches(cachedTeams, trimmed);
-    if (semanticCached.teams.length && !options.forceNetwork) {
-      const rankedSemanticCached = rankTeamsByQuery(semanticCached.teams, trimmed);
-      state.searchCache.set(cacheKey, rankedSemanticCached);
-      state.lastResults = rankedSemanticCached;
-      state.lastQuery = trimmed;
-      updateFilterOptions(rankedSemanticCached);
-      const filteredSemanticCached = applyTeamFilters(rankedSemanticCached);
-      renderTeams(filteredSemanticCached, {
-        title: `Results for "${trimmed}"`,
-        subtitle: filteredSemanticCached.length ? `${filteredSemanticCached.length} teams found` : 'No matching teams yet',
-        emptyMessage: 'No teams found. Try another search or adjust filters.'
-      });
-      renderSearchSuggestions(trimmed, filteredSemanticCached);
-      if (semanticCached.context.isFacetQuery && rankedSemanticCached.length >= 24) {
+    try {
+      const { data: rows } = await client
+        .from('teams')
+        .select('id,name,sport,league,logo_url,banner_url,stadium,stadium_url,jersey_url,fanart_url,country')
+        .or(`name.ilike.%${trimmed}%,league.ilike.%${trimmed}%,sport.ilike.%${trimmed}%`)
+        .limit(300);
+
+      const localTeams = (rows || []).map((row) => {
+        if (!row) return null;
+        const id = String(row.id || '').trim();
+        const name = String(row.name || '').trim();
+        if (!id && !name) return null;
+        const team = {
+          id: id || name,
+          sportsDbId: id,
+          name: name || id,
+          sport: String(row.sport || '').trim(),
+          league: String(row.league || '').trim(),
+          country: String(row.country || '').trim(),
+          stadium: String(row.stadium || '').trim(),
+          badge: toHttps(row.logo_url || ''),
+          banner: toHttps(row.banner_url || ''),
+          fanart: toHttps(row.fanart_url || ''),
+          stadiumThumb: toHttps(row.stadium_url || ''),
+          jersey: toHttps(row.jersey_url || '')
+        };
+        team.searchText = buildTeamSearchText(team);
+        return team;
+      }).filter(Boolean);
+
+      if (!localTeams.length) {
+        setLoading(false);
+        renderTeams([], {
+          title: `Results for "${trimmed}"`,
+          subtitle: '0 teams found',
+          emptyMessage: 'No teams found. Try another search.'
+        });
         return;
       }
+
+      const fuzzyMatches = localTeams.filter((team) => teamMatchesQuery(team, trimmed));
+      const ranked = rankTeamsByQuery(fuzzyMatches.length ? fuzzyMatches : localTeams, trimmed);
+
+      state.searchCache.set(cacheKey, ranked);
+      state.lastResults = ranked;
+      state.lastQuery = trimmed;
+      updateFilterOptions(ranked);
+      const filteredTeams = applyTeamFilters(ranked);
+
+      renderTeams(filteredTeams, {
+        title: `Results for "${trimmed}"`,
+        subtitle: `${filteredTeams.length} teams found`,
+        emptyMessage: 'No teams found. Try another search.'
+      });
+      renderSearchSuggestions(trimmed, filteredTeams);
+    } catch (err) {
+      console.error('Search error:', err);
+      setLoading(false);
+      renderTeams([], {
+        title: `Results for "${trimmed}"`,
+        subtitle: 'Search failed',
+        emptyMessage: 'Could not search teams. Please try again.'
+      });
     }
-
-    const searchQueries = buildSearchQueries(trimmed);
-    const searchRequests = searchQueries.length
-      ? searchQueries.map((query) => fetchSportsDb('searchteams.php', { t: query }))
-      : [fetchSportsDb('searchteams.php', { t: trimmed })];
-    const [searchResponses, fallbackTeams] = await Promise.all([
-      Promise.allSettled(searchRequests),
-      getFallbackTeams(trimmed)
-    ]);
-
-    if (seq !== state.searchSeq) return;
-
-    const mapped = [];
-    searchResponses.forEach((result) => {
-      if (!result || result.status !== 'fulfilled') return;
-      const payload = result.value;
-      const teams = Array.isArray(payload?.teams) ? payload.teams : [];
-      teams.map(mapTeam).filter(Boolean).forEach((team) => mapped.push(team));
-    });
-    let combined = dedupeTeams([...mapped, ...fallbackTeams]);
-    combined = dedupeTeams([...combined, ...cachedTeams]);
-    const sportConfig = getSportSearchConfig(trimmed);
-    if (Array.isArray(sportConfig?.sportTokens) && sportConfig.sportTokens.length) {
-      combined = filterTeamsBySportTokens(combined, sportConfig.sportTokens);
-    }
-    const semanticCombined = getSemanticMatches(combined, trimmed);
-    const fuzzyMatches = combined.filter((team) => teamMatchesQuery(team, trimmed));
-    const candidatePool = semanticCombined.teams.length
-      ? dedupeTeams([...semanticCombined.teams, ...fuzzyMatches])
-      : (fuzzyMatches.length ? fuzzyMatches : combined);
-    const ranked = rankTeamsByQuery(candidatePool, trimmed);
-    const teams = semanticCombined.teams.length
-      ? ranked
-      : ranked.filter((team) => teamMatchesQuery(team, trimmed));
-    state.searchCache.set(cacheKey, teams);
-
-    state.lastResults = teams;
-    state.lastQuery = trimmed;
-    updateFilterOptions(teams);
-    const filteredTeams = applyTeamFilters(teams);
-
-    if (!filteredTeams.length) {
-      const suggestion = renderDidYouMean(trimmed, teams);
-      if (suggestion) {
-        const next = teams.filter((t) => normalizeSearchText(t?.name) === normalizeSearchText(suggestion));
-        if (next.length) {
-          renderTeams(next, {
-            title: `Results for "${suggestion}"`,
-            subtitle: `${next.length} teams found`,
-            emptyMessage: 'No teams found. Try another search or adjust filters.'
-          });
-          renderSearchSuggestions(suggestion, next);
-          return;
-        }
-      }
-    }
-
-    renderTeams(filteredTeams, {
-      title: `Results for "${trimmed}"`,
-      subtitle: filteredTeams.length ? `${filteredTeams.length} teams found` : 'No matching teams yet',
-      emptyMessage: 'No teams found. Try another search or adjust filters.'
-    });
-    renderSearchSuggestions(trimmed, filteredTeams);
   }
 
   async function loadTeamById(teamId) {
