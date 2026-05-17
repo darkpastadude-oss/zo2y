@@ -696,6 +696,24 @@ select {
   margin-left: auto;
 }
 
+.card-meta-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  min-height: 24px;
+}
+
+.card-meta-header .card-type {
+  margin-bottom: 0;
+}
+
+.card-meta-header .card-menu-wrap {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .card-type {
   display: inline-flex;
   align-items: center;
@@ -953,22 +971,29 @@ select {
     min-height: 112px !important;
   }
 
-  .sports-grid .card-type {
-    max-width: calc(100% - 40px) !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+  .sports-grid .card-meta-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .sports-grid .card-meta-header .card-type {
+    margin-bottom: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
     white-space: nowrap !important;
-    margin-bottom: 8px !important;
+  }
+
+  .sports-grid .card-meta-header .card-menu-wrap {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
   }
 
   .sports-grid .card-meta-top {
     gap: 8px !important;
     align-items: center !important;
-  }
-
-  .sports-grid .card-menu-wrap {
-    margin-left: auto !important;
-    flex-shrink: 0 !important;
   }
 
   .sports-grid .card-name {

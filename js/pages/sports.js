@@ -1543,12 +1543,14 @@
         <img src="${escapeHtml(badge)}" alt="${escapeHtml(titleRaw)} logo" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${escapeHtml(FALLBACK_BADGE)}';">
       </div>
       <div class="card-meta">
-        <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
-        <div class="card-meta-top">
-          <p class="card-name">${escapeHtml(titleRaw)}</p>
+        <div class="card-meta-header">
+          <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
           <div class="card-menu-wrap">
             ${showMenu ? `<button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>` : `<a class="card-open-link" href="${escapeHtml(href)}" aria-label="Open team"><i class="fas fa-arrow-up-right-from-square"></i></a>`}
           </div>
+        </div>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(titleRaw)}</p>
         </div>
         <p class="card-sub">${escapeHtml(subtitle)}</p>
         ${extra ? `<p class="card-extra">${escapeHtml(extra)}</p>` : '<p class="card-extra placeholder">&nbsp;</p>'}

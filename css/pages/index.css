@@ -938,6 +938,24 @@
       margin-bottom: 2px;
     }
 
+    .card-meta-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+      min-height: 24px;
+    }
+
+    .card-meta-header .card-type {
+      margin-bottom: 0;
+    }
+
+    .card-meta-header .card-menu-wrap {
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
     .card-type {
       display: inline-flex;
       align-items: center;
@@ -3205,6 +3223,23 @@
 
       .rail .card-meta-top {
         gap: 8px !important;
+      }
+
+      .rail .card-meta-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        margin-bottom: 6px !important;
+      }
+
+      .rail .card-meta-header .card-type {
+        margin-bottom: 0 !important;
+      }
+
+      .rail .card-meta-header .card-menu-wrap {
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
       }
 
       .rail .card-sub {

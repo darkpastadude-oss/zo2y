@@ -820,10 +820,12 @@
         />
       </div>
       <div class="card-meta">
-        <span class="card-type"><i class="fa-solid ${escapeHtml(iconClass)}"></i> ${escapeHtml(label)}</span>
+        <div class="card-meta-header">
+          <span class="card-type"><i class="fa-solid ${escapeHtml(iconClass)}"></i> ${escapeHtml(label)}</span>
+          ${trailingControl}
+        </div>
         <div class="card-meta-top">
           <p class="card-name">${escapeHtml(title)}</p>
-          ${trailingControl}
         </div>
         <p class="card-sub">${escapeHtml(subtitle)}</p>
         <p class="card-extra">${escapeHtml(extra)}</p>
