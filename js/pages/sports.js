@@ -62,6 +62,26 @@
     'krush': '/assets/sports-badges/krush.png'
   };
 
+  const POPULAR_TEAMS = new Set([
+    'real madrid', 'barcelona', 'liverpool', 'manchester city', 'manchester united',
+    'arsenal', 'chelsea', 'bayern munich', 'borussia dortmund', 'paris saint germain',
+    'inter milan', 'ac milan', 'juventus', 'napoli', 'atletico madrid',
+    'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
+    'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns',
+    'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
+    'philadelphia eagles', 'buffalo bills', 'green bay packers',
+    'ferrari', 'mercedes', 'red bull racing', 'mclaren', 'aston martin',
+    'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
+    'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
+    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr'
+  ]);
+
+  const SPORT_PRIORITY = {
+    'football': 1, 'soccer': 1, 'motorsport': 2, 'mma': 3, 'basketball': 4,
+    'american football': 5, 'baseball': 6, 'ice hockey': 7, 'hockey': 7,
+    'rugby': 8, 'cricket': 9, 'boxing': 10, 'kickboxing': 11, 'other': 12
+  };
+
   const grid = document.getElementById('sportsGrid');
   const searchInput = document.getElementById('sportsSearch');
   const searchBtn = document.getElementById('sportsSearchBtn');
@@ -183,6 +203,25 @@
     }
   }
 
+  function scoreTeam(team) {
+    const nameNorm = normalize(team.name);
+    const sportNorm = normalize(team.sport);
+    let score = 0;
+    if (POPULAR_TEAMS.has(nameNorm)) score += 2000;
+    const sportPrio = SPORT_PRIORITY[sportNorm] || 12;
+    score += (13 - sportPrio) * 100;
+    return score;
+  }
+
+  function sortTeams(teams) {
+    return [...teams].sort((a, b) => {
+      const scoreA = scoreTeam(a);
+      const scoreB = scoreTeam(b);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
   async function toggleFavorite(team) {
     const client = ensureSupabase();
     if (!client || !currentUser) {
@@ -295,6 +334,7 @@
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.teamId = team.id;
+    card.dataset.itemId = team.id;
     card.dataset.href = `team.html?id=${encodeURIComponent(team.id)}&team=${encodeURIComponent(team.name)}`;
     card.dataset.mediaType = 'sports';
     card.dataset.title = team.name;
@@ -376,23 +416,24 @@
   function renderGrid() {
     if (!grid) return;
     const filtered = getFilteredTeams();
+    const sorted = sortTeams(filtered);
 
     if (loadingEl) loadingEl.classList.remove('visible');
     if (emptyEl) emptyEl.classList.remove('visible');
 
     grid.innerHTML = '';
 
-    if (countText) countText.textContent = `${filtered.length} teams shown`;
+    if (countText) countText.textContent = `${sorted.length} teams shown`;
     if (titleEl) titleEl.textContent = 'All teams';
-    if (subEl) subEl.textContent = `${filtered.length} teams loaded`;
+    if (subEl) subEl.textContent = `${sorted.length} teams loaded`;
 
-    if (!filtered.length) {
+    if (!sorted.length) {
       if (emptyEl) emptyEl.classList.add('visible');
       return;
     }
 
     const fragment = document.createDocumentFragment();
-    filtered.forEach(t => fragment.appendChild(createCard(t)));
+    sorted.forEach(t => fragment.appendChild(createCard(t)));
     grid.appendChild(fragment);
     wireImageState(grid);
     primeImages(grid);
@@ -474,11 +515,11 @@
             favorites.delete(itemId);
             return { ok: true, saved: false };
           }
+          const team = allTeams.find(t => t.id === itemId) || {};
           await client.from('teams').upsert({
-            id: itemId, name: allTeams.find(t => t.id === itemId)?.name || '',
-            sport: allTeams.find(t => t.id === itemId)?.sport || null,
-            league: allTeams.find(t => t.id === itemId)?.league || null,
-            logo_url: getBadge(allTeams.find(t => t.id === itemId) || {})
+            id: itemId, name: team.name || '',
+            sport: team.sport || null, league: team.league || null,
+            logo_url: getBadge(team)
           }, { onConflict: 'id' });
           await client.from('user_favorite_teams').upsert(
             { user_id: currentUser.id, team_id: itemId },
@@ -491,7 +532,7 @@
           return { ok: false };
         }
       },
-      notify: (msg, isError) => showToast(msg, isError),
+      notify: (msg, isError) => showToast(msg, isError)
     });
   }
 
