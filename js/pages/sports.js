@@ -51,7 +51,13 @@
     'ferrari', 'mercedes', 'red bull racing', 'mclaren', 'aston martin',
     'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
     'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
-    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr'
+    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr',
+    'brazil', 'argentina', 'germany', 'france', 'spain', 'england', 'italy',
+    'portugal', 'netherlands', 'belgium', 'croatia', 'mexico', 'japan',
+    'south korea', 'australia', 'united states', 'canada', 'morocco',
+    'senegal', 'nigeria', 'egypt', 'tunisia', 'algeria', 'cameroon',
+    'ghana', 'ivory coast', 'south africa', 'uruguay', 'colombia',
+    'chile', 'peru', 'ecuador', 'saudi arabia', 'iran', 'qatar'
   ]);
 
   const SPORT_PRIORITY = {
