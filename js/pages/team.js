@@ -11,7 +11,8 @@
     supabase: null,
     currentUser: null,
     favorites: new Set(),
-    team: null
+    team: null,
+    localBadgeMap: {}
   };
 
   const ui = {
@@ -35,6 +36,19 @@
     mediaGrid: document.getElementById('teamMediaGrid'),
     mediaEmpty: document.getElementById('teamMediaEmpty'),
     toast: document.getElementById('teamToast')
+  };
+
+  const SPORT_BACKGROUNDS = {
+    'football': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M40 0 L80 40 L40 80 L0 40 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.06"/><circle cx="40" cy="40" r="15" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.06"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'motorsport': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></linearGradient><pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="20" height="20" fill="#ffffff" opacity="0.04"/><rect x="20" y="20" width="20" height="20" fill="#ffffff" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/><line x1="0" y1="200" x2="800" y2="200" stroke="#ffffff" stroke-width="6" opacity="0.08"/><line x1="0" y1="212" x2="800" y2="212" stroke="#ffffff" stroke-width="2" opacity="0.04"/></svg>`)}`,
+    'basketball': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M0 30 L60 30 M30 0 L30 60" stroke="#ffffff" stroke-width="1" opacity="0.05"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/><circle cx="400" cy="200" r="80" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.06"/></svg>`)}`,
+    'american football': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></linearGradient><pattern id="p" width="100" height="100" patternUnits="userSpaceOnUse"><line x1="0" y1="50" x2="100" y2="50" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'baseball': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M50 0 L100 50 L50 100 L0 50 Z" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'ice hockey': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></linearGradient><pattern id="p" width="80" height="80" patternUnits="userSpaceOnUse"><circle cx="40" cy="40" r="20" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/><line x1="400" y1="0" x2="400" y2="400" stroke="#ffffff" stroke-width="2" opacity="0.06"/></svg>`)}`,
+    'mma': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'boxing': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'kickboxing': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient><pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.04"/></pattern></defs><rect width="800" height="400" fill="url(#g)"/><rect width="800" height="400" fill="url(#p)"/></svg>`)}`,
+    'default': `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400"><defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0%" stop-color="#1e3a5f"/><stop offset="100%" stop-color="#0b1633"/></radialGradient></defs><rect width="800" height="400" fill="url(#g)"/></svg>`)}`
   };
 
   function escapeHtml(value) {
@@ -144,28 +158,12 @@
       stadiumLocation: String(raw.strStadiumLocation || '').trim(),
       stadiumCapacity: String(raw.intStadiumCapacity || '').trim(),
       description: String(raw.strDescriptionEN || raw.strDescription || '').trim(),
-      badge: toHttps(raw.strBadge || raw.strTeamBadge || raw.strLogo || raw.strTeamLogo || ''),
-      banner: toHttps(raw.strBanner || raw.strTeamBanner || ''),
-      fanart: [
-        raw.strFanart1,
-        raw.strFanart2,
-        raw.strFanart3,
-        raw.strFanart4,
-        raw.strTeamFanart1,
-        raw.strTeamFanart2,
-        raw.strTeamFanart3
-      ].map(toHttps).find((value) => value),
-      fanarts: [
-        raw.strFanart1,
-        raw.strFanart2,
-        raw.strFanart3,
-        raw.strFanart4,
-        raw.strTeamFanart1,
-        raw.strTeamFanart2,
-        raw.strTeamFanart3
-      ].map(toHttps).filter(Boolean),
-      stadiumThumb: toHttps(raw.strStadiumThumb || ''),
-      jersey: toHttps(raw.strEquipment || raw.strTeamJersey || ''),
+      badge: '',
+      banner: '',
+      fanart: '',
+      fanarts: [],
+      stadiumThumb: '',
+      jersey: '',
       website: normalizeExternalUrl(raw.strWebsite || ''),
       facebook: normalizeExternalUrl(raw.strFacebook || ''),
       twitter: normalizeExternalUrl(raw.strTwitter || ''),
@@ -244,10 +242,23 @@
     ui.mediaGrid.appendChild(fragment);
   }
 
+  function getSportBackground(sport) {
+    const norm = String(sport || '').toLowerCase().trim();
+    if (norm.includes('football') || norm.includes('soccer')) return SPORT_BACKGROUNDS['football'];
+    if (norm.includes('motor') || norm.includes('f1') || norm.includes('racing')) return SPORT_BACKGROUNDS['motorsport'];
+    if (norm.includes('basket')) return SPORT_BACKGROUNDS['basketball'];
+    if (norm.includes('american') || norm.includes('nfl')) return SPORT_BACKGROUNDS['american football'];
+    if (norm.includes('base')) return SPORT_BACKGROUNDS['baseball'];
+    if (norm.includes('hockey') || norm.includes('ice')) return SPORT_BACKGROUNDS['ice hockey'];
+    if (norm.includes('mma') || norm.includes('ufc')) return SPORT_BACKGROUNDS['mma'];
+    if (norm.includes('boxing') || norm.includes('kick')) return SPORT_BACKGROUNDS['boxing'];
+    return SPORT_BACKGROUNDS['default'];
+  }
+
   function setHero(team) {
-    const heroImage = team.fanart || team.stadiumThumb || team.banner || FALLBACK_IMAGE;
+    const bg = getSportBackground(team.sport);
     if (ui.heroMedia) {
-      ui.heroMedia.style.setProperty('--hero-bg', `url("${heroImage}")`);
+      ui.heroMedia.style.setProperty('--hero-bg', `url("${bg}")`);
       ui.heroMedia.style.setProperty('--hero-bg-size', 'cover');
       ui.heroMedia.style.setProperty('--hero-bg-position', 'center');
     }
@@ -470,6 +481,24 @@
     }
   }
 
+  async function loadLocalManifest() {
+    try {
+      const res = await fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' });
+      if (!res.ok) return;
+      state.localBadgeMap = await res.json();
+    } catch (_err) {
+      state.localBadgeMap = {};
+    }
+  }
+
+  function getLocalBadge(teamName) {
+    if (!teamName) return '';
+    const nameKey = teamName.toLowerCase().trim();
+    if (state.localBadgeMap[teamName]) return state.localBadgeMap[teamName];
+    if (state.localBadgeMap[nameKey]) return state.localBadgeMap[nameKey];
+    return '';
+  }
+
   async function loadTeam() {
     const params = new URLSearchParams(window.location.search);
     const teamIdRaw = params.get('id');
@@ -485,18 +514,13 @@
       country: teamCountry
     };
 
+    await loadLocalManifest();
+
     let localTeam = null;
     let remoteTeam = null;
 
-    // Load local badge from manifest
-    let localBadge = '';
-    try {
-      const manifestRes = await fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' });
-      if (manifestRes.ok) {
-        const manifest = await manifestRes.json();
-        localBadge = manifest[teamName] || '';
-      }
-    } catch (_err) {}
+    // Get local badge from manifest
+    const localBadge = getLocalBadge(teamName);
 
     // Try to get from Supabase first
     if (state.supabase && teamName) {
