@@ -512,6 +512,16 @@
     let localTeam = null;
     let remoteTeam = null;
 
+    // Load local badge from manifest
+    let localBadge = '';
+    try {
+      const manifestRes = await fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' });
+      if (manifestRes.ok) {
+        const manifest = await manifestRes.json();
+        localBadge = manifest[teamName] || '';
+      }
+    } catch (_err) {}
+
     // Try to get from Supabase first
     if (state.supabase && teamName) {
       try {
@@ -534,7 +544,7 @@
             stadiumLocation: '',
             stadiumCapacity: '',
             description: '',
-            badge: data.logo_url || '',
+            badge: localBadge || data.logo_url || '',
             banner: data.banner_url || '',
             fanart: data.fanart_url || '',
             fanarts: [],
@@ -551,7 +561,33 @@
       }
     }
 
-    // Try TheSportsDB
+    // Fallback if no Supabase data
+    if (!localTeam && teamName) {
+      localTeam = {
+        id: teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        name: teamName,
+        sport: teamSport || 'Football',
+        league: teamLeague || '',
+        country: teamCountry || '',
+        formedYear: '',
+        stadium: '',
+        stadiumLocation: '',
+        stadiumCapacity: '',
+        description: '',
+        badge: localBadge || '',
+        banner: '',
+        fanart: '',
+        fanarts: [],
+        stadiumThumb: '',
+        jersey: '',
+        website: '',
+        facebook: '',
+        twitter: '',
+        instagram: ''
+      };
+    }
+
+    // Try TheSportsDB for additional info (NOT for badge)
     if (teamName) {
       let payload = null;
 
@@ -566,41 +602,45 @@
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
-        remoteTeam = mapTeam(best || teams[0]);
-      }
-    }
-
-    // Try Wikipedia if no data from TheSportsDB
-    if (!remoteTeam && teamName) {
-      const wikiData = await fetchWikipedia(teamName);
-      if (wikiData) {
+        const mapped = mapTeam(best || teams[0]);
+        // Only use remote data for fields that are empty in local
         remoteTeam = {
-          id: teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          name: teamName,
-          sport: teamSport || 'Football',
-          league: teamLeague || '',
-          country: teamCountry || '',
-          formedYear: '',
-          stadium: localTeam?.stadium || '',
-          stadiumLocation: '',
-          stadiumCapacity: '',
-          description: wikiData.description || `Learn more about ${teamName} on Wikipedia.`,
-          badge: wikiData.thumbnail || '',
-          banner: '',
-          fanart: '',
-          fanarts: [],
-          stadiumThumb: '',
-          jersey: '',
-          website: wikiData.url || '',
-          facebook: '',
-          twitter: '',
-          instagram: ''
+          id: localTeam?.id || mapped.id,
+          name: localTeam?.name || mapped.name,
+          sport: localTeam?.sport || mapped.sport,
+          league: localTeam?.league || mapped.league,
+          country: mapped.country || '',
+          formedYear: mapped.formedYear || '',
+          stadium: localTeam?.stadium || mapped.stadium,
+          stadiumLocation: mapped.stadiumLocation || '',
+          stadiumCapacity: mapped.stadiumCapacity || '',
+          description: mapped.description || '',
+          badge: localTeam?.badge || mapped.badge,
+          banner: mapped.banner || '',
+          fanart: mapped.fanart || '',
+          fanarts: mapped.fanarts || [],
+          stadiumThumb: mapped.stadiumThumb || '',
+          jersey: mapped.jersey || '',
+          website: mapped.website || '',
+          facebook: mapped.facebook || '',
+          twitter: mapped.twitter || '',
+          instagram: mapped.instagram || ''
         };
       }
     }
 
-    // Merge local and remote data
-    const team = mergeTeamData(localTeam, remoteTeam);
+    // Try Wikipedia if no data from TheSportsDB
+    if (!remoteTeam?.description && teamName) {
+      const wikiData = await fetchWikipedia(teamName);
+      if (wikiData) {
+        remoteTeam = remoteTeam || { ...localTeam };
+        remoteTeam.description = wikiData.description || remoteTeam.description;
+        if (!remoteTeam.website && wikiData.url) remoteTeam.website = wikiData.url;
+      }
+    }
+
+    // Use remote data if available, otherwise local
+    const team = remoteTeam || localTeam;
 
     if (!team) {
       if (ui.name) ui.name.textContent = 'Team not found';
