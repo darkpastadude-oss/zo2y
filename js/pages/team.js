@@ -2,9 +2,8 @@
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-  const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
-  const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
-  const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
+  const SPORTSDB_KEY = '3';
+  const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_KEY}`;
   const FALLBACK_BADGE = '/file.svg';
   const FALLBACK_IMAGE = '/newlogo.webp';
 
@@ -68,9 +67,20 @@
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]+/g, '')
-      .replace(/['â€™]/g, '')
+      .replace(/['']/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim();
+  }
+
+  function showToast(message, type = 'info') {
+    if (!ui.toast) return;
+    ui.toast.textContent = message;
+    ui.toast.classList.toggle('error', type === 'error');
+    ui.toast.classList.add('show');
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(() => {
+      ui.toast.classList.remove('show');
+    }, 2800);
   }
 
   function scoreTeamMatch(raw, criteria = {}) {
@@ -117,18 +127,6 @@
     });
     return best;
   }
-
-  function showToast(message, type = 'info') {
-    if (!ui.toast) return;
-    ui.toast.textContent = message;
-    ui.toast.classList.toggle('error', type === 'error');
-    ui.toast.classList.add('show');
-    window.clearTimeout(showToast._timer);
-    showToast._timer = window.setTimeout(() => {
-      ui.toast.classList.remove('show');
-    }, 2800);
-  }
-
 
   function mapTeam(raw) {
     if (!raw || typeof raw !== 'object') return null;
@@ -423,6 +421,79 @@
     updateSaveButton(state.favorites.has(state.team.id));
   }
 
+  async function fetchSportsDB(endpoint, params = {}, timeoutMs = 10000) {
+    const url = new URL(`${SPORTSDB_BASE}/${endpoint}`);
+    Object.entries(params || {}).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        url.searchParams.set(key, value);
+      }
+    });
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url.toString(), {
+        headers: { Accept: 'application/json' },
+        signal: controller.signal
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (_err) {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function fetchWikipedia(teamName) {
+    try {
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName + ' football club')}&format=json&origin=*`;
+      const searchRes = await fetch(searchUrl);
+      const searchData = await searchRes.json();
+      const results = searchData?.query?.search || [];
+      if (!results.length) return null;
+
+      const title = results[0].title;
+      const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+      const summaryRes = await fetch(summaryUrl);
+      const summaryData = await summaryRes.json();
+
+      return {
+        title: summaryData.title || title,
+        description: summaryData.extract || '',
+        thumbnail: summaryData.thumbnail?.source || '',
+        url: summaryData.content_urls?.desktop?.page || ''
+      };
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function mergeTeamData(local, remote) {
+    if (!local && !remote) return null;
+    if (!remote) return local;
+    if (!local) return remote;
+
+    const merged = { ...local };
+    if (!merged.country && remote.country) merged.country = remote.country;
+    if (!merged.formedYear && remote.formedYear) merged.formedYear = remote.formedYear;
+    if (!merged.stadiumLocation && remote.stadiumLocation) merged.stadiumLocation = remote.stadiumLocation;
+    if (!merged.stadiumCapacity && remote.stadiumCapacity) merged.stadiumCapacity = remote.stadiumCapacity;
+    if (!merged.description && remote.description) merged.description = remote.description;
+    if (!merged.badge && remote.badge) merged.badge = remote.badge;
+    if (!merged.banner && remote.banner) merged.banner = remote.banner;
+    if (!merged.fanart && remote.fanart) merged.fanart = remote.fanart;
+    if (!merged.fanarts?.length && remote.fanarts?.length) merged.fanarts = remote.fanarts;
+    if (!merged.stadiumThumb && remote.stadiumThumb) merged.stadiumThumb = remote.stadiumThumb;
+    if (!merged.jersey && remote.jersey) merged.jersey = remote.jersey;
+    if (!merged.website && remote.website) merged.website = remote.website;
+    if (!merged.facebook && remote.facebook) merged.facebook = remote.facebook;
+    if (!merged.twitter && remote.twitter) merged.twitter = remote.twitter;
+    if (!merged.instagram && remote.instagram) merged.instagram = remote.instagram;
+    return merged;
+  }
+
   async function loadTeam() {
     const params = new URLSearchParams(window.location.search);
     const teamIdRaw = params.get('id');
@@ -437,37 +508,100 @@
       sport: teamSport,
       country: teamCountry
     };
-    let teamRaw = null;
 
-    if (teamId) {
-      const payload = await window.ZO2Y_SPORTSDB.request('lookupteam.php', { id: teamId }, 9000);
-      teamRaw = Array.isArray(payload?.teams) ? payload.teams[0] : null;
-      if (teamRaw && teamName) {
-        const queryName = normalizeTeamName(teamName);
-        const resultName = normalizeTeamName(teamRaw?.strTeam || '');
-        if (queryName && resultName && queryName !== resultName) {
-          const fallback = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
-          const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
-          const best = pickBestTeamMatch(teams, criteria);
-          if (best) teamRaw = best;
+    let localTeam = null;
+    let remoteTeam = null;
+
+    // Try to get from Supabase first
+    if (state.supabase && teamName) {
+      try {
+        const { data } = await state.supabase
+          .from('teams')
+          .select('*')
+          .ilike('name', teamName)
+          .limit(1)
+          .maybeSingle();
+
+        if (data) {
+          localTeam = {
+            id: data.id || teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+            name: data.name || teamName,
+            sport: data.sport || teamSport || '',
+            league: data.league || teamLeague || '',
+            country: teamCountry || '',
+            formedYear: '',
+            stadium: data.stadium || '',
+            stadiumLocation: '',
+            stadiumCapacity: '',
+            description: '',
+            badge: data.logo_url || '',
+            banner: data.banner_url || '',
+            fanart: data.fanart_url || '',
+            fanarts: [],
+            stadiumThumb: data.stadium_url || '',
+            jersey: data.jersey_url || '',
+            website: '',
+            facebook: '',
+            twitter: '',
+            instagram: ''
+          };
         }
-      }
-      if (!teamRaw && teamName) {
-        const fallback = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
-        const teams = Array.isArray(fallback?.teams) ? fallback.teams : [];
-        if (teams.length) {
-          teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];
-        }
-      }
-    } else if (teamName) {
-      const payload = await window.ZO2Y_SPORTSDB.request('searchteams.php', { t: teamName }, 9000);
-      const teams = Array.isArray(payload?.teams) ? payload.teams : [];
-      if (teams.length) {
-        teamRaw = pickBestTeamMatch(teams, criteria) || teams[0];
+      } catch (_err) {
+        console.warn('Failed to load from Supabase:', _err);
       }
     }
 
-    const team = mapTeam(teamRaw);
+    // Try TheSportsDB
+    if (teamName) {
+      let payload = null;
+
+      if (teamId) {
+        payload = await fetchSportsDB('lookupteam.php', { id: teamId });
+      }
+
+      if (!payload?.teams?.length) {
+        payload = await fetchSportsDB('searchteams.php', { t: teamName });
+      }
+
+      const teams = Array.isArray(payload?.teams) ? payload.teams : [];
+      if (teams.length) {
+        const best = pickBestTeamMatch(teams, criteria);
+        remoteTeam = mapTeam(best || teams[0]);
+      }
+    }
+
+    // Try Wikipedia if no data from TheSportsDB
+    if (!remoteTeam && teamName) {
+      const wikiData = await fetchWikipedia(teamName);
+      if (wikiData) {
+        remoteTeam = {
+          id: teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          name: teamName,
+          sport: teamSport || 'Football',
+          league: teamLeague || '',
+          country: teamCountry || '',
+          formedYear: '',
+          stadium: localTeam?.stadium || '',
+          stadiumLocation: '',
+          stadiumCapacity: '',
+          description: wikiData.description || `Learn more about ${teamName} on Wikipedia.`,
+          badge: wikiData.thumbnail || '',
+          banner: '',
+          fanart: '',
+          fanarts: [],
+          stadiumThumb: '',
+          jersey: '',
+          website: wikiData.url || '',
+          facebook: '',
+          twitter: '',
+          instagram: ''
+        };
+      }
+    }
+
+    // Merge local and remote data
+    const team = mergeTeamData(localTeam, remoteTeam);
+
     if (!team) {
       if (ui.name) ui.name.textContent = 'Team not found';
       if (ui.meta) ui.meta.textContent = 'Try searching again.';
@@ -478,6 +612,29 @@
 
     state.team = team;
     setHero(team);
+
+    // Save enriched data back to Supabase
+    if (state.supabase && remoteTeam) {
+      try {
+        await state.supabase
+          .from('teams')
+          .upsert({
+            id: team.id,
+            name: team.name,
+            sport: team.sport || null,
+            league: team.league || null,
+            logo_url: team.badge || null,
+            banner_url: team.banner || null,
+            stadium: team.stadium || null,
+            stadium_url: team.stadiumThumb || null,
+            jersey_url: team.jersey || null,
+            fanart_url: team.fanart || null
+          }, { onConflict: 'id' });
+      } catch (_err) {
+        console.warn('Failed to save team data:', _err);
+      }
+    }
+
     await loadFavoriteStatus();
   }
 
