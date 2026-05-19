@@ -1,6 +1,6 @@
 ﻿(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
   const FALLBACK_BADGE = '/file.svg';
@@ -15,7 +15,7 @@
     'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
     'psg': '/assets/sports-badges/psg.png',
     'paris saint germain': '/assets/sports-badges/psg.png',
-    'sao paulo': '/assets/sports-badges/sao-paulo.png',
+    'sao paulo': '/assets/sports-badges/s-o-paulo.png',
     'al hilal': '/assets/sports-badges/al-hilal.png',
     'al-hilal': '/assets/sports-badges/al-hilal.png',
     'al nassr': '/assets/sports-badges/al-nassr.png',
@@ -58,7 +58,11 @@
     'kick sauber': '/assets/sports-badges/kick-sauber.png',
     'stake f1 team kick sauber': '/assets/sports-badges/kick-sauber.png',
     'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
-    'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png'
+    'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
+    'audi': '/assets/sports-badges/audi-revolut-f1-team.png',
+    'audi revolut f1 team': '/assets/sports-badges/audi-revolut-f1-team.png',
+    'cadillac': '/assets/sports-badges/cadillac-formula-1-team.png',
+    'cadillac formula 1 team': '/assets/sports-badges/cadillac-formula-1-team.png'
   };
 
   const POPULAR_TEAMS = new Set([
@@ -132,6 +136,47 @@
     'japan': 'japan',
     'singapore': 'singapore'
   };
+
+  const COUNTRY_BADGES = {
+    'algeria': '/assets/sports-badges/algeria.svg',
+    'argentina': '/assets/sports-badges/argentina.png',
+    'australia': '/assets/sports-badges/australia.svg',
+    'belgium': '/assets/sports-badges/belgium.png',
+    'brazil': '/assets/sports-badges/brazil.png',
+    'cameroon': '/assets/sports-badges/cameroon.svg',
+    'canada': '/assets/sports-badges/canada.png',
+    'chile': '/assets/sports-badges/chile.png',
+    'colombia': '/assets/sports-badges/colombia.svg',
+    'croatia': '/assets/sports-badges/croatia.png',
+    "cote d'ivoire": '/assets/sports-badges/ivory-coast.svg',
+    'ecuador': '/assets/sports-badges/ecuador.png',
+    'egypt': '/assets/sports-badges/egypt.svg',
+    'england': '/assets/sports-badges/england.png',
+    'france': '/assets/sports-badges/france.png',
+    'germany': '/assets/sports-badges/germany.png',
+    'ghana': '/assets/sports-badges/ghana.svg',
+    'iran': '/assets/sports-badges/iran.svg',
+    'italy': '/assets/sports-badges/italy.png',
+    'ivory coast': '/assets/sports-badges/ivory-coast.svg',
+    'japan': '/assets/sports-badges/japan.png',
+    'mexico': '/assets/sports-badges/mexico.png',
+    'morocco': '/assets/sports-badges/morocco.svg',
+    'netherlands': '/assets/sports-badges/netherlands.svg',
+    'nigeria': '/assets/sports-badges/nigeria.png',
+    'peru': '/assets/sports-badges/peru.png',
+    'portugal': '/assets/sports-badges/portugal.png',
+    'qatar': '/assets/sports-badges/qatar.svg',
+    'saudi arabia': '/assets/sports-badges/saudi-arabia.svg',
+    'senegal': '/assets/sports-badges/senegal.svg',
+    'south africa': '/assets/sports-badges/south-africa.svg',
+    'south korea': '/assets/sports-badges/south-korea.png',
+    'spain': '/assets/sports-badges/spain.png',
+    'tunisia': '/assets/sports-badges/tunisia.png',
+    'united states': '/assets/sports-badges/united-states.svg',
+    'uruguay': '/assets/sports-badges/uruguay.png'
+  };
+
+  const NATIONAL_TEAM_SET = new Set(Object.keys(COUNTRY_BADGES));
 
   const grid = document.getElementById('sportsGrid');
   const searchInput = document.getElementById('sportsSearch');
@@ -214,9 +259,52 @@
   function getBadge(team) {
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
+    const resolvedCountry = resolveCountry(nameKey);
+    if (COUNTRY_BADGES[resolvedCountry]) return COUNTRY_BADGES[resolvedCountry];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
     return FALLBACK_BADGE;
+  }
+
+  function dedupeNationalTeams(teams) {
+    const chosenByCountry = new Map();
+
+    teams.forEach(team => {
+      const nameKey = normalize(team.name);
+      const resolvedCountry = resolveCountry(nameKey);
+      if (!NATIONAL_TEAM_SET.has(resolvedCountry)) return;
+
+      const existing = chosenByCountry.get(resolvedCountry);
+      if (!existing) {
+        chosenByCountry.set(resolvedCountry, team);
+        return;
+      }
+
+      const existingScore = scoreTeam(existing);
+      const nextScore = scoreTeam(team);
+      if (nextScore > existingScore) chosenByCountry.set(resolvedCountry, team);
+    });
+
+    if (!chosenByCountry.size) return teams;
+
+    const seen = new Set(chosenByCountry.values());
+    const output = [];
+    const countryAlreadyAdded = new Set();
+    teams.forEach(team => {
+      const nameKey = normalize(team.name);
+      const resolvedCountry = resolveCountry(nameKey);
+      if (!NATIONAL_TEAM_SET.has(resolvedCountry)) {
+        output.push(team);
+        return;
+      }
+      if (countryAlreadyAdded.has(resolvedCountry)) return;
+      output.push(chosenByCountry.get(resolvedCountry));
+      countryAlreadyAdded.add(resolvedCountry);
+    });
+
+    const removed = teams.length - output.length;
+    if (removed > 0) console.log(`[sports] Deduped ${removed} national-team rows`);
+    return output;
   }
 
   async function loadFavorites() {
@@ -248,8 +336,9 @@
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
       })).filter(t => t.name);
-      console.log(`[sports] Loaded ${teams.length} teams`);
-      return teams;
+      const deduped = dedupeNationalTeams(teams);
+      console.log(`[sports] Loaded ${teams.length} teams (showing ${deduped.length})`);
+      return deduped;
     } catch (err) {
       console.error('[sports] Load error:', err);
       return [];
