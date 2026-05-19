@@ -35,7 +35,7 @@
     'williams': '/assets/sports-badges/williams-racing.png',
     'williams racing': '/assets/sports-badges/williams-racing.png',
     'rb': '/assets/sports-badges/rb.png',
-    'kick sauber': '/assets/sports-badges/kick-sauber.svg',
+    'kick sauber': '/assets/sports-badges/kick-sauber.png',
     'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
     'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png'
   };
