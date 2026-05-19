@@ -24,13 +24,17 @@
     'glory kickboxing': '/assets/sports-badges/glory-kickboxing.png',
     'one championship': '/assets/sports-badges/one-championship.png',
     'k-1': '/assets/sports-badges/k-1.png',
-    'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
-    'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
-    'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+    'al hilal': '/assets/sports-badges/al-hilal.png',
+    'al-hilal': '/assets/sports-badges/al-hilal.png',
+    'al nassr': '/assets/sports-badges/al-nassr.png',
+    'al ahly': '/assets/sports-badges/al-ahly.png',
+    'ferrari': '/assets/sports-badges/ferrari.png',
+    'scuderia ferrari hp': '/assets/sports-badges/ferrari.png',
+    'red bull racing': '/assets/sports-badges/red-bull-racing.png',
     'oracle red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
-    'mercedes': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+    'mercedes': '/assets/sports-badges/mercedes.png',
     'mercedes-amg petronas formula one team': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
-    'mclaren': '/assets/sports-badges/mclaren-formula-1-team.png',
+    'mclaren': '/assets/sports-badges/mclaren.png',
     'mclaren formula 1 team': '/assets/sports-badges/mclaren-formula-1-team.png',
     'aston martin': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
     'aston martin aramco formula one team': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
@@ -38,10 +42,8 @@
     'bwt alpine formula one team': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
     'williams': '/assets/sports-badges/williams-racing.png',
     'williams racing': '/assets/sports-badges/williams-racing.png',
-    'rb': '/assets/sports-badges/visa-cash-app-rb-formula-one-team.png',
-    'visa cash app rb formula one team': '/assets/sports-badges/visa-cash-app-rb-formula-one-team.png',
-    'kick sauber': '/assets/sports-badges/stake-f1-team-kick-sauber.png',
-    'stake f1 team kick sauber': '/assets/sports-badges/stake-f1-team-kick-sauber.png',
+    'rb': '/assets/sports-badges/rb.png',
+    'kick sauber': '/assets/sports-badges/kick-sauber.png',
     'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
     'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
     'top rank': '/assets/sports-badges/top-rank.png',
@@ -162,11 +164,7 @@
 
   function resolveLeague(value) {
     const n = normalize(value);
-    if (LEAGUE_ALIASES[n]) return LEAGUE_ALIASES[n];
-    for (const [alias, canonical] of Object.entries(LEAGUE_ALIASES)) {
-      if (n.includes(alias)) return canonical;
-    }
-    return n;
+    return LEAGUE_ALIASES[n] || n;
   }
 
   function resolveCountry(value) {
@@ -453,25 +451,43 @@
     return allTeams.filter(t => {
       if (sportFilter !== 'all' && normalize(t.sport) !== normalize(sportFilter)) return false;
       if (leagueFilter !== 'all') {
-        const teamLeague = normalize(t.league);
-        const filterLeagueNorm = normalize(leagueFilter);
-        if (teamLeague !== filterLeagueNorm) return false;
+        if (normalize(t.league) !== normalize(leagueFilter)) return false;
       }
       if (search) {
         const q = normalize(search);
         const name = normalize(t.name);
         const league = normalize(t.league);
         const sport = normalize(t.sport);
-        const resolvedLeague = resolveLeague(q);
+        const tokens = q.split(/\s+/).filter(Boolean);
+
+        if (tokens.length === 0) return true;
+
+        if (tokens.length === 1) {
+          const tok = tokens[0];
+          const resolvedLeague = resolveLeague(tok);
+          const resolvedCountry = resolveCountry(tok);
+          if (name.includes(tok)) return true;
+          if (league === resolvedLeague) return true;
+          if (sport.includes(tok)) return true;
+          if (resolvedCountry && league.includes(resolvedCountry)) return true;
+          return false;
+        }
+
+        const allInName = tokens.every(tok => name.includes(tok));
+        if (allInName) return true;
+
+        const allInLeague = tokens.every(tok => league.includes(tok));
+        if (allInLeague) return true;
+
+        const allInSport = tokens.every(tok => sport.includes(tok));
+        if (allInSport) return true;
+
         const resolvedCountry = resolveCountry(q);
-        const tokens = q.split(' ').filter(Boolean);
+        if (resolvedCountry && tokens.every(tok => league.includes(resolvedCountry) || name.includes(tok) || sport.includes(tok))) {
+          return true;
+        }
 
-        const matchName = tokens.some(tok => name.includes(tok));
-        const matchLeague = league === resolvedLeague || tokens.some(tok => league.includes(tok));
-        const matchSport = sport.includes(q) || tokens.some(tok => sport.includes(tok));
-        const matchCountry = resolvedCountry && league.includes(resolvedCountry);
-
-        if (!matchName && !matchLeague && !matchSport && !matchCountry) return false;
+        return false;
       }
       return true;
     });
