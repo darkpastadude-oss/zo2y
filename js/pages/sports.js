@@ -82,6 +82,52 @@
     'rugby': 8, 'cricket': 9, 'boxing': 10, 'kickboxing': 11, 'other': 12
   };
 
+  const LEAGUE_ALIASES = {
+    'premier league': 'english premier league',
+    'epl': 'english premier league',
+    'la liga': 'spanish la liga',
+    'bundesliga': 'german bundesliga',
+    'serie a': 'italian serie a',
+    'ligue 1': 'french ligue 1',
+    'brasileirao': 'brazilian serie a',
+    'brazilian serie a': 'brazilian serie a',
+    'argentina primera division': 'argentina primera division',
+    'argentinian primera': 'argentina primera division',
+    'egyptian premier league': 'egyptian premier league',
+    'saudi pro league': 'saudi pro league',
+    'saudi league': 'saudi pro league',
+    'champions league': 'uefa champions league',
+    'ucl': 'uefa champions league',
+    'nba': 'nba',
+    'nfl': 'nfl',
+    'mlb': 'mlb',
+    'nhl': 'nhl',
+    'formula 1': 'formula 1',
+    'f1': 'formula 1'
+  };
+
+  const COUNTRY_ALIASES = {
+    'england': 'england', 'uk': 'england', 'britain': 'england',
+    'spain': 'spain',
+    'germany': 'germany',
+    'italy': 'italy',
+    'france': 'france',
+    'brazil': 'brazil',
+    'argentina': 'argentina',
+    'egypt': 'egypt',
+    'saudi arabia': 'saudi arabia', 'saudi': 'saudi arabia',
+    'usa': 'usa', 'united states': 'usa', 'america': 'usa',
+    'canada': 'canada',
+    'austria': 'austria',
+    'mexico': 'mexico',
+    'panama': 'panama',
+    'puerto rico': 'puerto rico',
+    'netherlands': 'netherlands',
+    'portugal': 'portugal',
+    'japan': 'japan',
+    'singapore': 'singapore'
+  };
+
   const grid = document.getElementById('sportsGrid');
   const searchInput = document.getElementById('sportsSearch');
   const searchBtn = document.getElementById('sportsSearchBtn');
@@ -114,6 +160,21 @@
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  function resolveLeague(value) {
+    const n = normalize(value);
+    if (LEAGUE_ALIASES[n]) return LEAGUE_ALIASES[n];
+    for (const [alias, canonical] of Object.entries(LEAGUE_ALIASES)) {
+      if (n.includes(alias)) return canonical;
+    }
+    return n;
+  }
+
+  function resolveCountry(value) {
+    const n = normalize(value);
+    if (COUNTRY_ALIASES[n]) return COUNTRY_ALIASES[n];
+    return n;
+  }
+
   function ensureSupabase() {
     if (supabaseClient) return supabaseClient;
     if (window.__ZO2Y_SUPABASE_CLIENT) {
@@ -141,18 +202,12 @@
   async function loadLocalManifest() {
     try {
       const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
-      if (!res.ok) {
-        console.warn('[sports] Manifest fetch failed:', res.status);
-        return;
-      }
+      if (!res.ok) return;
       localBadgeMap = await res.json();
       Object.entries(localBadgeMap).forEach(([name, path]) => {
         localBadgeMapLower[name.toLowerCase()] = path;
       });
-      console.log('[sports] Manifest loaded:', Object.keys(localBadgeMap).length, 'entries');
-    } catch (err) {
-      console.error('[sports] Manifest error:', err);
-    }
+    } catch (_) {}
   }
 
   function getBadge(team) {
@@ -184,10 +239,7 @@
         .select('id,name,sport,league,stadium', { count: 'exact' })
         .order('name')
         .limit(5000);
-      if (error) {
-        console.error('[sports] Supabase error:', error);
-        return [];
-      }
+      if (error) return [];
       const teams = (data || []).map(row => ({
         id: String(row.id || '').trim(),
         name: String(row.name || '').trim(),
@@ -395,19 +447,31 @@
 
   function getFilteredTeams() {
     const search = String(searchInput?.value || '').trim();
-    const sport = String(filterSport?.value || 'all').toLowerCase();
-    const league = String(filterLeague?.value || 'all').toLowerCase();
+    const sportFilter = String(filterSport?.value || 'all').trim();
+    const leagueFilter = String(filterLeague?.value || 'all').trim();
 
     return allTeams.filter(t => {
-      if (sport !== 'all' && normalize(t.sport) !== sport) return false;
-      if (league !== 'all' && normalize(t.league) !== league) return false;
+      if (sportFilter !== 'all' && normalize(t.sport) !== normalize(sportFilter)) return false;
+      if (leagueFilter !== 'all') {
+        const teamLeague = normalize(t.league);
+        const filterLeagueNorm = normalize(leagueFilter);
+        if (teamLeague !== filterLeagueNorm) return false;
+      }
       if (search) {
         const q = normalize(search);
         const name = normalize(t.name);
-        const leagueName = normalize(t.league);
-        const sportName = normalize(t.sport);
+        const league = normalize(t.league);
+        const sport = normalize(t.sport);
+        const resolvedLeague = resolveLeague(q);
+        const resolvedCountry = resolveCountry(q);
         const tokens = q.split(' ').filter(Boolean);
-        return tokens.some(tok => name.includes(tok) || leagueName.includes(tok) || sportName.includes(tok));
+
+        const matchName = tokens.some(tok => name.includes(tok));
+        const matchLeague = league === resolvedLeague || tokens.some(tok => league.includes(tok));
+        const matchSport = sport.includes(q) || tokens.some(tok => sport.includes(tok));
+        const matchCountry = resolvedCountry && league.includes(resolvedCountry);
+
+        if (!matchName && !matchLeague && !matchSport && !matchCountry) return false;
       }
       return true;
     });
@@ -441,18 +505,22 @@
 
   function populateFilters() {
     const sports = new Set();
-    const leagues = new Set();
+    const leagues = new Map();
     allTeams.forEach(t => {
       if (t.sport) sports.add(t.sport);
-      if (t.league) leagues.add(t.league);
+      if (t.league) {
+        const norm = normalize(t.league);
+        if (!leagues.has(norm)) leagues.set(norm, t.league);
+      }
     });
     if (filterSport) {
       filterSport.innerHTML = '<option value="all">All sports</option>' +
         [...sports].sort().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
     }
     if (filterLeague) {
+      const leagueOptions = [...leagues.values()].sort();
       filterLeague.innerHTML = '<option value="all">All leagues</option>' +
-        [...leagues].sort().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+        leagueOptions.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
     }
   }
 
