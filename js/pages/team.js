@@ -470,30 +470,6 @@
     }
   }
 
-  function mergeTeamData(local, remote) {
-    if (!local && !remote) return null;
-    if (!remote) return local;
-    if (!local) return remote;
-
-    const merged = { ...local };
-    if (!merged.country && remote.country) merged.country = remote.country;
-    if (!merged.formedYear && remote.formedYear) merged.formedYear = remote.formedYear;
-    if (!merged.stadiumLocation && remote.stadiumLocation) merged.stadiumLocation = remote.stadiumLocation;
-    if (!merged.stadiumCapacity && remote.stadiumCapacity) merged.stadiumCapacity = remote.stadiumCapacity;
-    if (!merged.description && remote.description) merged.description = remote.description;
-    if (!merged.badge && remote.badge) merged.badge = remote.badge;
-    if (!merged.banner && remote.banner) merged.banner = remote.banner;
-    if (!merged.fanart && remote.fanart) merged.fanart = remote.fanart;
-    if (!merged.fanarts?.length && remote.fanarts?.length) merged.fanarts = remote.fanarts;
-    if (!merged.stadiumThumb && remote.stadiumThumb) merged.stadiumThumb = remote.stadiumThumb;
-    if (!merged.jersey && remote.jersey) merged.jersey = remote.jersey;
-    if (!merged.website && remote.website) merged.website = remote.website;
-    if (!merged.facebook && remote.facebook) merged.facebook = remote.facebook;
-    if (!merged.twitter && remote.twitter) merged.twitter = remote.twitter;
-    if (!merged.instagram && remote.instagram) merged.instagram = remote.instagram;
-    return merged;
-  }
-
   async function loadTeam() {
     const params = new URLSearchParams(window.location.search);
     const teamIdRaw = params.get('id');
@@ -587,7 +563,8 @@
       };
     }
 
-    // Try TheSportsDB for additional info (NOT for badge)
+    // Try TheSportsDB for TEXT data only (country, formed, stadium, capacity, description, social)
+    // NEVER use images from TheSportsDB - they are often wrong
     if (teamName) {
       let payload = null;
 
@@ -603,24 +580,24 @@
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
         const mapped = mapTeam(best || teams[0]);
-        // Only use remote data for fields that are empty in local
+        // Only use remote TEXT data, NEVER images
         remoteTeam = {
           id: localTeam?.id || mapped.id,
           name: localTeam?.name || mapped.name,
           sport: localTeam?.sport || mapped.sport,
           league: localTeam?.league || mapped.league,
-          country: mapped.country || '',
+          country: mapped.country || localTeam?.country || '',
           formedYear: mapped.formedYear || '',
           stadium: localTeam?.stadium || mapped.stadium,
           stadiumLocation: mapped.stadiumLocation || '',
           stadiumCapacity: mapped.stadiumCapacity || '',
           description: mapped.description || '',
-          badge: localTeam?.badge || mapped.badge,
-          banner: mapped.banner || '',
-          fanart: mapped.fanart || '',
-          fanarts: mapped.fanarts || [],
-          stadiumThumb: mapped.stadiumThumb || '',
-          jersey: mapped.jersey || '',
+          badge: localTeam?.badge || '',
+          banner: '',
+          fanart: '',
+          fanarts: [],
+          stadiumThumb: '',
+          jersey: '',
           website: mapped.website || '',
           facebook: mapped.facebook || '',
           twitter: mapped.twitter || '',
@@ -629,7 +606,7 @@
       }
     }
 
-    // Try Wikipedia if no data from TheSportsDB
+    // Try Wikipedia for description only (NOT for images)
     if (!remoteTeam?.description && teamName) {
       const wikiData = await fetchWikipedia(teamName);
       if (wikiData) {
