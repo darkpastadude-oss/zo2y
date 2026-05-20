@@ -349,7 +349,7 @@
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
-      })).filter(t => t.name);
+      })).filter(t => t.name && normalize(t.league) !== 'national team');
       const deduped = dedupeNationalTeams(teams);
       console.log(`[sports] Loaded ${teams.length} teams (showing ${deduped.length})`);
       return deduped;
