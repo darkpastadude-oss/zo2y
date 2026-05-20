@@ -10019,7 +10019,115 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
           return items.slice(0, target);
         }
-      } catch (_err) {}
+      } catch (_err) {
+        // Manifest unavailable - will load from teams table below
+      }
+
+      // Fallback: load teams from Supabase teams table (locally saved data)
+      try {
+        const client = await ensureHomeSupabase();
+        if (!client) throw new Error('no supabase client');
+
+        const { data, error } = await client
+          .from('teams')
+          .select('id,name,sport,league,logo_url')
+          .order('name')
+          .limit(5000);
+
+        if (error || !Array.isArray(data) || !data.length) throw new Error('no teams data');
+
+        const seen = new Set();
+        const bucketed = new Map();
+
+        const sorted = data
+          .filter((row) => {
+            const name = String(row?.name || '').trim();
+            const logo = String(row?.logo_url || '').trim();
+            return name && logo;
+          })
+          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
+
+        for (const row of sorted) {
+          const id = String(row.id || '').trim();
+          const title = String(row.name || '').trim();
+          const key = id || title.toLowerCase();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+
+          const badge = toHttpsUrl(String(row.logo_url || '').trim());
+          if (!badge) continue;
+
+          const sport = String(row.sport || '').trim();
+          const league = String(row.league || '').trim();
+
+          const item = {
+            mediaType: 'sports',
+            itemId: id || title,
+            title,
+            subtitle: league || 'Sports',
+            extra: [sport].filter(Boolean).join(' | ').toLowerCase(),
+            image: badge,
+            listImage: badge,
+            backgroundImage: badge,
+            spotlightImage: badge,
+            spotlightMediaImage: badge,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'square',
+            mediaFit: 'contain',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
+          };
+          const bucket = toSportBucket(sport);
+          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
+          bucketed.get(bucket).push(item);
+        }
+
+        const bucketOrder = ['soccer', 'motorsport', 'mma', 'basketball', 'american-football', 'baseball', 'hockey', 'rugby', 'cricket', 'other'];
+        const items = [];
+        const maxPerBucket = Math.ceil(target / Math.min(bucketed.size, 6));
+        bucketOrder.forEach((bucket) => {
+          const list = bucketed.get(bucket);
+          if (!Array.isArray(list) || !list.length) return;
+          const take = Math.min(maxPerBucket, list.length);
+          for (let i = 0; i < take && items.length < target * 2; i++) {
+            items.push(list[i]);
+          }
+        });
+
+        if (!items.some((item) => toSportBucket(item?.sport || item?.subtitle || '') === 'mma')) {
+          items.splice(Math.min(2, items.length), 0, createShowcaseSportsItem({
+            title: 'UFC', sport: 'MMA', league: 'UFC', subtitle: 'MMA | UFC'
+          }));
+        }
+
+        if (items.length) {
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+          return items.slice(0, target);
+        }
+      } catch (_err) {
+        // Teams table unavailable - will use hardcoded showcase below
+      }
+
+      // Ultimate fallback: generate showcase items from POPULAR_TEAMS so the rail is never empty
+      try {
+        const showcaseTeams = [
+          { title: 'Real Madrid', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
+          { title: 'FC Barcelona', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
+          { title: 'Liverpool', sport: 'Soccer', league: 'Premier League', country: 'England' },
+          { title: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
+          { title: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', country: 'USA' },
+          { title: 'Boston Celtics', sport: 'Basketball', league: 'NBA', country: 'USA' },
+          { title: 'Kansas City Chiefs', sport: 'American Football', league: 'NFL', country: 'USA' },
+          { title: 'Dallas Cowboys', sport: 'American Football', league: 'NFL', country: 'USA' },
+          { title: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', country: 'Italy' },
+          { title: 'McLaren', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
+          { title: 'New York Yankees', sport: 'Baseball', league: 'MLB', country: 'USA' },
+          { title: 'Toronto Maple Leafs', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
+          { title: 'UFC', sport: 'MMA', league: 'UFC', country: 'USA' }
+        ];
+        const fallbackItems = showcaseTeams.map((t) => createShowcaseSportsItem(t));
+        return fallbackItems.slice(0, target);
+      } catch (_err2) {}
 
       return cachedSportsItems.slice(0, target);
     }

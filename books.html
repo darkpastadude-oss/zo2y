@@ -250,7 +250,7 @@
       box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
       outline: none;
     }
-    .search-clear-btn, .search-spinner {
+    .search-spinner {
       position: absolute;
       right: 10px;
       top: 50%;
@@ -258,18 +258,15 @@
       width: 30px;
       height: 30px;
       border: none;
-      background: rgba(255,255,255,0.08);
+      background: transparent;
       border-radius: 50%;
-      color: var(--muted);
-      cursor: pointer;
+      color: var(--accent);
+      pointer-events: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      transition: background 0.2s ease, color 0.2s ease;
+      font-size: 14px;
     }
-    .search-clear-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
-    .search-spinner { pointer-events: none; font-size: 14px; color: var(--accent); background: transparent; }
     .controls input, .controls select {
       height: 56px;
       border: 1px solid var(--border);
@@ -526,22 +523,7 @@
       border-radius: 50%;
       animation: book-spin 0.85s linear infinite;
     }
-    .book-loader .spinner.half {
-      width: 48px;
-      height: 24px;
-      border: 4px solid rgba(245,158,11,0.15);
-      border-top-color: #f59e0b;
-      border-bottom-color: transparent;
-      border-left-color: transparent;
-      border-right-color: transparent;
-      border-radius: 50% 50% 0 0;
-      animation: book-pulse 1s ease-in-out infinite;
-    }
     @keyframes book-spin { to { transform: rotate(360deg); } }
-    @keyframes book-pulse {
-      0%, 100% { transform: rotate(0deg); opacity: 0.5; }
-      50% { transform: rotate(30deg); opacity: 1; }
-    }
 
     .empty { color: var(--muted); font-size: 13px; padding: 20px; }
 
@@ -936,7 +918,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
-        <button id="searchClearBtn" class="search-clear-btn" type="button" aria-label="Clear search" hidden><i class="fas fa-times"></i></button>
         <span id="searchSpinner" class="search-spinner" hidden><i class="fas fa-circle-notch fa-spin"></i></span>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
@@ -965,7 +946,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner half"></div><span>Loading books...</span></div></div>
+      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -1082,29 +1063,29 @@
       { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
       { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
       { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
-      { title: 'A Court of Thorns and Roses', author: 'Sarah J. Maas', year: 2015 },
-      { title: "The Women", author: 'Kristin Hannah', year: 2024 },
+      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
+      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
+      { title: '25 Alive', author: 'James Patterson', year: 2025 },
+      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
+      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
+      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
+      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
+      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
+      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+      { title: 'James', author: 'Percival Everett', year: 2024 },
+      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
+      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
+      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
       { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
-      { title: 'The Housemaid Is Watching', author: 'Freida McFadden', year: 2024 },
-      { title: 'Lessons in Chemistry', author: 'Bonnie Garmus', year: 2022 },
-      { title: 'The Boyfriend', author: 'Freida McFadden', year: 2024 },
-      { title: 'The Teacher', author: 'Freida McFadden', year: 2024 },
-      { title: 'Tomorrow, and Tomorrow, and Tomorrow', author: 'Gabrielle Zevin', year: 2022 },
-      { title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', year: 2017 },
-      { title: 'It Ends with Us', author: 'Colleen Hoover', year: 2016 },
-      { title: 'Verity', author: 'Colleen Hoover', year: 2018 },
-      { title: 'The Midnight Library', author: 'Matt Haig', year: 2020 },
       { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
-      { title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019 },
-      { title: 'Where the Crawdads Sing', author: 'Delia Owens', year: 2018 },
-      { title: 'Atomic Habits', author: 'James Clear', year: 2018 },
-      { title: 'House of Flame and Shadow', author: 'Sarah J. Maas', year: 2024 },
-      { title: 'The Song of Achilles', author: 'Madeline Miller', year: 2011 },
-      { title: 'The Love Hypothesis', author: 'Ali Hazelwood', year: 2021 },
-      { title: 'The House in the Cerulean Sea', author: 'TJ Klune', year: 2020 },
-      { title: 'The Thursday Murder Club', author: 'Richard Osman', year: 2020 },
-      { title: 'Demon Copperhead', author: 'Barbara Kingsolver', year: 2022 },
-      { title: 'The Pumpkin Spice Cafe', author: 'Laurie Gilmore', year: 2023 }
+      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
+      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
+      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
+      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
+      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
+      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
     ];
 
     function shuffleArray(array) {
@@ -1170,24 +1151,46 @@
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
 
         try {
-          const [popularRes, trendingRes] = await Promise.all([
-            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${BOOKS_PER_PAGE}&page=1&orderBy=relevance`),
-            fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`)
-          ]);
+          // Fetch popular current books by searching for 2025-2026 bestseller queries
+          const queries = [
+            'bestsellers 2025 fiction',
+            'popular books 2025',
+            '2025 bestseller'
+          ];
+          const allResults = await Promise.allSettled(
+            queries.map(q =>
+              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / queries.length)}&page=1&language=en&orderBy=relevance`)
+                .then(r => r.ok ? r.json() : null)
+            )
+          );
 
-          if (popularRes.ok) {
-            const popularJson = await popularRes.json();
-            books = Array.isArray(popularJson?.books) ? popularJson.books : [];
-            apiTotalResults = Number(popularJson?.meta?.numFound || 0);
+          const seen = new Set();
+          for (const result of allResults) {
+            if (result.status !== 'fulfilled' || !result.value) continue;
+            const batch = Array.isArray(result.value.books) ? result.value.books : (Array.isArray(result.value.docs) ? result.value.docs : []);
+            for (const book of batch) {
+              const id = book.id || book._googleVolumeId || '';
+              if (!id || seen.has(id)) continue;
+              seen.add(id);
+              books.push(book);
+              apiTotalResults = Math.max(apiTotalResults || 0, Number(result.value.meta?.numFound || result.value.numFound || 0));
+            }
           }
 
-          if (trendingRes.ok) {
-            const trendingJson = await trendingRes.json();
-            const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-            const existingIds = new Set(books.map(b => b.id));
-            const fresh = trendingBooks.filter(b => !existingIds.has(b.id));
-            books = books.concat(fresh);
-            apiTotalResults = Math.max(apiTotalResults || 0, Number(trendingJson?.meta?.numFound || 0));
+          // Fallback to trending if not enough results
+          if (books.length < 15) {
+            const trendingRes = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`);
+            if (trendingRes.ok) {
+              const trendingJson = await trendingRes.json();
+              const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
+              for (const book of trendingBooks) {
+                const id = book.id || book._googleVolumeId || '';
+                if (!id || seen.has(id)) continue;
+                seen.add(id);
+                books.push(book);
+              }
+              apiTotalResults = Math.max(apiTotalResults || 0, Number(trendingJson?.meta?.numFound || 0));
+            }
           }
         } catch (_err) {
           console.error('Failed to load popular books', _err);
@@ -1267,19 +1270,12 @@
       }
     }
 
-    function updateSearchUI(query) {
-      const clearBtn = document.getElementById('searchClearBtn');
-      const spinner = document.getElementById('searchSpinner');
-      if (clearBtn) clearBtn.hidden = !query;
-    }
-
     function showSearchLoading(loading) {
       const spinner = document.getElementById('searchSpinner');
       if (spinner) spinner.hidden = !loading;
     }
 
     function debounceSearch(query) {
-      updateSearchUI(query);
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       if (!query) return;
       searchDebounceTimer = setTimeout(async () => {
@@ -1513,7 +1509,6 @@
 
     async function executeSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      updateSearchUI(query);
       showSearchLoading(true);
       state.search = query;
       state.page = 1;
@@ -1525,7 +1520,6 @@
 
     document.getElementById('q')?.addEventListener('input', async (e) => {
       const query = String(e.target.value || '').trim();
-      updateSearchUI(query);
       if (!query) {
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
         await executeSearch('');
@@ -1540,15 +1534,6 @@
         const query = String(e.target.value || '').trim();
         executeSearch(query);
       }
-    });
-    document.getElementById('searchClearBtn')?.addEventListener('click', async () => {
-      const input = document.getElementById('q');
-      if (input) {
-        input.value = '';
-        input.focus();
-      }
-      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      await executeSearch('');
     });
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
       const query = String(document.getElementById('q')?.value || '').trim();

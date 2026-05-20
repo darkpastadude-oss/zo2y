@@ -321,6 +321,26 @@
 
     .empty { color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
 
+    .book-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 48px 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .book-loader .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(245,158,11,0.15);
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: book-spin 0.85s linear infinite;
+    }
+    @keyframes book-spin { to { transform: rotate(360deg); } }
+
     .pagination {
       padding: 0 12px 14px;
       display: flex;
@@ -702,7 +722,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid" id="booksGrid"></div>
+      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -816,6 +836,15 @@
       return date <= twoYearsFromNow;
     }
 
+    function normalizeBookSeedText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     function shuffleArray(array) {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -825,24 +854,33 @@
       return arr;
     }
 
-    const TOP_POPULAR_BOOK_IDS = [
-      'OL24169016M', 'OL24169017M', 'OL24169018M', 'OL24169019M', 'OL24169020M',
-      'OL24169021M', 'OL24169022M', 'OL24169023M', 'OL24169024M', 'OL24169025M',
-      'OL24169026M', 'OL24169027M', 'OL24169028M', 'OL24169029M', 'OL24169030M',
-      'OL24169031M', 'OL24169032M', 'OL24169033M', 'OL24169034M', 'OL24169035M',
-      'OL24169036M', 'OL24169037M', 'OL24169038M', 'OL24169039M', 'OL24169040M',
-      'OL24169041M', 'OL24169042M', 'OL24169043M', 'OL24169044M', 'OL24169045M',
-      'OL24169046M', 'OL24169047M', 'OL24169048M', 'OL24169049M', 'OL24169050M',
-      'OL24169051M', 'OL24169052M', 'OL24169053M', 'OL24169054M', 'OL24169055M',
-      'OL24169056M', 'OL24169057M', 'OL24169058M', 'OL24169059M', 'OL24169060M',
-      'OL24169061M', 'OL24169062M', 'OL24169063M', 'OL24169064M', 'OL24169065M',
-      'OL24169066M', 'OL24169067M', 'OL24169068M', 'OL24169069M', 'OL24169070M',
-      'OL24169071M', 'OL24169072M', 'OL24169073M', 'OL24169074M', 'OL24169075M',
-      'OL24169076M', 'OL24169077M', 'OL24169078M', 'OL24169079M', 'OL24169080M',
-      'OL24169081M', 'OL24169082M', 'OL24169083M', 'OL24169084M', 'OL24169085M',
-      'OL24169086M', 'OL24169087M', 'OL24169088M', 'OL24169089M', 'OL24169090M',
-      'OL24169091M', 'OL24169092M', 'OL24169093M', 'OL24169094M', 'OL24169095M',
-      'OL24169096M', 'OL24169097M', 'OL24169098M', 'OL24169099M', 'OL24169100M'
+    const CURRENT_TOP_BOOK_SEEDS = [
+      { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
+      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
+      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
+      { title: '25 Alive', author: 'James Patterson', year: 2025 },
+      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
+      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
+      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
+      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
+      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
+      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+      { title: 'James', author: 'Percival Everett', year: 2024 },
+      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
+      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
+      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
+      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
+      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
+      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
+      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
+      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
+      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
     ];
 
     function showToast(message, isError = false) {
@@ -902,22 +940,43 @@
 
       if (!query) {
         try {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=${apiLimit}&page=1&orderBy=relevance`;
-          const res = await fetch(url, { signal });
-          if (res.ok) {
-            const json = await res.json();
-            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-            apiTotalPages = json?.totalPages || json?.total || 1;
+          const queries = [
+            'bestsellers 2025 fiction',
+            'popular books 2025',
+            '2025 bestseller'
+          ];
+          const allResults = await Promise.allSettled(
+            queries.map(q =>
+              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(apiLimit / queries.length)}&page=1&language=en&orderBy=relevance`, { signal })
+                .then(r => r.ok ? r.json() : null)
+            )
+          );
+
+          const seen = new Set();
+          for (const result of allResults) {
+            if (result.status !== 'fulfilled' || !result.value) continue;
+            const batch = Array.isArray(result.value.books) ? result.value.books : (Array.isArray(result.value.docs) ? result.value.docs : []);
+            for (const book of batch) {
+              const id = book.id || book._googleVolumeId || '';
+              if (!id || seen.has(id)) continue;
+              seen.add(id);
+              books.push(book);
+              apiTotalPages = Math.max(apiTotalPages || 1, Number(result.value.meta?.numFound || result.value.numFound || 1));
+            }
           }
 
-          // Blend in trending after popular for variety (but keep popular first).
-          if (books.length < apiLimit * 0.75) {
+          if (books.length < 15) {
             const trendingUrl = `${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${apiLimit}`;
             const trendingRes = await fetch(trendingUrl, { signal });
             if (trendingRes.ok) {
               const json = await trendingRes.json();
               const trending = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json) ? json : []));
-              books = books.concat(trending);
+              for (const book of trending) {
+                const id = book.id || book._googleVolumeId || '';
+                if (!id || seen.has(id)) continue;
+                seen.add(id);
+                books.push(book);
+              }
               apiTotalPages = Math.max(apiTotalPages || 1, json?.totalPages || json?.total || 1);
             }
           }
@@ -956,6 +1015,21 @@
         publishedDate: book.publishedDate || book.published_date || '',
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
+
+      // Boost popular/seed books to the front of page 1
+      if (!query && state.page === 1) {
+        const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
+        const boosted = [];
+        const rest = [];
+        for (const book of state.books) {
+          if (seedTitles.has(normalizeBookSeedText(book.title))) {
+            boosted.push(book);
+          } else {
+            rest.push(book);
+          }
+        }
+        state.books = [...boosted, ...rest];
+      }
 
       if (!query && state.page > 1) {
         state.books = shuffleArray(state.books);
@@ -1023,15 +1097,6 @@
         if (signupBtn) signupBtn.style.display = 'inline-flex';
         if (profileBtn) profileBtn.style.display = 'none';
       }
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
     }
 
     async function loadBooks(queryOverride = '') {
