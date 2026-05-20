@@ -21,22 +21,6 @@
     'al nassr': '/assets/sports-badges/al-nassr.png',
     'al ahly': '/assets/sports-badges/al-ahly.png',
 
-    // National teams (common DB/Wiki variants)
-    'usa': '/assets/sports-badges/united-states.svg',
-    'united states of america': '/assets/sports-badges/united-states.svg',
-    "cote d'ivoire": '/assets/sports-badges/ivory-coast.svg',
-    'cote divoire': '/assets/sports-badges/ivory-coast.svg',
-    'czech republic': '/assets/sports-badges/czech-republic.svg',
-    'korea republic': '/assets/sports-badges/south-korea.svg',
-    'korea republic (south korea)': '/assets/sports-badges/south-korea.svg',
-    'iran ir': '/assets/sports-badges/iran.svg',
-    'saudi': '/assets/sports-badges/saudi-arabia.svg',
-    'uae': '/assets/sports-badges/uae.svg',
-    'united arab emirates': '/assets/sports-badges/uae.svg',
-    'dr congo': '/assets/sports-badges/dr-congo.svg',
-    'd.r. congo': '/assets/sports-badges/dr-congo.svg',
-    'republic of ireland': '/assets/sports-badges/republic-of-ireland.svg',
-
     'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
     'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
     'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
@@ -76,13 +60,7 @@
     'ferrari', 'mercedes', 'red bull racing', 'mclaren', 'aston martin',
     'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
     'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
-    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr',
-    'brazil', 'argentina', 'germany', 'france', 'spain', 'england', 'italy',
-    'portugal', 'netherlands', 'belgium', 'croatia', 'mexico', 'japan',
-    'south korea', 'australia', 'united states', 'canada', 'morocco',
-    'senegal', 'nigeria', 'egypt', 'tunisia', 'algeria', 'cameroon',
-    'ghana', 'ivory coast', 'south africa', 'uruguay', 'colombia',
-    'chile', 'peru', 'ecuador', 'saudi arabia', 'iran', 'qatar'
+    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr'
   ]);
 
   const SPORT_PRIORITY = {
@@ -136,47 +114,6 @@
     'japan': 'japan',
     'singapore': 'singapore'
   };
-
-  const COUNTRY_BADGES = {
-    'algeria': '/assets/sports-badges/algeria.svg',
-    'argentina': '/assets/sports-badges/argentina.svg',
-    'australia': '/assets/sports-badges/australia.svg',
-    'belgium': '/assets/sports-badges/belgium.svg',
-    'brazil': '/assets/sports-badges/brazil.svg',
-    'cameroon': '/assets/sports-badges/cameroon.svg',
-    'canada': '/assets/sports-badges/canada.svg',
-    'chile': '/assets/sports-badges/chile.svg',
-    'colombia': '/assets/sports-badges/colombia.svg',
-    'croatia': '/assets/sports-badges/croatia.svg',
-    "cote d'ivoire": '/assets/sports-badges/ivory-coast.svg',
-    'ecuador': '/assets/sports-badges/ecuador.svg',
-    'egypt': '/assets/sports-badges/egypt.svg',
-    'england': '/assets/sports-badges/england.svg',
-    'france': '/assets/sports-badges/france.svg',
-    'germany': '/assets/sports-badges/germany.svg',
-    'ghana': '/assets/sports-badges/ghana.svg',
-    'iran': '/assets/sports-badges/iran.svg',
-    'italy': '/assets/sports-badges/italy.svg',
-    'ivory coast': '/assets/sports-badges/ivory-coast.svg',
-    'japan': '/assets/sports-badges/japan.svg',
-    'mexico': '/assets/sports-badges/mexico.svg',
-    'morocco': '/assets/sports-badges/morocco.svg',
-    'netherlands': '/assets/sports-badges/netherlands.svg',
-    'nigeria': '/assets/sports-badges/nigeria.svg',
-    'peru': '/assets/sports-badges/peru.svg',
-    'portugal': '/assets/sports-badges/portugal.svg',
-    'qatar': '/assets/sports-badges/qatar.svg',
-    'saudi arabia': '/assets/sports-badges/saudi-arabia.svg',
-    'senegal': '/assets/sports-badges/senegal.svg',
-    'south africa': '/assets/sports-badges/south-africa.svg',
-    'south korea': '/assets/sports-badges/south-korea.svg',
-    'spain': '/assets/sports-badges/spain.svg',
-    'tunisia': '/assets/sports-badges/tunisia.svg',
-    'united states': '/assets/sports-badges/united-states.svg',
-    'uruguay': '/assets/sports-badges/uruguay.svg'
-  };
-
-  const NATIONAL_TEAM_SET = new Set(Object.keys(COUNTRY_BADGES));
 
   const grid = document.getElementById('sportsGrid');
   const searchInput = document.getElementById('sportsSearch');
@@ -259,66 +196,11 @@
   function getBadge(team) {
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    if (COUNTRY_BADGES[nameKey]) return COUNTRY_BADGES[nameKey];
-    const countryMatch = Object.keys(COUNTRY_BADGES).find(c => nameKey.includes(c));
-    if (countryMatch) return COUNTRY_BADGES[countryMatch];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
     const match = Object.keys(localBadgeMapLower).find(c => nameKey.includes(c));
     if (match) return localBadgeMapLower[match];
     return FALLBACK_BADGE;
-  }
-
-  function resolveNationalCountry(nameKey, leagueKey) {
-    const exact = resolveCountry(nameKey);
-    if (NATIONAL_TEAM_SET.has(exact)) return exact;
-    const partial = Object.keys(COUNTRY_BADGES).find(c => nameKey.includes(c));
-    if (partial) return partial;
-    if (leagueKey === 'national team') return nameKey;
-    return exact;
-  }
-
-  function dedupeNationalTeams(teams) {
-    const chosenByCountry = new Map();
-
-    teams.forEach(team => {
-      const nameKey = normalize(team.name);
-      const leagueKey = normalize(team.league);
-      const resolvedCountry = resolveNationalCountry(nameKey, leagueKey);
-      if (!NATIONAL_TEAM_SET.has(resolvedCountry) && leagueKey !== 'national team') return;
-
-      const existing = chosenByCountry.get(resolvedCountry);
-      if (!existing) {
-        chosenByCountry.set(resolvedCountry, team);
-        return;
-      }
-
-      const existingScore = scoreTeam(existing);
-      const nextScore = scoreTeam(team);
-      if (nextScore > existingScore) chosenByCountry.set(resolvedCountry, team);
-    });
-
-    if (!chosenByCountry.size) return teams;
-
-    const seen = new Set(chosenByCountry.values());
-    const output = [];
-    const countryAlreadyAdded = new Set();
-    teams.forEach(team => {
-      const nameKey = normalize(team.name);
-      const leagueKey = normalize(team.league);
-      const resolvedCountry = resolveNationalCountry(nameKey, leagueKey);
-      if (!NATIONAL_TEAM_SET.has(resolvedCountry) && leagueKey !== 'national team') {
-        output.push(team);
-        return;
-      }
-      if (countryAlreadyAdded.has(resolvedCountry)) return;
-      output.push(chosenByCountry.get(resolvedCountry));
-      countryAlreadyAdded.add(resolvedCountry);
-    });
-
-    const removed = teams.length - output.length;
-    if (removed > 0) console.log(`[sports] Deduped ${removed} national-team rows`);
-    return output;
   }
 
   async function loadFavorites() {
@@ -349,10 +231,9 @@
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
-      })).filter(t => t.name);
-      const deduped = dedupeNationalTeams(teams);
-      console.log(`[sports] Loaded ${teams.length} teams (showing ${deduped.length})`);
-      return deduped;
+      })).filter(t => t.name && normalize(t.league) !== 'national team');
+      console.log(`[sports] Loaded ${teams.length} teams`);
+      return teams;
     } catch (err) {
       console.error('[sports] Load error:', err);
       return [];
