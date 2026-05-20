@@ -28,13 +28,15 @@
   <script src="js/list-utils.js?v=20260419a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260428a" defer></script>
   <script src="js/shared-header.js?v=20260428a" defer></script>
+  <script src="js/pages/sports.js?v=20260519g" defer></script>
   <style>
     .brand-hero.sports-hero {
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: clamp(20px, 4vw, 34px);
       background:
-        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7));
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("/assets/home-spotlights/sports-multi.jpg") center/cover;
       box-shadow: 0 14px 36px rgba(0,0,0,0.26);
       margin-bottom: 20px;
       overflow: hidden;
@@ -56,14 +58,107 @@
   <main class="container">
     <section class="brand-hero sports-hero" aria-label="Sports header">
       <h1>Sports</h1>
-      <p>Sports teams and national-team content have been removed from this page.</p>
+      <p>Browse teams from football, basketball, F1, UFC, and more. Save your favorites to your profile.</p>
     </section>
-    <section class="sports-results" aria-label="Sports removed notice">
-      <div class="sports-results-head">
-        <h2>Removed</h2>
-        <p>This page no longer shows teams, tables, or team cards/images.</p>
+
+    <div class="controls sports-search-bar">
+      <input id="sportsSearch" class="search-input" type="search" placeholder="Search teams, leagues, or sports..." />
+      <button class="control-icon-btn" id="sportsSearchBtn" type="button" aria-label="Search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+      <button class="control-icon-btn" id="sportsFilterBtn" type="button" aria-label="Filters">
+        <i class="fa-solid fa-sliders-h"></i>
+      </button>
+      <div class="sports-search-suggest" id="sportsSuggest" role="listbox"></div>
+    </div>
+
+    <div class="controls-meta">
+      <span id="sportsCount">0 teams shown</span>
+    </div>
+
+    <div class="control-modal" id="sportsFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter teams</div>
+          <button class="control-modal-close" id="sportsFilterClose" type="button">&times;</button>
+        </div>
+        <div class="sports-filter-grid">
+          <label class="sports-filter-label">
+            <span>Sport</span>
+            <select id="filterSport"><option value="all">All sports</option></select>
+          </label>
+          <label class="sports-filter-label">
+            <span>League</span>
+            <select id="filterLeague"><option value="all">All leagues</option></select>
+          </label>
+        </div>
       </div>
+    </div>
+
+    <div class="sports-search-tags" id="sportsTags">
+      <button class="sports-search-tag" type="button" data-q="Real Madrid">Real Madrid</button>
+      <button class="sports-search-tag" type="button" data-q="Liverpool">Liverpool</button>
+      <button class="sports-search-tag" type="button" data-q="NBA">NBA</button>
+      <button class="sports-search-tag" type="button" data-q="NFL">NFL</button>
+      <button class="sports-search-tag" type="button" data-q="Formula 1">Formula 1</button>
+      <button class="sports-search-tag" type="button" data-q="UFC">UFC</button>
+      <button class="sports-search-tag" type="button" data-q="Al Ahly">Al Ahly</button>
+      <button class="sports-search-tag" type="button" data-q="Flamengo">Flamengo</button>
+    </div>
+
+    <section class="sports-results">
+      <div class="sports-results-head">
+        <h2 id="sportsTitle">All teams</h2>
+        <p id="sportsSubtitle">Loading...</p>
+      </div>
+      <div class="sports-loading visible" id="sportsLoading">Loading teams...</div>
+      <div class="sports-empty" id="sportsEmpty">No teams found. Try another search.</div>
+      <div class="sports-grid" id="sportsGrid"></div>
     </section>
   </main>
+
+  <div class="sports-toast" id="sportsToast"></div>
+
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn"><i class="fas fa-plus"></i> New</button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content" style="max-width: 320px;">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-futbol"><i class="fas fa-futbol"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
