@@ -11,6 +11,48 @@ const ENV_FILES = [
   path.join(ROOT, '.env.vercel.prod')
 ];
 
+const MANIFEST_PATH = path.join(ROOT, 'assets/sports-badges/local-manifest.json');
+let LOCAL_MANIFEST = {};
+try { LOCAL_MANIFEST = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')); } catch (_) {}
+const LOCAL_MANIFEST_LOWER = {};
+Object.entries(LOCAL_MANIFEST).forEach(([n, p]) => { LOCAL_MANIFEST_LOWER[n.toLowerCase()] = p; });
+
+const BADGE_OVERRIDES = {
+  'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
+  'psg': '/assets/sports-badges/psg.png',
+  'paris saint germain': '/assets/sports-badges/psg.png',
+  'sao paulo': '/assets/sports-badges/s-o-paulo.png',
+  'al hilal': '/assets/sports-badges/al-hilal.png',
+  'al nassr': '/assets/sports-badges/al-nassr.png',
+  'al ahly': '/assets/sports-badges/al-ahly.png',
+  'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
+  'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
+  'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+  'oracle red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+  'mercedes': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+  'mercedes-amg petronas formula one team': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+  'mclaren': '/assets/sports-badges/mclaren-formula-1-team.png',
+  'mclaren formula 1 team': '/assets/sports-badges/mclaren-formula-1-team.png',
+  'aston martin': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+  'aston martin aramco formula one team': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+  'alpine': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+  'bwt alpine formula one team': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+  'williams': '/assets/sports-badges/williams-racing.png',
+  'williams racing': '/assets/sports-badges/williams-racing.png',
+  'rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+  'racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+  'visa cash app rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+  'visa cash app racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+  'kick sauber': '/assets/sports-badges/kick-sauber.png',
+  'stake f1 team kick sauber': '/assets/sports-badges/kick-sauber.png',
+  'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
+  'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
+  'audi': '/assets/sports-badges/audi-revolut-f1-team.png',
+  'audi revolut f1 team': '/assets/sports-badges/audi-revolut-f1-team.png',
+  'cadillac': '/assets/sports-badges/cadillac-formula-1-team.png',
+  'cadillac formula 1 team': '/assets/sports-badges/cadillac-formula-1-team.png'
+};
+
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return;
   const raw = fs.readFileSync(filePath, 'utf8');
@@ -140,6 +182,16 @@ function pickBestMatch(row, candidates) {
   return candidates[0];
 }
 
+function resolveLocalBadge(team) {
+  const key = normalize(team.name);
+  if (BADGE_OVERRIDES[key]) return BADGE_OVERRIDES[key];
+  if (LOCAL_MANIFEST[team.name]) return LOCAL_MANIFEST[team.name];
+  if (LOCAL_MANIFEST_LOWER[key]) return LOCAL_MANIFEST_LOWER[key];
+  const match = Object.keys(LOCAL_MANIFEST_LOWER).find(c => key.includes(c));
+  if (match) return LOCAL_MANIFEST_LOWER[match];
+  return '';
+}
+
 async function main() {
   const rows = await fetchAllTeams();
   const missing = rows.filter((r) => r?.name && isMissingLogo(r.logo_url));
@@ -151,7 +203,17 @@ async function main() {
 
   const updates = [];
   let errors = 0;
-  await mapWithConcurrency(targets, async (row) => {
+
+  const localResolved = targets.filter(r => {
+    const badge = resolveLocalBadge(r);
+    if (badge) { updates.push({ id: r.id, logo_url: badge }); }
+    return !!badge;
+  });
+
+  const sportsdbTargets = targets.filter(r => !localResolved.find(u => u.id === r.id));
+  console.log(`[sportsdb-backfill] local=${localResolved.length} sportsdb=${sportsdbTargets.length}`);
+
+  await mapWithConcurrency(sportsdbTargets, async (row) => {
     try {
       const candidates = await searchTeamByName(row.name);
       const match = pickBestMatch(row, candidates);

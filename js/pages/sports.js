@@ -194,6 +194,7 @@
   }
 
   function getBadge(team) {
+    if (team.logo_url && team.logo_url !== '/file.svg') return team.logo_url;
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
@@ -221,7 +222,7 @@
     try {
       const { data, error, count } = await client
         .from('teams')
-        .select('id,name,sport,league,stadium', { count: 'exact' })
+        .select('id,name,sport,league,stadium,logo_url', { count: 'exact' })
         .order('name')
         .limit(5000);
       if (error) return [];
@@ -230,7 +231,8 @@
         name: String(row.name || '').trim(),
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
-        stadium: String(row.stadium || '').trim()
+        stadium: String(row.stadium || '').trim(),
+        logo_url: String(row.logo_url || '').trim()
       })).filter(t => t.name && normalize(t.league) !== 'national team');
       console.log(`[sports] Loaded ${teams.length} teams`);
       return teams;

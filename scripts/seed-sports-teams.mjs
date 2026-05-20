@@ -393,7 +393,7 @@ const teams = [
   { name: 'Winnipeg Jets', sport: 'Ice Hockey', league: 'NHL', country: 'Canada', stadium: 'Canada Life Centre' },
   { name: 'Utah Hockey Club', sport: 'Ice Hockey', league: 'NHL', country: 'USA', stadium: 'Delta Center' },
 
-  // === FORMULA 1 (10) ===
+  // === FORMULA 1 (12) ===
   { name: 'Red Bull Racing', sport: 'Motorsport', league: 'Formula 1', country: 'Austria', stadium: '' },
   { name: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', country: 'Italy', stadium: '' },
   { name: 'Mercedes', sport: 'Motorsport', league: 'Formula 1', country: 'Germany', stadium: '' },
@@ -404,6 +404,8 @@ const teams = [
   { name: 'RB', sport: 'Motorsport', league: 'Formula 1', country: 'Italy', stadium: '' },
   { name: 'Kick Sauber', sport: 'Motorsport', league: 'Formula 1', country: 'Switzerland', stadium: '' },
   { name: 'Haas', sport: 'Motorsport', league: 'Formula 1', country: 'USA', stadium: '' },
+  { name: 'Audi Revolut F1 Team', sport: 'Motorsport', league: 'Formula 1', country: 'Germany', stadium: '' },
+  { name: 'Cadillac Formula 1 Team', sport: 'Motorsport', league: 'Formula 1', country: 'USA', stadium: '' },
 
   // === UFC ===
   { name: 'UFC', sport: 'MMA', league: 'Ultimate Fighting Championship', country: 'USA', stadium: '' },
@@ -442,6 +444,64 @@ async function seedTeams() {
     });
   }
 
+  const MANIFEST_PATH = path.join(ROOT, 'assets/sports-badges/local-manifest.json');
+  let manifest = {};
+  try { manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')); } catch (_) {}
+  const manifestLower = {};
+  Object.entries(manifest).forEach(([n, p]) => { manifestLower[n.toLowerCase()] = p; });
+
+  const BADGE_OVERRIDES = {
+    'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
+    'psg': '/assets/sports-badges/psg.png',
+    'paris saint germain': '/assets/sports-badges/psg.png',
+    'sao paulo': '/assets/sports-badges/s-o-paulo.png',
+    'al hilal': '/assets/sports-badges/al-hilal.png',
+    'al nassr': '/assets/sports-badges/al-nassr.png',
+    'al ahly': '/assets/sports-badges/al-ahly.png',
+    'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
+    'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
+    'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+    'oracle red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
+    'mercedes': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+    'mercedes-amg petronas formula one team': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
+    'mclaren': '/assets/sports-badges/mclaren-formula-1-team.png',
+    'mclaren formula 1 team': '/assets/sports-badges/mclaren-formula-1-team.png',
+    'aston martin': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+    'aston martin aramco formula one team': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
+    'alpine': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+    'bwt alpine formula one team': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
+    'williams': '/assets/sports-badges/williams-racing.png',
+    'williams racing': '/assets/sports-badges/williams-racing.png',
+    'rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+    'racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+    'visa cash app rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+    'visa cash app racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
+    'kick sauber': '/assets/sports-badges/kick-sauber.png',
+    'stake f1 team kick sauber': '/assets/sports-badges/kick-sauber.png',
+    'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
+    'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
+    'audi': '/assets/sports-badges/audi-revolut-f1-team.png',
+    'audi revolut f1 team': '/assets/sports-badges/audi-revolut-f1-team.png',
+    'cadillac': '/assets/sports-badges/cadillac-formula-1-team.png',
+    'cadillac formula 1 team': '/assets/sports-badges/cadillac-formula-1-team.png'
+  };
+
+  function resolveBadge(team) {
+    const key = team.name.toLowerCase();
+    if (BADGE_OVERRIDES[key]) return BADGE_OVERRIDES[key];
+    if (manifest[team.name]) return manifest[team.name];
+    if (manifestLower[key]) return manifestLower[key];
+    const match = Object.keys(manifestLower).find(c => key.includes(c));
+    if (match) return manifestLower[match];
+    return '';
+  }
+
+  for (const team of uniqueTeams) {
+    team.logo_url = resolveBadge(team);
+  }
+
+  let badgeCount = uniqueTeams.filter(t => t.logo_url).length;
+  console.log(`Resolved badges: ${badgeCount}/${uniqueTeams.length}`);
   console.log(`Inserting ${uniqueTeams.length} unique teams...`);
 
   let success = 0;
