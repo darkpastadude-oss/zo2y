@@ -27,15 +27,15 @@
     "cote d'ivoire": '/assets/sports-badges/ivory-coast.svg',
     'cote divoire': '/assets/sports-badges/ivory-coast.svg',
     'czech republic': '/assets/sports-badges/czech-republic.svg',
-    'korea republic': '/assets/sports-badges/south-korea.png',
-    'korea republic (south korea)': '/assets/sports-badges/south-korea.png',
+    'korea republic': '/assets/sports-badges/south-korea.svg',
+    'korea republic (south korea)': '/assets/sports-badges/south-korea.svg',
     'iran ir': '/assets/sports-badges/iran.svg',
     'saudi': '/assets/sports-badges/saudi-arabia.svg',
     'uae': '/assets/sports-badges/uae.svg',
     'united arab emirates': '/assets/sports-badges/uae.svg',
     'dr congo': '/assets/sports-badges/dr-congo.svg',
     'd.r. congo': '/assets/sports-badges/dr-congo.svg',
-    'republic of ireland': '/assets/sports-badges/republic-of-ireland.png',
+    'republic of ireland': '/assets/sports-badges/republic-of-ireland.svg',
 
     'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
     'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
@@ -139,41 +139,41 @@
 
   const COUNTRY_BADGES = {
     'algeria': '/assets/sports-badges/algeria.svg',
-    'argentina': '/assets/sports-badges/argentina.png',
+    'argentina': '/assets/sports-badges/argentina.svg',
     'australia': '/assets/sports-badges/australia.svg',
-    'belgium': '/assets/sports-badges/belgium.png',
-    'brazil': '/assets/sports-badges/brazil.png',
+    'belgium': '/assets/sports-badges/belgium.svg',
+    'brazil': '/assets/sports-badges/brazil.svg',
     'cameroon': '/assets/sports-badges/cameroon.svg',
-    'canada': '/assets/sports-badges/canada.png',
-    'chile': '/assets/sports-badges/chile.png',
+    'canada': '/assets/sports-badges/canada.svg',
+    'chile': '/assets/sports-badges/chile.svg',
     'colombia': '/assets/sports-badges/colombia.svg',
-    'croatia': '/assets/sports-badges/croatia.png',
+    'croatia': '/assets/sports-badges/croatia.svg',
     "cote d'ivoire": '/assets/sports-badges/ivory-coast.svg',
-    'ecuador': '/assets/sports-badges/ecuador.png',
+    'ecuador': '/assets/sports-badges/ecuador.svg',
     'egypt': '/assets/sports-badges/egypt.svg',
-    'england': '/assets/sports-badges/england.png',
-    'france': '/assets/sports-badges/france.png',
-    'germany': '/assets/sports-badges/germany.png',
+    'england': '/assets/sports-badges/england.svg',
+    'france': '/assets/sports-badges/france.svg',
+    'germany': '/assets/sports-badges/germany.svg',
     'ghana': '/assets/sports-badges/ghana.svg',
     'iran': '/assets/sports-badges/iran.svg',
-    'italy': '/assets/sports-badges/italy.png',
+    'italy': '/assets/sports-badges/italy.svg',
     'ivory coast': '/assets/sports-badges/ivory-coast.svg',
-    'japan': '/assets/sports-badges/japan.png',
-    'mexico': '/assets/sports-badges/mexico.png',
+    'japan': '/assets/sports-badges/japan.svg',
+    'mexico': '/assets/sports-badges/mexico.svg',
     'morocco': '/assets/sports-badges/morocco.svg',
     'netherlands': '/assets/sports-badges/netherlands.svg',
-    'nigeria': '/assets/sports-badges/nigeria.png',
-    'peru': '/assets/sports-badges/peru.png',
-    'portugal': '/assets/sports-badges/portugal.png',
+    'nigeria': '/assets/sports-badges/nigeria.svg',
+    'peru': '/assets/sports-badges/peru.svg',
+    'portugal': '/assets/sports-badges/portugal.svg',
     'qatar': '/assets/sports-badges/qatar.svg',
     'saudi arabia': '/assets/sports-badges/saudi-arabia.svg',
     'senegal': '/assets/sports-badges/senegal.svg',
     'south africa': '/assets/sports-badges/south-africa.svg',
-    'south korea': '/assets/sports-badges/south-korea.png',
-    'spain': '/assets/sports-badges/spain.png',
-    'tunisia': '/assets/sports-badges/tunisia.png',
+    'south korea': '/assets/sports-badges/south-korea.svg',
+    'spain': '/assets/sports-badges/spain.svg',
+    'tunisia': '/assets/sports-badges/tunisia.svg',
     'united states': '/assets/sports-badges/united-states.svg',
-    'uruguay': '/assets/sports-badges/uruguay.png'
+    'uruguay': '/assets/sports-badges/uruguay.svg'
   };
 
   const NATIONAL_TEAM_SET = new Set(Object.keys(COUNTRY_BADGES));
@@ -259,13 +259,13 @@
   function getBadge(team) {
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
-    if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
     if (COUNTRY_BADGES[nameKey]) return COUNTRY_BADGES[nameKey];
-    const match = Object.keys(localBadgeMapLower).find(c => nameKey.includes(c));
-    if (match) return localBadgeMapLower[match];
     const countryMatch = Object.keys(COUNTRY_BADGES).find(c => nameKey.includes(c));
     if (countryMatch) return COUNTRY_BADGES[countryMatch];
+    if (localBadgeMap[team.name]) return localBadgeMap[team.name];
+    if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
+    const match = Object.keys(localBadgeMapLower).find(c => nameKey.includes(c));
+    if (match) return localBadgeMapLower[match];
     return FALLBACK_BADGE;
   }
 
@@ -349,7 +349,7 @@
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
-      })).filter(t => t.name && normalize(t.league) !== 'national team');
+      })).filter(t => t.name);
       const deduped = dedupeNationalTeams(teams);
       console.log(`[sports] Loaded ${teams.length} teams (showing ${deduped.length})`);
       return deduped;
