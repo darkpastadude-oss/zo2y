@@ -5,6 +5,7 @@
 
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
+  const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
   const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
       <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
         <rect width='24' height='24' fill='#10224a'/>
@@ -12,41 +13,41 @@
     `)}`;
 
   const BADGE_OVERRIDES = {
-    'atletico madrid': '/assets/sports-badges/atletico-madrid.png',
-    'psg': '/assets/sports-badges/psg.png',
-    'paris saint germain': '/assets/sports-badges/psg.png',
-    'sao paulo': '/assets/sports-badges/s-o-paulo.png',
-    'al hilal': '/assets/sports-badges/al-hilal.png',
-    'al-hilal': '/assets/sports-badges/al-hilal.png',
-    'al nassr': '/assets/sports-badges/al-nassr.png',
-    'al ahly': '/assets/sports-badges/al-ahly.png',
+    'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
+    'psg': '/assets/logos/football/french-ligue-1/psg.png',
+    'paris saint germain': '/assets/logos/football/french-ligue-1/psg.png',
+    'sao paulo': '/assets/logos/football/brazilian-serie-a/saopaulo.png',
+    'al hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
+    'al-hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
+    'al nassr': '/assets/logos/football/saudi-pro-league/alnassr.png',
+    'al ahly': '/assets/logos/football/egyptian-premier-league/alahly.png',
 
-    'ferrari': '/assets/sports-badges/scuderia-ferrari-hp.png',
-    'scuderia ferrari hp': '/assets/sports-badges/scuderia-ferrari-hp.png',
-    'red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
-    'oracle red bull racing': '/assets/sports-badges/oracle-red-bull-racing.png',
-    'mercedes': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
-    'mercedes-amg petronas formula one team': '/assets/sports-badges/mercedes-amg-petronas-formula-one-team.png',
-    'mclaren': '/assets/sports-badges/mclaren-formula-1-team.png',
-    'mclaren formula 1 team': '/assets/sports-badges/mclaren-formula-1-team.png',
-    'aston martin': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
-    'aston martin aramco formula one team': '/assets/sports-badges/aston-martin-aramco-formula-one-team.png',
-    'alpine': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
-    'bwt alpine formula one team': '/assets/sports-badges/bwt-alpine-formula-one-team.png',
-    'williams': '/assets/sports-badges/williams-racing.png',
-    'williams racing': '/assets/sports-badges/williams-racing.png',
-    'rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
-    'racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
-    'visa cash app rb': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
-    'visa cash app racing bulls': '/assets/sports-badges/visa-cash-app-racing-bulls-formula-one-team.png',
-    'kick sauber': '/assets/sports-badges/kick-sauber.png',
-    'stake f1 team kick sauber': '/assets/sports-badges/kick-sauber.png',
-    'haas': '/assets/sports-badges/moneygram-haas-f1-team.png',
-    'moneygram haas f1 team': '/assets/sports-badges/moneygram-haas-f1-team.png',
-    'audi': '/assets/sports-badges/audi-revolut-f1-team.png',
-    'audi revolut f1 team': '/assets/sports-badges/audi-revolut-f1-team.png',
-    'cadillac': '/assets/sports-badges/cadillac-formula-1-team.png',
-    'cadillac formula 1 team': '/assets/sports-badges/cadillac-formula-1-team.png'
+    'ferrari': '/assets/logos/f1/ferrari.png',
+    'scuderia ferrari hp': '/assets/logos/f1/ferrari.png',
+    'red bull racing': '/assets/logos/f1/redbullracing.png',
+    'oracle red bull racing': '/assets/logos/f1/redbullracing.png',
+    'mercedes': '/assets/logos/f1/mercedes.png',
+    'mercedes-amg petronas formula one team': '/assets/logos/f1/mercedes.png',
+    'mclaren': '/assets/logos/f1/mclaren.png',
+    'mclaren formula 1 team': '/assets/logos/f1/mclaren.png',
+    'aston martin': '/assets/logos/f1/astonmartin.png',
+    'aston martin aramco formula one team': '/assets/logos/f1/astonmartin.png',
+    'alpine': '/assets/logos/f1/alpine.png',
+    'bwt alpine formula one team': '/assets/logos/f1/alpine.png',
+    'williams': '/assets/logos/f1/williams.png',
+    'williams racing': '/assets/logos/f1/williams.png',
+    'rb': '/assets/logos/f1/rb.png',
+    'racing bulls': '/assets/logos/f1/rb.png',
+    'visa cash app rb': '/assets/logos/f1/rb.png',
+    'visa cash app racing bulls': '/assets/logos/f1/rb.png',
+    'kick sauber': '/assets/logos/f1/kicksauber.png',
+    'stake f1 team kick sauber': '/assets/logos/f1/kicksauber.png',
+    'haas': '/assets/logos/f1/haas.png',
+    'moneygram haas f1 team': '/assets/logos/f1/haas.png',
+    'audi': '/assets/logos/f1/audirevolutf1team.png',
+    'audi revolut f1 team': '/assets/logos/f1/audirevolutf1team.png',
+    'cadillac': '/assets/logos/f1/cadillacformula1team.png',
+    'cadillac formula 1 team': '/assets/logos/f1/cadillacformula1team.png'
   };
 
   const POPULAR_TEAMS = new Set([
@@ -134,6 +135,8 @@
   let allTeams = [];
   let localBadgeMap = {};
   let localBadgeMapLower = {};
+  let logoMapping = {};
+  let logoMappingLower = {};
   let favorites = new Set();
   let imageObserver = null;
 
@@ -184,12 +187,22 @@
 
   async function loadLocalManifest() {
     try {
-      const res = await fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' });
-      if (!res.ok) return;
-      localBadgeMap = await res.json();
-      Object.entries(localBadgeMap).forEach(([name, path]) => {
-        localBadgeMapLower[name.toLowerCase()] = path;
-      });
+      const [manifestRes, mappingRes] = await Promise.all([
+        fetch(LOCAL_MANIFEST_URL, { cache: 'force-cache' }),
+        fetch(LOGO_MAPPING_URL, { cache: 'force-cache' })
+      ]);
+      if (manifestRes.ok) {
+        localBadgeMap = await manifestRes.json();
+        Object.entries(localBadgeMap).forEach(([name, path]) => {
+          localBadgeMapLower[name.toLowerCase()] = path;
+        });
+      }
+      if (mappingRes.ok) {
+        logoMapping = await mappingRes.json();
+        Object.entries(logoMapping).forEach(([name, path]) => {
+          logoMappingLower[name.toLowerCase()] = path;
+        });
+      }
     } catch (_) {}
   }
 
@@ -203,11 +216,13 @@
     if (team.logo_url && team.logo_url !== '/file.svg') return team.logo_url;
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
+    if (logoMapping[team.name]) return logoMapping[team.name];
+    if (logoMappingLower[nameKey]) return logoMappingLower[nameKey];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
     const slugged = slugMatch(team.name);
-    const exact = Object.keys(localBadgeMapLower).find(k => slugMatch(k) === slugged);
-    if (exact) return localBadgeMapLower[exact];
+    const exact = Object.keys(logoMappingLower).find(k => slugMatch(k) === slugged);
+    if (exact) return logoMappingLower[exact];
     const sorted = Object.keys(localBadgeMapLower).sort((a, b) => b.length - a.length);
     for (const key of sorted) {
       const keySlug = slugMatch(key);
