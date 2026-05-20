@@ -182,13 +182,24 @@ function pickBestMatch(row, candidates) {
   return candidates[0];
 }
 
+function stripDiacritics(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function slugMatch(s) { return stripDiacritics(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
 function resolveLocalBadge(team) {
   const key = normalize(team.name);
   if (BADGE_OVERRIDES[key]) return BADGE_OVERRIDES[key];
   if (LOCAL_MANIFEST[team.name]) return LOCAL_MANIFEST[team.name];
   if (LOCAL_MANIFEST_LOWER[key]) return LOCAL_MANIFEST_LOWER[key];
-  const match = Object.keys(LOCAL_MANIFEST_LOWER).find(c => key.includes(c));
-  if (match) return LOCAL_MANIFEST_LOWER[match];
+  const slugged = slugMatch(team.name);
+  const exact = Object.keys(LOCAL_MANIFEST_LOWER).find(k => slugMatch(k) === slugged);
+  if (exact) return LOCAL_MANIFEST_LOWER[exact];
+  const sorted = Object.keys(LOCAL_MANIFEST_LOWER).sort((a, b) => b.length - a.length);
+  for (const mk of sorted) {
+    const mkSlug = slugMatch(mk);
+    if (mkSlug.length >= 4 && (slugged.includes(mkSlug) || mkSlug.includes(slugged))) {
+      return LOCAL_MANIFEST_LOWER[mk];
+    }
+  }
   return '';
 }
 

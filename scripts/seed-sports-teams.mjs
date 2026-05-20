@@ -486,13 +486,24 @@ async function seedTeams() {
     'cadillac formula 1 team': '/assets/sports-badges/cadillac-formula-1-team.png'
   };
 
+  function stripDiacritics(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function slugMatch(s) { return stripDiacritics(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
   function resolveBadge(team) {
     const key = team.name.toLowerCase();
     if (BADGE_OVERRIDES[key]) return BADGE_OVERRIDES[key];
     if (manifest[team.name]) return manifest[team.name];
     if (manifestLower[key]) return manifestLower[key];
-    const match = Object.keys(manifestLower).find(c => key.includes(c));
-    if (match) return manifestLower[match];
+    const slugged = slugMatch(team.name);
+    const exact = Object.keys(manifestLower).find(k => slugMatch(k) === slugged);
+    if (exact) return manifestLower[exact];
+    const sorted = Object.keys(manifestLower).sort((a, b) => b.length - a.length);
+    for (const mk of sorted) {
+      const mkSlug = slugMatch(mk);
+      if (mkSlug.length >= 4 && (slugged.includes(mkSlug) || mkSlug.includes(slugged))) {
+        return manifestLower[mk];
+      }
+    }
     return '';
   }
 

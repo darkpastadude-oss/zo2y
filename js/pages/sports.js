@@ -193,14 +193,28 @@
     } catch (_) {}
   }
 
+  function stripDiacritics(s) {
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  function slugMatch(s) {
+    return stripDiacritics(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
   function getBadge(team) {
     if (team.logo_url && team.logo_url !== '/file.svg') return team.logo_url;
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
-    const match = Object.keys(localBadgeMapLower).find(c => nameKey.includes(c));
-    if (match) return localBadgeMapLower[match];
+    const slugged = slugMatch(team.name);
+    const exact = Object.keys(localBadgeMapLower).find(k => slugMatch(k) === slugged);
+    if (exact) return localBadgeMapLower[exact];
+    const sorted = Object.keys(localBadgeMapLower).sort((a, b) => b.length - a.length);
+    for (const key of sorted) {
+      const keySlug = slugMatch(key);
+      if (keySlug.length >= 4 && (slugged.includes(keySlug) || keySlug.includes(slugged))) {
+        return localBadgeMapLower[key];
+      }
+    }
     return FALLBACK_BADGE;
   }
 
