@@ -139,6 +139,10 @@
 }
 
 @media (max-width: 760px) {
+  .controls-meta {
+    justify-content: center;
+  }
+
   .sports-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;

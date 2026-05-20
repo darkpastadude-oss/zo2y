@@ -259,11 +259,23 @@
   function getBadge(team) {
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
-    const resolvedCountry = resolveCountry(nameKey);
-    if (COUNTRY_BADGES[resolvedCountry]) return COUNTRY_BADGES[resolvedCountry];
     if (localBadgeMap[team.name]) return localBadgeMap[team.name];
     if (localBadgeMapLower[nameKey]) return localBadgeMapLower[nameKey];
+    if (COUNTRY_BADGES[nameKey]) return COUNTRY_BADGES[nameKey];
+    const match = Object.keys(localBadgeMapLower).find(c => nameKey.includes(c));
+    if (match) return localBadgeMapLower[match];
+    const countryMatch = Object.keys(COUNTRY_BADGES).find(c => nameKey.includes(c));
+    if (countryMatch) return COUNTRY_BADGES[countryMatch];
     return FALLBACK_BADGE;
+  }
+
+  function resolveNationalCountry(nameKey, leagueKey) {
+    const exact = resolveCountry(nameKey);
+    if (NATIONAL_TEAM_SET.has(exact)) return exact;
+    const partial = Object.keys(COUNTRY_BADGES).find(c => nameKey.includes(c));
+    if (partial) return partial;
+    if (leagueKey === 'national team') return nameKey;
+    return exact;
   }
 
   function dedupeNationalTeams(teams) {
@@ -271,8 +283,9 @@
 
     teams.forEach(team => {
       const nameKey = normalize(team.name);
-      const resolvedCountry = resolveCountry(nameKey);
-      if (!NATIONAL_TEAM_SET.has(resolvedCountry)) return;
+      const leagueKey = normalize(team.league);
+      const resolvedCountry = resolveNationalCountry(nameKey, leagueKey);
+      if (!NATIONAL_TEAM_SET.has(resolvedCountry) && leagueKey !== 'national team') return;
 
       const existing = chosenByCountry.get(resolvedCountry);
       if (!existing) {
@@ -292,8 +305,9 @@
     const countryAlreadyAdded = new Set();
     teams.forEach(team => {
       const nameKey = normalize(team.name);
-      const resolvedCountry = resolveCountry(nameKey);
-      if (!NATIONAL_TEAM_SET.has(resolvedCountry)) {
+      const leagueKey = normalize(team.league);
+      const resolvedCountry = resolveNationalCountry(nameKey, leagueKey);
+      if (!NATIONAL_TEAM_SET.has(resolvedCountry) && leagueKey !== 'national team') {
         output.push(team);
         return;
       }
