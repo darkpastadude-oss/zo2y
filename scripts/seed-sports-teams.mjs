@@ -427,7 +427,6 @@ const teams = [
   { name: 'Tuvalu', sport: 'Football', league: 'National Team', country: 'Tuvalu', stadium: '' },
   { name: 'Luxembourg', sport: 'Football', league: 'National Team', country: 'Luxembourg', stadium: '' },
   { name: 'Liechtenstein', sport: 'Football', league: 'National Team', country: 'Liechtenstein', stadium: '' },
-  { name: 'Monaco', sport: 'Football', league: 'National Team', country: 'Monaco', stadium: '' },
   { name: 'San Marino', sport: 'Football', league: 'National Team', country: 'San Marino', stadium: '' },
   { name: 'Vatican City', sport: 'Football', league: 'National Team', country: 'Vatican City', stadium: '' },
   { name: 'Andorra', sport: 'Football', league: 'National Team', country: 'Andorra', stadium: '' },
