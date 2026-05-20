@@ -10023,10 +10023,50 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         // Manifest unavailable - will load from teams table below
       }
 
-      // Fallback: load teams from Supabase teams table (locally saved data)
+      // Fallback: load teams from Supabase teams table + local badge manifests (same as sports.html)
       try {
-        const client = await ensureHomeSupabase();
+        const [client, manifestRes, mappingRes] = await Promise.all([
+          ensureHomeSupabase(),
+          fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' }).catch(() => null),
+          fetch('/assets/logos/logo-mapping.json', { cache: 'force-cache' }).catch(() => null)
+        ]);
         if (!client) throw new Error('no supabase client');
+
+        const localBadgeMap = {};
+        const localBadgeMapLower = {};
+        if (manifestRes?.ok) {
+          const json = await manifestRes.json();
+          if (json && typeof json === 'object') {
+            Object.entries(json).forEach(([k, v]) => {
+              localBadgeMap[k] = String(v || '');
+              localBadgeMapLower[k.toLowerCase()] = String(v || '');
+            });
+          }
+        }
+        const logoMapping = {};
+        const logoMappingLower = {};
+        if (mappingRes?.ok) {
+          const json = await mappingRes.json();
+          if (json && typeof json === 'object') {
+            Object.entries(json).forEach(([k, v]) => {
+              logoMapping[k] = String(v || '');
+              logoMappingLower[k.toLowerCase()] = String(v || '');
+            });
+          }
+        }
+
+        function resolveBadge(row) {
+          const logoUrl = String(row?.logo_url || '').trim();
+          if (logoUrl && logoUrl !== '/file.svg' && /^https?:\/\//i.test(logoUrl)) return toHttpsUrl(logoUrl);
+          const name = String(row?.name || '').trim();
+          if (!name) return '';
+          const nameLower = name.toLowerCase();
+          if (logoMapping[name]) return toHttpsUrl(logoMapping[name]);
+          if (logoMappingLower[nameLower]) return toHttpsUrl(logoMappingLower[nameLower]);
+          if (localBadgeMap[name]) return localBadgeMap[name];
+          if (localBadgeMapLower[nameLower]) return localBadgeMapLower[nameLower];
+          return '';
+        }
 
         const { data, error } = await client
           .from('teams')
@@ -10042,8 +10082,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const sorted = data
           .filter((row) => {
             const name = String(row?.name || '').trim();
-            const logo = String(row?.logo_url || '').trim();
-            return name && logo;
+            return name && resolveBadge(row);
           })
           .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
 
@@ -10054,7 +10093,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (!key || seen.has(key)) continue;
           seen.add(key);
 
-          const badge = toHttpsUrl(String(row.logo_url || '').trim());
+          const badge = resolveBadge(row);
           if (!badge) continue;
 
           const sport = String(row.sport || '').trim();
@@ -10105,7 +10144,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return items.slice(0, target);
         }
       } catch (_err) {
-        // Teams table unavailable - will use hardcoded showcase below
+        // Teams table / manifests unavailable - will use hardcoded showcase below
       }
 
       // Ultimate fallback: generate showcase items from POPULAR_TEAMS so the rail is never empty
