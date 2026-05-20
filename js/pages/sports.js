@@ -231,7 +231,7 @@
         sport: String(row.sport || '').trim(),
         league: String(row.league || '').trim(),
         stadium: String(row.stadium || '').trim()
-      })).filter(t => t.name && !isNationalTeam(t));
+      })).filter(t => t.name && normalize(t.league) !== 'national team');
       console.log(`[sports] Loaded ${teams.length} teams`);
       return teams;
     } catch (err) {
@@ -240,17 +240,6 @@
     }
   }
 
-  function isNationalTeam(team) {
-    const league = normalize(team.league);
-    const sport = normalize(team.sport);
-    const name = normalize(team.name);
-    if (!league && !sport && !name) return false;
-    if (league === 'national team') return true;
-    if (league.includes('national team') || league.includes('national teams')) return true;
-    if (sport === 'national team' || sport.includes('national team')) return true;
-    if (name.endsWith(' national team') || name.includes(' national team ')) return true;
-    return false;
-  }
 
   function scoreTeam(team) {
     const nameNorm = normalize(team.name);
