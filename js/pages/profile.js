@@ -3675,9 +3675,7 @@
                     },
 
                     getActivityMediaTypeTag(mediaType) {
-                        const normalized = String(mediaType || '').trim().toLowerCase();
-                        if (!normalized) return '';
-                        return ` (${escapeHtml(normalized)})`;
+                        return '';
                     },
 
                     getActivityGenericTarget(mediaType) {
