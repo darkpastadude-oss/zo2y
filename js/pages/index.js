@@ -9833,342 +9833,122 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return fallbackItems;
     }
 
-    async function loadSports(signal) {
-      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
-      const normalizeSportsName = (value) => String(value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/[\u0027\u2019]/g, '')
-        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim();
-      const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
 
-      const POPULAR_TEAMS = new Set([
-        // Soccer
-        'real madrid', 'barcelona', 'liverpool', 'manchester city', 'manchester united',
-        'arsenal', 'chelsea', 'bayern munich', 'borussia dortmund', 'paris saint germain',
-        'inter milan', 'ac milan', 'juventus', 'napoli', 'atletico madrid',
+    function buildHardcodedSportsItems() {
+      const teams = [
+        // Soccer - Premier League
+      { title: 'Arsenal', badge: '/assets/logos/football/english-premier-league/arsenal.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+      { title: 'Aston Villa', badge: '/assets/logos/football/english-premier-league/astonvilla.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+      { title: 'Chelsea', badge: '/assets/logos/football/english-premier-league/chelsea.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+        { title: 'Liverpool', badge: '/assets/logos/football/english-premier-league/liverpool.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+        { title: 'Manchester City', badge: '/assets/logos/football/english-premier-league/manchestercity.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+        { title: 'Manchester United', badge: '/assets/logos/football/english-premier-league/manchesterunited.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+        { title: 'Tottenham Hotspur', badge: '/assets/logos/football/english-premier-league/tottenhamhotspur.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
+        // Soccer - La Liga
+        { title: 'Real Madrid', badge: '/assets/logos/football/spanish-la-liga/realmadrid.png', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
+        { title: 'FC Barcelona', badge: '/assets/logos/football/spanish-la-liga/barcelona.png', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
+        { title: 'Atletico Madrid', badge: '/assets/logos/football/spanish-la-liga/atleticomadrid.png', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
+        // Soccer - Serie A
+        { title: 'AC Milan', badge: '/assets/logos/football/italian-serie-a/acmilan.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
+        { title: 'Inter Milan', badge: '/assets/logos/football/italian-serie-a/intermilan.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
+        { title: 'Juventus', badge: '/assets/logos/football/italian-serie-a/juventus.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
+        { title: 'Napoli', badge: '/assets/logos/football/italian-serie-a/napoli.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
+        // Soccer - Bundesliga
+        { title: 'Bayern Munich', badge: '/assets/logos/football/german-bundesliga/bayernmunich.png', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
+        { title: 'Borussia Dortmund', badge: '/assets/logos/football/german-bundesliga/borussiadortmund.png', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
+        // Soccer - Ligue 1
+        { title: 'Paris Saint-Germain', badge: '/assets/logos/football/french-ligue-1/psg.png', sport: 'Soccer', league: 'Ligue 1', country: 'France' },
         // Basketball
-        'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
-        'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns',
+        { title: 'Los Angeles Lakers', badge: '/assets/logos/nba/losangeleslakers.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Boston Celtics', badge: '/assets/logos/nba/bostonceltics.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Golden State Warriors', badge: '/assets/logos/nba/goldenstatewarriors.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Chicago Bulls', badge: '/assets/logos/nba/chicagobulls.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Miami Heat', badge: '/assets/logos/nba/miamiheat.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'New York Knicks', badge: '/assets/logos/nba/newyorkknicks.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Phoenix Suns', badge: '/assets/logos/nba/phoenixsuns.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Milwaukee Bucks', badge: '/assets/logos/nba/milwaukeebucks.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
+        { title: 'Toronto Raptors', badge: '/assets/logos/nba/torontoraptors.png', sport: 'Basketball', league: 'NBA', country: 'Canada' },
         // NFL
-        'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
-        'philadelphia eagles', 'buffalo bills', 'green bay packers',
-        // Motorsport
-        'ferrari', 'mercedes amg petronas', 'red bull racing', 'mclaren', 'aston martin',
-        // Baseball
-        'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
-        // Hockey
-        'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
-        // MMA/UFC
-        'ufc',
-        // Rugby
-        'new zealand all blacks', 'south africa springboks',
-        // Cricket
-        'india', 'australia', 'england'
-      ]);
+        { title: 'Kansas City Chiefs', badge: '/assets/logos/nfl/kansascitychiefs.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'Dallas Cowboys', badge: '/assets/logos/nfl/dallascowboys.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'San Francisco 49ers', badge: '/assets/logos/nfl/sanfrancisco49ers.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'Philadelphia Eagles', badge: '/assets/logos/nfl/philadelphiaeagles.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'Buffalo Bills', badge: '/assets/logos/nfl/buffalobills.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'Green Bay Packers', badge: '/assets/logos/nfl/greenbaypackers.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        { title: 'New England Patriots', badge: '/assets/logos/nfl/newenglandpatriots.png', sport: 'American Football', league: 'NFL', country: 'USA' },
+        // Motorsport - F1
+        { title: 'Ferrari', badge: '/assets/logos/f1/ferrari.png', sport: 'Motorsport', league: 'Formula 1', country: 'Italy' },
+        { title: 'Red Bull Racing', badge: '/assets/logos/f1/redbullracing.png', sport: 'Motorsport', league: 'Formula 1', country: 'Austria' },
+        { title: 'Mercedes', badge: '/assets/logos/f1/mercedes.png', sport: 'Motorsport', league: 'Formula 1', country: 'Germany' },
+        { title: 'McLaren', badge: '/assets/logos/f1/mclaren.png', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
+        { title: 'Aston Martin', badge: '/assets/logos/f1/astonmartin.png', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
+        // MLB
+        { title: 'New York Yankees', badge: '/assets/logos/mlb/newyorkyankees.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        { title: 'Los Angeles Dodgers', badge: '/assets/logos/mlb/losangelesdodgers.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        { title: 'Boston Red Sox', badge: '/assets/logos/mlb/bostonredsox.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        { title: 'Chicago Cubs', badge: '/assets/logos/mlb/chicagocubs.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        { title: 'Atlanta Braves', badge: '/assets/logos/mlb/atlantabraves.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        // NHL
+        { title: 'Toronto Maple Leafs', badge: '/assets/logos/nhl/torontomapleleafs.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
+        { title: 'Montreal Canadiens', badge: '/assets/logos/nhl/montrealcanadiens.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
+        { title: 'Boston Bruins', badge: '/assets/logos/nhl/bostonbruins.png', sport: 'Ice Hockey', league: 'NHL', country: 'USA' },
+        { title: 'Edmonton Oilers', badge: '/assets/logos/nhl/edmontonoilers.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
+        // MMA
+        { title: 'UFC', badge: '/assets/logos/mma/ufc/ufc.svg', sport: 'MMA', league: 'UFC', country: 'USA' }
+      ];
 
-      const SPORT_PRIORITY = {
-        'soccer': 1, 'motorsport': 2, 'mma': 3, 'basketball': 4,
-        'american-football': 5, 'baseball': 6, 'hockey': 7,
-        'rugby': 8, 'cricket': 9, 'other': 10
-      };
-
-      const toSportBucket = (sportValue) => {
-        const sport = String(sportValue || '').trim().toLowerCase();
-        if (sport.includes('soccer')) return 'soccer';
-        if (sport.includes('mma') || sport.includes('ufc') || sport.includes('boxing') || sport.includes('martial')) return 'mma';
-        if (sport.includes('american football')) return 'american-football';
-        if (sport.includes('football')) return 'soccer';
-        if (sport.includes('basket')) return 'basketball';
-        if (sport.includes('baseball')) return 'baseball';
-        if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
-        if (sport.includes('motor') || sport.includes('formula')) return 'motorsport';
-        if (sport.includes('cricket')) return 'cricket';
-        if (sport.includes('rugby')) return 'rugby';
-        return sport || 'other';
-      };
-
-      const scoreSportsRow = (row) => {
-        const titleNorm = normalizeSportsName(row?.name || '');
-        const sportBucket = toSportBucket(row?.sport || '');
-        let score = 0;
-        if (POPULAR_TEAMS.has(titleNorm)) score += 2000;
-        if (seedSet.has(titleNorm)) score += 1500;
-        const bucketPriority = SPORT_PRIORITY[sportBucket] || 10;
-        score += (11 - bucketPriority) * 100;
-        return score;
-      };
-
-      const createShowcaseSportsItem = ({
-        title = 'Sports',
-        sport = 'Sports',
-        league = '',
-        country = 'Global',
-        subtitle = ''
-      } = {}) => ({
+      return teams.map((t) => ({
         mediaType: 'sports',
-        itemId: title,
-        title,
-        subtitle: String(subtitle || [league, sport].filter(Boolean).join(' | ') || 'Global sport').trim(),
-        extra: country ? `Global focus | ${country}` : 'Global focus',
-        image: HOME_LOCAL_FALLBACK_IMAGE,
-        listImage: HOME_LOCAL_FALLBACK_IMAGE,
-        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
+        itemId: t.title,
+        title: t.title,
+        subtitle: t.league || 'Sports',
+        extra: [t.sport, t.country].filter(Boolean).join(' | ').toLowerCase(),
+        image: t.badge,
+        listImage: t.badge,
+        backgroundImage: t.badge,
+        spotlightImage: t.badge,
+        spotlightMediaImage: t.badge,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'square',
         mediaFit: 'contain',
         fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-        sport,
-        league,
-        country,
         href: 'sports.html'
-      });
+      }));
+    }
 
-      const cachedSportsItems = readHomeItemsCache(
-        HOME_SPORTS_ITEMS_CACHE_KEY,
-        HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
-        (item) => {
-          if (!item || typeof item !== 'object') return null;
-          const title = String(item.title || '').trim();
-          const image = String(item.image || '').trim();
-          if (!title || !image) return null;
-          return item;
-        }
-      );
-      if (cachedSportsItems.length >= Math.min(target, 8)) {
-        return cachedSportsItems.slice(0, target);
-      }
+    async function loadSports(signal) {
+      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
+
+      const HARDCODED_SPORTS = buildHardcodedSportsItems();
+      const shuffled = shuffleArray(HARDCODED_SPORTS.slice());
+      const hardcodedResult = shuffled.slice(0, target);
 
       try {
-        const manifestPayload = await fetchJsonWithPerfCache(HOME_SPORTS_ASSET_MANIFEST_URL, {
-          signal,
-          cacheKey: 'sports-assets:manifest:home',
-          ttlMs: 1000 * 60 * 60 * 24,
-          timeoutMs: 9000,
-          retries: 1
-        });
-        const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
-
-        const sortedRows = rows
-          .filter((row) => row && (row.badge || row.name))
-          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
-
-        const seen = new Set();
-        const bucketed = new Map();
-        for (const row of sortedRows) {
-          const id = String(row?.sportsDbId || row?.id || '').trim();
-          const title = String(row?.name || 'Team').trim() || 'Team';
-          const key = id || title.toLowerCase();
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-          const badge = toHttpsUrl(String(row?.badge || '').trim());
-          if (!badge) continue;
-          const sport = String(row?.sport || '').trim();
-          const league = String(row?.league || '').trim();
-          const country = String(row?.country || '').trim();
-          const cardImage = badge;
-          const spotlightBackdrop = badge;
-          const item = {
-            mediaType: 'sports',
-            itemId: id || title,
-            title,
-            subtitle: league || 'Sports',
-            extra: [sport, country].filter(Boolean).join(' | ').toLowerCase(),
-            image: cardImage,
-            listImage: cardImage,
-            backgroundImage: spotlightBackdrop,
-            spotlightImage: spotlightBackdrop,
-            spotlightMediaImage: badge,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'square',
-            mediaFit: 'contain',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
-          };
-          const bucket = toSportBucket(sport);
-          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
-          bucketed.get(bucket).push(item);
-        }
-
-        const bucketOrder = ['soccer', 'motorsport', 'mma', 'basketball', 'american-football', 'baseball', 'hockey', 'rugby', 'cricket', 'other'];
-        const items = [];
-        const maxPerBucket = Math.ceil(target / Math.min(bucketed.size, 6));
-        bucketOrder.forEach((bucket) => {
-          const list = bucketed.get(bucket);
-          if (!Array.isArray(list) || !list.length) return;
-          const take = Math.min(maxPerBucket, list.length);
-          for (let i = 0; i < take && items.length < target * 2; i++) {
-            items.push(list[i]);
+        const cachedSportsItems = readHomeItemsCache(
+          HOME_SPORTS_ITEMS_CACHE_KEY,
+          HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
+          (item) => {
+            if (!item || typeof item !== 'object') return null;
+            const title = String(item.title || '').trim();
+            const image = String(item.image || '').trim();
+            if (!title || !image) return null;
+            return item;
           }
-        });
-
-        if (!items.some((item) => toSportBucket(item?.sport || item?.subtitle || '') === 'mma')) {
-          items.splice(Math.min(2, items.length), 0, createShowcaseSportsItem({
-            title: 'UFC',
-            sport: 'MMA',
-            league: 'UFC',
-            subtitle: 'MMA | UFC'
-          }));
+        );
+        if (cachedSportsItems.length >= Math.min(target, 8)) {
+          return cachedSportsItems.slice(0, target);
         }
-        if (items.length) {
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-          return items.slice(0, target);
-        }
-      } catch (_err) {
-        // Manifest unavailable - will load from teams table below
-      }
+      } catch (_e) {}
 
-      // Fallback: load teams from Supabase teams table + local badge manifests (same as sports.html)
-      try {
-        const [client, manifestRes, mappingRes] = await Promise.all([
-          ensureHomeSupabase(),
-          fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' }).catch(() => null),
-          fetch('/assets/logos/logo-mapping.json', { cache: 'force-cache' }).catch(() => null)
-        ]);
-        if (!client) throw new Error('no supabase client');
-
-        const localBadgeMap = {};
-        const localBadgeMapLower = {};
-        if (manifestRes?.ok) {
-          const json = await manifestRes.json();
-          if (json && typeof json === 'object') {
-            Object.entries(json).forEach(([k, v]) => {
-              localBadgeMap[k] = String(v || '');
-              localBadgeMapLower[k.toLowerCase()] = String(v || '');
-            });
-          }
-        }
-        const logoMapping = {};
-        const logoMappingLower = {};
-        if (mappingRes?.ok) {
-          const json = await mappingRes.json();
-          if (json && typeof json === 'object') {
-            Object.entries(json).forEach(([k, v]) => {
-              logoMapping[k] = String(v || '');
-              logoMappingLower[k.toLowerCase()] = String(v || '');
-            });
-          }
-        }
-
-        function resolveBadge(row) {
-          const logoUrl = String(row?.logo_url || '').trim();
-          if (logoUrl && logoUrl !== '/file.svg' && /^https?:\/\//i.test(logoUrl)) return toHttpsUrl(logoUrl);
-          const name = String(row?.name || '').trim();
-          if (!name) return '';
-          const nameLower = name.toLowerCase();
-          if (logoMapping[name]) return toHttpsUrl(logoMapping[name]);
-          if (logoMappingLower[nameLower]) return toHttpsUrl(logoMappingLower[nameLower]);
-          if (localBadgeMap[name]) return localBadgeMap[name];
-          if (localBadgeMapLower[nameLower]) return localBadgeMapLower[nameLower];
-          return '';
-        }
-
-        const { data, error } = await client
-          .from('teams')
-          .select('id,name,sport,league,logo_url')
-          .order('name')
-          .limit(5000);
-
-        if (error || !Array.isArray(data) || !data.length) throw new Error('no teams data');
-
-        const seen = new Set();
-        const bucketed = new Map();
-
-        const sorted = data
-          .filter((row) => {
-            const name = String(row?.name || '').trim();
-            return name && resolveBadge(row);
-          })
-          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
-
-        for (const row of sorted) {
-          const id = String(row.id || '').trim();
-          const title = String(row.name || '').trim();
-          const key = id || title.toLowerCase();
-          if (!key || seen.has(key)) continue;
-          seen.add(key);
-
-          const badge = resolveBadge(row);
-          if (!badge) continue;
-
-          const sport = String(row.sport || '').trim();
-          const league = String(row.league || '').trim();
-
-          const item = {
-            mediaType: 'sports',
-            itemId: id || title,
-            title,
-            subtitle: league || 'Sports',
-            extra: [sport].filter(Boolean).join(' | ').toLowerCase(),
-            image: badge,
-            listImage: badge,
-            backgroundImage: badge,
-            spotlightImage: badge,
-            spotlightMediaImage: badge,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'square',
-            mediaFit: 'contain',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
-          };
-          const bucket = toSportBucket(sport);
-          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
-          bucketed.get(bucket).push(item);
-        }
-
-        const bucketOrder = ['soccer', 'motorsport', 'mma', 'basketball', 'american-football', 'baseball', 'hockey', 'rugby', 'cricket', 'other'];
-        const items = [];
-        const maxPerBucket = Math.ceil(target / Math.min(bucketed.size, 6));
-        bucketOrder.forEach((bucket) => {
-          const list = bucketed.get(bucket);
-          if (!Array.isArray(list) || !list.length) return;
-          const take = Math.min(maxPerBucket, list.length);
-          for (let i = 0; i < take && items.length < target * 2; i++) {
-            items.push(list[i]);
-          }
-        });
-
-        if (!items.some((item) => toSportBucket(item?.sport || item?.subtitle || '') === 'mma')) {
-          items.splice(Math.min(2, items.length), 0, createShowcaseSportsItem({
-            title: 'UFC', sport: 'MMA', league: 'UFC', subtitle: 'MMA | UFC'
-          }));
-        }
-
-        if (items.length) {
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-          return items.slice(0, target);
-        }
-      } catch (_err) {
-        // Teams table / manifests unavailable - will use hardcoded showcase below
-      }
-
-      // Ultimate fallback: generate showcase items from POPULAR_TEAMS so the rail is never empty
-      try {
-        const showcaseTeams = [
-          { title: 'Real Madrid', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
-          { title: 'FC Barcelona', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
-          { title: 'Liverpool', sport: 'Soccer', league: 'Premier League', country: 'England' },
-          { title: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
-          { title: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', country: 'USA' },
-          { title: 'Boston Celtics', sport: 'Basketball', league: 'NBA', country: 'USA' },
-          { title: 'Kansas City Chiefs', sport: 'American Football', league: 'NFL', country: 'USA' },
-          { title: 'Dallas Cowboys', sport: 'American Football', league: 'NFL', country: 'USA' },
-          { title: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', country: 'Italy' },
-          { title: 'McLaren', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
-          { title: 'New York Yankees', sport: 'Baseball', league: 'MLB', country: 'USA' },
-          { title: 'Toronto Maple Leafs', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
-          { title: 'UFC', sport: 'MMA', league: 'UFC', country: 'USA' }
-        ];
-        const fallbackItems = showcaseTeams.map((t) => createShowcaseSportsItem(t));
-        return fallbackItems.slice(0, target);
-      } catch (_err2) {}
-
-      return cachedSportsItems.slice(0, target);
+      writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, hardcodedResult);
+      return hardcodedResult;
     }
 
     async function initUniversalHome(options = {}) {
