@@ -9876,13 +9876,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadSports(signal) {
-      const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
-      void ensureHomeBrandBackgroundManifest();
-      const fallbackItems = stableShuffleHomeItems(
-        HOME_SPORTS_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'sports', index)),
-        'sports:fallback'
-      ).slice(0, target);
-      return fallbackItems;
+      const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      const teams = HOME_SPORTS_FALLBACKS.slice(0, target);
+      return teams.map((t) => ({
+        mediaType: 'sports',
+        itemId: t.id || t.name,
+        title: t.name,
+        subtitle: t.category || 'Sports',
+        extra: [t.category, t.country].filter(Boolean).join(' | '),
+        image: t.logo_url,
+        listImage: t.logo_url,
+        backgroundImage: t.logo_url,
+        spotlightImage: t.logo_url,
+        spotlightMediaImage: t.logo_url,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        mediaFit: 'contain',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        href: 'sports.html'
+      }));
     }
 
     async function initUniversalHome(options = {}) {
