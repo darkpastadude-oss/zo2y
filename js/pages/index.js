@@ -9877,8 +9877,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadSports(signal) {
       const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      const teams = HOME_SPORTS_FALLBACKS.slice(0, target);
-      return teams.map((t) => ({
+      const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
+      return shuffled.slice(0, target).map((t) => ({
         mediaType: 'sports',
         itemId: t.id || t.name,
         title: t.name,
