@@ -9860,10 +9860,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Bayern Munich', badge: '/assets/logos/football/german-bundesliga/bayernmunich.png', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
         // Soccer - Ligue 1
         { title: 'Paris Saint-Germain', badge: '/assets/logos/football/french-ligue-1/psg.png', sport: 'Soccer', league: 'Ligue 1', country: 'France' },
+        // Soccer - Saudi Pro League
+        { title: 'Al Hilal', badge: '/assets/logos/football/saudi-pro-league/alhilal.png', sport: 'Soccer', league: 'Saudi Pro League', country: 'Saudi Arabia' },
+        { title: 'Al Nassr', badge: '/assets/logos/football/saudi-pro-league/alnassr.png', sport: 'Soccer', league: 'Saudi Pro League', country: 'Saudi Arabia' },
         // Soccer - Egypt
         { title: 'Al Ahly', badge: '/assets/logos/football/egyptian-premier-league/alahly.png', sport: 'Soccer', league: 'Egyptian Premier League', country: 'Egypt' },
         // Soccer - Brazil
         { title: 'Flamengo', badge: '/assets/logos/football/brazilian-serie-a/flamengo.png', sport: 'Soccer', league: 'Brazilian Serie A', country: 'Brazil' },
+        // Soccer - Argentina
+        { title: 'Boca Juniors', badge: '/assets/logos/football/argentina-primera-division/bocajuniors.png', sport: 'Soccer', league: 'Primera División', country: 'Argentina' },
+        { title: 'River Plate', badge: '/assets/logos/football/argentina-primera-division/riverplate.png', sport: 'Soccer', league: 'Primera División', country: 'Argentina' },
         // Basketball
         { title: 'Los Angeles Lakers', badge: '/assets/logos/nba/losangeleslakers.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
         { title: 'Boston Celtics', badge: '/assets/logos/nba/bostonceltics.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
@@ -9879,12 +9885,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Red Bull Racing', badge: '/assets/logos/f1/redbullracing.png', sport: 'Motorsport', league: 'Formula 1', country: 'Austria' },
         { title: 'Mercedes', badge: '/assets/logos/f1/mercedes.png', sport: 'Motorsport', league: 'Formula 1', country: 'Germany' },
         { title: 'McLaren', badge: '/assets/logos/f1/mclaren.png', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
+        { title: 'Aston Martin', badge: '/assets/logos/f1/astonmartin.svg', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
         // MLB
         { title: 'New York Yankees', badge: '/assets/logos/mlb/newyorkyankees.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
         { title: 'Los Angeles Dodgers', badge: '/assets/logos/mlb/losangelesdodgers.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
+        { title: 'Boston Red Sox', badge: '/assets/logos/mlb/bostonredsox.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
         // NHL
         { title: 'Toronto Maple Leafs', badge: '/assets/logos/nhl/torontomapleleafs.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
         { title: 'Boston Bruins', badge: '/assets/logos/nhl/bostonbruins.png', sport: 'Ice Hockey', league: 'NHL', country: 'USA' },
+        { title: 'Montreal Canadiens', badge: '/assets/logos/nhl/montrealcanadiens.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
         // MMA
         { title: 'UFC', badge: '/assets/logos/mma/ufc/ufc.svg', sport: 'MMA', league: 'UFC', country: 'USA' }
       ];
