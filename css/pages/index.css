@@ -609,6 +609,7 @@
       padding-bottom: 6px;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
+      direction: ltr;
     }
 
     .rail.unified-rail { grid-auto-columns: 156px; }

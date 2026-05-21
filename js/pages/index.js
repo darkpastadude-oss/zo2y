@@ -70,6 +70,39 @@
       { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
       { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
     ];
+    const HOME_SPORTS_FALLBACKS = [
+      { id: 'spt-liv', name: 'Liverpool', category: 'Premier League', domain: 'liverpoolfc.com', logo_url: '/assets/logos/football/english-premier-league/liverpool.png', country: 'England' },
+      { id: 'spt-mci', name: 'Manchester City', category: 'Premier League', domain: 'mancity.com', logo_url: '/assets/logos/football/english-premier-league/manchestercity.png', country: 'England' },
+      { id: 'spt-ars', name: 'Arsenal', category: 'Premier League', domain: 'arsenal.com', logo_url: '/assets/logos/football/english-premier-league/arsenal.png', country: 'England' },
+      { id: 'spt-che', name: 'Chelsea', category: 'Premier League', domain: 'chelseafc.com', logo_url: '/assets/logos/football/english-premier-league/chelsea.png', country: 'England' },
+      { id: 'spt-mun', name: 'Manchester United', category: 'Premier League', domain: 'manutd.com', logo_url: '/assets/logos/football/english-premier-league/manchesterunited.png', country: 'England' },
+      { id: 'spt-rma', name: 'Real Madrid', category: 'La Liga', domain: 'realmadrid.com', logo_url: '/assets/logos/football/spanish-la-liga/realmadrid.png', country: 'Spain' },
+      { id: 'spt-fcb', name: 'FC Barcelona', category: 'La Liga', domain: 'fcbarcelona.com', logo_url: '/assets/logos/football/spanish-la-liga/barcelona.png', country: 'Spain' },
+      { id: 'spt-acm', name: 'AC Milan', category: 'Serie A', domain: 'acmilan.com', logo_url: '/assets/logos/football/italian-serie-a/acmilan.png', country: 'Italy' },
+      { id: 'spt-int', name: 'Inter Milan', category: 'Serie A', domain: 'inter.it', logo_url: '/assets/logos/football/italian-serie-a/intermilan.png', country: 'Italy' },
+      { id: 'spt-juv', name: 'Juventus', category: 'Serie A', domain: 'juventus.com', logo_url: '/assets/logos/football/italian-serie-a/juventus.png', country: 'Italy' },
+      { id: 'spt-bay', name: 'Bayern Munich', category: 'Bundesliga', domain: 'fcbayern.com', logo_url: '/assets/logos/football/german-bundesliga/bayernmunich.png', country: 'Germany' },
+      { id: 'spt-psg', name: 'Paris Saint-Germain', category: 'Ligue 1', domain: 'psg.fr', logo_url: '/assets/logos/football/french-ligue-1/psg.png', country: 'France' },
+      { id: 'spt-ahl', name: 'Al Ahly', category: 'Egyptian Premier League', domain: 'alahlyegypt.com', logo_url: '/assets/logos/football/egyptian-premier-league/alahly.png', country: 'Egypt' },
+      { id: 'spt-fla', name: 'Flamengo', category: 'Brazilian Serie A', domain: 'flamengo.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/flamengo.png', country: 'Brazil' },
+      { id: 'spt-lal', name: 'Los Angeles Lakers', category: 'NBA', domain: 'nba.com/lakers', logo_url: '/assets/logos/nba/losangeleslakers.png', country: 'USA' },
+      { id: 'spt-bos', name: 'Boston Celtics', category: 'NBA', domain: 'nba.com/celtics', logo_url: '/assets/logos/nba/bostonceltics.png', country: 'USA' },
+      { id: 'spt-gsw', name: 'Golden State Warriors', category: 'NBA', domain: 'nba.com/warriors', logo_url: '/assets/logos/nba/goldenstatewarriors.png', country: 'USA' },
+      { id: 'spt-chi', name: 'Chicago Bulls', category: 'NBA', domain: 'nba.com/bulls', logo_url: '/assets/logos/nba/chicagobulls.png', country: 'USA' },
+      { id: 'spt-kcc', name: 'Kansas City Chiefs', category: 'NFL', domain: 'chiefs.com', logo_url: '/assets/logos/nfl/kansascitychiefs.png', country: 'USA' },
+      { id: 'spt-dal', name: 'Dallas Cowboys', category: 'NFL', domain: 'dallascowboys.com', logo_url: '/assets/logos/nfl/dallascowboys.png', country: 'USA' },
+      { id: 'spt-sf9', name: 'San Francisco 49ers', category: 'NFL', domain: '49ers.com', logo_url: '/assets/logos/nfl/sanfrancisco49ers.png', country: 'USA' },
+      { id: 'spt-phi', name: 'Philadelphia Eagles', category: 'NFL', domain: 'philadelphiaeagles.com', logo_url: '/assets/logos/nfl/philadelphiaeagles.png', country: 'USA' },
+      { id: 'spt-fer', name: 'Ferrari', category: 'Formula 1', domain: 'ferrari.com', logo_url: '/assets/logos/f1/ferrari.png', country: 'Italy' },
+      { id: 'spt-rbr', name: 'Red Bull Racing', category: 'Formula 1', domain: 'redbullracing.com', logo_url: '/assets/logos/f1/redbullracing.png', country: 'Austria' },
+      { id: 'spt-mer', name: 'Mercedes', category: 'Formula 1', domain: 'mercedesamgf1.com', logo_url: '/assets/logos/f1/mercedes.png', country: 'Germany' },
+      { id: 'spt-mcl', name: 'McLaren', category: 'Formula 1', domain: 'mclaren.com', logo_url: '/assets/logos/f1/mclaren.png', country: 'UK' },
+      { id: 'spt-nyy', name: 'New York Yankees', category: 'MLB', domain: 'mlb.com/yankees', logo_url: '/assets/logos/mlb/newyorkyankees.png', country: 'USA' },
+      { id: 'spt-lad', name: 'Los Angeles Dodgers', category: 'MLB', domain: 'mlb.com/dodgers', logo_url: '/assets/logos/mlb/losangelesdodgers.png', country: 'USA' },
+      { id: 'spt-tml', name: 'Toronto Maple Leafs', category: 'NHL', domain: 'nhl.com/mapleleafs', logo_url: '/assets/logos/nhl/torontomapleleafs.png', country: 'Canada' },
+      { id: 'spt-bbr', name: 'Boston Bruins', category: 'NHL', domain: 'nhl.com/bruins', logo_url: '/assets/logos/nhl/bostonbruins.png', country: 'USA' },
+      { id: 'spt-ufc', name: 'UFC', category: 'MMA', domain: 'ufc.com', logo_url: '/assets/logos/mma/ufc/ufc.svg', country: 'USA' }
+    ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
       'top 50 global',
@@ -190,7 +223,7 @@
       { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
       { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
     ]).slice();
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
@@ -1717,6 +1750,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
       if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
+      if (typeKey === 'sports') return '/images/onboarding/onboard-interests.svg';
       return '/images/icons/star.svg';
     }
 
@@ -5803,7 +5837,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 12000 },
-        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports' }, timeoutMs: 12000 }
       ];
     }
 
@@ -6585,6 +6619,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const html = rendered.join('');
       rail.innerHTML = html || '<div class="empty">No items right now.</div>';
       if (!html) return;
+
+      if (railId === 'sportsRail') {
+        try {
+          rail.scrollTo({ left: 0, behavior: 'instant' });
+        } catch (_e) {
+          try { rail.scrollLeft = 0; } catch (_e2) {}
+        }
+      }
 
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
@@ -9833,115 +9875,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return fallbackItems;
     }
 
-    function shuffleArray(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    function buildHardcodedSportsItems() {
-      const teams = [
-        // Soccer - Premier League
-        { title: 'Liverpool', badge: '/assets/logos/football/english-premier-league/liverpool.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
-        { title: 'Manchester City', badge: '/assets/logos/football/english-premier-league/manchestercity.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
-        { title: 'Arsenal', badge: '/assets/logos/football/english-premier-league/arsenal.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
-        { title: 'Chelsea', badge: '/assets/logos/football/english-premier-league/chelsea.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
-        { title: 'Manchester United', badge: '/assets/logos/football/english-premier-league/manchesterunited.png', sport: 'Soccer', league: 'Premier League', country: 'England' },
-        // Soccer - La Liga
-        { title: 'Real Madrid', badge: '/assets/logos/football/spanish-la-liga/realmadrid.png', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
-        { title: 'FC Barcelona', badge: '/assets/logos/football/spanish-la-liga/barcelona.png', sport: 'Soccer', league: 'La Liga', country: 'Spain' },
-        // Soccer - Serie A
-        { title: 'AC Milan', badge: '/assets/logos/football/italian-serie-a/acmilan.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
-        { title: 'Inter Milan', badge: '/assets/logos/football/italian-serie-a/intermilan.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
-        { title: 'Juventus', badge: '/assets/logos/football/italian-serie-a/juventus.png', sport: 'Soccer', league: 'Serie A', country: 'Italy' },
-        // Soccer - Bundesliga
-        { title: 'Bayern Munich', badge: '/assets/logos/football/german-bundesliga/bayernmunich.png', sport: 'Soccer', league: 'Bundesliga', country: 'Germany' },
-        // Soccer - Ligue 1
-        { title: 'Paris Saint-Germain', badge: '/assets/logos/football/french-ligue-1/psg.png', sport: 'Soccer', league: 'Ligue 1', country: 'France' },
-        // Soccer - Saudi Pro League
-        { title: 'Al Hilal', badge: '/assets/logos/football/saudi-pro-league/alhilal.png', sport: 'Soccer', league: 'Saudi Pro League', country: 'Saudi Arabia' },
-        { title: 'Al Nassr', badge: '/assets/logos/football/saudi-pro-league/alnassr.png', sport: 'Soccer', league: 'Saudi Pro League', country: 'Saudi Arabia' },
-        // Soccer - Egypt
-        { title: 'Al Ahly', badge: '/assets/logos/football/egyptian-premier-league/alahly.png', sport: 'Soccer', league: 'Egyptian Premier League', country: 'Egypt' },
-        // Soccer - Brazil
-        { title: 'Flamengo', badge: '/assets/logos/football/brazilian-serie-a/flamengo.png', sport: 'Soccer', league: 'Brazilian Serie A', country: 'Brazil' },
-        // Soccer - Argentina
-        { title: 'Boca Juniors', badge: '/assets/logos/football/argentina-primera-division/bocajuniors.png', sport: 'Soccer', league: 'Primera División', country: 'Argentina' },
-        { title: 'River Plate', badge: '/assets/logos/football/argentina-primera-division/riverplate.png', sport: 'Soccer', league: 'Primera División', country: 'Argentina' },
-        // Basketball
-        { title: 'Los Angeles Lakers', badge: '/assets/logos/nba/losangeleslakers.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
-        { title: 'Boston Celtics', badge: '/assets/logos/nba/bostonceltics.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
-        { title: 'Golden State Warriors', badge: '/assets/logos/nba/goldenstatewarriors.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
-        { title: 'Chicago Bulls', badge: '/assets/logos/nba/chicagobulls.png', sport: 'Basketball', league: 'NBA', country: 'USA' },
-        // NFL
-        { title: 'Kansas City Chiefs', badge: '/assets/logos/nfl/kansascitychiefs.png', sport: 'American Football', league: 'NFL', country: 'USA' },
-        { title: 'Dallas Cowboys', badge: '/assets/logos/nfl/dallascowboys.png', sport: 'American Football', league: 'NFL', country: 'USA' },
-        { title: 'San Francisco 49ers', badge: '/assets/logos/nfl/sanfrancisco49ers.png', sport: 'American Football', league: 'NFL', country: 'USA' },
-        { title: 'Philadelphia Eagles', badge: '/assets/logos/nfl/philadelphiaeagles.png', sport: 'American Football', league: 'NFL', country: 'USA' },
-        // Motorsport - F1
-        { title: 'Ferrari', badge: '/assets/logos/f1/ferrari.png', sport: 'Motorsport', league: 'Formula 1', country: 'Italy' },
-        { title: 'Red Bull Racing', badge: '/assets/logos/f1/redbullracing.png', sport: 'Motorsport', league: 'Formula 1', country: 'Austria' },
-        { title: 'Mercedes', badge: '/assets/logos/f1/mercedes.png', sport: 'Motorsport', league: 'Formula 1', country: 'Germany' },
-        { title: 'McLaren', badge: '/assets/logos/f1/mclaren.png', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
-        { title: 'Aston Martin', badge: '/assets/logos/f1/astonmartin.svg', sport: 'Motorsport', league: 'Formula 1', country: 'UK' },
-        // MLB
-        { title: 'New York Yankees', badge: '/assets/logos/mlb/newyorkyankees.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
-        { title: 'Los Angeles Dodgers', badge: '/assets/logos/mlb/losangelesdodgers.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
-        { title: 'Boston Red Sox', badge: '/assets/logos/mlb/bostonredsox.png', sport: 'Baseball', league: 'MLB', country: 'USA' },
-        // NHL
-        { title: 'Toronto Maple Leafs', badge: '/assets/logos/nhl/torontomapleleafs.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
-        { title: 'Boston Bruins', badge: '/assets/logos/nhl/bostonbruins.png', sport: 'Ice Hockey', league: 'NHL', country: 'USA' },
-        { title: 'Montreal Canadiens', badge: '/assets/logos/nhl/montrealcanadiens.png', sport: 'Ice Hockey', league: 'NHL', country: 'Canada' },
-        // MMA
-        { title: 'UFC', badge: '/assets/logos/mma/ufc/ufc.svg', sport: 'MMA', league: 'UFC', country: 'USA' }
-      ];
-
-      return teams.map((t) => ({
-        mediaType: 'sports',
-        itemId: t.title,
-        title: t.title,
-        subtitle: t.league || 'Sports',
-        extra: [t.sport, t.country].filter(Boolean).join(' | ').toLowerCase(),
-        image: t.badge,
-        listImage: t.badge,
-        backgroundImage: t.badge,
-        spotlightImage: t.badge,
-        spotlightMediaImage: t.badge,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'square',
-        mediaFit: 'contain',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-        href: 'sports.html'
-      }));
-    }
-
     async function loadSports(signal) {
-      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
-
-      const HARDCODED_SPORTS = buildHardcodedSportsItems();
-      const hardcodedResult = HARDCODED_SPORTS.slice(0, target);
-
-      try {
-        const cachedSportsItems = readHomeItemsCache(
-          HOME_SPORTS_ITEMS_CACHE_KEY,
-          HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
-          (item) => {
-            if (!item || typeof item !== 'object') return null;
-            const title = String(item.title || '').trim();
-            const image = String(item.image || '').trim();
-            if (!title || !image) return null;
-            return item;
-          }
-        );
-        if (cachedSportsItems.length >= Math.min(target, 8)) {
-          return cachedSportsItems.slice(0, target);
-        }
-      } catch (_e) {}
-
-      writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, hardcodedResult);
-      return hardcodedResult;
+      const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
+      void ensureHomeBrandBackgroundManifest();
+      const fallbackItems = stableShuffleHomeItems(
+        HOME_SPORTS_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'sports', index)),
+        'sports:fallback'
+      ).slice(0, target);
+      return fallbackItems;
     }
 
     async function initUniversalHome(options = {}) {
