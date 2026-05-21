@@ -4138,9 +4138,8 @@
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
                                             const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                            const item = row?.__activityItem || null;
-                                            const itemImage = escapeHtml(String(item?.image || '').trim());
-                                            const itemFallback = iconGlyph(String(row?.media_type || '').toLowerCase());
+                                            const mediaType = String(row?.media_type || '').toLowerCase();
+                                            const mediaLabel = mediaType || 'item';
                                             const primaryMeta = ratingText || listMetaText;
                                             return `
                                                 <article class="mobile-activity-item">
@@ -4152,13 +4151,9 @@
                                                         <span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
                                                     <div class="mobile-activity-body">
-                                                        <div class="mobile-activity-thumb">
-                                                            ${itemImage
-                                                                ? `<img src="${itemImage}" alt="Item artwork" loading="lazy" onerror="this.onerror=null;this.closest('.mobile-activity-thumb').innerHTML='${itemFallback}';">`
-                                                                : itemFallback}
-                                                        </div>
                                                         <div class="mobile-activity-main">
                                                             <div class="mobile-activity-text">${this.renderActivityAction(row)}</div>
+                                                            <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
                                                             ${primaryMeta ? `<div class="mobile-activity-meta">${primaryMeta}</div>` : ''}
                                                             ${ratingText && listMetaText ? `<div class="mobile-activity-meta">${listMetaText}</div>` : ''}
                                                             ${noteText ? `<div class="mobile-activity-meta">${noteText}</div>` : ''}
@@ -4182,9 +4177,8 @@
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
                                             const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
-                                            const item = row?.__activityItem || null;
-                                            const itemImage = escapeHtml(String(item?.image || '').trim());
-                                            const itemFallback = iconGlyph(String(row?.media_type || '').toLowerCase());
+                                            const mediaType = String(row?.media_type || '').toLowerCase();
+                                            const mediaLabel = mediaType || 'item';
                                             const primaryMeta = ratingText || listMetaText;
                                             return `
                                                 <article class="activity-item">
@@ -4196,13 +4190,9 @@
                                                         <span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
                                                     <div class="activity-item-body">
-                                                        <div class="activity-item-thumb">
-                                                            ${itemImage
-                                                                ? `<img src="${itemImage}" alt="Item artwork" loading="lazy" onerror="this.onerror=null;this.closest('.activity-item-thumb').innerHTML='${itemFallback}';">`
-                                                                : itemFallback}
-                                                        </div>
                                                         <div class="activity-item-main">
                                                             <div class="activity-item-text">${this.renderActivityAction(row)}</div>
+                                                            <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
                                                             ${primaryMeta ? `<div class="activity-item-meta">${primaryMeta}</div>` : ''}
                                                             ${ratingText && listMetaText ? `<div class="activity-item-meta">${listMetaText}</div>` : ''}
                                                             ${noteText ? `<div class="activity-item-meta">${noteText}</div>` : ''}
