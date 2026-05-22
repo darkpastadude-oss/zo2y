@@ -41,7 +41,7 @@
             const ENABLE_RESTAURANTS = false;
             const GAMES_DISABLED = false;
             const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
-            const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
+            const VALID_PRIMARY_TABS = new Set(['lists', 'activity', 'taste']);
             let currentPrimaryTab = 'lists';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
             let restaurants = [];
@@ -717,8 +717,383 @@
                         showTab(targetTab, { skipUrlSync: true, skipPrimarySync: true });
                     } else if (safeTab === 'activity') {
                         showTab('community', { skipUrlSync: true, skipPrimarySync: true });
+                    } else if (safeTab === 'taste') {
+                        loadTasteCard();
                     }
                 }
+            }
+
+            /* ─── Taste Card ─── */
+            const TASTE_CATEGORIES = [
+                { key: 'movies', icon: 'fa-film', emoji: '🎬', label: 'Movies' },
+                { key: 'tv', icon: 'fa-tv', emoji: '📺', label: 'TV Shows' },
+                { key: 'anime', icon: 'fa-dragon', emoji: '🎌', label: 'Anime' },
+                { key: 'games', icon: 'fa-gamepad', emoji: '🎮', label: 'Games' },
+                { key: 'books', icon: 'fa-book', emoji: '📚', label: 'Books' },
+                { key: 'music', icon: 'fa-music', emoji: '🎵', label: 'Music' },
+                { key: 'sports', icon: 'fa-futbol', emoji: '👟', label: 'Sports' },
+                { key: 'travel', icon: 'fa-earth-americas', emoji: '✈️', label: 'Travel' },
+                { key: 'fashion', icon: 'fa-shirt', emoji: '👗', label: 'Fashion' },
+                { key: 'food', icon: 'fa-burger', emoji: '🍔', label: 'Food' },
+                { key: 'cars', icon: 'fa-car', emoji: '🚗', label: 'Cars' }
+            ];
+
+            let tasteCardData = [];
+            let tasteCardAllEntries = [];
+            let tastePendingPicks = {};
+
+            async function loadTasteCard() {
+                const isMobile = window.innerWidth <= 768;
+                const containerId = isMobile ? 'mobileTasteCardContainer' : 'tasteCardContainer';
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const ownerId = isViewingOwnProfile ? (currentUser?.id || '') : (targetUserId || '');
+
+                // Load taste card entries for the profile owner
+                try {
+                    const { data: myEntries } = await supabase
+                        .from('user_taste_card')
+                        .select('*')
+                        .eq('user_id', ownerId);
+                    tasteCardData = Array.isArray(myEntries) ? myEntries : [];
+                } catch (_e) {
+                    tasteCardData = [];
+                }
+
+                // Load all entries for rarity
+                try {
+                    const { data: all } = await supabase
+                        .from('user_taste_card')
+                        .select('category, item_id, item_name');
+                    tasteCardAllEntries = Array.isArray(all) ? all : [];
+                } catch (_e) {
+                    tasteCardAllEntries = [];
+                }
+
+                renderTasteCard(container);
+            }
+
+            function renderTasteCard(container) {
+                const byCategory = {};
+                tasteCardData.forEach((entry) => { byCategory[entry.category] = entry; });
+
+                const totalUsers = new Set(tasteCardAllEntries.map((e) => e.user_id).filter(Boolean)).size || 1;
+                let rarestCat = '';
+                let rarestRatio = Infinity;
+
+                TASTE_CATEGORIES.forEach((cat) => {
+                    const entry = byCategory[cat.key];
+                    if (!entry) return;
+                    const sameCount = tasteCardAllEntries.filter((e) => e.category === cat.key && e.item_id === entry.item_id).length;
+                    const ratio = Math.max(1, Math.round(totalUsers / Math.max(1, sameCount)));
+                    if (ratio < rarestRatio) {
+                        rarestRatio = ratio;
+                        rarestCat = cat.key;
+                    }
+                });
+
+                const hasAny = TASTE_CATEGORIES.some((cat) => byCategory[cat.key]);
+                const totalSets = TASTE_CATEGORIES.filter((cat) => byCategory[cat.key]).length;
+
+                if (!hasAny) {
+                    const isMobile = window.innerWidth <= 768;
+                    container.innerHTML = isMobile
+                        ? `<div class="mobile-empty-state">
+                            <div class="mobile-empty-icon"><i class="fas fa-star"></i></div>
+                            <div class="mobile-empty-title">No taste picks yet</div>
+                            <div class="mobile-empty-description">Pick your favorite in each category</div>
+                            <button class="mobile-action-btn btn-base" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Card</button>
+                           </div>`
+                        : `<div class="taste-card-empty">
+                            <div class="taste-card-empty-icon"><i class="fas fa-star"></i></div>
+                            <div class="taste-card-empty-title">No taste picks yet</div>
+                            <div class="taste-card-empty-desc">Pick your favorite in each category to build your taste card.</div>
+                            <button class="taste-card-edit-btn" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Taste Card</button>
+                           </div>`;
+                    return;
+                }
+
+                const cat = TASTE_CATEGORIES.find((c) => c.key === rarestCat);
+                const rarestLabel = cat ? `${cat.emoji} ${cat.label}` : '';
+                const rarityText = rarestRatio === 1
+                    ? '★ You are the only one!'
+                    : `★ Rarest pick: ${rarestLabel} — 1 in ${rarestRatio.toLocaleString()} users`;
+
+                let html = '<div class="taste-card-shell">';
+                if (isViewingOwnProfile) {
+                    html += '<div class="taste-card-toolbar">';
+                    html += '<button class="taste-card-edit-btn" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Edit Picks</button>';
+                    html += '</div>';
+                }
+                html += '<div class="taste-card-inner">';
+                html += '<div class="taste-card-header">';
+                html += '<span class="taste-card-badge">🎯</span>';
+                html += '<div class="taste-card-title">Taste Card</div>';
+                const displayUser = (document.getElementById('profileUsername')?.textContent || '@user').replace(/^@/, '');
+                html += '<div class="taste-card-username">@' + escapeHtml(displayUser || 'user') + '</div>';
+                html += '</div>';
+                html += '<div class="taste-card-grid">';
+
+                TASTE_CATEGORIES.forEach((cat) => {
+                    const entry = byCategory[cat.key];
+                    if (entry && entry.item_name) {
+                        const imgSrc = entry.item_image || '';
+                        const imgHtml = imgSrc
+                            ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(entry.item_name)}" loading="lazy" onerror="this.style.display='none'">`
+                            : '';
+                        const initial = entry.item_name.charAt(0).toUpperCase();
+                        html += '<div class="taste-card-item">';
+                        html += '<div class="taste-card-item-image">';
+                        if (imgHtml) {
+                            html += imgHtml;
+                        } else {
+                            html += `<span style="font-size:22px;font-weight:700;color:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;width:100%;height:100%">${escapeHtml(initial)}</span>`;
+                        }
+                        html += `<span class="taste-card-item-icon">${cat.emoji}</span>`;
+                        html += '</div>';
+                        html += `<div class="taste-card-item-name">${escapeHtml(entry.item_name)}</div>`;
+                        html += '</div>';
+                    } else {
+                        html += '<div class="taste-card-item taste-card-item-empty">';
+                        html += '<div class="taste-card-item-image">';
+                        html += `<span>${cat.emoji}</span>`;
+                        html += '</div>';
+                        html += `<div class="taste-card-item-name">${cat.label}</div>`;
+                        html += '</div>';
+                    }
+                });
+
+                html += '</div>';
+                html += '<div class="taste-card-footer">';
+                html += `<div class="taste-card-rarity">${rarityText}</div>`;
+                const cardUser = (document.getElementById('profileUsername')?.textContent || '@user').replace(/^@/, '');
+                html += `<div class="taste-card-url">zo2y.com/u/${escapeHtml(cardUser || 'user')}</div>`;
+                html += '</div></div></div>';
+
+                container.innerHTML = html;
+            }
+
+            async function openTastePicker() {
+                if (!isViewingOwnProfile || !currentUser?.id) return;
+                const existingOverlay = document.getElementById('tastePickerOverlay');
+                if (existingOverlay) existingOverlay.remove();
+
+                const byCategory = {};
+                tasteCardData.forEach((entry) => { byCategory[entry.category] = entry; });
+                tastePendingPicks = {};
+                TASTE_CATEGORIES.forEach((cat) => {
+                    const existing = byCategory[cat.key];
+                    tastePendingPicks[cat.key] = existing ? { name: existing.item_name || '', image: existing.item_image || '' } : { name: '', image: '' };
+                });
+
+                // Load user's favorites items for each category to show as quick picks
+                const favoritesCache = await loadTasteFavoritesCache();
+
+                const overlay = document.createElement('div');
+                overlay.className = 'taste-picker-overlay';
+                overlay.id = 'tastePickerOverlay';
+                overlay.onclick = function (e) { if (e.target === overlay) closeTastePicker(); };
+
+                let bodyHtml = '<div class="taste-picker-body">';
+                TASTE_CATEGORIES.forEach((cat) => {
+                    const pick = tastePendingPicks[cat.key];
+                    const favItems = favoritesCache[cat.key] || [];
+                    bodyHtml += `<div class="taste-picker-category" data-picker-cat="${cat.key}">`;
+                    bodyHtml += `<div class="taste-picker-category-label"><i class="fas ${cat.icon}"></i> ${cat.label}</div>`;
+
+                    // Show current pick if set
+                    if (pick.name) {
+                        const img = pick.image ? `<img src="${escapeHtml(pick.image)}" onerror="this.style.display='none'">` : '';
+                        bodyHtml += `<div class="taste-picker-item selected" style="margin-bottom:8px;width:auto;display:inline-flex;padding:6px 12px;gap:8px;align-items:center" data-cat="${cat.key}">`;
+                        if (img) bodyHtml += `<div style="width:32px;height:32px;border-radius:6px;overflow:hidden;flex-shrink:0">${img}</div>`;
+                        bodyHtml += `<span style="font-size:13px;font-weight:600;color:var(--white)">${escapeHtml(pick.name)}</span>`;
+                        bodyHtml += `<span style="font-size:11px;color:var(--tc-accent, #f59e0b);font-weight:600">✓ Set</span>`;
+                        bodyHtml += '</div>';
+                    }
+
+                    // Input row
+                    bodyHtml += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+                    bodyHtml += `<input type="text" class="taste-picker-name-input" data-cat="${cat.key}" placeholder="Item name..." value="${escapeHtml(pick.name || '')}" style="flex:1;min-width:120px;padding:8px 12px;border-radius:8px;border:1px solid var(--tc-border,rgba(255,255,255,0.08));background:rgba(255,255,255,0.04);color:var(--white);font-size:13px;outline:none">`;
+                    bodyHtml += `<input type="text" class="taste-picker-image-input" data-cat="${cat.key}" placeholder="Image URL (optional)" value="${escapeHtml(pick.image || '')}" style="width:100%;margin-top:4px;padding:8px 12px;border-radius:8px;border:1px solid var(--tc-border,rgba(255,255,255,0.08));background:rgba(255,255,255,0.04);color:var(--white);font-size:12px;outline:none">`;
+                    bodyHtml += '</div>';
+
+                    // Quick picks from favorites
+                    if (favItems.length) {
+                        bodyHtml += '<div class="taste-picker-items" style="margin-top:6px">';
+                        favItems.forEach((item) => {
+                            const img = item.image ? `<img src="${escapeHtml(item.image)}" alt="" onerror="this.style.display='none'">` : '';
+                            bodyHtml += `<div class="taste-picker-item" data-cat="${cat.key}" data-name="${escapeHtml(item.name)}" data-image="${escapeHtml(item.image || '')}">`;
+                            bodyHtml += `<div class="taste-picker-item-img">${img || '<span style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:20px">' + cat.emoji + '</span>'}</div>`;
+                            bodyHtml += `<div class="taste-picker-item-name">${escapeHtml(item.name)}</div>`;
+                            bodyHtml += '</div>';
+                        });
+                        bodyHtml += '</div>';
+                    }
+
+                    bodyHtml += '</div>';
+                });
+                bodyHtml += '</div>';
+
+                overlay.innerHTML = `<div class="taste-picker-modal">
+                    <div class="taste-picker-header">
+                        <h2>Edit Taste Card</h2>
+                        <button class="taste-picker-close" onclick="ProfileManager.closeTastePicker()">✕</button>
+                    </div>
+                    ${bodyHtml}
+                    <div class="taste-picker-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="ProfileManager.closeTastePicker()">Cancel</button>
+                        <button class="taste-picker-save" onclick="ProfileManager.saveTastePicks()">Save Card</button>
+                    </div>
+                </div>`;
+
+                document.body.appendChild(overlay);
+                overlay.style.display = 'flex';
+
+                // Bind quick pick clicks
+                overlay.querySelectorAll('.taste-picker-item[data-cat]').forEach((el) => {
+                    el.addEventListener('click', function () {
+                        const cat = this.dataset.cat;
+                        const name = this.dataset.name;
+                        const image = this.dataset.image;
+                        const nameInput = overlay.querySelector(`.taste-picker-name-input[data-cat="${cat}"]`);
+                        const imageInput = overlay.querySelector(`.taste-picker-image-input[data-cat="${cat}"]`);
+                        if (nameInput) nameInput.value = name;
+                        if (imageInput) imageInput.value = image;
+                        // Highlight selected
+                        overlay.querySelectorAll(`.taste-picker-item[data-cat="${cat}"]`).forEach((s) => s.classList.remove('selected'));
+                        this.classList.add('selected');
+                        tastePendingPicks[cat] = { name, image };
+                    });
+                });
+
+                // Bind name/image input changes
+                overlay.querySelectorAll('.taste-picker-name-input').forEach((input) => {
+                    input.addEventListener('input', function () {
+                        tastePendingPicks[this.dataset.cat] = tastePendingPicks[this.dataset.cat] || {};
+                        tastePendingPicks[this.dataset.cat].name = this.value;
+                    });
+                });
+                overlay.querySelectorAll('.taste-picker-image-input').forEach((input) => {
+                    input.addEventListener('input', function () {
+                        tastePendingPicks[this.dataset.cat] = tastePendingPicks[this.dataset.cat] || {};
+                        tastePendingPicks[this.dataset.cat].image = this.value;
+                    });
+                });
+            }
+
+            async function loadTasteFavoritesCache() {
+                const cache = {};
+                TASTE_CATEGORIES.forEach((cat) => { cache[cat.key] = []; });
+
+                const listType = 'favorites';
+                const queries = [
+                    { key: 'movies', table: 'movie_list_items', join: 'movie_lists', nameCol: 'movie_title', imageCol: 'poster_url', idCol: 'movie_id' },
+                    { key: 'tv', table: 'tv_list_items', join: 'tv_lists', nameCol: 'tv_title', imageCol: 'poster_url', idCol: 'tv_id' },
+                    { key: 'anime', table: 'anime_list_items', join: 'anime_lists', nameCol: 'anime_title', imageCol: 'poster_url', idCol: 'anime_id' },
+                    { key: 'games', table: 'game_list_items', join: 'game_lists', nameCol: 'game_name', imageCol: 'cover_url', idCol: 'game_id' },
+                    { key: 'books', table: 'book_list_items', join: 'book_lists', nameCol: 'book_title', imageCol: 'cover_url', idCol: 'book_id' },
+                    { key: 'music', table: 'music_list_items', join: 'music_lists', nameCol: 'track_name', imageCol: 'album_cover', idCol: 'track_id' },
+                    { key: 'sports', table: 'sports_list_items', join: 'sports_lists', nameCol: 'team_name', imageCol: 'logo_url', idCol: 'team_id' },
+                    { key: 'travel', table: 'travel_list_items', join: 'travel_lists', nameCol: 'country_name', imageCol: 'flag_url', idCol: 'country_id' },
+                    { key: 'fashion', table: 'fashion_list_items', join: 'fashion_lists', nameCol: 'brand_name', imageCol: 'logo_url', idCol: 'brand_id' },
+                    { key: 'food', table: 'food_list_items', join: 'food_lists', nameCol: 'brand_name', imageCol: 'logo_url', idCol: 'brand_id' },
+                    { key: 'cars', table: 'car_list_items', join: 'car_lists', nameCol: 'brand_name', imageCol: 'logo_url', idCol: 'brand_id' }
+                ];
+
+                await Promise.all(queries.map(async (q) => {
+                    try {
+                        const { data: lists } = await supabase
+                            .from(q.join)
+                            .select('id')
+                            .eq('user_id', currentUser.id)
+                            .eq('list_type', listType)
+                            .limit(1);
+                        if (!lists || !lists.length) return;
+                        const listId = lists[0].id;
+                        const { data: items } = await supabase
+                            .from(q.table)
+                            .select(`${q.idCol}, ${q.nameCol}, ${q.imageCol}`)
+                            .eq('list_id', listId)
+                            .order('created_at', { ascending: false })
+                            .limit(20);
+                        if (Array.isArray(items)) {
+                            cache[q.key] = items.map((item) => ({
+                                id: String(item[q.idCol] || ''),
+                                name: String(item[q.nameCol] || '').trim(),
+                                image: String(item[q.imageCol] || '').trim()
+                            })).filter((item) => item.name);
+                        }
+                    } catch (_e) { /* skip */ }
+                }));
+
+                return cache;
+            }
+
+            async function saveTastePicks() {
+                const saveBtn = document.querySelector('.taste-picker-save');
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+                // Sync current input values
+                document.querySelectorAll('.taste-picker-name-input').forEach((input) => {
+                    const cat = input.dataset.cat;
+                    tastePendingPicks[cat] = tastePendingPicks[cat] || {};
+                    tastePendingPicks[cat].name = input.value;
+                });
+                document.querySelectorAll('.taste-picker-image-input').forEach((input) => {
+                    const cat = input.dataset.cat;
+                    tastePendingPicks[cat] = tastePendingPicks[cat] || {};
+                    tastePendingPicks[cat].image = input.value;
+                });
+
+                const errors = [];
+                const operations = [];
+
+                TASTE_CATEGORIES.forEach((cat) => {
+                    const pick = tastePendingPicks[cat.key];
+                    if (!pick || !pick.name || !pick.name.trim()) return;
+                    const name = pick.name.trim();
+                    const image = (pick.image || '').trim();
+
+                    operations.push((async () => {
+                        try {
+                            const { error } = await supabase
+                                .from('user_taste_card')
+                                .upsert({
+                                    user_id: currentUser.id,
+                                    category: cat.key,
+                                    item_id: name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+                                    item_name: name,
+                                    item_image: image || null,
+                                    item_subtitle: cat.label
+                                }, {
+                                    onConflict: 'user_id,category'
+                                });
+                            if (error) errors.push(`${cat.label}: ${error.message}`);
+                        } catch (e) {
+                            errors.push(`${cat.label}: ${e.message}`);
+                        }
+                    })());
+                });
+
+                await Promise.all(operations);
+
+                if (errors.length) {
+                    alert('Some picks failed to save:\n' + errors.join('\n'));
+                }
+
+                closeTastePicker();
+                await loadTasteCard();
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Card'; }
+            }
+
+            function closeTastePicker() {
+                const overlay = document.getElementById('tastePickerOverlay');
+                if (overlay) overlay.remove();
+            }
+
+            function escapeHtml(str) {
+                return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             }
 
             function getPreviewOrientationClass(contentType) {
@@ -13568,6 +13943,10 @@
                 initialize,
                 showTab,
                 showPrimaryTab,
+                loadTasteCard,
+                openTastePicker,
+                closeTastePicker,
+                saveTastePicks,
                 goToMyProfile,
                 showCommunitySection,
                 viewUserProfile,
