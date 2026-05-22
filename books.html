@@ -239,7 +239,7 @@
       border-radius: 18px;
       background: #10224a;
       color: #fff;
-      padding: 0 44px 0 18px;
+      padding: 0 18px;
       font-size: 16px;
       -webkit-appearance: none;
       appearance: none;
@@ -249,23 +249,6 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
       outline: none;
-    }
-    .search-spinner {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 30px;
-      height: 30px;
-      border: none;
-      background: transparent;
-      border-radius: 50%;
-      color: var(--accent);
-      pointer-events: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
     }
     .controls input, .controls select {
       height: 56px;
@@ -918,7 +901,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
-        <span id="searchSpinner" class="search-spinner" hidden><i class="fas fa-circle-notch fa-spin"></i></span>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -1151,45 +1133,53 @@
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
 
         try {
-          // Fetch popular current books by searching for 2025-2026 bestseller queries
-          const queries = [
-            'bestsellers 2025 fiction',
-            'popular books 2025',
-            '2025 bestseller'
-          ];
-          const allResults = await Promise.allSettled(
-            queries.map(q =>
-              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / queries.length)}&page=1&language=en&orderBy=relevance`)
-                .then(r => r.ok ? r.json() : null)
-            )
-          );
-
           const seen = new Set();
-          for (const result of allResults) {
-            if (result.status !== 'fulfilled' || !result.value) continue;
-            const batch = Array.isArray(result.value.books) ? result.value.books : (Array.isArray(result.value.docs) ? result.value.docs : []);
-            for (const book of batch) {
+
+          const addBooks = (batch) => {
+            const arr = Array.isArray(batch) ? batch : [];
+            for (const book of arr) {
               const id = book.id || book._googleVolumeId || '';
               if (!id || seen.has(id)) continue;
               seen.add(id);
               books.push(book);
-              apiTotalResults = Math.max(apiTotalResults || 0, Number(result.value.meta?.numFound || result.value.numFound || 0));
+            }
+          };
+
+          const fetchAndParse = async (url) => {
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const json = await res.json();
+            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+            addBooks(batch);
+            apiTotalResults = Math.max(apiTotalResults || 0, Number(json?.meta?.numFound || json?.numFound || 0));
+            return json;
+          };
+
+          // 1. Open Library trending — real popular books based on actual usage
+          for (const period of ['weekly', 'monthly', 'daily']) {
+            if (books.length >= BOOKS_PER_PAGE) break;
+            await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${BOOKS_PER_PAGE}`);
+          }
+
+          // 2. Supplement with popular subjects if still short
+          if (books.length < 15) {
+            const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
+            for (const subject of subjects) {
+              if (books.length >= BOOKS_PER_PAGE) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(BOOKS_PER_PAGE / 2)}&page=1&language=en`);
             }
           }
 
-          // Fallback to trending if not enough results
+          // 3. Ultimate fallback — Google Books search for current bestsellers
           if (books.length < 15) {
-            const trendingRes = await fetch(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`);
-            if (trendingRes.ok) {
-              const trendingJson = await trendingRes.json();
-              const trendingBooks = Array.isArray(trendingJson?.books) ? trendingJson.books : [];
-              for (const book of trendingBooks) {
-                const id = book.id || book._googleVolumeId || '';
-                if (!id || seen.has(id)) continue;
-                seen.add(id);
-                books.push(book);
-              }
-              apiTotalResults = Math.max(apiTotalResults || 0, Number(trendingJson?.meta?.numFound || 0));
+            const fallbackQueries = [
+              'bestsellers 2025 fiction',
+              'popular books 2025',
+              '2025 bestseller'
+            ];
+            for (const q of fallbackQueries) {
+              if (books.length >= BOOKS_PER_PAGE) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / 3)}&page=1&language=en&orderBy=relevance`);
             }
           }
         } catch (_err) {
@@ -1270,22 +1260,15 @@
       }
     }
 
-    function showSearchLoading(loading) {
-      const spinner = document.getElementById('searchSpinner');
-      if (spinner) spinner.hidden = !loading;
-    }
-
     function debounceSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       if (!query) return;
       searchDebounceTimer = setTimeout(async () => {
-        showSearchLoading(true);
         state.search = query;
         state.page = 1;
         await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
-        showSearchLoading(false);
       }, 300);
     }
 
@@ -1509,13 +1492,11 @@
 
     async function executeSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      showSearchLoading(true);
       state.search = query;
       state.page = 1;
       await loadBooksWithFallback();
       await loadListStatus();
       renderGrid();
-      showSearchLoading(false);
     }
 
     document.getElementById('q')?.addEventListener('input', async (e) => {
