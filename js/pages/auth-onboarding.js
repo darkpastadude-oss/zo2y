@@ -175,6 +175,16 @@
     try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_e) {}
     try { window.__ZO2Y_SUPABASE_CLIENT = null; } catch (_e) {}
     try { window.__ZO2Y_AUTH = null; } catch (_e) {}
+    if (typeof window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS === 'function') {
+      try { window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS(); } catch (_e) {}
+    }
+    try {
+      for (var _i = localStorage.length - 1; _i >= 0; _i -= 1) {
+        var _k = localStorage.key(_i);
+        if (!_k) continue;
+        if (/^sb-[a-z0-9]+-auth-token$/i.test(_k)) localStorage.removeItem(_k);
+      }
+    } catch (_e) {}
     window.location.replace('login.html');
   });
 

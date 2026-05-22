@@ -413,7 +413,6 @@
         session: session,
         savedAt: Date.now()
       }));
-      clearExplicitSignoutMarker();
       pushAuthDebugEvent('session:persist', {
         userId: String(session.user && session.user.id || '').trim() || null,
         expiresAt: session.expires_at || null
@@ -922,6 +921,9 @@
       lastKnownSessionSnapshot = session && session.access_token && session.refresh_token ? session : null;
       if (session && session.access_token && session.refresh_token) {
         persistSessionSnapshot(session);
+        if (normalizedEvent === 'SIGNED_IN') {
+          clearExplicitSignoutMarker();
+        }
       }
       pushAuthDebugEvent('auth:event', {
         event: normalizedEvent,
@@ -931,7 +933,6 @@
       if (normalizedEvent === 'SIGNED_OUT') {
         if (hasRecentExplicitSignout()) {
           clearPersistedSessionSnapshots();
-          clearExplicitSignoutMarker();
         }
       }
       if (client === window.__ZO2Y_SUPABASE_CLIENT) {
@@ -1997,6 +1998,7 @@
     window.__ZO2Y_ENSURE_AUTH_PROFILE = ensureAuthProfile;
     window.__ZO2Y_MARK_EXPLICIT_SIGNOUT = markExplicitSignout;
     window.__ZO2Y_CLEAR_EXPLICIT_SIGNOUT = clearExplicitSignoutMarker;
+    window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS = clearPersistedSessionSnapshots;
     window.__ZO2Y_AUTH_DIAGNOSTICS = function () {
       var snapshot = getAuthDebugSnapshot();
       snapshot.oauthFlow = safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]);

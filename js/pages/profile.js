@@ -882,7 +882,7 @@
                 clearAuthStorageNuclear();
 
                 // 2. Mark explicit signout before any signOut call so the SIGNED_OUT handler
-                //    sees it and clears it. We will re-set it after signOut completes.
+                //    sees it. We will re-set it again after signOut completes.
                 try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
 
                 // 3. Tear down realtime subscriptions.
@@ -912,8 +912,29 @@
                 // 6. Null out shared references so bfcache pages don't find a live client.
                 try { window.__ZO2Y_SUPABASE_CLIENT = null; } catch (_err) {}
                 try { window.__ZO2Y_AUTH = null; } catch (_err) {}
+                // Clear in-memory session snapshot so pagehide/beforeunload won't re-persist it.
+                try {
+                    if (typeof window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS === 'function') {
+                        window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS();
+                    }
+                } catch (_err) {}
 
-                // 7. Replace history entry and navigate to login.
+                // 7. Final defensive sweep: re-set signout marker and clear any deep Supabase SDK
+                //    storage right before navigation, protecting against any re-persistence from
+                //    lifecycle events that fired above.
+                try {
+                    localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now()));
+                    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+                        const k = localStorage.key(i);
+                        if (!k) continue;
+                        if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
+                        if (k.indexOf('zo2y-auth-') === 0 && k !== 'zo2y-auth-explicit-signout-v2') {
+                            localStorage.removeItem(k);
+                        }
+                    }
+                } catch (_err) {}
+
+                // 8. Replace history entry and navigate to login.
                 window.location.replace('login.html');
             }
 

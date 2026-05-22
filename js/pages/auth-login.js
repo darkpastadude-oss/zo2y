@@ -145,24 +145,22 @@
     try {
       var explicitSignoutKey = 'zo2y-auth-explicit-signout-v2';
       var explicitSignout = window.localStorage ? window.localStorage.getItem(explicitSignoutKey) : null;
-      if (!explicitSignout) {
-        return false;
-      }
-      var timestamp = Number(explicitSignout || 0);
-      if (!timestamp) {
+      if (explicitSignout) {
+        var timestamp = Number(explicitSignout || 0);
+        if (timestamp && (Date.now() - timestamp) <= (1000 * 60 * 10)) {
+          // Recent explicit signout found - do not restore session
+          window.localStorage.removeItem(explicitSignoutKey);
+          return false;
+        }
+        // Expired or invalid signout marker - clear it and fall through
         window.localStorage.removeItem(explicitSignoutKey);
-        return false;
       }
-      if ((Date.now() - timestamp) > (1000 * 60 * 10)) { // EXPLICIT_SIGNOUT_TTL_MS
-        window.localStorage.removeItem(explicitSignoutKey);
-        return false;
-      }
-      // Recent explicit signout found - do not restore session
-      window.localStorage.removeItem(explicitSignoutKey);
-      return false;
     } catch (_err) {
-      return false;
+      // If error checking signout marker, fall through to session check
     }
+
+    // No recent signout marker - check if user has a valid session and redirect if so
+    if (redirectInFlight) return true;
 
     await auth.waitForSupabase(6000);
     var client = auth.ensureClient();
