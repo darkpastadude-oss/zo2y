@@ -139,6 +139,18 @@
 
   async function redirectIfAlreadyAuthenticated() {
     if (redirectInFlight) return true;
+
+    // If an explicit signout was recently performed, do NOT restore the session
+    // even if the Supabase client still reports one from bfcache or stale storage.
+    var explicitSignoutKey = 'zo2y-auth-explicit-signout-v2';
+    try {
+      var explicitSignout = window.localStorage ? window.localStorage.getItem(explicitSignoutKey) : null;
+      if (explicitSignout) {
+        window.localStorage.removeItem(explicitSignoutKey);
+        return false;
+      }
+    } catch (_err) {}
+
     await auth.waitForSupabase(6000);
     var client = auth.ensureClient();
     if (!client) return false;

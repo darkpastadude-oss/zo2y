@@ -830,7 +830,7 @@
             }
 
             // ===== LOGOUT FUNCTION =====
-            function logout() {
+            async function logout() {
                 function clearAuthStorageNuclear() {
                     const knownKeys = [
                         'zo2y-auth-v2',
@@ -878,31 +878,42 @@
                     } catch (_err4) {}
                 }
 
-                // 1. Nuclear-clear storage FIRST — before any async calls — so if the page unloads,
-                //    the session data is already gone and cannot be restored from cache or bfcache.
+                // 1. Clear storage immediately — always synchronously first.
                 clearAuthStorageNuclear();
 
-                // 2. Mark explicit signout so auth-gate does not try to restore/refresh the session.
+                // 2. Mark explicit signout before any signOut call so the SIGNED_OUT handler
+                //    sees it and clears it. We will re-set it after signOut completes.
                 try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
 
-                // 3. Fire-and-forget: tear down subscriptions and call signOut in the background.
-                //    We do NOT await these — storage is already clean, so even if the browser
-                //    cancels pending requests during navigation, the session cannot be restored.
-                teardownStatsRealtimeSubscriptions().catch(() => {});
+                // 3. Tear down realtime subscriptions.
+                try { await teardownStatsRealtimeSubscriptions(); } catch (_err) {}
 
-                const authRuntime = window.ZO2Y_AUTH || null;
-                if (authRuntime && typeof authRuntime.signOut === 'function') {
-                    authRuntime.signOut(supabase).catch(() => {});
-                } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
-                    supabase.auth.signOut({ scope: 'global' }).catch(() => {});
-                }
+                // 4. Call signOut and wait for it with a 3s timeout.
+                //    We await so Supabase clears its in-memory session before we navigate away.
+                try {
+                    const authRuntime = window.ZO2Y_AUTH || null;
+                    if (authRuntime && typeof authRuntime.signOut === 'function') {
+                        await Promise.race([
+                            authRuntime.signOut(supabase),
+                            new Promise((r) => setTimeout(r, 3000))
+                        ]);
+                    } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
+                        await Promise.race([
+                            supabase.auth.signOut({ scope: 'global' }),
+                            new Promise((r) => setTimeout(r, 3000))
+                        ]);
+                    }
+                } catch (_err) {}
 
-                // 4. Null out the shared supabase client reference so bfcache-restored pages
-                //    cannot find a live client with an in-memory session.
+                // 5. Re-set the explicit signout marker — the SIGNED_OUT handler may have
+                //    cleared it, and we want it present on the next page load.
+                try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
+
+                // 6. Null out shared references so bfcache pages don't find a live client.
                 try { window.__ZO2Y_SUPABASE_CLIENT = null; } catch (_err) {}
                 try { window.__ZO2Y_AUTH = null; } catch (_err) {}
 
-                // 5. Replace history entry and navigate to login.
+                // 7. Replace history entry and navigate to login.
                 window.location.replace('login.html');
             }
 
