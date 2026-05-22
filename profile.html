@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/animations.css?v=20260430c" />
     <link rel="stylesheet" href="css/pages/profile.css?v=20260521a" />
-    <link rel="stylesheet" href="css/pages/taste-card.css?v=20260518a" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -162,10 +161,6 @@
                     <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
                         <span class="profile-primary-tab-label">Community</span>
                         <span class="profile-primary-tab-copy">Followers and activity</span>
-                    </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
-                        <span class="profile-primary-tab-label">Taste</span>
-                        <span class="profile-primary-tab-copy">Your favorites card</span>
                     </button>
                 </div>
             </div>
@@ -671,27 +666,6 @@
             </div>
             </section>
 
-            <section class="profile-primary-panel" data-panel="taste">
-            <div class="tab-content" id="taste-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title">Taste Card</h2>
-                            <p class="section-subtitle">Your top pick in every category — one favorite that defines your taste.</p>
-                        </div>
-                    </div>
-                    <div id="tasteCardContainer">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-star"></i></div>
-                            <h3 class="empty-title">No taste picks yet</h3>
-                            <p class="empty-description">Pick your favorite in each category to build your taste card.</p>
-                            <button class="btn btn-primary" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Taste Card</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </section>
-
             <section class="profile-primary-panel" data-panel="lists">
             <!-- Music Tab Content -->
             <div class="tab-content" id="music-tab">
@@ -1119,9 +1093,6 @@
                 <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
                     <span>Community</span>
                 </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
-                    <span>Taste</span>
-                </button>
             </div>
         </div>
 
@@ -1531,23 +1502,6 @@
                             </div>
                         </div>
                     </div>
-            </div>
-            </section>
-
-            <section class="mobile-primary-panel" data-panel="taste">
-            <div class="mobile-section" id="mobileTasteSection">
-                <div class="mobile-section-title">
-                    <span id="mobileTasteTitle">Taste Card</span>
-                </div>
-                <div class="mobile-section-subtitle">Your top pick in every category</div>
-                <div id="mobileTasteCardContainer">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-star"></i></div>
-                        <div class="mobile-empty-title">No taste picks yet</div>
-                        <div class="mobile-empty-description">Pick your favorite in each category</div>
-                        <button class="mobile-action-btn btn-base" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Card</button>
-                    </div>
-                </div>
             </div>
             </section>
 
