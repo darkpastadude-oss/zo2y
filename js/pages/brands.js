@@ -222,7 +222,6 @@
   const filterModal = document.getElementById('brandFilterModal');
   const filterCloseBtn = document.getElementById('brandFilterCloseBtn');
   const countText = document.getElementById('brandCount');
-  const didYouMeanText = document.getElementById('brandDidYouMean');
   const BRAND_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
       <rect width='24' height='24' fill='#10224a'/>
@@ -905,16 +904,18 @@
   }
 
   function clearDidYouMean() {
-    if (didYouMeanText) didYouMeanText.textContent = '';
+    const el = document.getElementById('brandDidYouMean');
+    if (el) el.textContent = '';
   }
 
   function showDidYouMean(query, suggestion) {
-    if (!didYouMeanText) return;
+    const el = document.getElementById('brandDidYouMean');
+    if (!el) return;
     if (!suggestion) {
-      didYouMeanText.textContent = '';
+      el.textContent = '';
       return;
     }
-    didYouMeanText.textContent = `Showing "${suggestion}" instead of "${query}"`;
+    el.textContent = `Showing "${suggestion}" instead of "${query}"`;
   }
 
   async function loadSession() {
