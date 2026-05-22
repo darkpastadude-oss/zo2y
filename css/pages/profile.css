@@ -5369,31 +5369,14 @@ body[data-profile-primary="taste"] .mobile-primary-panel[data-panel="taste"] {
 }
 
 .mobile-profile-primary-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
   padding: 6px;
   border-radius: 16px;
   background: rgba(19, 35, 71, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 14px 28px rgba(2, 6, 23, 0.18);
-}
-
-.mobile-primary-nav-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.mobile-primary-nav-row-center {
-  display: flex;
-  justify-content: center;
-}
-
-.mobile-primary-nav-row-center .mobile-profile-primary-tab {
-  flex: 0 1 auto;
-  min-width: 120px;
-  padding: 0 20px;
 }
 
 .mobile-profile-primary-tab {
@@ -5957,9 +5940,6 @@ body[data-profile-primary="taste"] .mobile-primary-panel[data-panel="taste"] {
   .mobile-profile-primary-nav {
     padding: 4px;
     border-radius: 14px;
-  }
-
-  .mobile-primary-nav-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

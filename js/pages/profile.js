@@ -746,38 +746,32 @@
                 const isMobile = window.innerWidth <= 768;
                 const containerId = isMobile ? 'mobileTasteCardContainer' : 'tasteCardContainer';
                 const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const ownerId = isViewingOwnProfile ? (currentUser?.id || '') : (targetUserId || '');
+
+                // Load taste card entries for the profile owner
                 try {
-                    if (!supabase || !container) return;
-
-                    const ownerId = isViewingOwnProfile ? (currentUser?.id || '') : (targetUserId || '');
-                    let myData = [];
-                    let allData = [];
-
-                    try {
-                        const { data: myEntries } = await supabase
-                            .from('user_taste_card')
-                            .select('*')
-                            .eq('user_id', ownerId);
-                        myData = Array.isArray(myEntries) ? myEntries : [];
-                    } catch (_e) { /* table may not exist yet */ }
-
-                    try {
-                        const { data: all } = await supabase
-                            .from('user_taste_card')
-                            .select('category, item_id, item_name');
-                        allData = Array.isArray(all) ? all : [];
-                    } catch (_e) { /* table may not exist yet */ }
-
-                    tasteCardData = myData;
-                    tasteCardAllEntries = allData;
-                    renderTasteCard(container);
-                } catch (err) {
-                    if (container) {
-                        container.innerHTML = isMobile
-                            ? '<div class="mobile-empty-state"><div class="mobile-empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="mobile-empty-title">Could not load taste card</div><div class="mobile-empty-description">' + escapeHtml(String(err?.message || err)) + '</div></div>'
-                            : '<div class="taste-card-empty"><div class="taste-card-empty-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="taste-card-empty-title">Could not load taste card</div><div class="taste-card-empty-desc">' + escapeHtml(String(err?.message || err)) + '</div></div>';
-                    }
+                    const { data: myEntries } = await supabase
+                        .from('user_taste_card')
+                        .select('*')
+                        .eq('user_id', ownerId);
+                    tasteCardData = Array.isArray(myEntries) ? myEntries : [];
+                } catch (_e) {
+                    tasteCardData = [];
                 }
+
+                // Load all entries for rarity
+                try {
+                    const { data: all } = await supabase
+                        .from('user_taste_card')
+                        .select('category, item_id, item_name');
+                    tasteCardAllEntries = Array.isArray(all) ? all : [];
+                } catch (_e) {
+                    tasteCardAllEntries = [];
+                }
+
+                renderTasteCard(container);
             }
 
             function renderTasteCard(container) {
