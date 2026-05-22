@@ -142,14 +142,27 @@
 
     // If an explicit signout was recently performed, do NOT restore the session
     // even if the Supabase client still reports one from bfcache or stale storage.
-    var explicitSignoutKey = 'zo2y-auth-explicit-signout-v2';
     try {
+      var explicitSignoutKey = 'zo2y-auth-explicit-signout-v2';
       var explicitSignout = window.localStorage ? window.localStorage.getItem(explicitSignoutKey) : null;
-      if (explicitSignout) {
+      if (!explicitSignout) {
+        return false;
+      }
+      var timestamp = Number(explicitSignout || 0);
+      if (!timestamp) {
         window.localStorage.removeItem(explicitSignoutKey);
         return false;
       }
-    } catch (_err) {}
+      if ((Date.now() - timestamp) > (1000 * 60 * 10)) { // EXPLICIT_SIGNOUT_TTL_MS
+        window.localStorage.removeItem(explicitSignoutKey);
+        return false;
+      }
+      // Recent explicit signout found - do not restore session
+      window.localStorage.removeItem(explicitSignoutKey);
+      return false;
+    } catch (_err) {
+      return false;
+    }
 
     await auth.waitForSupabase(6000);
     var client = auth.ensureClient();
