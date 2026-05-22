@@ -5355,12 +5355,10 @@ body:not([data-profile-primary]) .profile-primary-panel[data-panel="overview"],
 body[data-profile-primary="overview"] .profile-primary-panel[data-panel="overview"],
 body[data-profile-primary="lists"] .profile-primary-panel[data-panel="lists"],
 body[data-profile-primary="activity"] .profile-primary-panel[data-panel="activity"],
-body[data-profile-primary="taste"] .profile-primary-panel[data-panel="taste"],
 body:not([data-profile-primary]) .mobile-primary-panel[data-panel="overview"],
 body[data-profile-primary="overview"] .mobile-primary-panel[data-panel="overview"],
 body[data-profile-primary="lists"] .mobile-primary-panel[data-panel="lists"],
-body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity"],
-body[data-profile-primary="taste"] .mobile-primary-panel[data-panel="taste"] {
+body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity"] {
   display: block;
 }
 
