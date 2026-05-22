@@ -803,6 +803,83 @@
       pendingQuickOps: new Set()
     };
 
+    // Persistent cache for popular books — built once, refilled lazily
+    let popularCache = [];
+    let popularSeen = new Set();
+    let popularFetching = false;
+
+    async function ensurePopularCache(targetSize) {
+      if (popularCache.length >= targetSize) return;
+      if (popularFetching) {
+        for (let w = 0; w < 50; w++) {
+          await new Promise((r) => setTimeout(r, 200));
+          if (popularCache.length >= targetSize) return;
+          if (!popularFetching) break;
+        }
+        if (popularCache.length >= targetSize) return;
+      }
+      popularFetching = true;
+
+      try {
+        const fetchSource = async (url) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return [];
+            const json = await res.json();
+            return Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+          } catch (_) { return []; }
+        };
+
+        const addUnique = (batch) => {
+          for (const book of batch) {
+            const id = book.id || book._googleVolumeId || '';
+            if (!id || popularSeen.has(id)) continue;
+            popularSeen.add(id);
+            popularCache.push(book);
+          }
+        };
+
+        const TARGET = Math.max(targetSize, 1000);
+
+        // 1. Open Library trending
+        for (const period of ['weekly', 'monthly', 'daily']) {
+          if (popularCache.length >= TARGET) break;
+          addUnique(await fetchSource(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=40`));
+        }
+
+        // 2. Popular subjects, multiple pages
+        const subjects = [
+          'fiction', 'fantasy', 'romance', 'mystery', 'science+fiction',
+          'thriller', 'historical+fiction', 'young+adult',
+          'nonfiction', 'biography', 'classics', 'horror'
+        ];
+        for (const subject of subjects) {
+          for (let page = 1; page <= 3; page++) {
+            if (popularCache.length >= TARGET) break;
+            addUnique(await fetchSource(
+              `${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=40&page=${page}&language=en`
+            ));
+          }
+          if (popularCache.length >= TARGET) break;
+        }
+
+        // 3. Google Books bestseller search as filler
+        if (popularCache.length < TARGET) {
+          const queries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
+          for (const q of queries) {
+            if (popularCache.length >= TARGET) break;
+            addUnique(await fetchSource(
+              `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=40&page=1&language=en&orderBy=relevance`
+            ));
+          }
+        }
+      } catch (_err) {
+        console.error('Failed to build popular cache', _err);
+      } finally {
+        popularFetching = false;
+      }
+    }
+
     function computeGridPageSize() {
       const grid = document.getElementById('booksGrid');
       if (!grid) return 18;
@@ -940,51 +1017,12 @@
 
       if (!query) {
         try {
-          const seen = new Set();
-
-          const addBooks = (batch) => {
-            const arr = Array.isArray(batch) ? batch : [];
-            for (const book of arr) {
-              const id = book.id || book._googleVolumeId || '';
-              if (!id || seen.has(id)) continue;
-              seen.add(id);
-              books.push(book);
-              apiTotalPages = Math.max(apiTotalPages || 1, 100);
-            }
-          };
-
-          const fetchAndParse = async (url) => {
-            const res = await fetch(url, { signal });
-            if (!res.ok) return null;
-            const json = await res.json();
-            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-            addBooks(batch);
-            return json;
-          };
-
-          // 1. Open Library trending — real popular books based on actual usage
-          for (const period of ['weekly', 'monthly', 'daily']) {
-            if (books.length >= apiLimit) break;
-            await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${apiLimit}`);
-          }
-
-          // 2. Supplement with popular subjects if still short
-          if (books.length < 15) {
-            const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
-            for (const subject of subjects) {
-              if (books.length >= apiLimit) break;
-              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(apiLimit / 2)}&page=1&language=en`);
-            }
-          }
-
-          // 3. Ultimate fallback — Google Books search
-          if (books.length < 15) {
-            const fallbackQueries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
-            for (const q of fallbackQueries) {
-              if (books.length >= apiLimit) break;
-              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(apiLimit / 3)}&page=1&language=en&orderBy=relevance`);
-            }
-          }
+          const aheadPages = 10;
+          const needed = Math.max(1000, (state.page + aheadPages) * BOOKS_PAGE_SIZE);
+          await ensurePopularCache(needed);
+          const startIdx = (state.page - 1) * BOOKS_PAGE_SIZE;
+          books = popularCache.slice(startIdx, startIdx + BOOKS_PAGE_SIZE);
+          apiTotalPages = Math.max(apiTotalPages, Math.ceil(popularCache.length / BOOKS_PAGE_SIZE));
         } catch (_err) {
           console.error('Failed to load popular books', _err);
         }
@@ -1034,10 +1072,6 @@
           }
         }
         state.books = [...boosted, ...rest];
-      }
-
-      if (!query && state.page > 1) {
-        state.books = shuffleArray(state.books);
       }
 
       state.totalPages = apiTotalPages;
