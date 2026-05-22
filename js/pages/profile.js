@@ -746,8 +746,17 @@
                 const isMobile = window.innerWidth <= 768;
                 const containerId = isMobile ? 'mobileTasteCardContainer' : 'tasteCardContainer';
                 const container = document.getElementById(containerId);
+                if (!container) {
+                    console.error('TasteCard: container not found', containerId);
+                    return;
+                }
+                if (!supabase) {
+                    container.innerHTML = isMobile
+                        ? '<div class="mobile-empty-state"><div class="mobile-empty-icon"><i class="fas fa-star"></i></div><div class="mobile-empty-title">No taste picks yet</div><div class="mobile-empty-description">Pick your favorites in each category</div><button class="mobile-action-btn btn-base" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Card</button></div>'
+                        : '<div class="taste-card-empty"><div class="taste-card-empty-icon"><i class="fas fa-star"></i></div><div class="taste-card-empty-title">No taste picks yet</div><div class="taste-card-empty-desc">Pick your favorite in each category</div><button class="taste-card-edit-btn" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Taste Card</button></div>';
+                    return;
+                }
                 try {
-                    if (!supabase || !container) return;
 
                     const ownerId = isViewingOwnProfile ? (currentUser?.id || '') : (targetUserId || '');
                     let myData = [];
