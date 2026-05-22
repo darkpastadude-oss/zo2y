@@ -159,13 +159,13 @@
                         <span class="profile-primary-tab-label">Lists</span>
                         <span class="profile-primary-tab-copy">Media and lifestyle</span>
                     </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
-                        <span class="profile-primary-tab-label">Taste</span>
-                        <span class="profile-primary-tab-copy">Your favorites card</span>
-                    </button>
                     <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
                         <span class="profile-primary-tab-label">Community</span>
                         <span class="profile-primary-tab-copy">Followers and activity</span>
+                    </button>
+                    <button class="profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
+                        <span class="profile-primary-tab-label">Taste</span>
+                        <span class="profile-primary-tab-copy">Your favorites card</span>
                     </button>
                 </div>
             </div>
@@ -1113,15 +1113,19 @@
 
         <div class="mobile-profile-primary-nav-shell">
             <div class="mobile-profile-primary-nav" role="tablist" aria-label="Profile sections">
-                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
-                    <span>Lists</span>
-                </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
-                    <span>Taste</span>
-                </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                    <span>Community</span>
-                </button>
+                <div class="mobile-primary-nav-row">
+                    <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
+                        <span>Lists</span>
+                    </button>
+                    <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
+                        <span>Community</span>
+                    </button>
+                </div>
+                <div class="mobile-primary-nav-row mobile-primary-nav-row-center">
+                    <button class="mobile-profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
+                        <span>Taste</span>
+                    </button>
+                </div>
             </div>
         </div>
 
