@@ -27,7 +27,7 @@ serve(async (req) => {
           <div class="container">
             <div class="logo">🎬 Zo2y</div>
             <h2>Welcome to Zo2y, ${user_name}! 👋</h2>
-            <p>Thanks for signing up! Click the button below to verify your email address and start exploring amazing restaurants.</p>
+            <p>Thanks for signing up! Click the button below to verify your email address and start exploring.</p>
             
             <div style="text-align: center;">
               <a href="${verification_link}" class="button">Verify My Email</a>
