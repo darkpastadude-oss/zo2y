@@ -159,13 +159,13 @@
                         <span class="profile-primary-tab-label">Lists</span>
                         <span class="profile-primary-tab-copy">Media and lifestyle</span>
                     </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                        <span class="profile-primary-tab-label">Community</span>
-                        <span class="profile-primary-tab-copy">Followers and activity</span>
-                    </button>
                     <button class="profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
                         <span class="profile-primary-tab-label">Taste</span>
                         <span class="profile-primary-tab-copy">Your favorites card</span>
+                    </button>
+                    <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
+                        <span class="profile-primary-tab-label">Community</span>
+                        <span class="profile-primary-tab-copy">Followers and activity</span>
                     </button>
                 </div>
             </div>
@@ -684,7 +684,7 @@
                         <div class="empty-state">
                             <div class="empty-icon"><i class="fas fa-star"></i></div>
                             <h3 class="empty-title">No taste picks yet</h3>
-                            <p class="empty-description">Pick your favorite in each category to build your taste card.</p>
+                            <p class="empty-description">Pick your number one favorite in every category — movies, music, games, and more — then share your card as a screenshot.</p>
                             <button class="btn btn-primary" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Taste Card</button>
                         </div>
                     </div>
@@ -1116,11 +1116,11 @@
                 <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
                     <span>Lists</span>
                 </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                    <span>Community</span>
-                </button>
                 <button class="mobile-profile-primary-tab" type="button" data-primary-tab="taste" onclick="ProfileManager.showPrimaryTab('taste')">
                     <span>Taste</span>
+                </button>
+                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
+                    <span>Community</span>
                 </button>
             </div>
         </div>
@@ -1535,7 +1535,7 @@
             </section>
 
             <section class="mobile-primary-panel" data-panel="taste">
-            <div class="mobile-section" id="mobileTasteSection">
+            <div class="mobile-section" id="mobileTasteSection" data-profile-panel="taste">
                 <div class="mobile-section-title">
                     <span id="mobileTasteTitle">Taste Card</span>
                 </div>
@@ -1544,7 +1544,7 @@
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon"><i class="fas fa-star"></i></div>
                         <div class="mobile-empty-title">No taste picks yet</div>
-                        <div class="mobile-empty-description">Pick your favorite in each category</div>
+                        <div class="mobile-empty-description">Pick your #1 favorite in each category to build your shareable taste card.</div>
                         <button class="mobile-action-btn btn-base" onclick="ProfileManager.openTastePicker()"><i class="fas fa-pen"></i> Build Your Card</button>
                     </div>
                 </div>
