@@ -1948,7 +1948,19 @@
       }
     });
 
-    window.addEventListener('pageshow', function () {
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted) {
+        if (hasRecentExplicitSignout()) {
+          clearPersistedSessionSnapshots();
+          clearExplicitSignoutMarker();
+        }
+        if (!hasStoredSupabaseSession()) {
+          var cachedClient = window.__ZO2Y_SUPABASE_CLIENT;
+          if (cachedClient && cachedClient.auth && typeof cachedClient.auth.signOut === 'function') {
+            try { cachedClient.auth.signOut({ scope: 'local' }); } catch (_err) {}
+          }
+        }
+      }
       if (!shouldThrottleResumeVerification()) {
         void verifyAndApplySession(false);
       }

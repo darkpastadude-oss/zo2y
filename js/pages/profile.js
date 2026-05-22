@@ -830,7 +830,7 @@
             }
 
             // ===== LOGOUT FUNCTION =====
-            async function logout() {
+            function logout() {
                 function clearAuthStorageNuclear() {
                     const knownKeys = [
                         'zo2y-auth-v2',
@@ -855,7 +855,6 @@
 
                     knownKeys.forEach(removeEverywhere);
 
-                    // Also remove any Supabase auth token keys, even if the project ref changes.
                     try {
                         for (let i = localStorage.length - 1; i >= 0; i -= 1) {
                             const k = localStorage.key(i);
@@ -879,41 +878,32 @@
                     } catch (_err4) {}
                 }
 
-                try {
-                    await teardownStatsRealtimeSubscriptions();
-                    const authRuntime = window.ZO2Y_AUTH || null;
-                    // Prevent any "helpful" session restore on the next reload.
-                    if (typeof window.__ZO2Y_MARK_EXPLICIT_SIGNOUT === 'function') {
-                        window.__ZO2Y_MARK_EXPLICIT_SIGNOUT();
-                    } else if (authRuntime && typeof authRuntime.markExplicitSignout === 'function') {
-                        authRuntime.markExplicitSignout();
-                    }
-                    if (authRuntime && typeof authRuntime.signOut === 'function') {
-                        await authRuntime.signOut(supabase);
-                    } else {
-                        // Prefer a server-side revoke when possible.
-                        try {
-                            await supabase.auth.signOut({ scope: 'global' });
-                        } catch (_err) {
-                            await supabase.auth.signOut();
-                        }
-                    }
+                // 1. Nuclear-clear storage FIRST — before any async calls — so if the page unloads,
+                //    the session data is already gone and cannot be restored from cache or bfcache.
+                clearAuthStorageNuclear();
 
-                    clearAuthStorageNuclear();
-                    // Keep an explicit signout marker so auth-gate doesn't immediately restore the previous session.
-                    try {
-                        localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now()));
-                    } catch (_err) {}
-                    window.location.replace('login.html');
-                } catch (error) {
-                    console.error('Error logging out:', error);
-                    // Even if network/logout fails, make sure we don't get stuck in an auth restore loop.
-                    try { clearAuthStorageNuclear(); } catch (_err) {}
-                    try {
-                        localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now()));
-                    } catch (_err2) {}
-                    window.location.replace('login.html');
+                // 2. Mark explicit signout so auth-gate does not try to restore/refresh the session.
+                try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
+
+                // 3. Fire-and-forget: tear down subscriptions and call signOut in the background.
+                //    We do NOT await these — storage is already clean, so even if the browser
+                //    cancels pending requests during navigation, the session cannot be restored.
+                teardownStatsRealtimeSubscriptions().catch(() => {});
+
+                const authRuntime = window.ZO2Y_AUTH || null;
+                if (authRuntime && typeof authRuntime.signOut === 'function') {
+                    authRuntime.signOut(supabase).catch(() => {});
+                } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
+                    supabase.auth.signOut({ scope: 'global' }).catch(() => {});
                 }
+
+                // 4. Null out the shared supabase client reference so bfcache-restored pages
+                //    cannot find a live client with an in-memory session.
+                try { window.__ZO2Y_SUPABASE_CLIENT = null; } catch (_err) {}
+                try { window.__ZO2Y_AUTH = null; } catch (_err) {}
+
+                // 5. Replace history entry and navigate to login.
+                window.location.replace('login.html');
             }
 
             // ===== PROFILE MANAGEMENT =====
@@ -4136,6 +4126,8 @@
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
                                             const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                            const item = row?.__activityItem || null;
+                                            const itemImage = escapeHtml(String(item?.image || '').trim());
                                             const mediaType = String(row?.media_type || '').toLowerCase();
                                             const mediaLabel = mediaType || 'item';
                                             const primaryMeta = ratingText || listMetaText;
@@ -4149,6 +4141,9 @@
                                                         <span class="mobile-activity-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
                                                     <div class="mobile-activity-body">
+                                                        <div class="mobile-activity-thumb">
+                                                            ${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}
+                                                        </div>
                                                         <div class="mobile-activity-main">
                                                             <div class="mobile-activity-text">${this.renderActivityAction(row)}</div>
                                                             <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
@@ -4175,6 +4170,8 @@
                                             const noteText = escapeHtml(String(row?.review_text || '').trim());
                                             const listText = String(row?.__activityListTitle || '').trim();
                                             const listMetaText = listText ? `List: ${escapeHtml(listText)}` : '';
+                                            const item = row?.__activityItem || null;
+                                            const itemImage = escapeHtml(String(item?.image || '').trim());
                                             const mediaType = String(row?.media_type || '').toLowerCase();
                                             const mediaLabel = mediaType || 'item';
                                             const primaryMeta = ratingText || listMetaText;
@@ -4188,6 +4185,9 @@
                                                         <span class="activity-item-time">${this.formatActivityTime(row.created_at)}</span>
                                                     </div>
                                                     <div class="activity-item-body">
+                                                        <div class="activity-item-thumb">
+                                                            ${itemImage ? `<img src="${itemImage}" alt="Item artwork" loading="lazy">` : ''}
+                                                        </div>
                                                         <div class="activity-item-main">
                                                             <div class="activity-item-text">${this.renderActivityAction(row)}</div>
                                                             <span class="activity-media-pill"><i class="${iconClass(mediaType)}"></i> ${escapeHtml(mediaLabel)}</span>
