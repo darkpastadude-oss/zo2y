@@ -95,13 +95,17 @@
 
     .page-shell { margin-top: 14px; display: grid; gap: 12px; padding-bottom: 18px; }
 
+    .hero-wrap { position: relative; overflow: hidden; }
+    .hero-bg {
+      position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%;
+      object-fit: cover; pointer-events: none;
+    }
     .hero {
+      position: relative; z-index: 1;
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 18px 16px;
-      background:
-        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
-        url("https://images.unsplash.com/photo-1612287232817-6028609b2e04?auto=format&fit=crop&w=800&q=80&v=20260522") center/cover;
+      background: linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7));
       box-shadow: 0 10px 28px rgba(0,0,0,0.26);
     }
     .hero h1 { font-size: 26px; line-height: 1.1; }
@@ -701,14 +705,17 @@
 </header>
 
   <main class="container page-shell">
-    <section class="hero">
-      <h1>games</h1>
-      <p>Discover trending video games from all platforms and save them to your game lists.</p>
-      <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
-      <div class="hero-actions">
-        <!-- Refresh removed (covers hydrate automatically; refresh also caused pagination/order confusion). -->
-      </div>
-    </section>
+    <div class="hero-wrap">
+      <img class="hero-bg" src="https://images.unsplash.com/photo-1552820728-8b83bb6b2b0d?auto=format&fit=crop&w=800&q=80" alt="" loading="lazy" onerror="this.style.display='none'">
+      <section class="hero">
+        <h1>games</h1>
+        <p>Discover trending video games from all platforms and save them to your game lists.</p>
+        <div style="margin-top:6px;font-size:11px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+        <div class="hero-actions">
+          <!-- Refresh removed (covers hydrate automatically; refresh also caused pagination/order confusion). -->
+        </div>
+      </section>
+    </div>
     <section class="controls">
       <input id="q" class="search-input" placeholder="Search games, genres, platforms...">
       <button id="gamesSearchBtn" class="control-icon-btn" type="button" aria-label="Search games"><i class="fas fa-search"></i></button>
