@@ -440,17 +440,17 @@
             subjects.map((s) =>
               fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(s)}&limit=20&page=1&language=en`)
             )
-          );
-          const seenIds = new Set(books.map(b => b.id || b._googleVolumeId || ''));
-          for (const result of popular) {
-            for (const book of result.books) {
-              const id = book.id || book._googleVolumeId || '';
-              if (id && !seenIds.has(id)) {
-                seenIds.add(id);
-                books.push(book);
-      }
-     }
-        }
+           );
+           const seenIds = new Set(books.map(b => b.id || b._googleVolumeId || ''));
+           for (const result of popular) {
+             for (const book of result.books) {
+               const id = book.id || book._googleVolumeId || '';
+               if (id && !seenIds.has(id)) {
+                 seenIds.add(id);
+                 books.push(book);
+               }
+             }
+           }
 
         apiTotalResults = Math.max(apiTotalResults || books.length, books.length);
         books = books.slice(startIndex, startIndex + BOOKS_PAGE_SIZE);
