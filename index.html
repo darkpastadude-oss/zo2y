@@ -223,27 +223,27 @@
   <div class="desktop-app-shell authenticated-only">
     <div class="desktop-main-panel">
       <main class="container page-shell" data-dedupe-exempt="1">
-        <section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
-          <div class="spotlight-bg" id="spotlightBackground"></div>
-          <div class="spotlight-media" id="spotlightMedia">
-            <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
-          </div>
-          <div class="spotlight-inner" id="spotlightInner">
-            <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
-            <h1 class="spotlight-title" id="spotlightTitle">Loading spotlight...</h1>
-            <p class="spotlight-summary" id="spotlightSummary">Pulling trends and personalization signals.</p>
-            <div class="spotlight-meta hidden" aria-hidden="true">
-              <span class="chip" id="spotlightReason"></span>
-              <span class="chip" id="spotlightTrend"></span>
-            </div>
-            <div class="spotlight-actions">
-        <a class="btn btn-primary" href="movies.html?v=20260322m" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
-              <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next Pulse</button>
-            </div>
-            <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
-            <div class="status" id="loadStatus">Loading live feed...</div>
-          </div>
-        </section>
+<section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
+  <div class="spotlight-bg" id="spotlightBackground"></div>
+  <div class="spotlight-media" id="spotlightMedia">
+    <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
+  </div>
+  <div class="spotlight-inner" id="spotlightInner">
+    <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
+    <h1 class="spotlight-title" id="spotlightTitle">Spotlight</h1>
+    <p class="spotlight-summary" id="spotlightSummary">Featured content from across your interests</p>
+    <div class="spotlight-meta" aria-hidden="true">
+      <span class="chip" id="spotlightReason"></span>
+      <span class="chip" id="spotlightTrend"></span>
+    </div>
+    <div class="spotlight-actions">
+      <a class="btn btn-primary" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
+      <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next</button>
+    </div>
+    <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items" style="display: none;"></div>
+    <div class="status" id="loadStatus"></div>
+  </div>
+</section>
 
         <section class="section desktop-curated-shelf" aria-label="Curated rankings">
           <div class="section-head">

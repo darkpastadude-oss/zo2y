@@ -9984,16 +9984,331 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }));
     }
 
-    async function initUniversalHome(options = {}) {
-      const now = Date.now();
-      const force = !!options.force;
-      // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
+async function initUniversalHome(options = {}) {
+  const now = Date.now();
+  const force = !!options.force;
+  // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
+  try {
+    if (!window.__ZO2Y_HOME_DEBUG) {
+      window.__ZO2Y_HOME_DEBUG = {
+        snapshot: () => buildHomeDebugSnapshot?.() || null
+      };
+    }
+  } catch (_err) {}
+  if (!homeDebugState.enabled) {
+    homeDebugState.enabled = isHomeDebugEnabled();
+    if (homeDebugState.enabled) {
+      homeDebugEvent('debug:enabled', { via: 'initUniversalHome' });
       try {
-        if (!window.__ZO2Y_HOME_DEBUG) {
-          window.__ZO2Y_HOME_DEBUG = {
-            snapshot: () => buildHomeDebugSnapshot?.() || null
-          };
+        window.__ZO2Y_HOME_DEBUG = {
+          get enabled() { return homeDebugState.enabled; },
+          setEnabled: (value) => {
+            setHomeDebugEnabled(!!value);
+            homeDebugState.enabled = !!value;
+            if (homeDebugState.enabled) {
+              homeDebugEvent('debug:enabled', { via: 'setEnabled' });
+            }
+            scheduleHomeDebugRender();
+          },
+          snapshot: () => buildHomeDebugSnapshot()
+        };
+      } catch (_err) {}
+      try {
+        window.addEventListener('error', (ev) => {
+          homeDebugEvent('window:error', {
+            message: String(ev?.message || ''),
+            file: String(ev?.filename || ''),
+            line: Number(ev?.lineno || 0)
+          });
+        });
+        window.addEventListener('unhandledrejection', (ev) => {
+          const reason = ev?.reason;
+          homeDebugEvent('window:rejection', { message: String(reason?.message || reason || '') });
+        });
+      } catch (_err) {}
+      ensureHomeDebugPanel();
+    }
+  }
+  const criticalKeys = [
+    'travel',
+    'sports',
+    ...(ENABLE_CARS ? ['car'] : [])
+  ];
+  const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
+  const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
+  if (
+    !force
+    && hasExistingRealItems
+    && !hasCriticalMissing
+    && homeLastGoodFeedAt
+    && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
+  ) {
+    resetSpotlightTimer(true);
+    return;
+  }
+  homeLastUniversalInitAt = now;
+  const initSeq = ++homeFeedInitSeq;
+  homeDebugEvent('home:init', { force, initSeq });
+  ensureHomeInteractionWatch();
+  resetHomeViewportDeferrals();
+  if (homeWeakFeedRetryTimer) {
+    clearTimeout(homeWeakFeedRetryTimer);
+    homeWeakFeedRetryTimer = null;
+  }
+  setStatus('Loading spotlight and live feed...', false);
+  resetSpotlightTimer(false);
+  const channels = getHomeChannels();
+  const initialChannels = getHomeInitialChannels(channels);
+  const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
+  const cachedFeed = readHomeFeedCache();
+  const baselineFeed = cachedFeed || null;
+
+  if (baselineFeed) {
+    const cachedResult = applyHomeFeedMap(baselineFeed);
+    if (cachedResult.scoredPool.length) {
+      homeLastGoodFeedAt = Date.now();
+      setStatus('Feed ready from cache. Syncing live data...', false);
+    }
+  }
+
+  const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
+  const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
+  let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
+
+  const loadChannel = async (channel) => {
+    const railId = String(channel?.railId || '').trim();
+    const key = String(channel?.key || '').trim();
+    const attemptStartedAt = Date.now();
+    const prevAttempt = Number(homeDebugState.channels.get(key)?.last?.attempt || 0) || 0;
+    const attempt = prevAttempt + 1;
+    if (key) {
+      homeDebugState.channels.set(key, {
+        ...(homeDebugState.channels.get(key) || {}),
+        last: {
+          status: 'loading',
+          startedAt: attemptStartedAt,
+          timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
+          railId,
+          attempt
         }
+      });
+      scheduleHomeDebugRender();
+    }
+
+    let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+    if (!Array.isArray(items)) items = [];
+
+    if (key) {
+      const last = homeDebugState.channels.get(key)?.last || {};
+      const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+      const endedAt = Date.now();
+      const ms = endedAt - attemptStartedAt;
+      const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
+      const status = (!items.length)
+        ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
+        : (isPlaceholder ? 'placeholder' : 'ok');
+      homeDebugState.channels.set(key, {
+        ...(homeDebugState.channels.get(key) || {}),
+        last: {
+          ...last,
+          status,
+          endedAt,
+          ms,
+          items: items.length,
+          reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Only placeholder items returned.' : 'Live items rendered.')
+        }
+      });
+      scheduleHomeDebugRender();
+    }
+
+    const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+    if (!items.length || isPlaceholder) {
+      scheduleHomeChannelRetry(channel, attempt - 1);
+    }
+
+    if (initSeq === homeFeedInitSeq && items.length && !isPlaceholder) {
+      freshLoadedKeys.add(channel.key);
+      workingFeed = {
+        ...workingFeed,
+        [channel.key]: items
+      };
+      const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
+      if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
+        setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
+      }
+    }
+    return { ...channel, items };
+  };
+
+  // PRIORITIZE SPOTLIGHT LOADING - load spotlight channels first
+  const spotlightChannels = initialChannels.filter(channel => 
+    ['movie', 'tv', 'anime', 'book', 'music', 'game', 'travel', 'sports'].includes(channel.key)
+  );
+  const otherChannels = initialChannels.filter(channel => 
+    !['movie', 'tv', 'anime', 'book', 'music', 'game', 'travel', 'sports'].includes(channel.key)
+  );
+  const prioritizedChannels = [...spotlightChannels, ...otherChannels, ...deferredChannels];
+
+  const loadedPromise = loadHomeChannelGroup(prioritizedChannels, loadChannel);
+  const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
+  if (initSeq !== homeFeedInitSeq) return;
+    if (precomputedFeed) {
+    const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
+    const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
+    if (precomputedActiveChannels > baselineActiveChannels) {
+      const mergedPrecomputedFeed = {
+        ...workingFeed
+      };
+      const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
+      channels.forEach((channel) => {
+        if (freshLoadedKeys.has(channel.key)) return;
+        const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
+        if (items.length) {
+          mergedPrecomputedFeed[channel.key] = items;
+        }
+      });
+      workingFeed = mergedPrecomputedFeed;
+      const precomputedResult = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
+      if (precomputedResult.scoredPool.length) {
+        setStatus('Spotlight ready from precomputed feed. Syncing live data...', false);
+      }
+    }
+  }
+
+  await loadedPromise;
+  if (initSeq !== homeFeedInitSeq) return;
+
+  // Ensure we have spotlight content even with no users by creating default items
+  if (homeSpotlightItems.length === 0) {
+    createDefaultSpotlightItems();
+    showSpotlightByIndex(0, false);
+    resetSpotlightTimer(true);
+  }
+
+  deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
+
+  const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
+  const initialChannelsCount = initialChannels.length;
+  const healthyChannelFloor = Math.min(initialChannelsCount, 3);
+
+  const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
+  const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
+
+  if (!scoredPool.length) {
+    resetSpotlightTimer(false);
+    setStatus('Could not load live feeds right now. Try again shortly.', true);
+    return;
+  }
+  homeLastGoodFeedAt = Date.now();
+
+  const freshActiveChannels = freshLoadedKeys.size;
+  if (freshActiveChannels > 0) {
+    writeHomeFeedCache(mergedFeed);
+    writePrecomputedHomeFeedCache(mergedFeed, {
+      savedAt: Date.now(),
+      expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
+    });
+  }
+  if (freshActiveChannels === initialChannelsCount) {
+    setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
+  } else if (freshActiveChannels === 0) {
+    if (cachedFeed) {
+      setStatus('Feed loaded from cache. Live sources are slow right now.', false);
+    } else {
+      setStatus('Showing quick feed while live sources connect...', false);
+    }
+  } else {
+    setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
+  }
+
+  if (freshActiveChannels >= healthyChannelFloor) {
+    if (homeWeakFeedRetryTimer) {
+      clearTimeout(homeWeakFeedRetryTimer);
+      homeWeakFeedRetryTimer = null;
+    }
+    homeWeakFeedRetryCount = 0;
+    } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer && !document.hidden) {
+    homeWeakFeedRetryTimer = setTimeout(() => {
+      homeWeakFeedRetryTimer = null;
+      homeWeakFeedRetryCount += 1;
+      void initUniversalHome({ force: true });
+    }, 1800);
+  }
+
+  scheduleHomeMenuCachePrime();
+}
+
+// Create default spotlight items for when there's no user data
+function createDefaultSpotlightItems() {
+  const defaultItems = [
+    {
+      title: 'The Matrix',
+      mediaType: 'movie',
+      href: 'movies.html',
+      spotlightImage: 'https://image.tmdb.org/t/p/w1280/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
+      backgroundImage: 'https://image.tmdb.org/t/p/w1280/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
+      summary: 'A computer hacker learns about the true nature of his reality and his role in the war against its controllers.'
+    },
+    {
+      title: 'Breaking Bad',
+      mediaType: 'tv',
+      href: 'tvshows.html',
+      spotlightImage: 'https://image.tmdb.org/t/p/w1280/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
+      backgroundImage: 'https://image.tmdb.org/t/p/w1280/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
+      summary: 'A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine.'
+    },
+    {
+      title: 'Attack on Titan',
+      mediaType: 'anime',
+      href: 'animes.html',
+      spotlightImage: 'https://image.tmdb.org/t/p/w1280/hu43SFBq2INcssj8feHqyBav3yF.jpg',
+      backgroundImage: 'https://image.tmdb.org/t/p/w1280/hu43SFBq2INcssj8feHqyBav3yF.jpg',
+      summary: 'After his hometown is destroyed and his mother is killed, young Eren Yeager vows to cleanse the earth of the giant humanoid Titans.'
+    },
+    {
+      title: 'The Midnight Library',
+      mediaType: 'book',
+      href: 'books.html',
+      spotlightImage: 'https://images-na.ssl-images-amazon.com/images/I/91VeCq9iN7L.jpg',
+      backgroundImage: 'https://images-na.ssl-images-amazon.com/images/I/91VeCq9iN7L.jpg',
+      summary: 'Between life and death there is a library, and within that library, the shelves go on forever.'
+    },
+    {
+      title: 'Blinding Lights',
+      mediaType: 'music',
+      href: 'music.html',
+      spotlightImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
+      backgroundImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
+      summary: 'The Weeknd\\'s hit single about chasing the lights of the city.'
+    },
+    {
+      title: 'The Legend of Zelda: Breath of the Wild',
+      mediaType: 'game',
+      href: 'games.html',
+      spotlightImage: 'https://image.nintendocdn.net/covers/switch/NSABAHJ00000000I/2D0B',
+      backgroundImage: 'https://image.nintendocdn.net/covers/switch/NSABAHJ00000000I/2D0B',
+      summary: 'Link awakens from a 100-year slumber to defeat Calamity Ganon and save the kingdom of Hyrule.'
+    },
+    {
+      title: 'Paris, France',
+      mediaType: 'travel',
+      href: 'travel.html',
+      spotlightImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
+      backgroundImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
+      summary: 'The City of Light, known for its art, fashion, gastronomy, and culture.'
+    },
+    {
+      title: 'NBA Finals',
+      mediaType: 'sports',
+      href: 'sports.html',
+      spotlightImage: 'https://a.espncdn.com/i/partner/nba/logos/nba.png',
+      backgroundImage: 'https://a.espncdn.com/i/partner/nba/logos/nba.png',
+      summary: 'The championship series of the National Basketball Association.'
+    }
+  ];
+  
+  homeSpotlightItems = defaultItems;
+}
       } catch (_err) {}
       if (!homeDebugState.enabled) {
         homeDebugState.enabled = isHomeDebugEnabled();
