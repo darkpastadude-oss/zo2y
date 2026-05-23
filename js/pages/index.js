@@ -2220,6 +2220,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function renderSpotlightDots() {
       const dotsEl = document.getElementById('spotlightDots');
       if (!dotsEl) return;
+      if (!homeSpotlightItems.length) {
+        dotsEl.style.display = 'none';
+        return;
+      }
+      dotsEl.style.display = '';
       dotsEl.innerHTML = homeSpotlightItems.map((item, index) => {
         const active = index === homeSpotlightIndex ? ' active' : '';
         const title = escapeHtml(item.title || '');
