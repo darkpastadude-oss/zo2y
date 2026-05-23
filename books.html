@@ -455,10 +455,11 @@
       // Calculate total pages based on pool size
       state.totalPages = Math.max(1, Math.ceil(state.bookPool.length / pageSize));
       
-      // If we're running low on books in the pool, fetch more to replenish
-      if (state.bookPool.length - startIdx < pageSize * 2) {
-        await fetchMoreBooks();
-      }
+       // If we're running low on books in the pool, fetch more to replenish
+       if (state.bookPool.length - startIdx < pageSize * 2) {
+         await fetchMoreBooks();
+       }
+     }
     }
 
         // If still short, try a few popular subjects
