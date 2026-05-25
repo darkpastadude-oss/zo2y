@@ -200,10 +200,10 @@
       isInitialLoad: true
     };
 
-    function fetchWithTimeout(url, ms = 8000) {
-      const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), ms);
-      return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+    function fetchWithTimeout(url, ms = 15000) {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), ms);
+        return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
     }
 
     function isEnglishText(text) {
@@ -402,15 +402,15 @@
     }
 
     async function fetchBooksFromApi(url) {
-      try {
-        const res = await fetchWithTimeout(url, 10000);
-        if (!res.ok) return { books: [], numFound: 0 };
-        const json = await res.json();
-        return {
-          books: Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []),
-          numFound: Number(json?.meta?.numFound || json?.numFound || json?.total || 0)
-        };
-      } catch (_) { return { books: [], numFound: 0 }; }
+        try {
+            const res = await fetchWithTimeout(url, 15000); // Increased timeout to 15 seconds
+            if (!res.ok) return { books: [], numFound: 0 };
+            const json = await res.json();
+            return {
+                books: Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []),
+                numFound: Number(json?.meta?.numFound || json?.numFound || json?.total || 0)
+            };
+        } catch (_) { return { books: [], numFound: 0 }; }
     }
 
     async function loadBooksWithFallback(queryOverride = '') {

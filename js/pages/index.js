@@ -309,8 +309,8 @@
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
-    const HOME_CHANNEL_TIMEOUT_MS = 5200;
-    const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
+const HOME_CHANNEL_TIMEOUT_MS = 15000;
+const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
       { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
@@ -10284,7 +10284,7 @@ function createDefaultSpotlightItems() {
       href: 'music.html',
       spotlightImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
       backgroundImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
-      summary: 'The Weeknd\\'s hit single about chasing the lights of the city.'
+      summary: 'The Weeknd\'s hit single about chasing the lights of the city.'
     },
     {
       title: 'The Legend of Zelda: Breath of the Wild',

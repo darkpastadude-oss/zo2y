@@ -1841,7 +1841,7 @@ async function loadBooks(signal) {
         url.searchParams.set('_', String(Date.now()));
 
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+        const timeoutId = window.setTimeout(() => controller.abort(), 15000);
         let res;
         try {
           try {
