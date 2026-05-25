@@ -10284,7 +10284,7 @@ function createDefaultSpotlightItems() {
       href: 'music.html',
       spotlightImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
       backgroundImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
-      summary: 'The Weeknd\'s hit single about chasing the lights of the city.'
+      summary: "The Weeknd's hit single about chasing the lights of the city."
     },
     {
       title: 'The Legend of Zelda: Breath of the Wild',
