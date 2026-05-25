@@ -188,16 +188,13 @@
     let currentUser = null;
     const state = {
       books: [],
-      bookPool: [], // Shuffled pool of books for paging
-      poolIndex: 0, // Current position in the pool
       search: '',
       genre: '',
       sort: 'popular',
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
-      pendingQuickOps: new Set(),
-      isInitialLoad: true
+      pendingQuickOps: new Set()
     };
 
     function fetchWithTimeout(url, ms = 15000) {
@@ -223,34 +220,10 @@
       return cover && !cover.includes('fallback') && cover.indexOf('http') === 0;
     }
 
-    function scoreBookQuality(book, query) {
+    function scoreBookQuality(book) {
       let score = 0;
-
-      const q = String(query || '').trim().toLowerCase();
-      const title = String(book.title || '').trim().toLowerCase();
-
-      // English
       if (isEnglishBook(book)) score += 120;
-
-      // Good cover
       if (hasGoodCover(book)) score += 100;
-
-      // Title relevance to query
-      if (q && title) {
-        if (title === q) score += 110;
-        else if (title.startsWith(q)) score += 80;
-        else if (title.includes(q)) score += 45;
-        else {
-          const qWords = q.split(/\s+/).filter(Boolean);
-          const tWords = title.split(/\s+/).filter(Boolean);
-          const matchCount = qWords.filter(w => title.includes(w)).length;
-          if (matchCount === qWords.length && qWords.length > 1) score += 50;
-          else if (matchCount >= 2) score += 30;
-          else if (matchCount === 1) score += 12;
-        }
-      }
-
-      // Recency
       if (book.publishedDate) {
         const year = new Date(book.publishedDate).getFullYear();
         if (!isNaN(year)) {
@@ -262,18 +235,11 @@
           else if (age <= 20) score += 10;
         }
       }
-
-      // Known author
       const author = String(book.authors || '');
       if (author && author !== 'Unknown Author') score += 18;
-
-      // Has description
       if (book.description && book.description.length > 50) score += 8;
-
-      // Title length sanity
       const titleLen = String(book.title || '').length;
       if (titleLen >= 3 && titleLen <= 120) score += 4;
-
       return score;
     }
 
@@ -301,61 +267,7 @@
         .replace(/'/g, '&#039;');
     }
 
-    function isDateWithinAcceptableRange(dateString) {
-      if (!dateString) return true;
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return true;
-      const now = new Date();
-      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
-      return date <= twoYearsFromNow;
-    }
 
-    function normalizeBookSeedText(value) {
-      return String(value || '')
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function shuffleArray(array) {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    const CURRENT_TOP_BOOK_SEEDS = [
-      { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
-      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
-      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
-      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
-      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
-      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
-      { title: '25 Alive', author: 'James Patterson', year: 2025 },
-      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
-      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
-      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
-      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
-      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
-      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
-      { title: 'James', author: 'Percival Everett', year: 2024 },
-      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
-      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
-      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
-      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
-      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
-      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
-      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
-      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
-      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
-      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
-      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
-      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
-    ];
 
     function showToast(message, isError = false) {
       const el = document.createElement('div');
@@ -373,37 +285,11 @@
       setTimeout(() => el.remove(), 2000);
     }
 
-    let searchDebounceTimer = null;
-    let booksFetchAbort = null;
-    function normalizeQuery(query) {
-      return String(query || '').trim().replace(/\s+/g, ' ');
-    }
 
-    function getQueryVariations(query) {
-      const normalized = normalizeQuery(query);
-      if (!normalized) return [];
-      
-      const variations = [normalized];
-      
-      // Try without spaces for compound words
-      if (normalized.includes(' ')) {
-        variations.push(normalized.replace(/\s+/g, ''));
-      }
-      
-      // Try with spaces if no spaces
-      if (!normalized.includes(' ') && normalized.length > 3) {
-        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
-        if (spaced !== normalized.toLowerCase()) {
-          variations.push(spaced);
-        }
-      }
-      
-      return [...new Set(variations)];
-    }
 
-    async function fetchBooksFromApi(url) {
+    async function fetchBooksApi(url) {
         try {
-            const res = await fetchWithTimeout(url, 15000); // Increased timeout to 15 seconds
+            const res = await fetchWithTimeout(url, 6000);
             if (!res.ok) return { books: [], numFound: 0 };
             const json = await res.json();
             return {
@@ -413,285 +299,68 @@
         } catch (_) { return { books: [], numFound: 0 }; }
     }
 
-    async function loadBooksWithFallback(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      
-      // Handle search queries with existing logic
-      if (query) {
-        BOOKS_PAGE_SIZE = computeGridPageSize();
-        const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
+    const CACHE_DURATION_MS = 300000;
+    let popularBooksCache = [];
+    let cacheTimestamp = 0;
 
-        // Fetch trending in parallel, take first with enough books
-        const trending = await Promise.all(
-          ['weekly', 'monthly', 'daily'].map((period) =>
-            fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=40`)
-          )
-        );
-        for (const result of trending) {
-          books = result.books;
-          apiTotalResults = result.numFound || result.books.length;
-          if (books.length >= BOOKS_PAGE_SIZE) break;
-        }
-
-        // If still short, try a few popular subjects
-        if (books.length < BOOKS_PAGE_SIZE) {
-          const subjects = ['fiction', 'fantasy', 'romance'];
-          const popular = await Promise.all(
-            subjects.map((s) =>
-              fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(s)}&limit=20&page=1&language=en`)
-            )
-           );
-           const seenIds = new Set(books.map(b => b.id || b._googleVolumeId || ''));
-           for (const result of popular) {
-             for (const book of result.books) {
-               const id = book.id || book._googleVolumeId || '';
-               if (id && !seenIds.has(id)) {
-                 seenIds.add(id);
-                 books.push(book);
-               }
-             }
-           }
-
-        apiTotalResults = Math.max(apiTotalResults || books.length, books.length);
-        books = books.slice(startIndex, startIndex + BOOKS_PAGE_SIZE);
-
-        state.books = books.map((book) => ({
-          id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
-          title: book.title || book.name || 'Unknown Book',
-          authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
-          description: book.description || '',
-          coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
-          publishedDate: book.publishedDate || book.published_date || '',
-          pageCount: book.pageCount || book.page_count || 0
-        })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
-
-        const seen = new Set();
-        state.books = state.books.filter(book => {
-          if (seen.has(book.id)) return false;
-          seen.add(book.id);
-          return true;
-        });
-
-        // Filter & sort: English, good covers, title match, recency
-        state.books = state.books
-          .filter(b => {
-            const coverOk = hasGoodCover(b);
-            const authorOk = String(b.authors || '') !== '' && String(b.authors || '') !== 'Unknown Author';
-            const titleOk = String(b.title || '').length >= 3;
-            const yearOk = b.publishedDate ? new Date(b.publishedDate).getFullYear() >= 1990 : true;
-            if (query) return coverOk && titleOk && yearOk;
-            return (coverOk || authorOk) && titleOk && yearOk;
-          })
-          .sort((a, b) => scoreBookQuality(b, query) - scoreBookQuality(a, query));
-
-        // Boost popular/seed books to the front of page 1
-        if (!query && state.page === 1) {
-          const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
-          const boosted = [];
-          const rest = [];
-          for (const book of state.books) {
-            if (seedTitles.has(normalizeBookSeedText(book.title))) {
-              boosted.push(book);
-            } else {
-              rest.push(book);
-            }
-          }
-          state.books = [...boosted, ...rest];
-        }
-
-        if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-          state.totalPages = Math.max(1, Math.ceil(apiTotalResults / BOOKS_PAGE_SIZE));
-        } else {
-          state.totalPages = 1;
-        }
-        return;
-      }
-
-      // For initial load and trending, use the pooled approach
-      if (state.isInitialLoad) {
-        state.isInitialLoad = false;
-        await fetchInitialBookPool();
-      }
-       
-       // Serve from the pool
-       const pageSize = computeGridPageSize();
-       const startIdx = (state.page - 1) * pageSize;
-       state.books = state.bookPool.slice(startIdx, startIdx + pageSize);
-       
-       // Calculate total pages based on pool size
-       state.totalPages = Math.max(1, Math.ceil(state.bookPool.length / pageSize));
-       
-       // If we're running low on books in the pool, fetch more to replenish
-       if (state.bookPool.length - startIdx < pageSize * 2) {
-         await fetchMoreBooks();
-       }
-     }
+    function normalizeBookText(value) {
+      return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    async function fetchInitialBookPool() {
+    function normalizeBook(book) {
+      return {
+        id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
+        title: book.title || book.name || 'Unknown Book',
+        authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
+        description: book.description || '',
+        coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
+        publishedDate: book.publishedDate || book.published_date || '',
+        pageCount: book.pageCount || book.page_count || 0
+      };
+    }
+
+    function filterSortBooks(books) {
+      const seen = new Set();
+      return books
+        .map(normalizeBook)
+        .filter(b => b.id && seen.has(b.id) ? false : (seen.add(b.id), b.title.length >= 2 && isEnglishBook(b) && hasGoodCover(b)))
+        .sort((a, b) => scoreBookQuality(b) - scoreBookQuality(a));
+    }
+
+    async function loadPopularBooks() {
+      if (popularBooksCache.length && Date.now() - cacheTimestamp < CACHE_DURATION_MS) {
+        return popularBooksCache;
+      }
       try {
-        // Fetch a large, diverse pool of books for 100+ pages
-        const targetPoolSize = 3000; // 100 pages * 30 items per page (approx)
-        const booksPerSource = 200; // Books to fetch from each source
-        
-        // Fetch from multiple trending periods
-        const trendingPromises = ['daily', 'weekly', 'monthly'].map(period =>
-          fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=40`)
-        );
-        
-        // Fetch from popular subjects with multiple pages
-        const subjects = ['fiction', 'fantasy', 'romance', 'science_fiction', 'mystery', 'thriller', 'historical_fiction', 'biography'];
-        const popularPromises = [];
-        
-        for (const subject of subjects) {
-          // Fetch multiple pages for each subject to get more variety
-          for (let page = 1; page <= 3; page++) {
-            popularPromises.push(
-              fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=20&page=${page}&language=en`)
-            );
-          }
+        const [trending, popular] = await Promise.all([
+          fetchBooksApi(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=20`),
+          fetchBooksApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&limit=20&language=en&orderBy=relevance`)
+        ]);
+        let all = filterSortBooks([...(trending.books || []), ...(popular.books || [])]);
+        if (all.length < 20) {
+          const extra = await fetchBooksApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=romance&limit=12&language=en`);
+          all = filterSortBooks([...all, ...(extra.books || [])]);
         }
-        
-        // Also fetch some recent books
-        const recentPromises = [
-          fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=bestseller&limit=40&language=en`),
-          fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=award+winner&limit=40&language=en`),
-          fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=bookclub&limit=40&language=en`)
-        ];
-        
-        // Wait for all requests
-        const allResults = await Promise.all([...trendingPromises, ...popularPromises, ...recentPromises]);
-        
-        // Combine all books
-        let allBooks = [];
-        for (const result of allResults) {
-          if (result && result.books) {
-            allBooks = [...allBooks, ...result.books];
-          }
-        }
-        
-        // Convert to our book format
-        const processedBooks = allBooks.map((book) => ({
-          id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
-          title: book.title || book.name || 'Unknown Book',
-          authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
-          description: book.description || '',
-          coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
-          publishedDate: book.publishedDate || book.published_date || '',
-          pageCount: book.pageCount || book.page_count || 0
-        })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
-        
-        // Filter and sort for quality
-        const filteredBooks = processedBooks
-          .filter(b => {
-            const coverOk = hasGoodCover(b);
-            const authorOk = String(b.authors || '') !== '' && String(b.authors || '') !== 'Unknown Author';
-            const titleOk = String(b.title || '').length >= 3;
-            const yearOk = b.publishedDate ? new Date(b.publishedDate).getFullYear() >= 1990 : true;
-            return (coverOk || authorOk) && titleOk && yearOk;
-          })
-          .sort((a, b) => scoreBookQuality(b, '') - scoreBookQuality(a, ''));
-        
-        // Remove duplicates based on ID
-        const seenIds = new Set();
-        const uniqueBooks = filteredBooks.filter(book => {
-          if (seenIds.has(book.id)) return false;
-          seenIds.add(book.id);
-          return true;
-        });
-        
-        // Shuffle the pool
-        state.bookPool = shuffleArray(uniqueBooks);
-        
-        // If we don't have enough books, fetch more
-        if (state.bookPool.length < targetPoolSize) {
-          await fetchMoreBooks();
-        }
-        
-      } catch (error) {
-        console.error('Failed to fetch initial book pool:', error);
-        // Fallback to existing method if pooling fails
-        state.bookPool = [];
+        popularBooksCache = all.slice(0, 60);
+        cacheTimestamp = Date.now();
+        return popularBooksCache;
+      } catch (_) {
+        return popularBooksCache.length ? popularBooksCache : [];
       }
     }
-    
-    async function fetchMoreBooks() {
-      try {
-        // Fetch additional books to replenish the pool
-        const additionalPromises = [];
-        
-        // Add some variety with different search terms
-        const searchTerms = ['novel', 'story', 'literature', 'author', 'page', 'chapter'];
-        for (const term of searchTerms) {
-          additionalPromises.push(
-            fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(term)}&limit=30&language=en`)
-          );
-        }
-        
-        // Add more popular subjects
-        const subjects = ['historical', 'western', 'horror', 'self_help', 'health', 'travel', 'cooking', 'art'];
-        for (const subject of subjects) {
-          additionalPromises.push(
-            fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=20&page=1&language=en`)
-          );
-        }
-        
-        const results = await Promise.all(additionalPromises);
-        
-        // Process and add new books
-        let newBooks = [];
-        for (const result of results) {
-          if (result && result.books) {
-            newBooks = [...newBooks, ...result.books];
-          }
-        }
-        
-        const processedBooks = newBooks.map((book) => ({
-          id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
-          title: book.title || book.name || 'Unknown Book',
-          authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
-          description: book.description || '',
-          coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
-          publishedDate: book.publishedDate || book.published_date || '',
-          pageCount: book.pageCount || book.page_count || 0
-        })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
-        
-        // Filter for quality
-        const filteredBooks = processedBooks
-          .filter(b => {
-            const coverOk = hasGoodCover(b);
-            const authorOk = String(b.authors || '') !== '' && String(b.authors || '') !== 'Unknown Author';
-            const titleOk = String(b.title || '').length >= 3;
-            const yearOk = b.publishedDate ? new Date(b.publishedDate).getFullYear() >= 1990 : true;
-            return (coverOk || authorOk) && titleOk && yearOk;
-          });
-        
-        // Remove duplicates (both from new books and existing pool)
-        const existingIds = new Set(state.bookPool.map(b => b.id));
-        const uniqueNewBooks = filteredBooks.filter(book => {
-          if (existingIds.has(book.id)) return false;
-          existingIds.add(book.id);
-          return true;
-        });
-        
-        // Add to pool and reshuffle
-        state.bookPool = [...state.bookPool, ...uniqueNewBooks];
-        state.bookPool = shuffleArray(state.bookPool);
-        
-      } catch (error) {
-        console.error('Failed to fetch more books:', error);
+
+    async function loadBooks(query) {
+      const q = normalizeBookText(query || state.search);
+      if (q) {
+        state.books = [];
+        const result = await fetchBooksApi(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=40&language=en&orderBy=relevance`);
+        let all = filterSortBooks(result.books || []);
+        state.books = all.slice(0, 60);
+        state.totalPages = Math.max(1, Math.ceil((result.numFound || all.length) / BOOKS_PAGE_SIZE));
+      } else {
+        state.books = await loadPopularBooks();
+        state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
       }
-    }
-    
-    function debounceSearch(query) {
-      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      searchDebounceTimer = setTimeout(async () => {
-        state.search = query;
-        state.page = 1;
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      }, 220);
     }
 
     async function ensureSupabase() {
@@ -742,13 +411,6 @@
         if (signupBtn) signupBtn.style.display = 'inline-flex';
         if (profileBtn) profileBtn.style.display = 'none';
       }
-    }
-
-    async function loadBooks(queryOverride = '') {
-      const query = String(queryOverride || state.search || '').trim();
-      
-      // Use API directly (popular first for initial pages)
-      await loadBooksWithFallback(query);
     }
 
     async function loadListStatus() {
@@ -941,20 +603,35 @@
       }
     }
 
-    // Refresh removed.
-    document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
+    async function doSearch() {
       const query = String(document.getElementById('q')?.value || '').trim();
-      debounceSearch(query);
-    });
-    document.getElementById('q')?.addEventListener('input', async (e) => {
+      state.search = query;
+      state.page = 1;
+      await loadBooks(query);
+      await loadListStatus();
+      renderGrid();
+    }
+
+    let searchTimer;
+    document.getElementById('booksSearchBtn')?.addEventListener('click', doSearch);
+    document.getElementById('q')?.addEventListener('input', (e) => {
+      if (searchTimer) clearTimeout(searchTimer);
       const query = String(e.target.value || '').trim();
-      debounceSearch(query);
+      if (!query) {
+        state.search = '';
+        state.page = 1;
+        loadBooks();
+        loadListStatus();
+        renderGrid();
+        return;
+      }
+      searchTimer = setTimeout(doSearch, 200);
     });
-    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+    document.getElementById('q')?.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
-      const query = String(e.target.value || '').trim();
-      debounceSearch(query);
+      if (searchTimer) clearTimeout(searchTimer);
+      doSearch();
     });
     document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.add('show');
