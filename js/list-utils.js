@@ -117,6 +117,7 @@
   let tierMetaServerSupported = null;
   let tierRankServerSupported = null;
   let collaboratorTableSupported = null;
+  let accessibleCustomListsRpcSupported = null;
   const MEDIA_ICON_PICKER_SELECTOR = '.icon-options[id$="ListIconOptions"], .icon-options[id*="ListIconOptions"], .list-icon-options, .menu-icon-grid, .menu-icon-option';
 
   function getListConfig(type) {
@@ -330,16 +331,16 @@
     const safeUserId = String(userId || '').trim();
     const safeType = String(type || '').trim().toLowerCase();
     if (!client || !safeUserId || !safeType || typeof client.rpc !== 'function') return null;
+    if (accessibleCustomListsRpcSupported === false) return null;
 
     const { data, error } = await client.rpc('zo2y_get_accessible_custom_lists', {
       p_media_type: safeType
     });
     if (error) {
-      if (!isFunctionMissingError(error)) {
-        console.warn('Could not load collaborative lists via RPC:', error);
-      }
+      accessibleCustomListsRpcSupported = false;
       return null;
     }
+    accessibleCustomListsRpcSupported = true;
     if (!Array.isArray(data)) return [];
     return data.map((row) => ({
       ...row,
