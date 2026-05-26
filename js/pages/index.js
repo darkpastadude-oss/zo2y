@@ -9786,7 +9786,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425i';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260526a';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -10314,3 +10314,288 @@ function createDefaultSpotlightItems() {
   
   homeSpotlightItems = defaultItems;
 }
+
+    function renderLandingFeedPreview(feedMap) {
+      const normalized = normalizeHomeFeedMap(feedMap);
+      if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
+      const movies = getLandingRailItems(normalized.movie, 1, 10);
+      const games = getLandingRailItems(normalized.game, 2, 10);
+      const tv = getLandingRailItems(normalized.tv, 3, 10);
+      const sports = getLandingRailItems(normalized.sports, 3, 3);
+      const heroStripItems = [
+        ...movies.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
+        ...tv.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
+        ...games.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2)
+      ];
+      renderLandingHeroStrip(heroStripItems);
+      const spotlight = [
+        ...movies.slice(0, 2),
+        ...games.slice(0, 2),
+        ...(Array.isArray(normalized.tv) ? rotateLandingList(normalized.tv, 1).slice(0, 1) : []),
+        ...(Array.isArray(normalized.anime) ? rotateLandingList(normalized.anime, 2).slice(0, 1) : []),
+        ...sports.slice(0, 1)
+      ].find(Boolean) || Object.values(normalized).flat().find(Boolean);
+      const spotlightLink = document.getElementById('landingPreviewSpotlightLink');
+      const spotlightBackdrop = document.getElementById('landingPreviewSpotlightBackdrop');
+      const spotlightPoster = document.getElementById('landingPreviewSpotlightPoster');
+      const spotlightType = document.getElementById('landingPreviewSpotlightType');
+      const spotlightTitle = document.getElementById('landingPreviewSpotlightTitle');
+      const spotlightMeta = document.getElementById('landingPreviewSpotlightMeta');
+      const spotlightSummary = document.getElementById('landingPreviewSpotlightSummary');
+      if (spotlight && spotlightLink && spotlightBackdrop && spotlightPoster && spotlightType && spotlightTitle && spotlightMeta && spotlightSummary) {
+        const nextPath = getLandingItemNextPath(spotlight);
+        const meta = getHomeMediaMeta(spotlight.mediaType);
+        const poster = getLandingPreviewPoster(spotlight);
+        const backdrop = getLandingPreviewBackdrop(spotlight);
+        spotlightLink.href = buildLandingAuthHref(nextPath);
+        spotlightLink.setAttribute('data-auth-next', nextPath);
+        spotlightType.textContent = meta.label;
+        spotlightTitle.textContent = String(spotlight.title || meta.label + ' pick').trim() || meta.label + ' pick';
+        spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
+        spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 140) || 'Live pick from the Zo2y feed.';
+        spotlightPoster.src = poster || HOME_IMAGE_PLACEHOLDER;
+        spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
+        spotlightBackdrop.style.backgroundImage = backdrop
+          ? 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("' + String(backdrop).replace(/"/g, '%22') + '")'
+          : 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), linear-gradient(150deg, rgba(14, 27, 60, 0.94), rgba(9, 17, 36, 0.9))';
+      }
+      renderRail('landingMoviesRail', movies, { mediaType: 'movie' });
+      renderRail('landingGamesRail', games, { mediaType: 'game' });
+      renderRail('landingTvRail', tv, { mediaType: 'tv' });
+      lockLandingRailInteractions(document.getElementById('landingMoviesRail'));
+      lockLandingRailInteractions(document.getElementById('landingGamesRail'));
+      lockLandingRailInteractions(document.getElementById('landingTvRail'));
+      wireLandingAuthNextLinks(document.getElementById('landingAppShell'));
+      return true;
+    }
+
+    async function hydrateLandingFeedPreview() {
+      if (landingPreviewHydrated) return;
+      landingPreviewHydrated = true;
+      const hasLandingPreviewTargets = !!document.getElementById('landingPreviewSpotlightLink') || !!document.getElementById('landingHeroStrip') || !!document.getElementById('landingMoviesRail') || !!document.getElementById('landingGamesRail') || !!document.getElementById('landingTvRail');
+      if (!hasLandingPreviewTargets) return;
+      let rendered = false;
+      let feed = null;
+      try { feed = await loadPrecomputedHomeFeed(); } catch (_err) {}
+      if (!feed || countActiveHomeChannels(feed) === 0) { feed = readHomeFeedCache() || readPrecomputedHomeFeedCache(); }
+      if (feed && countActiveHomeChannels(feed) > 0) { rendered = renderLandingFeedPreview(feed); }
+      try {
+        const liveFeed = await loadLandingLiveFeed();
+        if (countActiveHomeChannels(liveFeed) > 0) { renderLandingFeedPreview(liveFeed); rendered = true; }
+      } catch (_err) {}
+      if (!rendered) { renderLandingFeedPreview(feed || {}); }
+    }
+
+    function initLandingExperience() {
+      if (landingExperienceInitialized) return;
+      landingExperienceInitialized = true;
+      document.body?.classList.add('landing-mode');
+      const authNotice = document.getElementById('landingAuthNotice');
+      const revealNodes = Array.from(document.querySelectorAll('[data-landing-reveal]'));
+      const params = new URLSearchParams(window.location.search || '');
+      const authRequired = params.get('auth') === 'required';
+      const savePromptDismiss = document.getElementById('landingSavePromptDismiss');
+      const savePromptClose = document.getElementById('landingSavePromptClose');
+      if (authRequired && authNotice) { authNotice.hidden = false; authNotice.textContent = 'Sign in to continue into Zo2y.'; }
+      scheduleHomeNonCritical(function () { void ensureHomeHeavyLoaders().catch(function () {}); }, 1800);
+      document.querySelectorAll('[data-auth-entry]').forEach(function (link) { link.addEventListener('click', function () { localStorage.setItem('postAuthRedirect', 'index.html'); }); });
+      savePromptDismiss?.addEventListener('click', hideLandingSavePrompt);
+      savePromptClose?.addEventListener('click', hideLandingSavePrompt);
+      wireLandingAuthNextLinks(document);
+      void hydrateLandingSetupWall();
+      void hydrateLandingFeedPreview();
+      void hydrateLandingLiveReviews();
+      if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') { revealNodes.forEach(function (node) { node.classList.add('is-visible'); }); return; }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
+      revealNodes.forEach(function (node, index) { if (index === 0) { node.classList.add('is-visible'); return; } observer.observe(node); });
+    }
+
+    function initLandingMascot() {
+      var hero = document.querySelector('.landing-hero');
+      var mascot = document.getElementById('landingMascot');
+      var shell = mascot?.querySelector?.('.landing-mascot-shell');
+      if (!hero || !mascot || !shell || mascot.dataset.wired === '1') return;
+      mascot.dataset.wired = '1';
+      var moveFrame = 0;
+      var applyPointer = function (clientX, clientY) {
+        var rect = hero.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        var px = ((clientX - rect.left) / rect.width) - 0.5;
+        var py = ((clientY - rect.top) / rect.height) - 0.5;
+        var offsetX = Math.max(-14, Math.min(14, px * 28));
+        var offsetY = Math.max(-10, Math.min(10, py * 20));
+        var tilt = Math.max(-6, Math.min(6, px * 12));
+        shell.style.setProperty('--landing-mascot-x', offsetX.toFixed(1) + 'px');
+        shell.style.setProperty('--landing-mascot-y', offsetY.toFixed(1) + 'px');
+        shell.style.setProperty('--landing-mascot-tilt', tilt.toFixed(1) + 'deg');
+      };
+      var resetPointer = function () {
+        shell.style.setProperty('--landing-mascot-x', '0px');
+        shell.style.setProperty('--landing-mascot-y', '0px');
+        shell.style.setProperty('--landing-mascot-tilt', '0deg');
+      };
+      var queuePointerUpdate = function (clientX, clientY) {
+        if (moveFrame) cancelAnimationFrame(moveFrame);
+        moveFrame = requestAnimationFrame(function () { moveFrame = 0; applyPointer(clientX, clientY); });
+      };
+      hero.addEventListener('pointermove', function (event) { queuePointerUpdate(event.clientX, event.clientY); });
+      hero.addEventListener('pointerleave', resetPointer);
+      hero.addEventListener('touchmove', function (event) { var touch = event.touches && event.touches[0]; if (!touch) return; queuePointerUpdate(touch.clientX, touch.clientY); }, { passive: true });
+      hero.addEventListener('touchend', resetPointer, { passive: true });
+      var blink = function () {
+        mascot.classList.add('is-blinking');
+        window.setTimeout(function () { mascot.classList.remove('is-blinking'); }, 120);
+        window.setTimeout(blink, 2300 + Math.round(Math.random() * 1900));
+      };
+      window.setTimeout(blink, 1200);
+      resetPointer();
+    }
+
+    let homeAppBootPromise = null;
+    let homeAuthGateVerifiedEvent = null;
+    let homeDomReady = false;
+
+    function handleHomeAuthGateVerified(event) {
+      const detail = event?.detail || null;
+      homeAuthGateVerifiedEvent = detail;
+      if (!homeDomReady) return;
+      const authenticated = !!detail?.authenticated;
+      if (authenticated) {
+        document.body?.classList.remove('landing-mode');
+        void bootAuthenticatedHome().catch(function (error) {
+          console.error('Home boot failed after auth verification:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+        return;
+      }
+      initLandingExperience();
+    }
+
+    window.addEventListener('zo2y-auth-gate-verified', handleHomeAuthGateVerified);
+
+    function scheduleHomeNonCritical(task, timeoutMs) {
+      if (timeoutMs === void 0) timeoutMs = 900;
+      if (typeof task !== 'function') return;
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(function () { task(); }, { timeout: timeoutMs });
+        return;
+      }
+      window.setTimeout(task, 0);
+    }
+
+    function bootAuthenticatedHome() {
+      if (homeAppBootPromise) return homeAppBootPromise;
+      homeAppBootPromise = (async function () {
+        homeDebugEvent('boot:start', { authShell: String(getHomeAuthGateState()?.authShell || '').trim() || null });
+        await setupHomeAuthListener();
+        homeDebugEvent('boot:auth-listener-ready', { userId: String(homeCurrentUser?.id || '').trim() || null });
+        await completeHomeOAuthReturnIfNeeded();
+        homeDebugEvent('boot:oauth-complete');
+        if (hasHomeAuthReturnParams()) { clearHomeAuthParamsFromUrl(); }
+        await initAuthUi();
+        homeDebugEvent('boot:auth-ui-ready', { userId: String(homeCurrentUser?.id || '').trim() || null });
+        await finishPendingPostAuthBootstrap();
+        homeDebugEvent('boot:post-auth-bootstrap-finished');
+        await initUniversalHome();
+        homeDebugEvent('boot:home-ready');
+        scheduleDeferredHomeStartupTasks();
+      })().catch(function (error) {
+        homeAppBootPromise = null;
+        homeDebugEvent('boot:error', { message: String(error?.message || error || '') });
+        throw error;
+      });
+      return homeAppBootPromise;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      homeDomReady = true;
+      var authGateState = getHomeAuthGateState();
+      if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
+        initLandingExperience();
+      } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
+        void bootAuthenticatedHome().catch(function (error) {
+          console.error('Home boot failed:', error);
+          setStatus('Could not load your home feed right now. Please refresh.', true);
+        });
+      }
+      if (homeAuthGateVerifiedEvent) { handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent }); }
+      scheduleHomeNonCritical(function () { void ensureHomeHeavyLoaders().catch(function () {}); }, 1800);
+      var itemMenuModal = document.getElementById('itemMenuModal');
+      var createListModal = document.getElementById('createListModal');
+      var nextSpotlightBtn = document.getElementById('spotlightNextBtn');
+      var spotlightSection = document.getElementById('spotlightSection');
+      var popularGamesRefreshBtn = document.getElementById('popularGamesRefreshBtn');
+      document.querySelectorAll('.menu-icon-option').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.menu-icon-option').forEach(function (b) { b.classList.remove('selected'); });
+          btn.classList.add('selected');
+          homeItemMenuState.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
+        });
+      });
+      document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
+      document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
+      document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
+      document.getElementById('menuCreateListBtn')?.addEventListener('click', function () { void openCreateListModalFromMenu(); });
+      document.getElementById('saveNewListBtn')?.addEventListener('click', function () { void saveNewCustomListFromMenu(); });
+      if (popularGamesRefreshBtn) {
+        popularGamesRefreshBtn.addEventListener('click', function () {
+          popularGamesRefreshBtn.disabled = true;
+          refreshHomeGamesRail().catch(function () {}).finally(function () { popularGamesRefreshBtn.disabled = false; });
+        });
+      }
+      if (nextSpotlightBtn) {
+        nextSpotlightBtn.addEventListener('click', function (event) {
+          event.preventDefault(); event.stopPropagation();
+          showSpotlightByIndex(homeSpotlightIndex + 1, true);
+          resetSpotlightTimer(true);
+        });
+      }
+      if (spotlightSection) {
+        spotlightSection.addEventListener('click', function (event) { if (isSpotlightInteractiveTarget(event.target)) return; openCurrentSpotlightItem(); });
+        spotlightSection.addEventListener('keydown', function (event) {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          if (isSpotlightInteractiveTarget(event.target)) return;
+          event.preventDefault(); openCurrentSpotlightItem();
+        });
+      }
+      [itemMenuModal, createListModal].forEach(function (modal) {
+        if (modal) { modal.addEventListener('click', function (e) { if (e.target === modal) closeAllItemMenuModals(); }); }
+      });
+      if (itemMenuModal) { itemMenuModal.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeItemMenuModal(); }); }
+      var newListNameInput = document.getElementById('newListNameInput');
+      if (newListNameInput) { newListNameInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); void saveNewCustomListFromMenu(); } }); }
+      scheduleHomeNonCritical(function () {
+        if (!window.initUniversalSearch) return;
+        window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'movies.html' });
+        window.initUniversalSearch({ input: '#sidebarSearch', fallbackRoute: 'movies.html' });
+        var sidebarInput = document.getElementById('sidebarSearch');
+        var sidebarBtn = document.getElementById('sidebarSearchBtn');
+        if (sidebarInput && sidebarBtn && sidebarBtn.dataset.wired !== '1') {
+          sidebarBtn.dataset.wired = '1';
+          sidebarBtn.addEventListener('click', function () { sidebarInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); });
+        }
+        var globalSearch = document.getElementById('globalSearch');
+        if (globalSearch && !globalSearch.dataset.gamesRailBound) {
+          globalSearch.dataset.gamesRailBound = '1';
+          globalSearch.addEventListener('input', toggleHomeGamesRailForSearch);
+          globalSearch.addEventListener('blur', toggleHomeGamesRailForSearch);
+          globalSearch.addEventListener('focus', toggleHomeGamesRailForSearch);
+          toggleHomeGamesRailForSearch();
+        }
+      }, 1400);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAllRailMenus(); closeAllItemMenuModals(); } });
+      document.addEventListener('visibilitychange', function () { if (document.hidden) resetSpotlightTimer(false); else resetSpotlightTimer(true); });
+      var syncModalViewportOnViewportChange = function () { syncActiveMenuModalViewports(); };
+      window.addEventListener('scroll', syncModalViewportOnViewportChange, { passive: true });
+      window.addEventListener('resize', syncModalViewportOnViewportChange);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('scroll', syncModalViewportOnViewportChange);
+        window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
+      }
+    });
