@@ -10560,6 +10560,18 @@ function createDefaultSpotlightItems() {
           setStatus('Could not load your home feed right now. Please refresh.', true);
         });
       }
+
+      // Fail-open: if the auth gate never verifies (blocked script, stale SW, privacy mode),
+      // still initialize the public home rails so the page doesn't appear "stuck".
+      window.setTimeout(function () {
+        try {
+          if (homeAppBootPromise) return;
+          var state = getHomeAuthGateState();
+          if (state && state.verified) return;
+          void initUniversalHome({ force: true });
+        } catch (_err) {}
+      }, 1400);
+
       if (homeAuthGateVerifiedEvent) { handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent }); }
       scheduleHomeNonCritical(function () { void ensureHomeHeavyLoaders().catch(function () {}); }, 1800);
       var itemMenuModal = document.getElementById('itemMenuModal');
