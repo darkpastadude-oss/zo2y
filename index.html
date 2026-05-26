@@ -1,133 +1,529 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-auth-shell="landing">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="robots" content="index,follow" />
-  <title>Zo2y | All Your Interests in One Place</title>
-
   <script>
     // Used to invalidate stale Service Worker caches after deployments.
     window.__ZO2Y_APP_VERSION = '20260526a';
-  </script>
+    // If an older Service Worker is controlling this page, it can serve stale cached JS/HTML
+    // and cause refresh-only failures. Detect mismatch early (before app scripts run) and
+    // hard-reset the app shell once per session.
+    (function () {
+      try {
+        const expected = String(window.__ZO2Y_APP_VERSION || '').trim();
+        if (!expected) return;
+        if (!('serviceWorker' in navigator)) return;
+        const controllerUrl = String(navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL || '');
+        if (!controllerUrl) return;
+        if (controllerUrl.includes(encodeURIComponent(expected)) || controllerUrl.includes(expected)) return;
 
-  <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+        const reloadKey = 'zo2y:sw_reset_done';
+        if (sessionStorage.getItem(reloadKey) === '1') return;
+        sessionStorage.setItem(reloadKey, '1');
+
+        Promise.resolve()
+          .then(() => navigator.serviceWorker.getRegistrations())
+          .then((regs) => Promise.all((regs || []).map((reg) => reg.unregister().catch(() => false))))
+          .then(() => ('caches' in window ? caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k).catch(() => false)))) : null))
+          .finally(() => {
+            try { window.location.reload(); } catch (_err) { window.location.href = window.location.href; }
+          });
+      } catch (_err) {}
+    })();
+  </script>
+  
+  <script src="/js/auth-gate.js?v=20260526a"></script>
+  <script src="/js/bootstrap-auth.js?v=20260526a" defer></script>
+  <script src="/js/username-popup.js?v=20260526a" defer></script>
+  <meta name="robots" content="index,follow" />
+  <title>Zo2y | All Your Interests in One Place</title>
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <link rel="canonical" href="https://zo2y.com/" />
-
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Zo2y" />
+  <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
+  <meta property="og:url" content="https://zo2y.com/" />
+  <meta property="og:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
+  <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
+  <meta name="twitter:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
+  <script>
+    // Allow the client to operate even when IGDB credentials are missing.
+    // (Kept for compatibility with legacy game pages.)
+    window.ZO2Y_REQUIRE_IGDB = false;
+  </script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Zo2y",
+      "url": "https://zo2y.com/",
+      "description": "All your interests in one place.",
+      "image": "https://zo2y.com/images/zo2y-search-illustration.png"
+    }
+  </script>
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
+  <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="//image.tmdb.org">
+  <link rel="dns-prefetch" href="//covers.openlibrary.org">
+  <link rel="dns-prefetch" href="//books.googleusercontent.com">
+  <link rel="dns-prefetch" href="//i.scdn.co">
+  <link rel="dns-prefetch" href="//images.igdb.com">
+  <link rel="dns-prefetch" href="//flagcdn.com">
+  <link rel="dns-prefetch" href="//commons.wikimedia.org">
+  <link rel="dns-prefetch" href="//restcountries.com">
+  <link rel="dns-prefetch" href="//www.thesportsdb.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260526a" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260526a" defer></script>
-  <script src="js/universal-search.js?v=20260526a" defer></script>
+<script src="js/list-utils.js?v=20260526a" defer></script>
   <script src="js/data/curated-media.js?v=20260526a" defer></script>
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/animations.css?v=20260526a" />
   <link rel="stylesheet" href="css/pages/index.css?v=20260526a" />
-  <link rel="stylesheet" href="/css/pages/index-landing.css?v=20260526a" />
-  <link rel="stylesheet" href="css/shared-header.css?v=20260526a">
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260526a" />
-
+<link rel="preload" href="/css/pages/index-landing.css?v=20260526a" as="style">
+<link rel="stylesheet" href="/css/pages/index-landing.css?v=20260526a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/index-landing.css?v=20260526a"></noscript>
   <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260526a" />
-  <script src="/js/mobile-webapp.js?v=20260526a" defer></script>
+<script src="/js/mobile-webapp.js?v=20260526a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260526a">
+  <script src="js/referral-utils.js?v=20260526a"></script>
+  <script src="js/shared-header.js?v=20260526a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260526a" />
 </head>
 <body>
-  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
-    <div class="zo2y-shared-header-inner">
-      <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
-        <img src="/newlogo.webp" alt="Zo2y logo" />
-      </a>
-      <div class="nav-search zo2y-shared-search">
-        <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
-        <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-        <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
-      </div>
-      <nav class="zo2y-shared-nav" aria-label="Primary navigation">
-        <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
-        <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
-        <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
-        <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
-        <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
-        <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
-        <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
-        <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
-        <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
-      </nav>
-      <div class="zo2y-shared-auth">
-        <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
-        <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-        <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
-      </div>
+  <div id="appRoot">
+  <div id="authBootstrapOverlay" class="position-fixed inset-0 flex items-center justify-center bg-white z-9999 font-system-ui">
+    <div class="text-center text-gray-500">
+      <div class="text-lg font-semibold mb-2">Loading your feed...</div>
+      <div class="spinner w-32 h-32 border-4 border-gray-300 border-t-gray-800 rounded-full" aria-label="loading" style="animation:spin 1s linear infinite"></div>
     </div>
-  </header>
-
-  <main class="container page-shell" id="appRoot">
-    <section class="media-spotlight" id="spotlightSection">
-      <div class="media-spotlight-shell">
-        <div class="media-spotlight-bg" id="spotlightArtwork">
-          <img id="spotlightArtworkImg" alt="" loading="lazy" />
+  </div>
+  <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
+    <header class="landing-v4-header">
+      <a class="landing-v4-brand" href="index.html" aria-label="Zo2y home">
+        <img src="/newlogo.webp" alt="Zo2y logo" loading="eager" fetchpriority="high">
+        <div>
+          <strong>zo2y</strong>
+          <span>track your taste</span>
         </div>
-        <div class="media-spotlight-copy">
-          <div class="media-spotlight-kicker" id="spotlightKicker">discover</div>
-          <h1 id="spotlightTitle">spotlight</h1>
-          <p class="media-spotlight-summary" id="spotlightSubtitle">featured content from across your interests</p>
-          <div class="hero-actions">
-            <a class="media-spotlight-cta" id="spotlightOpen" href="movies.html"><i class="fa-solid fa-play"></i> open</a>
-            <a class="media-spotlight-cta secondary" id="spotlightNextBtn" href="#"><i class="fa-solid fa-forward-step"></i> next</a>
+      </a>
+      <div class="landing-v4-actions">
+        <a class="landing-v4-link" data-auth-entry="login" href="login.html">log in</a>
+        <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">sign up</a>
+      </div>
+    </header>
+
+    <main class="landing-v4-main" id="landingAppShell">
+      <section class="landing-v4-setup-hero">
+        <div class="landing-v4-wall" aria-hidden="true">
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-1"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-2"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-3"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-4"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-5"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-6"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-7"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="movie-8"><img src="/images/landing-wall-poster.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>movies</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-1"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-2"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-3"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-4"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-5"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-6"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-7"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="tv-8"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>tv</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-1"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-2"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-3"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-4"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-5"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-6"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-7"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="anime-8"><img src="/images/landing-wall-poster.svg" alt=""><figcaption>anime</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-2"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/persona-5.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-3"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-4"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-5"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-6"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-7"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/sifu.jpg" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-1"><img src="/assets/logos/football/spanish-la-liga/realmadrid.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-2"><img src="/assets/logos/football/english-premier-league/liverpool.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-3"><img src="/assets/logos/nba/losangeleslakers.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-4"><img src="/assets/logos/nba/bostonceltics.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-5"><img src="/assets/logos/nfl/kansascitychiefs.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-6"><img src="/assets/logos/mlb/newyorkyankees.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-7"><img src="/assets/logos/f1/ferrari.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-8"><img src="/assets/logos/mma/ufc/ufc.svg" alt="" onerror="this.onerror=null;this.src='/images/fallback/movie.svg'"><figcaption>sports</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-2"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-3"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-4"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-5"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-6"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-7"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.svg" alt=""><figcaption>food</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg" alt=""><figcaption>food</figcaption></figure>
+          </div>
+
+          <div class="landing-v4-wall-row">
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-2"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-3"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-4"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-5"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-6"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-7"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg" alt=""><figcaption>fashion</figcaption></figure>
+            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="fashion-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg" alt=""><figcaption>fashion</figcaption></figure>
           </div>
         </div>
-      </div>
-    </section>
+        <div class="landing-v4-wall-overlay"></div>
+        <div class="landing-v4-wall-copy">
+          <p class="landing-v4-kicker">one profile for everything you track</p>
+          <h1 class="landing-v4-title">track what you love. save it all in one place.</h1>
+          <div class="landing-v4-hero-actions">
+            <a class="landing-v4-primary" data-auth-entry="signup" href="sign-up.html">get started</a>
+          </div>
+        </div>
+      </section>
+    </main>
 
-    <section class="section">
-      <div class="section-head">
-        <h2>media</h2>
-        <p>movies, tv, anime, games, books, and music - all in one place.</p>
-      </div>
-      <div class="list-grid">
-        <a class="list-item" href="movies.html"><i class="fa-solid fa-film"></i> movies</a>
-        <a class="list-item" href="tvshows.html"><i class="fa-solid fa-tv"></i> tv shows</a>
-        <a class="list-item" href="animes.html"><i class="fa-solid fa-dragon"></i> anime</a>
-        <a class="list-item" href="games.html"><i class="fa-solid fa-gamepad"></i> games</a>
-        <a class="list-item" href="books.html"><i class="fa-solid fa-book"></i> books</a>
-        <a class="list-item" href="music.html"><i class="fa-solid fa-music"></i> music</a>
-      </div>
-    </section>
+  <div class="landing-legal-strip">
+      <a href="privacy.html">Privacy</a>
+      <a href="terms.html">Terms</a>
+      <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
+    </div>
 
-    <section class="section">
-      <div class="section-head">
-        <h2>lifestyle</h2>
-        <p>travel, sports, fashion, food, and cars - the stuff you live for.</p>
+    <div class="landing-save-prompt" id="landingSavePrompt" hidden aria-live="polite">
+      <div class="landing-save-prompt-card">
+        <button class="landing-save-prompt-close" id="landingSavePromptClose" type="button" aria-label="Close save prompt">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <span class="landing-save-prompt-badge"><i class="fa-solid fa-lock"></i> sign up required</span>
+        <strong>Start saving with your own account</strong>
+        <p id="landingSavePromptText">Sign up required to start saving titles, building lists, and shaping your feed.</p>
+        <div class="landing-save-prompt-actions">
+          <a class="landing-cta landing-cta-primary" id="landingSavePromptCta" href="sign-up.html" data-auth-entry="signup">
+            <i class="fa-solid fa-user-plus"></i> Sign up
+          </a>
+          <button class="landing-cta" id="landingSavePromptDismiss" type="button">Not now</button>
+        </div>
       </div>
-      <div class="list-grid">
-        <a class="list-item" href="travel.html"><i class="fa-solid fa-earth-americas"></i> travel</a>
-        <a class="list-item" href="sports.html"><i class="fa-solid fa-futbol"></i> sports</a>
-        <a class="list-item" href="fashion.html"><i class="fa-solid fa-shirt"></i> fashion</a>
-        <a class="list-item" href="food.html"><i class="fa-solid fa-utensils"></i> food</a>
-        <a class="list-item" href="cars.html"><i class="fa-solid fa-car"></i> cars</a>
+    </div>
+  </div>
+
+  <div class="desktop-app-shell authenticated-only">
+    <div class="desktop-main-panel">
+      <main class="container page-shell" data-dedupe-exempt="1">
+<section class="spotlight" id="spotlightSection" role="link" tabindex="0" aria-label="Open spotlight item">
+  <div class="spotlight-bg" id="spotlightBackground"></div>
+  <div class="spotlight-media" id="spotlightMedia">
+    <img id="spotlightImage" alt="Spotlight artwork" loading="eager" fetchpriority="high" />
+  </div>
+  <div class="spotlight-inner" id="spotlightInner">
+    <p class="spotlight-kicker" id="spotlightKicker">Discover</p>
+    <h1 class="spotlight-title" id="spotlightTitle">Spotlight</h1>
+    <p class="spotlight-summary" id="spotlightSummary">Featured content from across your interests</p>
+
+    <div class="spotlight-actions">
+      <a class="btn btn-primary" id="spotlightOpenBtn"><i class="fa-solid fa-play"></i> Open</a>
+      <button class="btn" id="spotlightNextBtn" type="button"><i class="fa-solid fa-forward"></i> Next</button>
+    </div>
+    <div class="spotlight-dots" id="spotlightDots" aria-label="Spotlight items"></div>
+    <div class="status" id="loadStatus"></div>
+  </div>
+</section>
+
+        <section class="section desktop-curated-shelf" aria-label="Curated rankings">
+          <div class="section-head">
+            <h2>Curated Rankings</h2>
+            <p>Top 10 IMDb movie picks, preloaded for quick browsing.</p>
+          </div>
+          <div class="rail-wrap">
+        <div class="rail-title"><span><i class="fa-solid fa-ranking-star"></i> Top 10 IMDb Movies</span><a href="movies.html?v=20260526a">Browse movies</a></div>
+            <div class="rail" id="imdbTop10Rail"></div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <h2>Culture Stream</h2>
+            <p>One swipeable feed blending movies, TV, anime, books, music, and travel.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-wave-square"></i> Mixed for you</span><a href="profile.html">Tune taste</a></div>
+            <div class="rail unified-rail" id="unifiedRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-calendar-check"></i> New Releases</span><a href="#newReleasesRail">Live</a></div>
+            <div class="rail unified-rail" id="newReleasesRail"></div>
+          </div>
+
+        </section>
+
+        <section class="section category-section" aria-label="Media">
+          <div class="section-head">
+            <h2>Media</h2>
+            <p>Movies, TV, anime, games, books, and music - all in one place.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-film"></i> Movies</span><a href="movies.html?v=20260526a">View all</a></div>
+            <div class="rail" id="moviesRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-tv"></i> TV Shows</span><a href="tvshows.html">View all</a></div>
+            <div class="rail" id="tvRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-dragon"></i> Anime</span><a href="animes.html">View all</a></div>
+            <div class="rail" id="animeRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
+            <div class="rail" id="gamesRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
+            <div class="rail" id="booksRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
+            <div class="rail" id="musicRail"></div>
+          </div>
+        </section>
+
+        <section class="section category-section" aria-label="Lifestyle">
+          <div class="section-head">
+            <h2>Lifestyle</h2>
+            <p>Travel, sports, fashion, food, and cars - the stuff you live for.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-earth-americas"></i> Travel</span><a href="travel.html">View all</a></div>
+            <div class="rail" id="travelRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-futbol"></i> Sports</span><a href="sports.html">View all</a></div>
+            <div class="rail" id="sportsRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-shirt"></i> Fashion</span><a href="fashion.html">View all</a></div>
+            <div class="rail" id="fashionRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Food</span><a href="food.html">View all</a></div>
+            <div class="rail" id="foodRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-car"></i> Cars</span><a href="cars.html">View all</a></div>
+            <div class="rail" id="carRail"></div>
+          </div>
+        </section>
+      </main>
+
+      <div class="legal-strip">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="mailto:darkpastadude@gmail.com?subject=Zo2y%20Support" target="_blank" rel="noopener">Contact</a>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <footer class="zo2y-footer">
-      <a href="privacy.html">privacy</a>
-      <a href="terms.html">terms</a>
-      <a href="support.html">contact</a>
-    </footer>
-  </main>
+  <nav class="mobile-bottom-nav authenticated-only" aria-label="Mobile sections">
+    <a class="mobile-nav-item active" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+      <a class="mobile-nav-item" href="movies.html?v=20260526a" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
+    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
+    <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
+    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
+    <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
+    <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
+  </nav>
 
-  <script src="js/shared-header.js?v=20260526a" defer></script>
-  <script src="js/pages/index.js?v=20260526a" defer></script>
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content max-w-320">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/igdb-client.js?v=20260526a"></script>
+  <script>
+    (function () {
+      const referralUtils = window.ZO2Y_REFERRALS || null;
+      if (!referralUtils) return;
+      const referral = referralUtils.captureReferralFromLocation(window.location.search);
+      const banner = document.getElementById('landingReferralBanner');
+      if (banner) {
+        if (referral) {
+          banner.hidden = false;
+          banner.innerHTML = `<i class="fa-solid fa-user-group"></i><span>You are viewing @${referral}'s invite link. Create an account to start building your own Zo2y profile.</span>`;
+        } else {
+          banner.hidden = true;
+        }
+      }
+      document.querySelectorAll('[data-auth-entry]').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        link.setAttribute('href', referralUtils.appendReferralToHref(href, { referral, next: 'index.html' }));
+      });
+    })();
+  </script>
+    <script src="js/pages/index.js?v=20260526a" defer></script>
   <script src="js/production-runtime.js?v=20260526a" defer></script>
-</body>
+  <script src="js/home-desktop-rebrand.js?v=20260526a" defer></script>
+  </div>
+  </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
