@@ -147,9 +147,9 @@
       music: { table: 'music_reviews', itemField: 'track_id' },
       travel: { table: 'travel_reviews', itemField: 'country_code' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v13';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v14';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v12';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v13';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
@@ -6169,6 +6169,23 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!feedMap || typeof feedMap !== 'object') return null;
       const channels = getHomeChannels();
       const normalized = {};
+      const shouldDiscardStaleSportsFeed = (items) => {
+        if (!Array.isArray(items) || !items.length) return false;
+        if (items.length > 2) return false;
+        return items.every((item) => {
+          const title = String(item?.title || '').trim().toLowerCase();
+          const subtitle = String(item?.subtitle || '').trim().toLowerCase();
+          const extra = String(item?.extra || '').trim().toLowerCase();
+          const image = String(item?.image || '').trim().toLowerCase();
+          return (
+            title === 'ufc' ||
+            subtitle === 'sports' ||
+            extra === 'mma | ufc' ||
+            image.includes('/assets/sports/ufc-logo.svg') ||
+            image.endsWith('/newlogo.webp')
+          );
+        });
+      };
       channels.forEach((channel) => {
         const channelItems = Array.isArray(feedMap[channel.key])
           ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
@@ -6176,7 +6193,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const safeItems = channel.key === 'travel'
           ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
           : channelItems;
-        normalized[channel.key] = filterHomeSafeItems(safeItems);
+        const filteredItems = filterHomeSafeItems(safeItems);
+        normalized[channel.key] = channel.key === 'sports' && shouldDiscardStaleSportsFeed(filteredItems)
+          ? []
+          : filteredItems;
       });
       return normalized;
     }
