@@ -845,7 +845,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const k = String(key || '').trim();
       if (!k) return false;
       // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car'].includes(k)) return false;
+      if (!['travel', 'sports', 'car', 'book'].includes(k)) return false;
       return Number(attempt || 0) < 4;
     }
 
