@@ -1841,7 +1841,7 @@ async function loadBooks(signal) {
         url.searchParams.set('_', String(Date.now()));
 
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
         let res;
         try {
           try {
@@ -2060,7 +2060,7 @@ async function loadBooks(signal) {
 
         const filtered = shuffleArray(filterHomeSafeItems(items)).slice(0, targetCount);
         if (filtered.length) {
-          if (filtered.length >= 2) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, filtered);
+          if (filtered.length >= minHealthy) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, filtered);
           setBooksDebug('success', { count: filtered.length });
           return filtered;
         }
@@ -2069,47 +2069,6 @@ async function loadBooks(signal) {
       } catch (error) {
         setBooksDebug('error', { message: String(error?.message || error || '') });
       }
-
-      // Hardcoded fallback books so the rail never stays empty when APIs fail.
-      var fallbackBooks = [
-          { title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', year: 1925, id: 'fallback-gg', cover: 'https://covers.openlibrary.org/b/id/7222246-L.jpg' },
-          { title: 'To Kill a Mockingbird', author: 'Harper Lee', year: 1960, id: 'fallback-tkam', cover: 'https://covers.openlibrary.org/b/id/240726-L.jpg' },
-          { title: '1984', author: 'George Orwell', year: 1949, id: 'fallback-1984', cover: 'https://covers.openlibrary.org/b/id/1264865-L.jpg' },
-          { title: 'Pride and Prejudice', author: 'Jane Austen', year: 1813, id: 'fallback-pnp', cover: 'https://covers.openlibrary.org/b/id/8440070-L.jpg' },
-          { title: 'The Catcher in the Rye', author: 'J.D. Salinger', year: 1951, id: 'fallback-citr', cover: 'https://covers.openlibrary.org/b/id/8256097-L.jpg' },
-          { title: 'One Hundred Years of Solitude', author: 'Gabriel Garcia Marquez', year: 1967, id: 'fallback-ohys', cover: 'https://covers.openlibrary.org/b/id/8296791-L.jpg' },
-          { title: 'Brave New World', author: 'Aldous Huxley', year: 1932, id: 'fallback-bnw', cover: 'https://covers.openlibrary.org/b/id/8238143-L.jpg' },
-          { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien', year: 1954, id: 'fallback-lotr', cover: 'https://covers.openlibrary.org/b/id/10508920-L.jpg' },
-          { title: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K. Rowling', year: 1997, id: 'fallback-hp1', cover: 'https://covers.openlibrary.org/b/id/13118155-L.jpg' },
-          { title: 'Dune', author: 'Frank Herbert', year: 1965, id: 'fallback-dune', cover: 'https://covers.openlibrary.org/b/id/12008689-L.jpg' }
-        ];
-        var fallbackMapped = fallbackBooks.map(function (fb, idx) {
-          var fbTitle = String(fb.title || '').trim();
-          var fbAuthor = String(fb.author || '').trim() || 'Unknown author';
-          var fbYear = Number(fb.year || 0) || 0;
-          var fbCover = toHttpsUrl(String(fb.cover || '').trim()) || FALLBACK_BOOK_IMAGE;
-          var fbId = String(fb.id || 'fallback-' + idx).trim();
-          return sanitizeHomeBookItem({
-            mediaType: 'book',
-            itemId: fbId,
-            title: fbTitle,
-            subtitle: fbYear ? fbAuthor + ' | ' + fbYear : fbAuthor,
-            image: fbCover,
-            backgroundImage: fbCover,
-            spotlightImage: fbCover,
-            spotlightMediaImage: fbCover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            fallbackImage: FALLBACK_BOOK_IMAGE,
-            href: 'book.html?id=' + encodeURIComponent(fbId) + '&title=' + encodeURIComponent(fbTitle) + '&author=' + encodeURIComponent(fbAuthor)
-          });
-        }).filter(Boolean);
-        var shuffledFallback = shuffleArray(fallbackMapped).slice(0, targetCount);
-        if (shuffledFallback.length >= 2) {
-          writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, shuffledFallback);
-          setBooksDebug('fallback', { count: shuffledFallback.length });
-          return shuffledFallback;
-        }
 
       return [];
     }

@@ -1,39 +1,3 @@
-    (function ensureFreshAppShell() {
-      try {
-        const currentVersion = String(window.__ZO2Y_APP_VERSION || '').trim();
-        if (!currentVersion) return;
-        const versionKey = 'zo2y:app_version';
-        const reloadKey = 'zo2y:app_version_reloaded';
-        const previousVersion = String(localStorage.getItem(versionKey) || '').trim();
-
-        if (previousVersion && previousVersion !== currentVersion && sessionStorage.getItem(reloadKey) !== '1') {
-          sessionStorage.setItem(reloadKey, '1');
-          localStorage.setItem(versionKey, currentVersion);
-
-          const unregisterPromise = (async () => {
-            if (!('serviceWorker' in navigator)) return;
-            const regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(regs.map((reg) => reg.unregister().catch(() => false)));
-          })();
-
-          const clearCachesPromise = (async () => {
-            if (!('caches' in window)) return;
-            const keys = await caches.keys();
-            await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
-          })();
-
-          Promise.allSettled([unregisterPromise, clearCachesPromise]).finally(() => {
-            try { window.location.reload(); } catch (_err) { window.location.href = window.location.href; }
-          });
-          return;
-        }
-
-        if (!previousVersion) {
-          localStorage.setItem(versionKey, currentVersion);
-        }
-      } catch (_err) {}
-    })();
-
     const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
@@ -105,118 +69,6 @@
       { id: '163c6005-e94b-4b0d-ae95-b9210bd20571', name: 'Ford', category: 'Automaker', domain: 'ford.com' },
       { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
       { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
-    ];
-    const SPORTS_STUCK_TEAMS = [
-      { id: 'spt-liv', name: 'Liverpool', category: 'Premier League', domain: 'liverpoolfc.com', logo_url: '/assets/logos/football/english-premier-league/liverpool.png', country: 'England' },
-      { id: 'spt-rma', name: 'Real Madrid', category: 'La Liga', domain: 'realmadrid.com', logo_url: '/assets/logos/football/spanish-la-liga/realmadrid.png', country: 'Spain' },
-      { id: 'spt-fcb', name: 'FC Barcelona', category: 'La Liga', domain: 'fcbarcelona.com', logo_url: '/assets/logos/football/spanish-la-liga/barcelona.png', country: 'Spain' },
-      { id: 'spt-bay', name: 'Bayern Munich', category: 'Bundesliga', domain: 'fcbayern.com', logo_url: '/assets/logos/football/german-bundesliga/bayernmunich.png', country: 'Germany' }
-    ];
-    const HOME_SPORTS_FALLBACKS = [
-      { id: 'spt-mci', name: 'Manchester City', category: 'Premier League', domain: 'mancity.com', logo_url: '/assets/logos/football/english-premier-league/manchestercity.png', country: 'England' },
-      { id: 'spt-ars', name: 'Arsenal', category: 'Premier League', domain: 'arsenal.com', logo_url: '/assets/logos/football/english-premier-league/arsenal.png', country: 'England' },
-      { id: 'spt-che', name: 'Chelsea', category: 'Premier League', domain: 'chelseafc.com', logo_url: '/assets/logos/football/english-premier-league/chelsea.png', country: 'England' },
-      { id: 'spt-mun', name: 'Manchester United', category: 'Premier League', domain: 'manutd.com', logo_url: '/assets/logos/football/english-premier-league/manchesterunited.png', country: 'England' },
-      { id: 'spt-tot', name: 'Tottenham Hotspur', category: 'Premier League', domain: 'tottenhamhotspur.com', logo_url: '/assets/logos/football/english-premier-league/tottenhamhotspur.png', country: 'England' },
-      { id: 'spt-ncl', name: 'Newcastle United', category: 'Premier League', domain: 'newcastleunited.com', logo_url: '/assets/logos/football/english-premier-league/newcastleunited.png', country: 'England' },
-      { id: 'spt-avl', name: 'Aston Villa', category: 'Premier League', domain: 'avfc.co.uk', logo_url: '/assets/logos/football/english-premier-league/astonvilla.png', country: 'England' },
-      { id: 'spt-bha', name: 'Brighton', category: 'Premier League', domain: 'brightonandhovealbion.com', logo_url: '/assets/logos/football/english-premier-league/brightonandhovealbion.png', country: 'England' },
-      { id: 'spt-whu', name: 'West Ham United', category: 'Premier League', domain: 'whufc.com', logo_url: '/assets/logos/football/english-premier-league/westhamunited.png', country: 'England' },
-      { id: 'spt-eve', name: 'Everton', category: 'Premier League', domain: 'evertonfc.com', logo_url: '/assets/logos/football/english-premier-league/everton.png', country: 'England' },
-      { id: 'spt-atm', name: 'Atletico Madrid', category: 'La Liga', domain: 'atleticodemadrid.com', logo_url: '/assets/logos/football/spanish-la-liga/atleticomadrid.png', country: 'Spain' },
-      { id: 'spt-sev', name: 'Sevilla', category: 'La Liga', domain: 'sevillafc.es', logo_url: '/assets/logos/football/spanish-la-liga/sevilla.png', country: 'Spain' },
-      { id: 'spt-vll', name: 'Villarreal', category: 'La Liga', domain: 'villarrealcf.es', logo_url: '/assets/logos/football/spanish-la-liga/villarreal.png', country: 'Spain' },
-      { id: 'spt-rso', name: 'Real Sociedad', category: 'La Liga', domain: 'realsociedad.eus', logo_url: '/assets/logos/football/spanish-la-liga/realsociedad.png', country: 'Spain' },
-      { id: 'spt-ath', name: 'Athletic Bilbao', category: 'La Liga', domain: 'athletic-club.eus', logo_url: '/assets/logos/football/spanish-la-liga/athleticbilbao.png', country: 'Spain' },
-      { id: 'spt-acm', name: 'AC Milan', category: 'Serie A', domain: 'acmilan.com', logo_url: '/assets/logos/football/italian-serie-a/acmilan.png', country: 'Italy' },
-      { id: 'spt-int', name: 'Inter Milan', category: 'Serie A', domain: 'inter.it', logo_url: '/assets/logos/football/italian-serie-a/intermilan.png', country: 'Italy' },
-      { id: 'spt-juv', name: 'Juventus', category: 'Serie A', domain: 'juventus.com', logo_url: '/assets/logos/football/italian-serie-a/juventus.png', country: 'Italy' },
-      { id: 'spt-nap', name: 'Napoli', category: 'Serie A', domain: 'sscnapoli.it', logo_url: '/assets/logos/football/italian-serie-a/napoli.png', country: 'Italy' },
-      { id: 'spt-rom', name: 'Roma', category: 'Serie A', domain: 'asroma.com', logo_url: '/assets/logos/football/italian-serie-a/roma.png', country: 'Italy' },
-      { id: 'spt-laz', name: 'Lazio', category: 'Serie A', domain: 'sslazio.it', logo_url: '/assets/logos/football/italian-serie-a/lazio.png', country: 'Italy' },
-      { id: 'spt-ata', name: 'Atalanta', category: 'Serie A', domain: 'atalanta.it', logo_url: '/assets/logos/football/italian-serie-a/atalanta.png', country: 'Italy' },
-      { id: 'spt-psg', name: 'Paris Saint-Germain', category: 'Ligue 1', domain: 'psg.fr', logo_url: '/assets/logos/football/french-ligue-1/psg.png', country: 'France' },
-      { id: 'spt-mrs', name: 'Marseille', category: 'Ligue 1', domain: 'om.fr', logo_url: '/assets/logos/football/french-ligue-1/marseille.png', country: 'France' },
-      { id: 'spt-lyo', name: 'Lyon', category: 'Ligue 1', domain: 'ol.fr', logo_url: '/assets/logos/football/french-ligue-1/lyon.png', country: 'France' },
-      { id: 'spt-lil', name: 'Lille', category: 'Ligue 1', domain: 'losc.fr', logo_url: '/assets/logos/football/french-ligue-1/lille.png', country: 'France' },
-      { id: 'spt-nic', name: 'Nice', category: 'Ligue 1', domain: 'ogcnice.com', logo_url: '/assets/logos/football/french-ligue-1/nice.png', country: 'France' },
-      { id: 'spt-bvb', name: 'Borussia Dortmund', category: 'Bundesliga', domain: 'bvb.de', logo_url: '/assets/logos/football/german-bundesliga/borussiadortmund.png', country: 'Germany' },
-      { id: 'spt-lei', name: 'RB Leipzig', category: 'Bundesliga', domain: 'rbleipzig.com', logo_url: '/assets/logos/football/german-bundesliga/rbleipzig.png', country: 'Germany' },
-      { id: 'spt-lev', name: 'Bayer Leverkusen', category: 'Bundesliga', domain: 'bayer04.de', logo_url: '/assets/logos/football/german-bundesliga/bayerleverkusen.png', country: 'Germany' },
-      { id: 'spt-ffr', name: 'Eintracht Frankfurt', category: 'Bundesliga', domain: 'eintracht.de', logo_url: '/assets/logos/football/german-bundesliga/eintrachtfrankfurt.png', country: 'Germany' },
-      { id: 'spt-wer', name: 'Werder Bremen', category: 'Bundesliga', domain: 'werder.de', logo_url: '/assets/logos/football/german-bundesliga/werderbremen.png', country: 'Germany' },
-      { id: 'spt-stu', name: 'VfB Stuttgart', category: 'Bundesliga', domain: 'vfb.de', logo_url: '/assets/logos/football/german-bundesliga/vfbstuttgart.svg', country: 'Germany' },
-      { id: 'spt-ajx', name: 'Ajax', category: 'Eredivisie', domain: 'ajax.nl', logo_url: '/assets/logos/football/uefa-champions-league/ajax.png', country: 'Netherlands' },
-      { id: 'spt-fey', name: 'Feyenoord', category: 'Eredivisie', domain: 'feyenoord.nl', logo_url: '/assets/logos/football/uefa-champions-league/feyenoord.png', country: 'Netherlands' },
-      { id: 'spt-ptp', name: 'FC Porto', category: 'Primeira Liga', domain: 'fcporto.pt', logo_url: '/assets/logos/football/uefa-champions-league/fcporto.png', country: 'Portugal' },
-      { id: 'spt-bnf', name: 'Benfica', category: 'Primeira Liga', domain: 'slbenfica.pt', logo_url: '/assets/logos/football/uefa-champions-league/benfica.png', country: 'Portugal' },
-      { id: 'spt-spt', name: 'Sporting CP', category: 'Primeira Liga', domain: 'sporting.pt', logo_url: '/assets/logos/football/uefa-champions-league/sportingcp.png', country: 'Portugal' },
-      { id: 'spt-clt', name: 'Celtic', category: 'Scottish Premiership', domain: 'celticfc.com', logo_url: '/assets/logos/football/uefa-champions-league/celtic.png', country: 'Scotland' },
-      { id: 'spt-glt', name: 'Galatasaray', category: 'Süper Lig', domain: 'galatasaray.org', logo_url: '/assets/logos/football/uefa-champions-league/galatasaray.png', country: 'Turkey' },
-      { id: 'spt-psv', name: 'PSV Eindhoven', category: 'Eredivisie', domain: 'psv.nl', logo_url: '/assets/logos/football/uefa-champions-league/psveindhoven.png', country: 'Netherlands' },
-      { id: 'spt-dzg', name: 'Dinamo Zagreb', category: 'Prva HNL', domain: 'gnkdinamo.hr', logo_url: '/assets/logos/football/uefa-champions-league/dinamozagreb.png', country: 'Croatia' },
-      { id: 'spt-cbr', name: 'Club Brugge', category: 'Pro League', domain: 'clubbrugge.be', logo_url: '/assets/logos/football/uefa-champions-league/clubbrugge.png', country: 'Belgium' },
-      { id: 'spt-hil', name: 'Al Hilal', category: 'Saudi Pro League', domain: 'alhilal.com', logo_url: '/assets/logos/football/saudi-pro-league/alhilal.png', country: 'Saudi Arabia' },
-      { id: 'spt-nsr', name: 'Al Nassr', category: 'Saudi Pro League', domain: 'alnassr.sa', logo_url: '/assets/logos/football/saudi-pro-league/alnassr.png', country: 'Saudi Arabia' },
-      { id: 'spt-itt', name: 'Al Ittihad', category: 'Saudi Pro League', domain: 'alittihad.sa', logo_url: '/assets/logos/football/saudi-pro-league/alittihad.svg', country: 'Saudi Arabia' },
-      { id: 'spt-ahl', name: 'Al Ahly', category: 'Egyptian Premier League', domain: 'alahlyegypt.com', logo_url: '/assets/logos/football/egyptian-premier-league/alahly.png', country: 'Egypt' },
-      { id: 'spt-zam', name: 'Zamalek', category: 'Egyptian Premier League', domain: 'zamalekclub.com', logo_url: '/assets/logos/football/egyptian-premier-league/zamalek.png', country: 'Egypt' },
-      { id: 'spt-bjr', name: 'Boca Juniors', category: 'Primera División', domain: 'bocajuniors.com.ar', logo_url: '/assets/logos/football/argentina-primera-division/bocajuniors.png', country: 'Argentina' },
-      { id: 'spt-rvp', name: 'River Plate', category: 'Primera División', domain: 'riverplate.com.ar', logo_url: '/assets/logos/football/argentina-primera-division/riverplate.png', country: 'Argentina' },
-      { id: 'spt-fla', name: 'Flamengo', category: 'Brazilian Serie A', domain: 'flamengo.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/flamengo.png', country: 'Brazil' },
-      { id: 'spt-plm', name: 'Palmeiras', category: 'Brazilian Serie A', domain: 'palmeiras.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/palmeiras.png', country: 'Brazil' },
-      { id: 'spt-cor', name: 'Corinthians', category: 'Brazilian Serie A', domain: 'corinthians.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/corinthians.png', country: 'Brazil' },
-      { id: 'spt-sao', name: 'São Paulo', category: 'Brazilian Serie A', domain: 'saopaulofc.net', logo_url: '/assets/logos/football/brazilian-serie-a/saopaulo.svg', country: 'Brazil' },
-      { id: 'spt-lal', name: 'Los Angeles Lakers', category: 'NBA', domain: 'nba.com/lakers', logo_url: '/assets/logos/nba/losangeleslakers.png', country: 'USA' },
-      { id: 'spt-bos', name: 'Boston Celtics', category: 'NBA', domain: 'nba.com/celtics', logo_url: '/assets/logos/nba/bostonceltics.png', country: 'USA' },
-      { id: 'spt-gsw', name: 'Golden State Warriors', category: 'NBA', domain: 'nba.com/warriors', logo_url: '/assets/logos/nba/goldenstatewarriors.png', country: 'USA' },
-      { id: 'spt-chi', name: 'Chicago Bulls', category: 'NBA', domain: 'nba.com/bulls', logo_url: '/assets/logos/nba/chicagobulls.png', country: 'USA' },
-      { id: 'spt-mil', name: 'Milwaukee Bucks', category: 'NBA', domain: 'nba.com/bucks', logo_url: '/assets/logos/nba/milwaukeebucks.png', country: 'USA' },
-      { id: 'spt-mia', name: 'Miami Heat', category: 'NBA', domain: 'nba.com/heat', logo_url: '/assets/logos/nba/miamiheat.png', country: 'USA' },
-      { id: 'spt-phi', name: 'Philadelphia 76ers', category: 'NBA', domain: 'nba.com/sixers', logo_url: '/assets/logos/nba/philadelphia76ers.png', country: 'USA' },
-      { id: 'spt-den', name: 'Denver Nuggets', category: 'NBA', domain: 'nba.com/nuggets', logo_url: '/assets/logos/nba/denvernuggets.png', country: 'USA' },
-      { id: 'spt-nyk', name: 'New York Knicks', category: 'NBA', domain: 'nba.com/knicks', logo_url: '/assets/logos/nba/newyorkknicks.png', country: 'USA' },
-      { id: 'spt-dal', name: 'Dallas Mavericks', category: 'NBA', domain: 'nba.com/mavericks', logo_url: '/assets/logos/nba/dallasmavericks.png', country: 'USA' },
-      { id: 'spt-phx', name: 'Phoenix Suns', category: 'NBA', domain: 'nba.com/suns', logo_url: '/assets/logos/nba/phoenixsuns.png', country: 'USA' },
-      { id: 'spt-okc', name: 'Oklahoma City Thunder', category: 'NBA', domain: 'nba.com/thunder', logo_url: '/assets/logos/nba/oklahomacitythunder.png', country: 'USA' },
-      { id: 'spt-sas', name: 'San Antonio Spurs', category: 'NBA', domain: 'nba.com/spurs', logo_url: '/assets/logos/nba/sanantoniospurs.png', country: 'USA' },
-      { id: 'spt-kcc', name: 'Kansas City Chiefs', category: 'NFL', domain: 'chiefs.com', logo_url: '/assets/logos/nfl/kansascitychiefs.png', country: 'USA' },
-      { id: 'spt-dac', name: 'Dallas Cowboys', category: 'NFL', domain: 'dallascowboys.com', logo_url: '/assets/logos/nfl/dallascowboys.png', country: 'USA' },
-      { id: 'spt-sf9', name: 'San Francisco 49ers', category: 'NFL', domain: '49ers.com', logo_url: '/assets/logos/nfl/sanfrancisco49ers.png', country: 'USA' },
-      { id: 'spt-phe', name: 'Philadelphia Eagles', category: 'NFL', domain: 'philadelphiaeagles.com', logo_url: '/assets/logos/nfl/philadelphiaeagles.png', country: 'USA' },
-      { id: 'spt-nep', name: 'New England Patriots', category: 'NFL', domain: 'patriots.com', logo_url: '/assets/logos/nfl/newenglandpatriots.png', country: 'USA' },
-      { id: 'spt-gbp', name: 'Green Bay Packers', category: 'NFL', domain: 'packers.com', logo_url: '/assets/logos/nfl/greenbaypackers.png', country: 'USA' },
-      { id: 'spt-pit', name: 'Pittsburgh Steelers', category: 'NFL', domain: 'steelers.com', logo_url: '/assets/logos/nfl/pittsburghsteelers.png', country: 'USA' },
-      { id: 'spt-rav', name: 'Baltimore Ravens', category: 'NFL', domain: 'baltimoreravens.com', logo_url: '/assets/logos/nfl/baltimoreravens.png', country: 'USA' },
-      { id: 'spt-buf', name: 'Buffalo Bills', category: 'NFL', domain: 'buffalobills.com', logo_url: '/assets/logos/nfl/buffalobills.png', country: 'USA' },
-      { id: 'spt-det', name: 'Detroit Lions', category: 'NFL', domain: 'detroitlions.com', logo_url: '/assets/logos/nfl/detroitlions.png', country: 'USA' },
-      { id: 'spt-ram', name: 'Los Angeles Rams', category: 'NFL', domain: 'therams.com', logo_url: '/assets/logos/nfl/losangelesrams.png', country: 'USA' },
-      { id: 'spt-fer', name: 'Ferrari', category: 'Formula 1', domain: 'ferrari.com', logo_url: '/assets/logos/f1/ferrari.png', country: 'Italy' },
-      { id: 'spt-rbr', name: 'Red Bull Racing', category: 'Formula 1', domain: 'redbullracing.com', logo_url: '/assets/logos/f1/redbullracing.png', country: 'Austria' },
-      { id: 'spt-mer', name: 'Mercedes', category: 'Formula 1', domain: 'mercedesamgf1.com', logo_url: '/assets/logos/f1/mercedes.png', country: 'Germany' },
-      { id: 'spt-mcl', name: 'McLaren', category: 'Formula 1', domain: 'mclaren.com', logo_url: '/assets/logos/f1/mclaren.png', country: 'UK' },
-      { id: 'spt-asn', name: 'Aston Martin', category: 'Formula 1', domain: 'astonmartinf1.com', logo_url: '/assets/logos/f1/astonmartin.svg', country: 'UK' },
-      { id: 'spt-alp', name: 'Alpine', category: 'Formula 1', domain: 'alpine-cars.com', logo_url: '/assets/logos/f1/alpine.svg', country: 'France' },
-      { id: 'spt-wil', name: 'Williams', category: 'Formula 1', domain: 'williamsf1.com', logo_url: '/assets/logos/f1/williams.svg', country: 'UK' },
-      { id: 'spt-nyy', name: 'New York Yankees', category: 'MLB', domain: 'mlb.com/yankees', logo_url: '/assets/logos/mlb/newyorkyankees.png', country: 'USA' },
-      { id: 'spt-lad', name: 'Los Angeles Dodgers', category: 'MLB', domain: 'mlb.com/dodgers', logo_url: '/assets/logos/mlb/losangelesdodgers.png', country: 'USA' },
-      { id: 'spt-brs', name: 'Boston Red Sox', category: 'MLB', domain: 'mlb.com/redsox', logo_url: '/assets/logos/mlb/bostonredsox.png', country: 'USA' },
-      { id: 'spt-chc', name: 'Chicago Cubs', category: 'MLB', domain: 'mlb.com/cubs', logo_url: '/assets/logos/mlb/chicagocubs.png', country: 'USA' },
-      { id: 'spt-hst', name: 'Houston Astros', category: 'MLB', domain: 'mlb.com/astros', logo_url: '/assets/logos/mlb/houstonastros.png', country: 'USA' },
-      { id: 'spt-atl', name: 'Atlanta Braves', category: 'MLB', domain: 'mlb.com/braves', logo_url: '/assets/logos/mlb/atlantabraves.png', country: 'USA' },
-      { id: 'spt-nym', name: 'New York Mets', category: 'MLB', domain: 'mlb.com/mets', logo_url: '/assets/logos/mlb/newyorkmets.png', country: 'USA' },
-      { id: 'spt-sfg', name: 'San Francisco Giants', category: 'MLB', domain: 'mlb.com/giants', logo_url: '/assets/logos/mlb/sanfranciscogiants.png', country: 'USA' },
-      { id: 'spt-tml', name: 'Toronto Maple Leafs', category: 'NHL', domain: 'nhl.com/mapleleafs', logo_url: '/assets/logos/nhl/torontomapleleafs.png', country: 'Canada' },
-      { id: 'spt-bbr', name: 'Boston Bruins', category: 'NHL', domain: 'nhl.com/bruins', logo_url: '/assets/logos/nhl/bostonbruins.png', country: 'USA' },
-      { id: 'spt-mtl', name: 'Montreal Canadiens', category: 'NHL', domain: 'nhl.com/canadiens', logo_url: '/assets/logos/nhl/montrealcanadiens.png', country: 'Canada' },
-      { id: 'spt-edm', name: 'Edmonton Oilers', category: 'NHL', domain: 'nhl.com/oilers', logo_url: '/assets/logos/nhl/edmontonoilers.png', country: 'Canada' },
-      { id: 'spt-col', name: 'Colorado Avalanche', category: 'NHL', domain: 'nhl.com/avalanche', logo_url: '/assets/logos/nhl/coloradoavalanche.png', country: 'USA' },
-      { id: 'spt-vgk', name: 'Vegas Golden Knights', category: 'NHL', domain: 'nhl.com/goldenknights', logo_url: '/assets/logos/nhl/vegasgoldenknights.png', country: 'USA' },
-      { id: 'spt-nyr', name: 'New York Rangers', category: 'NHL', domain: 'nhl.com/rangers', logo_url: '/assets/logos/nhl/newyorkrangers.png', country: 'USA' },
-      { id: 'spt-pgp', name: 'Pittsburgh Penguins', category: 'NHL', domain: 'nhl.com/penguins', logo_url: '/assets/logos/nhl/pittsburghpenguins.png', country: 'USA' },
-      { id: 'spt-tbl', name: 'Tampa Bay Lightning', category: 'NHL', domain: 'nhl.com/lightning', logo_url: '/assets/logos/nhl/tampabaylightning.png', country: 'USA' },
-      { id: 'spt-ufc', name: 'UFC', category: 'MMA', domain: 'ufc.com', logo_url: '/assets/logos/mma/ufc/ufc.svg', country: 'USA' },
-      { id: 'spt-one', name: 'ONE Championship', category: 'MMA', domain: 'onefc.com', logo_url: '/assets/logos/mma/one/onechampionship.svg', country: 'Singapore' }
     ];
     const POPULAR_MUSIC_QUERIES = [
       'top 50 usa',
@@ -338,15 +190,15 @@
       { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
       { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
     ]).slice();
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v4';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
-const HOME_CHANNEL_TIMEOUT_MS = 15000;
-const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
+    const HOME_CHANNEL_TIMEOUT_MS = 5200;
+    const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
       { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
@@ -881,7 +733,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const k = String(key || '').trim();
       if (!k) return false;
       // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car', 'book'].includes(k)) return false;
+      if (!['travel', 'sports', 'car'].includes(k)) return false;
       return Number(attempt || 0) < 4;
     }
 
@@ -1865,7 +1717,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
       if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
-      if (typeKey === 'sports') return '/images/onboarding/onboard-interests.svg';
       return '/images/icons/star.svg';
     }
 
@@ -2256,11 +2107,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function renderSpotlightDots() {
       const dotsEl = document.getElementById('spotlightDots');
       if (!dotsEl) return;
-      if (!homeSpotlightItems.length) {
-        dotsEl.style.display = 'none';
-        return;
-      }
-      dotsEl.style.display = '';
       dotsEl.innerHTML = homeSpotlightItems.map((item, index) => {
         const active = index === homeSpotlightIndex ? ' active' : '';
         const title = escapeHtml(item.title || '');
@@ -5369,7 +5215,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const key = String(railId || '').trim();
       const list = Array.isArray(items) ? items.filter(Boolean) : [];
       if (!list.length) return [];
-      if (!['travelRail'].includes(key)) return list;
+      if (!['travelRail', 'sportsRail'].includes(key)) return list;
       return shuffleArray(list);
     }
 
@@ -5957,7 +5803,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 12000 },
-        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports' }, timeoutMs: 12000 }
+        { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }
       ];
     }
 
@@ -6739,14 +6585,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const html = rendered.join('');
       rail.innerHTML = html || '<div class="empty">No items right now.</div>';
       if (!html) return;
-
-      if (railId === 'sportsRail') {
-        try {
-          rail.scrollTo({ left: 0, behavior: 'instant' });
-        } catch (_e) {
-          try { rail.scrollLeft = 0; } catch (_e2) {}
-        }
-      }
 
       wireHomeCardMenus(rail);
       wireHomeRailImageFallbacks(rail);
@@ -9822,7 +9660,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260526a';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260425i';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9996,364 +9834,1435 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadSports(signal) {
-      const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
-      const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-      const seen = new Set();
-      const deduped = combined.filter((t) => {
-        const key = String(t.id || '');
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      return deduped.slice(0, target).map((t) => ({
+      const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
+      const normalizeSportsName = (value) => String(value || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]+/g, '')
+        .replace(/[\u0027\u2019]/g, '')
+        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+      const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
+
+      const POPULAR_TEAMS = new Set([
+        // Soccer
+        'real madrid', 'barcelona', 'liverpool', 'manchester city', 'manchester united',
+        'arsenal', 'chelsea', 'bayern munich', 'borussia dortmund', 'paris saint germain',
+        'inter milan', 'ac milan', 'juventus', 'napoli', 'atletico madrid',
+        // Basketball
+        'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
+        'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns',
+        // NFL
+        'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
+        'philadelphia eagles', 'buffalo bills', 'green bay packers',
+        // Motorsport
+        'ferrari', 'mercedes amg petronas', 'red bull racing', 'mclaren', 'aston martin',
+        // Baseball
+        'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
+        // Hockey
+        'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
+        // MMA/UFC
+        'ufc',
+        // Rugby
+        'new zealand all blacks', 'south africa springboks',
+        // Cricket
+        'india', 'australia', 'england'
+      ]);
+
+      const SPORT_PRIORITY = {
+        'soccer': 1, 'motorsport': 2, 'mma': 3, 'basketball': 4,
+        'american-football': 5, 'baseball': 6, 'hockey': 7,
+        'rugby': 8, 'cricket': 9, 'other': 10
+      };
+
+      const toSportBucket = (sportValue) => {
+        const sport = String(sportValue || '').trim().toLowerCase();
+        if (sport.includes('soccer')) return 'soccer';
+        if (sport.includes('mma') || sport.includes('ufc') || sport.includes('boxing') || sport.includes('martial')) return 'mma';
+        if (sport.includes('american football')) return 'american-football';
+        if (sport.includes('football')) return 'soccer';
+        if (sport.includes('basket')) return 'basketball';
+        if (sport.includes('baseball')) return 'baseball';
+        if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
+        if (sport.includes('motor') || sport.includes('formula')) return 'motorsport';
+        if (sport.includes('cricket')) return 'cricket';
+        if (sport.includes('rugby')) return 'rugby';
+        return sport || 'other';
+      };
+
+      const scoreSportsRow = (row) => {
+        const titleNorm = normalizeSportsName(row?.name || '');
+        const sportBucket = toSportBucket(row?.sport || '');
+        let score = 0;
+        if (POPULAR_TEAMS.has(titleNorm)) score += 2000;
+        if (seedSet.has(titleNorm)) score += 1500;
+        const bucketPriority = SPORT_PRIORITY[sportBucket] || 10;
+        score += (11 - bucketPriority) * 100;
+        return score;
+      };
+
+      const createShowcaseSportsItem = ({
+        title = 'Sports',
+        sport = 'Sports',
+        league = '',
+        country = 'Global',
+        subtitle = ''
+      } = {}) => ({
         mediaType: 'sports',
-        itemId: t.id || t.name,
-        title: t.name,
-        subtitle: t.category || 'Sports',
-        extra: [t.category, t.country].filter(Boolean).join(' | '),
-        image: t.logo_url,
-        listImage: t.logo_url,
-        backgroundImage: t.logo_url,
-        spotlightImage: t.logo_url,
-        spotlightMediaImage: t.logo_url,
+        itemId: title,
+        title,
+        subtitle: String(subtitle || [league, sport].filter(Boolean).join(' | ') || 'Global sport').trim(),
+        extra: country ? `Global focus | ${country}` : 'Global focus',
+        image: HOME_LOCAL_FALLBACK_IMAGE,
+        listImage: HOME_LOCAL_FALLBACK_IMAGE,
+        backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+        spotlightMediaImage: HOME_LOCAL_FALLBACK_IMAGE,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'square',
         mediaFit: 'contain',
         fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        sport,
+        league,
+        country,
         href: 'sports.html'
-      }));
+      });
+
+      const cachedSportsItems = readHomeItemsCache(
+        HOME_SPORTS_ITEMS_CACHE_KEY,
+        HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
+        (item) => {
+          if (!item || typeof item !== 'object') return null;
+          const title = String(item.title || '').trim();
+          const image = String(item.image || '').trim();
+          if (!title || !image) return null;
+          return item;
+        }
+      );
+      if (cachedSportsItems.length >= Math.min(target, 8)) {
+        return cachedSportsItems.slice(0, target);
+      }
+
+      try {
+        const manifestPayload = await fetchJsonWithPerfCache(HOME_SPORTS_ASSET_MANIFEST_URL, {
+          signal,
+          cacheKey: 'sports-assets:manifest:home',
+          ttlMs: 1000 * 60 * 60 * 24,
+          timeoutMs: 9000,
+          retries: 1
+        });
+        const rows = Array.isArray(manifestPayload?.teams) ? manifestPayload.teams : [];
+
+        const sortedRows = rows
+          .filter((row) => row && (row.badge || row.name))
+          .sort((a, b) => scoreSportsRow(b) - scoreSportsRow(a));
+
+        const seen = new Set();
+        const bucketed = new Map();
+        for (const row of sortedRows) {
+          const id = String(row?.sportsDbId || row?.id || '').trim();
+          const title = String(row?.name || 'Team').trim() || 'Team';
+          const key = id || title.toLowerCase();
+          if (!key || seen.has(key)) continue;
+          seen.add(key);
+          const badge = toHttpsUrl(String(row?.badge || '').trim());
+          if (!badge) continue;
+          const sport = String(row?.sport || '').trim();
+          const league = String(row?.league || '').trim();
+          const country = String(row?.country || '').trim();
+          const cardImage = badge;
+          const spotlightBackdrop = badge;
+          const item = {
+            mediaType: 'sports',
+            itemId: id || title,
+            title,
+            subtitle: league || 'Sports',
+            extra: [sport, country].filter(Boolean).join(' | ').toLowerCase(),
+            image: cardImage,
+            listImage: cardImage,
+            backgroundImage: spotlightBackdrop,
+            spotlightImage: spotlightBackdrop,
+            spotlightMediaImage: badge,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'square',
+            mediaFit: 'contain',
+            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+            href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'
+          };
+          const bucket = toSportBucket(sport);
+          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
+          bucketed.get(bucket).push(item);
+        }
+
+        const bucketOrder = ['soccer', 'motorsport', 'mma', 'basketball', 'american-football', 'baseball', 'hockey', 'rugby', 'cricket', 'other'];
+        const items = [];
+        const maxPerBucket = Math.ceil(target / Math.min(bucketed.size, 6));
+        bucketOrder.forEach((bucket) => {
+          const list = bucketed.get(bucket);
+          if (!Array.isArray(list) || !list.length) return;
+          const take = Math.min(maxPerBucket, list.length);
+          for (let i = 0; i < take && items.length < target * 2; i++) {
+            items.push(list[i]);
+          }
+        });
+
+        if (!items.some((item) => toSportBucket(item?.sport || item?.subtitle || '') === 'mma')) {
+          items.splice(Math.min(2, items.length), 0, createShowcaseSportsItem({
+            title: 'UFC',
+            sport: 'MMA',
+            league: 'UFC',
+            subtitle: 'MMA | UFC'
+          }));
+        }
+        if (items.length) {
+          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
+          return items.slice(0, target);
+        }
+      } catch (_err) {}
+
+      return cachedSportsItems.slice(0, target);
     }
 
-async function initUniversalHome(options = {}) {
-  const now = Date.now();
-  const force = !!options.force;
-  // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
-  try {
-    if (!window.__ZO2Y_HOME_DEBUG) {
-      window.__ZO2Y_HOME_DEBUG = {
-        snapshot: () => buildHomeDebugSnapshot?.() || null
+    async function initUniversalHome(options = {}) {
+      const now = Date.now();
+      const force = !!options.force;
+      // Always expose a lightweight debug snapshot hook (panel still requires ?debug=1).
+      try {
+        if (!window.__ZO2Y_HOME_DEBUG) {
+          window.__ZO2Y_HOME_DEBUG = {
+            snapshot: () => buildHomeDebugSnapshot?.() || null
+          };
+        }
+      } catch (_err) {}
+      if (!homeDebugState.enabled) {
+        homeDebugState.enabled = isHomeDebugEnabled();
+        if (homeDebugState.enabled) {
+          homeDebugEvent('debug:enabled', { via: 'initUniversalHome' });
+          try {
+            window.__ZO2Y_HOME_DEBUG = {
+              get enabled() { return homeDebugState.enabled; },
+              setEnabled: (value) => {
+                setHomeDebugEnabled(!!value);
+                homeDebugState.enabled = !!value;
+                if (homeDebugState.enabled) {
+                  homeDebugEvent('debug:enabled', { via: 'setEnabled' });
+                }
+                scheduleHomeDebugRender();
+              },
+              snapshot: () => buildHomeDebugSnapshot()
+            };
+          } catch (_err) {}
+          try {
+            window.addEventListener('error', (ev) => {
+              homeDebugEvent('window:error', {
+                message: String(ev?.message || ''),
+                file: String(ev?.filename || ''),
+                line: Number(ev?.lineno || 0)
+              });
+            });
+            window.addEventListener('unhandledrejection', (ev) => {
+              const reason = ev?.reason;
+              homeDebugEvent('window:rejection', { message: String(reason?.message || reason || '') });
+            });
+          } catch (_err) {}
+          ensureHomeDebugPanel();
+        }
+      }
+      const criticalKeys = [
+        'travel',
+        'sports',
+        ...(ENABLE_CARS ? ['car'] : [])
+      ];
+      const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
+      const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
+      if (
+        !force
+        && hasExistingRealItems
+        && !hasCriticalMissing
+        && homeLastGoodFeedAt
+        && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
+      ) {
+        resetSpotlightTimer(true);
+        return;
+      }
+      homeLastUniversalInitAt = now;
+      const initSeq = ++homeFeedInitSeq;
+      homeDebugEvent('home:init', { force, initSeq });
+      ensureHomeInteractionWatch();
+      resetHomeViewportDeferrals();
+      if (homeWeakFeedRetryTimer) {
+        clearTimeout(homeWeakFeedRetryTimer);
+        homeWeakFeedRetryTimer = null;
+      }
+      setStatus('Loading spotlight and live feed...', false);
+      resetSpotlightTimer(false);
+      const channels = getHomeChannels();
+      const initialChannels = getHomeInitialChannels(channels);
+      const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
+      const cachedFeed = readHomeFeedCache();
+      const baselineFeed = cachedFeed || null;
+
+      if (baselineFeed) {
+        const cachedResult = applyHomeFeedMap(baselineFeed);
+        if (cachedResult.scoredPool.length) {
+          homeLastGoodFeedAt = Date.now();
+          setStatus('Feed ready from cache. Syncing live data...', false);
+        }
+      }
+
+      const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
+      const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
+      const freshLoadedKeys = new Set();
+      let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
+
+      const loadChannel = async (channel) => {
+        const railId = String(channel?.railId || '').trim();
+        const key = String(channel?.key || '').trim();
+        const attemptStartedAt = Date.now();
+        const prevAttempt = Number(homeDebugState.channels.get(key)?.last?.attempt || 0) || 0;
+        const attempt = prevAttempt + 1;
+        if (key) {
+          homeDebugState.channels.set(key, {
+            ...(homeDebugState.channels.get(key) || {}),
+            last: {
+              status: 'loading',
+              startedAt: attemptStartedAt,
+              timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
+              railId,
+              attempt
+            }
+          });
+          scheduleHomeDebugRender();
+        }
+
+        let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
+        if (!Array.isArray(items)) items = [];
+
+        if (key) {
+          const last = homeDebugState.channels.get(key)?.last || {};
+          const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+          const endedAt = Date.now();
+          const ms = endedAt - attemptStartedAt;
+          const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
+          const status = (!items.length)
+            ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
+            : (isPlaceholder ? 'placeholder' : 'ok');
+          homeDebugState.channels.set(key, {
+            ...(homeDebugState.channels.get(key) || {}),
+            last: {
+              ...last,
+              status,
+              endedAt,
+              ms,
+              items: items.length,
+              reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Only placeholder items returned.' : 'Live items rendered.')
+            }
+          });
+          scheduleHomeDebugRender();
+        }
+
+        const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
+        if (!items.length || isPlaceholder) {
+          scheduleHomeChannelRetry(channel, attempt - 1);
+        }
+
+        if (initSeq === homeFeedInitSeq && items.length && !isPlaceholder) {
+          freshLoadedKeys.add(channel.key);
+          workingFeed = {
+            ...workingFeed,
+            [channel.key]: items
+          };
+          const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
+          if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
+            setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
+          }
+        }
+        return { ...channel, items };
+      };
+
+      const loadedPromise = loadHomeChannelGroup(initialChannels, loadChannel);
+      const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
+      if (initSeq !== homeFeedInitSeq) return;
+        if (precomputedFeed) {
+        const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
+        const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
+        if (precomputedActiveChannels > baselineActiveChannels) {
+          const mergedPrecomputedFeed = {
+            ...workingFeed
+          };
+          const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
+          channels.forEach((channel) => {
+            if (freshLoadedKeys.has(channel.key)) return;
+            const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
+            if (items.length) {
+              mergedPrecomputedFeed[channel.key] = items;
+            }
+          });
+          workingFeed = mergedPrecomputedFeed;
+          const precomputedResult = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
+          if (precomputedResult.scoredPool.length) {
+            setStatus('Spotlight ready from precomputed feed. Syncing live data...', false);
+          }
+        }
+      }
+
+      await loadedPromise;
+      if (initSeq !== homeFeedInitSeq) return;
+
+      deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
+
+      const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
+      const initialChannelsCount = initialChannels.length;
+      const healthyChannelFloor = Math.min(initialChannelsCount, 3);
+
+      const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
+      const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
+
+      if (!scoredPool.length) {
+        resetSpotlightTimer(false);
+        setStatus('Could not load live feeds right now. Try again shortly.', true);
+        return;
+      }
+      homeLastGoodFeedAt = Date.now();
+
+      const freshActiveChannels = freshLoadedKeys.size;
+      if (freshActiveChannels > 0) {
+        writeHomeFeedCache(mergedFeed);
+        writePrecomputedHomeFeedCache(mergedFeed, {
+          savedAt: Date.now(),
+          expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
+        });
+      }
+      if (freshActiveChannels === initialChannelsCount) {
+        setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
+      } else if (freshActiveChannels === 0) {
+        if (cachedFeed) {
+          setStatus('Feed loaded from cache. Live sources are slow right now.', false);
+        } else {
+          setStatus('Showing quick feed while live sources connect...', false);
+        }
+      } else {
+        setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
+      }
+
+      if (freshActiveChannels >= healthyChannelFloor) {
+        if (homeWeakFeedRetryTimer) {
+          clearTimeout(homeWeakFeedRetryTimer);
+          homeWeakFeedRetryTimer = null;
+        }
+        homeWeakFeedRetryCount = 0;
+        } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer && !document.hidden) {
+          homeWeakFeedRetryTimer = setTimeout(() => {
+            homeWeakFeedRetryTimer = null;
+            homeWeakFeedRetryCount += 1;
+            void initUniversalHome({ force: true });
+          }, 1800);
+        }
+
+      scheduleHomeMenuCachePrime();
+    }
+
+    let landingExperienceInitialized = false;
+    let landingPreviewHydrated = false;
+    let landingReviewHydrated = false;
+    let landingWallHydrated = false;
+    let landingSavePromptTimer = null;
+    const landingWallRowStates = new Map();
+    const landingWallRowRotators = new Map();
+    const landingReviewUsers = new Map();
+    const landingReviewMeta = new Map();
+    const LANDING_REVIEW_LIMIT = 6;
+    const LANDING_WALL_SLOT_COUNT = 8;
+    const LANDING_WALL_FALLBACK_GAMES = [
+      { title: 'Portal 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' },
+      { title: 'Persona 5', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/persona-5.jpg' },
+      { title: 'Titanfall 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg' },
+      { title: 'The Witcher 3: Wild Hunt', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { title: 'Red Dead Redemption 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { title: 'Resident Evil Village', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png' },
+      { title: 'Sifu', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/sifu.jpg' },
+      { title: 'Warframe', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png' },
+      { title: 'Hades', image: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg' },
+      { title: 'Cyberpunk 2077', image: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
+      { title: 'Elden Ring', image: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
+      { title: 'Baldur\'s Gate 3', image: 'https://upload.wikimedia.org/wikipedia/en/1/12/Baldur%27s_Gate_3_cover_art.jpg' }
+    ];
+    const LANDING_WALL_FALLBACK_LOGOS = {
+      sports: [
+        // Wikimedia-hosted crests/logos (no local seeding, no Supabase storage required).
+        { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+        { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
+        { title: 'Atletico Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
+        { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
+        { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
+        { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
+        { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+        { title: 'Al Ahly', image: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Al_Ahly_SC_logo.svg' },
+        { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
+        { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
+        { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
+        { title: 'UFC', image: '/assets/sports/ufc-logo.svg' }
+      ],
+      food: [
+        { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
+        { title: 'KFC', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
+        { title: 'Starbucks', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
+        { title: 'Taco Bell', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
+        { title: 'Burger King', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
+        { title: 'Domino\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
+        { title: 'Subway', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
+        { title: 'Chipotle', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
+        { title: 'Popeyes', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
+        { title: 'Wendy\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
+        { title: 'Pizza Hut', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
+        { title: 'Shake Shack', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
+      ],
+      fashion: [
+        { title: 'Nike', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
+        { title: 'Adidas', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
+        { title: 'Zara', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
+        { title: 'Uniqlo', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
+        { title: 'H&M', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
+        { title: 'Gucci', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
+        { title: 'Louis Vuitton', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
+        { title: 'Prada', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
+        { title: 'Dior', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
+        { title: 'Chanel', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
+        { title: 'Burberry', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
+        { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
+      ]
+    };
+    const LANDING_REVIEW_SOURCES = [
+      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
+      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
+      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
+      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
+      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
+      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
+      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
+    ];
+
+    function normalizeLandingImageUrl(value) {
+      const raw = unwrapCloudflareImageUrl(String(value || '').trim());
+      if (!raw) return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      if (/^http:\/\//i.test(raw)) return raw.replace(/^http:\/\//i, 'https://');
+      return raw;
+    }
+
+    function isRenderableLandingImage(value) {
+      const normalized = normalizeLandingImageUrl(value);
+      if (!normalized) return false;
+      return !isLogoPlaceholder(normalized);
+    }
+
+    function getLandingWallTile(slot) {
+      const key = String(slot || '').trim();
+      if (!key) return null;
+      return document.querySelector(`[data-wall-slot="${key}"] img`);
+    }
+
+    function getLandingWallFigure(slot) {
+      const key = String(slot || '').trim();
+      if (!key) return null;
+      return document.querySelector(`[data-wall-slot="${key}"]`);
+    }
+
+    function getLandingWallSlots(prefix) {
+      const base = String(prefix || '').trim();
+      if (!base) return [];
+      return Array.from({ length: LANDING_WALL_SLOT_COUNT }, (_value, index) => `${base}-${index + 1}`);
+    }
+
+    function getLandingWallVisibleCount() {
+      return window.matchMedia && window.matchMedia('(max-width: 760px)').matches ? 4 : LANDING_WALL_SLOT_COUNT;
+    }
+
+    function isMobileLandingWall() {
+      return Boolean(window.matchMedia && window.matchMedia('(max-width: 760px)').matches);
+    }
+
+    function getLandingWallMinimumCount(kind) {
+      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
+      const visibleCount = getLandingWallVisibleCount();
+      return kind === 'poster' ? visibleCount * 4 : visibleCount * 3;
+    }
+
+    function getLandingWallTrackCount(kind) {
+      if (isMobileLandingWall()) return kind === 'poster' ? 18 : 16;
+      return kind === 'poster' ? 18 : 14;
+    }
+
+    function getLandingWallEagerCount(kind) {
+      if (isMobileLandingWall()) return kind === 'poster' ? 3 : 4;
+      return kind === 'poster' ? 5 : 6;
+    }
+
+    function getLandingWallRow(prefix) {
+      const key = String(prefix || '').trim();
+      const existing = document.querySelector(`.landing-v4-wall-row[data-wall-prefix="${key}"]`);
+      if (existing) return existing;
+      const anchor = document.querySelector(`[data-wall-slot="${key}-1"]`);
+      return anchor ? anchor.closest('.landing-v4-wall-row') : null;
+    }
+
+    function getLandingWallRowKind(prefix) {
+      const key = String(prefix || '').trim().toLowerCase();
+      return key === 'sports' || key === 'food' || key === 'fashion' ? 'logo' : 'poster';
+    }
+
+    function getLandingWallRowDirection(prefix) {
+      const key = String(prefix || '').trim().toLowerCase();
+      return key === 'tv' || key === 'game' || key === 'food' ? 'right' : 'left';
+    }
+
+    function buildLandingWallLoopEntries(entries, minimumCount) {
+      const seed = Array.isArray(entries) ? entries.filter(Boolean) : [];
+      if (!seed.length) return [];
+      const targetCount = Math.max(Number(minimumCount) || 0, seed.length);
+      const loop = [];
+      while (loop.length < targetCount) {
+        loop.push(...seed);
+      }
+      return loop.slice(0, targetCount);
+    }
+
+    function stopLandingWallRowRotation(prefix) {
+      const key = String(prefix || '').trim();
+      const existing = landingWallRowRotators.get(key);
+      if (!existing) return;
+      if (existing.interval) window.clearInterval(existing.interval);
+      landingWallRowRotators.delete(key);
+    }
+
+    function startLandingWallRowRotation(_row, prefix) {
+      stopLandingWallRowRotation(prefix);
+    }
+
+    function setLandingPosterBackground(figure, image) {
+      if (!figure) return;
+      const normalized = normalizeLandingImageUrl(image);
+      if (!normalized) {
+        figure.style.removeProperty('--landing-poster-image');
+        return;
+      }
+      figure.style.setProperty('--landing-poster-image', `url("${String(normalized).replace(/"/g, '%22')}")`);
+    }
+
+    function setLandingLogoTileFallback(figure, label) {
+      if (!figure) return;
+      const cleanLabel = String(label || '').trim() || 'brand';
+      figure.classList.add('landing-v4-tile--text-fallback');
+      figure.setAttribute('data-logo-text', cleanLabel);
+      const image = figure.querySelector('img');
+      if (image) {
+        image.style.visibility = 'hidden';
+        image.style.opacity = '0';
+      }
+    }
+
+    function clearLandingLogoTileFallback(figure) {
+      if (!figure) return;
+      figure.classList.remove('landing-v4-tile--text-fallback');
+      figure.removeAttribute('data-logo-text');
+      const image = figure.querySelector('img');
+      if (image) {
+        image.style.visibility = '';
+        image.style.opacity = '';
+      }
+    }
+
+    function looksLikeLandingPlaceholder(url) {
+      const normalized = normalizeLandingImageUrl(url);
+      if (!normalized) return true;
+      return isLogoPlaceholder(normalized)
+        || normalized.includes('logo-placeholder.svg')
+        || normalized.includes('/newlogo.webp');
+    }
+
+    function buildLandingWallLogoEntry(input) {
+      const source = input && typeof input === 'object'
+        ? input
+        : { title: String(input || '').trim() };
+      const cleanTitle = String(source.title || '').trim();
+      const cleanDomain = String(source.domain || '').trim();
+      const preferred = normalizeLandingImageUrl(source.image || '');
+      if (!cleanTitle) return null;
+      return {
+        image: preferred || `/api/logo?mode=logo&${cleanDomain ? `domain=${encodeURIComponent(cleanDomain)}` : `title=${encodeURIComponent(cleanTitle)}`}&size=256`,
+        fallback: cleanDomain
+          ? `/api/logo?mode=logo&title=${encodeURIComponent(cleanTitle)}&size=256`
+          : '',
+        alt: cleanTitle
       };
     }
-  } catch (_err) {}
-  if (!homeDebugState.enabled) {
-    homeDebugState.enabled = isHomeDebugEnabled();
-    if (homeDebugState.enabled) {
-      homeDebugEvent('debug:enabled', { via: 'initUniversalHome' });
-      try {
-        window.__ZO2Y_HOME_DEBUG = {
-          get enabled() { return homeDebugState.enabled; },
-          setEnabled: (value) => {
-            setHomeDebugEnabled(!!value);
-            homeDebugState.enabled = !!value;
-            if (homeDebugState.enabled) {
-              homeDebugEvent('debug:enabled', { via: 'setEnabled' });
-            }
-            scheduleHomeDebugRender();
-          },
-          snapshot: () => buildHomeDebugSnapshot()
+
+    function dedupeLandingWallEntries(entries) {
+      const deduped = [];
+      const seen = new Set();
+      (Array.isArray(entries) ? entries : []).forEach((entry) => {
+        const image = normalizeLandingImageUrl(entry?.image || '');
+        const fallback = normalizeLandingImageUrl(entry?.fallback || '');
+        const alt = String(entry?.alt || '').trim();
+        if (!isRenderableLandingImage(image)) return;
+        const key = `${image}::${alt.toLowerCase()}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        deduped.push({ image, fallback, alt });
+      });
+      return deduped;
+    }
+
+    function buildLandingWallEntries(items) {
+      return dedupeLandingWallEntries(
+        filterHomeSafeItems(Array.isArray(items) ? items : []).map((item) => ({
+          image: getLandingPreviewPoster(item),
+          alt: String(item?.title || item?.name || '').trim()
+        }))
+      );
+    }
+
+    function mergeLandingWallEntries(primary, fallback) {
+      return dedupeLandingWallEntries([...(Array.isArray(primary) ? primary : []), ...(Array.isArray(fallback) ? fallback : [])]);
+    }
+
+    function animateLandingWallTile(slot, direction, index) {
+      const tile = getLandingWallFigure(slot);
+      if (!tile) return;
+      const slideClass = direction === 'right' ? 'landing-v4-tile--slide-right' : 'landing-v4-tile--slide-left';
+      tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
+      tile.style.setProperty('--landing-tile-delay', `${Math.min(Number(index) || 0, LANDING_WALL_SLOT_COUNT) * 32}ms`);
+      void tile.offsetWidth;
+      tile.classList.add(slideClass);
+      if (tile.__landingSlideTimer) window.clearTimeout(tile.__landingSlideTimer);
+      tile.__landingSlideTimer = window.setTimeout(() => {
+        tile.classList.remove('landing-v4-tile--slide-left', 'landing-v4-tile--slide-right');
+        tile.style.removeProperty('--landing-tile-delay');
+      }, LANDING_WALL_ANIMATION_MS + 260);
+    }
+
+    function setLandingWallTile(slot, image, alt) {
+      const node = getLandingWallTile(slot);
+      const normalized = normalizeLandingImageUrl(image);
+      if (!node || !isRenderableLandingImage(normalized)) return false;
+      const figure = node.closest('.landing-v4-tile');
+      if (!node.dataset.fallbackSrc) {
+        node.dataset.fallbackSrc = String(node.getAttribute('src') || '').trim();
+      }
+      node.onload = () => {
+        if (figure && figure.classList.contains('landing-v4-tile--logo')) {
+          const current = String(node.currentSrc || node.src || '').trim();
+          if (looksLikeLandingPlaceholder(current)) {
+            setLandingLogoTileFallback(figure, alt);
+          } else {
+            clearLandingLogoTileFallback(figure);
+          }
+        }
+      };
+      node.onerror = () => {
+        const fallback = normalizeLandingImageUrl(node.dataset.fallbackSrc || '');
+        if (fallback && node.src !== fallback) {
+          node.onerror = null;
+          node.src = fallback;
+          if (figure && figure.classList.contains('landing-v4-tile--poster')) {
+            setLandingPosterBackground(figure, fallback);
+          }
+        } else if (figure && figure.classList.contains('landing-v4-tile--logo')) {
+          setLandingLogoTileFallback(figure, alt);
+        }
+      };
+      node.src = normalized;
+      node.alt = String(alt || '').trim();
+      node.loading = 'eager';
+      node.decoding = 'async';
+      node.referrerPolicy = 'no-referrer';
+      if (figure && figure.classList.contains('landing-v4-tile--poster')) {
+        setLandingPosterBackground(figure, normalized);
+      }
+      return true;
+    }
+
+    function createLandingWallTileFigure(entry, kind, eager = false) {
+      const figure = document.createElement('figure');
+      figure.className = kind === 'logo'
+        ? 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light'
+        : 'landing-v4-tile landing-v4-tile--poster';
+
+      const img = document.createElement('img');
+      const normalized = normalizeLandingImageUrl(entry?.image || '');
+      const fallback = normalizeLandingImageUrl(entry?.fallback || '');
+      img.src = normalized || fallback || '/images/landing-wall-poster.svg';
+      img.alt = String(entry?.alt || '').trim();
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.loading = eager ? 'eager' : 'lazy';
+      img.fetchPriority = eager ? 'high' : 'low';
+      img.onload = () => {
+        if (kind === 'logo') {
+          const current = String(img.currentSrc || img.src || '').trim();
+          if (looksLikeLandingPlaceholder(current)) {
+            setLandingLogoTileFallback(figure, entry?.alt);
+          } else {
+            clearLandingLogoTileFallback(figure);
+          }
+        }
+      };
+      img.onerror = () => {
+        if (fallback && img.src !== fallback) {
+          img.onerror = null;
+          img.src = fallback;
+          if (kind === 'poster') setLandingPosterBackground(figure, fallback);
+        } else if (kind === 'logo') {
+          setLandingLogoTileFallback(figure, entry?.alt);
+        }
+      };
+      figure.appendChild(img);
+
+      const caption = document.createElement('figcaption');
+      caption.textContent = kind === 'logo' ? 'logo' : 'poster';
+      figure.appendChild(caption);
+
+      if (kind === 'poster') {
+        setLandingPosterBackground(figure, normalized || fallback);
+      }
+
+      return figure;
+    }
+
+    function renderLandingWallRowTrack(prefix, entries) {
+      const row = getLandingWallRow(prefix);
+      if (!row) return;
+
+      const kind = getLandingWallRowKind(prefix);
+      const direction = getLandingWallRowDirection(prefix);
+      const minimumCount = getLandingWallMinimumCount(kind);
+      const trackCount = getLandingWallTrackCount(kind);
+      const eagerCount = getLandingWallEagerCount(kind);
+      const baseEntries = dedupeLandingWallEntries(entries);
+      if (!baseEntries.length) return;
+      const displayEntries = baseEntries.slice(0, Math.max(minimumCount, Math.min(trackCount, baseEntries.length)));
+      if (!displayEntries.length) return;
+
+      row.dataset.rowKind = kind;
+      row.dataset.direction = direction;
+      row.dataset.wallPrefix = prefix;
+      const rowDuration = isMobileLandingWall()
+        ? (kind === 'poster' ? 48 : 42)
+        : Math.max(38, displayEntries.length * (kind === 'poster' ? 4.6 : 4.0));
+      row.style.setProperty('--landing-row-duration', `${rowDuration}s`);
+      row.replaceChildren();
+
+      const track = document.createElement('div');
+      track.className = 'landing-v4-wall-track';
+      const buildStrip = (sourceEntries, eager) => {
+        const strip = document.createElement('div');
+        strip.className = 'landing-v4-wall-strip';
+        sourceEntries.forEach((entry, index) => {
+          strip.appendChild(createLandingWallTileFigure(entry, kind, eager && index < eagerCount));
+        });
+        return strip;
+      };
+
+      const desktopEntries = buildLandingWallLoopEntries(baseEntries, Math.max(trackCount, minimumCount));
+      track.appendChild(buildStrip(desktopEntries, true));
+      track.appendChild(buildStrip(desktopEntries, false));
+      row.appendChild(track);
+      startLandingWallRowRotation(row, prefix);
+    }
+
+    function setLandingWallRowEntries(prefix, entries) {
+      const normalized = dedupeLandingWallEntries(entries);
+      if (!normalized.length) return;
+      landingWallRowStates.set(prefix, { entries: normalized });
+      renderLandingWallRowTrack(prefix, normalized);
+    }
+
+    async function hydrateLandingSetupWall() {
+      if (landingWallHydrated) return;
+      landingWallHydrated = true;
+      const hasWallTargets = Boolean(getLandingWallTile('movie-1')
+        || getLandingWallTile('tv-1')
+        || getLandingWallTile('anime-1')
+        || getLandingWallTile('game-1')
+        || getLandingWallTile('sports-1'));
+      if (!hasWallTargets) return;
+
+      const updateWallRow = async (prefix, loader, fallbackEntries = []) => {
+        let liveEntries = [];
+        try {
+          const result = await loader();
+          liveEntries = buildLandingWallEntries(result);
+        } catch (_error) {
+          liveEntries = [];
+        }
+        const merged = mergeLandingWallEntries(liveEntries, fallbackEntries);
+        if (merged.length) setLandingWallRowEntries(prefix, merged);
+      };
+
+      void updateWallRow('movie', () => loadMovies(null));
+      void updateWallRow('tv', () => loadTv(null));
+      void updateWallRow('anime', () => loadAnime(null));
+      void updateWallRow(
+        'game',
+        () => loadGames(null),
+        LANDING_WALL_FALLBACK_GAMES.map((entry) => ({
+          image: entry.image,
+          alt: entry.title
+        }))
+      );
+      void updateWallRow(
+        'sports',
+        () => loadSports(null),
+        LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)
+      );
+      void updateWallRow(
+        'food',
+        () => loadFoodBrands(),
+        LANDING_WALL_FALLBACK_LOGOS.food.map(buildLandingWallLogoEntry)
+      );
+      void updateWallRow(
+        'fashion',
+        () => loadFashionBrands(),
+        LANDING_WALL_FALLBACK_LOGOS.fashion.map(buildLandingWallLogoEntry)
+      );
+    }
+
+    function truncateLandingText(value, maxLength = 120) {
+      const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+      if (!normalized) return '';
+      if (normalized.length <= maxLength) return normalized;
+      return `${normalized.slice(0, Math.max(0, maxLength - 3)).trim()}...`;
+    }
+
+    function getLandingBrowsePath(mediaType) {
+      switch (String(mediaType || '').toLowerCase()) {
+        case 'movie': return 'movies.html';
+        case 'tv': return 'tvshows.html';
+        case 'anime': return 'animes.html';
+        case 'game': return 'games.html';
+        case 'book': return 'books.html';
+        case 'music': return 'music.html';
+        case 'travel': return 'travel.html';
+        case 'sports': return 'sports.html';
+        case 'fashion': return 'fashion.html';
+        case 'food': return 'food.html';
+        case 'car': return 'cars.html';
+        default: return 'index.html';
+      }
+    }
+
+    function getLandingItemNextPath(item) {
+      const href = String(item?.href || '').trim();
+      return sanitizeHomeNextPath(href || getLandingBrowsePath(item?.mediaType));
+    }
+
+    function buildLandingAuthHref(nextPath = 'index.html') {
+      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
+      return `sign-up.html?next=${encodeURIComponent(safeNext)}`;
+    }
+
+    function getLandingPreviewPoster(item) {
+      if (!item || typeof item !== 'object') return '';
+      const type = String(item.mediaType || '').toLowerCase();
+      const cover = type === 'game'
+        ? resolveHomeGameCover(item)
+        : (type === 'book'
+          ? (item.spotlightMediaImage || item.image || getBookCoverFallback(item))
+          : (type === 'sports'
+            ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
+            : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage)));
+      const normalized = normalizeLandingImageUrl(cover);
+      return isRenderableLandingImage(normalized) ? normalized : '';
+    }
+
+    function getLandingPreviewBackdrop(item) {
+      if (!item || typeof item !== 'object') return '';
+      const type = String(item.mediaType || '').toLowerCase();
+      const backdrop = type === 'game'
+        ? pickBackdropGameUrl([
+          item.spotlightImage,
+          item.backgroundImage,
+          item.hero_url,
+          item.hero,
+          ...(Array.isArray(item?.screenshots) ? item.screenshots : [])
+        ], getLandingPreviewPoster(item))
+        : (type === 'travel'
+          ? (item.spotlightImage || item.backgroundImage || getSafeTravelScenicImage(item.title, item.itemId, item.image))
+          : (item.spotlightImage || item.backgroundImage || item.image || item.listImage));
+      return normalizeLandingImageUrl(backdrop);
+    }
+
+    function getLandingPreviewMeta(item) {
+      const meta = getHomeMediaMeta(item?.mediaType);
+      const detail = String(item?.subtitle || item?.extra || '').trim();
+      return truncateLandingText(detail || `${meta.label} pick from the live feed.`, 72);
+    }
+
+    function rotateLandingList(items, offset = 0) {
+      const list = Array.isArray(items) ? items.filter(Boolean) : [];
+      if (list.length <= 1) return list;
+      const safeOffset = ((Number(offset) || 0) % list.length + list.length) % list.length;
+      return list.slice(safeOffset).concat(list.slice(0, safeOffset));
+    }
+
+    function getLandingRailItems(items, offset = 0, limit = 10) {
+      const rotated = rotateLandingList(items, offset);
+      if (!rotated.length) return [];
+      const preferred = [];
+      const fallback = [];
+      rotated.forEach((item) => {
+        if (!item) return;
+        if (isRenderableLandingImage(getLandingPreviewPoster(item))) preferred.push(item);
+        else fallback.push(item);
+      });
+      return preferred.concat(fallback).slice(0, limit);
+    }
+
+    function buildLandingPreviewCard(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const meta = getHomeMediaMeta(safeItem.mediaType);
+      const nextPath = getLandingItemNextPath(safeItem);
+      const href = buildLandingAuthHref(nextPath);
+      const image = escapeHtml(getLandingPreviewPoster(safeItem) || HOME_IMAGE_PLACEHOLDER);
+      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
+      const subtitle = escapeHtml(getLandingPreviewMeta(safeItem));
+      return `
+        <a class="landing-preview-card" href="${href}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Unlock ${title}">
+          <div class="landing-preview-card-media">
+            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </div>
+          <div class="landing-preview-card-body">
+            <span class="landing-preview-card-label">${escapeHtml(meta.label)}</span>
+            <strong class="landing-preview-card-title">${title}</strong>
+            <span class="landing-preview-card-meta">${subtitle}</span>
+          </div>
+        </a>
+      `;
+    }
+
+    function buildLandingReviewCard(item) {
+      const safeItem = item && typeof item === 'object' ? item : {};
+      const meta = getHomeMediaMeta(safeItem.mediaType);
+      const image = escapeHtml(getLandingPreviewPoster(safeItem));
+      const title = escapeHtml(String(safeItem.title || meta.label || 'Item').trim() || 'Item');
+      const summary = escapeHtml(truncateLandingText(getSpotlightSummary(safeItem), 120) || 'Fresh signal from the live discovery engine.');
+      return `
+        <article class="landing-review-card">
+          <div class="landing-review-card-head">
+            <div class="landing-review-card-thumb">
+              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            </div>
+            <div class="landing-review-card-meta">
+              <span>${escapeHtml(meta.label)} review</span>
+              <strong>${title}</strong>
+            </div>
+          </div>
+          <p>${summary}</p>
+        </article>
+      `;
+    }
+
+    function wireLandingAuthNextLinks(scope = document) {
+      if (!scope || typeof scope.querySelectorAll !== 'function') return;
+      scope.querySelectorAll('[data-auth-next]').forEach((link) => {
+        if (link.dataset.authNextWired === '1') return;
+        link.dataset.authNextWired = '1';
+        link.addEventListener('click', () => {
+          const next = sanitizeHomeNextPath(link.getAttribute('data-auth-next') || 'index.html');
+          localStorage.setItem('postAuthRedirect', next);
+        });
+      });
+    }
+
+    function hideLandingSavePrompt() {
+      const prompt = document.getElementById('landingSavePrompt');
+      if (!prompt) return;
+      prompt.hidden = true;
+      if (landingSavePromptTimer) {
+        clearTimeout(landingSavePromptTimer);
+        landingSavePromptTimer = null;
+      }
+    }
+
+    function showLandingSavePrompt(message, nextPath = 'index.html') {
+      const prompt = document.getElementById('landingSavePrompt');
+      const text = document.getElementById('landingSavePromptText');
+      const cta = document.getElementById('landingSavePromptCta');
+      if (!prompt || !text || !cta) return;
+      const safeNext = sanitizeHomeNextPath(nextPath || 'index.html');
+      text.textContent = String(message || 'Sign up required to start saving titles, building lists, and shaping your feed.');
+      cta.href = buildLandingAuthHref(safeNext);
+      cta.setAttribute('data-auth-next', safeNext);
+      prompt.hidden = false;
+      wireLandingAuthNextLinks(prompt);
+      if (landingSavePromptTimer) clearTimeout(landingSavePromptTimer);
+      landingSavePromptTimer = window.setTimeout(() => {
+        hideLandingSavePrompt();
+      }, 4200);
+    }
+
+    function lockLandingRailInteractions(scope) {
+      if (!scope) return;
+      scope.querySelectorAll('.card').forEach((card) => {
+        const nextPath = sanitizeHomeNextPath(card.getAttribute('data-href') || 'index.html');
+        card.onclick = (event) => {
+          if (event.target.closest('.card-menu-btn') || event.target.closest('.card-open-link') || event.target.closest('.card-preview-btn')) return;
+          localStorage.setItem('postAuthRedirect', nextPath);
+          window.location.href = buildLandingAuthHref(nextPath);
         };
-      } catch (_err) {}
-      try {
-        window.addEventListener('error', (ev) => {
-          homeDebugEvent('window:error', {
-            message: String(ev?.message || ''),
-            file: String(ev?.filename || ''),
-            line: Number(ev?.lineno || 0)
+      });
+
+      scope.querySelectorAll('.card-menu-btn').forEach((btn) => {
+        const replacement = btn.cloneNode(true);
+        btn.replaceWith(replacement);
+        replacement.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const card = replacement.closest('.card');
+          const nextPath = sanitizeHomeNextPath(card?.getAttribute('data-href') || 'index.html');
+          showLandingSavePrompt('Sign up required to start saving, building lists, and tracking your taste.', nextPath);
+        });
+      });
+
+      scope.querySelectorAll('.card-open-link').forEach((link) => {
+        const nextPath = sanitizeHomeNextPath(link.closest('.card')?.getAttribute('data-href') || 'index.html');
+        link.setAttribute('href', buildLandingAuthHref(nextPath));
+        link.setAttribute('data-auth-next', nextPath);
+        link.removeAttribute('target');
+        link.removeAttribute('rel');
+      });
+
+      wireLandingAuthNextLinks(scope);
+    }
+
+    function getLandingReviewKey(mediaType, itemId) {
+      const media = String(mediaType || '').trim().toLowerCase();
+      const id = String(itemId || '').trim();
+      return media && id ? `${media}:${id}` : '';
+    }
+
+    function getLandingReviewFallbackMeta(row) {
+      const mediaType = String(row?.mediaType || '').trim().toLowerCase();
+      const itemId = String(row?.itemId || '').trim();
+      const media = getHomeMediaMeta(mediaType);
+      let href = getLandingBrowsePath(mediaType);
+      if (itemId) {
+        if (mediaType === 'movie') href = `movie.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'tv') href = `tvshow.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'anime') href = `anime.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'game') href = `game.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'book') href = `book.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'music') href = `song.html?id=${encodeURIComponent(itemId)}`;
+        else if (mediaType === 'travel') href = `country.html?code=${encodeURIComponent(itemId.toUpperCase())}`;
+      }
+      return {
+        title: media.label,
+        subtitle: `${media.label} review`,
+        image: '/newlogo.webp',
+        href
+      };
+    }
+
+    function getLandingReviewMeta(row) {
+      return landingReviewMeta.get(getLandingReviewKey(row?.mediaType, row?.itemId)) || getLandingReviewFallbackMeta(row);
+    }
+
+    function getLandingReviewUserLabel(userId) {
+      const profile = landingReviewUsers.get(String(userId || '').trim());
+      if (!profile) return 'Zo2y member';
+      if (profile.username) return `@${profile.username}`;
+      return profile.fullName || 'Zo2y member';
+    }
+
+    async function fetchLandingReviewRows() {
+      const client = await ensureHomeSupabase();
+      if (!client) return [];
+      const results = await Promise.allSettled(
+        LANDING_REVIEW_SOURCES.map(async (source) => {
+          const { data, error } = await client
+            .from(source.table)
+            .select(`id,user_id,rating,comment,created_at,${source.idField}`)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          if (error || !Array.isArray(data)) return [];
+          return data
+            .map((row) => {
+              const itemId = String(row?.[source.idField] || '').trim();
+              const comment = String(row?.comment || '').trim();
+              if (!itemId || !comment) return null;
+              return {
+                id: `${source.mediaType}:${String(row?.id || itemId)}`,
+                mediaType: source.mediaType,
+                itemId,
+                userId: String(row?.user_id || '').trim(),
+                rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
+                comment,
+                createdAt: row?.created_at || ''
+              };
+            })
+            .filter(Boolean);
+        })
+      );
+
+      return results
+        .flatMap((entry) => entry.status === 'fulfilled' ? entry.value : [])
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, LANDING_REVIEW_LIMIT);
+    }
+
+    async function loadLandingReviewUsers(rows) {
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const ids = [...new Set((Array.isArray(rows) ? rows : []).map((row) => String(row?.userId || '').trim()).filter(Boolean))];
+      if (!ids.length) return;
+      const { data, error } = await client
+        .from('user_profiles')
+        .select('id, username, full_name')
+        .in('id', ids);
+      if (error || !Array.isArray(data)) return;
+      data.forEach((row) => {
+        const id = String(row?.id || '').trim();
+        if (!id) return;
+        landingReviewUsers.set(id, {
+          username: String(row?.username || '').trim(),
+          fullName: String(row?.full_name || '').trim()
+        });
+      });
+    }
+
+    async function hydrateLandingReviewLocalMeta(rows) {
+      const client = await ensureHomeSupabase();
+      if (!client) return;
+      const safeRows = Array.isArray(rows) ? rows : [];
+      const bookIds = [...new Set(safeRows.filter((row) => row.mediaType === 'book').map((row) => row.itemId).filter(Boolean))];
+      const trackIds = [...new Set(safeRows.filter((row) => row.mediaType === 'music').map((row) => row.itemId).filter(Boolean))];
+
+      if (bookIds.length) {
+        const { data } = await client
+          .from('books')
+          .select('id,title,authors,thumbnail')
+          .in('id', bookIds.slice(0, 40));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || '').trim();
+          if (!id) return;
+          landingReviewMeta.set(getLandingReviewKey('book', id), {
+            title: String(row?.title || 'Book').trim(),
+            subtitle: String(row?.authors || 'Book').trim(),
+            image: normalizeLandingImageUrl(row?.thumbnail || '') || '/newlogo.webp',
+            href: `book.html?id=${encodeURIComponent(id)}`
           });
         });
-        window.addEventListener('unhandledrejection', (ev) => {
-          const reason = ev?.reason;
-          homeDebugEvent('window:rejection', { message: String(reason?.message || reason || '') });
+      }
+
+      if (trackIds.length) {
+        const { data } = await client
+          .from('tracks')
+          .select('id,name,artists,image_url,album_name')
+          .in('id', trackIds.slice(0, 40));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || '').trim();
+          if (!id) return;
+          landingReviewMeta.set(getLandingReviewKey('music', id), {
+            title: String(row?.name || 'Track').trim(),
+            subtitle: String(row?.artists || row?.album_name || 'Music').trim(),
+            image: normalizeLandingImageUrl(row?.image_url || '') || '/newlogo.webp',
+            href: `song.html?id=${encodeURIComponent(id)}`
+          });
         });
-      } catch (_err) {}
-      ensureHomeDebugPanel();
-    }
-  }
-  const criticalKeys = [
-    'travel',
-    'sports',
-    ...(ENABLE_CARS ? ['car'] : [])
-  ];
-  const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
-  const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
-  if (
-    !force
-    && hasExistingRealItems
-    && !hasCriticalMissing
-    && homeLastGoodFeedAt
-    && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
-  ) {
-    resetSpotlightTimer(true);
-    return;
-  }
-  homeLastUniversalInitAt = now;
-  const initSeq = ++homeFeedInitSeq;
-  homeDebugEvent('home:init', { force, initSeq });
-  ensureHomeInteractionWatch();
-  resetHomeViewportDeferrals();
-  if (homeWeakFeedRetryTimer) {
-    clearTimeout(homeWeakFeedRetryTimer);
-    homeWeakFeedRetryTimer = null;
-  }
-  setStatus('Loading spotlight and live feed...', false);
-  resetSpotlightTimer(false);
-  const channels = getHomeChannels();
-  const initialChannels = getHomeInitialChannels(channels);
-  const deferredChannels = channels.filter((channel) => !initialChannels.includes(channel));
-  const cachedFeed = readHomeFeedCache();
-  const baselineFeed = cachedFeed || null;
-
-  if (baselineFeed) {
-    const cachedResult = applyHomeFeedMap(baselineFeed);
-    if (cachedResult.scoredPool.length) {
-      homeLastGoodFeedAt = Date.now();
-      setStatus('Feed ready from cache. Syncing live data...', false);
-    }
-  }
-
-  const precomputedFeedPromise = loadPrecomputedHomeFeed().catch(() => null);
-  const blankFeed = Object.fromEntries(initialChannels.map((channel) => [channel.key, []]));
-  let workingFeed = normalizeHomeFeedMap(baselineFeed) || blankFeed;
-
-  const loadChannel = async (channel) => {
-    const railId = String(channel?.railId || '').trim();
-    const key = String(channel?.key || '').trim();
-    const attemptStartedAt = Date.now();
-    const prevAttempt = Number(homeDebugState.channels.get(key)?.last?.attempt || 0) || 0;
-    const attempt = prevAttempt + 1;
-    if (key) {
-      homeDebugState.channels.set(key, {
-        ...(homeDebugState.channels.get(key) || {}),
-        last: {
-          status: 'loading',
-          startedAt: attemptStartedAt,
-          timeoutMs: Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0,
-          railId,
-          attempt
-        }
-      });
-      scheduleHomeDebugRender();
-    }
-
-    let items = await loadHomeChannelWithTimeout(channel.loader, Number(channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS));
-    if (!Array.isArray(items)) items = [];
-
-    if (key) {
-      const last = homeDebugState.channels.get(key)?.last || {};
-      const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
-      const endedAt = Date.now();
-      const ms = endedAt - attemptStartedAt;
-      const timeoutMs = Number(last.timeoutMs || channel.timeoutMs || HOME_CHANNEL_TIMEOUT_MS) || 0;
-      const status = (!items.length)
-        ? (ms >= timeoutMs - 30 ? 'timeout' : 'empty')
-        : (isPlaceholder ? 'placeholder' : 'ok');
-      homeDebugState.channels.set(key, {
-        ...(homeDebugState.channels.get(key) || {}),
-        last: {
-          ...last,
-          status,
-          endedAt,
-          ms,
-          items: items.length,
-          reason: !items.length ? 'No items returned.' : (isPlaceholder ? 'Only placeholder items returned.' : 'Live items rendered.')
-        }
-      });
-      scheduleHomeDebugRender();
-    }
-
-    const isPlaceholder = Array.isArray(items) ? items.every((it) => !!it?.isPlaceholder) : false;
-    if (!items.length || isPlaceholder) {
-      scheduleHomeChannelRetry(channel, attempt - 1);
-    }
-
-    if (initSeq === homeFeedInitSeq && items.length && !isPlaceholder) {
-      freshLoadedKeys.add(channel.key);
-      workingFeed = {
-        ...workingFeed,
-        [channel.key]: items
-      };
-      const progressive = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
-      if (progressive.scoredPool.length && freshLoadedKeys.size < channels.length) {
-        setStatus(`Loading live feed... ${freshLoadedKeys.size}/${channels.length} channels ready.`, false);
       }
     }
-    return { ...channel, items };
-  };
 
-  // PRIORITIZE SPOTLIGHT LOADING - load spotlight channels first
-  const spotlightChannels = initialChannels.filter(channel => 
-    ['movie', 'tv', 'anime', 'book', 'music', 'game', 'travel', 'sports'].includes(channel.key)
-  );
-  const otherChannels = initialChannels.filter(channel => 
-    !['movie', 'tv', 'anime', 'book', 'music', 'game', 'travel', 'sports'].includes(channel.key)
-  );
-  const prioritizedChannels = [...spotlightChannels, ...otherChannels, ...deferredChannels];
-
-  const loadedPromise = loadHomeChannelGroup(prioritizedChannels, loadChannel);
-  const precomputedFeed = await withTimeout(precomputedFeedPromise, 1200, null);
-  if (initSeq !== homeFeedInitSeq) return;
-    if (precomputedFeed) {
-    const precomputedActiveChannels = countActiveHomeChannels(precomputedFeed);
-    const baselineActiveChannels = countActiveHomeChannels(baselineFeed);
-    if (precomputedActiveChannels > baselineActiveChannels) {
-      const mergedPrecomputedFeed = {
-        ...workingFeed
-      };
-      const normalizedPrecomputedFeed = normalizeHomeFeedMap(precomputedFeed) || blankFeed;
-      channels.forEach((channel) => {
-        if (freshLoadedKeys.has(channel.key)) return;
-        const items = Array.isArray(normalizedPrecomputedFeed[channel.key]) ? normalizedPrecomputedFeed[channel.key] : [];
-        if (items.length) {
-          mergedPrecomputedFeed[channel.key] = items;
-        }
-      });
-      workingFeed = mergedPrecomputedFeed;
-      const precomputedResult = applyHomeFeedMap(workingFeed, { refreshSecondary: false });
-      if (precomputedResult.scoredPool.length) {
-        setStatus('Spotlight ready from precomputed feed. Syncing live data...', false);
+    async function fetchLandingReviewJson(url, timeoutMs = 8000) {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      let timer = null;
+      try {
+        if (controller) timer = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch(url, {
+          headers: { Accept: 'application/json' },
+          signal: controller ? controller.signal : undefined
+        });
+        if (!response.ok) return null;
+        return await response.json();
+      } catch (_error) {
+        return null;
+      } finally {
+        if (timer) clearTimeout(timer);
       }
     }
-  }
 
-  await loadedPromise;
-  if (initSeq !== homeFeedInitSeq) return;
+    async function hydrateLandingReviewRemoteMeta(rows) {
+      const uniqueRows = new Map();
+      (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const key = getLandingReviewKey(row?.mediaType, row?.itemId);
+        if (!key || uniqueRows.has(key)) return;
+        uniqueRows.set(key, row);
+      });
 
-  // Ensure we have spotlight content even with no users by creating default items
-  if (homeSpotlightItems.length === 0) {
-    createDefaultSpotlightItems();
-    showSpotlightByIndex(0, false);
-    resetSpotlightTimer(true);
-  }
+      const tasks = [...uniqueRows.values()].map(async (row) => {
+        const mediaType = String(row?.mediaType || '').toLowerCase();
+        const itemId = String(row?.itemId || '').trim();
+        if (!itemId) return;
 
-  deferredChannels.forEach((channel) => queueHomeDeferredChannel(channel, loadChannel, initSeq));
+        if (mediaType === 'movie') {
+          const json = await fetchLandingReviewJson(`/api/tmdb/movie/${encodeURIComponent(itemId)}?language=en-US`, 7000);
+          if (!json?.title) return;
+          landingReviewMeta.set(getLandingReviewKey('movie', itemId), {
+            title: String(json.title || 'Movie').trim(),
+            subtitle: String(json.release_date || '').slice(0, 4) || 'Movie',
+            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
+            href: `movie.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
 
-  const mergedFeed = normalizeHomeFeedMap(workingFeed) || blankFeed;
-  const initialChannelsCount = initialChannels.length;
-  const healthyChannelFloor = Math.min(initialChannelsCount, 3);
+        if (mediaType === 'tv' || mediaType === 'anime') {
+          const json = await fetchLandingReviewJson(`/api/tmdb/tv/${encodeURIComponent(itemId)}?language=en-US`, 7000);
+          if (!json?.name) return;
+          landingReviewMeta.set(getLandingReviewKey(mediaType, itemId), {
+            title: String(json.name || 'Series').trim(),
+            subtitle: String(json.first_air_date || '').slice(0, 4) || (mediaType === 'anime' ? 'Anime' : 'TV Show'),
+            image: json.poster_path ? `${TMDB_POSTER}${json.poster_path}` : '/newlogo.webp',
+            href: `${mediaType === 'anime' ? 'anime' : 'tvshow'}.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
 
-  const hasWeakFeed = countActiveHomeChannels(mergedFeed) < healthyChannelFloor;
-  const { scoredPool } = applyHomeFeedMap(mergedFeed, { showEmptyRails: !hasWeakFeed });
+        if (mediaType === 'game') {
+          const json = await fetchLandingReviewJson(`/api/igdb/games/${encodeURIComponent(itemId)}`, 8000);
+          if (!json?.name) return;
+          landingReviewMeta.set(getLandingReviewKey('game', itemId), {
+            title: String(json.name || 'Game').trim(),
+            subtitle: String(json.released || '').slice(0, 4) || 'Game',
+            image: normalizeLandingImageUrl(json.cover || json.hero || json.background_image || '') || '/newlogo.webp',
+            href: `game.html?id=${encodeURIComponent(itemId)}`
+          });
+          return;
+        }
 
-  if (!scoredPool.length) {
-    resetSpotlightTimer(false);
-    setStatus('Could not load live feeds right now. Try again shortly.', true);
-    return;
-  }
-  homeLastGoodFeedAt = Date.now();
+        if (mediaType === 'travel') {
+          const code = itemId.toUpperCase();
+          const json = await fetchLandingReviewJson(`https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(code)}&fields=name,capital,region,flags`, 9000);
+          const country = Array.isArray(json) ? json[0] : null;
+          if (!country) return;
+          const capital = Array.isArray(country?.capital) ? String(country.capital[0] || '').trim() : String(country?.capital || '').trim();
+          landingReviewMeta.set(getLandingReviewKey('travel', code), {
+            title: String(country?.name?.common || code).trim(),
+            subtitle: [capital, String(country?.region || '').trim()].filter(Boolean).join(' | ') || 'Travel',
+            image: normalizeLandingImageUrl(country?.flags?.png || country?.flags?.svg || '') || '/newlogo.webp',
+            href: `country.html?code=${encodeURIComponent(code)}`
+          });
+        }
+      });
 
-  const freshActiveChannels = freshLoadedKeys.size;
-  if (freshActiveChannels > 0) {
-    writeHomeFeedCache(mergedFeed);
-    writePrecomputedHomeFeedCache(mergedFeed, {
-      savedAt: Date.now(),
-      expiresAt: Date.now() + HOME_PRECOMPUTED_FEED_MAX_AGE_MS
-    });
-  }
-  if (freshActiveChannels === initialChannelsCount) {
-    setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
-  } else if (freshActiveChannels === 0) {
-    if (cachedFeed) {
-      setStatus('Feed loaded from cache. Live sources are slow right now.', false);
-    } else {
-      setStatus('Showing quick feed while live sources connect...', false);
+      await Promise.allSettled(tasks);
     }
-  } else {
-    setStatus(`Live feed ready. ${freshActiveChannels}/${initialChannelsCount} core channels live.`, false);
-  }
 
-  if (freshActiveChannels >= healthyChannelFloor) {
-    if (homeWeakFeedRetryTimer) {
-      clearTimeout(homeWeakFeedRetryTimer);
-      homeWeakFeedRetryTimer = null;
+    function buildLandingLiveReviewCard(review) {
+      const meta = getLandingReviewMeta(review);
+      const media = getHomeMediaMeta(review?.mediaType);
+      const title = escapeHtml(String(meta?.title || media.label || 'Item').trim() || 'Item');
+      const subtitle = escapeHtml(String(meta?.subtitle || `${media.label} review`).trim() || `${media.label} review`);
+      const image = escapeHtml(normalizeLandingImageUrl(meta?.image || '') || '/newlogo.webp');
+      const comment = escapeHtml(truncateLandingText(review?.comment || 'Fresh review from the Zo2y community.', 180));
+      const reviewer = escapeHtml(getLandingReviewUserLabel(review?.userId));
+      const rating = Number(review?.rating || 0);
+      const nextPath = sanitizeHomeNextPath(meta?.href || getLandingBrowsePath(review?.mediaType));
+      return `
+        <a class="landing-review-card" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Read ${title}">
+          <div class="landing-review-card-head">
+            <div class="landing-review-card-thumb">
+              <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            </div>
+            <div class="landing-review-card-meta">
+              <div class="landing-review-card-topline">
+                <span>${escapeHtml(media.label)} review</span>
+                <span class="landing-review-card-user">${reviewer}</span>
+                ${rating > 0 ? `<span class="landing-review-card-rating"><i class="fa-solid fa-star"></i>${rating.toFixed(1)}</span>` : ''}
+              </div>
+              <strong>${title}</strong>
+              <span>${subtitle}</span>
+            </div>
+          </div>
+          <p>${comment}</p>
+        </a>
+      `;
     }
-    homeWeakFeedRetryCount = 0;
-    } else if (homeWeakFeedRetryCount < 2 && !homeWeakFeedRetryTimer && !document.hidden) {
-    homeWeakFeedRetryTimer = setTimeout(() => {
-      homeWeakFeedRetryTimer = null;
-      homeWeakFeedRetryCount += 1;
-      void initUniversalHome({ force: true });
-    }, 1800);
-  }
 
-  scheduleHomeMenuCachePrime();
-}
-
-// Create default spotlight items for when there's no user data
-function createDefaultSpotlightItems() {
-  const defaultItems = [
-    {
-      title: 'The Matrix',
-      mediaType: 'movie',
-      href: 'movies.html',
-      spotlightImage: 'https://image.tmdb.org/t/p/w1280/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-      backgroundImage: 'https://image.tmdb.org/t/p/w1280/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-      summary: 'A computer hacker learns about the true nature of his reality and his role in the war against its controllers.'
-    },
-    {
-      title: 'Breaking Bad',
-      mediaType: 'tv',
-      href: 'tvshows.html',
-      spotlightImage: 'https://image.tmdb.org/t/p/w1280/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-      backgroundImage: 'https://image.tmdb.org/t/p/w1280/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
-      summary: 'A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine.'
-    },
-    {
-      title: 'Attack on Titan',
-      mediaType: 'anime',
-      href: 'animes.html',
-      spotlightImage: 'https://image.tmdb.org/t/p/w1280/hu43SFBq2INcssj8feHqyBav3yF.jpg',
-      backgroundImage: 'https://image.tmdb.org/t/p/w1280/hu43SFBq2INcssj8feHqyBav3yF.jpg',
-      summary: 'After his hometown is destroyed and his mother is killed, young Eren Yeager vows to cleanse the earth of the giant humanoid Titans.'
-    },
-    {
-      title: 'The Midnight Library',
-      mediaType: 'book',
-      href: 'books.html',
-      spotlightImage: 'https://images-na.ssl-images-amazon.com/images/I/91VeCq9iN7L.jpg',
-      backgroundImage: 'https://images-na.ssl-images-amazon.com/images/I/91VeCq9iN7L.jpg',
-      summary: 'Between life and death there is a library, and within that library, the shelves go on forever.'
-    },
-    {
-      title: 'Blinding Lights',
-      mediaType: 'music',
-      href: 'music.html',
-      spotlightImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
-      backgroundImage: 'https://i.scdn.co/image/ab67616d0000b273f7ea2d5fbb1bccda5ef6491d',
-      summary: "The Weeknd's hit single about chasing the lights of the city."
-    },
-    {
-      title: 'The Legend of Zelda: Breath of the Wild',
-      mediaType: 'game',
-      href: 'games.html',
-      spotlightImage: 'https://image.nintendocdn.net/covers/switch/NSABAHJ00000000I/2D0B',
-      backgroundImage: 'https://image.nintendocdn.net/covers/switch/NSABAHJ00000000I/2D0B',
-      summary: 'Link awakens from a 100-year slumber to defeat Calamity Ganon and save the kingdom of Hyrule.'
-    },
-    {
-      title: 'Paris, France',
-      mediaType: 'travel',
-      href: 'travel.html',
-      spotlightImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
-      backgroundImage: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
-      summary: 'The City of Light, known for its art, fashion, gastronomy, and culture.'
-    },
-    {
-      title: 'NBA Finals',
-      mediaType: 'sports',
-      href: 'sports.html',
-      spotlightImage: 'https://a.espncdn.com/i/partner/nba/logos/nba.png',
-      backgroundImage: 'https://a.espncdn.com/i/partner/nba/logos/nba.png',
-      summary: 'The championship series of the National Basketball Association.'
+    function renderLandingHeroStrip(items) {
+      const strip = document.getElementById('landingHeroStrip');
+      if (!strip) return;
+      const safeItems = (Array.isArray(items) ? items : [])
+        .filter((item) => item && isRenderableLandingImage(getLandingPreviewPoster(item)))
+        .slice(0, 6);
+      if (!safeItems.length) return;
+      strip.innerHTML = safeItems.map((item) => {
+        const nextPath = getLandingItemNextPath(item);
+        const image = escapeHtml(getLandingPreviewPoster(item) || HOME_IMAGE_PLACEHOLDER);
+        const title = escapeHtml(String(item?.title || 'Title').trim() || 'Title');
+        return `
+          <a class="landing-hero-poster" href="${buildLandingAuthHref(nextPath)}" data-auth-entry="signup" data-auth-next="${escapeHtml(nextPath)}" aria-label="Open ${title}">
+            <img src="${image}" alt="${title}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+          </a>
+        `;
+      }).join('');
+      wireLandingAuthNextLinks(strip);
     }
-  ];
-  
-  homeSpotlightItems = defaultItems;
-}
+
+    async function loadLandingLiveFeed() {
+      const apiPayload = await fetchJsonWithPerfCache(HOME_PUBLIC_FEED_ENDPOINT, {
+        cacheKey: 'landing-public-feed',
+        ttlMs: 1000 * 30,
+        timeoutMs: 3200,
+        retries: 3
+      });
+      const apiFeed = normalizeHomeFeedMap(apiPayload?.feed);
+      if (apiFeed && countActiveHomeChannels(apiFeed) > 0) {
+        return {
+          movie: filterHomeSafeItems(apiFeed.movie || []),
+          tv: filterHomeSafeItems(apiFeed.tv || []),
+          game: filterHomeSafeItems(apiFeed.game || [])
+        };
+      }
+      const [movieRes, tvRes, gameRes] = await Promise.allSettled([
+        loadMovies(null),
+        loadTv(null),
+        loadGames(null)
+      ]);
+      const toItems = (entry) => filterHomeSafeItems(entry?.status === 'fulfilled' ? entry.value : []);
+      return {
+        movie: toItems(movieRes),
+        tv: toItems(tvRes),
+        game: toItems(gameRes)
+      };
+    }
+
+    async function hydrateLandingLiveReviews() {
+      if (landingReviewHydrated) return;
+      landingReviewHydrated = true;
+      const reviewGrid = document.getElementById('landingPreviewReviews');
+      if (!reviewGrid) return;
+
+      const rows = await fetchLandingReviewRows();
+      if (!rows.length) {
+        reviewGrid.innerHTML = '<article class="landing-review-card"><p>Reviews will show up here as soon as the live feed responds.</p></article>';
+        return;
+      }
+
+      await Promise.allSettled([
+        loadLandingReviewUsers(rows),
+        hydrateLandingReviewLocalMeta(rows),
+        hydrateLandingReviewRemoteMeta(rows)
+      ]);
+
+      reviewGrid.innerHTML = rows.map((row) => buildLandingLiveReviewCard(row)).join('');
+      wireLandingAuthNextLinks(reviewGrid);
+    }
 
     function renderLandingFeedPreview(feedMap) {
       const normalized = normalizeHomeFeedMap(feedMap);
       if (!normalized || countActiveHomeChannels(normalized) === 0) return false;
+
       const movies = getLandingRailItems(normalized.movie, 1, 10);
       const games = getLandingRailItems(normalized.game, 2, 10);
       const tv = getLandingRailItems(normalized.tv, 3, 10);
@@ -10363,7 +11272,10 @@ function createDefaultSpotlightItems() {
         ...tv.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2),
         ...games.filter((item) => isRenderableLandingImage(getLandingPreviewPoster(item))).slice(0, 2)
       ];
-      renderLandingHeroStrip(heroStripItems);
+      renderLandingHeroStrip([
+        ...heroStripItems
+      ]);
+
       const spotlight = [
         ...movies.slice(0, 2),
         ...games.slice(0, 2),
@@ -10371,6 +11283,7 @@ function createDefaultSpotlightItems() {
         ...(Array.isArray(normalized.anime) ? rotateLandingList(normalized.anime, 2).slice(0, 1) : []),
         ...sports.slice(0, 1)
       ].find(Boolean) || Object.values(normalized).flat().find(Boolean);
+
       const spotlightLink = document.getElementById('landingPreviewSpotlightLink');
       const spotlightBackdrop = document.getElementById('landingPreviewSpotlightBackdrop');
       const spotlightPoster = document.getElementById('landingPreviewSpotlightPoster');
@@ -10378,6 +11291,7 @@ function createDefaultSpotlightItems() {
       const spotlightTitle = document.getElementById('landingPreviewSpotlightTitle');
       const spotlightMeta = document.getElementById('landingPreviewSpotlightMeta');
       const spotlightSummary = document.getElementById('landingPreviewSpotlightSummary');
+
       if (spotlight && spotlightLink && spotlightBackdrop && spotlightPoster && spotlightType && spotlightTitle && spotlightMeta && spotlightSummary) {
         const nextPath = getLandingItemNextPath(spotlight);
         const meta = getHomeMediaMeta(spotlight.mediaType);
@@ -10386,15 +11300,16 @@ function createDefaultSpotlightItems() {
         spotlightLink.href = buildLandingAuthHref(nextPath);
         spotlightLink.setAttribute('data-auth-next', nextPath);
         spotlightType.textContent = meta.label;
-        spotlightTitle.textContent = String(spotlight.title || meta.label + ' pick').trim() || meta.label + ' pick';
+        spotlightTitle.textContent = String(spotlight.title || `${meta.label} pick`).trim() || `${meta.label} pick`;
         spotlightMeta.textContent = getLandingPreviewMeta(spotlight);
         spotlightSummary.textContent = truncateLandingText(getSpotlightSummary(spotlight), 140) || 'Live pick from the Zo2y feed.';
         spotlightPoster.src = poster || HOME_IMAGE_PLACEHOLDER;
         spotlightPoster.alt = String(spotlight.title || meta.label || 'Item').trim() || meta.label;
         spotlightBackdrop.style.backgroundImage = backdrop
-          ? 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("' + String(backdrop).replace(/"/g, '%22') + '")'
+          ? `linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), url("${String(backdrop).replace(/"/g, '%22')}")`
           : 'linear-gradient(90deg, rgba(6, 11, 27, 0.88) 0%, rgba(6, 11, 27, 0.58) 52%, rgba(6, 11, 27, 0.12) 100%), linear-gradient(150deg, rgba(14, 27, 60, 0.94), rgba(9, 17, 36, 0.9))';
       }
+
       renderRail('landingMoviesRail', movies, { mediaType: 'movie' });
       renderRail('landingGamesRail', games, { mediaType: 'game' });
       renderRail('landingTvRail', tv, { mediaType: 'tv' });
@@ -10408,18 +11323,36 @@ function createDefaultSpotlightItems() {
     async function hydrateLandingFeedPreview() {
       if (landingPreviewHydrated) return;
       landingPreviewHydrated = true;
-      const hasLandingPreviewTargets = !!document.getElementById('landingPreviewSpotlightLink') || !!document.getElementById('landingHeroStrip') || !!document.getElementById('landingMoviesRail') || !!document.getElementById('landingGamesRail') || !!document.getElementById('landingTvRail');
+      const hasLandingPreviewTargets =
+        !!document.getElementById('landingPreviewSpotlightLink') ||
+        !!document.getElementById('landingHeroStrip') ||
+        !!document.getElementById('landingMoviesRail') ||
+        !!document.getElementById('landingGamesRail') ||
+        !!document.getElementById('landingTvRail');
       if (!hasLandingPreviewTargets) return;
       let rendered = false;
       let feed = null;
-      try { feed = await loadPrecomputedHomeFeed(); } catch (_err) {}
-      if (!feed || countActiveHomeChannels(feed) === 0) { feed = readHomeFeedCache() || readPrecomputedHomeFeedCache(); }
-      if (feed && countActiveHomeChannels(feed) > 0) { rendered = renderLandingFeedPreview(feed); }
+      try {
+        feed = await loadPrecomputedHomeFeed();
+      } catch (_err) {}
+      if (!feed || countActiveHomeChannels(feed) === 0) {
+        feed = readHomeFeedCache() || readPrecomputedHomeFeedCache();
+      }
+      if (feed && countActiveHomeChannels(feed) > 0) {
+        rendered = renderLandingFeedPreview(feed);
+      }
+
       try {
         const liveFeed = await loadLandingLiveFeed();
-        if (countActiveHomeChannels(liveFeed) > 0) { renderLandingFeedPreview(liveFeed); rendered = true; }
+        if (countActiveHomeChannels(liveFeed) > 0) {
+          renderLandingFeedPreview(liveFeed);
+          rendered = true;
+        }
       } catch (_err) {}
-      if (!rendered) { renderLandingFeedPreview(feed || {}); }
+
+      if (!rendered) {
+        renderLandingFeedPreview(feed || {});
+      }
     }
 
     function initLandingExperience() {
@@ -10432,61 +11365,99 @@ function createDefaultSpotlightItems() {
       const authRequired = params.get('auth') === 'required';
       const savePromptDismiss = document.getElementById('landingSavePromptDismiss');
       const savePromptClose = document.getElementById('landingSavePromptClose');
-      if (authRequired && authNotice) { authNotice.hidden = false; authNotice.textContent = 'Sign in to continue into Zo2y.'; }
-      scheduleHomeNonCritical(function () { void ensureHomeHeavyLoaders().catch(function () {}); }, 1800);
-      document.querySelectorAll('[data-auth-entry]').forEach(function (link) { link.addEventListener('click', function () { localStorage.setItem('postAuthRedirect', 'index.html'); }); });
+
+      if (authRequired && authNotice) {
+        authNotice.hidden = false;
+        authNotice.textContent = 'Sign in to continue into Zo2y.';
+      }
+
+      scheduleHomeNonCritical(() => {
+        void ensureHomeHeavyLoaders().catch(() => {});
+      }, 1800);
+
+      document.querySelectorAll('[data-auth-entry]').forEach((link) => {
+        link.addEventListener('click', () => {
+          localStorage.setItem('postAuthRedirect', 'index.html');
+        });
+      });
+
       savePromptDismiss?.addEventListener('click', hideLandingSavePrompt);
       savePromptClose?.addEventListener('click', hideLandingSavePrompt);
+
       wireLandingAuthNextLinks(document);
       void hydrateLandingSetupWall();
       void hydrateLandingFeedPreview();
       void hydrateLandingLiveReviews();
-      if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') { revealNodes.forEach(function (node) { node.classList.add('is-visible'); }); return; }
-      var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
+
+      if (!revealNodes.length || typeof window.IntersectionObserver !== 'function') {
+        revealNodes.forEach((node) => node.classList.add('is-visible'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
           entry.target.classList.add('is-visible');
           observer.unobserve(entry.target);
         });
       }, { threshold: 0.16, rootMargin: '0px 0px -8% 0px' });
-      revealNodes.forEach(function (node, index) { if (index === 0) { node.classList.add('is-visible'); return; } observer.observe(node); });
+
+      revealNodes.forEach((node, index) => {
+        if (index === 0) {
+          node.classList.add('is-visible');
+          return;
+        }
+        observer.observe(node);
+      });
     }
 
     function initLandingMascot() {
-      var hero = document.querySelector('.landing-hero');
-      var mascot = document.getElementById('landingMascot');
-      var shell = mascot?.querySelector?.('.landing-mascot-shell');
+      const hero = document.querySelector('.landing-hero');
+      const mascot = document.getElementById('landingMascot');
+      const shell = mascot?.querySelector?.('.landing-mascot-shell');
       if (!hero || !mascot || !shell || mascot.dataset.wired === '1') return;
       mascot.dataset.wired = '1';
-      var moveFrame = 0;
-      var applyPointer = function (clientX, clientY) {
-        var rect = hero.getBoundingClientRect();
+
+      let moveFrame = 0;
+      const applyPointer = (clientX, clientY) => {
+        const rect = hero.getBoundingClientRect();
         if (!rect.width || !rect.height) return;
-        var px = ((clientX - rect.left) / rect.width) - 0.5;
-        var py = ((clientY - rect.top) / rect.height) - 0.5;
-        var offsetX = Math.max(-14, Math.min(14, px * 28));
-        var offsetY = Math.max(-10, Math.min(10, py * 20));
-        var tilt = Math.max(-6, Math.min(6, px * 12));
-        shell.style.setProperty('--landing-mascot-x', offsetX.toFixed(1) + 'px');
-        shell.style.setProperty('--landing-mascot-y', offsetY.toFixed(1) + 'px');
-        shell.style.setProperty('--landing-mascot-tilt', tilt.toFixed(1) + 'deg');
+        const px = ((clientX - rect.left) / rect.width) - 0.5;
+        const py = ((clientY - rect.top) / rect.height) - 0.5;
+        const offsetX = Math.max(-14, Math.min(14, px * 28));
+        const offsetY = Math.max(-10, Math.min(10, py * 20));
+        const tilt = Math.max(-6, Math.min(6, px * 12));
+        shell.style.setProperty('--landing-mascot-x', `${offsetX.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-y', `${offsetY.toFixed(1)}px`);
+        shell.style.setProperty('--landing-mascot-tilt', `${tilt.toFixed(1)}deg`);
       };
-      var resetPointer = function () {
+      const resetPointer = () => {
         shell.style.setProperty('--landing-mascot-x', '0px');
         shell.style.setProperty('--landing-mascot-y', '0px');
         shell.style.setProperty('--landing-mascot-tilt', '0deg');
       };
-      var queuePointerUpdate = function (clientX, clientY) {
+      const queuePointerUpdate = (clientX, clientY) => {
         if (moveFrame) cancelAnimationFrame(moveFrame);
-        moveFrame = requestAnimationFrame(function () { moveFrame = 0; applyPointer(clientX, clientY); });
+        moveFrame = requestAnimationFrame(() => {
+          moveFrame = 0;
+          applyPointer(clientX, clientY);
+        });
       };
-      hero.addEventListener('pointermove', function (event) { queuePointerUpdate(event.clientX, event.clientY); });
+
+      hero.addEventListener('pointermove', (event) => {
+        queuePointerUpdate(event.clientX, event.clientY);
+      });
       hero.addEventListener('pointerleave', resetPointer);
-      hero.addEventListener('touchmove', function (event) { var touch = event.touches && event.touches[0]; if (!touch) return; queuePointerUpdate(touch.clientX, touch.clientY); }, { passive: true });
+      hero.addEventListener('touchmove', (event) => {
+        const touch = event.touches && event.touches[0];
+        if (!touch) return;
+        queuePointerUpdate(touch.clientX, touch.clientY);
+      }, { passive: true });
       hero.addEventListener('touchend', resetPointer, { passive: true });
-      var blink = function () {
+
+      const blink = () => {
         mascot.classList.add('is-blinking');
-        window.setTimeout(function () { mascot.classList.remove('is-blinking'); }, 120);
+        window.setTimeout(() => mascot.classList.remove('is-blinking'), 120);
         window.setTimeout(blink, 2300 + Math.round(Math.random() * 1900));
       };
       window.setTimeout(blink, 1200);
@@ -10504,7 +11475,7 @@ function createDefaultSpotlightItems() {
       const authenticated = !!detail?.authenticated;
       if (authenticated) {
         document.body?.classList.remove('landing-mode');
-        void bootAuthenticatedHome().catch(function (error) {
+        void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed after auth verification:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
         });
@@ -10513,13 +11484,13 @@ function createDefaultSpotlightItems() {
       initLandingExperience();
     }
 
+    // Attach this immediately so we never miss refresh-only auth verification events.
     window.addEventListener('zo2y-auth-gate-verified', handleHomeAuthGateVerified);
 
-    function scheduleHomeNonCritical(task, timeoutMs) {
-      if (timeoutMs === void 0) timeoutMs = 900;
+    function scheduleHomeNonCritical(task, timeoutMs = 900) {
       if (typeof task !== 'function') return;
       if (typeof window.requestIdleCallback === 'function') {
-        window.requestIdleCallback(function () { task(); }, { timeout: timeoutMs });
+        window.requestIdleCallback(() => task(), { timeout: timeoutMs });
         return;
       }
       window.setTimeout(task, 0);
@@ -10527,108 +11498,162 @@ function createDefaultSpotlightItems() {
 
     function bootAuthenticatedHome() {
       if (homeAppBootPromise) return homeAppBootPromise;
-      homeAppBootPromise = (async function () {
-        homeDebugEvent('boot:start', { authShell: String(getHomeAuthGateState()?.authShell || '').trim() || null });
+      homeAppBootPromise = (async () => {
+        homeDebugEvent('boot:start', {
+          authShell: String(getHomeAuthGateState()?.authShell || '').trim() || null
+        });
         await setupHomeAuthListener();
-        homeDebugEvent('boot:auth-listener-ready', { userId: String(homeCurrentUser?.id || '').trim() || null });
+        homeDebugEvent('boot:auth-listener-ready', {
+          userId: String(homeCurrentUser?.id || '').trim() || null
+        });
         await completeHomeOAuthReturnIfNeeded();
         homeDebugEvent('boot:oauth-complete');
-        if (hasHomeAuthReturnParams()) { clearHomeAuthParamsFromUrl(); }
+        if (hasHomeAuthReturnParams()) {
+          clearHomeAuthParamsFromUrl();
+        }
         await initAuthUi();
-        homeDebugEvent('boot:auth-ui-ready', { userId: String(homeCurrentUser?.id || '').trim() || null });
+        homeDebugEvent('boot:auth-ui-ready', {
+          userId: String(homeCurrentUser?.id || '').trim() || null
+        });
         await finishPendingPostAuthBootstrap();
         homeDebugEvent('boot:post-auth-bootstrap-finished');
         await initUniversalHome();
         homeDebugEvent('boot:home-ready');
         scheduleDeferredHomeStartupTasks();
-      })().catch(function (error) {
+      })().catch((error) => {
         homeAppBootPromise = null;
-        homeDebugEvent('boot:error', { message: String(error?.message || error || '') });
+        homeDebugEvent('boot:error', {
+          message: String(error?.message || error || '')
+        });
         throw error;
       });
       return homeAppBootPromise;
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', () => {
       homeDomReady = true;
-      var authGateState = getHomeAuthGateState();
+      const authGateState = getHomeAuthGateState();
       if (authGateState?.authShell === 'landing' && authGateState?.verified && !authGateState?.authenticated) {
         initLandingExperience();
       } else if (authGateState?.authShell === 'app' && authGateState?.authenticated) {
-        void bootAuthenticatedHome().catch(function (error) {
+        void bootAuthenticatedHome().catch((error) => {
           console.error('Home boot failed:', error);
           setStatus('Could not load your home feed right now. Please refresh.', true);
         });
       }
 
-      // Fail-open: if the auth gate never verifies (blocked script, stale SW, privacy mode),
-      // still initialize the public home rails so the page doesn't appear "stuck".
-      window.setTimeout(function () {
-        try {
-          if (homeAppBootPromise) return;
-          var state = getHomeAuthGateState();
-          if (state && state.verified) return;
-          void initUniversalHome({ force: true });
-        } catch (_err) {}
-      }, 1400);
+      // If auth-gate verified before DOMContentLoaded (rare refresh timing), replay the latest event.
+      if (homeAuthGateVerifiedEvent) {
+        handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent });
+      }
 
-      if (homeAuthGateVerifiedEvent) { handleHomeAuthGateVerified({ detail: homeAuthGateVerifiedEvent }); }
-      scheduleHomeNonCritical(function () { void ensureHomeHeavyLoaders().catch(function () {}); }, 1800);
-      var itemMenuModal = document.getElementById('itemMenuModal');
-      var createListModal = document.getElementById('createListModal');
-      var nextSpotlightBtn = document.getElementById('spotlightNextBtn');
-      var spotlightSection = document.getElementById('spotlightSection');
-      var popularGamesRefreshBtn = document.getElementById('popularGamesRefreshBtn');
-      document.querySelectorAll('.menu-icon-option').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          document.querySelectorAll('.menu-icon-option').forEach(function (b) { b.classList.remove('selected'); });
+      scheduleHomeNonCritical(() => {
+        void ensureHomeHeavyLoaders().catch(() => {});
+      }, 1800);
+
+      const itemMenuModal = document.getElementById('itemMenuModal');
+      const createListModal = document.getElementById('createListModal');
+      const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
+      const spotlightSection = document.getElementById('spotlightSection');
+      const popularGamesRefreshBtn = document.getElementById('popularGamesRefreshBtn');
+
+      document.querySelectorAll('.menu-icon-option').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.menu-icon-option').forEach((b) => b.classList.remove('selected'));
           btn.classList.add('selected');
           homeItemMenuState.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
         });
       });
+
       document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
       document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
       document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
-      document.getElementById('menuCreateListBtn')?.addEventListener('click', function () { void openCreateListModalFromMenu(); });
-      document.getElementById('saveNewListBtn')?.addEventListener('click', function () { void saveNewCustomListFromMenu(); });
+      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
+        void openCreateListModalFromMenu();
+      });
+      document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
+        void saveNewCustomListFromMenu();
+      });
+
       if (popularGamesRefreshBtn) {
-        popularGamesRefreshBtn.addEventListener('click', function () {
+        popularGamesRefreshBtn.addEventListener('click', () => {
           popularGamesRefreshBtn.disabled = true;
-          refreshHomeGamesRail().catch(function () {}).finally(function () { popularGamesRefreshBtn.disabled = false; });
+          refreshHomeGamesRail()
+            .catch(() => {})
+            .finally(() => {
+              popularGamesRefreshBtn.disabled = false;
+            });
         });
       }
+
       if (nextSpotlightBtn) {
-        nextSpotlightBtn.addEventListener('click', function (event) {
-          event.preventDefault(); event.stopPropagation();
+        nextSpotlightBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           showSpotlightByIndex(homeSpotlightIndex + 1, true);
           resetSpotlightTimer(true);
         });
       }
+
       if (spotlightSection) {
-        spotlightSection.addEventListener('click', function (event) { if (isSpotlightInteractiveTarget(event.target)) return; openCurrentSpotlightItem(); });
-        spotlightSection.addEventListener('keydown', function (event) {
+        spotlightSection.addEventListener('click', (event) => {
+          if (isSpotlightInteractiveTarget(event.target)) return;
+          openCurrentSpotlightItem();
+        });
+        spotlightSection.addEventListener('keydown', (event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           if (isSpotlightInteractiveTarget(event.target)) return;
-          event.preventDefault(); openCurrentSpotlightItem();
+          event.preventDefault();
+          openCurrentSpotlightItem();
         });
       }
-      [itemMenuModal, createListModal].forEach(function (modal) {
-        if (modal) { modal.addEventListener('click', function (e) { if (e.target === modal) closeAllItemMenuModals(); }); }
+
+      [itemMenuModal, createListModal].forEach((modal) => {
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              closeAllItemMenuModals();
+            }
+          });
+        }
       });
-      if (itemMenuModal) { itemMenuModal.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeItemMenuModal(); }); }
-      var newListNameInput = document.getElementById('newListNameInput');
-      if (newListNameInput) { newListNameInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); void saveNewCustomListFromMenu(); } }); }
-      scheduleHomeNonCritical(function () {
+
+      if (itemMenuModal) {
+        itemMenuModal.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeItemMenuModal();
+        });
+      }
+
+      const newListNameInput = document.getElementById('newListNameInput');
+      if (newListNameInput) {
+        newListNameInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            void saveNewCustomListFromMenu();
+          }
+        });
+      }
+
+      scheduleHomeNonCritical(() => {
         if (!window.initUniversalSearch) return;
-        window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'movies.html' });
-        window.initUniversalSearch({ input: '#sidebarSearch', fallbackRoute: 'movies.html' });
-        var sidebarInput = document.getElementById('sidebarSearch');
-        var sidebarBtn = document.getElementById('sidebarSearchBtn');
+        window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'movies.html'
+        });
+        window.initUniversalSearch({
+          input: '#sidebarSearch',
+          fallbackRoute: 'movies.html'
+        });
+        const sidebarInput = document.getElementById('sidebarSearch');
+        const sidebarBtn = document.getElementById('sidebarSearchBtn');
         if (sidebarInput && sidebarBtn && sidebarBtn.dataset.wired !== '1') {
           sidebarBtn.dataset.wired = '1';
-          sidebarBtn.addEventListener('click', function () { sidebarInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); });
+          sidebarBtn.addEventListener('click', () => {
+            sidebarInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+          });
         }
-        var globalSearch = document.getElementById('globalSearch');
+
+        const globalSearch = document.getElementById('globalSearch');
         if (globalSearch && !globalSearch.dataset.gamesRailBound) {
           globalSearch.dataset.gamesRailBound = '1';
           globalSearch.addEventListener('input', toggleHomeGamesRailForSearch);
@@ -10637,9 +11662,25 @@ function createDefaultSpotlightItems() {
           toggleHomeGamesRailForSearch();
         }
       }, 1400);
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeAllRailMenus(); closeAllItemMenuModals(); } });
-      document.addEventListener('visibilitychange', function () { if (document.hidden) resetSpotlightTimer(false); else resetSpotlightTimer(true); });
-      var syncModalViewportOnViewportChange = function () { syncActiveMenuModalViewports(); };
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeAllRailMenus();
+          closeAllItemMenuModals();
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          resetSpotlightTimer(false);
+        } else {
+          resetSpotlightTimer(true);
+        }
+      });
+
+      const syncModalViewportOnViewportChange = () => {
+        syncActiveMenuModalViewports();
+      };
       window.addEventListener('scroll', syncModalViewportOnViewportChange, { passive: true });
       window.addEventListener('resize', syncModalViewportOnViewportChange);
       if (window.visualViewport) {
@@ -10647,3 +11688,10 @@ function createDefaultSpotlightItems() {
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
       }
     });
+
+
+
+
+
+
+

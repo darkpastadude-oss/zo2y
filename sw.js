@@ -1,10 +1,10 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v245';
-const PAGE_CACHE = 'zo2y-pages-v198';
-const IMAGE_CACHE = 'zo2y-images-v42';
-const API_CACHE = 'zo2y-api-v22';
-const MOVIES_PAGE_VERSION = '20260526a';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v242';
+const PAGE_CACHE = 'zo2y-pages-v197';
+const IMAGE_CACHE = 'zo2y-images-v41';
+const API_CACHE = 'zo2y-api-v21';
+const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 220;
 const MAX_API_CACHE_ENTRIES = 260;
 const AUTH_PAGE_PATHS = new Set([
@@ -22,30 +22,28 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260526a',
-  '/css/pages/index-landing.css?v=20260526a',
-  '/css/shared-header.css?v=20260526a',
-  '/css/global-lowercase.css?v=20260526a',
-  '/css/animations.css?v=20260526a',
-  '/js/pages/index.js?v=20260526a',
-  '/js/pages/index-home-heavy-loaders.js?v=20260526a',
-  '/js/home-desktop-rebrand.js?v=20260526a',
-  '/js/referral-utils.js?v=20260526a',
-  '/js/shared-header.js?v=20260526a',
-  '/js/review-interactions.js?v=20260526a',
-  '/js/list-utils.js?v=20260526a',
-  '/js/index-list-menu-adapter.js?v=20260526a',
-  '/js/universal-search.js?v=20260526a',
-  '/js/auth-gate.js?v=20260526a',
-  '/js/bootstrap-auth.js?v=20260526a',
-  '/js/username-popup.js?v=20260526a',
-  '/js/data/curated-media.js?v=20260526a',
-  '/js/production-runtime.js?v=20260526a',
-  '/js/igdb-client.js?v=20260526a',
-  '/js/mobile-webapp.js?v=20260526a',
-  '/js/mobile-app.css?v=20260526a',
+  '/css/pages/index.css?v=20260329a',
+  '/css/pages/index-landing.css?v=20260413f',
+  '/css/shared-header.css?v=20260319b',
+  '/css/global-lowercase.css?v=20260308a',
+  '/js/pages/index.js?v=20260425i',
+  '/js/pages/index-home-heavy-loaders.js?v=20260425i',
+  '/js/home-desktop-rebrand.js?v=20260416b',
+  '/js/referral-utils.js?v=20260319a',
+  '/js/shared-header.js?v=20260425e',
+  '/js/review-interactions.js?v=20260308a',
+  '/js/list-utils.js?v=20260424a',
+  '/js/index-list-menu-adapter.js?v=20260317b',
+  '/js/universal-search.js?v=20260421a',
+  '/js/auth-gate.js?v=20260425e',
+  '/js/production-runtime.js?v=20260422a',
+  '/js/igdb-client.js?v=20260311c',
+  '/js/mobile-webapp.js',
+  '/js/mobile-webapp.js?v=20260424b',
+  '/js/mobile-app.css',
+  '/js/mobile-app.css?v=20260329b',
   '/favicon.ico',
-  '/favicon.ico?v=20260526a',
+  '/favicon.ico?v=20260307a',
   '/newlogo.webp',
   '/logo-placeholder.svg',
   '/scared.webp',
@@ -53,19 +51,19 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260526a',
-  '/js/pages/sports.js?v=20260526a',
+  '/css/pages/sports.css?v=20260418a',
+  '/js/pages/sports.js?v=20260425g',
   '/fashion.html',
   '/food.html',
   '/cars.html',
   '/brand.html',
-  '/css/pages/brands.css?v=20260526a',
-  '/css/pages/brand.css?v=20260526a',
-  '/js/pages/brands.js?v=20260526a',
-  '/js/pages/brand.js?v=20260526a',
+  '/css/pages/brands.css?v=20260322c',
+  '/css/pages/brand.css?v=20260316b',
+  '/js/pages/brands.js?v=20260517b',
+  '/js/pages/brand.js?v=20260322a',
   '/team.html',
-  '/css/pages/team.css?v=20260526a',
-  '/js/pages/team.js?v=20260526a',
+  '/css/pages/team.css?v=20260314a',
+  '/js/pages/team.js?v=20260314d',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'
