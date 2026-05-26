@@ -5736,10 +5736,85 @@
                 return hero || cover || '/newlogo.webp';
             }
 
+            function humanizeGameSlug(value) {
+                const raw = String(value || '').trim();
+                if (!raw) return '';
+                return raw
+                    .replace(/[_-]+/g, ' ')
+                    .replace(/\b\w/g, (ch) => ch.toUpperCase())
+                    .trim();
+            }
+
+            async function hydrateProfileGameRecord(record, fallbackKey = '') {
+                if (!record || typeof record !== 'object') return record;
+                const sharedGamesApi = window.__zo2yGamesShared || null;
+                const fallbackTitle = humanizeGameSlug(record.slug || fallbackKey);
+                const nextRecord = { ...record };
+                const currentTitle = String(nextRecord.title || nextRecord.name || '').trim();
+                const baseTitle = currentTitle || fallbackTitle;
+
+                if (!currentTitle && baseTitle) {
+                    nextRecord.title = baseTitle;
+                    nextRecord.name = baseTitle;
+                }
+
+                const currentImage = normalizeGameImageSource(nextRecord);
+                const hasUsableImage = currentImage && currentImage !== '/newlogo.webp' && !isLikelyLogoOnlyGameArt(currentImage);
+
+                if (sharedGamesApi?.searchGamesFromWikipedia && (!currentTitle || !hasUsableImage) && baseTitle) {
+                    try {
+                        const wikiGames = await sharedGamesApi.searchGamesFromWikipedia(baseTitle, null, 1);
+                        const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
+                        if (wikiGame) {
+                            if (!currentTitle) {
+                                const wikiTitle = String(wikiGame.title || wikiGame.name || '').trim();
+                                if (wikiTitle) {
+                                    nextRecord.title = wikiTitle;
+                                    nextRecord.name = wikiTitle;
+                                }
+                            }
+                            if (!hasUsableImage) {
+                                const wikiCover = normalizeGameImageUrl(wikiGame.cover || wikiGame.cover_url || '');
+                                if (wikiCover) {
+                                    nextRecord.cover_url = wikiCover;
+                                    nextRecord.cover = wikiCover;
+                                }
+                            }
+                            if (!String(nextRecord.release_date || nextRecord.released || '').trim()) {
+                                const wikiRelease = String(wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate || '').trim();
+                                if (wikiRelease) {
+                                    nextRecord.release_date = wikiRelease;
+                                    nextRecord.released = wikiRelease;
+                                }
+                            }
+                        }
+                    } catch (_err) {}
+                }
+
+                const hydratedTitle = String(nextRecord.title || nextRecord.name || fallbackTitle).trim();
+                if (sharedGamesApi?.fetchCoverForTitle && hydratedTitle) {
+                    const refreshedImage = normalizeGameImageSource(nextRecord);
+                    const stillNeedsCover = !refreshedImage || refreshedImage === '/newlogo.webp' || isLikelyLogoOnlyGameArt(refreshedImage);
+                    if (stillNeedsCover) {
+                        try {
+                            const cover = await sharedGamesApi.fetchCoverForTitle(hydratedTitle, null);
+                            if (cover) {
+                                nextRecord.cover_url = cover;
+                                nextRecord.cover = cover;
+                            }
+                        } catch (_err) {}
+                    }
+                }
+
+                if (!String(nextRecord.title || '').trim() && fallbackTitle) nextRecord.title = fallbackTitle;
+                if (!String(nextRecord.name || '').trim()) nextRecord.name = String(nextRecord.title || fallbackTitle || 'Untitled').trim() || 'Untitled';
+                return nextRecord;
+            }
+
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
                 if (!row || typeof row !== 'object') return null;
                 const idValue = row.id ?? fallbackId;
-                const title = String(row.title || row.name || row.slug || '').trim() || 'Untitled';
+                const title = String(row.title || row.name || humanizeGameSlug(row.slug) || row.slug || '').trim() || 'Untitled';
                 const ratingValue = Number(row.rating);
                 const ratingCountValue = Number(row.rating_count ?? row.ratings_count ?? 0);
                 const extra = row.extra && typeof row.extra === 'object' ? row.extra : {};
@@ -5804,7 +5879,7 @@
                             : query.eq('id', cacheKey);
                         const { data, error } = await query.maybeSingle();
                         if (!error && data) {
-                            const normalized = normalizeSupabaseGameRecord(data, cacheKey);
+                            const normalized = await hydrateProfileGameRecord(normalizeSupabaseGameRecord(data, cacheKey), cacheKey);
                             return cacheGameRecord(normalized);
                         }
                     } catch (_err) {}
@@ -5823,7 +5898,10 @@
                         return null;
                     }
 
-                    const normalized = normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey };
+                    const normalized = await hydrateProfileGameRecord(
+                        normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey },
+                        cacheKey
+                    );
                     return cacheGameRecord(normalized);
                 } catch (_err) {}
 
@@ -5832,9 +5910,10 @@
                     const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(cacheKey, null, 1);
                     if (wikiGames && wikiGames.length) {
                         const wikiGame = wikiGames[0];
-                        const normalized = {
+                        const normalized = await hydrateProfileGameRecord({
                             id: wikiGame.id,
                             title: wikiGame.name || wikiGame.title,
+                            name: wikiGame.name || wikiGame.title,
                             description: wikiGame.summary || wikiGame.description,
                             cover_url: wikiGame.cover || wikiGame.cover_url,
                             hero_url: '',
@@ -5843,7 +5922,7 @@
                             rating_count: 0,
                             source: 'wikipedia',
                             extra: wikiGame.extra || {}
-                        };
+                        }, cacheKey);
                         return cacheGameRecord(normalized);
                     }
                 } catch (_err) {}

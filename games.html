@@ -2087,7 +2087,7 @@
         const isWiki = game.source === 'wikipedia';
         return {
           id: String(game.id || ''),
-          name: game.title || game.name || 'Unknown Game',
+          name: game.title || game.name || humanizeGameSlug(game.slug) || 'Unknown Game',
           summary: game.description || game.summary || '',
           cover: resolveGameCover(game),
           firstReleaseDate: game.release_date || game.releaseDate || game.firstReleaseDate || '',
@@ -2186,6 +2186,20 @@
       if (raw.startsWith('//')) return `https:${raw}`;
 
       return raw.replace(/^http:\/\//i, 'https://');
+
+    }
+
+    function humanizeGameSlug(value) {
+
+      return String(value || '')
+
+        .trim()
+
+        .replace(/[_-]+/g, ' ')
+
+        .replace(/\b\w/g, (ch) => ch.toUpperCase())
+
+        .trim();
 
     }
 
@@ -2614,7 +2628,7 @@
 
       const api = window.__zo2yGamesShared;
 
-      if (!api?.fetchCoverForTitle) return;
+      if (!api?.fetchCoverForTitle && !api?.searchGamesFromWikipedia) return;
 
 
 
@@ -2630,11 +2644,11 @@
 
         const candidates = state.games
 
-          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
+          .filter((g) => !g.name || g.name === 'Unknown Game' || !g.cover || g.cover === FALLBACK_IMAGE)
 
           .filter((g) => {
 
-            const key = String(g?.name || '').trim().toLowerCase();
+            const key = String(g?.name || g?.id || '').trim().toLowerCase();
 
             return key && !coverHydrateTried.has(key);
 
@@ -2652,27 +2666,64 @@
 
           candidates.map(async (g) => {
 
-            const key = String(g?.name || '').trim().toLowerCase();
+            const key = String(g?.name || g?.id || '').trim().toLowerCase();
 
             if (key) coverHydrateTried.add(key);
 
-            const cover = await api.fetchCoverForTitle(g.name, signal);
+            const searchTitle = String(g.name || humanizeGameSlug(g.id)).trim();
 
-            if (!cover) return;
+            if ((!g.name || g.name === 'Unknown Game') && api.searchGamesFromWikipedia && searchTitle) {
 
-            g.cover = cover;
+              try {
+
+                const wikiGames = await api.searchGamesFromWikipedia(searchTitle, signal, 1);
+
+                const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
+
+                if (wikiGame) {
+
+                  const wikiTitle = String(wikiGame.title || wikiGame.name || '').trim();
+
+                  const wikiCover = resolveGameCover(wikiGame);
+
+                  if (wikiTitle) g.name = wikiTitle;
+
+                  if (wikiCover && (!g.cover || g.cover === FALLBACK_IMAGE)) g.cover = wikiCover;
+
+                }
+
+              } catch (_err) {}
+
+            }
+
+            if ((!g.cover || g.cover === FALLBACK_IMAGE) && api.fetchCoverForTitle && searchTitle) {
+
+              const cover = await api.fetchCoverForTitle(String(g.name || searchTitle).trim(), signal);
+
+              if (cover) g.cover = cover;
+
+            }
+
+            if ((!g.cover || g.cover === FALLBACK_IMAGE) && (!g.name || g.name === 'Unknown Game')) return;
 
             filled += 1;
 
             const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
 
             const img = card ? card.querySelector('img') : null;
+            const titleEl = card ? card.querySelector('.card-name, .card-title') : null;
 
-            if (img && img.getAttribute('src') === FALLBACK_IMAGE) {
+            if (img && g.cover && img.getAttribute('src') === FALLBACK_IMAGE) {
 
-              img.setAttribute('src', cover);
+              img.setAttribute('src', g.cover);
 
               }
+
+            if (titleEl && g.name) {
+
+              titleEl.textContent = g.name;
+
+            }
 
           })
 

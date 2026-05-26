@@ -1013,6 +1013,10 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
+    const BOOKS_CACHE_PREFIX = 'zo2y_books_page_cache_v2:';
+    const BOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
+    const booksRequestCache = new Map();
+    let activeBooksRequestController = null;
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1088,6 +1092,49 @@
         .trim();
     }
 
+    function getBooksCacheKey(query, page, orderBy = '') {
+      const safeQuery = String(query || '').trim().toLowerCase();
+      const safePage = Math.max(1, Number(page || 1));
+      const safeOrder = String(orderBy || '').trim().toLowerCase();
+      return `${BOOKS_CACHE_PREFIX}${safeQuery || '__popular__'}:${safePage}:${safeOrder || '__default__'}`;
+    }
+
+    function readBooksRequestCache(query, page, orderBy = '') {
+      const key = getBooksCacheKey(query, page, orderBy);
+      if (booksRequestCache.has(key)) return booksRequestCache.get(key);
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        const savedAt = Number(parsed?.savedAt || 0);
+        if (!savedAt || (Date.now() - savedAt) > BOOKS_CACHE_TTL_MS) {
+          localStorage.removeItem(key);
+          return null;
+        }
+        const payload = {
+          books: Array.isArray(parsed?.books) ? parsed.books : [],
+          total: Number(parsed?.total || 0)
+        };
+        booksRequestCache.set(key, payload);
+        return payload;
+      } catch (_err) {
+        return null;
+      }
+    }
+
+    function writeBooksRequestCache(query, page, orderBy, books, total = 0) {
+      const key = getBooksCacheKey(query, page, orderBy);
+      const payload = {
+        books: Array.isArray(books) ? books : [],
+        total: Number(total || 0),
+        savedAt: Date.now()
+      };
+      booksRequestCache.set(key, payload);
+      try {
+        localStorage.setItem(key, JSON.stringify(payload));
+      } catch (_err) {}
+    }
+
     function isDateWithinAcceptableRange(dateString) {
       if (!dateString) return true;
       const date = new Date(dateString);
@@ -1123,6 +1170,9 @@
       const query = String(queryOverride || state.search || '').trim();
       let books = [];
       let apiTotalResults = null;
+      if (activeBooksRequestController) activeBooksRequestController.abort();
+      activeBooksRequestController = new AbortController();
+      const signal = activeBooksRequestController.signal;
 
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
@@ -1146,7 +1196,7 @@
           };
 
           const fetchAndParse = async (url) => {
-            const res = await fetch(url);
+            const res = await fetch(url, { signal });
             if (!res.ok) return null;
             const json = await res.json();
             const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
@@ -1155,48 +1205,65 @@
             return json;
           };
 
-          // 1. Open Library trending — real popular books based on actual usage
-          for (const period of ['weekly', 'monthly', 'daily']) {
-            if (books.length >= BOOKS_PER_PAGE) break;
-            await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${BOOKS_PER_PAGE}`);
-          }
+          const cachedPopular = readBooksRequestCache('', apiPageStart, 'popular');
+          if (cachedPopular?.books?.length) {
+            books = cachedPopular.books.slice();
+            apiTotalResults = cachedPopular.total || cachedPopular.books.length;
+          } else {
+            await Promise.all(
+              ['weekly', 'monthly', 'daily'].map((period) =>
+                fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${BOOKS_PER_PAGE}`)
+              )
+            );
 
-          // 2. Supplement with popular subjects if still short
-          if (books.length < 15) {
-            const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
-            for (const subject of subjects) {
-              if (books.length >= BOOKS_PER_PAGE) break;
-              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(BOOKS_PER_PAGE / 2)}&page=1&language=en`);
+            if (books.length < 15) {
+              const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
+              await Promise.all(
+                subjects.map((subject) =>
+                  fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(BOOKS_PER_PAGE / 2)}&page=1&language=en`)
+                )
+              );
             }
-          }
 
-          // 3. Ultimate fallback — Google Books search for current bestsellers
-          if (books.length < 15) {
-            const fallbackQueries = [
-              'bestsellers 2025 fiction',
-              'popular books 2025',
-              '2025 bestseller'
-            ];
-            for (const q of fallbackQueries) {
-              if (books.length >= BOOKS_PER_PAGE) break;
-              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / 3)}&page=1&language=en&orderBy=relevance`);
+            if (books.length < 15) {
+              const fallbackQueries = [
+                'bestsellers 2025 fiction',
+                'popular books 2025',
+                '2025 bestseller'
+              ];
+              await Promise.all(
+                fallbackQueries.map((q) =>
+                  fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / 3)}&page=1&language=en&orderBy=relevance`)
+                )
+              );
             }
+
+            writeBooksRequestCache('', apiPageStart, 'popular', books, apiTotalResults || books.length);
           }
         } catch (_err) {
+          if (_err?.name === 'AbortError') return;
           console.error('Failed to load popular books', _err);
         }
       } else {
         const orderBy = query.match(/\b(202[4-9]|2030)\b/) ? 'newest' : 'relevance';
-        const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=${orderBy}`;
-        try {
-          const res = await fetch(url);
-          if (res.ok) {
-            const json = await res.json();
-            books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-            apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
+        const cachedSearch = readBooksRequestCache(query, apiPageStart, orderBy);
+        if (cachedSearch?.books?.length) {
+          books = cachedSearch.books.slice();
+          apiTotalResults = cachedSearch.total || cachedSearch.books.length;
+        } else {
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=${orderBy}`;
+          try {
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+              apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
+              writeBooksRequestCache(query, apiPageStart, orderBy, books, apiTotalResults);
+            }
+          } catch (_err) {
+            if (_err?.name === 'AbortError') return;
+            console.error('Failed to search books', _err);
           }
-        } catch (_err) {
-          console.error('Failed to search books', _err);
         }
       }
 
@@ -1269,7 +1336,7 @@
         await loadBooksWithFallback();
         await loadListStatus();
         renderGrid();
-      }, 300);
+      }, 180);
     }
 
     async function ensureSupabase() {
