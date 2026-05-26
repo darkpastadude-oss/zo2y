@@ -848,7 +848,8 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
         return;
       }
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260424d').catch(() => {
+    const swVersion = String(window.__ZO2Y_APP_VERSION || '20260526a').trim() || '20260526a';
+    navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(swVersion)}`).catch(() => {
         // silent fail to avoid runtime noise
         });
       });

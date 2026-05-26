@@ -6,6 +6,31 @@
   <script>
     // Used to invalidate stale Service Worker caches after deployments.
     window.__ZO2Y_APP_VERSION = '20260526a';
+    // If an older Service Worker is controlling this page, it can serve stale cached JS/HTML
+    // and cause refresh-only failures. Detect mismatch early (before app scripts run) and
+    // hard-reset the app shell once per session.
+    (function () {
+      try {
+        const expected = String(window.__ZO2Y_APP_VERSION || '').trim();
+        if (!expected) return;
+        if (!('serviceWorker' in navigator)) return;
+        const controllerUrl = String(navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL || '');
+        if (!controllerUrl) return;
+        if (controllerUrl.includes(encodeURIComponent(expected)) || controllerUrl.includes(expected)) return;
+
+        const reloadKey = 'zo2y:sw_reset_done';
+        if (sessionStorage.getItem(reloadKey) === '1') return;
+        sessionStorage.setItem(reloadKey, '1');
+
+        Promise.resolve()
+          .then(() => navigator.serviceWorker.getRegistrations())
+          .then((regs) => Promise.all((regs || []).map((reg) => reg.unregister().catch(() => false))))
+          .then(() => ('caches' in window ? caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k).catch(() => false)))) : null))
+          .finally(() => {
+            try { window.location.reload(); } catch (_err) { window.location.href = window.location.href; }
+          });
+      } catch (_err) {}
+    })();
   </script>
   
   <script src="/js/auth-gate.js?v=20260526a"></script>
