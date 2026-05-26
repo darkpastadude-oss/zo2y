@@ -1,3 +1,39 @@
+    (function ensureFreshAppShell() {
+      try {
+        const currentVersion = String(window.__ZO2Y_APP_VERSION || '').trim();
+        if (!currentVersion) return;
+        const versionKey = 'zo2y:app_version';
+        const reloadKey = 'zo2y:app_version_reloaded';
+        const previousVersion = String(localStorage.getItem(versionKey) || '').trim();
+
+        if (previousVersion && previousVersion !== currentVersion && sessionStorage.getItem(reloadKey) !== '1') {
+          sessionStorage.setItem(reloadKey, '1');
+          localStorage.setItem(versionKey, currentVersion);
+
+          const unregisterPromise = (async () => {
+            if (!('serviceWorker' in navigator)) return;
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((reg) => reg.unregister().catch(() => false)));
+          })();
+
+          const clearCachesPromise = (async () => {
+            if (!('caches' in window)) return;
+            const keys = await caches.keys();
+            await Promise.all(keys.map((key) => caches.delete(key).catch(() => false)));
+          })();
+
+          Promise.allSettled([unregisterPromise, clearCachesPromise]).finally(() => {
+            try { window.location.reload(); } catch (_err) { window.location.href = window.location.href; }
+          });
+          return;
+        }
+
+        if (!previousVersion) {
+          localStorage.setItem(versionKey, currentVersion);
+        }
+      } catch (_err) {}
+    })();
+
     const ENABLE_GAMES = true;
     const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
