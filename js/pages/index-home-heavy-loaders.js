@@ -1499,7 +1499,8 @@ async function loadBooks(signal) {
       const league = String(override?.league || team.strLeague || '').trim();
       const stadium = String(override?.stadium || team.strStadium || '').trim();
       const country = String(override?.country || team.strCountry || '').trim();
-      const badge = toHttpsUrl(override?.badge || team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
+      const customLogo = String(team.logo || '').trim();
+      const badge = toHttpsUrl(override?.badge || customLogo || team.strBadge || team.strTeamBadge || team.strTeamLogo || team.strLogo || '');
       const fallbackImage = HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
       if (!badge) return null;
       const background = badge || fallbackImage;
@@ -1763,6 +1764,38 @@ async function loadBooks(signal) {
 
       if (items.length) {
         const prioritized = prioritizeHomeSportsItems(items, targetCount);
+        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
+        return prioritized;
+      }
+
+      const fallbackTeams = [
+        { name: 'Real Madrid', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
+        { name: 'Barcelona', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/barcelona.png' },
+        { name: 'Liverpool', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/liverpool.png' },
+        { name: 'Manchester City', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/manchestercity.png' },
+        { name: 'Arsenal', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/arsenal.png' },
+        { name: 'Bayern Munich', sport: 'Soccer', league: 'German Bundesliga', logo: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
+        { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/losangeleslakers.png' },
+        { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/bostonceltics.png' },
+        { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/goldenstatewarriors.png' },
+        { name: 'Kansas City Chiefs', sport: 'American Football', league: 'NFL', logo: '/assets/logos/nfl/kansascitychiefs.png' },
+        { name: 'Dallas Cowboys', sport: 'American Football', league: 'NFL', logo: '/assets/logos/nfl/dallascowboys.png' },
+        { name: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/ferrari.png' },
+        { name: 'Red Bull Racing', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/redbullracing.png' },
+        { name: 'New York Yankees', sport: 'Baseball', league: 'MLB', logo: '/assets/logos/mlb/newyorkyankees.png' },
+        { name: 'Toronto Maple Leafs', sport: 'Ice Hockey', league: 'NHL', logo: '/assets/logos/nhl/torontomapleleafs.png' },
+        { name: 'UFC', sport: 'MMA', league: 'Ultimate Fighting Championship', logo: '/assets/logos/mma/ufc/ufc.svg' }
+      ];
+      const fallbackItems = fallbackTeams.map((row, index) => mapSportsTeamToHomeItem({
+        idTeam: `fallback-${index}`,
+        strTeam: row.name,
+        strSport: row.sport,
+        strLeague: row.league,
+        strStadium: '',
+        strCountry: ''
+      })).filter((item) => item && item.image);
+      if (fallbackItems.length) {
+        const prioritized = prioritizeHomeSportsItems(fallbackItems, targetCount);
         writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
         return prioritized;
       }
