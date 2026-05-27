@@ -435,18 +435,6 @@
        const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
-       async function ensureSupabase() {
-         if (window.__ZO2Y_SUPABASE_CLIENT) return window.__ZO2Y_SUPABASE_CLIENT;
-         if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-           const client = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-           if (client) {
-             window.__ZO2Y_SUPABASE_CLIENT = client;
-             return client;
-           }
-         }
-         return null;
-       }
-
        function shuffle(array) {
          const arr = [...array];
          for (let i = arr.length - 1; i > 0; i--) {
@@ -456,11 +444,32 @@
          return arr;
        }
 
+       async function waitForSupabase() {
+         for (let i = 0; i < 100; i++) {
+           if (window.supabase?.createClient) return window.supabase;
+           await new Promise(r => setTimeout(r, 50));
+         }
+         return null;
+       }
+
        async function loadSportsTiles() {
          try {
-           const client = await ensureSupabase();
-           if (!client) return;
+           // Wait for supabase library to load
+           const supabase = await waitForSupabase();
+           if (!supabase) {
+             console.error('[landing sports] Supabase library not loaded');
+             return;
+           }
 
+           // Create or get client
+           let client = window.__ZO2Y_SUPABASE_CLIENT;
+           if (!client) {
+             client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+             window.__ZO2Y_SUPABASE_CLIENT = client;
+           }
+
+           console.log('[landing sports] Querying teams...');
+           
            // Query teams from popular sports
            const { data, error } = await client
              .from('teams')
@@ -468,7 +477,17 @@
              .in('sport', ['football', 'soccer', 'basketball', 'american football'])
              .limit(500);
 
-           if (error || !data || data.length === 0) return;
+           if (error) {
+             console.error('[landing sports] Query error:', error);
+             return;
+           }
+
+           if (!data || data.length === 0) {
+             console.warn('[landing sports] No teams found');
+             return;
+           }
+
+           console.log('[landing sports] Loaded', data.length, 'teams');
 
            // Shuffle and take 8 teams
            const shuffled = shuffle(data);
@@ -476,7 +495,10 @@
 
            // Get the sports wall row container
            const sportsWallRow = document.getElementById('sportsWallRow');
-           if (!sportsWallRow) return;
+           if (!sportsWallRow) {
+             console.error('[landing sports] sportsWallRow element not found');
+             return;
+           }
 
            // Clear and populate
            sportsWallRow.innerHTML = '';
@@ -501,12 +523,14 @@
 
              sportsWallRow.appendChild(figure);
            });
+           
+           console.log('[landing sports] Rendered', selectedTeams.length, 'teams');
          } catch (err) {
-           console.error('[landing sports] Load error:', err);
+           console.error('[landing sports] Error:', err);
          }
        }
 
-       // Wait for supabase and DOM to be ready
+       // Run after DOM is ready
        if (document.readyState === 'loading') {
          document.addEventListener('DOMContentLoaded', loadSportsTiles);
        } else {
