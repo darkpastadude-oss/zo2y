@@ -9987,153 +9987,69 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadSports(signal) {
       const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       
-      // Hardcoded array of popular football, basketball, and soccer teams
-      const POPULAR_HOME_TEAMS = [
-        // Football/Soccer Teams
-        'Real Madrid', 'Barcelona', 'Liverpool', 'Manchester City', 'Manchester United',
-        'Arsenal', 'Chelsea', 'Bayern Munich', 'Borussia Dortmund', 'Paris Saint-Germain',
-        'Inter Milan', 'AC Milan', 'Juventus', 'Napoli', 'Atletico Madrid',
-        'Sevilla', 'Villarreal', 'Real Sociedad', 'Athletic Bilbao', 'Ajax',
-        'Feyenoord', 'FC Porto', 'Benfica', 'Sporting CP', 'Celtic',
-        'Galatasaray', 'PSV Eindhoven', 'Dinamo Zagreb', 'Club Brugge', 'Al Hilal',
-        'Al Nassr', 'Al Ittihad', 'Al Ahly', 'Zamalek', 'Boca Juniors',
-        'River Plate', 'Flamengo', 'Palmeiras', 'Corinthians', 'São Paulo',
-        'Tottenham Hotspur', 'Newcastle United', 'Aston Villa', 'Brighton', 'West Ham United',
-        'Everton', 'Marseille', 'Lyon', 'Lille', 'Nice',
-        'RB Leipzig', 'Bayer Leverkusen', 'Eintracht Frankfurt', 'Werder Bremen', 'VfB Stuttgart',
-        
-        // Basketball Teams (NBA)
-        'Los Angeles Lakers', 'Boston Celtics', 'Golden State Warriors', 'Chicago Bulls',
-        'Miami Heat', 'Milwaukee Bucks', 'New York Knicks', 'Phoenix Suns',
-        'Denver Nuggets', 'Dallas Mavericks', 'Oklahoma City Thunder', 'San Antonio Spurs',
-        'Philadelphia 76ers',
-        
-        // NFL Teams
-        'Kansas City Chiefs', 'Dallas Cowboys', 'San Francisco 49ers',
-        'Philadelphia Eagles', 'Buffalo Bills', 'Green Bay Packers',
-        'Pittsburgh Steelers', 'Baltimore Ravens', 'Detroit Lions', 'Los Angeles Rams',
-        'New England Patriots'
-      ];
-      
       try {
         const client = await ensureHomeSupabase();
-        if (!client) {
-          // Fallback to cached teams if supabase fails
-          const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
-          const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-          const seen = new Set();
-          const deduped = combined.filter((t) => {
-            const key = String(t.id || '');
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          return deduped.slice(0, target).map((t) => ({
-            mediaType: 'sports',
-            itemId: t.id || t.name,
-            title: t.name,
-            subtitle: t.category || 'Sports',
-            extra: [t.category, t.country].filter(Boolean).join(' | '),
-            image: t.logo_url,
-            listImage: t.logo_url,
-            backgroundImage: t.logo_url,
-            spotlightImage: t.logo_url,
-            spotlightMediaImage: t.logo_url,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'square',
-            mediaFit: 'contain',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: 'sports.html'
-          }));
+        if (client) {
+          // Query supabase for teams by sport type - get football, basketball, and american football
+          const { data: teams, error } = await client
+            .from('teams')
+            .select('id,name,sport,league,logo_url,country')
+            .in('sport', ['football', 'soccer', 'basketball', 'american football'])
+            .limit(500);
+          
+          if (!error && teams && teams.length > 0) {
+            // Shuffle the teams and return
+            const shuffled = stableShuffleHomeItems(teams, 'sports:supabase');
+            return shuffled.slice(0, target).map((t) => ({
+              mediaType: 'sports',
+              itemId: t.id || t.name,
+              title: t.name,
+              subtitle: t.league || 'Sports',
+              extra: [t.league, t.sport].filter(Boolean).join(' | '),
+              image: t.logo_url,
+              listImage: t.logo_url,
+              backgroundImage: t.logo_url,
+              spotlightImage: t.logo_url,
+              spotlightMediaImage: t.logo_url,
+              spotlightMediaFit: 'contain',
+              spotlightMediaShape: 'square',
+              mediaFit: 'contain',
+              fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+              href: 'sports.html'
+            }));
+          }
         }
-        
-        // Query supabase for popular teams
-        const { data: teams, error } = await client
-          .from('teams')
-          .select('id,name,sport,league,logo_url,country')
-          .in('name', POPULAR_HOME_TEAMS)
-          .limit(500);
-        
-        if (error || !teams || !teams.length) {
-          // Fallback to cached teams
-          const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
-          const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-          const seen = new Set();
-          const deduped = combined.filter((t) => {
-            const key = String(t.id || '');
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          return deduped.slice(0, target).map((t) => ({
-            mediaType: 'sports',
-            itemId: t.id || t.name,
-            title: t.name,
-            subtitle: t.category || 'Sports',
-            extra: [t.category, t.country].filter(Boolean).join(' | '),
-            image: t.logo_url,
-            listImage: t.logo_url,
-            backgroundImage: t.logo_url,
-            spotlightImage: t.logo_url,
-            spotlightMediaImage: t.logo_url,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'square',
-            mediaFit: 'contain',
-            fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-            href: 'sports.html'
-          }));
-        }
-        
-        // Shuffle the teams
-        const shuffled = stableShuffleHomeItems(teams, 'sports:supabase');
-        
-        // Format and return
-        return shuffled.slice(0, target).map((t) => ({
-          mediaType: 'sports',
-          itemId: t.id || t.name,
-          title: t.name,
-          subtitle: t.league || 'Sports',
-          extra: [t.league, t.sport].filter(Boolean).join(' | '),
-          image: t.logo_url,
-          listImage: t.logo_url,
-          backgroundImage: t.logo_url,
-          spotlightImage: t.logo_url,
-          spotlightMediaImage: t.logo_url,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'square',
-          mediaFit: 'contain',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-          href: 'sports.html'
-        }));
       } catch (err) {
-        // Fallback on any error
-        const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
-        const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-        const seen = new Set();
-        const deduped = combined.filter((t) => {
-          const key = String(t.id || '');
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        return deduped.slice(0, target).map((t) => ({
-          mediaType: 'sports',
-          itemId: t.id || t.name,
-          title: t.name,
-          subtitle: t.category || 'Sports',
-          extra: [t.category, t.country].filter(Boolean).join(' | '),
-          image: t.logo_url,
-          listImage: t.logo_url,
-          backgroundImage: t.logo_url,
-          spotlightImage: t.logo_url,
-          spotlightMediaImage: t.logo_url,
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'square',
-          mediaFit: 'contain',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-          href: 'sports.html'
-        }));
+        // Silently continue to fallback
       }
+      
+      // Fallback to cached teams if supabase query fails
+      const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
+      const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
+      const seen = new Set();
+      const deduped = combined.filter((t) => {
+        const key = String(t.id || '');
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      return deduped.slice(0, target).map((t) => ({
+        mediaType: 'sports',
+        itemId: t.id || t.name,
+        title: t.name,
+        subtitle: t.category || t.league || 'Sports',
+        extra: [t.category || t.league, t.country].filter(Boolean).join(' | '),
+        image: t.logo_url,
+        listImage: t.logo_url,
+        backgroundImage: t.logo_url,
+        spotlightImage: t.logo_url,
+        spotlightMediaImage: t.logo_url,
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'square',
+        mediaFit: 'contain',
+        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        href: 'sports.html'
+      }));
     }
 
     async function initUniversalHome(options = {}) {
