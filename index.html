@@ -152,16 +152,9 @@
             <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
           </div>
 
-          <div class="landing-v4-wall-row">
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-2"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-3"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-4"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-5"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-6"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-7"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134931/kansas-city-chiefs-badge.png" alt=""><figcaption>sports</figcaption></figure>
-            <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="sports-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png" alt=""><figcaption>sports</figcaption></figure>
-          </div>
+           <div class="landing-v4-wall-row" id="sportsWallRow">
+             <!-- Sports teams will be populated here by JavaScript -->
+           </div>
 
           <div class="landing-v4-wall-row">
             <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg" alt=""><figcaption>food</figcaption></figure>
@@ -432,10 +425,106 @@
       });
     })();
   </script>
-    <script src="js/pages/index.js?v=20260517a" defer></script>
-  <script src="js/production-runtime.js?v=20260422a" defer></script>
-  <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
-  </div>
+     <script src="js/pages/index.js?v=20260517a" defer></script>
+   <script src="js/production-runtime.js?v=20260422a" defer></script>
+   <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
+   <script>
+     // Shuffle and display popular sports teams in the landing page
+     document.addEventListener('DOMContentLoaded', function() {
+       // Popular football (soccer) teams
+       const footballTeams = [
+         { name: 'Real Madrid', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png', domain: 'realmadrid.com' },
+         { name: 'Barcelona', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'fcbarcelona.com' }, // Using Liverpool badge as placeholder
+         { name: 'Manchester United', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png', domain: 'manutd.com' }, // Using Yankees badge as placeholder
+         { name: 'Liverpool', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'liverpoolfc.com' },
+         { name: 'Manchester City', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png', domain: 'mancity.com' }, // Using Lakers badge as placeholder
+         { name: 'Bayern Munich', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png', domain: 'fcbayern.com' }, // Using Celtics badge as placeholder
+         { name: 'Paris Saint-Germain', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png', domain: 'psg.fr' }, // Using Warriors badge as placeholder
+         { name: 'Juventus', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png', domain: 'juventus.com' }, // Using Real Madrid badge as placeholder
+         { name: 'AC Milan', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png', domain: 'acmilan.com' }, // Using Arsenal badge as placeholder
+         { name: 'Inter Milan', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'inter.it' } // Using Liverpool badge as placeholder
+       ];
+       
+       // Popular basketball teams
+       const basketballTeams = [
+         { name: 'Los Angeles Lakers', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png', domain: 'nba.com/lakers' },
+         { name: 'Boston Celtics', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png', domain: 'nba.com/celtics' },
+         { name: 'Golden State Warriors', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png', domain: 'nba.com/warriors' },
+         { name: 'Chicago Bulls', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png', domain: 'nba.com/bulls' }, // Using Real Madrid badge as placeholder
+         { name: 'Miami Heat', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png', domain: 'nba.com/heat' }, // Using Arsenal badge as placeholder
+         { name: 'Milwaukee Bucks', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'nba.com/bucks' }, // Using Liverpool badge as placeholder
+         { name: 'Philadelphia 76ers', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png', domain: 'nba.com/sixers' }, // Using Lakers badge as placeholder
+         { name: 'Phoenix Suns', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png', domain: 'nba.com/suns' }, // Using Celtics badge as placeholder
+         { name: 'Dallas Mavericks', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png', domain: 'nba.com/mavericks' }, // Using Warriors badge as placeholder
+         { name: 'New York Knicks', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png', domain: 'nba.com/knicks' } // Using Real Madrid badge as placeholder
+       ];
+       
+       // Popular football (American) teams
+       const americanFootballTeams = [
+         { name: 'Kansas City Chiefs', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/135260/new-york-yankees-badge.png', domain: 'chiefs.com' }, // Using Yankees badge as placeholder
+         { name: 'Dallas Cowboys', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'dallascowboys.com' }, // Using Liverpool badge as placeholder
+         { name: 'San Francisco 49ers', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png', domain: '49ers.com' }, // Using Arsenal badge as placeholder
+         { name: 'Philadelphia Eagles', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png', domain: 'philadelphiaeagles.com' }, // Using Lakers badge as placeholder
+         { name: 'Buffalo Bills', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134860/boston-celtics-badge.png', domain: 'buffalobills.com' }, // Using Celtics badge as placeholder
+         { name: 'Green Bay Packers', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134865/golden-state-warriors-badge.png', domain: 'packers.com' }, // Using Warriors badge as placeholder
+         { name: 'New England Patriots', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133738/real-madrid-badge.png', domain: 'patriots.com' }, // Using Real Madrid badge as placeholder
+         { name: 'Pittsburgh Steelers', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133604/arsenal-badge.png', domain: 'steelers.com' }, // Using Arsenal badge as placeholder
+         { name: 'Baltimore Ravens', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/133602/liverpool-badge.png', domain: 'baltimoreravens.com' }, // Using Liverpool badge as placeholder
+         { name: 'Los Angeles Rams', badge: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/sports-assets/134867/los-angeles-lakers-badge.png', domain: 'therams.com' } // Using Lakers badge as placeholder
+       ];
+       
+       // Combine all teams
+       const allTeams = [...footballTeams, ...basketballTeams, ...americanFootballTeams];
+       
+       // Shuffle the array
+       function shuffleArray(array) {
+         for (let i = array.length - 1; i > 0; i--) {
+           const j = Math.floor(Math.random() * (i + 1));
+           [array[i], array[j]] = [array[j], array[i]];
+         }
+         return array;
+       }
+       
+       const shuffledTeams = shuffleArray(allTeams);
+       
+       // Take first 8 teams for the wall
+       const selectedTeams = shuffledTeams.slice(0, 8);
+       
+       // Get the sports wall row container
+       const sportsWallRow = document.getElementById('sportsWallRow');
+       
+       if (sportsWallRow) {
+         // Clear existing content
+         sportsWallRow.innerHTML = '';
+         
+         // Add each team as a figure element
+         selectedTeams.forEach((team, index) => {
+           const figure = document.createElement('figure');
+           figure.className = 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light';
+           figure.setAttribute('data-wall-slot', `sports-${index + 1}`);
+           
+           const img = document.createElement('img');
+           img.src = team.badge;
+           img.alt = team.name;
+           
+           const figcaption = document.createElement('figcaption');
+           figcaption.textContent = team.name;
+           
+           figure.appendChild(img);
+           figure.appendChild(figcaption);
+           
+           // Make it clickable to go to sports page
+           figure.style.cursor = 'pointer';
+           figure.onclick = () => {
+             window.location.href = 'sports.html';
+           };
+           
+           sportsWallRow.appendChild(figure);
+         });
+       }
+     });
+   </script>
+ </div>
   </body>
 </html>
 
