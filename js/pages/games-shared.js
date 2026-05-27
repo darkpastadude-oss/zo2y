@@ -15,6 +15,8 @@
   const GAME_SEARCH_CACHE_PREFIX = 'zo2y_game_search_cache_v1:';
   const GAME_SEARCH_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
   const gameSearchCache = new Map();
+  const NO_COVER_CACHE_PREFIX = 'zo2y_game_nocover_v1:';
+  const NO_COVER_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
@@ -97,6 +99,38 @@
     if (!key || !safeUrl) return;
     try {
       window.localStorage?.setItem(key, JSON.stringify({ url: safeUrl, t: Date.now() }));
+      const noCoverKey = `${NO_COVER_CACHE_PREFIX}${String(title || '').trim().toLowerCase()}`;
+      if (noCoverKey) window.localStorage?.removeItem(noCoverKey);
+    } catch (_err) {}
+  }
+
+  function isNoCoverCached(title) {
+    if (!COVER_STORAGE_ENABLED) return false;
+    const key = `${NO_COVER_CACHE_PREFIX}${String(title || '').trim().toLowerCase()}`;
+    if (key === NO_COVER_CACHE_PREFIX) return false;
+    try {
+      const raw = window.localStorage ? window.localStorage.getItem(key) : '';
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed?.t || 0);
+      if (!Number.isFinite(savedAt) || (Date.now() - savedAt) > NO_COVER_TTL_MS) {
+        window.localStorage?.removeItem(key);
+        return false;
+      }
+      return true;
+    } catch (_err) {
+      return false;
+    }
+  }
+
+  function markNoCoverCached(title) {
+    if (!COVER_STORAGE_ENABLED) return;
+    const key = `${NO_COVER_CACHE_PREFIX}${String(title || '').trim().toLowerCase()}`;
+    if (key === NO_COVER_CACHE_PREFIX) return;
+    try {
+      window.localStorage?.setItem(key, JSON.stringify({ t: Date.now() }));
+      const coverKey = getCoverStorageKey(title);
+      if (coverKey) window.localStorage?.removeItem(coverKey);
     } catch (_err) {}
   }
 
@@ -221,6 +255,12 @@
     if (!key) return '';
     if (coverLookupCache.has(key)) return coverLookupCache.get(key) || '';
 
+    // Skip API calls for titles known to have no cover
+    if (isNoCoverCached(title)) {
+      coverLookupCache.set(key, '');
+      return '';
+    }
+
     const url = new URL(`${IGDB_PROXY_BASE}/games`, window.location.origin);
     url.searchParams.set('search', String(title || '').trim().slice(0, 120));
     url.searchParams.set('page', '1');
@@ -250,14 +290,24 @@
         return cover;
       }
       const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
-      coverLookupCache.set(key, wikiCover || '');
-      if (wikiCover) writeCachedCoverToStorage(title, wikiCover);
-      return wikiCover || '';
+      if (wikiCover) {
+        coverLookupCache.set(key, wikiCover);
+        writeCachedCoverToStorage(title, wikiCover);
+        return wikiCover;
+      }
+      coverLookupCache.set(key, '');
+      markNoCoverCached(title);
+      return '';
     } catch (_err) {
       const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
-      coverLookupCache.set(key, wikiCover || '');
-      if (wikiCover) writeCachedCoverToStorage(title, wikiCover);
-      return wikiCover || '';
+      if (wikiCover) {
+        coverLookupCache.set(key, wikiCover);
+        writeCachedCoverToStorage(title, wikiCover);
+        return wikiCover;
+      }
+      coverLookupCache.set(key, '');
+      markNoCoverCached(title);
+      return '';
     }
   }
 
