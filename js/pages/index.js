@@ -9915,192 +9915,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     async function loadSports(signal) {
       const target = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || 12)));
-      const normalizeSportsName = (value) => String(value || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]+/g, '')
-        .replace(/[\u0027\u2019]/g, '')
-        .replace(/\b(fc|cf|sc|afc|club|the)\b/g, '')
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim();
-      const seedSet = new Set(HOME_SPORTS_SEEDS.map((name) => normalizeSportsName(name)).filter(Boolean));
-      const cachedSportsItems = readHomeItemsCache(
-        HOME_SPORTS_ITEMS_CACHE_KEY,
-        HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS,
-        (item) => {
-          if (!item || typeof item !== 'object') return null;
-          const title = String(item.title || '').trim();
-          const image = String(item.image || '').trim();
-          if (!title || !image) return null;
-          return item;
-        }
-      );
-      if (cachedSportsItems.length >= Math.min(target, 8)) {
-        return cachedSportsItems.slice(0, target);
-      }
-
-      const SPORT_PRIORITY = {
-        football: 1,
-        soccer: 1,
-        motorsport: 2,
-        mma: 3,
-        basketball: 4,
-        'american football': 5,
-        baseball: 6,
-        'ice hockey': 7,
-        hockey: 7,
-        rugby: 8,
-        cricket: 9,
-        boxing: 10,
-        kickboxing: 11,
-        other: 12
-      };
-      const POPULAR_TEAMS = new Set([
-        'real madrid', 'barcelona', 'liverpool', 'manchester city', 'manchester united',
-        'arsenal', 'chelsea', 'bayern munich', 'borussia dortmund', 'paris saint germain',
-        'inter milan', 'ac milan', 'juventus', 'napoli', 'atletico madrid',
-        'los angeles lakers', 'boston celtics', 'golden state warriors', 'chicago bulls',
-        'miami heat', 'milwaukee bucks', 'new york knicks', 'phoenix suns',
-        'kansas city chiefs', 'dallas cowboys', 'san francisco 49ers',
-        'philadelphia eagles', 'buffalo bills', 'green bay packers',
-        'ferrari', 'mercedes', 'red bull racing', 'mclaren', 'aston martin',
-        'new york yankees', 'los angeles dodgers', 'boston red sox', 'chicago cubs',
-        'toronto maple leafs', 'montreal canadiens', 'boston bruins', 'edmonton oilers',
-        'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr'
-      ]);
-      const BADGE_OVERRIDES = {
-        'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
-        'psg': '/assets/logos/football/french-ligue-1/psg.png',
-        'paris saint germain': '/assets/logos/football/french-ligue-1/psg.png',
-        'sao paulo': '/assets/logos/football/brazilian-serie-a/saopaulo.png',
-        'al hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
-        'al-hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
-        'al nassr': '/assets/logos/football/saudi-pro-league/alnassr.png',
-        'al ahly': '/assets/logos/football/egyptian-premier-league/alahly.png',
-        ferrari: '/assets/logos/f1/ferrari.png',
-        'scuderia ferrari hp': '/assets/logos/f1/ferrari.png',
-        'red bull racing': '/assets/logos/f1/redbullracing.png',
-        'oracle red bull racing': '/assets/logos/f1/redbullracing.png',
-        mercedes: '/assets/logos/f1/mercedes.png',
-        'mercedes-amg petronas formula one team': '/assets/logos/f1/mercedes.png',
-        mclaren: '/assets/logos/f1/mclaren.png',
-        'mclaren formula 1 team': '/assets/logos/f1/mclaren.png',
-        'aston martin': '/assets/logos/f1/astonmartin.png',
-        'aston martin aramco formula one team': '/assets/logos/f1/astonmartin.png'
-      };
-      const toSportBucket = (sportValue) => {
-        const sport = String(sportValue || '').trim().toLowerCase();
-        if (sport.includes('soccer')) return 'soccer';
-        if (sport.includes('mma') || sport.includes('ufc') || sport.includes('boxing') || sport.includes('martial')) return 'mma';
-        if (sport.includes('american football')) return 'american-football';
-        if (sport.includes('football')) return 'soccer';
-        if (sport.includes('basket')) return 'basketball';
-        if (sport.includes('baseball')) return 'baseball';
-        if (sport.includes('ice hockey') || sport.includes('hockey')) return 'hockey';
-        if (sport.includes('motor') || sport.includes('formula')) return 'motorsport';
-        if (sport.includes('cricket')) return 'cricket';
-        if (sport.includes('rugby')) return 'rugby';
-        return sport || 'other';
-      };
-      const scoreTeam = (row) => {
-        const nameNorm = normalizeSportsName(row?.name || '');
-        const sportNorm = String(row?.sport || '').trim().toLowerCase();
-        let score = 0;
-        if (POPULAR_TEAMS.has(nameNorm)) score += 2000;
-        if (seedSet.has(nameNorm)) score += 1500;
-        const sportPrio = SPORT_PRIORITY[sportNorm] || 12;
-        score += (13 - sportPrio) * 100;
-        return score;
-      };
-      const resolveBadge = (row) => {
-        const rawLogo = toHttpsUrl(String(row?.logo_url || row?.badge || '').trim());
-        if (rawLogo) return rawLogo;
-        const titleNorm = String(row?.name || '').trim().toLowerCase();
-        return BADGE_OVERRIDES[titleNorm] || HOME_LOCAL_FALLBACK_IMAGE;
-      };
-
-      try {
-        const client = await ensureHomeSupabase();
-        if (!client) return cachedSportsItems.slice(0, target);
-        const { data, error } = await client
-          .from('teams')
-          .select('id,name,sport,league,stadium,logo_url')
-          .order('name')
-          .limit(5000)
-          .abortSignal(signal || undefined);
-        if (error) throw error;
-
-        const rows = Array.isArray(data) ? data : [];
-        const sortedRows = rows
-          .map((row) => ({
-            id: String(row?.id || '').trim(),
-            name: String(row?.name || '').trim(),
-            sport: String(row?.sport || '').trim(),
-            league: String(row?.league || '').trim(),
-            stadium: String(row?.stadium || '').trim(),
-            logo_url: String(row?.logo_url || '').trim()
-          }))
-          .filter((row) => row.name && String(row.league || '').trim().toLowerCase() !== 'national team')
-          .sort((a, b) => {
-            const delta = scoreTeam(b) - scoreTeam(a);
-            if (delta !== 0) return delta;
-            return a.name.localeCompare(b.name);
-          });
-
-        const bucketOrder = ['soccer', 'motorsport', 'mma', 'basketball', 'american-football', 'baseball', 'hockey', 'rugby', 'cricket', 'other'];
-        const bucketed = new Map();
-        const seen = new Set();
-        sortedRows.forEach((row) => {
-          const key = row.id || row.name.toLowerCase();
-          if (!key || seen.has(key)) return;
-          seen.add(key);
-          const bucket = toSportBucket(row.sport);
-          if (!bucketed.has(bucket)) bucketed.set(bucket, []);
-          bucketed.get(bucket).push(row);
-        });
-
-        const items = [];
-        const maxPerBucket = Math.max(1, Math.ceil(target / Math.max(1, Math.min(bucketed.size || 1, 6))));
-        bucketOrder.forEach((bucket) => {
-          const list = bucketed.get(bucket);
-          if (!Array.isArray(list) || !list.length) return;
-          list.slice(0, maxPerBucket).forEach((row) => {
-            if (items.length >= target) return;
-            const badge = resolveBadge(row);
-            items.push({
-              mediaType: 'sports',
-              itemId: row.id || row.name,
-              title: row.name,
-              subtitle: row.league || 'Sports',
-              extra: [row.sport, row.stadium].filter(Boolean).join(' | ').toLowerCase(),
-              image: badge,
-              listImage: badge,
-              backgroundImage: badge,
-              spotlightImage: badge,
-              spotlightMediaImage: badge,
-              spotlightMediaFit: 'contain',
-              spotlightMediaShape: 'square',
-              mediaFit: 'contain',
-              fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-              href: row.id ? `team.html?id=${encodeURIComponent(row.id)}&team=${encodeURIComponent(row.name)}` : 'sports.html',
-              sport: row.sport,
-              league: row.league
-            });
-          });
-        });
-
-        if (items.length) {
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, items);
-          return items.slice(0, target);
-        }
-      } catch (_err) {}
-
-      const fallbackItems = HOME_SPORTS_FALLBACKS.map((row, index) => mapHomeSportsItem({ ...row, id: `fallback-${index}` }, index));
-      if (fallbackItems.length) {
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, fallbackItems);
-        return fallbackItems.slice(0, target);
-      }
-      return cachedSportsItems.slice(0, target);
+      try { localStorage.removeItem(HOME_SPORTS_ITEMS_CACHE_KEY); } catch (_) {}
+      return HOME_SPORTS_FALLBACKS.slice(0, target).map((row, index) => {
+        const title = String(row.name || '').trim();
+        const sport = String(row.sport || '').trim();
+        const league = String(row.league || '').trim();
+        const logo = String(row.logo || '').trim();
+        const image = logo || HOME_LOCAL_FALLBACK_IMAGE;
+        return {
+          mediaType: 'sports',
+          itemId: `fallback-${index}`,
+          title,
+          subtitle: league || sport || 'Sports',
+          extra: sport || '',
+          image,
+          listImage: image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'square',
+          mediaFit: 'contain',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          href: `sports.html`,
+          sport,
+          league
+        };
+      });
     }
 
     async function initUniversalHome(options = {}) {

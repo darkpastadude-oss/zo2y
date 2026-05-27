@@ -1699,75 +1699,7 @@ async function loadBooks(signal) {
 
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      loadHomeSportsAssetManifestFromStorage();
-      const localManifestRows = await ensureHomeSportsAssetManifest(signal).catch(() => []);
-      if (Array.isArray(localManifestRows) && localManifestRows.length) {
-        const localItems = prioritizeHomeSportsItems(
-          localManifestRows
-            .map((row) => mapSportsTeamToHomeItem({
-              idTeam: row.sportsDbId || row.id,
-              strTeam: row.name,
-              strSport: row.sport,
-              strLeague: row.league,
-              strStadium: row.stadium,
-              strCountry: row.country
-            }))
-            .filter((item) => item && item.image),
-          targetCount
-        );
-        if (localItems.length >= Math.min(targetCount, 8)) {
-          writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, localItems);
-          return localItems;
-        }
-      }
-
-      const cachedItemsRaw = readHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS)
-        .filter((item) => item && item.image);
-      if (cachedItemsRaw.length) {
-        const dedupedCached = [];
-        const seenCached = new Set();
-        cachedItemsRaw.forEach((item) => {
-          const key = String(item?.itemId || item?.title || '').toLowerCase().trim();
-          const nameKey = normalizeHomeSportsName(item?.title || '');
-          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
-          if (!dedupeKey || seenCached.has(dedupeKey)) return;
-          seenCached.add(dedupeKey);
-          dedupedCached.push(item);
-        });
-        if (dedupedCached.length) return prioritizeHomeSportsItems(dedupedCached, targetCount);
-      }
-
-      const seedTeams = [...HOME_SPORTS_SEEDS].slice(0, Math.max(targetCount, 12));
-      const items = [];
-      const seen = new Set();
-      void ensureHomeCountryIndex(signal);
-
-      const requests = seedTeams.map((seed) => fetchSportsDb('searchteams.php', { t: seed }, { signal, timeoutMs: 5200 }));
-      const responses = await Promise.allSettled(requests);
-      responses.forEach((result) => {
-        if (items.length >= targetCount) return;
-        if (!result || result.status !== 'fulfilled') return;
-        const payload = result.value;
-        const teams = Array.isArray(payload?.teams) ? payload.teams : [];
-        teams.forEach((team) => {
-          if (items.length >= targetCount) return;
-          const item = mapSportsTeamToHomeItem(team);
-          if (!item) return;
-          const key = String(item.itemId || item.title || '').toLowerCase().trim();
-          const nameKey = normalizeHomeSportsName(item.title || '');
-          const dedupeKey = [key, nameKey].filter(Boolean).join('|');
-          if (!dedupeKey || seen.has(dedupeKey)) return;
-          seen.add(dedupeKey);
-          items.push(item);
-        });
-      });
-
-      if (items.length) {
-        const prioritized = prioritizeHomeSportsItems(items, targetCount);
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
-        return prioritized;
-      }
-
+      try { localStorage.removeItem(HOME_SPORTS_ITEMS_CACHE_KEY); } catch (_) {}
       const fallbackTeams = [
         { name: 'Real Madrid', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
         { name: 'Barcelona', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/barcelona.png' },
@@ -1786,21 +1718,32 @@ async function loadBooks(signal) {
         { name: 'Toronto Maple Leafs', sport: 'Ice Hockey', league: 'NHL', logo: '/assets/logos/nhl/torontomapleleafs.png' },
         { name: 'UFC', sport: 'MMA', league: 'Ultimate Fighting Championship', logo: '/assets/logos/mma/ufc/ufc.svg' }
       ];
-      const fallbackItems = fallbackTeams.map((row, index) => mapSportsTeamToHomeItem({
-        idTeam: `fallback-${index}`,
-        strTeam: row.name,
-        strSport: row.sport,
-        strLeague: row.league,
-        strStadium: '',
-        strCountry: ''
-      })).filter((item) => item && item.image);
-      if (fallbackItems.length) {
-        const prioritized = prioritizeHomeSportsItems(fallbackItems, targetCount);
-        writeHomeItemsCache(HOME_SPORTS_ITEMS_CACHE_KEY, prioritized);
-        return prioritized;
-      }
-
-      return [];
+      return fallbackTeams.slice(0, targetCount).map((row, index) => {
+        const title = String(row.name || '').trim();
+        const sport = String(row.sport || '').trim();
+        const league = String(row.league || '').trim();
+        const logo = String(row.logo || '').trim();
+        const image = logo || HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+        return {
+          mediaType: 'sports',
+          itemId: `fallback-${index}`,
+          title,
+          subtitle: league || sport || 'Sports',
+          extra: sport || '',
+          image,
+          listImage: image,
+          backgroundImage: image,
+          spotlightImage: image,
+          spotlightMediaImage: image,
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'square',
+          mediaFit: 'contain',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp',
+          href: 'sports.html',
+          sport,
+          league
+        };
+      });
     }
 
     // HOME BOOKS (override): keep this loader in lockstep with `books.html`.
