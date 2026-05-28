@@ -254,9 +254,9 @@
       music: { table: 'music_reviews', itemField: 'track_id' },
       travel: { table: 'travel_reviews', itemField: 'country_code' }
     };
-    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v14';
+    const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v15';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v13';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
@@ -9961,59 +9961,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
      async function loadSports(signal) {
-       console.log('[Home Sports] Loading sports rail...');
        const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-       
-       try {
-         const client = await ensureHomeSupabase();
-         if (client) {
-           console.log('[Home Sports] Supabase client obtained');
-           // Query supabase for teams across popular sports
-           const { data: teams, error } = await client
-             .from('teams')
-             .select('id,name,sport,league,logo_url,country')
-             .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
-             .limit(500);
-           
-           console.log('[Home Sports] Supabase query result:', { dataLength: teams?.length, error });
-           
-           if (!error && teams && teams.length > 0) {
-             console.log('[Home Sports] Successfully loaded', teams.length, 'teams from Supabase');
-             // Shuffle the teams and return
-             const shuffled = stableShuffleHomeItems(teams, 'sports:supabase');
-             const result = shuffled.slice(0, target).map((t) => ({
-               mediaType: 'sports',
-               itemId: t.id || t.name,
-               title: t.name,
-               subtitle: t.league || 'Sports',
-               extra: [t.league, t.sport].filter(Boolean).join(' | '),
-               image: t.logo_url,
-               listImage: t.logo_url,
-               backgroundImage: t.logo_url,
-               spotlightImage: t.logo_url,
-               spotlightMediaImage: t.logo_url,
-               spotlightMediaFit: 'contain',
-               spotlightMediaShape: 'square',
-               mediaFit: 'contain',
-               fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-               href: 'sports.html'
-             }));
-             console.log('[Home Sports] Returning', result.length, 'teams for rail');
-             return result;
-           } else {
-             console.log('[Home Sports] Supabase query failed or returned no data, trying fallback');
-           }
-         } else {
-           console.log('[Home Sports] No Supabase client available');
-         }
-       } catch (err) {
-         console.error('[Home Sports] Error loading sports from Supabase:', err);
-         // Continue to fallback
-       }
-       
-       // Fallback to cached teams if supabase query fails
-       console.log('[Home Sports] Using fallback teams');
-       const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
+       const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:rail');
        const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
        const seen = new Set();
        const deduped = combined.filter((t) => {
@@ -10022,12 +9971,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
          seen.add(key);
          return true;
        });
-       const result = deduped.slice(0, target).map((t) => ({
+       return deduped.slice(0, target).map((t) => ({
          mediaType: 'sports',
          itemId: t.id || t.name,
          title: t.name,
-         subtitle: t.category || t.league || 'Sports',
-         extra: [t.category || t.league, t.country].filter(Boolean).join(' | '),
+         subtitle: t.category || 'Sports',
+         extra: [t.category, t.country].filter(Boolean).join(' | '),
          image: t.logo_url,
          listImage: t.logo_url,
          backgroundImage: t.logo_url,
@@ -10039,8 +9988,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
          href: 'sports.html'
        }));
-       console.log('[Home Sports] Returning', result.length, 'fallback teams for rail');
-       return result;
      }
 
     async function initUniversalHome(options = {}) {

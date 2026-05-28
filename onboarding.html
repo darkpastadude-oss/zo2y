@@ -221,195 +221,55 @@
     
      <!-- Load and display popular sports teams in onboarding -->
      <script>
-       (() => {
-         console.log('[Onboarding Sports] Initializing sports loader...');
-         
-         const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-         const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
-         const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+       (function() {
+         var TEAMS = [
+           { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+           { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
+           { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
+           { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
+           { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+           { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
+           { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
+           { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
+           { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' },
+           { title: 'Boston Celtics', image: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg' },
+           { title: 'Chicago Bulls', image: 'https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg' },
+           { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' }
+         ];
 
-         function shuffle(array) {
-           const arr = [...array];
-           for (let i = arr.length - 1; i > 0; i--) {
-             const j = Math.floor(Math.random() * (i + 1));
-             [arr[i], arr[j]] = [arr[j], arr[i]];
-           }
-           return arr;
-         }
-
-         async function waitForSupabase() {
-           console.log('[Onboarding Sports] Waiting for Supabase...');
-           for (let i = 0; i < 100; i++) {
-             if (window.supabase?.createClient) {
-               console.log('[Onboarding Sports] Supabase client found');
-               return window.supabase;
-             }
-             await new Promise(r => setTimeout(r, 50));
-           }
-           console.log('[Onboarding Sports] Supabase client not found after waiting');
-           return null;
-         }
-
-         async function loadOnboardingSports() {
-           console.log('[Onboarding Sports] Starting loadOnboardingSports...');
-           const onboardingGrid = document.getElementById('onboardingSportsGrid');
-           if (!onboardingGrid) {
-             console.error('[Onboarding Sports] onboardingSportsGrid element not found');
-             return;
-           }
-
-           console.log('[Onboarding Sports] onboardingSportsGrid found:', onboardingGrid);
-
-           const fallbackLogos = [
-             { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
-             { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
-             { title: 'Atletico Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
-             { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
-             { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
-             { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
-             { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
-             { title: 'Al Ahly', image: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Al_Ahly_SC_logo.svg' },
-             { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
-             { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
-             { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
-             { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' }
-           ];
-
-           function renderTeams(teams) {
-             console.log('[Onboarding Sports] Rendering teams:', teams.length);
-             onboardingGrid.innerHTML = '';
-             
-             if (!teams || teams.length === 0) {
-               console.log('[Onboarding Sports] No teams to render');
-               onboardingGrid.innerHTML = '<div class="onboarding-team-card"><div class="team-name">No teams</div></div>';
-               return;
-             }
-             
-             const shuffled = shuffle([...teams]); // Shuffle all teams
-             const displayCount = Math.min(8, shuffled.length);
-             console.log('[Onboarding Sports] Displaying', displayCount, 'teams out of', teams.length);
-             
-             for (let i = 0; i < displayCount; i++) {
-               const team = shuffled[i];
-               console.log('[Onboarding Sports] Rendering team:', team.title);
-               const figure = document.createElement('div');
-               figure.className = 'onboarding-team-card';
-               figure.innerHTML = `
-                 <img src="${team.image || '/images/fallback/sports.svg'}" 
-                      alt="${team.title || team.name || 'Sports'}" 
-                      class="team-logo"
-                      onerror="this.onerror=null;this.src='/images/fallback/sports.svg'">
-                 <div class="team-name">${team.title || team.name || 'Sports'}</div>
-               `;
-               figure.onclick = () => {
-                 // Toggle selection
-                 figure.classList.toggle('selected');
-                 // Store selection in localStorage or handle as needed
-                 const selected = JSON.parse(localStorage.getItem('onboardingSports') || '[]');
-                 const teamName = team.title || team.name || 'Sports';
-                 if (figure.classList.contains('selected')) {
-                   if (!selected.includes(teamName)) {
-                     selected.push(teamName);
-                     localStorage.setItem('onboardingSports', JSON.stringify(selected));
-                   }
+         function render() {
+           var grid = document.getElementById('onboardingSportsGrid');
+           if (!grid) return;
+           var shuffled = TEAMS.slice().sort(function() { return Math.random() - 0.5; });
+           var count = Math.min(8, shuffled.length);
+           grid.innerHTML = '';
+           for (var i = 0; i < count; i++) {
+             var team = shuffled[i];
+             var card = document.createElement('div');
+             card.className = 'onboarding-team-card';
+             card.innerHTML = '<img src="' + (team.image || '/images/fallback/sports.svg') + '" alt="' + (team.title || 'Sports') + '" class="team-logo" onerror="this.onerror=null;this.src=\'/images/fallback/sports.svg\'"><div class="team-name">' + (team.title || 'Sports') + '</div>';
+             (function(t) {
+               card.onclick = function() {
+                 card.classList.toggle('selected');
+                 var selected = JSON.parse(localStorage.getItem('onboardingSports') || '[]');
+                 var name = t.title || 'Sports';
+                 var idx = selected.indexOf(name);
+                 if (card.classList.contains('selected')) {
+                   if (idx === -1) selected.push(name);
                  } else {
-                   const index = selected.indexOf(teamName);
-                   if (index > -1) {
-                     selected.splice(index, 1);
-                     localStorage.setItem('onboardingSports', JSON.stringify(selected));
-                   }
+                   if (idx > -1) selected.splice(idx, 1);
                  }
+                 localStorage.setItem('onboardingSports', JSON.stringify(selected));
                };
-               onboardingGrid.appendChild(figure);
-             }
-           }
-
-           try {
-             console.log('[Onboarding Sports] Waiting for Supabase...');
-             const supabase = await waitForSupabase();
-             if (!supabase) {
-               console.log('[Onboarding Sports] Supabase not available, using fallback logos');
-               renderTeams(fallbackLogos);
-               return;
-             }
-             
-             console.log('[Onboarding Sports] Supabase client obtained');
-             let client = window.__ZO2Y_SUPABASE_CLIENT;
-             if (!client) {
-               console.log('[Onboarding Sports] Creating new Supabase client');
-               client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-               window.__ZO2Y_SUPABASE_CLIENT = client;
-             }
-             
-             // Get a variety of sports by limiting per sport type
-             console.log('[Onboarding Sports] Fetching teams from Supabase...');
-             const { data, error } = await client
-               .from('teams')
-               .select('id,name,sport,league,logo_url')
-               .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
-               .limit(1000); // Get more to ensure variety
-               
-             console.log('[Onboarding Sports] Supabase query result:', { data: data?.length, error });
-             
-             if (error) {
-               console.error('[Onboarding Sports] Supabase error:', error);
-               renderTeams(fallbackLogos);
-               return;
-             }
-             
-             if (!data || data.length === 0) {
-               console.log('[Onboarding Sports] No data returned from Supabase, using fallback logos');
-               renderTeams(fallbackLogos);
-               return;
-             }
-             
-             console.log('[Onboarding Sports] Received', data.length, 'teams from Supabase');
-             
-             // Group by sport to ensure variety
-             const teamsBySport = {};
-             data.forEach(team => {
-               const sport = team.sport.toLowerCase();
-               if (!teamsBySport[sport]) teamsBySport[sport] = [];
-               teamsBySport[sport].push(team);
-             });
-             
-             console.log('[Onboarding Sports] Teams grouped by sport:', Object.keys(teamsBySport).map(sport => `${sport}: ${teamsBySport[sport].length}`));
-             
-             // Take up to 2 teams from each sport for variety
-             const variedTeams = [];
-             const sports = Object.keys(teamsBySport);
-             for (const sport of sports) {
-               const teams = teamsBySport[sport];
-               // Shuffle teams within each sport
-               const shuffledTeams = shuffle([...teams]);
-               // Take up to 2 from each sport
-               const takeCount = Math.min(2, shuffledTeams.length);
-               console.log(`[Onboarding Sports] Taking ${takeCount} teams from ${sport}`);
-               variedTeams.push(...shuffledTeams.slice(0, takeCount));
-             }
-             
-             console.log('[Onboarding Sports] Varied teams count:', variedTeams.length);
-             
-             const mapped = variedTeams.map(t => ({ 
-               title: t.name, 
-               image: t.logo_url || '/images/fallback/sports.svg' 
-             }));
-             
-             console.log('[Onboarding Sports] Mapped teams:', mapped.map(t => t.title));
-             renderTeams(mapped);
-           } catch (err) {
-             console.error('[Onboarding Sports] Error loading onboarding sports:', err);
-             renderTeams(fallbackLogos);
+             })(team);
+             grid.appendChild(card);
            }
          }
 
-         // Run after DOM is ready
-         console.log('[Onboarding Sports] Setting up DOM ready handler');
          if (document.readyState === 'loading') {
-           document.addEventListener('DOMContentLoaded', loadOnboardingSports);
+           document.addEventListener('DOMContentLoaded', render);
          } else {
-           console.log('[Onboarding Sports] DOM already ready, loading immediately');
-           loadOnboardingSports();
+           render();
          }
        })();
      </script>
