@@ -6186,19 +6186,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       observer.observe(wrap);
     }
 
-    function renderOrDeferHomeRail(railId, items, opts) {
-      const key = String(railId || '').trim();
-      if (!key) return;
-      const normalizedItems = getHomeRailShuffleItems(key, items);
-      const renderOpts = opts || {};
-      if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
-        setHomeRailDeferredPlaceholder(key);
-        return;
-      }
-      homePendingRailRenderState.delete(key);
-      clearHomeRailDeferredPlaceholder(key);
-      renderRail(key, normalizedItems, renderOpts);
-    }
+     function renderOrDeferHomeRail(railId, items, opts) {
+       const key = String(railId || '').trim();
+       if (!key) return;
+       console.log(`[Home Rail] Processing rail ${key} with ${items?.length || 0} items`);
+       const normalizedItems = getHomeRailShuffleItems(key, items);
+       const renderOpts = opts || {};
+       if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
+         console.log(`[Home Rail] No items for rail ${key}, setting deferred placeholder`);
+         setHomeRailDeferredPlaceholder(key);
+         return;
+       }
+       console.log(`[Home Rail] Rendering rail ${key} with ${normalizedItems.length} items`);
+       homePendingRailRenderState.delete(key);
+       clearHomeRailDeferredPlaceholder(key);
+       renderRail(key, normalizedItems, renderOpts);
+     }
 
     function refreshShufflableHomeRails() {
       return;
@@ -6294,36 +6297,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function normalizeHomeFeedMap(feedMap) {
       if (!feedMap || typeof feedMap !== 'object') return null;
       const channels = getHomeChannels();
-      const normalized = {};
-      const shouldDiscardStaleSportsFeed = (items) => {
-        if (!Array.isArray(items) || !items.length) return false;
-        if (items.length > 2) return false;
-        return items.every((item) => {
-          const title = String(item?.title || '').trim().toLowerCase();
-          const subtitle = String(item?.subtitle || '').trim().toLowerCase();
-          const extra = String(item?.extra || '').trim().toLowerCase();
-          const image = String(item?.image || '').trim().toLowerCase();
-          return (
-            title === 'ufc' ||
-            subtitle === 'sports' ||
-            extra === 'mma | ufc' ||
-            image.includes('/assets/sports/ufc-logo.svg') ||
-            image.endsWith('/newlogo.webp')
-          );
-        });
-      };
-      channels.forEach((channel) => {
-        const channelItems = Array.isArray(feedMap[channel.key])
-          ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
-          : [];
-        const safeItems = channel.key === 'travel'
-          ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
-          : channelItems;
-        const filteredItems = filterHomeSafeItems(safeItems);
-        normalized[channel.key] = channel.key === 'sports' && shouldDiscardStaleSportsFeed(filteredItems)
-          ? []
-          : filteredItems;
-      });
+       const normalized = {};
+       channels.forEach((channel) => {
+         const channelItems = Array.isArray(feedMap[channel.key])
+           ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
+           : [];
+         const safeItems = channel.key === 'travel'
+           ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
+           : channelItems;
+         const filteredItems = filterHomeSafeItems(safeItems);
+         normalized[channel.key] = filteredItems;
+       });
       return normalized;
     }
 
@@ -9979,73 +9963,88 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return fallbackItems;
     }
 
-    async function loadSports(signal) {
-      const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      
-      try {
-        const client = await ensureHomeSupabase();
-        if (client) {
-          // Query supabase for teams across popular sports
-          const { data: teams, error } = await client
-            .from('teams')
-            .select('id,name,sport,league,logo_url,country')
-            .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
-            .limit(500);
-          
-          if (!error && teams && teams.length > 0) {
-            // Shuffle the teams and return
-            const shuffled = stableShuffleHomeItems(teams, 'sports:supabase');
-            return shuffled.slice(0, target).map((t) => ({
-              mediaType: 'sports',
-              itemId: t.id || t.name,
-              title: t.name,
-              subtitle: t.league || 'Sports',
-              extra: [t.league, t.sport].filter(Boolean).join(' | '),
-              image: t.logo_url,
-              listImage: t.logo_url,
-              backgroundImage: t.logo_url,
-              spotlightImage: t.logo_url,
-              spotlightMediaImage: t.logo_url,
-              spotlightMediaFit: 'contain',
-              spotlightMediaShape: 'square',
-              mediaFit: 'contain',
-              fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-              href: 'sports.html'
-            }));
-          }
-        }
-      } catch (err) {
-        // Silently continue to fallback
-      }
-      
-      // Fallback to cached teams if supabase query fails
-      const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
-      const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-      const seen = new Set();
-      const deduped = combined.filter((t) => {
-        const key = String(t.id || '');
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-      return deduped.slice(0, target).map((t) => ({
-        mediaType: 'sports',
-        itemId: t.id || t.name,
-        title: t.name,
-        subtitle: t.category || t.league || 'Sports',
-        extra: [t.category || t.league, t.country].filter(Boolean).join(' | '),
-        image: t.logo_url,
-        listImage: t.logo_url,
-        backgroundImage: t.logo_url,
-        spotlightImage: t.logo_url,
-        spotlightMediaImage: t.logo_url,
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'square',
-        mediaFit: 'contain',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-        href: 'sports.html'
-      }));
-    }
+     async function loadSports(signal) {
+       console.log('[Home Sports] Loading sports rail...');
+       const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+       
+       try {
+         const client = await ensureHomeSupabase();
+         if (client) {
+           console.log('[Home Sports] Supabase client obtained');
+           // Query supabase for teams across popular sports
+           const { data: teams, error } = await client
+             .from('teams')
+             .select('id,name,sport,league,logo_url,country')
+             .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
+             .limit(500);
+           
+           console.log('[Home Sports] Supabase query result:', { dataLength: teams?.length, error });
+           
+           if (!error && teams && teams.length > 0) {
+             console.log('[Home Sports] Successfully loaded', teams.length, 'teams from Supabase');
+             // Shuffle the teams and return
+             const shuffled = stableShuffleHomeItems(teams, 'sports:supabase');
+             const result = shuffled.slice(0, target).map((t) => ({
+               mediaType: 'sports',
+               itemId: t.id || t.name,
+               title: t.name,
+               subtitle: t.league || 'Sports',
+               extra: [t.league, t.sport].filter(Boolean).join(' | '),
+               image: t.logo_url,
+               listImage: t.logo_url,
+               backgroundImage: t.logo_url,
+               spotlightImage: t.logo_url,
+               spotlightMediaImage: t.logo_url,
+               spotlightMediaFit: 'contain',
+               spotlightMediaShape: 'square',
+               mediaFit: 'contain',
+               fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+               href: 'sports.html'
+             }));
+             console.log('[Home Sports] Returning', result.length, 'teams for rail');
+             return result;
+           } else {
+             console.log('[Home Sports] Supabase query failed or returned no data, trying fallback');
+           }
+         } else {
+           console.log('[Home Sports] No Supabase client available');
+         }
+       } catch (err) {
+         console.error('[Home Sports] Error loading sports from Supabase:', err);
+         // Continue to fallback
+       }
+       
+       // Fallback to cached teams if supabase query fails
+       console.log('[Home Sports] Using fallback teams');
+       const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:fallback');
+       const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
+       const seen = new Set();
+       const deduped = combined.filter((t) => {
+         const key = String(t.id || '');
+         if (seen.has(key)) return false;
+         seen.add(key);
+         return true;
+       });
+       const result = deduped.slice(0, target).map((t) => ({
+         mediaType: 'sports',
+         itemId: t.id || t.name,
+         title: t.name,
+         subtitle: t.category || t.league || 'Sports',
+         extra: [t.category || t.league, t.country].filter(Boolean).join(' | '),
+         image: t.logo_url,
+         listImage: t.logo_url,
+         backgroundImage: t.logo_url,
+         spotlightImage: t.logo_url,
+         spotlightMediaImage: t.logo_url,
+         spotlightMediaFit: 'contain',
+         spotlightMediaShape: 'square',
+         mediaFit: 'contain',
+         fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+         href: 'sports.html'
+       }));
+       console.log('[Home Sports] Returning', result.length, 'fallback teams for rail');
+       return result;
+     }
 
     async function initUniversalHome(options = {}) {
       const now = Date.now();

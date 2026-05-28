@@ -245,31 +245,40 @@
     } catch (_) {}
   }
 
-  async function loadTeams() {
-    const client = ensureSupabase();
-    if (!client) return [];
-    try {
-      const { data, error, count } = await client
-        .from('teams')
-        .select('id,name,sport,league,stadium,logo_url', { count: 'exact' })
-        .order('name')
-        .limit(5000);
-      if (error) return [];
-      const teams = (data || []).map(row => ({
-        id: String(row.id || '').trim(),
-        name: String(row.name || '').trim(),
-        sport: String(row.sport || '').trim(),
-        league: String(row.league || '').trim(),
-        stadium: String(row.stadium || '').trim(),
-        logo_url: String(row.logo_url || '').trim()
-      })).filter(t => t.name && normalize(t.league) !== 'national team');
-      console.log(`[sports] Loaded ${teams.length} teams`);
-      return teams;
-    } catch (err) {
-      console.error('[sports] Load error:', err);
-      return [];
-    }
-  }
+   async function loadTeams() {
+     console.log('[Sports Page] Starting to load teams...');
+     const client = ensureSupabase();
+     if (!client) {
+       console.log('[Sports Page] No Supabase client available');
+       return [];
+     }
+     try {
+       console.log('[Sports Page] Querying teams from Supabase...');
+       const { data, error, count } = await client
+         .from('teams')
+         .select('id,name,sport,league,stadium,logo_url', { count: 'exact' })
+         .order('name')
+         .limit(5000);
+       if (error) {
+         console.error('[Sports Page] Supabase error:', error);
+         return [];
+       }
+       console.log(`[Sports Page] Received ${data?.length || 0} teams from Supabase`);
+       const teams = (data || []).map(row => ({
+         id: String(row.id || '').trim(),
+         name: String(row.name || '').trim(),
+         sport: String(row.sport || '').trim(),
+         league: String(row.league || '').trim(),
+         stadium: String(row.stadium || '').trim(),
+         logo_url: String(row.logo_url || '').trim()
+       })).filter(t => t.name && normalize(t.league) !== 'national team');
+       console.log(`[Sports Page] Loaded ${teams.length} teams after filtering`);
+       return teams;
+     } catch (err) {
+       console.error('[Sports Page] Load error:', err);
+       return [];
+     }
+   }
 
 
   function scoreTeam(team) {
