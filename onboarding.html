@@ -193,6 +193,202 @@
 </head>
 <body>
   <div class="shell">
+    <!-- Add sports loading script similar to index.html -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Zo2y",
+        "url": "https://zo2y.com/",
+        "description": "All your interests in one place.",
+        "image": "https://zo2y.com/images/zo2y-search-illustration.png"
+      }
+    </script>
+    <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="//image.tmdb.org">
+    <link rel="dns-prefetch" href="//covers.openlibrary.org">
+    <link rel="dns-prefetch" href="//books.googleusercontent.com">
+    <link rel="dns-prefetch" href="//i.scdn.co">
+    <link rel="dns-prefetch" href="//images.igdb.com">
+    <link rel="dns-prefetch" href="//flagcdn.com">
+    <link rel="dns-prefetch" href="//commons.wikimedia.org">
+    <link rel="dns-prefetch" href="//restcountries.com">
+    <link rel="dns-prefetch" href="//www.thesportsdb.com">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/list-utils.js?v=20260526a" defer></script>
+    <script src="js/shared-header.js?v=20260526a" defer></script>
+    
+    <!-- Load and display popular sports teams in onboarding -->
+    <script>
+      (() => {
+        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+        const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+
+        function shuffle(array) {
+          const arr = [...array];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        }
+
+        async function waitForSupabase() {
+          for (let i = 0; i < 100; i++) {
+            if (window.supabase?.createClient) return window.supabase;
+            await new Promise(r => setTimeout(r, 50));
+          }
+          return null;
+        }
+
+         async function loadOnboardingSports() {
+           const onboardingGrid = document.getElementById('onboardingSportsGrid');
+           if (!onboardingGrid) return;
+
+           const fallbackLogos = [
+             { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+             { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
+             { title: 'Atletico Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
+             { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
+             { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
+             { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
+             { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+             { title: 'Al Ahly', image: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Al_Ahly_SC_logo.svg' },
+             { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
+             { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
+             { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
+             { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' }
+           ];
+
+           function renderTeams(teams) {
+             onboardingGrid.innerHTML = '';
+             const shuffled = shuffle([...teams].slice(0, 20)); // Take first 20, then shuffle
+             const displayCount = Math.min(8, shuffled.length);
+             for (let i = 0; i < displayCount; i++) {
+               const team = shuffled[i];
+               const figure = document.createElement('div');
+               figure.className = 'onboarding-team-card';
+               figure.innerHTML = `
+                 <img src="${team.image || '/images/fallback/sports.svg'}" 
+                      alt="${team.title || team.name || 'Sports'}" 
+                      class="team-logo"
+                      onerror="this.onerror=null;this.src='/images/fallback/sports.svg'">
+                 <div class="team-name">${team.title || team.name || 'Sports'}</div>
+               `;
+               figure.onclick = () => {
+                 // Toggle selection
+                 figure.classList.toggle('selected');
+                 // Store selection in localStorage or handle as needed
+                 const selected = JSON.parse(localStorage.getItem('onboardingSports') || '[]');
+                 const teamName = team.title || team.name || 'Sports';
+                 if (figure.classList.contains('selected')) {
+                   if (!selected.includes(teamName)) {
+                     selected.push(teamName);
+                     localStorage.setItem('onboardingSports', JSON.stringify(selected));
+                   }
+                 } else {
+                   const index = selected.indexOf(teamName);
+                   if (index > -1) {
+                     selected.splice(index, 1);
+                     localStorage.setItem('onboardingSports', JSON.stringify(selected));
+                   }
+                 }
+               };
+               onboardingGrid.appendChild(figure);
+             }
+           }
+
+           try {
+             const supabase = await waitForSupabase();
+             if (!supabase) { renderTeams(fallbackLogos); return; }
+             let client = window.__ZO2Y_SUPABASE_CLIENT;
+             if (!client) {
+               client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+               window.__ZO2Y_SUPABASE_CLIENT = client;
+             }
+             // Get a variety of sports by limiting per sport type
+             const { data, error } = await client
+               .from('teams')
+               .select('id,name,sport,league,logo_url')
+               .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
+               .limit(1000); // Get more to ensure variety
+             if (error || !data || data.length === 0) { renderTeams(fallbackLogos); return; }
+             
+             // Group by sport to ensure variety
+             const teamsBySport = {};
+             data.forEach(team => {
+               const sport = team.sport.toLowerCase();
+               if (!teamsBySport[sport]) teamsBySport[sport] = [];
+               teamsBySport[sport].push(team);
+             });
+             
+             // Take up to 2 teams from each sport for variety
+             const variedTeams = [];
+             const sports = Object.keys(teamsBySport);
+             for (const sport of sports) {
+               const teams = teamsBySport[sport];
+               // Shuffle teams within each sport
+               const shuffledTeams = shuffle([...teams]);
+               // Take up to 2 from each sport
+               variedTeams.push(...shuffledTeams.slice(0, 2));
+             }
+             
+             const mapped = variedTeams.map(t => ({ 
+               title: t.name, 
+               image: t.logo_url || '/images/fallback/sports.svg' 
+             }));
+             renderTeams(mapped);
+           } catch (_err) {
+             renderTeams(fallbackLogos);
+           }
+         }
+
+        // Run after DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadOnboardingSports);
+        } else {
+          loadOnboardingSports();
+        }
+      })();
+    </script>
+    <style>
+      .onboarding-team-card {
+        text-align: center;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 12px;
+        width: 80px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+      }
+      
+      .onboarding-team-card:hover {
+        background: rgba(255,255,255,0.1);
+        transform: translateY(-2px);
+      }
+      
+      .onboarding-team-card.selected {
+        background: rgba(245,158,11,0.2);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      
+      .onboarding-team-card .team-logo {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        margin-bottom: 8px;
+      }
+      
+      .onboarding-team-card .team-name {
+        font-size: 12px;
+        color: var(--white);
+        font-weight: 600;
+      }
+    </style>
     <div class="top">
       <div class="brand">
         <img src="/file.svg" alt="logo" />
@@ -207,17 +403,29 @@
     <h1>finish your setup</h1>
     <p class="sub">pick your username once and Zo2y will use it everywhere.</p>
 
-    <div class="row">
-      <input id="usernameInput" class="input" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
-        placeholder="your username" maxlength="30" aria-label="username" />
-      <button id="saveBtn" class="btn" type="button">
-        <i class="fas fa-check"></i>
-        <span>continue</span>
-      </button>
-    </div>
+     <div class="row">
+       <input id="usernameInput" class="input" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
+         placeholder="your username" maxlength="30" aria-label="username" />
+       <button id="saveBtn" class="btn" type="button">
+         <i class="fas fa-check"></i>
+         <span>continue</span>
+       </button>
+     </div>
 
-    <div class="hint">Use 3 to 30 letters, numbers, or underscores. No spaces.</div>
-    <div id="status" class="status"></div>
+     <div class="hint">Use 3 to 30 letters, numbers, or underscores. No spaces.</div>
+     
+     <!-- Sports selection -->
+     <div class="row" style="margin-top: 20px;">
+       <div style="flex-basis: 100%; grid-column: 1 / -1;">
+         <h3 style="margin: 0 0 10px 0; color: var(--white); font-size: 18px;">Pick your favorite teams</h3>
+         <p style="margin: 0 0 15px 0; color: var(--muted); font-size: 14px;">Select teams to follow in your feed</p>
+         <div id="onboardingSportsGrid" class="sports-grid" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+           <!-- Sports teams will be populated here -->
+         </div>
+       </div>
+     </div>
+     
+     <div id="status" class="status"></div>
   </div>
 
 <script src="js/pages/auth-onboarding.js?v=20260526a"></script>

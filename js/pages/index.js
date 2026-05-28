@@ -70,12 +70,7 @@
       { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
       { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
     ];
-    const SPORTS_STUCK_TEAMS = [
-      { id: 'spt-liv', name: 'Liverpool', category: 'Premier League', domain: 'liverpoolfc.com', logo_url: '/assets/logos/football/english-premier-league/liverpool.png', country: 'England' },
-      { id: 'spt-rma', name: 'Real Madrid', category: 'La Liga', domain: 'realmadrid.com', logo_url: '/assets/logos/football/spanish-la-liga/realmadrid.png', country: 'Spain' },
-      { id: 'spt-fcb', name: 'FC Barcelona', category: 'La Liga', domain: 'fcbarcelona.com', logo_url: '/assets/logos/football/spanish-la-liga/barcelona.png', country: 'Spain' },
-      { id: 'spt-bay', name: 'Bayern Munich', category: 'Bundesliga', domain: 'fcbayern.com', logo_url: '/assets/logos/football/german-bundesliga/bayernmunich.png', country: 'Germany' }
-    ];
+    const SPORTS_STUCK_TEAMS = [];
     const HOME_SPORTS_FALLBACKS = [
       { id: 'spt-mci', name: 'Manchester City', category: 'Premier League', domain: 'mancity.com', logo_url: '/assets/logos/football/english-premier-league/manchestercity.png', country: 'England' },
       { id: 'spt-ars', name: 'Arsenal', category: 'Premier League', domain: 'arsenal.com', logo_url: '/assets/logos/football/english-premier-league/arsenal.png', country: 'England' },
@@ -302,7 +297,7 @@
       { code: 'NL', name: 'Netherlands', capital: 'Amsterdam', region: 'Europe', subregion: 'Western Europe' },
       { code: 'CA', name: 'Canada', capital: 'Ottawa', region: 'North America', subregion: 'Northern America' }
     ]).slice();
-    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v5';
+    const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
@@ -9990,11 +9985,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       try {
         const client = await ensureHomeSupabase();
         if (client) {
-          // Query supabase for teams by sport type - get football, basketball, and american football
+          // Query supabase for teams across popular sports
           const { data: teams, error } = await client
             .from('teams')
             .select('id,name,sport,league,logo_url,country')
-            .in('sport', ['football', 'soccer', 'basketball', 'american football'])
+            .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
             .limit(500);
           
           if (!error && teams && teams.length > 0) {
