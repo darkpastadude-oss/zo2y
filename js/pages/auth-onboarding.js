@@ -39,18 +39,27 @@
     return auth.normalizeUsername(username);
   }
 
-  async function loadSession() {
-    await auth.waitForSupabase(8000);
-    client = auth.ensureClient();
-    if (!client) throw new Error('Could not load auth. Refresh and try again.');
+   async function loadSession() {
+     await auth.waitForSupabase(8000);
+     client = auth.ensureClient();
+     if (!client) throw new Error('Could not load auth. Refresh and try again.');
 
-    var session = await auth.getActiveSession(client, {
-      refreshIfNeeded: true,
-      restore: true
-    });
-    if (!session || !session.user || !session.user.id) return null;
-    return session;
-  }
+     // Check if user intentionally logged out
+     try {
+       if (sessionStorage.getItem('zo2y-intentional-logout') === 'true') {
+         // Clear the intentional logout flag and don't restore session
+         sessionStorage.removeItem('zo2y-intentional-logout');
+         return null;
+       }
+     } catch (_e) {}
+
+     var session = await auth.getActiveSession(client, {
+       refreshIfNeeded: true,
+       restore: true
+     });
+     if (!session || !session.user || !session.user.id) return null;
+     return session;
+   }
 
   async function init() {
     setStatus('Loading your account...', '');
@@ -141,34 +150,43 @@
     void completeOnboarding();
   });
 
-  function clearAuthStorage() {
-    var knownKeys = [
-      'zo2y-auth-v2', 'zo2y-auth-v1',
-      'zo2y-auth-persist-v2', 'zo2y-auth-persist-v1',
-      'zo2y-auth-durable-v2', 'zo2y-auth-durable-v1',
-      'zo2y-auth-post-auth-redirect-v2', 'postAuthRedirect',
-      'zo2y-auth-oauth-flow-v2', 'oauthFlow',
-      'zo2y-post-auth-bootstrap-v2', 'zo2y_post_auth_bootstrap_v1'
-    ];
-    knownKeys.forEach(function (key) {
-      try { localStorage.removeItem(key); } catch (_e) {}
-      try { sessionStorage.removeItem(key); } catch (_e) {}
-    });
-    try {
-      for (var i = localStorage.length - 1; i >= 0; i -= 1) {
-        var k = localStorage.key(i);
-        if (!k) continue;
-        if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
-      }
-    } catch (_e) {}
-    try {
-      for (var j = sessionStorage.length - 1; j >= 0; j -= 1) {
-        var k2 = sessionStorage.key(j);
-        if (!k2) continue;
-        if (/^sb-[a-z0-9]+-auth-token$/i.test(k2)) sessionStorage.removeItem(k2);
-      }
-    } catch (_e) {}
-  }
+   function clearAuthStorage() {
+     var knownKeys = [
+       'zo2y-auth-v2', 'zo2y-auth-v1',
+       'zo2y-auth-persist-v2', 'zo2y-auth-persist-v1',
+       'zo2y-auth-durable-v2', 'zo2y-auth-durable-v1',
+       'zo2y-auth-post-auth-redirect-v2', 'postAuthRedirect',
+       'zo2y-auth-oauth-flow-v2', 'oauthFlow',
+       'zo2y-post-auth-bootstrap-v2', 'zo2y_post_auth_bootstrap_v1'
+     ];
+     knownKeys.forEach(function (key) {
+       try { localStorage.removeItem(key); } catch (_e) {}
+       try { sessionStorage.removeItem(key); } catch (_e) {}
+     });
+     try {
+       for (var i = localStorage.length - 1; i >= 0; i -= 1) {
+         var k = localStorage.key(i);
+         if (!k) continue;
+         if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
+       }
+     } catch (_e) {}
+     try {
+       for (var j = sessionStorage.length - 1; j >= 0; j -= 1) {
+         var k2 = sessionStorage.key(j);
+         if (!k2) continue;
+         if (/^sb-[a-z0-9]+-auth-token$/i.test(k2)) sessionStorage.removeItem(k2);
+       }
+     } catch (_e) {}
+     
+     // Mark that user intentionally logged out to prevent automatic session restoration
+     try {
+       sessionStorage.setItem('zo2y-intentional-logout', 'true');
+       // Clear the flag after a short delay to allow normal login flow
+       setTimeout(function() {
+         try { sessionStorage.removeItem('zo2y-intentional-logout'); } catch (_e) {}
+       }, 1000);
+     } catch (_e) {}
+   }
 
   signOutButton.addEventListener('click', function () {
     clearAuthStorage();

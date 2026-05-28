@@ -712,56 +712,114 @@ const HEADER_HTML = `
     }
   }
 
-  async function syncAuthHeaderState() {
-    if (authHeaderSyncPromise) {
-      authHeaderSyncQueued = true;
-      return authHeaderSyncPromise;
-    }
-    authHeaderSyncPromise = (async () => {
-    const loginBtn = document.getElementById('loginBtn');
-    const signupBtn = document.getElementById('signupBtn');
-    const profileBtn = document.getElementById('profileBtn');
-    const mobileLoginBtn = document.getElementById('mobileLoginBtn');
-    const mobileSignupBtn = document.getElementById('mobileSignupBtn');
-    const mobileProfileBtn = document.getElementById('mobileProfileBtn');
-    const desktopRailProfileBtn = document.getElementById('desktopRailProfileBtn');
-    if (!loginBtn && !signupBtn && !profileBtn && !mobileLoginBtn && !mobileSignupBtn && !mobileProfileBtn && !desktopRailProfileBtn) return;
+   async function syncAuthHeaderState() {
+     if (authHeaderSyncPromise) {
+       authHeaderSyncQueued = true;
+       return authHeaderSyncPromise;
+     }
+     authHeaderSyncPromise = (async () => {
+     const loginBtn = document.getElementById('loginBtn');
+     const signupBtn = document.getElementById('signupBtn');
+     const profileBtn = document.getElementById('profileBtn');
+     const mobileLoginBtn = document.getElementById('mobileLoginBtn');
+     const mobileSignupBtn = document.getElementById('mobileSignupBtn');
+     const mobileProfileBtn = document.getElementById('mobileProfileBtn');
+     const desktopRailProfileBtn = document.getElementById('desktopRailProfileBtn');
+     if (!loginBtn && !signupBtn && !profileBtn && !mobileLoginBtn && !mobileSignupBtn && !mobileProfileBtn && !desktopRailProfileBtn) return;
 
-    const client = ensureSupabaseClient();
-    if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
-      return;
-    }
+     const client = ensureSupabaseClient();
+     if (!client || !client.auth || typeof client.auth.getSession !== 'function') {
+       return;
+     }
 
-    try {
-      const authRuntime = window.ZO2Y_AUTH || null;
-      let session = null;
-      if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
-        session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
-      } else {
-        const hasStoredAuthSession =
-          typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
-            ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
-            : !!readStoredHeaderSession();
-        try {
-          const sessionResult = await client.auth.getSession();
-          session = sessionResult?.data?.session || null;
-        } catch (_err) {}
-        if (!session && hasStoredAuthSession) {
-          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-            session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
-          } else {
-            await bootstrapHeaderSessionFromStorage(client);
-            try {
-              const retrySessionResult = await client.auth.getSession();
-              session = retrySessionResult?.data?.session || null;
-            } catch (_retryErr) {}
-          }
-        }
-      }
-      if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
-      const loggedIn = !!session;
-      const user = session && session.user ? session.user : null;
-      const hiddenDisplay = 'none';
+     // Check if user intentionally logged out - if so, don't restore session
+     try {
+       if (sessionStorage.getItem('zo2y-intentional-logout') === 'true') {
+         // Clear the intentional logout flag and return logged out state
+         sessionStorage.removeItem('zo2y-intentional-logout');
+         const loggedIn = false;
+         const user = null;
+         const hiddenDisplay = 'none';
+         
+         // Update UI to logged out state
+         if (loginBtn) loginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+         if (signupBtn) signupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+         if (mobileLoginBtn) mobileLoginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+         if (mobileSignupBtn) mobileSignupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+         if (profileBtn) {
+           profileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+         }
+         if (mobileProfileBtn) {
+           mobileProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+         }
+         if (desktopRailProfileBtn) {
+           desktopRailProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+         }
+         
+         // Update profile labels
+         if (profileBtn) {
+           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+           profileBtn.title = 'Profile';
+         }
+         if (mobileProfileBtn) {
+           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+           mobileProfileBtn.title = 'Profile';
+         }
+         if (desktopRailProfileBtn) {
+           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+           desktopRailProfileBtn.title = 'Profile';
+         }
+         
+         // Clear stored session data to prevent automatic restoration
+         try {
+           window.localStorage.removeItem('zo2y-auth-v2');
+           window.localStorage.removeItem('zo2y-auth-v1');
+           window.localStorage.removeItem('zo2y-auth-persist-v2');
+           window.localStorage.removeItem('zo2y-auth-persist-v1');
+           window.localStorage.removeItem('zo2y-auth-durable-v2');
+           window.localStorage.removeItem('zo2y-auth-durable-v1');
+           window.sessionStorage.removeItem('zo2y-auth-v2');
+           window.sessionStorage.removeItem('zo2y-auth-v1');
+           window.sessionStorage.removeItem('zo2y-auth-persist-v2');
+           window.sessionStorage.removeItem('zo2y-auth-persist-v1');
+           window.sessionStorage.removeItem('zo2y-auth-durable-v2');
+           window.sessionStorage.removeItem('zo2y-auth-durable-v1');
+         } catch (_e) {}
+         
+         return;
+       }
+     } catch (_e) {}
+
+     try {
+       const authRuntime = window.ZO2Y_AUTH || null;
+       let session = null;
+       if (authRuntime && typeof authRuntime.getActiveSession === 'function') {
+         session = await authRuntime.getActiveSession(client, { refreshIfNeeded: true, restore: true });
+       } else {
+         const hasStoredAuthSession =
+           typeof window.__ZO2Y_HAS_STORED_AUTH_SESSION === 'function'
+             ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
+             : !!readStoredHeaderSession();
+         try {
+           const sessionResult = await client.auth.getSession();
+           session = sessionResult?.data?.session || null;
+         } catch (_err) {}
+         if (!session && hasStoredAuthSession) {
+           if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+             session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+           } else {
+             await bootstrapHeaderSessionFromStorage(client);
+             try {
+               const retrySessionResult = await client.auth.getSession();
+               session = retrySessionResult?.data?.session || null;
+             } catch (_retryErr) {}
+           }
+         }
+       }
+       if (session?.access_token && session?.refresh_token) persistHeaderSessionSnapshot(session);
+       const loggedIn = !!session;
+       const user = session && session.user ? session.user : null;
+       const hiddenDisplay = 'none';
 
       if (loginBtn) loginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
       if (signupBtn) signupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
