@@ -11,18 +11,18 @@
   <title>Zo2y | All Your Interests in One Place</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
-   <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <link rel="canonical" href="https://zo2y.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
-   <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <meta property="og:url" content="https://zo2y.com/" />
   <meta property="og:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
   <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
-   <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, and travel." />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
   <meta name="twitter:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
   <script>
     // Allow the client to operate even when IGDB credentials are missing.
@@ -54,8 +54,9 @@
   <link rel="dns-prefetch" href="//images.igdb.com">
   <link rel="dns-prefetch" href="//flagcdn.com">
   <link rel="dns-prefetch" href="//commons.wikimedia.org">
-   <link rel="dns-prefetch" href="//restcountries.com">
-   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link rel="dns-prefetch" href="//restcountries.com">
+  <link rel="dns-prefetch" href="//www.thesportsdb.com">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="js/list-utils.js?v=20260424a" defer></script>
   <script src="js/data/curated-media.js?v=20260425g" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -151,7 +152,9 @@
             <figure class="landing-v4-tile landing-v4-tile--poster" data-wall-slot="game-8"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png" alt="" onerror="this.onerror=null;this.src='/images/fallback/game.svg'"><figcaption>games</figcaption></figure>
           </div>
 
-
+           <div class="landing-v4-wall-row" id="sportsWallRow">
+             <!-- Sports teams will be populated here by JavaScript -->
+           </div>
 
           <div class="landing-v4-wall-row">
             <figure class="landing-v4-tile landing-v4-tile--logo landing-v4-tile--light" data-wall-slot="food-1"><img src="https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg" alt=""><figcaption>food</figcaption></figure>
@@ -295,39 +298,39 @@
             <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
             <div class="rail" id="musicRail"></div>
           </div>
+        </section>
+
+        <section class="section category-section" aria-label="Lifestyle">
+          <div class="section-head">
+            <h2>Lifestyle</h2>
+            <p>Travel, sports, fashion, food, and cars - the stuff you live for.</p>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-earth-americas"></i> Travel</span><a href="travel.html">View all</a></div>
+            <div class="rail" id="travelRail"></div>
+          </div>
 
           <div class="rail-wrap">
             <div class="rail-title"><span><i class="fa-solid fa-futbol"></i> Sports</span><a href="sports.html">View all</a></div>
             <div class="rail" id="sportsRail"></div>
           </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-shirt"></i> Fashion</span><a href="fashion.html">View all</a></div>
+            <div class="rail" id="fashionRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Food</span><a href="food.html">View all</a></div>
+            <div class="rail" id="foodRail"></div>
+          </div>
+
+          <div class="rail-wrap">
+            <div class="rail-title"><span><i class="fa-solid fa-car"></i> Cars</span><a href="cars.html">View all</a></div>
+            <div class="rail" id="carRail"></div>
+          </div>
         </section>
-
-         <section class="section category-section" aria-label="Lifestyle">
-           <div class="section-head">
-             <h2>Lifestyle</h2>
-             <p>Travel, fashion, food, and cars - the stuff you live for.</p>
-           </div>
-
-           <div class="rail-wrap">
-             <div class="rail-title"><span><i class="fa-solid fa-earth-americas"></i> Travel</span><a href="travel.html">View all</a></div>
-             <div class="rail" id="travelRail"></div>
-           </div>
-
-           <div class="rail-wrap">
-             <div class="rail-title"><span><i class="fa-solid fa-shirt"></i> Fashion</span><a href="fashion.html">View all</a></div>
-             <div class="rail" id="fashionRail"></div>
-           </div>
-
-           <div class="rail-wrap">
-             <div class="rail-title"><span><i class="fa-solid fa-utensils"></i> Food</span><a href="food.html">View all</a></div>
-             <div class="rail" id="foodRail"></div>
-           </div>
-
-           <div class="rail-wrap">
-             <div class="rail-title"><span><i class="fa-solid fa-car"></i> Cars</span><a href="cars.html">View all</a></div>
-             <div class="rail" id="carRail"></div>
-           </div>
-         </section>
       </main>
 
       <div class="legal-strip">
@@ -344,10 +347,10 @@
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
     <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
     <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
-      <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
-      <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
-      <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
-   </nav>
+    <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
+    <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
+  </nav>
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
     <div class="menu-modal-content">
@@ -423,8 +426,126 @@
     })();
   </script>
      <script src="js/pages/index.js?v=20260517a" defer></script>
-      <script src="js/production-runtime.js?v=20260422a" defer></script>
-    <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
+   <script src="js/production-runtime.js?v=20260422a" defer></script>
+   <script src="js/home-desktop-rebrand.js?v=20260416b" defer></script>
+   <script>
+     // Load and display popular sports teams from Supabase in the landing page
+      (() => {
+        const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+        const SUPABASE_URL = String(supabaseConfig.url || '').trim() || 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+        const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+
+        function shuffle(array) {
+          const arr = [...array];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+          return arr;
+        }
+
+        async function waitForSupabase() {
+          for (let i = 0; i < 100; i++) {
+            if (window.supabase?.createClient) return window.supabase;
+            await new Promise(r => setTimeout(r, 50));
+          }
+          return null;
+        }
+
+         async function loadSportsTiles() {
+           const sportsWallRow = document.getElementById('sportsWallRow');
+           if (!sportsWallRow) return;
+
+           const fallbackLogos = [
+             { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+             { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
+             { title: 'Atletico Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg' },
+             { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
+             { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
+             { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
+             { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+             { title: 'Al Ahly', image: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Al_Ahly_SC_logo.svg' },
+             { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
+             { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
+             { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
+             { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' }
+           ];
+
+           function renderTiles(teams) {
+             sportsWallRow.innerHTML = '';
+             const shuffled = shuffle([...teams].slice(0, 20)); // Take first 20, then shuffle
+             const displayCount = Math.min(8, shuffled.length);
+             for (let i = 0; i < displayCount; i++) {
+               const team = shuffled[i];
+               const figure = document.createElement('figure');
+               figure.className = 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light';
+               figure.setAttribute('data-wall-slot', `sports-${i + 1}`);
+               const img = document.createElement('img');
+               img.src = team.image || '/images/fallback/sports.svg';
+               img.alt = team.title || team.name || 'Sports';
+               img.onerror = () => img.src = '/images/fallback/sports.svg';
+               const figcaption = document.createElement('figcaption');
+               figcaption.textContent = 'sports';
+               figure.appendChild(img);
+               figure.appendChild(figcaption);
+               figure.style.cursor = 'pointer';
+               figure.onclick = () => window.location.href = 'sports.html';
+               sportsWallRow.appendChild(figure);
+             }
+           }
+
+           try {
+             const supabase = await waitForSupabase();
+             if (!supabase) { renderTiles(fallbackLogos); return; }
+             let client = window.__ZO2Y_SUPABASE_CLIENT;
+             if (!client) {
+               client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+               window.__ZO2Y_SUPABASE_CLIENT = client;
+             }
+             // Get a variety of sports by limiting per sport type
+             const { data, error } = await client
+               .from('teams')
+               .select('id,name,sport,league,logo_url')
+               .in('sport', ['football', 'soccer', 'basketball', 'american football', 'baseball', 'hockey', 'f1', 'mma', 'racing'])
+               .limit(1000); // Get more to ensure variety
+             if (error || !data || data.length === 0) { renderTiles(fallbackLogos); return; }
+             
+             // Group by sport to ensure variety
+             const teamsBySport = {};
+             data.forEach(team => {
+               const sport = team.sport.toLowerCase();
+               if (!teamsBySport[sport]) teamsBySport[sport] = [];
+               teamsBySport[sport].push(team);
+             });
+             
+             // Take up to 2 teams from each sport for variety
+             const variedTeams = [];
+             const sports = Object.keys(teamsBySport);
+             for (const sport of sports) {
+               const teams = teamsBySport[sport];
+               // Shuffle teams within each sport
+               const shuffledTeams = shuffle([...teams]);
+               // Take up to 2 from each sport
+               variedTeams.push(...shuffledTeams.slice(0, 2));
+             }
+             
+             const mapped = variedTeams.map(t => ({ 
+               title: t.name, 
+               image: t.logo_url || '/images/fallback/sports.svg' 
+             }));
+             renderTiles(mapped);
+           } catch (_err) {
+             renderTiles(fallbackLogos);
+           }
+         }
+
+        // Run after DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadSportsTiles);
+        } else {
+          loadSportsTiles();
+        }
+      })();
    </script>
  </div>
   </body>

@@ -6186,22 +6186,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       observer.observe(wrap);
     }
 
-     function renderOrDeferHomeRail(railId, items, opts) {
-       const key = String(railId || '').trim();
-       if (!key) return;
-       console.log(`[Home Rail] Processing rail ${key} with ${items?.length || 0} items`);
-       const normalizedItems = getHomeRailShuffleItems(key, items);
-       const renderOpts = opts || {};
-       if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
-         console.log(`[Home Rail] No items for rail ${key}, setting deferred placeholder`);
-         setHomeRailDeferredPlaceholder(key);
-         return;
-       }
-       console.log(`[Home Rail] Rendering rail ${key} with ${normalizedItems.length} items`);
-       homePendingRailRenderState.delete(key);
-       clearHomeRailDeferredPlaceholder(key);
-       renderRail(key, normalizedItems, renderOpts);
-     }
+    function renderOrDeferHomeRail(railId, items, opts) {
+      const key = String(railId || '').trim();
+      if (!key) return;
+      const normalizedItems = getHomeRailShuffleItems(key, items);
+      const renderOpts = opts || {};
+      if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
+        setHomeRailDeferredPlaceholder(key);
+        return;
+      }
+      homePendingRailRenderState.delete(key);
+      clearHomeRailDeferredPlaceholder(key);
+      renderRail(key, normalizedItems, renderOpts);
+    }
 
     function refreshShufflableHomeRails() {
       return;
@@ -6297,17 +6294,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function normalizeHomeFeedMap(feedMap) {
       if (!feedMap || typeof feedMap !== 'object') return null;
       const channels = getHomeChannels();
-       const normalized = {};
-       channels.forEach((channel) => {
-         const channelItems = Array.isArray(feedMap[channel.key])
-           ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
-           : [];
-         const safeItems = channel.key === 'travel'
-           ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
-           : channelItems;
-         const filteredItems = filterHomeSafeItems(safeItems);
-         normalized[channel.key] = filteredItems;
-       });
+      const normalized = {};
+      channels.forEach((channel) => {
+        const channelItems = Array.isArray(feedMap[channel.key])
+          ? feedMap[channel.key].filter((item) => item && typeof item === 'object')
+          : [];
+        const safeItems = channel.key === 'travel'
+          ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
+          : channelItems;
+        const filteredItems = filterHomeSafeItems(safeItems);
+        normalized[channel.key] = filteredItems;
+      });
       return normalized;
     }
 
