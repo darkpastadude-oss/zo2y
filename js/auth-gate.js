@@ -1040,10 +1040,22 @@
     return createClientWithFactory(factory, Object.assign({}, options || {}, { __zo2yIsolated: true }));
   }
 
-  async function restoreClientSessionFromSnapshot(client) {
-    if (hasRecentExplicitSignout()) return null;
-    var activeClient = client || ensureSharedSupabaseClient();
-    if (!activeClient || !activeClient.auth || typeof activeClient.auth.setSession !== 'function') return null;
+   async function restoreClientSessionFromSnapshot(client) {
+     // Check for intentional logout flag from shared-header.js
+     try {
+       if (sessionStorage.getItem('zo2y-intentional-logout') === 'true') {
+         // Clear the intentional logout flag and don't restore session
+         sessionStorage.removeItem('zo2y-intentional-logout');
+         // Also clear explicit signout marker to be safe
+         clearExplicitSignoutMarker();
+         clearPersistedSessionSnapshots();
+         return null;
+       }
+     } catch (_e) {}
+     
+     if (hasRecentExplicitSignout()) return null;
+     var activeClient = client || ensureSharedSupabaseClient();
+     if (!activeClient || !activeClient.auth || typeof activeClient.auth.setSession !== 'function') return null;
     async function tryRestore(storedSession) {
       if (!storedSession || !storedSession.access_token || !storedSession.refresh_token) {
         return { session: null, error: null };
