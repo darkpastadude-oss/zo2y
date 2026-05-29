@@ -9959,7 +9959,90 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return fallbackItems;
     }
 
-     async function loadSports(signal) {
+     function getHomeSportsPriorityMap() {
+        const priority = {};
+        const seeds = [
+          // UEFA Champions League / top soccer
+          { name: 'Real Madrid', sport: 'Soccer' },
+          { name: 'FC Barcelona', sport: 'Soccer' },
+          { name: 'Manchester City', sport: 'Soccer' },
+          { name: 'Bayern Munich', sport: 'Soccer' },
+          { name: 'Paris Saint-Germain', sport: 'Soccer' },
+          { name: 'Inter Milan', sport: 'Soccer' },
+          { name: 'AC Milan', sport: 'Soccer' },
+          { name: 'Arsenal', sport: 'Soccer' },
+          { name: 'Liverpool', sport: 'Soccer' },
+          { name: 'Chelsea', sport: 'Soccer' },
+          { name: 'Manchester United', sport: 'Soccer' },
+          { name: 'Juventus', sport: 'Soccer' },
+          { name: 'Borussia Dortmund', sport: 'Soccer' },
+          { name: 'Atletico Madrid', sport: 'Soccer' },
+          { name: 'Ajax', sport: 'Soccer' },
+          { name: 'PSV Eindhoven', sport: 'Soccer' },
+          { name: 'FC Porto', sport: 'Soccer' },
+          { name: 'Sporting CP', sport: 'Soccer' },
+          { name: 'Galatasaray', sport: 'Soccer' },
+          { name: 'Celtic', sport: 'Soccer' },
+          // NBA
+          { name: 'Los Angeles Lakers', sport: 'Basketball' },
+          { name: 'Boston Celtics', sport: 'Basketball' },
+          { name: 'Golden State Warriors', sport: 'Basketball' },
+          { name: 'Chicago Bulls', sport: 'Basketball' },
+          { name: 'Miami Heat', sport: 'Basketball' },
+          { name: 'Milwaukee Bucks', sport: 'Basketball' },
+          { name: 'Brooklyn Nets', sport: 'Basketball' },
+          { name: 'New York Knicks', sport: 'Basketball' },
+          { name: 'Philadelphia 76ers', sport: 'Basketball' },
+          { name: 'Denver Nuggets', sport: 'Basketball' },
+          { name: 'Dallas Mavericks', sport: 'Basketball' },
+          { name: 'Phoenix Suns', sport: 'Basketball' },
+          // NFL
+          { name: 'Kansas City Chiefs', sport: 'American Football' },
+          { name: 'San Francisco 49ers', sport: 'American Football' },
+          // MLB
+          { name: 'New York Yankees', sport: 'Baseball' },
+          { name: 'Los Angeles Dodgers', sport: 'Baseball' },
+          // NHL
+          { name: 'Edmonton Oilers', sport: 'Hockey' },
+          { name: 'Toronto Maple Leafs', sport: 'Hockey' },
+          // F1
+          { name: 'Ferrari', sport: 'Motorsport' },
+          { name: 'Red Bull Racing', sport: 'Motorsport' },
+          { name: 'Mercedes', sport: 'Motorsport' },
+          { name: 'McLaren', sport: 'Motorsport' }
+        ];
+        seeds.forEach((s, i) => {
+          const key = s.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+          priority[key] = { rank: i + 1, sport: s.sport };
+        });
+        return priority;
+      }
+
+      function prioritizeHomeSports(teams) {
+        const priority = getHomeSportsPriorityMap();
+        const bucketed = { soccer: [], basketball: [], american: [], other: [] };
+        const scored = [];
+
+        for (const team of teams) {
+          const pkey = String(team.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          const seed = priority[pkey];
+          const sport = String(team.sport || team.league || '').toLowerCase();
+
+          let bucket = 'other';
+          if (sport.includes('soccer') || sport.includes('football') || seed?.sport === 'Soccer') bucket = 'soccer';
+          else if (sport.includes('basketball') || seed?.sport === 'Basketball') bucket = 'basketball';
+          else if (sport.includes('american') || sport.includes('nfl') || seed?.sport === 'American Football') bucket = 'american';
+
+          const rank = seed ? seed.rank : 999;
+          bucketed[bucket].push({ team, rank });
+          scored.push({ team, rank, bucket });
+        }
+
+        scored.sort((a, b) => a.rank - b.rank);
+        return { scored, bucketed };
+      }
+
+      async function loadSports(signal) {
         const client = await ensureHomeSupabase();
         const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
 
@@ -9969,7 +10052,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
 
         try {
-          const fetchLimit = Math.max(target * 4, target);
+          const fetchLimit = Math.max(target * 4, 64);
           console.debug('[Home Sports] Fetching teams from Supabase...');
           const { data, error } = await client
             .from('teams')
@@ -9993,7 +10076,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             extra: row.sport || ''
           }));
 
-          return stableShuffleHomeItems(items, 'sports:home').slice(0, target);
+          const { scored, bucketed } = prioritizeHomeSports(items);
+          const selected = [];
+          const seen = new Set();
+
+          // Pull from buckets round-robin: soccer -> basketball -> american -> other
+          for (const item of scored) {
+            if (selected.length >= target) break;
+            const key = String(item.team.name || item.team.itemId || '').trim().toLowerCase();
+            if (seen.has(key)) continue;
+            seen.add(key);
+            selected.push(item.team);
+          }
+
+          return selected;
         } catch (err) {
           console.debug('[Home Sports] Load error:', err.message || err);
           return [];
