@@ -9963,18 +9963,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const client = await ensureHomeSupabase();
         const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
 
-        const fallbackItems = stableShuffleHomeItems(
-          HOME_SPORTS_FALLBACKS.map((row, index) => ({
-            ...mapHomeSportsItem({ ...row, logo: row.logo_url }, index),
-            subtitle: row.league || row.sport || 'Sports',
-            extra: row.sport || ''
-          })),
-          'sports:fallback'
-        ).slice(0, target);
-
         if (!client) {
-          console.debug('[Home Sports] No Supabase client, using fallback data');
-          return fallbackItems;
+          console.debug('[Home Sports] No Supabase client — cannot load teams');
+          return [];
         }
 
         try {
@@ -9986,13 +9977,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .limit(fetchLimit);
 
           if (error) {
-            console.debug('[Home Sports] Supabase error:', error);
-            return fallbackItems;
+            console.debug('[Home Sports] Supabase query failed:', error.message || error);
+            return [];
           }
 
           if (!data || !data.length) {
-            console.debug('[Home Sports] No teams found in Supabase table');
-            return fallbackItems;
+            console.debug('[Home Sports] Supabase teams table returned 0 rows');
+            return [];
           }
 
           console.debug(`[Home Sports] Loaded ${data.length} teams from Supabase`);
@@ -10005,7 +9996,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return stableShuffleHomeItems(items, 'sports:home').slice(0, target);
         } catch (err) {
           console.debug('[Home Sports] Load error:', err.message || err);
-          return fallbackItems;
+          return [];
         }
       }
 
