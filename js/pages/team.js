@@ -563,11 +563,29 @@
 
     // Fallback if no Supabase data
     if (!localTeam && teamName) {
+      let fallbackId = teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      let fallbackSport = teamSport || 'Football';
+      let fallbackLeague = teamLeague || '';
+      if (state.supabase) {
+        try {
+          const { data: existing } = await state.supabase
+            .from('teams')
+            .select('id,sport,league')
+            .ilike('name', teamName)
+            .limit(1)
+            .maybeSingle();
+          if (existing) {
+            fallbackId = existing.id || fallbackId;
+            fallbackSport = existing.sport || fallbackSport;
+            fallbackLeague = existing.league || fallbackLeague;
+          }
+        } catch (_) {}
+      }
       localTeam = {
-        id: teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        id: fallbackId,
         name: teamName,
-        sport: teamSport || 'Football',
-        league: teamLeague || '',
+        sport: fallbackSport,
+        league: fallbackLeague,
         country: teamCountry || '',
         formedYear: '',
         stadium: '',
@@ -657,10 +675,19 @@
     // Save enriched data back to Supabase
     if (state.supabase && remoteTeam) {
       try {
+        let saveId = team.id;
+        const { data: existingRow } = await state.supabase
+          .from('teams')
+          .select('id')
+          .ilike('name', team.name)
+          .limit(1)
+          .maybeSingle();
+        if (existingRow?.id) saveId = existingRow.id;
+
         await state.supabase
           .from('teams')
           .upsert({
-            id: team.id,
+            id: saveId,
             name: team.name,
             sport: team.sport || null,
             league: team.league || null,

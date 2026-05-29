@@ -303,9 +303,18 @@
          league: String(row.league || '').trim(),
          stadium: String(row.stadium || '').trim(),
          logo_url: String(row.logo_url || '').trim()
-       })).filter(t => t.name && normalize(t.league) !== 'national team');
-       console.log(`[Sports Page] Loaded ${teams.length} teams after filtering`);
-       return teams;
+        })).filter(t => t.name && normalize(t.league) !== 'national team');
+        const nameMap = new Map();
+        teams.forEach(t => {
+          const key = normalize(t.name) + '|' + normalize(t.league);
+          const existing = nameMap.get(key);
+          if (!existing || t.id.length > existing.id.length || (t.logo_url && !existing.logo_url)) {
+            nameMap.set(key, t);
+          }
+        });
+        const deduped = [...nameMap.values()];
+        console.log(`[Sports Page] Loaded ${deduped.length} teams after filtering and dedup`);
+        return deduped;
      } catch (err) {
        console.error('[Sports Page] Load error:', err);
        return [];

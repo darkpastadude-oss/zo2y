@@ -722,19 +722,9 @@ async function seedTeams() {
     'st louis blues': 'stlouisblues'
   };
 
-  // Known SVG files (rest are .png)
+  // Known SVG files (rest are .png) - all football/F1/NBA/NFL/MLB/NHL are now PNGs
   const SVG_EXT = new Set([
-    'laspalmas','leganes','monaco','montpellier',
-    'reims','saintetienne','fortaleza',
-    'cuiaba','juventude','holsteinkiel','vflbochum',
-    'esperance','etoiledusahel','cssfaxien','cssfaxienwomen','clubafricain',
-    'usmonastir','egsgaffenstadelmen','stadegabesien','stademaffensien',
-    'ceramicacleopatra','futurefc',
-    'alittihadalexandria','petrojet','nationalbankofegypt',
-    'modernsport','elgouna','enppi','ismaily','smouha','ghazlelmahalla',
-    'almokawloonalarab','almasry','almerreikh','alhilalbengasi',
-    'alahlitripoli','alahlidoha','alakhdar','alanwar','alarabialsaudi',
-    'alnajmaunaizah','almerreikhjuba','alnasr','alain'
+    'arizonacoyotes'
   ]);
 
   function resolveLogoPath(team) {
@@ -795,6 +785,33 @@ async function seedTeams() {
   }
 
   console.log(`Done! ${success} inserted/updated, ${skipped} skipped, ${errors} errors`);
+
+  console.log('\nCleaning up duplicate teams...');
+  const { data: allTeams } = await supabase.from('teams').select('id,name');
+  if (allTeams && allTeams.length) {
+    const groups = new Map();
+    allTeams.forEach(t => {
+      const key = String(t.name || '').toLowerCase().trim();
+      if (!key) return;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(t);
+    });
+    let deleted = 0;
+    for (const [name, rows] of groups) {
+      if (rows.length <= 1) continue;
+      rows.sort((a, b) => String(b.id).length - String(a.id).length);
+      const keep = rows[0];
+      const remove = rows.slice(1);
+      for (const dup of remove) {
+        const { error } = await supabase.from('teams').delete().eq('id', dup.id);
+        if (!error) {
+          deleted++;
+          console.log(`  Deleted duplicate: ${dup.id} (kept: ${keep.id})`);
+        }
+      }
+    }
+    console.log(`Cleanup done: ${deleted} duplicates removed`);
+  }
 }
 
 seedTeams().catch((err) => {

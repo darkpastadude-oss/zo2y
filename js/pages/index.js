@@ -94,7 +94,7 @@
       { id: 'spt-rom', name: 'Roma', category: 'Serie A', domain: 'asroma.com', logo_url: '/assets/logos/football/italian-serie-a/roma.png', country: 'Italy' },
       { id: 'spt-laz', name: 'Lazio', category: 'Serie A', domain: 'sslazio.it', logo_url: '/assets/logos/football/italian-serie-a/lazio.png', country: 'Italy' },
       { id: 'spt-ata', name: 'Atalanta', category: 'Serie A', domain: 'atalanta.it', logo_url: '/assets/logos/football/italian-serie-a/atalanta.png', country: 'Italy' },
-      { id: 'spt-psg', name: 'Paris Saint-Germain', category: 'Ligue 1', domain: 'psg.fr', logo_url: '/assets/logos/football/french-ligue-1/psg.png', country: 'France' },
+      { id: 'spt-psg', name: 'PSG', category: 'Ligue 1', domain: 'psg.fr', logo_url: '/assets/logos/football/french-ligue-1/psg.png', country: 'France' },
       { id: 'spt-mrs', name: 'Marseille', category: 'Ligue 1', domain: 'om.fr', logo_url: '/assets/logos/football/french-ligue-1/marseille.png', country: 'France' },
       { id: 'spt-lyo', name: 'Lyon', category: 'Ligue 1', domain: 'ol.fr', logo_url: '/assets/logos/football/french-ligue-1/lyon.png', country: 'France' },
       { id: 'spt-lil', name: 'Lille', category: 'Ligue 1', domain: 'losc.fr', logo_url: '/assets/logos/football/french-ligue-1/lille.png', country: 'France' },
@@ -104,7 +104,7 @@
       { id: 'spt-lev', name: 'Bayer Leverkusen', category: 'Bundesliga', domain: 'bayer04.de', logo_url: '/assets/logos/football/german-bundesliga/bayerleverkusen.png', country: 'Germany' },
       { id: 'spt-ffr', name: 'Eintracht Frankfurt', category: 'Bundesliga', domain: 'eintracht.de', logo_url: '/assets/logos/football/german-bundesliga/eintrachtfrankfurt.png', country: 'Germany' },
       { id: 'spt-wer', name: 'Werder Bremen', category: 'Bundesliga', domain: 'werder.de', logo_url: '/assets/logos/football/german-bundesliga/werderbremen.png', country: 'Germany' },
-      { id: 'spt-stu', name: 'VfB Stuttgart', category: 'Bundesliga', domain: 'vfb.de', logo_url: '/assets/logos/football/german-bundesliga/vfbstuttgart.svg', country: 'Germany' },
+      { id: 'spt-stu', name: 'VfB Stuttgart', category: 'Bundesliga', domain: 'vfb.de', logo_url: '/assets/logos/football/german-bundesliga/vfbstuttgart.png', country: 'Germany' },
       { id: 'spt-ajx', name: 'Ajax', category: 'Eredivisie', domain: 'ajax.nl', logo_url: '/assets/logos/football/uefa-champions-league/ajax.png', country: 'Netherlands' },
       { id: 'spt-fey', name: 'Feyenoord', category: 'Eredivisie', domain: 'feyenoord.nl', logo_url: '/assets/logos/football/uefa-champions-league/feyenoord.png', country: 'Netherlands' },
       { id: 'spt-ptp', name: 'FC Porto', category: 'Primeira Liga', domain: 'fcporto.pt', logo_url: '/assets/logos/football/uefa-champions-league/fcporto.png', country: 'Portugal' },
@@ -117,7 +117,7 @@
       { id: 'spt-cbr', name: 'Club Brugge', category: 'Pro League', domain: 'clubbrugge.be', logo_url: '/assets/logos/football/uefa-champions-league/clubbrugge.png', country: 'Belgium' },
       { id: 'spt-hil', name: 'Al Hilal', category: 'Saudi Pro League', domain: 'alhilal.com', logo_url: '/assets/logos/football/saudi-pro-league/alhilal.png', country: 'Saudi Arabia' },
       { id: 'spt-nsr', name: 'Al Nassr', category: 'Saudi Pro League', domain: 'alnassr.sa', logo_url: '/assets/logos/football/saudi-pro-league/alnassr.png', country: 'Saudi Arabia' },
-      { id: 'spt-itt', name: 'Al Ittihad', category: 'Saudi Pro League', domain: 'alittihad.sa', logo_url: '/assets/logos/football/saudi-pro-league/alittihad.svg', country: 'Saudi Arabia' },
+      { id: 'spt-itt', name: 'Al Ittihad', category: 'Saudi Pro League', domain: 'alittihad.sa', logo_url: '/assets/logos/football/saudi-pro-league/alittihad.png', country: 'Saudi Arabia' },
       { id: 'spt-ahl', name: 'Al Ahly', category: 'Egyptian Premier League', domain: 'alahlyegypt.com', logo_url: '/assets/logos/football/egyptian-premier-league/alahly.png', country: 'Egypt' },
       { id: 'spt-zam', name: 'Zamalek', category: 'Egyptian Premier League', domain: 'zamalekclub.com', logo_url: '/assets/logos/football/egyptian-premier-league/zamalek.png', country: 'Egypt' },
       { id: 'spt-bjr', name: 'Boca Juniors', category: 'Primera División', domain: 'bocajuniors.com.ar', logo_url: '/assets/logos/football/argentina-primera-division/bocajuniors.png', country: 'Argentina' },
@@ -125,15 +125,15 @@
       { id: 'spt-fla', name: 'Flamengo', category: 'Brazilian Serie A', domain: 'flamengo.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/flamengo.png', country: 'Brazil' },
       { id: 'spt-plm', name: 'Palmeiras', category: 'Brazilian Serie A', domain: 'palmeiras.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/palmeiras.png', country: 'Brazil' },
       { id: 'spt-cor', name: 'Corinthians', category: 'Brazilian Serie A', domain: 'corinthians.com.br', logo_url: '/assets/logos/football/brazilian-serie-a/corinthians.png', country: 'Brazil' },
-      { id: 'spt-sao', name: 'Sao Paulo', category: 'Brazilian Serie A', domain: 'saopaulofc.net', logo_url: '/assets/logos/football/brazilian-serie-a/saopaulo.svg', country: 'Brazil' },
+      { id: 'spt-sao', name: 'Sao Paulo', category: 'Brazilian Serie A', domain: 'saopaulofc.net', logo_url: '/assets/logos/football/brazilian-serie-a/saopaulo.png', country: 'Brazil' },
       { id: 'spt-fer', name: 'Ferrari', category: 'Formula 1', domain: 'ferrari.com', logo_url: '/assets/logos/f1/ferrari.png', country: 'Italy' },
       { id: 'spt-rbr', name: 'Red Bull Racing', category: 'Formula 1', domain: 'redbullracing.com', logo_url: '/assets/logos/f1/redbullracing.png', country: 'Austria' },
       { id: 'spt-mer', name: 'Mercedes', category: 'Formula 1', domain: 'mercedesamgf1.com', logo_url: '/assets/logos/f1/mercedes.png', country: 'Germany' },
       { id: 'spt-mcl', name: 'McLaren', category: 'Formula 1', domain: 'mclaren.com', logo_url: '/assets/logos/f1/mclaren.png', country: 'UK' },
-      { id: 'spt-asn', name: 'Aston Martin', category: 'Formula 1', domain: 'astonmartinf1.com', logo_url: '/assets/logos/f1/astonmartin.svg', country: 'UK' },
-      { id: 'spt-alp', name: 'Alpine', category: 'Formula 1', domain: 'alpine-cars.com', logo_url: '/assets/logos/f1/alpine.svg', country: 'France' },
-      { id: 'spt-wil', name: 'Williams', category: 'Formula 1', domain: 'williamsf1.com', logo_url: '/assets/logos/f1/williams.svg', country: 'UK' },
-      { id: 'spt-haa', name: 'Haas', category: 'Formula 1', domain: 'haasf1team.com', logo_url: '/assets/logos/f1/haas.svg', country: 'USA' },
+      { id: 'spt-asn', name: 'Aston Martin', category: 'Formula 1', domain: 'astonmartinf1.com', logo_url: '/assets/logos/f1/astonmartin.png', country: 'UK' },
+      { id: 'spt-alp', name: 'Alpine', category: 'Formula 1', domain: 'alpine-cars.com', logo_url: '/assets/logos/f1/alpine.png', country: 'France' },
+      { id: 'spt-wil', name: 'Williams', category: 'Formula 1', domain: 'williamsf1.com', logo_url: '/assets/logos/f1/williams.png', country: 'UK' },
+      { id: 'spt-haa', name: 'Haas', category: 'Formula 1', domain: 'haasf1team.com', logo_url: '/assets/logos/f1/haas.png', country: 'USA' },
       { id: 'spt-rb', name: 'RB', category: 'Formula 1', domain: 'visacashapprb.com', logo_url: '/assets/logos/f1/rb.png', country: 'Italy' },
       { id: 'spt-kck', name: 'Kick Sauber', category: 'Formula 1', domain: 'sauber-group.com', logo_url: '/assets/logos/f1/kicksauber.png', country: 'Switzerland' },
       { id: 'spt-aud', name: 'Audi', category: 'Formula 1', domain: 'audi.com', logo_url: '/assets/logos/f1/audirevolutf1team.png', country: 'Germany' },
@@ -208,7 +208,7 @@
       { id: 'spt-ast', name: 'Atlanta Braves', category: 'MLB', domain: 'mlb.com/braves', logo_url: '/assets/logos/mlb/atlantabraves.png', country: 'USA' },
       { id: 'spt-nym', name: 'New York Mets', category: 'MLB', domain: 'mlb.com/mets', logo_url: '/assets/logos/mlb/newyorkmets.png', country: 'USA' },
       { id: 'spt-sfg', name: 'San Francisco Giants', category: 'MLB', domain: 'mlb.com/giants', logo_url: '/assets/logos/mlb/sanfranciscogiants.png', country: 'USA' },
-      { id: 'spt-stl', name: 'St Louis Cardinals', category: 'MLB', domain: 'mlb.com/cardinals', logo_url: '/assets/logos/mlb/stlouiscardinals.svg', country: 'USA' },
+      { id: 'spt-stl', name: 'St Louis Cardinals', category: 'MLB', domain: 'mlb.com/cardinals', logo_url: '/assets/logos/mlb/stlouiscardinals.png', country: 'USA' },
       { id: 'spt-phi', name: 'Philadelphia Phillies', category: 'MLB', domain: 'mlb.com/phillies', logo_url: '/assets/logos/mlb/philadelphiaphillies.png', country: 'USA' },
       { id: 'spt-tor', name: 'Toronto Blue Jays', category: 'MLB', domain: 'mlb.com/bluejays', logo_url: '/assets/logos/mlb/torontobluejays.png', country: 'Canada' },
       { id: 'spt-sea', name: 'Seattle Mariners', category: 'MLB', domain: 'mlb.com/mariners', logo_url: '/assets/logos/mlb/seattlemariners.png', country: 'USA' },
@@ -228,7 +228,7 @@
       { id: 'spt-laa', name: 'LA Angels', category: 'MLB', domain: 'mlb.com/angels', logo_url: '/assets/logos/mlb/losangelesangels.png', country: 'USA' },
       { id: 'spt-mia', name: 'Miami Marlins', category: 'MLB', domain: 'mlb.com/marlins', logo_url: '/assets/logos/mlb/miamimarlins.png', country: 'USA' },
       { id: 'spt-pit', name: 'Pittsburgh Pirates', category: 'MLB', domain: 'mlb.com/pirates', logo_url: '/assets/logos/mlb/pittsburghpirates.png', country: 'USA' },
-      { id: 'spt-oak', name: 'Oakland Athletics', category: 'MLB', domain: 'mlb.com/athletics', logo_url: '/assets/logos/mlb/oaklandathletics.svg', country: 'USA' },
+      { id: 'spt-oak', name: 'Oakland Athletics', category: 'MLB', domain: 'mlb.com/athletics', logo_url: '/assets/logos/mlb/oaklandathletics.png', country: 'USA' },
       { id: 'spt-was', name: 'Washington Nationals', category: 'MLB', domain: 'mlb.com/nationals', logo_url: '/assets/logos/mlb/washingtonnationals.png', country: 'USA' },
       { id: 'spt-tml', name: 'Toronto Maple Leafs', category: 'NHL', domain: 'nhl.com/mapleleafs', logo_url: '/assets/logos/nhl/torontomapleleafs.png', country: 'Canada' },
       { id: 'spt-bbr', name: 'Boston Bruins', category: 'NHL', domain: 'nhl.com/bruins', logo_url: '/assets/logos/nhl/bostonbruins.png', country: 'USA' },
@@ -257,11 +257,11 @@
       { id: 'spt-cbj', name: 'Columbus Blue Jackets', category: 'NHL', domain: 'nhl.com/bluejackets', logo_url: '/assets/logos/nhl/columbusbluejackets.png', country: 'USA' },
       { id: 'spt-nsh', name: 'Nashville Predators', category: 'NHL', domain: 'nhl.com/predators', logo_url: '/assets/logos/nhl/nashvillepredators.png', country: 'USA' },
       { id: 'spt-min', name: 'Minnesota Wild', category: 'NHL', domain: 'nhl.com/wild', logo_url: '/assets/logos/nhl/minnesotawild.png', country: 'USA' },
-      { id: 'spt-stl', name: 'St Louis Blues', category: 'NHL', domain: 'nhl.com/blues', logo_url: '/assets/logos/nhl/stlouisblues.svg', country: 'USA' },
+      { id: 'spt-stl', name: 'St Louis Blues', category: 'NHL', domain: 'nhl.com/blues', logo_url: '/assets/logos/nhl/stlouisblues.png', country: 'USA' },
       { id: 'spt-buf', name: 'Buffalo Sabres', category: 'NHL', domain: 'nhl.com/sabres', logo_url: '/assets/logos/nhl/buffalosabres.png', country: 'USA' },
       { id: 'spt-wsh', name: 'Washington Capitals', category: 'NHL', domain: 'nhl.com/capitals', logo_url: '/assets/logos/nhl/washingtoncapitals.png', country: 'USA' },
       { id: 'spt-chi', name: 'Chicago Blackhawks', category: 'NHL', domain: 'nhl.com/blackhawks', logo_url: '/assets/logos/nhl/chicagoblackhawks.png', country: 'USA' },
-      { id: 'spt-uth', name: 'Utah Hockey Club', category: 'NHL', domain: 'nhl.com/utah', logo_url: '/assets/logos/nhl/utahhockeyclub.svg', country: 'USA' },
+      { id: 'spt-uth', name: 'Utah Hockey Club', category: 'NHL', domain: 'nhl.com/utah', logo_url: '/assets/logos/nhl/utahhockeyclub.png', country: 'USA' },
       { id: 'spt-ufc', name: 'UFC', category: 'MMA', domain: 'ufc.com', logo_url: '/assets/logos/mma/ufc/ufc.svg', country: 'USA' },
       { id: 'spt-one', name: 'ONE Championship', category: 'MMA', domain: 'onefc.com', logo_url: '/assets/logos/mma/one/onechampionship.svg', country: 'Singapore' }
     ];
@@ -1955,11 +1955,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
     }
 
-    function mapHomeSportsItem(row, fallbackIndex = 0) {
+      function mapHomeSportsItem(row, fallbackIndex = 0) {
       const title = String(row?.name || '').trim() || 'Team';
       const sport = String(row?.sport || '').trim();
       const league = String(row?.league || '').trim();
-      const logo = String(row?.logo || '').trim();
+      const logo = String(row?.logo || row?.logo_url || '').trim();
       const subtitle = league || sport || 'Sports';
       const extra = sport || 'Sports';
       const itemId = String(row?.id || `sports-fallback-${fallbackIndex}`).trim();
@@ -4047,7 +4047,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       try {
         if (mediaType === 'sports') {
-          const teamId = String(payload.itemId || '').trim();
+          let teamId = String(payload.itemId || '').trim();
           if (!teamId) {
             showHomeToast('Could not update list', true);
             return result;
@@ -4055,6 +4055,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const subtitle = String(payload.subtitle || '').trim();
           const [leagueRaw, sportRaw] = subtitle.split('|').map((value) => String(value || '').trim());
           const teamName = String(payload.title || teamId).trim() || teamId;
+
+          const { data: existingTeam } = await client
+            .from('teams')
+            .select('id')
+            .ilike('name', teamName)
+            .limit(1)
+            .maybeSingle();
+          if (existingTeam?.id) teamId = existingTeam.id;
+
           const teamPayload = {
             id: teamId,
             name: teamName,
@@ -10051,17 +10060,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       function getHomeCuratedTeams() {
         const teams = [
-          { name: 'Paris Saint-Germain', sport: 'Soccer', league: 'UEFA Champions League Final', local: '/assets/logos/football/french-ligue-1/psg.png' },
+          { name: 'PSG', sport: 'Soccer', league: 'Ligue 1', local: '/assets/logos/football/french-ligue-1/psg.png' },
           { name: 'Arsenal', sport: 'Soccer', league: 'UEFA Champions League Final', local: '/assets/logos/football/english-premier-league/arsenal.png' },
           { name: 'New York Knicks', sport: 'Basketball', league: 'NBA Finals', local: '/assets/logos/nba/newyorkknicks.png' },
           { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA West Finals', local: '/assets/logos/nba/oklahomacitythunder.png' },
           { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA West Finals', local: '/assets/logos/nba/sanantoniospurs.png' },
-          { name: 'Royal Challengers Bengaluru', sport: 'Cricket', league: 'IPL Final' },
-          { name: 'Gujarat Titans', sport: 'Cricket', league: 'IPL Final' },
           { name: 'Vegas Golden Knights', sport: 'Hockey', league: 'Stanley Cup Final', local: '/assets/logos/nhl/vegasgoldenknights.png' },
           { name: 'Carolina Hurricanes', sport: 'Hockey', league: 'NHL East Final', local: '/assets/logos/nhl/carolinahurricanes.png' },
           { name: 'Real Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
-          { name: 'FC Barcelona', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/barcelona.png' },
+          { name: 'Barcelona', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/barcelona.png' },
           { name: 'Atletico Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/atleticomadrid.png' },
           { name: 'Sevilla', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/sevilla.png' },
           { name: 'Villarreal', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/villarreal.png' },
@@ -10105,13 +10112,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Dinamo Zagreb', sport: 'Soccer', league: 'Prva HNL', local: '/assets/logos/football/uefa-champions-league/dinamozagreb.png' },
           { name: 'Al Hilal', sport: 'Soccer', league: 'Saudi Pro League', local: '/assets/logos/football/saudi-pro-league/alhilal.png' },
           { name: 'Al Nassr', sport: 'Soccer', league: 'Saudi Pro League', local: '/assets/logos/football/saudi-pro-league/alnassr.png' },
-          { name: 'Al Ittihad', sport: 'Soccer', league: 'Saudi Pro League', local: '/assets/logos/football/saudi-pro-league/alittihad.svg' },
+          { name: 'Al Ittihad', sport: 'Soccer', league: 'Saudi Pro League', local: '/assets/logos/football/saudi-pro-league/alittihad.png' },
           { name: 'Al Ahly', sport: 'Soccer', league: 'Egyptian Premier League', local: '/assets/logos/football/egyptian-premier-league/alahly.png' },
           { name: 'Zamalek', sport: 'Soccer', league: 'Egyptian Premier League', local: '/assets/logos/football/egyptian-premier-league/zamalek.png' },
           { name: 'Flamengo', sport: 'Soccer', league: 'Brazilian Serie A', local: '/assets/logos/football/brazilian-serie-a/flamengo.png' },
           { name: 'Palmeiras', sport: 'Soccer', league: 'Brazilian Serie A', local: '/assets/logos/football/brazilian-serie-a/palmeiras.png' },
           { name: 'Corinthians', sport: 'Soccer', league: 'Brazilian Serie A', local: '/assets/logos/football/brazilian-serie-a/corinthians.png' },
-          { name: 'Sao Paulo', sport: 'Soccer', league: 'Brazilian Serie A', local: '/assets/logos/football/brazilian-serie-a/saopaulo.svg' },
+          { name: 'Sao Paulo', sport: 'Soccer', league: 'Brazilian Serie A', local: '/assets/logos/football/brazilian-serie-a/saopaulo.png' },
           { name: 'Boca Juniors', sport: 'Soccer', league: 'Primera Division', local: '/assets/logos/football/argentina-primera-division/bocajuniors.png' },
           { name: 'River Plate', sport: 'Soccer', league: 'Primera Division', local: '/assets/logos/football/argentina-primera-division/riverplate.png' },
           { name: 'Atlanta Hawks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/atlantahawks.png' },
@@ -10126,7 +10133,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/goldenstatewarriors.png' },
           { name: 'Houston Rockets', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/houstonrockets.png' },
           { name: 'Indiana Pacers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/indianapacers.png' },
-          { name: 'LA Clippers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangelesclippers.png' },
+          { name: 'Los Angeles Clippers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangelesclippers.png' },
           { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangeleslakers.png' },
           { name: 'Memphis Grizzlies', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/memphisgrizzlies.png' },
           { name: 'Miami Heat', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/miamiheat.png' },
@@ -10193,13 +10200,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Minnesota Twins', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/minnesotatwins.png' },
           { name: 'New York Mets', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/newyorkmets.png' },
           { name: 'New York Yankees', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/newyorkyankees.png' },
-          { name: 'Oakland Athletics', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/oaklandathletics.svg' },
+          { name: 'Oakland Athletics', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/oaklandathletics.png' },
           { name: 'Philadelphia Phillies', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/philadelphiaphillies.png' },
           { name: 'Pittsburgh Pirates', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/pittsburghpirates.png' },
           { name: 'San Diego Padres', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/sandiegopadres.png' },
           { name: 'San Francisco Giants', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/sanfranciscogiants.png' },
           { name: 'Seattle Mariners', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/seattlemariners.png' },
-          { name: 'St. Louis Cardinals', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/stlouiscardinals.svg' },
+          { name: 'St Louis Cardinals', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/stlouiscardinals.png' },
           { name: 'Tampa Bay Rays', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/tampabayrays.png' },
           { name: 'Texas Rangers', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/texasrangers.png' },
           { name: 'Toronto Blue Jays', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/torontobluejays.png' },
@@ -10228,10 +10235,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Pittsburgh Penguins', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/pittsburghpenguins.png' },
           { name: 'San Jose Sharks', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/sanjosesharks.png' },
           { name: 'Seattle Kraken', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/seattlekraken.png' },
-          { name: 'St. Louis Blues', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/stlouisblues.svg' },
+          { name: 'St Louis Blues', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/stlouisblues.png' },
           { name: 'Tampa Bay Lightning', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/tampabaylightning.png' },
           { name: 'Toronto Maple Leafs', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/torontomapleleafs.png' },
-          { name: 'Utah HC', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/utahhockeyclub.svg' },
+          { name: 'Utah Hockey Club', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/utahhockeyclub.png' },
           { name: 'Vancouver Canucks', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/vancouvercanucks.png' },
           { name: 'Vegas Golden Knights', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/vegasgoldenknights.png' },
           { name: 'Washington Capitals', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/washingtoncapitals.png' },
@@ -10240,10 +10247,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Red Bull Racing', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/redbullracing.png' },
           { name: 'Mercedes', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/mercedes.png' },
           { name: 'McLaren', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/mclaren.png' },
-          { name: 'Aston Martin', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/astonmartin.svg' },
-          { name: 'Alpine', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/alpine.svg' },
-          { name: 'Williams', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/williams.svg' },
-          { name: 'Haas', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/haas.svg' },
+          { name: 'Aston Martin', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/astonmartin.png' },
+          { name: 'Alpine', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/alpine.png' },
+          { name: 'Williams', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/williams.png' },
+          { name: 'Haas', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/haas.png' },
           { name: 'RB', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/rb.png' },
           { name: 'Kick Sauber', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/kicksauber.png' },
           { name: 'Audi', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/audirevolutf1team.png' },
@@ -10269,6 +10276,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               for (const row of data) {
                 const normalized = String(row.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                 if (row.logo_url) logoLookup[normalized] = row.logo_url;
+              }
+            }
+            const nameAliases = {
+              'parissaintgermain': 'psg',
+              'fcbarcelona': 'barcelona',
+              'sportingcp': 'sportingcp',
+              'brighton': 'brightonandhovealbion',
+              'newcastleunited': 'newcastleunited',
+              'westhamunited': 'westhamunited',
+              'tottenhamhotspur': 'tottenhamhotspur',
+              'manchestercity': 'manchestercity',
+              'manchesterunited': 'manchesterunited',
+              'athleticbilbao': 'athleticbilbao',
+              'atleticomadrid': 'atleticomadrid',
+              'realsociedad': 'realsociedad',
+            };
+            for (const [alias, canonical] of Object.entries(nameAliases)) {
+              if (logoLookup[canonical] && !logoLookup[alias]) {
+                logoLookup[alias] = logoLookup[canonical];
               }
             }
           } catch (_) {}
