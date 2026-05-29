@@ -1074,7 +1074,11 @@
           const res = await fetch(`${TMDB_PROXY_BASE}/genre/tv/list?language=en`);
           const json = await res.json();
           if (Array.isArray(json.genres)) {
+            // Skip "Animation" (genre ID 16) — all anime is animation by definition
+            // Skip "Kids" (10762), "News" (10763), "Reality" (10764), "Talk" (10767) — rarely relevant to anime
+            const skipGenres = new Set([16, 10762, 10763, 10764, 10767]);
             json.genres.forEach(g => {
+              if (skipGenres.has(g.id)) return;
               const opt = document.createElement('option');
               opt.value = String(g.id);
               opt.textContent = g.name;

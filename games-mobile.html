@@ -262,6 +262,8 @@
       position: relative;
     }
 
+
+
     .card-media img {
       width: 100%;
       height: 100%;
@@ -271,6 +273,20 @@
 
     .card-media.cover img {
       object-fit: cover;
+    }
+
+    .game-card .card-media {
+      background: linear-gradient(135deg, #132347 0%, #0e1f42 100%);
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .game-card .card-media img {
+      object-fit: contain;
+      object-position: center;
+      transform: none;
+      border-radius: 6px;
+      background: transparent;
     }
 
     .card-meta {
@@ -942,7 +958,7 @@
       }
 
       if (state.genre) {
-        query = query.contains('extra->genres', `{"slug": "${state.genre}"}`);
+        query = query.contains('extra', { genres: [{ slug: state.genre }] });
       }
 
       // Randomly choose between popular and newly released on each refresh (only when no search)
@@ -1097,7 +1113,7 @@
         const coverUrl = game.cover || FALLBACK_IMAGE;
         const year = game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBD';
         return `
-        <article class="card" data-id="${escapeHtml(game.id)}">
+        <article class="card game-card" data-id="${escapeHtml(game.id)}">
           <div class="card-media">
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'">
           </div>
@@ -1272,8 +1288,60 @@
       });
     }
 
+    async function initGameFilters() {
+      if (window.__zo2yFiltersPopulated) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+
+      const genreSelect = document.getElementById('genre');
+      const platformSelect = document.getElementById('platform');
+      if (!genreSelect || !platformSelect) return;
+
+      try {
+        const { data: games } = await client.from('games').select('extra');
+        if (!games) return;
+
+        const genreSet = new Set();
+        const platformSet = new Set();
+        for (const game of games) {
+          const extra = game.extra || {};
+          if (Array.isArray(extra.genres)) {
+            for (const g of extra.genres) {
+              if (g?.slug) genreSet.add(JSON.stringify(g));
+            }
+          }
+          if (Array.isArray(extra.platforms)) {
+            for (const p of extra.platforms) {
+              if (p?.slug) platformSet.add(JSON.stringify(p));
+            }
+          }
+        }
+
+        const sortedGenres = Array.from(genreSet).map((s) => JSON.parse(s)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        for (const g of sortedGenres) {
+          const opt = document.createElement('option');
+          opt.value = g.slug;
+          opt.textContent = g.name || g.slug;
+          genreSelect.appendChild(opt);
+        }
+
+        const sortedPlatforms = Array.from(platformSet).map((s) => JSON.parse(s)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        for (const p of sortedPlatforms) {
+          const opt = document.createElement('option');
+          opt.value = p.slug;
+          opt.textContent = p.name || p.slug;
+          platformSelect.appendChild(opt);
+        }
+
+        window.__zo2yFiltersPopulated = true;
+      } catch (_err) {
+        console.error('Failed to load filter options', _err);
+      }
+    }
+
     async function loadPage() {
       try {
+        await initGameFilters();
         await initAuthUi();
         await loadGames();
         await loadListStatus();

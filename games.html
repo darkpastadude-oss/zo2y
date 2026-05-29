@@ -517,26 +517,15 @@
 
 
     .card-media {
-
       width: 100%;
-
       aspect-ratio: 2/3;
-
       background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-
       display: grid;
-
       place-items: center;
-
       color: var(--muted);
-
       overflow: hidden;
-
       position: relative;
-
     }
-
-
 
     .card-media img {
 
@@ -556,6 +545,20 @@
 
       object-fit: cover;
 
+    }
+
+    .game-card .card-media {
+      background: linear-gradient(135deg, #132347 0%, #0e1f42 100%);
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .game-card .card-media img {
+      object-fit: contain;
+      object-position: center;
+      transform: none;
+      border-radius: 6px;
+      background: transparent;
     }
 
 
@@ -1996,7 +1999,7 @@
 
               if (state.genre) {
 
-                searchQuery = searchQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
+                searchQuery = searchQuery.contains('extra', { genres: [{ slug: state.genre }] });
 
               }
 
@@ -2004,7 +2007,7 @@
 
               if (state.platform) {
 
-                searchQuery = searchQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+                searchQuery = searchQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
               }
 
@@ -2082,7 +2085,7 @@
 
           if (state.genre) {
 
-            dbQuery = dbQuery.contains('extra->genres', `{"slug": "${state.genre}"}`);
+            dbQuery = dbQuery.contains('extra', { genres: [{ slug: state.genre }] });
 
           }
 
@@ -2090,7 +2093,7 @@
 
           if (state.platform) {
 
-            dbQuery = dbQuery.contains('extra->platforms', `{"slug": "${state.platform}"}`);
+            dbQuery = dbQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
           }
 
@@ -2626,7 +2629,7 @@
 
         return `
 
-        <article class="card" data-id="${escapeHtml(game.id)}">
+        <article class="card game-card" data-id="${escapeHtml(game.id)}">
 
           <div class="card-media">
 
