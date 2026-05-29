@@ -9959,6 +9959,59 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return fallbackItems;
     }
 
+      function getHomeCuratedTeams() {
+        const teams = [
+          { name: 'Real Madrid', sport: 'Soccer', league: 'La Liga' },
+          { name: 'FC Barcelona', sport: 'Soccer', league: 'La Liga' },
+          { name: 'Manchester City', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Arsenal', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Liverpool', sport: 'Soccer', league: 'Premier League' },
+          { name: 'PSG', sport: 'Soccer', league: 'Ligue 1' },
+          { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga' },
+          { name: 'Inter Milan', sport: 'Soccer', league: 'Serie A' },
+          { name: 'Atletico Madrid', sport: 'Soccer', league: 'La Liga' },
+          { name: 'AC Milan', sport: 'Soccer', league: 'Serie A' },
+          { name: 'Chelsea', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Manchester United', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Juventus', sport: 'Soccer', league: 'Serie A' },
+          { name: 'Borussia Dortmund', sport: 'Soccer', league: 'Bundesliga' },
+          { name: 'Sporting CP', sport: 'Soccer', league: 'Primeira Liga' },
+          { name: 'Newcastle United', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Tottenham Hotspur', sport: 'Soccer', league: 'Premier League' },
+          { name: 'Galatasaray', sport: 'Soccer', league: 'Super Lig' },
+          { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA' },
+          { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA' },
+          { name: 'New York Knicks', sport: 'Basketball', league: 'NBA' },
+          { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA' },
+          { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA' },
+          { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA' },
+          { name: 'Denver Nuggets', sport: 'Basketball', league: 'NBA' },
+          { name: 'Chicago Bulls', sport: 'Basketball', league: 'NBA' },
+          { name: 'Miami Heat', sport: 'Basketball', league: 'NBA' },
+          { name: 'Milwaukee Bucks', sport: 'Basketball', league: 'NBA' },
+          { name: 'Houston Rockets', sport: 'Basketball', league: 'NBA' },
+          { name: 'Detroit Pistons', sport: 'Basketball', league: 'NBA' },
+          { name: 'Seattle Seahawks', sport: 'Football', league: 'NFL' },
+          { name: 'New England Patriots', sport: 'Football', league: 'NFL' },
+          { name: 'Kansas City Chiefs', sport: 'Football', league: 'NFL' },
+          { name: 'San Francisco 49ers', sport: 'Football', league: 'NFL' },
+          { name: 'Dallas Cowboys', sport: 'Football', league: 'NFL' },
+          { name: 'Buffalo Bills', sport: 'Football', league: 'NFL' },
+          { name: 'Baltimore Ravens', sport: 'Football', league: 'NFL' },
+          { name: 'Philadelphia Eagles', sport: 'Football', league: 'NFL' },
+          { name: 'LA Rams', sport: 'Football', league: 'NFL' },
+          { name: 'New York Yankees', sport: 'Baseball', league: 'MLB' },
+          { name: 'Los Angeles Dodgers', sport: 'Baseball', league: 'MLB' },
+          { name: 'Ferrari', sport: 'Motorsport', league: 'F1' },
+          { name: 'Red Bull Racing', sport: 'Motorsport', league: 'F1' },
+          { name: 'McLaren', sport: 'Motorsport', league: 'F1' },
+          { name: 'Mercedes', sport: 'Motorsport', league: 'F1' },
+          { name: 'Edmonton Oilers', sport: 'Hockey', league: 'NHL' },
+          { name: 'Toronto Maple Leafs', sport: 'Hockey', league: 'NHL' }
+        ];
+        return teams;
+      }
+
       async function loadSports(signal) {
         const client = await ensureHomeSupabase();
         const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
@@ -9981,8 +10034,43 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           } catch (_) {}
         }
 
-        const targetSlice = curated.slice(0, target);
-        const items = targetSlice.map((t, index) => {
+        const categories = {};
+        for (const t of curated) {
+          const cat = t.sport === 'Soccer' ? 'soccer' : t.sport === 'Basketball' ? 'basketball' : t.sport === 'Football' ? 'football' : 'other';
+          if (!categories[cat]) categories[cat] = [];
+          categories[cat].push(t);
+        }
+
+        const keys = Object.keys(categories);
+        for (const cat of keys) {
+          const arr = categories[cat];
+          for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+          }
+        }
+
+        const order = ['soccer', 'basketball', 'football', 'other'];
+        const selected = [];
+        const used = new Set();
+
+        while (selected.length < target) {
+          let added = false;
+          for (const cat of order) {
+            for (const t of (categories[cat] || [])) {
+              if (selected.length >= target) break;
+              const key = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (used.has(key)) continue;
+              used.add(key);
+              selected.push(t);
+              added = true;
+            }
+            if (selected.length >= target) break;
+          }
+          if (!added) break;
+        }
+
+        return selected.map((t, index) => {
           const sport = t.sport || '';
           const league = t.league || '';
           const normalizedName = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -9993,8 +10081,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             extra: sport || ''
           };
         });
-
-        return items;
       }
 
     async function initUniversalHome(options = {}) {

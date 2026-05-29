@@ -96,7 +96,9 @@
     travel: { table: 'travel_list_items', itemField: 'country_code' },
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
     food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' }
+    car: { table: 'car_list_items', itemField: 'brand_id' },
+    sports: { table: 'sports_list_items', itemField: 'team_id' },
+    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' }
   };
 
   function escapeHtml(value) {

@@ -1704,26 +1704,40 @@ async function loadBooks(signal) {
         { name: 'Manchester City', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/manchestercity.png' },
         { name: 'Arsenal', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/arsenal.png' },
         { name: 'Liverpool', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/liverpool.png' },
+        { name: 'PSG', sport: 'Soccer', league: 'Ligue 1', local: '/assets/logos/football/french-ligue-1/parissaintgermain.png' },
+        { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
+        { name: 'Inter Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/intermilan.png' },
+        { name: 'Atletico Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/atleticomadrid.png' },
+        { name: 'AC Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/acmilan.png' },
         { name: 'Chelsea', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/chelsea.png' },
         { name: 'Manchester United', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/manchesterunited.png' },
-        { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
-        { name: 'PSG', sport: 'Soccer', league: 'Ligue 1', local: '/assets/logos/football/french-ligue-1/parissaintgermain.png' },
-        { name: 'Inter Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/intermilan.png' },
-        { name: 'AC Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/acmilan.png' },
         { name: 'Juventus', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/juventus.png' },
         { name: 'Borussia Dortmund', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/borussiadortmund.png' },
-        { name: 'Atletico Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/atleticomadrid.png' },
+        { name: 'Sporting CP', sport: 'Soccer', league: 'Primeira Liga' },
+        { name: 'Newcastle United', sport: 'Soccer', league: 'Premier League' },
+        { name: 'Tottenham Hotspur', sport: 'Soccer', league: 'Premier League' },
+        { name: 'Galatasaray', sport: 'Soccer', league: 'Super Lig' },
+        { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA' },
+        { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA' },
+        { name: 'New York Knicks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/newyorkknicks.png' },
         { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangeleslakers.png' },
         { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/bostonceltics.png' },
         { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/goldenstatewarriors.png' },
+        { name: 'Denver Nuggets', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/denvernuggets.png' },
         { name: 'Chicago Bulls', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/chicagobulls.png' },
         { name: 'Miami Heat', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/miamiheat.png' },
         { name: 'Milwaukee Bucks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/milwaukeebucks.png' },
-        { name: 'New York Knicks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/newyorkknicks.png' },
-        { name: 'Denver Nuggets', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/denvernuggets.png' },
+        { name: 'Houston Rockets', sport: 'Basketball', league: 'NBA' },
+        { name: 'Detroit Pistons', sport: 'Basketball', league: 'NBA' },
+        { name: 'Seattle Seahawks', sport: 'Football', league: 'NFL' },
+        { name: 'New England Patriots', sport: 'Football', league: 'NFL' },
         { name: 'Kansas City Chiefs', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/kansascitychiefs.png' },
         { name: 'San Francisco 49ers', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/sanfrancisco49ers.png' },
         { name: 'Dallas Cowboys', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/dallascowboys.png' },
+        { name: 'Buffalo Bills', sport: 'Football', league: 'NFL' },
+        { name: 'Baltimore Ravens', sport: 'Football', league: 'NFL' },
+        { name: 'Philadelphia Eagles', sport: 'Football', league: 'NFL' },
+        { name: 'LA Rams', sport: 'Football', league: 'NFL' },
         { name: 'New York Yankees', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/newyorkyankees.png' },
         { name: 'Los Angeles Dodgers', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/losangelesdodgers.png' },
         { name: 'Ferrari', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/ferrari.png' },
@@ -1737,14 +1751,14 @@ async function loadBooks(signal) {
 
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      const curated = getHeavyCuratedTeams().slice(0, targetCount);
+      const curated = getHeavyCuratedTeams();
 
       const logoLookup = {};
       try {
         const client = ensureHomeSupabase();
         if (client) {
-          const curatedNames = curated.map(t => t.name.replace(/^FC /, '').replace(/ FC$/, '').trim());
-          const { data } = await client.from('teams').select('name,logo_url').in('name', curatedNames);
+          const names = curated.map(t => t.name.replace(/^FC /, '').replace(/ FC$/, '').trim());
+          const { data } = await client.from('teams').select('name,logo_url').in('name', names);
           if (data) {
             for (const row of data) {
               const key = String(row.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1754,7 +1768,33 @@ async function loadBooks(signal) {
         }
       } catch (_) {}
 
-      return curated.map((row, index) => {
+      const cats = {};
+      for (const t of curated) {
+        const c = t.sport === 'Soccer' ? 'soccer' : t.sport === 'Basketball' ? 'basketball' : t.sport === 'Football' ? 'football' : 'other';
+        if (!cats[c]) cats[c] = [];
+        cats[c].push(t);
+      }
+      for (const key of Object.keys(cats)) {
+        const a = cats[key];
+        for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      }
+      const order = ['soccer', 'basketball', 'football', 'other'];
+      const sel = []; const used = new Set();
+      while (sel.length < targetCount) {
+        let added = false;
+        for (const cat of order) {
+          for (const t of (cats[cat] || [])) {
+            if (sel.length >= targetCount) break;
+            const k = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (used.has(k)) continue;
+            used.add(k); sel.push(t); added = true;
+          }
+          if (sel.length >= targetCount) break;
+        }
+        if (!added) break;
+      }
+
+      return sel.map((row, index) => {
         const title = String(row.name || '').trim();
         const sport = String(row.sport || '').trim();
         const league = String(row.league || '').trim();
