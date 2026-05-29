@@ -70,7 +70,6 @@
       { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com' },
       { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com' }
     ];
-    const SPORTS_STUCK_TEAMS = [];
     const HOME_SPORTS_FALLBACKS = [
       { id: 'spt-mci', name: 'Manchester City', category: 'Premier League', domain: 'mancity.com', logo_url: '/assets/logos/football/english-premier-league/manchestercity.png', country: 'England' },
       { id: 'spt-ars', name: 'Arsenal', category: 'Premier League', domain: 'arsenal.com', logo_url: '/assets/logos/football/english-premier-league/arsenal.png', country: 'England' },
@@ -9961,34 +9960,54 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
      async function loadSports(signal) {
-       const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-       const shuffled = stableShuffleHomeItems(HOME_SPORTS_FALLBACKS, 'sports:rail');
-       const combined = [...SPORTS_STUCK_TEAMS, ...shuffled];
-       const seen = new Set();
-       const deduped = combined.filter((t) => {
-         const key = String(t.id || '');
-         if (seen.has(key)) return false;
-         seen.add(key);
-         return true;
-       });
-       return deduped.slice(0, target).map((t) => ({
-         mediaType: 'sports',
-         itemId: t.id || t.name,
-         title: t.name,
-         subtitle: t.category || 'Sports',
-         extra: [t.category, t.country].filter(Boolean).join(' | '),
-         image: t.logo_url,
-         listImage: t.logo_url,
-         backgroundImage: t.logo_url,
-         spotlightImage: t.logo_url,
-         spotlightMediaImage: t.logo_url,
-         spotlightMediaFit: 'contain',
-         spotlightMediaShape: 'square',
-         mediaFit: 'contain',
-         fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-         href: 'sports.html'
-       }));
-     }
+        const client = await ensureHomeSupabase();
+        const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_SPORTS_FALLBACKS.map((row, index) => ({
+            ...mapHomeSportsItem({ ...row, logo: row.logo_url }, index),
+            subtitle: row.league || row.sport || 'Sports',
+            extra: row.sport || ''
+          })),
+          'sports:fallback'
+        ).slice(0, target);
+
+        if (!client) {
+          console.debug('[Home Sports] No Supabase client, using fallback data');
+          return fallbackItems;
+        }
+
+        try {
+          const fetchLimit = Math.max(target * 4, target);
+          console.debug('[Home Sports] Fetching teams from Supabase...');
+          const { data, error } = await client
+            .from('teams')
+            .select('id,name,sport,league,logo_url')
+            .limit(fetchLimit);
+
+          if (error) {
+            console.debug('[Home Sports] Supabase error:', error);
+            return fallbackItems;
+          }
+
+          if (!data || !data.length) {
+            console.debug('[Home Sports] No teams found in Supabase table');
+            return fallbackItems;
+          }
+
+          console.debug(`[Home Sports] Loaded ${data.length} teams from Supabase`);
+          const items = data.map((row, index) => ({
+            ...mapHomeSportsItem({ ...row, logo: row.logo_url }, index),
+            subtitle: row.league || row.sport || 'Sports',
+            extra: row.sport || ''
+          }));
+
+          return stableShuffleHomeItems(items, 'sports:home').slice(0, target);
+        } catch (err) {
+          console.debug('[Home Sports] Load error:', err.message || err);
+          return fallbackItems;
+        }
+      }
 
     async function initUniversalHome(options = {}) {
       const now = Date.now();
