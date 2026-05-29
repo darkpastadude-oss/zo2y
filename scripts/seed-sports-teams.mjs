@@ -724,18 +724,13 @@ async function seedTeams() {
 
   // Known SVG files (rest are .png)
   const SVG_EXT = new Set([
-    'alaves','laspalmas','realvalladolid','leganes','monaco','montpellier',
-    'reims','saintetienne','saopaulo','atleticomineiro','gremio','fortaleza',
-    'cuiaba','juventude','atleticogoianiense','borussiamonchengladbach',
-    'heidenheim','holsteinkiel','mainz05','vflbochum','vfbstuttgart',
+    'laspalmas','leganes','monaco','montpellier',
+    'reims','saintetienne','fortaleza',
+    'cuiaba','juventude','holsteinkiel','vflbochum',
     'esperance','etoiledusahel','cssfaxien','cssfaxienwomen','clubafricain',
     'usmonastir','egsgaffenstadelmen','stadegabesien','stademaffensien',
-    'oaklandathletics','stlouiscardinals','stlouisblues','utahhockeyclub',
-    'astonmartin','alpine','haas','williams','alittihad','alahli',
-    'alfateh','alfeiha','alhazem','alkhaleej','alokhdood','alqadsiah',
-    'alraed','alriyadh','alshabab','altaawoun','altai','alwehda',
-    'ceramicacleopatra','futurefc','pharcofc','pyramidsfc','zedfc',
-    'alittihadalexandria','baladiyatelmahalla','petrojet','nationalbankofegypt',
+    'ceramicacleopatra','futurefc',
+    'alittihadalexandria','petrojet','nationalbankofegypt',
     'modernsport','elgouna','enppi','ismaily','smouha','ghazlelmahalla',
     'almokawloonalarab','almasry','almerreikh','alhilalbengasi',
     'alahlitripoli','alahlidoha','alakhdar','alanwar','alarabialsaudi',
