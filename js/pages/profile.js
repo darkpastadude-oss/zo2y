@@ -5736,6 +5736,13 @@
                 return hero || cover || '/newlogo.webp';
             }
 
+            function gamePlaceholderGradient(title) {
+                const seed = String(title || 'game').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                const hue1 = (seed * 37) % 360;
+                const hue2 = (hue1 + 40) % 360;
+                return `linear-gradient(135deg, hsl(${hue1},30%,15%) 0%, hsl(${hue2},25%,10%) 100%)`;
+            }
+
             function humanizeGameSlug(value) {
                 const raw = String(value || '').trim();
                 if (!raw) return '';
@@ -5747,68 +5754,64 @@
 
             async function hydrateProfileGameRecord(record, fallbackKey = '') {
                 if (!record || typeof record !== 'object') return record;
-                const sharedGamesApi = window.__zo2yGamesShared || null;
+                const shared = window.__zo2yGamesShared || null;
                 const fallbackTitle = humanizeGameSlug(record.slug || fallbackKey);
-                const nextRecord = { ...record };
-                const currentTitle = String(nextRecord.title || nextRecord.name || '').trim();
+                const next = { ...record };
+                const currentTitle = String(next.title || next.name || '').trim();
                 const baseTitle = currentTitle || fallbackTitle;
 
                 if (!currentTitle && baseTitle) {
-                    nextRecord.title = baseTitle;
-                    nextRecord.name = baseTitle;
+                    next.title = baseTitle;
+                    next.name = baseTitle;
                 }
 
-                const currentImage = normalizeGameImageSource(nextRecord);
-                const hasUsableImage = currentImage && currentImage !== '/newlogo.webp' && !isLikelyLogoOnlyGameArt(currentImage);
+                const currentImage = normalizeGameImageSource(next);
+                const needsImage = !currentImage || currentImage === '/newlogo.webp' || isLikelyLogoOnlyGameArt(currentImage);
 
-                if (sharedGamesApi?.searchGamesFromWikipedia && (!currentTitle || !hasUsableImage) && baseTitle) {
-                    try {
-                        const wikiGames = await sharedGamesApi.searchGamesFromWikipedia(baseTitle, null, 1);
-                        const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
-                        if (wikiGame) {
-                            if (!currentTitle) {
-                                const wikiTitle = String(wikiGame.title || wikiGame.name || '').trim();
-                                if (wikiTitle) {
-                                    nextRecord.title = wikiTitle;
-                                    nextRecord.name = wikiTitle;
-                                }
-                            }
-                            if (!hasUsableImage) {
-                                const wikiCover = normalizeGameImageUrl(wikiGame.cover || wikiGame.cover_url || '');
-                                if (wikiCover) {
-                                    nextRecord.cover_url = wikiCover;
-                                    nextRecord.cover = wikiCover;
-                                }
-                            }
-                            if (!String(nextRecord.release_date || nextRecord.released || '').trim()) {
-                                const wikiRelease = String(wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate || '').trim();
-                                if (wikiRelease) {
-                                    nextRecord.release_date = wikiRelease;
-                                    nextRecord.released = wikiRelease;
-                                }
-                            }
+                if (shared && baseTitle && (!currentTitle || needsImage)) {
+                    const [coverFromApi, wikiGames] = await Promise.all([
+                        shared.fetchCoverForTitle ? shared.fetchCoverForTitle(baseTitle, null).catch(() => '') : Promise.resolve(''),
+                        shared.searchGamesFromWikipedia ? shared.searchGamesFromWikipedia(baseTitle, null, 1).catch(() => []) : Promise.resolve([])
+                    ]);
+
+                    const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
+                    if (wikiGame) {
+                        if (!currentTitle) {
+                            const t = String(wikiGame.title || wikiGame.name || '').trim();
+                            if (t) { next.title = t; next.name = t; }
                         }
-                    } catch (_err) {}
-                }
-
-                const hydratedTitle = String(nextRecord.title || nextRecord.name || fallbackTitle).trim();
-                if (sharedGamesApi?.fetchCoverForTitle && hydratedTitle) {
-                    const refreshedImage = normalizeGameImageSource(nextRecord);
-                    const stillNeedsCover = !refreshedImage || refreshedImage === '/newlogo.webp' || isLikelyLogoOnlyGameArt(refreshedImage);
-                    if (stillNeedsCover) {
-                        try {
-                            const cover = await sharedGamesApi.fetchCoverForTitle(hydratedTitle, null);
-                            if (cover) {
-                                nextRecord.cover_url = cover;
-                                nextRecord.cover = cover;
-                            }
-                        } catch (_err) {}
+                        if (needsImage && !coverFromApi) {
+                            const wc = normalizeGameImageUrl(wikiGame.cover || wikiGame.cover_url || '');
+                            if (wc) { next.cover_url = wc; next.cover = wc; }
+                        }
+                        if (!String(next.release_date || next.released || '').trim()) {
+                            const wr = String(wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate || '').trim();
+                            if (wr) { next.release_date = wr; next.released = wr; }
+                        }
+                    }
+                    if (needsImage && coverFromApi) {
+                        next.cover_url = coverFromApi;
+                        next.cover = coverFromApi;
                     }
                 }
 
-                if (!String(nextRecord.title || '').trim() && fallbackTitle) nextRecord.title = fallbackTitle;
-                if (!String(nextRecord.name || '').trim()) nextRecord.name = String(nextRecord.title || fallbackTitle || 'Untitled').trim() || 'Untitled';
-                return nextRecord;
+                if (!String(next.title || '').trim() && fallbackTitle) next.title = fallbackTitle;
+                if (!String(next.name || '').trim()) next.name = String(next.title || fallbackTitle || 'Untitled').trim() || 'Untitled';
+                return next;
+            }
+
+            async function hydrateProfileGameRecords(records, concurrency = 4) {
+                const items = Array.isArray(records) ? records : [];
+                if (!items.length) return items;
+                const results = [];
+                for (let i = 0; i < items.length; i += concurrency) {
+                    const batch = items.slice(i, i + concurrency);
+                    const hydrated = await Promise.all(batch.map((r) =>
+                        hydrateProfileGameRecord(r).catch(() => r)
+                    ));
+                    results.push(...hydrated);
+                }
+                return results;
             }
 
             function normalizeSupabaseGameRecord(row, fallbackId = '') {
@@ -5885,47 +5888,52 @@
                     } catch (_err) {}
                 }
 
-                try {
-                    const response = await igdbFetch(`/games/${encodeURIComponent(cacheKey)}`);
-                    const raw = Array.isArray(response?.results)
-                        ? response.results[0]
-                        : (Array.isArray(response) ? response[0] : response);
-                    if (!raw || typeof raw !== 'object') return null;
+                // Try IGDB and Wikipedia in parallel when Supabase has no record
+                const shared = window.__zo2yGamesShared || null;
+                const [igdbResult, wikiGames] = await Promise.all([
+                    (async () => {
+                        try {
+                            const response = await igdbFetch(`/games/${encodeURIComponent(cacheKey)}`);
+                            const raw = Array.isArray(response?.results)
+                                ? response.results[0]
+                                : (Array.isArray(response) ? response[0] : response);
+                            if (!raw || typeof raw !== 'object') return null;
+                            const requestedId = Number(cacheKey);
+                            const receivedId = Number(raw.id);
+                            if (Number.isFinite(requestedId) && Number.isFinite(receivedId) && requestedId !== receivedId) {
+                                return null;
+                            }
+                            return raw;
+                        } catch (_err) { return null; }
+                    })(),
+                    shared?.searchGamesFromWikipedia ? shared.searchGamesFromWikipedia(cacheKey, null, 1).catch(() => []) : Promise.resolve([])
+                ]);
 
-                    const requestedId = Number(cacheKey);
-                    const receivedId = Number(raw.id);
-                    if (Number.isFinite(requestedId) && Number.isFinite(receivedId) && requestedId !== receivedId) {
-                        return null;
-                    }
-
+                if (igdbResult) {
                     const normalized = await hydrateProfileGameRecord(
-                        normalizeSupabaseGameRecord(raw, cacheKey) || { ...raw, id: raw.id ?? cacheKey },
+                        normalizeSupabaseGameRecord(igdbResult, cacheKey) || { ...igdbResult, id: igdbResult.id ?? cacheKey },
                         cacheKey
                     );
                     return cacheGameRecord(normalized);
-                } catch (_err) {}
+                }
 
-                // Fallback to Wikipedia search if game not found in Supabase or IGDB
-                try {
-                    const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(cacheKey, null, 1);
-                    if (wikiGames && wikiGames.length) {
-                        const wikiGame = wikiGames[0];
-                        const normalized = await hydrateProfileGameRecord({
-                            id: wikiGame.id,
-                            title: wikiGame.name || wikiGame.title,
-                            name: wikiGame.name || wikiGame.title,
-                            description: wikiGame.summary || wikiGame.description,
-                            cover_url: wikiGame.cover || wikiGame.cover_url,
-                            hero_url: '',
-                            release_date: wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate,
-                            rating: wikiGame.rating || 0,
-                            rating_count: 0,
-                            source: 'wikipedia',
-                            extra: wikiGame.extra || {}
-                        }, cacheKey);
-                        return cacheGameRecord(normalized);
-                    }
-                } catch (_err) {}
+                const wikiGame = Array.isArray(wikiGames) ? wikiGames[0] : null;
+                if (wikiGame) {
+                    const normalized = await hydrateProfileGameRecord({
+                        id: wikiGame.id,
+                        title: wikiGame.name || wikiGame.title,
+                        name: wikiGame.name || wikiGame.title,
+                        description: wikiGame.summary || wikiGame.description,
+                        cover_url: wikiGame.cover || wikiGame.cover_url,
+                        hero_url: '',
+                        release_date: wikiGame.release_date || wikiGame.releaseDate || wikiGame.firstReleaseDate,
+                        rating: wikiGame.rating || 0,
+                        rating_count: 0,
+                        source: 'wikipedia',
+                        extra: wikiGame.extra || {}
+                    }, cacheKey);
+                    return cacheGameRecord(normalized);
+                }
 
                 return null;
             }
@@ -10677,8 +10685,12 @@
                         )
                         : '';
 
+                    const placeholderBg = gamePlaceholderGradient(gameTitle);
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <div class="collection-item-image-wrapper" style="background:${placeholderBg};position:relative;overflow:hidden;">
+                            <img class="collection-item-image" src="${gameImage}" alt="${gameTitle}" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="position:relative;z-index:1;" onerror="this.style.display='none';this.parentNode.querySelector('.game-img-fallback').style.display='flex';">
+                            <div class="game-img-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:rgba(255,255,255,0.2);font-size:32px;z-index:0;"><i class="fas fa-gamepad"></i></div>
+                        </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${gameTitle}</h3>
                             ${canEditItems ? `

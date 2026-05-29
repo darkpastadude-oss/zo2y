@@ -18,6 +18,12 @@
   const NO_COVER_CACHE_PREFIX = 'zo2y_game_nocover_v1:';
   const NO_COVER_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
+  const STEAM_COVER_TEMPLATES = [
+    (id) => `https://steamcdn-a.akamaihd.net/steam/apps/${id}/library_600x900.jpg`,
+    (id) => `https://steamcdn-a.akamaihd.net/steam/apps/${id}/header.jpg`
+  ];
+  const CC = window.__zo2yCoverCache;
+
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
     if (!raw) return '';
@@ -134,9 +140,75 @@
     } catch (_err) {}
   }
 
-  async function fetchWikipediaCoverCandidate(title, signal) {
+  async function readCachedCover(title) {
+    if (CC) {
+      const idb = await CC.getCachedCover(title);
+      if (idb) return idb;
+    }
+    return readCachedCoverFromStorage(title);
+  }
+
+  async function writeCachedCover(title, url) {
+    coverLookupCache.set(String(title || '').trim().toLowerCase(), url);
+    if (CC) await CC.setCachedCover(title, url);
+    writeCachedCoverToStorage(title, url);
+  }
+
+  async function isCoverUnavailable(title) {
+    if (CC) {
+      const nc = await CC.isNoCover(title);
+      if (nc) return true;
+    }
+    return isNoCoverCached(title);
+  }
+
+  async function markCoverUnavailable(title) {
+    if (CC) await CC.markNoCover(title);
+    markNoCoverCached(title);
+  }
+
+  async function fetchWikipediaPageImage(pageTitle, signal) {
+    const wikiBase = 'https://en.wikipedia.org/w/api.php';
+    const pageUrl = new URL(wikiBase);
+    pageUrl.searchParams.set('origin', '*');
+    pageUrl.searchParams.set('action', 'query');
+    pageUrl.searchParams.set('format', 'json');
+    pageUrl.searchParams.set('prop', 'pageimages');
+    pageUrl.searchParams.set('piprop', 'original|thumbnail');
+    pageUrl.searchParams.set('pithumbsize', '900');
+    pageUrl.searchParams.set('redirects', '1');
+    pageUrl.searchParams.set('titles', pageTitle);
+
+    try {
+      const pageRes = await fetch(pageUrl.toString(), {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        signal: signal || undefined
+      });
+      if (!pageRes.ok) return {};
+      const pageJson = await pageRes.json().catch(() => null);
+      const pages = pageJson?.query?.pages || {};
+      const result = {};
+      for (const [ns, p] of Object.entries(pages)) {
+        if (p && !p.missing) {
+          result[p.title] = normalizeGameCoverUrl(p?.original?.source || p?.thumbnail?.source || '');
+        }
+      }
+      return result;
+    } catch (_err) {
+      return {};
+    }
+  }
+
+  const WIKI_SEARCH_CACHE = new Map();
+  const WIKI_SEARCH_TTL = 1000 * 60 * 60; // 1 hour in-memory
+
+  async function findWikipediaPageTitle(title, signal) {
     const q = String(title || '').trim().slice(0, 160);
     if (!q) return '';
+    const cacheKey = q.toLowerCase();
+    const cached = WIKI_SEARCH_CACHE.get(cacheKey);
+    if (cached && (Date.now() - cached.t) < WIKI_SEARCH_TTL) return cached.page || '';
 
     const wikiBase = 'https://en.wikipedia.org/w/api.php';
     const searchUrl = new URL(wikiBase);
@@ -149,40 +221,49 @@
     searchUrl.searchParams.set('srprop', '');
 
     try {
-      const searchRes = await fetch(searchUrl.toString(), {
+      const res = await fetch(searchUrl.toString(), {
         method: 'GET',
         headers: { accept: 'application/json' },
         signal: signal || undefined
       });
-      if (!searchRes.ok) return '';
-      const searchJson = await searchRes.json().catch(() => null);
-      const first = Array.isArray(searchJson?.query?.search) ? searchJson.query.search[0] : null;
+      if (!res.ok) return '';
+      const json = await res.json().catch(() => null);
+      const first = Array.isArray(json?.query?.search) ? json.query.search[0] : null;
       const pageTitle = String(first?.title || '').trim();
-      if (!pageTitle) return '';
-
-      const pageUrl = new URL(wikiBase);
-      pageUrl.searchParams.set('origin', '*');
-      pageUrl.searchParams.set('action', 'query');
-      pageUrl.searchParams.set('format', 'json');
-      pageUrl.searchParams.set('prop', 'pageimages');
-      pageUrl.searchParams.set('piprop', 'original|thumbnail');
-      pageUrl.searchParams.set('pithumbsize', '900');
-      pageUrl.searchParams.set('redirects', '1');
-      pageUrl.searchParams.set('titles', pageTitle);
-
-      const pageRes = await fetch(pageUrl.toString(), {
-        method: 'GET',
-        headers: { accept: 'application/json' },
-        signal: signal || undefined
-      });
-      if (!pageRes.ok) return '';
-      const pageJson = await pageRes.json().catch(() => null);
-      const pages = pageJson?.query?.pages || {};
-      const page = Object.values(pages || {}).find(Boolean) || null;
-      return normalizeGameCoverUrl(page?.original?.source || page?.thumbnail?.source || '');
+      WIKI_SEARCH_CACHE.set(cacheKey, { page: pageTitle, t: Date.now() });
+      return pageTitle;
     } catch (_err) {
       return '';
     }
+  }
+
+  async function fetchWikipediaCoverCandidate(title, signal) {
+    const q = String(title || '').trim().slice(0, 160);
+    if (!q) return '';
+    const pageTitle = await findWikipediaPageTitle(q, signal);
+    if (!pageTitle) return '';
+    const images = await fetchWikipediaPageImage(pageTitle, signal);
+    return images[pageTitle] || '';
+  }
+
+  async function fetchWikipediaCoversForTitles(titles, signal) {
+    const queries = Array.isArray(titles) ? titles.slice(0, 30) : [titles];
+    if (!queries.length) return {};
+    const results = {};
+
+    const uncached = [];
+    for (const t of queries) {
+      const pt = await findWikipediaPageTitle(t, signal);
+      if (pt) uncached.push(pt);
+    }
+    if (!uncached.length) return results;
+
+    for (let i = 0; i < uncached.length; i += 20) {
+      const batch = uncached.slice(i, i + 20);
+      const images = await fetchWikipediaPageImage(batch.join('|'), signal);
+      Object.assign(results, images);
+    }
+    return results;
   }
 
   async function loadFeaturedGames(signal, options = {}) {
@@ -250,13 +331,24 @@
     }
   }
 
+  function trySteamCover(result) {
+    const steamId = String(result?.steam_app_id || result?.steamId || result?.steam_id || '').trim();
+    if (!steamId) return '';
+    const numeric = steamId.replace(/\D/g, '');
+    if (!numeric || numeric.length < 3) return '';
+    for (const tmpl of STEAM_COVER_TEMPLATES) {
+      const url = tmpl(numeric);
+      if (url) return url;
+    }
+    return '';
+  }
+
   async function fetchCoverForTitle(title, signal) {
     const key = String(title || '').trim().toLowerCase();
     if (!key) return '';
     if (coverLookupCache.has(key)) return coverLookupCache.get(key) || '';
 
-    // Skip API calls for titles known to have no cover
-    if (isNoCoverCached(title)) {
+    if (await isCoverUnavailable(title)) {
       coverLookupCache.set(key, '');
       return '';
     }
@@ -267,7 +359,7 @@
     url.searchParams.set('page_size', '1');
     url.searchParams.set('title_only', '1');
 
-    const cached = readCachedCoverFromStorage(title);
+    const cached = await readCachedCover(title);
     if (cached) {
       coverLookupCache.set(key, cached);
       return cached;
@@ -284,29 +376,40 @@
       const results = Array.isArray(json?.results) ? json.results : [];
       const pick = results.find((r) => normalizeGameCoverUrl(r?.cover || r?.image || '')) || results[0] || null;
       const cover = normalizeGameCoverUrl(pick?.cover || pick?.image || '');
+
       if (cover) {
-        coverLookupCache.set(key, cover);
-        writeCachedCoverToStorage(title, cover);
+        await writeCachedCover(title, cover);
         return cover;
       }
-      const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
+
+      const steamCover = trySteamCover(pick);
+      if (steamCover) {
+        await writeCachedCover(title, steamCover);
+        return steamCover;
+      }
+
+      const [wikiCover] = await Promise.all([
+        fetchWikipediaCoverCandidate(title, signal)
+      ]);
       if (wikiCover) {
-        coverLookupCache.set(key, wikiCover);
-        writeCachedCoverToStorage(title, wikiCover);
+        await writeCachedCover(title, wikiCover);
         return wikiCover;
       }
-      coverLookupCache.set(key, '');
-      markNoCoverCached(title);
+
+      await markCoverUnavailable(title);
       return '';
     } catch (_err) {
       const wikiCover = await fetchWikipediaCoverCandidate(title, signal);
       if (wikiCover) {
-        coverLookupCache.set(key, wikiCover);
-        writeCachedCoverToStorage(title, wikiCover);
+        await writeCachedCover(title, wikiCover);
         return wikiCover;
       }
-      coverLookupCache.set(key, '');
-      markNoCoverCached(title);
+      const steamCover = pick ? trySteamCover(pick) : '';
+      if (steamCover) {
+        await writeCachedCover(title, steamCover);
+        return steamCover;
+      }
+      await markCoverUnavailable(title);
       return '';
     }
   }
@@ -467,6 +570,9 @@
     loadFeaturedGames,
     resolveGameCover,
     fetchCoverForTitle,
-    searchGamesFromWikipedia
+    fetchWikipediaCoverCandidate,
+    fetchWikipediaCoversForTitles,
+    searchGamesFromWikipedia,
+    normalizeGameCoverUrl
   };
 })();
