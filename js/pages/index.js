@@ -1875,7 +1875,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const extra = sport || 'Sports';
       const itemId = String(row?.id || `sports-fallback-${fallbackIndex}`).trim();
       const href = `team.html?id=${encodeURIComponent(itemId)}&team=${encodeURIComponent(title)}`;
-      const image = logo || HOME_LOCAL_FALLBACK_IMAGE;
+      const sportsFallback = '/images/fallback/sports.svg';
+      const image = logo || sportsFallback;
       return {
         mediaType: 'sports',
         itemId,
@@ -1890,7 +1891,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'square',
         mediaFit: 'contain',
-        fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+        fallbackImage: sportsFallback,
         href,
         sport,
         league
@@ -9786,7 +9787,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260529c';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260530a';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9961,10 +9962,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       function getHomeCuratedTeams() {
         const teams = [
+          { name: 'Paris Saint-Germain', sport: 'Soccer', league: 'UEFA Champions League Final' },
+          { name: 'Arsenal', sport: 'Soccer', league: 'UEFA Champions League Final' },
+          { name: 'New York Knicks', sport: 'Basketball', league: 'NBA Finals' },
+          { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA West Finals' },
+          { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA West Finals' },
+          { name: 'Royal Challengers Bengaluru', sport: 'Cricket', league: 'IPL Final' },
+          { name: 'Gujarat Titans', sport: 'Cricket', league: 'IPL Final' },
+          { name: 'Vegas Golden Knights', sport: 'Hockey', league: 'Stanley Cup Final' },
+          { name: 'Carolina Hurricanes', sport: 'Hockey', league: 'NHL East Final' },
           { name: 'Real Madrid', sport: 'Soccer', league: 'La Liga' },
           { name: 'FC Barcelona', sport: 'Soccer', league: 'La Liga' },
           { name: 'Manchester City', sport: 'Soccer', league: 'Premier League' },
-          { name: 'Arsenal', sport: 'Soccer', league: 'Premier League' },
           { name: 'Liverpool', sport: 'Soccer', league: 'Premier League' },
           { name: 'PSG', sport: 'Soccer', league: 'Ligue 1' },
           { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga' },
@@ -9979,9 +9988,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           { name: 'Newcastle United', sport: 'Soccer', league: 'Premier League' },
           { name: 'Tottenham Hotspur', sport: 'Soccer', league: 'Premier League' },
           { name: 'Galatasaray', sport: 'Soccer', league: 'Super Lig' },
-          { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA' },
-          { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA' },
-          { name: 'New York Knicks', sport: 'Basketball', league: 'NBA' },
           { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA' },
           { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA' },
           { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA' },

@@ -1699,10 +1699,18 @@ async function loadBooks(signal) {
 
     function getHeavyCuratedTeams() {
       return [
+        { name: 'Paris Saint-Germain', sport: 'Soccer', league: 'UEFA Champions League Final', local: '/assets/logos/football/french-ligue-1/psg.png' },
+        { name: 'Arsenal', sport: 'Soccer', league: 'UEFA Champions League Final', local: '/assets/logos/football/english-premier-league/arsenal.png' },
+        { name: 'New York Knicks', sport: 'Basketball', league: 'NBA Finals', local: '/assets/logos/nba/newyorkknicks.png' },
+        { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA West Finals' },
+        { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA West Finals' },
+        { name: 'Royal Challengers Bengaluru', sport: 'Cricket', league: 'IPL Final' },
+        { name: 'Gujarat Titans', sport: 'Cricket', league: 'IPL Final' },
+        { name: 'Vegas Golden Knights', sport: 'Hockey', league: 'Stanley Cup Final', local: '/assets/logos/nhl/vegasgoldenknights.png' },
+        { name: 'Carolina Hurricanes', sport: 'Hockey', league: 'NHL East Final', local: '/assets/logos/nhl/carolinahurricanes.png' },
         { name: 'Real Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
         { name: 'FC Barcelona', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/barcelona.png' },
         { name: 'Manchester City', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/manchestercity.png' },
-        { name: 'Arsenal', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/arsenal.png' },
         { name: 'Liverpool', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/liverpool.png' },
         { name: 'PSG', sport: 'Soccer', league: 'Ligue 1', local: '/assets/logos/football/french-ligue-1/parissaintgermain.png' },
         { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
@@ -1717,9 +1725,6 @@ async function loadBooks(signal) {
         { name: 'Newcastle United', sport: 'Soccer', league: 'Premier League' },
         { name: 'Tottenham Hotspur', sport: 'Soccer', league: 'Premier League' },
         { name: 'Galatasaray', sport: 'Soccer', league: 'Super Lig' },
-        { name: 'Oklahoma City Thunder', sport: 'Basketball', league: 'NBA' },
-        { name: 'San Antonio Spurs', sport: 'Basketball', league: 'NBA' },
-        { name: 'New York Knicks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/newyorkknicks.png' },
         { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangeleslakers.png' },
         { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/bostonceltics.png' },
         { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/goldenstatewarriors.png' },
@@ -1794,13 +1799,14 @@ async function loadBooks(signal) {
         if (!added) break;
       }
 
+      const sportsFallback = '/images/fallback/sports.svg';
       return sel.map((row, index) => {
         const title = String(row.name || '').trim();
         const sport = String(row.sport || '').trim();
         const league = String(row.league || '').trim();
         const normalized = title.toLowerCase().replace(/[^a-z0-9]/g, '');
         const supabaseLogo = logoLookup[normalized];
-        const image = supabaseLogo || row.local || HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+        const image = supabaseLogo || row.local || sportsFallback;
         return {
           mediaType: 'sports',
           itemId: `fallback-${index}`,
@@ -1815,7 +1821,7 @@ async function loadBooks(signal) {
           spotlightMediaFit: 'contain',
           spotlightMediaShape: 'square',
           mediaFit: 'contain',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp',
+          fallbackImage: sportsFallback,
           href: 'sports.html',
           sport,
           league
