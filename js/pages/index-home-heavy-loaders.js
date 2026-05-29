@@ -1697,56 +1697,70 @@ async function loadBooks(signal) {
       return selected.slice(0, targetCount);
     }
 
+    function getHeavyCuratedTeams() {
+      return [
+        { name: 'Real Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
+        { name: 'FC Barcelona', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/barcelona.png' },
+        { name: 'Manchester City', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/manchestercity.png' },
+        { name: 'Arsenal', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/arsenal.png' },
+        { name: 'Liverpool', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/liverpool.png' },
+        { name: 'Chelsea', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/chelsea.png' },
+        { name: 'Manchester United', sport: 'Soccer', league: 'Premier League', local: '/assets/logos/football/english-premier-league/manchesterunited.png' },
+        { name: 'Bayern Munich', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
+        { name: 'PSG', sport: 'Soccer', league: 'Ligue 1', local: '/assets/logos/football/french-ligue-1/parissaintgermain.png' },
+        { name: 'Inter Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/intermilan.png' },
+        { name: 'AC Milan', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/acmilan.png' },
+        { name: 'Juventus', sport: 'Soccer', league: 'Serie A', local: '/assets/logos/football/italian-serie-a/juventus.png' },
+        { name: 'Borussia Dortmund', sport: 'Soccer', league: 'Bundesliga', local: '/assets/logos/football/german-bundesliga/borussiadortmund.png' },
+        { name: 'Atletico Madrid', sport: 'Soccer', league: 'La Liga', local: '/assets/logos/football/spanish-la-liga/atleticomadrid.png' },
+        { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/losangeleslakers.png' },
+        { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/bostonceltics.png' },
+        { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/goldenstatewarriors.png' },
+        { name: 'Chicago Bulls', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/chicagobulls.png' },
+        { name: 'Miami Heat', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/miamiheat.png' },
+        { name: 'Milwaukee Bucks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/milwaukeebucks.png' },
+        { name: 'New York Knicks', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/newyorkknicks.png' },
+        { name: 'Denver Nuggets', sport: 'Basketball', league: 'NBA', local: '/assets/logos/nba/denvernuggets.png' },
+        { name: 'Kansas City Chiefs', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/kansascitychiefs.png' },
+        { name: 'San Francisco 49ers', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/sanfrancisco49ers.png' },
+        { name: 'Dallas Cowboys', sport: 'Football', league: 'NFL', local: '/assets/logos/nfl/dallascowboys.png' },
+        { name: 'New York Yankees', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/newyorkyankees.png' },
+        { name: 'Los Angeles Dodgers', sport: 'Baseball', league: 'MLB', local: '/assets/logos/mlb/losangelesdodgers.png' },
+        { name: 'Ferrari', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/ferrari.png' },
+        { name: 'Red Bull Racing', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/redbullracing.png' },
+        { name: 'McLaren', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/mclaren.png' },
+        { name: 'Mercedes', sport: 'Motorsport', league: 'F1', local: '/assets/logos/f1/mercedes.png' },
+        { name: 'Edmonton Oilers', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/edmontonoilers.png' },
+        { name: 'Toronto Maple Leafs', sport: 'Hockey', league: 'NHL', local: '/assets/logos/nhl/torontomapleleafs.png' }
+      ];
+    }
+
     async function loadSports(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
-      try { localStorage.removeItem(HOME_SPORTS_ITEMS_CACHE_KEY); } catch (_) {}
-      const fallbackTeams = [
-        // UEFA Champions League / top soccer
-        { name: 'Real Madrid', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/realmadrid.png' },
-        { name: 'FC Barcelona', sport: 'Soccer', league: 'Spanish La Liga', logo: '/assets/logos/football/spanish-la-liga/barcelona.png' },
-        { name: 'Manchester City', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/manchestercity.png' },
-        { name: 'Arsenal', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/arsenal.png' },
-        { name: 'Liverpool', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/liverpool.png' },
-        { name: 'Chelsea', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/chelsea.png' },
-        { name: 'Manchester United', sport: 'Soccer', league: 'English Premier League', logo: '/assets/logos/football/english-premier-league/manchesterunited.png' },
-        { name: 'Bayern Munich', sport: 'Soccer', league: 'German Bundesliga', logo: '/assets/logos/football/german-bundesliga/bayernmunich.png' },
-        { name: 'Borussia Dortmund', sport: 'Soccer', league: 'German Bundesliga', logo: '/assets/logos/football/german-bundesliga/borussiadortmund.png' },
-        { name: 'Paris Saint-Germain', sport: 'Soccer', league: 'French Ligue 1', logo: '/assets/logos/football/french-ligue-1/parissaintgermain.png' },
-        { name: 'Inter Milan', sport: 'Soccer', league: 'Italian Serie A', logo: '/assets/logos/football/italian-serie-a/intermilan.png' },
-        { name: 'AC Milan', sport: 'Soccer', league: 'Italian Serie A', logo: '/assets/logos/football/italian-serie-a/acmilan.png' },
-        { name: 'Juventus', sport: 'Soccer', league: 'Italian Serie A', logo: '/assets/logos/football/italian-serie-a/juventus.png' },
-        // NBA
-        { name: 'Los Angeles Lakers', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/losangeleslakers.png' },
-        { name: 'Boston Celtics', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/bostonceltics.png' },
-        { name: 'Golden State Warriors', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/goldenstatewarriors.png' },
-        { name: 'Chicago Bulls', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/chicagobulls.png' },
-        { name: 'Miami Heat', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/miamiheat.png' },
-        { name: 'Milwaukee Bucks', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/milwaukeebucks.png' },
-        { name: 'Denver Nuggets', sport: 'Basketball', league: 'NBA', logo: '/assets/logos/nba/denvernuggets.png' },
-        // American Football
-        { name: 'Kansas City Chiefs', sport: 'American Football', league: 'NFL', logo: '/assets/logos/nfl/kansascitychiefs.png' },
-        { name: 'Dallas Cowboys', sport: 'American Football', league: 'NFL', logo: '/assets/logos/nfl/dallascowboys.png' },
-        { name: 'San Francisco 49ers', sport: 'American Football', league: 'NFL', logo: '/assets/logos/nfl/sanfrancisco49ers.png' },
-        // Motorsport
-        { name: 'Ferrari', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/ferrari.png' },
-        { name: 'Red Bull Racing', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/redbullracing.png' },
-        { name: 'McLaren', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/mclaren.png' },
-        { name: 'Mercedes', sport: 'Motorsport', league: 'Formula 1', logo: '/assets/logos/f1/mercedes.png' },
-        // MLB
-        { name: 'New York Yankees', sport: 'Baseball', league: 'MLB', logo: '/assets/logos/mlb/newyorkyankees.png' },
-        { name: 'Los Angeles Dodgers', sport: 'Baseball', league: 'MLB', logo: '/assets/logos/mlb/losangelesdodgers.png' },
-        // NHL
-        { name: 'Edmonton Oilers', sport: 'Ice Hockey', league: 'NHL', logo: '/assets/logos/nhl/edmontonoilers.png' },
-        { name: 'Toronto Maple Leafs', sport: 'Ice Hockey', league: 'NHL', logo: '/assets/logos/nhl/torontomapleleafs.png' },
-        // MMA
-        { name: 'UFC', sport: 'MMA', league: 'Ultimate Fighting Championship', logo: '/assets/logos/mma/ufc/ufc.svg' }
-      ];
-      return fallbackTeams.slice(0, targetCount).map((row, index) => {
+      const curated = getHeavyCuratedTeams().slice(0, targetCount);
+
+      const logoLookup = {};
+      try {
+        const client = ensureHomeSupabase();
+        if (client) {
+          const curatedNames = curated.map(t => t.name.replace(/^FC /, '').replace(/ FC$/, '').trim());
+          const { data } = await client.from('teams').select('name,logo_url').in('name', curatedNames);
+          if (data) {
+            for (const row of data) {
+              const key = String(row.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (row.logo_url) logoLookup[key] = row.logo_url;
+            }
+          }
+        }
+      } catch (_) {}
+
+      return curated.map((row, index) => {
         const title = String(row.name || '').trim();
         const sport = String(row.sport || '').trim();
         const league = String(row.league || '').trim();
-        const logo = String(row.logo || '').trim();
-        const image = logo || HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
+        const normalized = title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const supabaseLogo = logoLookup[normalized];
+        const image = supabaseLogo || row.local || HOME_LOCAL_FALLBACK_IMAGE || '/newlogo.webp';
         return {
           mediaType: 'sports',
           itemId: `fallback-${index}`,

@@ -2,8 +2,8 @@
 // variants don't keep serving stale JS (especially the home heavy loaders).
 const APP_SHELL_CACHE = 'zo2y-app-shell-v242';
 const PAGE_CACHE = 'zo2y-pages-v197';
-const IMAGE_CACHE = 'zo2y-images-v42';
-const API_CACHE = 'zo2y-api-v22';
+const IMAGE_CACHE = 'zo2y-images-v43';
+const API_CACHE = 'zo2y-api-v23';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 1000;
 const MAX_API_CACHE_ENTRIES = 500;
