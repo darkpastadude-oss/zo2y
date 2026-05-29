@@ -42,6 +42,9 @@ const ROUTE_HANDLERS = new Map([
   ["tmdb", tmdbHandler]
 ]);
 
+const READ_RATE_BUCKETS = new Map();
+const READ_RATE_DEFAULTS = { windowMs: 60_000, max: 120 };
+
 const WRITE_ROUTE_PREFIXES = new Set(["analytics", "auth", "emails", "support"]);
 const WRITE_RATE_BUCKETS = new Map();
 const BOT_UA_PATTERNS = [
@@ -260,6 +263,30 @@ function enforceWriteRateLimit(section, headers = {}) {
   };
 }
 
+function enforceReadRateLimit(section, headers = {}) {
+  const ip = getClientIp(headers);
+  const now = Date.now();
+  const key = `${section}:${ip}`;
+  const current = READ_RATE_BUCKETS.get(key);
+  const { windowMs, max } = READ_RATE_DEFAULTS;
+
+  if (!current || (now - current.startedAt) > windowMs) {
+    READ_RATE_BUCKETS.set(key, { startedAt: now, count: 1 });
+    return null;
+  }
+
+  current.count += 1;
+  if (current.count > max) {
+    const retryAfter = Math.max(1, Math.ceil((windowMs - (now - current.startedAt)) / 1000));
+    return { retryAfter, remaining: 0, limit: max };
+  }
+  if (READ_RATE_BUCKETS.size > 4000) {
+    const oldest = READ_RATE_BUCKETS.keys().next().value;
+    if (oldest) READ_RATE_BUCKETS.delete(oldest);
+  }
+  return { remaining: Math.max(0, max - current.count), limit: max };
+}
+
 function buildJsonResponse(body, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(body), {
     status,
@@ -293,6 +320,18 @@ export async function onRequest(context) {
 
   const section = String(pathParts[0] || "").toLowerCase();
   const headers = getLowerCaseHeaders(context.request);
+
+  // General rate limit applied to all routes (read + write)
+  const readLimit = enforceReadRateLimit(section, headers);
+  if (readLimit?.retryAfter) {
+    return buildJsonResponse({
+      message: "Too many requests. Try again shortly."
+    }, 429, {
+      "Retry-After": String(readLimit.retryAfter),
+      "Cache-Control": "no-store"
+    });
+  }
+
   if (WRITE_ROUTE_PREFIXES.has(section) && isWriteMethod(context.request.method)) {
     if (!hasAllowedWriteOrigin(context.request, headers)) {
       return buildJsonResponse({

@@ -2,8 +2,8 @@
         const ProfileManager = (function() {
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "https://gfkhjbztayjyojsgdpgk.supabase.co";
-            const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd";
+            const SUPABASE_URL = String(supabaseConfig.url || '').trim() || "__SUPABASE_URL__";
+            const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || "__SUPABASE_ANON_KEY__";
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";

@@ -52,10 +52,8 @@ if (res2.ok) {
   console.log('Error:', text.substring(0, 200));
 }
 
-// Try without any key
-console.log('\nTrying with anon key from known value...');
-const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwOTYyNjQsImV4cCI6MjA3NTY3MjI2NH0.FAKE_KEY_HERE';
-// Just trying standard access
+// Try with full auth
+console.log('\nTrying with full auth...');
 const res3 = await fetch(url + '/rest/v1/teams?select=id,name,logo_url&limit=3', {
   headers: { 'apikey': key, 'Authorization': 'Bearer ' + key, 'Accept': 'application/json' }
 });

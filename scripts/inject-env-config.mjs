@@ -4,10 +4,16 @@ import path from "node:path";
 const rootDir = process.cwd();
 
 // Environment variables to inject into frontend JavaScript
+function required(name) {
+  const val = process.env[name];
+  if (!val) throw new Error(`Missing required env var: ${name}`);
+  return val;
+}
+
 const ENV_REPLACEMENTS = {
-  SUPABASE_URL: process.env.SUPABASE_URL || "https://gfkhjbztayjyojsgdpgk.supabase.co",
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd",
-  SUPABASE_PROJECT_REF: process.env.SUPABASE_PROJECT_REF || "gfkhjbztayjyojsgdpgk"
+  SUPABASE_URL: required("SUPABASE_URL"),
+  SUPABASE_ANON_KEY: required("SUPABASE_ANON_KEY"),
+  SUPABASE_PROJECT_REF: required("SUPABASE_PROJECT_REF")
 };
 
 async function injectEnvConfig(filePath) {
