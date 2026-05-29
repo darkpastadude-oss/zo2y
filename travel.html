@@ -553,7 +553,7 @@
       .hero-spotlight {
         grid-template-columns: 1fr;
       }
-      .controls { grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; }
+      .controls { grid-template-columns: minmax(0, 1fr) 52px 52px; gap: 10px; }
       .controls input,
       .controls select,
       .controls button {
@@ -619,6 +619,23 @@
     <button id="travelFilterBtn" class="control-icon-btn" type="button" aria-label="Open travel filters"><i class="fas fa-sliders-h"></i></button>
   </section>
 
+  <div class="control-modal" id="travelFilterModal" aria-hidden="true">
+    <div class="control-modal-card">
+      <div class="control-modal-head">
+        <div class="control-modal-title">Filter destinations</div>
+        <button class="control-modal-close" id="travelFilterCloseBtn" type="button" aria-label="Close travel filters">&times;</button>
+      </div>
+      <div class="control-modal-grid">
+        <select id="region"><option value="">All Regions</option></select>
+        <select id="travelSort">
+          <option value="popular">popular right now</option>
+          <option value="name">Name A-Z</option>
+          <option value="region">Region</option>
+        </select>
+        <button id="travelRefresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+    </div>
+  </div>
   <section class="shell">
     <div id="grid" class="grid"></div>
     <div id="empty" class="empty">No countries found.</div>
@@ -1306,6 +1323,8 @@
         select.appendChild(option);
       });
       select.value = current;
+      const travelSort = document.getElementById('travelSort');
+      if (travelSort) travelSort.value = state.sort;
     }
 
     function readCountryRowsCache() {
@@ -2296,7 +2315,38 @@
           render();
         });
       }
-
+      const filterBtn = document.getElementById('travelFilterBtn');
+      if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+          document.getElementById('travelFilterModal')?.classList.add('show');
+        });
+      }
+      const filterCloseBtn = document.getElementById('travelFilterCloseBtn');
+      if (filterCloseBtn) {
+        filterCloseBtn.addEventListener('click', () => {
+          document.getElementById('travelFilterModal')?.classList.remove('show');
+        });
+      }
+      const regionSelect = document.getElementById('region');
+      if (regionSelect) {
+        regionSelect.addEventListener('change', (e) => {
+          state.region = String(e.target.value || '').trim();
+        });
+      }
+      const travelSort = document.getElementById('travelSort');
+      if (travelSort) {
+        travelSort.addEventListener('change', (e) => {
+          state.sort = String(e.target.value || 'popular').trim();
+        });
+      }
+      const travelRefresh = document.getElementById('travelRefresh');
+      if (travelRefresh) {
+        travelRefresh.addEventListener('click', async () => {
+          document.getElementById('travelFilterModal')?.classList.remove('show');
+          state.page = 1;
+          render();
+        });
+      }
       if (prevBtn) {
         prevBtn.addEventListener('click', () => {
           if (state.page > 1) {

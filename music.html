@@ -85,6 +85,24 @@
       <button id="musicSearchBtn" class="control-icon-btn" type="button" aria-label="Search music"><i class="fas fa-search"></i></button>
       <button id="musicFilterBtn" class="control-icon-btn" type="button" aria-label="Open music filters"><i class="fas fa-sliders-h"></i></button>
     </section>
+    <div class="control-modal" id="musicFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter music</div>
+          <button class="control-modal-close" id="musicFilterCloseBtn" type="button" aria-label="Close music filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="musicRefresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
       <div class="grid" id="musicGrid"></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
@@ -104,6 +122,10 @@
     let currentUser = null;
     const state = {
       tracks: [],
+      search: '',
+      genre: '',
+      year: '',
+      sort: 'popular',
       currentQuery: '',
       page: 1,
       totalPages: 1,
@@ -233,7 +255,9 @@
           image: source === 'itunes' ? (upgradeItunesArtwork(rawImage, 1200) || toHttpsUrl(rawImage)) : toHttpsUrl(rawImage),
           preview_url: row.preview_url || '',
           external_url: row.external_url || '',
-          popularity: Number(row.popularity || 0)
+          popularity: Number(row.popularity || 0),
+          genre: String(row.genre || row?.album?.genre || '').trim(),
+          release_date: String(row.release_date || row?.album?.release_date || '').trim()
         };
       }).filter((row) => row && row.id);
     }
@@ -274,7 +298,8 @@
           release_date: String(row.release_date || '').trim(),
           total_tracks: Number(row.total_tracks || 0),
           album_type: albumType || 'album',
-          popularity: 0
+          popularity: 0,
+          genre: String(row.genre || '').trim()
         };
       }).filter(Boolean);
     }
@@ -512,6 +537,34 @@
       // Use API total counts for pagination, fallback to loaded count
       const totalItems = (state.totalTracks || 0) + (state.totalAlbums || 0);
       state.totalPages = Math.max(1, Math.ceil(totalItems / MUSIC_PAGE_SIZE));
+
+      // Apply genre / year / sort filters
+      if (state.genre || state.year || state.sort !== 'popular') {
+        let filtered = state.tracks;
+        if (state.genre) {
+          const g = state.genre.toLowerCase();
+          filtered = filtered.filter((item) => String(item.genre || '').toLowerCase() === g);
+        }
+        if (state.year) {
+          const y = state.year;
+          filtered = filtered.filter((item) => {
+            const rd = String(item.release_date || '').trim();
+            return rd.startsWith(y);
+          });
+        }
+        if (state.sort === 'name') {
+          filtered.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        } else if (state.sort === 'released') {
+          filtered.sort((a, b) => {
+            const da = String(a.release_date || '').trim() || '0';
+            const db = String(b.release_date || '').trim() || '0';
+            return db.localeCompare(da);
+          });
+        }
+        state.tracks = filtered;
+        state.page = 1;
+        state.totalPages = Math.max(1, Math.ceil(filtered.length / MUSIC_PAGE_SIZE));
+      }
     }
 
     async function loadListStatus() {
@@ -738,24 +791,55 @@
         await loadTracks(state.currentQuery);
         await loadListStatus();
         renderGrid();
+        populateFilterSelects();
       } catch (_err) {
         const grid = document.getElementById('musicGrid');
         if (grid) grid.innerHTML = '<div class="empty">Music feed unavailable right now.</div>';
       }
     }
 
+    function populateFilterSelects() {
+      const genreEl = document.getElementById('genre');
+      const yearEl = document.getElementById('year');
+      if (!genreEl && !yearEl) return;
+      const genres = new Set();
+      const years = new Set();
+      for (const item of state.tracks) {
+        if (item.genre) genres.add(item.genre);
+        const rd = String(item.release_date || '').trim();
+        const y = rd.slice(0, 4);
+        if (y && /^\d{4}$/.test(y)) years.add(y);
+      }
+      if (genreEl) {
+        const current = genreEl.value;
+        genreEl.innerHTML = '<option value="">All Genres</option>';
+        [...genres].sort().forEach((g) => {
+          genreEl.innerHTML += `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`;
+        });
+        genreEl.value = current;
+      }
+      if (yearEl) {
+        const current = yearEl.value;
+        yearEl.innerHTML = '<option value="">All Years</option>';
+        [...years].sort().reverse().forEach((y) => {
+          yearEl.innerHTML += `<option value="${escapeHtml(y)}">${escapeHtml(y)}</option>`;
+        });
+        yearEl.value = current;
+      }
+    }
+
     // Refresh removed.
-    document.getElementById('searchMusicBtn')?.addEventListener('click', async () => {
-      state.currentQuery = String(document.getElementById('musicPageSearch')?.value || '').trim();
+    document.getElementById('musicSearchBtn')?.addEventListener('click', async () => {
+      state.currentQuery = String(document.getElementById('q')?.value || '').trim();
       await loadPage();
     });
     document.getElementById('clearMusicSearchBtn')?.addEventListener('click', async () => {
-      const input = document.getElementById('musicPageSearch');
+      const input = document.getElementById('q');
       if (input) input.value = '';
       state.currentQuery = '';
       await loadPage();
     });
-    document.getElementById('musicPageSearch')?.addEventListener('keydown', async (e) => {
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       state.currentQuery = String(e.target.value || '').trim();
@@ -770,6 +854,28 @@
       if (state.page >= state.totalPages) return;
       state.page += 1;
       renderGrid();
+    });
+
+    // Filter modal
+    document.getElementById('musicFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('musicFilterModal')?.classList.add('show');
+    });
+    document.getElementById('musicFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('musicFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('musicRefresh')?.addEventListener('click', async () => {
+      document.getElementById('musicFilterModal')?.classList.remove('show');
+      state.page = 1;
+      await loadPage();
     });
 
     document.addEventListener('DOMContentLoaded', () => {

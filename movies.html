@@ -282,6 +282,36 @@
       return arr;
     }
 
+    async function initFilters() {
+      const genreSelect = document.getElementById('genre');
+      if (genreSelect) {
+        try {
+          const res = await fetch(`${TMDB_PROXY_BASE}/genre/movie/list?language=en`);
+          const json = await res.json();
+          if (Array.isArray(json.genres)) {
+            json.genres.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = String(g.id);
+              opt.textContent = g.name;
+              genreSelect.appendChild(opt);
+            });
+          }
+        } catch (e) {
+          console.error('Failed to load genres', e);
+        }
+      }
+      const yearSelect = document.getElementById('year');
+      if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear; y >= 1900; y--) {
+          const opt = document.createElement('option');
+          opt.value = String(y);
+          opt.textContent = String(y);
+          yearSelect.appendChild(opt);
+        }
+      }
+    }
+
     const TOP_POPULAR_MOVIE_IDS = [
       '27205', '155', '238', '497', '680', '550', '278', '299534', '239', '122',
       '19995', '157336', '603', '354912', '299536', '1552', '475557', '533535', '872585', '569094',
@@ -310,7 +340,35 @@
       const withinOffset = startIndex % TMDB_PAGE_SIZE;
       const needed = withinOffset + MOVIES_PAGE_SIZE;
 
-      if (!query) {
+      const hasFilters = state.genre || state.year;
+      if (hasFilters && !query) {
+        // Use discover endpoint with genre/year/sort filters
+        try {
+          const params = new URLSearchParams({ language: 'en-US', page: String(apiPageStart) });
+          if (state.genre) params.set('with_genres', state.genre);
+          if (state.year) params.set('primary_release_year', state.year);
+          if (state.sort === 'released') params.set('sort_by', 'primary_release_date.desc');
+          else if (state.sort === 'name') params.set('sort_by', 'original_title.asc');
+          else params.set('sort_by', 'popularity.desc');
+          
+          const pool = [];
+          for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
+            params.set('page', String(p));
+            const url = `${TMDB_PROXY_BASE}/discover/movie?${params.toString()}`;
+            const res = await fetch(url);
+            if (!res.ok) break;
+            const json = await res.json();
+            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+            apiTotalPages = json?.total_pages || apiTotalPages || 1;
+            const batch = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...batch);
+            if (!batch.length) break;
+          }
+          movies = pool;
+        } catch (_err) {
+          console.error('Failed to load movies with filters', _err);
+        }
+      } else if (!query) {
         // Proper shuffling: shuffle between *current popular* movies.
         try {
           const pool = [];
@@ -773,7 +831,7 @@
             toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
-      loadPage();
+      initFilters().then(() => loadPage());
     });
   </script>
   <script src="js/production-runtime.js?v=20260526a" defer></script>

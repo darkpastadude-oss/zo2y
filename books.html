@@ -1008,6 +1008,8 @@
     const state = {
       books: [],
       search: '',
+      genre: '',
+      sort: 'popular',
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
@@ -1246,19 +1248,20 @@
         }
       } else {
         const orderBy = query.match(/\b(202[4-9]|2030)\b/) ? 'newest' : 'relevance';
-        const cachedSearch = readBooksRequestCache(query, apiPageStart, orderBy);
+        const searchQuery = query + (state.genre ? `+subject:${state.genre}` : '');
+        const cachedSearch = readBooksRequestCache(searchQuery, apiPageStart, orderBy);
         if (cachedSearch?.books?.length) {
           books = cachedSearch.books.slice();
           apiTotalResults = cachedSearch.total || cachedSearch.books.length;
         } else {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=${orderBy}`;
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=${orderBy}`;
           try {
             const res = await fetch(url, { signal });
             if (res.ok) {
               const json = await res.json();
               books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
               apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
-              writeBooksRequestCache(query, apiPageStart, orderBy, books, apiTotalResults);
+              writeBooksRequestCache(searchQuery, apiPageStart, orderBy, books, apiTotalResults);
             }
           } catch (_err) {
             if (_err?.name === 'AbortError') return;
@@ -1316,6 +1319,17 @@
       // Keep the first page stable (popular first), shuffle additional pages for variety.
       if (!query && state.page > 1) {
         state.books = shuffleArray(state.books);
+      }
+
+      // Apply user-selected sort
+      if (state.sort === 'name') {
+        state.books.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      } else if (state.sort === 'released') {
+        state.books.sort((a, b) => {
+          const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
+          const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
+          return dateB - dateA;
+        });
       }
 
       state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
@@ -1594,9 +1608,18 @@
     document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
     });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
     document.getElementById('refresh')?.addEventListener('click', async () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
-      await loadPage();
+      state.page = 1;
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
       if (state.page <= 1) return;

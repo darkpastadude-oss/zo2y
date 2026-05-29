@@ -1057,6 +1057,36 @@
       return arr;
     }
 
+    async function initFilters() {
+      const yearSelect = document.getElementById('year');
+      if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear; y >= 1900; y--) {
+          const opt = document.createElement('option');
+          opt.value = String(y);
+          opt.textContent = String(y);
+          yearSelect.appendChild(opt);
+        }
+      }
+      const genreSelect = document.getElementById('genre');
+      if (genreSelect) {
+        try {
+          const res = await fetch(`${TMDB_PROXY_BASE}/genre/tv/list?language=en`);
+          const json = await res.json();
+          if (Array.isArray(json.genres)) {
+            json.genres.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = String(g.id);
+              opt.textContent = g.name;
+              genreSelect.appendChild(opt);
+            });
+          }
+        } catch (e) {
+          console.error('Failed to load anime genres', e);
+        }
+      }
+    }
+
     const TOP_POPULAR_ANIME_IDS = [
       '85937', '46852', '52814', '117886', '95557', '94605', '1399', '1418', '2966', '1396',
       '1296', '2899', '2845', '2888', '2950', '2951', '2952', '2953', '2954', '2955',
@@ -1286,7 +1316,49 @@
       const withinOffset = startIndex % TMDB_PAGE_SIZE;
       const needed = withinOffset + ANIMES_PAGE_SIZE;
 
-      if (!query) {
+      const hasFilters = state.genre || state.year;
+      if (hasFilters && state.genre) {
+        // Use discover with genre/year/sort filters (still anime-specific)
+        try {
+          const params = new URLSearchParams({
+            language: 'en-US',
+            with_genres: state.genre,
+            with_origin_country: 'JP',
+            'vote_count.gte': '50',
+            page: String(apiPageStart)
+          });
+          if (state.year) params.set('first_air_date_year', state.year);
+          if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
+          else params.set('sort_by', 'popularity.desc');
+          
+          const pool = [];
+          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
+            params.set('page', String(p));
+            const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
+            const res = await fetch(url);
+            if (!res.ok) break;
+            const json = await res.json();
+            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+            apiTotalPages = json?.total_pages || apiTotalPages || 1;
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            const batch = filterAnime(tvResults);
+            animes = animes.concat(batch);
+            if (!tvResults.length) break;
+          }
+          
+          if (state.sort === 'name') {
+            animes.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+          }
+          
+          if (animes.length > 0 && apiTotalResults != null) {
+            const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+            const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+            totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+          }
+        } catch (_err) {
+          console.error('Failed to load anime with filters', _err);
+        }
+      } else if (!query) {
         // Keep this feed "popular right now" and shuffle results for variety.
         const sortBy = 'popularity.desc';
         try {
@@ -1780,7 +1852,7 @@
             toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
-      loadPage();
+      initFilters().then(() => loadPage());
     });
   </script>
   <script src="js/production-runtime.js?v=20260526a" defer></script>

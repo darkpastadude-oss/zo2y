@@ -1887,6 +1887,59 @@
 
 
 
+    async function initGameFilters() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      
+      const genreSelect = document.getElementById('genre');
+      if (genreSelect) {
+        try {
+          const { data } = await client.from('games').select('extra').limit(500);
+          const seen = new Map();
+          (data || []).forEach(row => {
+            const genres = row.extra?.genres || [];
+            (Array.isArray(genres) ? genres : []).forEach(g => {
+              if (g.slug && g.name && !seen.has(g.slug)) {
+                seen.set(g.slug, g.name);
+              }
+            });
+          });
+          [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
+            const opt = document.createElement('option');
+            opt.value = slug;
+            opt.textContent = name;
+            genreSelect.appendChild(opt);
+          });
+        } catch (e) {
+          console.error('Failed to load game genres', e);
+        }
+      }
+      
+      const platformSelect = document.getElementById('platform');
+      if (platformSelect) {
+        try {
+          const { data } = await client.from('games').select('extra').limit(500);
+          const seen = new Map();
+          (data || []).forEach(row => {
+            const platforms = row.extra?.platforms || [];
+            (Array.isArray(platforms) ? platforms : []).forEach(p => {
+              if (p.slug && p.name && !seen.has(p.slug)) {
+                seen.set(p.slug, p.name);
+              }
+            });
+          });
+          [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
+            const opt = document.createElement('option');
+            opt.value = slug;
+            opt.textContent = name;
+            platformSelect.appendChild(opt);
+          });
+        } catch (e) {
+          console.error('Failed to load game platforms', e);
+        }
+      }
+    }
+
     async function loadGamesWithFallback() {
 
       const query = String(state.search || '').trim();
@@ -3113,7 +3166,7 @@
 
       }
 
-      loadPage();
+      initGameFilters().then(() => loadPage());
 
     });
 
