@@ -261,21 +261,26 @@
 }
 
 /* === PAGE TRANSITIONS === */
-.zt-page-exit-active {
+html.zt-page-exit-active {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+body.zt-page-exit-active {
     opacity: 0 !important;
     transform: translateY(6px) !important;
     pointer-events: none !important;
-    transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1), transform 180ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .zt-page-enter {
-    animation: ztFadeInUp 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: ztFadeInUp 250ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes ztFadeInUp {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -283,13 +288,13 @@
     }
 }
 
-/* Initial page load - hide body until auth/ready state is determined */
-html.zt-loading body {
+/* Initial page load - hide page until auth/ready state is determined */
+html.zt-loading {
     opacity: 0;
 }
 
-/* Once ready, fade in the body smoothly */
-html.zt-ready body {
+/* Once ready, fade in the page smoothly */
+html.zt-ready {
     opacity: 1;
     transition: opacity 200ms ease;
 }

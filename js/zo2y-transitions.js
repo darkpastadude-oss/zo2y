@@ -4,7 +4,7 @@
   var currentUrl = window.location.href;
   var navInProgress = false;
   var prefetched = {};
-  var TRANSITION_MS = 200;
+  var TRANSITION_MS = 220;
   var NAV_KEY = 'zt-nav';
   var html = document.documentElement;
 
@@ -54,7 +54,7 @@
     }, TRANSITION_MS);
   }
 
-  /* ── Click interception (register unconditionally) ── */
+  /* Click interception */
   document.addEventListener('click', function (e) {
     if (e.button !== 0) return;
     var link = e.target.closest('a[href]');
@@ -67,19 +67,20 @@
     navigateTo(url);
   }, true);
 
-  /* ── Prefetch on hover ── */
+  /* Prefetch on hover */
   document.addEventListener('mouseenter', function (e) {
     var link = e.target.closest('a[href]');
     if (!link || !isRoutable(link)) return;
     prefetchPage(link.href);
   }, true);
 
-  /* ── Handle bfcache restore ── */
+  /* Handle bfcache restore */
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) {
       document.body.classList.remove('zt-page-exit-active');
       html.classList.remove('zt-loading');
       html.classList.remove('zt-ready');
+      html.classList.remove('zt-page-enter');
       requestAnimationFrame(function () {
         html.classList.add('zt-page-enter');
         setTimeout(function () {
@@ -90,31 +91,23 @@
     }
   });
 
-  /* ── Incoming transition (fade-in on page load) ── */
+  /* Incoming transition (fade-in on page load) */
   var isTransitionNav = false;
   try { isTransitionNav = sessionStorage.getItem(NAV_KEY) === '1'; } catch (e) {}
 
   if (isTransitionNav) {
     try { sessionStorage.removeItem(NAV_KEY); } catch (e) {}
-    if (html.classList.contains('zt-ready')) {
+    requestAnimationFrame(function () {
       html.classList.remove('zt-loading');
-    } else {
-      html.classList.remove('zt-loading');
-      requestAnimationFrame(function () {
-        html.classList.add('zt-page-enter');
-        setTimeout(function () {
-          html.classList.remove('zt-page-enter');
-          html.classList.add('zt-ready');
-        }, TRANSITION_MS + 50);
-      });
-    }
-  } else if (html.classList.contains('zt-loading')) {
-    // Bootstrap will handle the fade-in via zt-ready
-  } else if (!html.classList.contains('zt-ready')) {
-    html.classList.add('zt-ready');
+      html.classList.add('zt-page-enter');
+      setTimeout(function () {
+        html.classList.remove('zt-page-enter');
+        html.classList.add('zt-ready');
+      }, TRANSITION_MS + 50);
+    });
   }
 
-  /* ── Public API ── */
+  /* Public API */
   window.ZO2Y_TRANSITIONS = {
     navigate: function (href) {
       try {
