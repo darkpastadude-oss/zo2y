@@ -2,7 +2,10 @@
 
 <html lang="en">
 
-<head>
+<head>  <script>
+(function(){var h=document.documentElement;h.classList.add('zt-loading');function r(){h.classList.remove('zt-loading');h.classList.add('zt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});document.addEventListener('zo2y-auth-gate-verified',r,{once:true});document.addEventListener('zo2y-auth-ready',r,{once:true})}})();
+</script>
+    
 
   <meta charset="UTF-8" />
 
@@ -79,11 +82,7 @@
 
     }
 
-
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-
 
     html, body {
 
@@ -101,8 +100,6 @@
 
     }
 
-
-
     body {
 
       margin: 0;
@@ -115,15 +112,9 @@
 
     }
 
-
-
     a { color: inherit; text-decoration: none; }
 
-
-
     .container { width: min(1240px, calc(100% - 28px)); margin: 0 auto; }
-
-
 
     .grid {
 
@@ -136,8 +127,6 @@
       min-height: 200px;
 
     }
-
-
 
     header {
 
@@ -155,8 +144,6 @@
 
     }
 
-
-
     .header-inner {
 
       min-height: 72px;
@@ -173,13 +160,9 @@
 
     }
 
-
-
     .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
 
     .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
-
-
 
     .search-wrap { flex: 1; min-width: 210px; max-width: 420px; position: relative; margin-left: 8px; }
 
@@ -194,8 +177,6 @@
     }
 
     .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
-
-
 
     .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
@@ -223,11 +204,7 @@
 
     .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
 
-
-
     .page-shell { margin-top: 18px; display: grid; gap: 16px; }
-
-
 
     .hero {
       border: 1px solid var(--border);
@@ -241,8 +218,6 @@
     .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }
     .hero p { color: #d3e5ff; margin-top: 10px; max-width: 650px; line-height: 1.45; }
     .hero-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
-
-
 
     .section {
 
@@ -263,8 +238,6 @@
     .section-head h2 { font-size: 23px; margin-bottom: 3px; }
 
     .section-head p { color: var(--muted); font-size: 13px; }
-
-
 
     .controls {
 
@@ -454,8 +427,6 @@
 
     }
 
-
-
     .grid {
 
       padding: 14px;
@@ -471,8 +442,6 @@
       justify-content: center;
 
     }
-
-
 
     .card {
 
@@ -498,8 +467,6 @@
 
     }
 
-
-
     .card:hover {
 
       border-color: var(--accent);
@@ -507,8 +474,6 @@
       transform: translateY(-2px);
 
     }
-
-
 
     .card.menu-open,
 
@@ -519,8 +484,6 @@
       overflow: visible;
 
     }
-
-
 
     .card-media {
       width: 100%;
@@ -545,8 +508,6 @@
 
     }
 
-
-
     .card-media.cover img {
 
       object-fit: cover;
@@ -567,8 +528,6 @@
       background: transparent;
     }
 
-
-
     .card-meta {
 
       padding: 9px;
@@ -583,8 +542,6 @@
 
     }
 
-
-
     .card-meta-top {
 
       display: flex;
@@ -598,8 +555,6 @@
       margin-bottom: 2px;
 
     }
-
-
 
     .card-type {
 
@@ -627,8 +582,6 @@
 
     }
 
-
-
     .card-name {
 
       font-size: 14px;
@@ -651,8 +604,6 @@
 
     }
 
-
-
     .card-sub {
 
       color: var(--muted);
@@ -668,8 +619,6 @@
       min-height: 17px;
 
     }
-
-
 
     .card-actions {
 
@@ -691,8 +640,6 @@
 
     .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-
-
     .mini-btn {
 
       height: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9);
@@ -702,8 +649,6 @@
     }
 
     .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-
 
     .menu {
 
@@ -747,11 +692,7 @@
 
     .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
 
-
-
     .empty { color: var(--muted); font-size: 13px; padding: 20px; }
-
-
 
     .control-icon-btn {
 
@@ -831,8 +772,6 @@
 
     }
 
-
-
     .modal {
 
       position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
@@ -873,15 +812,11 @@
 
     }
 
-
-
     @media (max-width: 860px) {
 
       .top-nav { display: none; }
 
     }
-
-
 
     @media (max-width: 760px) {
 
@@ -894,8 +829,6 @@
       .grid { grid-template-columns: repeat(3, 110px); gap: 10px; justify-content: center; }
 
     }
-
-
 
     .menu-modal {
 
@@ -1489,8 +1422,6 @@
 
 </header>
 
-
-
   <main class="container page-shell">
 
     <section class="hero">
@@ -1548,8 +1479,6 @@
 
     </div>
 
-
-
     <section class="section">
 
       <div class="section-head">
@@ -1575,8 +1504,6 @@
     </section>
 
   </main>
-
-
 
   <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
 
@@ -1617,8 +1544,6 @@
     </div>
 
   </div>
-
-
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
 
@@ -1678,8 +1603,6 @@
 
   </div>
 
-
-
     <script src="js/cover-cache.js?v=20260529c" defer></script>
     <script src="js/pages/games-shared.js?v=20260529c" defer></script>
 
@@ -1699,13 +1622,9 @@
 
       const RAWG_BASE = 'https://api.rawg.io/api';
 
-
-
     // Cache for fetched cover URLs to avoid repeated API calls
 
     const coverCache = new Map();
-
-
 
     let supabaseClient = null;
 
@@ -1733,8 +1652,6 @@
 
     };
 
-
-
     function computeGridPageSize() {
 
       const grid = document.getElementById('gamesGrid');
@@ -1748,8 +1665,6 @@
       return cols * rows;
 
     }
-
-
 
     function escapeHtml(value) {
 
@@ -1766,8 +1681,6 @@
         .replace(/'/g, '&#039;');
 
     }
-
-
 
     function showToast(message, isError = false) {
 
@@ -1799,8 +1712,6 @@
 
     }
 
-
-
     let searchDebounceTimer = null;
 
     function normalizeQuery(query) {
@@ -1809,19 +1720,13 @@
 
     }
 
-
-
     function getQueryVariations(query) {
 
       const normalized = normalizeQuery(query);
 
       if (!normalized) return [];
 
-      
-
       const variations = [normalized];
-
-      
 
       // Try without spaces for compound words
 
@@ -1830,8 +1735,6 @@
         variations.push(normalized.replace(/\s+/g, ''));
 
       }
-
-      
 
       // Try with spaces if no spaces
 
@@ -1847,13 +1750,9 @@
 
       }
 
-      
-
       return [...new Set(variations)];
 
     }
-
-
 
     function isDateWithinAcceptableRange(dateString) {
 
@@ -1871,8 +1770,6 @@
 
     }
 
-
-
     function shuffleArray(array) {
 
       const arr = [...array];
@@ -1888,8 +1785,6 @@
       return arr;
 
     }
-
-
 
     async function initGameFilters() {
       const client = await ensureSupabase();
@@ -1952,11 +1847,7 @@
 
       let apiTotalPages = 1;
 
-
-
       GAMES_PAGE_SIZE = computeGridPageSize();
-
-
 
       const client = await ensureSupabase();
 
@@ -1970,13 +1861,9 @@
 
       }
 
-
-
       try {
 
         let dbQuery = client.from('games').select('*', { count: 'exact' });
-
-
 
         if (query) {
 
@@ -1986,8 +1873,6 @@
 
           let found = false;
 
-          
-
           for (const variation of variations) {
 
             try {
@@ -1996,23 +1881,17 @@
 
               searchQuery = searchQuery.ilike('title', `%${variation}%`);
 
-
-
               if (state.genre) {
 
                 searchQuery = searchQuery.contains('extra', { genres: [{ slug: state.genre }] });
 
               }
 
-
-
               if (state.platform) {
 
                 searchQuery = searchQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
               }
-
-
 
               if (state.sort === 'name') {
 
@@ -2028,15 +1907,11 @@
 
               }
 
-
-
               // Fetch all results (no pagination) to sort by cover availability
 
               const { data, error, count } = await searchQuery;
 
               if (error) throw error;
-
-
 
               games = data || [];
 
@@ -2053,8 +1928,6 @@
             }
 
           }
-
-          
 
           if (!found) {
 
@@ -2080,8 +1953,6 @@
 
           const effectiveSort = useNewlyReleased ? 'released' : 'popular';
 
-          
-
           // Load all games when no search query (no pagination yet)
 
           if (state.genre) {
@@ -2090,15 +1961,11 @@
 
           }
 
-
-
           if (state.platform) {
 
             dbQuery = dbQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
           }
-
-
 
           if (effectiveSort === 'name') {
 
@@ -2114,15 +1981,11 @@
 
           }
 
-
-
           // Fetch all results (no pagination) to sort by cover availability
 
           const { data, error, count } = await dbQuery;
 
           if (error) throw error;
-
-
 
           games = data || [];
 
@@ -2135,8 +1998,6 @@
         console.error('Failed to load games', _err);
 
       }
-
-
 
       // Map games with cover resolution
       // Handle both Supabase games and Wikipedia fallback games
@@ -2158,8 +2019,6 @@
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
-
-
       // Front pages should be the games with locally sourced covers (official cover bucket).
 
       const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
@@ -2173,8 +2032,6 @@
         const otherCovers = withCover.filter((g) => !isLocalCover(g.cover));
 
         const noCover = state.games.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
-
-
 
         // Shuffle the "front pages" pool for variety, but keep local covers first.
 
@@ -2192,8 +2049,6 @@
 
       }
 
-
-
       // Apply pagination after sorting (page size computed from grid so we never end on partial rows)
 
       const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
@@ -2202,13 +2057,9 @@
 
       state.games = state.games.slice(rangeStart, rangeEnd);
 
-      
-
       state.totalPages = apiTotalPages;
 
     }
-
-
 
     function debounceSearch(query) {
 
@@ -2231,8 +2082,6 @@
       }, 400);
 
     }
-
-
 
     function toHttpsUrl(value) {
 
@@ -2260,13 +2109,9 @@
 
     }
 
-
-
     async function fetchCoverFromRAWG(gameName) {
 
       if (!gameName) return '';
-
-      
 
       // Check cache first
 
@@ -2278,8 +2123,6 @@
 
       }
 
-      
-
       try {
 
         // Search for the game on RAWG
@@ -2290,19 +2133,13 @@
 
         if (!response.ok) return '';
 
-        
-
         const data = await response.json();
 
         if (!data.results || data.results.length === 0) return '';
 
-        
-
         const game = data.results[0];
 
         const coverUrl = game.background_image || '';
-
-        
 
         if (coverUrl) {
 
@@ -2318,15 +2155,11 @@
 
       }
 
-      
-
       coverCache.set(cacheKey, '');
 
       return '';
 
     }
-
-
 
     function resolveGameCover(row) {
 
@@ -2340,8 +2173,6 @@
 
       }
 
-      
-
       // Try IGDB cover
 
       const igdbCover = row?.extra?.cover?.url;
@@ -2351,8 +2182,6 @@
         return toHttpsUrl(igdbCover.startsWith('//') ? `https:${igdbCover}` : igdbCover);
 
       }
-
-      
 
       // Try Steam cover if steam_appid is available
 
@@ -2364,15 +2193,11 @@
 
       }
 
-      
-
       // No remote placeholder (keeps offline + avoids 3rd party outages). We'll hydrate covers via `/api/igdb` when possible.
 
       return '';
 
     }
-
-
 
     function handleImageError(img, gameName) {
 
@@ -2381,8 +2206,6 @@
       img.alt = gameName || 'Game cover not available';
 
     }
-
-
 
     async function ensureSupabase() {
 
@@ -2410,8 +2233,6 @@
 
     }
 
-
-
     async function initAuthUi() {
 
       const client = await ensureSupabase();
@@ -2427,8 +2248,6 @@
       const { data } = await client.auth.getUser();
 
       currentUser = data?.user || null;
-
-
 
       if (currentUser) {
 
@@ -2456,15 +2275,11 @@
 
     }
 
-
-
     async function loadGames() {
 
       await loadGamesWithFallback();
 
     }
-
-
 
     async function loadListStatus() {
 
@@ -2506,8 +2321,6 @@
 
     }
 
-
-
     function getGameListStatus(gameId) {
 
       const id = String(gameId || '').trim();
@@ -2526,8 +2339,6 @@
 
     }
 
-
-
     function getGameCardExtra(game) {
 
       const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
@@ -2539,8 +2350,6 @@
       return parts.join(' | ') || 'Game details';
 
     }
-
-
 
     function renderGameSpotlight(game) {
 
@@ -2560,8 +2369,6 @@
 
       const openEl = document.getElementById('gamesSpotlightOpen');
 
-      
-
       const coverUrl = game.cover || FALLBACK_IMAGE;
 
       const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
@@ -2569,8 +2376,6 @@
       const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
 
       const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
-
-      
 
       section.hidden = false;
 
@@ -2594,8 +2399,6 @@
 
     }
 
-
-
     function renderGrid() {
 
       const grid = document.getElementById('gamesGrid');
@@ -2604,13 +2407,9 @@
 
       if (!grid) return;
 
-      
-
       // Spotlight disabled (always show grid).
 
       if (spotlight) spotlight.hidden = true;
-
-      
 
       if (!state.games.length) {
 
@@ -2664,8 +2463,6 @@
 
       }).join('');
 
-
-
       wireGridActions();
 
       updatePagination();
@@ -2673,8 +2470,6 @@
       hydrateMissingCovers();
 
     }
-
-
 
     let coverHydrateAbort = null;
     const coverHydrateTried = new Set();
@@ -2687,15 +2482,11 @@
 
       if (!api?.fetchCoverForTitle && !api?.searchGamesFromWikipedia) return;
 
-
-
       if (coverHydrateAbort) coverHydrateAbort.abort();
 
       coverHydrateAbort = new AbortController();
 
       const signal = coverHydrateAbort.signal;
-
-
 
       const runBatch = async () => {
 
@@ -2714,8 +2505,6 @@
           .slice(0, Math.max(18, Math.min(60, GAMES_PAGE_SIZE)));
 
         if (!candidates.length) return false;
-
-
 
         let filled = 0;
 
@@ -2790,8 +2579,6 @@
 
       };
 
-
-
       // Keep trying a couple batches while the browser is idle to maximize filled covers.
 
       for (let i = 0; i < 6; i += 1) {
@@ -2811,8 +2598,6 @@
       }
 
     }
-
-
 
     function updatePagination() {
 
@@ -2834,8 +2619,6 @@
 
     }
 
-
-
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
 
       const gameId = String(itemId || '').trim();
@@ -2845,8 +2628,6 @@
       const game = state.games.find((row) => String(row.id || '').trim() === gameId);
 
       if (!game) return { ok: false, saved: false };
-
-
 
       const client = await ensureSupabase();
 
@@ -2858,13 +2639,9 @@
 
       }
 
-
-
       const status = getGameListStatus(gameId);
 
       if (!(listType in status)) return { ok: false, saved: false };
-
-
 
       const previousSaved = !!status[listType];
 
@@ -2877,8 +2654,6 @@
         return { ok: false, saved: previousSaved };
 
       }
-
-
 
       state.pendingQuickOps.add(opKey);
 
@@ -2942,8 +2717,6 @@
 
     }
 
-
-
     function wireGridActions() {
 
       document.querySelectorAll('.menu-btn').forEach((btn) => {
@@ -2966,8 +2739,6 @@
 
       });
 
-
-
       document.querySelectorAll('.card').forEach((card) => {
 
         card.addEventListener('click', (e) => {
@@ -2985,8 +2756,6 @@
       });
 
     }
-
-
 
     async function loadPage() {
 
@@ -3009,8 +2778,6 @@
       }
 
     }
-
-
 
     // Refresh Picks removed.
 
@@ -3095,8 +2862,6 @@
       renderGrid();
 
     });
-
-
 
     document.addEventListener('DOMContentLoaded', () => {
 

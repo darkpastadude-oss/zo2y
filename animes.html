@@ -1,6 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
+<head>  <script>
+(function(){var h=document.documentElement;h.classList.add('zt-loading');function r(){h.classList.remove('zt-loading');h.classList.add('zt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});document.addEventListener('zo2y-auth-gate-verified',r,{once:true});document.addEventListener('zo2y-auth-ready',r,{once:true})}})();
+</script>
+    
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
@@ -1079,8 +1083,8 @@
           const res = await fetch(`${TMDB_PROXY_BASE}/genre/tv/list?language=en`);
           const json = await res.json();
           if (Array.isArray(json.genres)) {
-            // Skip "Animation" (genre ID 16) � all anime is animation by definition
-            // Skip "Kids" (10762), "News" (10763), "Reality" (10764), "Talk" (10767) � rarely relevant to anime
+            // Skip "Animation" (genre ID 16) ? all anime is animation by definition
+            // Skip "Kids" (10762), "News" (10763), "Reality" (10764), "Talk" (10767) ? rarely relevant to anime
             const skipGenres = new Set([16, 10762, 10763, 10764, 10767]);
             json.genres.forEach(g => {
               if (skipGenres.has(g.id)) return;

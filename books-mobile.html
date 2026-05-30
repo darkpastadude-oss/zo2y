@@ -1,6 +1,10 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
+<head>  <script>
+(function(){var h=document.documentElement;h.classList.add('zt-loading');function r(){h.classList.remove('zt-loading');h.classList.add('zt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});document.addEventListener('zo2y-auth-gate-verified',r,{once:true});document.addEventListener('zo2y-auth-ready',r,{once:true})}})();
+</script>
+    
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
@@ -967,7 +971,7 @@
             return json;
           };
 
-          // 1. Open Library trending â€” real popular books based on actual usage
+          // 1. Open Library trending — real popular books based on actual usage
           for (const period of ['weekly', 'monthly', 'daily']) {
             if (books.length >= apiLimit) break;
             await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${apiLimit}`);
@@ -982,7 +986,7 @@
             }
           }
 
-          // 3. Ultimate fallback â€” Google Books search
+          // 3. Ultimate fallback — Google Books search
           if (books.length < 15) {
             const fallbackQueries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
             for (const q of fallbackQueries) {

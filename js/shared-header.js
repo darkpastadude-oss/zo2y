@@ -1356,8 +1356,18 @@ const HEADER_HTML = `
     });
   }
 
+  function loadTransitionsScript() {
+    if (document.querySelector('script[data-zo2y-transitions]')) return;
+    var script = document.createElement('script');
+    script.src = 'js/zo2y-transitions.js?v=20260530a';
+    script.dataset.zo2yTransitions = '1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
+
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
+    loadTransitionsScript();
     const currentPage = normalizePageName(window.location.pathname);
     const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
     if (currentPage === 'index' && currentShell !== 'app') {

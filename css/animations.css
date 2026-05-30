@@ -259,3 +259,51 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* === PAGE TRANSITIONS === */
+.zt-page-exit-active {
+    opacity: 0 !important;
+    transform: translateY(6px) !important;
+    pointer-events: none !important;
+    transition: opacity 180ms cubic-bezier(0.4, 0, 0.2, 1), transform 180ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.zt-page-enter {
+    animation: ztFadeInUp 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes ztFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Initial page load - hide body until auth/ready state is determined */
+html.zt-loading body {
+    opacity: 0;
+}
+
+/* Once ready, fade in the body smoothly */
+html.zt-ready body {
+    opacity: 1;
+    transition: opacity 200ms ease;
+}
+
+/* No transition for browsers that prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .zt-page-exit-active {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .zt-page-enter {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
