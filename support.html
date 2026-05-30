@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>  <script>
+<head>
+    <style>
+    html.zt-loading body { opacity: 0 !important; }
+    html.zt-ready body { opacity: 1; transition: opacity 200ms ease; }
+    .zt-page-exit-active { opacity: 0 !important; transform: translateY(6px) !important; pointer-events: none !important; transition: opacity 180ms ease, transform 180ms ease !important; }
+    @keyframes ztFadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .zt-page-enter { animation: ztFadeInUp 200ms ease forwards; }
+    @media (prefers-reduced-motion: reduce) { .zt-page-exit-active { transition: none !important; opacity: 1 !important; transform: none !important; } .zt-page-enter { animation: none !important; opacity: 1 !important; transform: none !important; } }
+  </style>
+    <script>
 (function(){var h=document.documentElement;h.classList.add('zt-loading');function r(){h.classList.remove('zt-loading');h.classList.add('zt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});document.addEventListener('zo2y-auth-gate-verified',r,{once:true});document.addEventListener('zo2y-auth-ready',r,{once:true})}})();
-</script>
-    
+</script>  
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
