@@ -705,6 +705,7 @@
                         } else if (panel) {
                             section.style.display = 'none';
                             section.classList.remove('active');
+                        section.classList.add('hidden');
                         }
                     });
                 }
@@ -3013,6 +3014,7 @@
                 document.querySelectorAll('.mobile-section').forEach(section => {
                     section.style.display = 'none';
                     section.classList.remove('active');
+                        section.classList.add('hidden');
                 });
                 
                 // Show list detail section
@@ -7888,6 +7890,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'none';
                         detailSection.classList.remove('active');
+                        detailSection.classList.add('hidden');
                     }
                     if (mainSection) {
                         const titleEl = mainSection.querySelector('.mobile-section-title');
@@ -7972,6 +7975,7 @@
                         }
                         section.style.display = 'none';
                         section.classList.remove('active');
+                        section.classList.add('hidden');
                     });
                     
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
@@ -7985,6 +7989,7 @@
                         document.getElementById('mobileMoviesSection');
                     if (activeSection) {
                         activeSection.style.display = 'block';
+                        activeSection.classList.remove('hidden');
                         activeSection.classList.add('active');
                     }
                     
@@ -9772,6 +9777,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('restaurants-tab');
@@ -9945,6 +9951,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('movies-tab');
@@ -10140,6 +10147,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('tv-tab');
@@ -10337,6 +10345,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('anime-tab');
@@ -10534,6 +10543,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('games-tab');
@@ -10742,6 +10752,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('books-tab');
@@ -10940,6 +10951,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('music-tab');
@@ -11131,6 +11143,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('travel-tab');
@@ -11330,6 +11343,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('fashion-tab');
@@ -11519,6 +11533,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('cars-tab');
@@ -11695,6 +11710,7 @@
                     if (detailSection) {
                         detailSection.style.display = 'block';
                         detailSection.classList.add('active');
+                        detailSection.classList.remove('hidden');
                     }
                 } else {
                     const mainTab = document.getElementById('food-tab');
@@ -11884,7 +11900,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileBookDetailSection');
                     const mainSection = document.getElementById('mobileBooksSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12159,7 +12175,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileRestaurantDetailSection');
                     const mainSection = document.getElementById('mobileRestaurantsSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12182,7 +12198,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMovieDetailSection');
                     const mainSection = document.getElementById('mobileMoviesSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12211,7 +12227,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMusicDetailSection');
                     const mainSection = document.getElementById('mobileMusicSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12240,7 +12256,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileTravelDetailSection');
                     const mainSection = document.getElementById('mobileTravelSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12269,7 +12285,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileFashionDetailSection');
                     const mainSection = document.getElementById('mobileFashionSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12298,7 +12314,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileCarsDetailSection');
                     const mainSection = document.getElementById('mobileCarsSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12327,7 +12343,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileFoodDetailSection');
                     const mainSection = document.getElementById('mobileFoodSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12356,7 +12372,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileTvDetailSection');
                     const mainSection = document.getElementById('mobileTvSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12385,7 +12401,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
                     const mainSection = document.getElementById('mobileAnimeSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
@@ -12414,7 +12430,7 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileGameDetailSection');
                     const mainSection = document.getElementById('mobileGamesSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active'); detailSection.classList.add('hidden'); }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
