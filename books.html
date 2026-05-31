@@ -84,24 +84,6 @@
     }
     .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
 
-    .search-input-wrap { position: relative; }
-    .books-clear-btn {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 50%;
-      display: none;
-      font-size: 12px;
-    }
-    .books-clear-btn:hover { color: var(--white); background: rgba(255,255,255,0.1); }
-    .books-clear-btn.visible { display: block; }
-
     .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .top-nav { display: inline-flex; align-items: center; gap: 8px; opacity: 0.92; }
     .nav-pill {
@@ -943,7 +925,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
-        <button id="booksClearSearchBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -1581,14 +1562,20 @@
         }
       }
 
-      // Apply content safety filtering to all results
-      const safeBooks = filterSafeBookDocs(books.map(book => ({
-        title: book.title || book.name || '',
-        author: book.authors || book.author || '',
-        description: book.description || '',
-        maturityRating: book.maturityRating || '',
-        _source: book._source || ''
-      })));
+      // Apply content safety filtering to all results (less aggressive for now)
+      const safeBooks = books.filter(book => {
+        const title = String(book.title || book.name || '').trim();
+        if (!title) return false;
+        const text = [
+          title,
+          book.authors || book.author || '',
+          book.description || '',
+          book.maturityRating || ''
+        ].join(' ').toLowerCase();
+        // Only filter out explicit content for now
+        if (/\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i.test(text)) return false;
+        return true;
+      });
 
       state.books = safeBooks.map((book) => ({
         id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
@@ -1888,14 +1875,6 @@
 
     document.getElementById('q')?.addEventListener('input', async (e) => {
       const query = String(e.target.value || '').trim();
-      const clearBtn = document.getElementById('booksClearSearchBtn');
-      if (clearBtn) {
-        if (query) {
-          clearBtn.classList.add('visible');
-        } else {
-          clearBtn.classList.remove('visible');
-        }
-      }
       if (!query) {
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
         await executeSearch('');
@@ -1915,14 +1894,6 @@
       const query = String(document.getElementById('q')?.value || '').trim();
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       await executeSearch(query);
-    });
-    document.getElementById('booksClearSearchBtn')?.addEventListener('click', async () => {
-      const searchInput = document.getElementById('q');
-      if (searchInput) {
-        searchInput.value = '';
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        await executeSearch('');
-      }
     });
     document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.add('show');
