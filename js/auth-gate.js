@@ -1,9 +1,19 @@
 (function () {
   'use strict';
 
-  var PROJECT_REF = '__SUPABASE_PROJECT_REF__';
-  var SUPABASE_URL = '__SUPABASE_URL__';
-  var SUPABASE_KEY = '__SUPABASE_ANON_KEY__';
+  var DEFAULT_PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
+  var DEFAULT_SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
+  var DEFAULT_SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+
+  function resolveInjectedConfigValue(value, fallback) {
+    var normalized = String(value || '').trim();
+    if (!normalized || /^__SUPABASE_[A-Z_]+__$/.test(normalized)) return fallback;
+    return normalized;
+  }
+
+  var PROJECT_REF = resolveInjectedConfigValue('__SUPABASE_PROJECT_REF__', DEFAULT_PROJECT_REF);
+  var SUPABASE_URL = resolveInjectedConfigValue('__SUPABASE_URL__', DEFAULT_SUPABASE_URL);
+  var SUPABASE_KEY = resolveInjectedConfigValue('__SUPABASE_ANON_KEY__', DEFAULT_SUPABASE_KEY);
 
   var STORAGE_KEY = 'zo2y-auth-v2';
   var LEGACY_STORAGE_KEY = 'zo2y-auth-v1';

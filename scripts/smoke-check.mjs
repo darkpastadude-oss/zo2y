@@ -11,12 +11,13 @@ function boolFromEnv(value, fallback = true) {
 const BASE_URL = normalizeBaseUrl(process.env.BASE_URL || "http://127.0.0.1:5000");
 const SKIP_REDIRECTS = boolFromEnv(process.env.SMOKE_SKIP_REDIRECTS, true);
 const REDIRECT_PROBE_PATH = String(process.env.SMOKE_REDIRECT_PROBE_PATH || "/").trim() || "/";
+const REQUEST_TIMEOUT_MS = Number(process.env.SMOKE_REQUEST_TIMEOUT_MS || 15000);
 
 const checks = [
   { name: "home", url: "/", expectIncludes: ["Zo2y"] },
   { name: "index", url: "/index.html", expectIncludes: ["All your interests in one place"] },
-  { name: "login", url: "/login.html", expectIncludes: ["Return to your account.", "Log in"] },
-  { name: "signup", url: "/sign-up.html", expectIncludes: ["Create account", "Sign up with Google"] },
+  { name: "login", url: "/login.html", expectIncludes: ["Log in", "Sign in with Google"] },
+  { name: "signup", url: "/sign-up.html", expectIncludes: ["Sign up", "Sign up with Google"] },
   { name: "movies", url: "/movies.html", expectIncludes: ["Movies"] },
   { name: "tvshows", url: "/tvshows.html", expectIncludes: ["TV"] },
   { name: "games", url: "/games.html", expectIncludes: ["Games"] },
@@ -72,7 +73,11 @@ async function resolveCanonicalBaseUrl(baseUrl) {
 
 async function runCheck(baseUrl, item) {
   const started = Date.now();
-  const response = await fetch(buildUrl(baseUrl, item.url));
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const response = await fetch(buildUrl(baseUrl, item.url), {
+    signal: controller.signal
+  }).finally(() => clearTimeout(timeout));
   const elapsed = Date.now() - started;
   const expectedStatus = item.expectStatus ?? 200;
   const allowedStatuses = Array.isArray(expectedStatus)

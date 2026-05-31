@@ -20,6 +20,7 @@
     "upload:logos": "node scripts/upload-brand-logos.mjs",
     "dedupe:brands": "node scripts/dedupe-brands.mjs",
     "smoke": "node scripts/smoke-runner.mjs",
+    "smoke:auth": "npm run cf:build && node scripts/auth-smoke-check.mjs",
     "smoke:launch": "node scripts/smoke-runner.mjs"
   },
   "keywords": [

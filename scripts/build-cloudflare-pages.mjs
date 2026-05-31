@@ -87,11 +87,17 @@ function execAsync(command, options = {}) {
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
 
-// Inject environment variables into source files before copying
-console.log("Injecting environment variables...");
-await execAsync("node scripts/inject-env-config.mjs");
-
 await copyRootStaticFiles();
+
+// Inject environment variables into the build output only. The source tree keeps
+// resilient fallback config so auth remains usable in local static previews.
+console.log("Injecting environment variables into dist...");
+await execAsync("node scripts/inject-env-config.mjs", {
+  env: {
+    ...process.env,
+    ZO2Y_INJECT_ROOT_DIR: distDir
+  }
+});
 
 if (!(await exists(path.join(distDir, "_headers")))) {
   throw new Error("Expected dist/_headers to exist after Cloudflare static build.");
