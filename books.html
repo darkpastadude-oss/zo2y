@@ -1380,21 +1380,51 @@
       const authors = normalizeRankText(getDocAuthors(doc).join(" "));
       const haystack = normalizeRankText(getDocText(doc));
       const year = Number(doc?.first_publish_year || doc?.year || 0) || 0;
+      const language = String(doc?.language || "").toLowerCase();
       let score = 0;
 
       if (q && title) {
         if (title === q) score += 500;
         else if (title.startsWith(q)) score += 360;
         else if (title.includes(q)) score += 260;
+        
+        // Fuzzy token matching - more lenient
         const queryTokens = q.split(" ").filter(Boolean);
         const titleTokenHits = queryTokens.filter((token) => title.includes(token)).length;
-        if (queryTokens.length && titleTokenHits === queryTokens.length) score += 180;
+        
+        if (queryTokens.length) {
+          // All tokens match
+          if (titleTokenHits === queryTokens.length) score += 180;
+          // Most tokens match (at least 50%)
+          else if (titleTokenHits >= Math.ceil(queryTokens.length / 2)) score += 120;
+          // Some tokens match (at least 1)
+          else if (titleTokenHits > 0) score += 60;
+          
+          // Bonus for longer queries with good matches
+          if (queryTokens.length >= 2 && titleTokenHits >= 2) score += 40;
+        }
+        
+        // Partial word matching (if query is a substring of a word in title)
+        if (q.length >= 3) {
+          const titleWords = title.split(" ");
+          for (const word of titleWords) {
+            if (word.includes(q) || q.includes(word)) {
+              score += 30;
+              break;
+            }
+          }
+        }
       }
 
       if (q && POPULAR_SERIES.some((series) => q.includes(series) || title.includes(series))) score += 300;
       if (POPULAR_SERIES.some((series) => title.includes(series))) score += 200;
       if (authors && KNOWN_AUTHORS.some((author) => authors.includes(author))) score += 100;
-      if (haystack.includes("english") || doc?._source === "google-books") score += 150;
+
+      // Aggressive English priority
+      if (language === "en" || language === "eng" || language === "english") score += 300;
+      else if (haystack.includes("english") || doc?._source === "google-books") score += 150;
+      else if (language && language !== "en" && language !== "eng" && language !== "english") score -= 200;
+
       score += scoreCoverQuality(doc);
       if (year >= 1990 && year <= new Date().getUTCFullYear() + 1) score += 50;
       if (year && year < 1950) score -= 180;
