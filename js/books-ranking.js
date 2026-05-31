@@ -103,6 +103,25 @@
     return false;
   }
 
+  const SEVERE_JUNK_PATTERNS = [
+    'newspaper', 'magazine', 'proceedings', 'conference proceedings',
+    'symposium proceedings', 'workshop proceedings',
+    'technical report', 'archival document', 'archive document',
+    'scanned historical', 'public domain scan', 'government document',
+    'bibliographic record', 'marc record', 'library catalog',
+    'transcript', 'minutes', 'gazette', 'newsletter', 'bulletin',
+    'serial publication', 'periodical'
+  ];
+
+  function isSevereJunk(book) {
+    const title = String(book.title || '').toLowerCase();
+    const desc = String(book.description || '').toLowerCase();
+    for (const p of SEVERE_JUNK_PATTERNS) {
+      if (title.includes(p) || desc.includes(p)) return true;
+    }
+    return false;
+  }
+
   /* ---------------------------------------------------------------
    * INTENT-AWARE TITLE MATCHING
    *
@@ -412,13 +431,39 @@
     }
 
     // --- PHASE 3: Secondary signals ---
-    if (isEnglish(book)) score += 15;
+    if (isEnglish(book)) score += 150;
+    else score -= 200;
     score += assessCoverQuality(book.coverUrl) * 10;
     score += scoreRecency(book) * 5;
     score += scoreMetadataCompleteness(book) * 5;
 
-    // --- PHASE 4: Penalties ---
+    // --- PHASE 4: Author recognition boost ---
+    const knownAuthors = ['j.k. rowling', 'stephen king', 'brandon sanderson', 'james clear',
+      'andy weir', 'rebecca yarros', 'freida mcfadden', 'colleen hoover',
+      'taylor jenkins reid', 'suzanne collins', 'j.r.r. tolkien', 'george r.r. martin',
+      'jane austen', 'gillian flynn', 'paula hawkins', 'dan brown',
+      'yuval noah harari', 'michelle obama', 'delia owens', 'matt haig',
+      'ernest cline', 'frank herbert', 'sally rooney', 'kristin hannah',
+      'emily henry', 'alex michaelides', 'madeline miller', 'pierce brown',
+      'leigh bardugo', 'sarah j. maas', 'veronica roth', 'john green',
+      'nicholas sparks', 'james patterson', 'michael connelly', 'lee child',
+      'harlan coben', 'david baldacci', 'nora roberts', 'janet evanovich',
+      'clive cussler', 'tom clancy', 'john grisham', 'stephenie meyer',
+      'martha wells', 'ta-nehisi coates', 'chimanamanda ngozi adichie',
+      'haruki murakami', 'kurt vonnegut', 'cormac mccarthy',
+      'abby jimenez', 'jeneva rose', 'sarah pearse',
+      'ashley audrain', 'catriona ward', 'terry pratchett', 'neil gaiman',
+      'isaac asimov', 'arthur c. clarke', 'ursula k. le guin', 'octavia butler'];
+    const nAuthors = normalize(book.authors || '');
+    if (nAuthors) {
+      for (const ka of knownAuthors) {
+        if (nAuthors.includes(ka)) { score += 100; break; }
+      }
+    }
+
+    // --- PHASE 5: Penalties ---
     if (assessJunk(book)) score -= 100;
+    if (isSevereJunk(book)) score -= 500;
 
     return score;
   }
