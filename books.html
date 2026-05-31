@@ -952,7 +952,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
+      <div class="grid books-grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -1769,10 +1769,11 @@
         updatePagination();
         return;
       }
-      grid.innerHTML = state.books.map((book) => {
+      grid.innerHTML = state.books.map((book, index) => {
         const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
+        const staggerDelay = index * 0.05; // Stagger cards by 50ms
         return `
-        <article class="card" data-id="${escapeHtml(book.id)}">
+        <article class="card" data-id="${escapeHtml(book.id)}" style="animation-delay: ${staggerDelay}s">
           <div class="card-media">
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
           </div>
