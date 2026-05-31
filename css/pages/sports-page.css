@@ -86,6 +86,33 @@
   line-height: 1.5;
 }
 
+.sports-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  background: rgba(12, 25, 50, 0.95);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 12px 16px;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 2200;
+}
+
+.sports-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sports-toast.error {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(127, 29, 29, 0.9);
+}
+
 .card-save-btn {
   width: 30px;
   height: 30px;

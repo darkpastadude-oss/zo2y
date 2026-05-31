@@ -1,31 +1,19 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-    html.zt-loading { opacity: 0 !important; }
-    html.zt-ready { opacity: 1; transition: opacity 200ms ease; }
-    body.zt-page-exit-active { opacity: 0 !important; transform: translateY(6px) !important; pointer-events: none !important; transition: opacity 200ms ease, transform 200ms ease !important; }
-    @keyframes ztFadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .zt-page-enter { animation: ztFadeInUp 250ms ease forwards; }
-    @media (prefers-reduced-motion: reduce) { .zt-page-exit-active { transition: none !important; opacity: 1 !important; transform: none !important; } .zt-page-enter { animation: none !important; opacity: 1 !important; transform: none !important; } }
-  </style>
-    <script>
-(function(){var h=document.documentElement;h.classList.add('zt-loading');var a=0,d=0;function t(){if(a&&d){h.classList.remove('zt-loading');h.classList.add('zt-ready')}}document.addEventListener('zo2y-auth-gate-verified',function(){a=1;t()},{once:true});document.addEventListener('zo2y-auth-ready',function(){a=1;t()},{once:true});if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){d=1;t()},{once:true})}else{d=1;t()}window.addEventListener('load',function(){a=1;d=1;t()},{once:true})})();
-</script>  
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/js/auth-gate.js?v=20260529c" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260529c" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Brand Details ? Zo2y</title>
-  <link rel="stylesheet" href="css/design-system.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/design-system.css"></noscript>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/pages/brand.css?v=20260529c" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260529c"></noscript>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260529c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260529c"></noscript>
   <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -39,8 +27,7 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260529c"></noscript>
   <script src="/js/mobile-webapp.js?v=20260529c" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/lib/helpers.js?v=20260531a" defer></script>
-<script src="js/list-utils.js?v=20260529c" defer></script>
+  <script src="js/list-utils.js?v=20260529c" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260529c" defer></script>
   <script src="js/review-interactions.js?v=20260529c" defer></script>
 <script src="js/shared-header.js?v=20260529c" defer></script>
@@ -126,8 +113,8 @@
     <img src="" alt="" />
   </div>
 
-<div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
-<div class="menu-modal-content">
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
         <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
@@ -172,4 +159,40 @@
   </div>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

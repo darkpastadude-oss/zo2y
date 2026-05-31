@@ -1,18 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-    html.zt-loading { opacity: 0 !important; }
-    html.zt-ready { opacity: 1; transition: opacity 200ms ease; }
-    body.zt-page-exit-active { opacity: 0 !important; transform: translateY(6px) !important; pointer-events: none !important; transition: opacity 200ms ease, transform 200ms ease !important; }
-    @keyframes ztFadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .zt-page-enter { animation: ztFadeInUp 250ms ease forwards; }
-    @media (prefers-reduced-motion: reduce) { .zt-page-exit-active { transition: none !important; opacity: 1 !important; transform: none !important; } .zt-page-enter { animation: none !important; opacity: 1 !important; transform: none !important; } }
-  </style>
-    <script>
-(function(){var h=document.documentElement;h.classList.add('zt-loading');var a=0,d=0;function t(){if(a&&d){h.classList.remove('zt-loading');h.classList.add('zt-ready')}}document.addEventListener('zo2y-auth-gate-verified',function(){a=1;t()},{once:true});document.addEventListener('zo2y-auth-ready',function(){a=1;t()},{once:true});if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){d=1;t()},{once:true})}else{d=1;t()}window.addEventListener('load',function(){a=1;d=1;t()},{once:true})})();
-</script>  
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
@@ -26,15 +14,9 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/lib/helpers.js?v=20260531a" defer></script>
-  <script src="js/data/curated-media.js?v=20260530a" defer></script>
   <script src="js/list-utils.js?v=20260529c" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260529c" defer></script>
-<script src="js/books-ranking.js?v=20260531a" defer></script>
-<script src="js/books-app.js?v=20260531a" defer></script>
-    <link rel="stylesheet" href="css/design-system.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/design-system.css"></noscript>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <style>
     :root {
@@ -671,22 +653,6 @@
     .hero {
       display: none !important;
     }
-
-    /* Discovery sections (mobile) */
-    .discovery-sections { display: block; margin-top: 0; }
-    .discovery-sections .section { margin-bottom: 24px; }
-    .discovery-sections .section-head { margin-bottom: 12px; }
-    .discovery-sections .section-head h2 { font-size: 16px; font-weight: 700; margin: 0; }
-    .discovery-sections .section-head p { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
-    .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-    .section-grid .card { cursor: pointer; transition: transform 0.2s ease; }
-    .section-grid .card:hover { transform: translateY(-2px); }
-    .section-grid .card-media { aspect-ratio: 2/3; overflow: hidden; border-radius: 8px; background: var(--card); }
-    .section-grid .card-media img { width: 100%; height: 100%; object-fit: cover; }
-    .section-grid .card-meta { padding: 6px 2px; }
-    .section-grid .card-title { font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .section-grid .card-sub { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .discovery-hidden .discovery-sections { display: none !important; }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -701,6 +667,9 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260529c"></noscript>
 <script src="js/shared-header.js?v=20260529c" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260529c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260529c"></noscript>
+
   </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -735,7 +704,7 @@
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
     </section>
-    <div class="control-modal" id="booksFilterModal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Filter books">
+    <div class="control-modal" id="booksFilterModal" aria-hidden="true">
       <div class="control-modal-card">
         <div class="control-modal-head">
           <div class="control-modal-title">Filter books</div>
@@ -753,21 +722,6 @@
       </div>
     </div>
 
-    <div id="discoverySections" class="discovery-sections">
-      <section class="section" data-section="popular">
-        <div class="section-head"><h2>Popular Books</h2><p>Curated top picks across genres</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="trending">
-        <div class="section-head"><h2>Trending Now</h2><p>Most popular books this week</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="newReleases">
-        <div class="section-head"><h2>New Releases</h2><p>Recently published books</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-    </div>
-
     <section class="section">
       <div class="section-head">
         <h2>popular books right now</h2>
@@ -782,7 +736,7 @@
     </section>
   </main>
 
-  <div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
     <div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
@@ -803,7 +757,7 @@
     </div>
   </div>
 
-  <div id="createListModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Create New List">
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
     <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
@@ -834,11 +788,12 @@
   </div>
 
   <script>
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/images/fallback/book.svg';
-
-    function escapeHtml(s) {
-      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
+      let BOOKS_PAGE_SIZE = 18;
 
     let supabaseClient = null;
     let currentUser = null;
@@ -852,162 +807,256 @@
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
-    let searchTimer = null;
 
-    function computePageSize() {
+    function computeGridPageSize() {
       const grid = document.getElementById('booksGrid');
       if (!grid) return 18;
       const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
       const gridTop = grid.getBoundingClientRect().top;
-      const availH = Math.max(220, window.innerHeight - gridTop - 160);
-      const rows = Math.max(2, Math.min(6, Math.floor(availH / 330)));
-      const desired = Math.max(30, cols * rows);
-      return Math.min(54, Math.ceil(desired / cols) * cols);
+      const footerSpace = 160;
+      const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
+      const approxCardH = 330;
+      const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
+      const visible = Math.max(cols * rows, cols * 2);
+      const desired = Math.max(30, visible);
+      const snapped = Math.ceil(desired / cols) * cols;
+      return Math.min(54, Math.max(cols * 2, snapped));
     }
 
-    function showToast(m, err) {
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function normalizeBookSeedText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const CURRENT_TOP_BOOK_SEEDS = [
+      { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
+      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
+      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
+      { title: '25 Alive', author: 'James Patterson', year: 2025 },
+      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
+      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
+      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
+      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
+      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
+      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+      { title: 'James', author: 'Percival Everett', year: 2024 },
+      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
+      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
+      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
+      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
+      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
+      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
+      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
+      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
+      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
+    ];
+
+    function showToast(message, isError = false) {
       const el = document.createElement('div');
-      Object.assign(el.style, { position: 'fixed', top: '12px', right: '12px', zIndex: '9999', background: err ? '#dc2626' : '#f59e0b', color: '#fff', padding: '8px 12px', borderRadius: '8px', fontSize: '12px' });
-      el.textContent = m;
+      el.style.position = 'fixed';
+      el.style.top = '12px';
+      el.style.right = '12px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '8px 12px';
+      el.style.borderRadius = '8px';
+      el.style.fontSize = '12px';
+      el.textContent = message;
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 2000);
     }
 
-    async function loadGrid() {
-      BooksApp.abort();
-      const pageSize = computePageSize();
-      let books = [];
-      let totalFound = 0;
+    let searchDebounceTimer = null;
+    let booksFetchAbort = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
 
-      if (state.search) {
-        const result = await BooksApp.fetchPage(state.search, state.page, 'relevance');
-        if (result) { books = result.books; totalFound = result.totalFound; }
-        if (!books.length && state.page === 1) {
-          const precise = await BooksApp.fetchAllPages(state.search, 1);
-          if (precise.books.length) { books = precise.books; totalFound = precise.totalFound; }
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
         }
-        books = BooksRanking.rankBooks(books, state.search);
-        if (state.sort !== 'name' && state.sort !== 'released') {
-          books = books.slice().sort(function (a, b) {
-            var sa = BooksRanking.scoreTitleIntent(a, state.search);
-            var sb = BooksRanking.scoreTitleIntent(b, state.search);
-            var tier = function (s) { return s >= 600 ? 3 : s >= 200 ? 2 : 1; };
-            var ta = tier(sa), tb = tier(sb);
-            if (tb !== ta) return tb - ta;
-            var ya = BooksRanking.getYear(a);
-            var yb = BooksRanking.getYear(b);
-            if (yb !== ya) return yb - ya;
-            var ea = BooksRanking.isEnglish(a) ? 1 : 0;
-            var eb = BooksRanking.isEnglish(b) ? 1 : 0;
-            if (eb !== ea) return eb - ea;
-            return 0;
-          });
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadBooksWithFallback(queryOverride = '') {
+      BOOKS_PAGE_SIZE = computeGridPageSize();
+      const query = String(queryOverride || state.search || '').trim();
+      let books = [];
+      let apiTotalPages = 1;
+      const apiLimit = 40;
+
+      if (booksFetchAbort) booksFetchAbort.abort();
+      booksFetchAbort = new AbortController();
+      const signal = booksFetchAbort.signal;
+
+      if (!query) {
+        try {
+          const seen = new Set();
+
+          const addBooks = (batch) => {
+            const arr = Array.isArray(batch) ? batch : [];
+            for (const book of arr) {
+              const id = book.id || book._googleVolumeId || '';
+              if (!id || seen.has(id)) continue;
+              seen.add(id);
+              books.push(book);
+              apiTotalPages = Math.max(apiTotalPages || 1, 100);
+            }
+          };
+
+          const fetchAndParse = async (url) => {
+            const res = await fetch(url, { signal });
+            if (!res.ok) return null;
+            const json = await res.json();
+            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+            addBooks(batch);
+            return json;
+          };
+
+          // 1. Open Library trending — real popular books based on actual usage
+          for (const period of ['weekly', 'monthly', 'daily']) {
+            if (books.length >= apiLimit) break;
+            await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${apiLimit}`);
+          }
+
+          // 2. Supplement with popular subjects if still short
+          if (books.length < 15) {
+            const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
+            for (const subject of subjects) {
+              if (books.length >= apiLimit) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(apiLimit / 2)}&page=1&language=en`);
+            }
+          }
+
+          // 3. Ultimate fallback — Google Books search
+          if (books.length < 15) {
+            const fallbackQueries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
+            for (const q of fallbackQueries) {
+              if (books.length >= apiLimit) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(apiLimit / 3)}&page=1&language=en&orderBy=relevance`);
+            }
+          }
+        } catch (_err) {
+          console.error('Failed to load popular books', _err);
         }
       } else {
-        const result = await BooksApp.fetchPage('', state.page, 'relevance');
-        if (result) { books = result.books; totalFound = result.totalFound; }
-        if (books.length < 15 && state.page === 1) {
-          const more = await BooksApp.fetchPage('bestsellers 2025', 1, 'relevance');
-          if (more) { const all = BooksApp.dedupe([...books, ...more.books]); books = all; totalFound = Math.max(totalFound, more.totalFound); }
+        // Try search with variations
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}`;
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              console.log('Search API response:', json);
+              const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
+              if (results.length > 0) {
+                books = results;
+                apiTotalPages = json?.totalPages || json?.total || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load books with variation:', variation, _err);
+          }
         }
       }
 
-      if (state.genre && books.length) {
-        const g = state.genre.toLowerCase();
-        books = books.filter(b => (Array.isArray(b.categories) ? b.categories : []).map(c => String(c).toLowerCase()).some(c => c.includes(g)));
+      state.books = books.map((book) => ({
+        id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
+        title: book.title || book.name || 'Unknown Book',
+        authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
+        description: book.description || '',
+        coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
+        publishedDate: book.publishedDate || book.published_date || '',
+        pageCount: book.pageCount || book.page_count || 0
+      })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
+
+      // Boost popular/seed books to the front of page 1
+      if (!query && state.page === 1) {
+        const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
+        const boosted = [];
+        const rest = [];
+        for (const book of state.books) {
+          if (seedTitles.has(normalizeBookSeedText(book.title))) {
+            boosted.push(book);
+          } else {
+            rest.push(book);
+          }
+        }
+        state.books = [...boosted, ...rest];
       }
-      if (state.sort === 'name') books.sort((a,b) => (a.title||'').localeCompare(b.title||''));
-      else if (state.sort === 'released') books.sort((a,b) => {
-        const da = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
-        const db = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
-        return db - da;
-      });
 
-      state.books = books;
-      state.totalPages = Math.max(1, Math.ceil(Math.max(totalFound, books.length) / pageSize));
-      renderGrid();
-    }
-
-    async function loadData() {
-      if (!window.BooksApp || !window.BooksRanking) return;
-      if (!state.search) {
-        try {
-          const sections = await window.BooksApp.fetchDiscoverySections();
-          renderDiscoverySections(sections);
-        } catch(e) { console.error('Discovery failed', e); }
+      if (!query && state.page > 1) {
+        state.books = shuffleArray(state.books);
       }
-      await loadGrid();
+
+      state.totalPages = apiTotalPages;
     }
 
-    function renderSectionGrid(container, books) {
-      if (!container || !books.length) { if (container) container.innerHTML = ''; return; }
-      const ranked = window.BooksRanking ? BooksRanking.rankBooks(books, '') : books;
-      const display = ranked.slice(0, 30);
-      container.innerHTML = display.map(b => {
-        const cover = b.coverUrl || FALLBACK_BOOK_IMAGE;
-        return `<article class="card" data-id="${escapeHtml(b.id)}" onclick="window.location.href='book.html?id=${escapeHtml(b.id)}'">
-          <div class="card-media"><img src="${escapeHtml(cover)}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'"></div>
-          <div class="card-meta"><p class="card-title">${escapeHtml(b.title)}</p><p class="card-sub">${escapeHtml(b.authors || 'Unknown')}</p></div>
-        </article>`;
-      }).join('');
-    }
-
-    function renderDiscoverySections(sections) {
-      const container = document.getElementById('discoverySections');
-      if (!container) return;
-      if (!sections || !Object.keys(sections).length) { container.style.display = 'none'; return; }
-      container.style.display = '';
-      const order = ['popular', 'trending', 'newReleases'];
-      for (const key of order) {
-        const sec = container.querySelector(`[data-section="${key}"]`);
-        if (!sec) continue;
-        const grid = sec.querySelector('.section-grid');
-        if (!grid) continue;
-        const sectionBooks = sections[key];
-        if (sectionBooks && sectionBooks.length) { sec.style.display = ''; renderSectionGrid(grid, sectionBooks); }
-        else { sec.style.display = 'none'; }
-      }
-    }
-
-    function renderGrid() {
-      const grid = document.getElementById('booksGrid');
-      if (!grid) return;
-      const disc = document.getElementById('discoverySections');
-      if (disc) disc.classList.toggle('discovery-hidden', !!state.search);
-      if (!state.books.length) {
-        grid.innerHTML = state.search ? '<div class="empty">No books found for "' + escapeHtml(state.search) + '". Try a different search.</div>' : '<div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div>';
-        updatePagination();
-        return;
-      }
-      const pageSize = computePageSize();
-      const start = (state.page - 1) * pageSize;
-      const items = state.books.slice(start, start + pageSize);
-      grid.innerHTML = items.map(b => {
-        const cover = b.coverUrl || FALLBACK_BOOK_IMAGE;
-        return `<article class="card" data-id="${escapeHtml(b.id)}">
-          <div class="card-media"><img src="${escapeHtml(cover)}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'"></div>
-          <div class="card-meta">
-            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
-            <div class="card-meta-top"><p class="card-title">${escapeHtml(b.title)}</p></div>
-            <p class="card-sub">${escapeHtml(b.authors || 'Unknown')}</p>
-            <p class="card-extra"></p>
-            <div class="card-actions"><button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button></div>
-          </div>
-        </article>`;
-      }).join('');
-      wireGridActions();
-      updatePagination();
-    }
-
-    function updatePagination() {
-      const prev = document.getElementById('prevPageBtn');
-      const next = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prev) prev.disabled = state.page <= 1;
-      if (next) next.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 220);
     }
 
     async function ensureSupabase() {
@@ -1016,9 +1065,9 @@
       if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
         await authRuntime.waitForSupabase(8000);
       } else {
-        const t = Date.now();
-        while (!(window.supabase && typeof window.supabase.createClient === 'function') && Date.now() - t < 8000) {
-          await new Promise(r => setTimeout(r, 40));
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
         }
       }
       if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
@@ -1026,7 +1075,11 @@
         if (supabaseClient) return supabaseClient;
       }
       if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-        supabaseClient = window.supabase.createClient(window.__ZO2Y_SUPABASE_CONFIG.url, window.__ZO2Y_SUPABASE_CONFIG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
         window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
         return supabaseClient;
       }
@@ -1041,10 +1094,14 @@
       const profileBtn = document.getElementById('profileBtn');
       const { data } = await client.auth.getUser();
       currentUser = data?.user || null;
+
       if (currentUser) {
         if (loginBtn) loginBtn.style.display = 'none';
         if (signupBtn) signupBtn.style.display = 'none';
-        if (profileBtn) { profileBtn.style.display = 'inline-flex'; profileBtn.innerHTML = '<i class="fas fa-user"></i>'; }
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i>';
+        }
       } else {
         if (loginBtn) loginBtn.style.display = 'inline-flex';
         if (signupBtn) signupBtn.style.display = 'inline-flex';
@@ -1052,15 +1109,26 @@
       }
     }
 
+    async function loadBooks(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      
+      // Use API directly (popular first for initial pages)
+      await loadBooksWithFallback(query);
+    }
+
     async function loadListStatus() {
       state.listStatusMap = new Map();
       if (!currentUser?.id || !state.books.length) return;
       const client = await ensureSupabase();
       if (!client) return;
-      const ids = state.books.map(b => b.id);
+      const ids = state.books.map((book) => book.id);
       if (!ids.length) return;
-      const { data } = await client.from('book_list_items').select('book_id, list_type').eq('user_id', currentUser.id).in('book_id', ids);
-      (data || []).forEach(row => {
+      const { data } = await client
+        .from('book_list_items')
+        .select('book_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('book_id', ids);
+      (data || []).forEach((row) => {
         const id = String(row.book_id || '');
         if (!id) return;
         if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
@@ -1071,56 +1139,153 @@
 
     function getBookListStatus(bookId) {
       const id = String(bookId || '').trim();
-      const e = { favorites: false, read: false, toread: false };
-      if (!id) return e;
-      if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { ...e });
+      const empty = { favorites: false, read: false, toread: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
       return state.listStatusMap.get(id);
+    }
+
+    function getBookCardExtra(book) {
+      return '';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return;
+      if (!state.books.length) {
+        grid.innerHTML = '<div class="empty">No books found.</div>';
+        updatePagination();
+        return;
+      }
+      const start = (state.page - 1) * BOOKS_PAGE_SIZE;
+      const visibleItems = state.books.slice(start, start + BOOKS_PAGE_SIZE);
+      grid.innerHTML = visibleItems.map((book) => {
+        const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
+        return `
+        <article class="card" data-id="${escapeHtml(book.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
+          </div>
+          <div class="card-meta">
+            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(book.title)}</p>
+            </div>
+            <p class="card-sub">${escapeHtml(book.authors)}</p>
+            <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function upsertBookRecord(client, book) {
+      if (!client || !book?.id) return false;
+      const payload = {
+        id: String(book.id),
+        title: book.title || '',
+        authors: book.authors || '',
+        cover_url: book.coverUrl || '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('books').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Book upsert failed', error);
+        return false;
+      }
+      return true;
     }
 
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
       const bookId = String(itemId || '').trim();
       if (!bookId) return { ok: false, saved: false };
-      const book = state.books.find(r => String(r.id || '').trim() === bookId);
+      const book = state.books.find((row) => String(row.id || '').trim() === bookId);
       if (!book) return { ok: false, saved: false };
+
       const client = await ensureSupabase();
-      if (!client || !currentUser?.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
       const status = getBookListStatus(bookId);
       if (!(listType in status)) return { ok: false, saved: false };
-      const prev = !!status[listType];
-      const next = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !prev;
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
       const opKey = `${bookId}:${listType}`;
-      if (state.pendingQuickOps.has(opKey)) return { ok: false, saved: prev };
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
       state.pendingQuickOps.add(opKey);
-      status[listType] = next;
+      status[listType] = nextSaved;
       try {
-        if (next) {
-          const { error } = await client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
+        if (nextSaved) {
+          const ok = await upsertBookRecord(client, book);
+          if (!ok) throw new Error('Book upsert failed');
+          const { error } = await client.from('book_list_items').insert({
+            user_id: currentUser.id,
+            book_id: bookId,
+            list_type: listType
+          });
           if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
         } else {
-          const { error } = await client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
+          const { error } = await client
+            .from('book_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('book_id', bookId)
+            .eq('list_type', listType);
           if (error) throw error;
+          showToast('Removed from list');
         }
-        return { ok: true, saved: next };
+        return { ok: true, saved: nextSaved };
       } catch (error) {
         console.error('Book list toggle failed', error);
-        status[listType] = prev;
-        return { ok: false, saved: prev };
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
       } finally {
         state.pendingQuickOps.delete(opKey);
       }
     }
 
     function wireGridActions() {
-      document.querySelectorAll('.menu-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const card = btn.closest('.card');
-          if (!card || typeof window.openIndexStyleListMenu !== 'function') return;
-          window.openIndexStyleListMenu(card);
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
         });
       });
-      document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', e => {
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
           if (e.target.closest('.menu-btn')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
@@ -1129,79 +1294,94 @@
       });
     }
 
-    function debounceSearch(query) {
-      if (searchTimer) clearTimeout(searchTimer);
-      if (!query) return;
-      searchTimer = setTimeout(async () => {
-        state.search = query; state.page = 1;
-        await loadGrid(); await loadListStatus();
-      }, 220);
-    }
-
-    async function executeSearch(query) {
-      if (searchTimer) clearTimeout(searchTimer);
-      state.search = query; state.page = 1;
-      await loadGrid(); await loadListStatus();
-    }
-
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadData();
+        await loadBooks();
         await loadListStatus();
-      } catch(e) {
+        renderGrid();
+      } catch (_err) {
         const grid = document.getElementById('booksGrid');
         if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
       }
     }
 
+    // Refresh removed.
+    document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.add('show');
+    });
+    document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      renderGrid();
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
-      const q = document.getElementById('q');
-      if (q) {
-        q.addEventListener('input', e => {
-          const query = String(e.target.value || '').trim();
-          if (!query) { if (searchTimer) clearTimeout(searchTimer); executeSearch(''); return; }
-          debounceSearch(query);
-        });
-        q.addEventListener('keydown', e => {
-          if (e.key === 'Enter') { e.preventDefault(); if (searchTimer) clearTimeout(searchTimer); executeSearch(String(e.target.value || '').trim()); }
-        });
-      }
-      document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
-        const query = String(document.getElementById('q')?.value || '').trim();
-        if (searchTimer) clearTimeout(searchTimer);
-        await executeSearch(query);
-      });
-      document.getElementById('booksFilterBtn')?.addEventListener('click', () => document.getElementById('booksFilterModal')?.classList.add('show'));
-      document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => document.getElementById('booksFilterModal')?.classList.remove('show'));
-      document.getElementById('genre')?.addEventListener('change', e => { state.genre = String(e.target.value || '').trim(); });
-      document.getElementById('sort')?.addEventListener('change', e => { state.sort = String(e.target.value || 'popular').trim(); });
-      document.getElementById('refresh')?.addEventListener('click', async () => {
-        document.getElementById('booksFilterModal')?.classList.remove('show');
-        state.page = 1; await loadGrid(); await loadListStatus();
-      });
-      document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
-        if (state.page <= 1) return;
-        state.page -= 1; await loadGrid(); await loadListStatus();
-      });
-      document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
-        if (state.page >= state.totalPages) return;
-        state.page += 1; await loadGrid(); await loadListStatus();
-      });
       if (window.initUniversalSearch) {
-        const fn = () => window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books-mobile.html' });
-        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 1500 });
-        else setTimeout(fn, 0);
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'books-mobile.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
       }
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
-          mediaType: 'book', itemIdAttr: 'data-id',
-          getVisibleItemIds: () => Array.from(document.querySelectorAll('.card[data-id]')).map(c => c.getAttribute('data-id')).filter(Boolean),
-          getQuickStatusForItem: itemId => { const s = state.listStatusMap.get(String(itemId || '').trim()); return s ? { ...s } : null; },
-          ensureClient: async () => { if (supabaseClient) return supabaseClient; await ensureSupabase(); return supabaseClient; },
+          mediaType: 'books',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
           getCurrentUser: () => currentUser,
-          notify: (m, e) => showToast(m, !!e),
-          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) => toggleDefaultList(itemId, listType, card, nextSaved)
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
       loadPage();

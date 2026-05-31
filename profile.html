@@ -1,32 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <style>
-    html.zt-loading { opacity: 0 !important; }
-    html.zt-ready { opacity: 1; transition: opacity 200ms ease; }
-    body.zt-page-exit-active { opacity: 0 !important; transform: translateY(6px) !important; pointer-events: none !important; transition: opacity 200ms ease, transform 200ms ease !important; }
-    @keyframes ztFadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .zt-page-enter { animation: ztFadeInUp 250ms ease forwards; }
-    @media (prefers-reduced-motion: reduce) { .zt-page-exit-active { transition: none !important; opacity: 1 !important; transform: none !important; } .zt-page-enter { animation: none !important; opacity: 1 !important; transform: none !important; } }
-  </style>
-    <script>
-(function(){var h=document.documentElement;h.classList.add('zt-loading');var a=0,d=0;function t(){if(a&&d){h.classList.remove('zt-loading');h.classList.add('zt-ready')}}document.addEventListener('zo2y-auth-gate-verified',function(){a=1;t()},{once:true});document.addEventListener('zo2y-auth-ready',function(){a=1;t()},{once:true});if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){d=1;t()},{once:true})}else{d=1;t()}window.addEventListener('load',function(){a=1;d=1;t()},{once:true})})();
-</script>  
-
-  <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"><script src="/js/auth-gate.js?v=20260529c" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+<script src="/js/auth-gate.js?v=20260529c" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260529c" defer></script>
   <meta name="robots" content="index,follow" />
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <link rel="stylesheet" href="css/design-system.css?v=20260531a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/design-system.css?v=20260531a"></noscript>
     <link rel="stylesheet" href="css/animations.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/animations.css?v=20260529c"></noscript>
     <style>
-:root { --color-bg-hover: #1a2c5a; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
+:root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; min-height: 100vh; }
 @keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -49,6 +37,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <link rel="stylesheet" href="css/shared-header.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260529c"></noscript>
 <script src="js/shared-header.js?v=20260529c" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260529c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260529c"></noscript>
+
   </head>
 <body>
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -196,6 +187,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <h2 class="profile-section-heading">Collections and lists</h2>
                 </div>
             <div class="nav-tabs">
+                <div class="nav-tab active profile-tab-collections" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                    <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
+                </div>
                 <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span> <i class="fas fa-chevron-down"></i>
                 </button>
@@ -218,6 +212,68 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
                 <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
             </div>
+            </div>
+
+            <!-- Restaurants Tab Content -->
+            <div class="tab-content active" id="restaurants-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="restaurantsTitle">My Collections</h2>
+                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your custom collections</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Restaurants Grid -->
+                    <div class="collection-grid" id="restaurantsGrid">
+                        <!-- Collections will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restaurant Detail View -->
+            <div class="tab-content" id="restaurant-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideRestaurantDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="restaurantDetailTitle">
+                                <span id="restaurantDetailIcon"></span>
+                                <span id="restaurantDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="restaurantDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="restaurant">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions" id="restaurantDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="editRestaurantListBtn">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="window.location.href='index.html'" id="addToRestaurantListBtn">
+                                <i class="fas fa-search"></i> Browse Home
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="restaurantItemsContainer">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Collections Yet</h3>
+                            <p class="empty-description">Start adding items to this collection!</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Movies Tab Content -->
@@ -1061,6 +1117,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <section class="mobile-primary-panel" data-panel="lists">
             <!-- Mobile Tabs Navigation -->
             <div class="mobile-tabs">
+                <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
+                    <i class="fas fa-clapperboard"></i>
+                    <span id="mobileTabRestaurants">Collections</span>
+                </div>
                 <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span>
                     <i class="fas fa-chevron-down"></i>
@@ -1753,6 +1813,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <i class="fas fa-plus-circle"></i>
                 <span>New List</span>
             </div>
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('restaurants')">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
             <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
                 <i class="fas fa-search"></i>
                 <span>Search</span>
@@ -1766,7 +1830,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
 
     <!-- Add Entry Modal -->
-    <div class="modal" id="addEntryModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Add Journal Entry">
+    <div class="modal" id="addEntryModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Add Journal Entry</h3>
@@ -1819,7 +1883,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Edit Profile Modal -->
-    <div class="modal" id="editProfileModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Edit Profile">
+    <div class="modal" id="editProfileModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Edit Profile</h3>
@@ -1844,6 +1908,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
                     </div>
 
+                    
+
                     <div class="form-group">
                         <label class="form-label">Custom Badges</label>
                         <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector,Top Critic)">
@@ -1867,7 +1933,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Create List Modal -->
-    <div class="modal menu-modal" id="createListModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Create New List">
+    <div class="modal menu-modal" id="createListModal">
         <div class="modal-content menu-modal-content">
             <div class="modal-header menu-modal-header">
                 <h3 class="modal-title menu-modal-title">Create New List</h3>
@@ -1897,7 +1963,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Choose List Type Modal (Mobile) -->
-    <div class="modal" id="createListTypeModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Choose List Type">
+    <div class="modal" id="createListTypeModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Create List For</h3>
@@ -1919,7 +1985,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Edit Media List Modal -->
-    <div class="modal" id="editMediaListModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Edit List">
+    <div class="modal" id="editMediaListModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="editMediaListModalTitle">Edit List</h3>
@@ -1956,7 +2022,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Avatar Modal -->
-    <div class="modal" id="avatarModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Choose Avatar">
+    <div class="modal" id="avatarModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Choose Avatar</h3>
@@ -1977,7 +2043,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Community Search Modal -->
-    <div class="modal" id="communitySearchModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Find Users">
+    <div class="modal" id="communitySearchModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Find Users</h3>
@@ -2002,7 +2068,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Account Settings Modal -->
-    <div class="modal" id="accountSettingsModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Account Settings">
+    <div class="modal" id="accountSettingsModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Account Settings</h3>
@@ -2060,7 +2126,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Custom Confirmation Modal -->
-    <div class="confirm-modal" id="confirmModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Confirm Action">
+    <div class="confirm-modal" id="confirmModal">
         <div class="confirm-content">
             <div class="confirm-header">
                 <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
@@ -2079,7 +2145,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Mobile Menu Modal -->
-    <div class="modal" id="mobileMenuModal" role="dialog" tabindex="-1" aria-modal="true" aria-label="Menu">
+    <div class="modal" id="mobileMenuModal">
         <div class="modal-content">
             <div class="modal-body">
                 <div class="mobile-menu-items">
@@ -2124,11 +2190,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
     </div>
 
-    <script src="js/lib/helpers.js?v=20260531a" defer></script>
-<script src="js/list-utils.js?v=20260529c" defer></script>
+    <script src="js/list-utils.js?v=20260529c" defer></script>
     <script src="js/referral-utils.js?v=20260529c" defer></script>
     <script src="js/igdb-client.js?v=20260529c" defer></script>
-    <script src="js/taste-identity.js?v=20260601a" defer></script>
+    <script src="js/taste_identity.js?v=20260529c" defer></script>
     <script src="js/cover-cache.js?v=20260529c" defer></script>
     <script src="js/pages/games-shared.js?v=20260529c" defer></script>
     <script src="js/pages/profile.js?v=20260529c" defer></script>
@@ -2136,4 +2201,53 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

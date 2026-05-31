@@ -784,15 +784,11 @@ const HEADER_HTML = `
            window.sessionStorage.removeItem('zo2y-auth-persist-v1');
            window.sessionStorage.removeItem('zo2y-auth-durable-v2');
            window.sessionStorage.removeItem('zo2y-auth-durable-v1');
-          } catch (_e) {
-            if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('shared-header: auth key cleanup failed', _e);
-          }
-
-          return;
-        }
-      } catch (_e) {
-        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('shared-header: auth state sync outer block failed', _e);
-      }
+         } catch (_e) {}
+         
+         return;
+       }
+     } catch (_e) {}
 
      try {
        const authRuntime = window.ZO2Y_AUTH || null;
@@ -805,22 +801,18 @@ const HEADER_HTML = `
              ? !!window.__ZO2Y_HAS_STORED_AUTH_SESSION()
              : !!readStoredHeaderSession();
          try {
-            const sessionResult = await client.auth.getSession();
-            session = sessionResult?.data?.session || null;
-          } catch (_err) {
-            if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('shared-header: getSession failed', _err);
-          }
+           const sessionResult = await client.auth.getSession();
+           session = sessionResult?.data?.session || null;
+         } catch (_err) {}
          if (!session && hasStoredAuthSession) {
            if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
              session = await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
            } else {
              await bootstrapHeaderSessionFromStorage(client);
-              try {
-                const retrySessionResult = await client.auth.getSession();
-                session = retrySessionResult?.data?.session || null;
-              } catch (_retryErr) {
-                if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('shared-header: getSession retry failed', _retryErr);
-              }
+             try {
+               const retrySessionResult = await client.auth.getSession();
+               session = retrySessionResult?.data?.session || null;
+             } catch (_retryErr) {}
            }
          }
        }
@@ -884,9 +876,7 @@ const HEADER_HTML = `
           desktopRailProfileBtn.title = label;
         }
       }
-    } catch (_err) {
-      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('shared-header: authHeaderSync IIFE failed', _err);
-    }
+    } catch (_err) {}
     })();
     try {
       return await authHeaderSyncPromise;
@@ -1330,12 +1320,6 @@ const HEADER_HTML = `
   }
 
   function wireControlModals() {
-    if (window.__ZO2Y_MODAL_KEYDOWN_BOUND) {
-      document.querySelectorAll('button.control-icon-btn[id][data-zo2y-modal-wired="1"]').forEach(function (btn) {
-        btn.dataset.zo2yModalWired = '1';
-      });
-      return;
-    }
     const buttons = Array.from(document.querySelectorAll('button.control-icon-btn[id]'))
       .filter((btn) => /Filter(Btn|ToggleBtn)$/i.test(String(btn.id || '')));
 
@@ -1353,12 +1337,10 @@ const HEADER_HTML = `
       const open = () => {
         modal.classList.add('show');
         modal.setAttribute('aria-hidden', 'false');
-        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.trapFocus(modal);
       };
-      const close = function () {
+      const close = () => {
         modal.classList.remove('show');
         modal.setAttribute('aria-hidden', 'true');
-        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
       };
 
       btn.addEventListener('click', open);
@@ -1366,34 +1348,16 @@ const HEADER_HTML = `
       modal.addEventListener('click', (event) => {
         if (event.target === modal) close();
       });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') close();
+      });
 
       btn.dataset.zo2yModalWired = '1';
     });
-
-    window.__ZO2Y_MODAL_KEYDOWN_BOUND = true;
-    document.addEventListener('keydown', function (event) {
-      if (event.key !== 'Escape') return;
-      var visibleModal = document.querySelector('.control-modal.show');
-      if (visibleModal) {
-        visibleModal.classList.remove('show');
-        visibleModal.setAttribute('aria-hidden', 'true');
-        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
-      }
-    });
-  }
-
-  function loadTransitionsScript() {
-    if (document.querySelector('script[data-zo2y-transitions]')) return;
-    var script = document.createElement('script');
-    script.src = 'js/zo2y-transitions.js?v=20260530a';
-    script.dataset.zo2yTransitions = '1';
-    script.async = false;
-    document.head.appendChild(script);
   }
 
   function boot() {
     if (isHeaderSuppressedPage(window.location.pathname)) return;
-    loadTransitionsScript();
     const currentPage = normalizePageName(window.location.pathname);
     const currentShell = document.documentElement?.dataset?.authShell || document.body?.dataset?.authShell || '';
     if (currentPage === 'index' && currentShell !== 'app') {

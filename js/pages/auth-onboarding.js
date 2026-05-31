@@ -77,9 +77,9 @@
         auth.redirectToPostAuthTarget(nextPath());
         return;
       }
-    } catch (_err) {
-      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-onboarding: profile bootstrap failed', _err);
-    }
+    } catch (_err) {}
+
+    usernameInput.value = getFallbackUsername(activeUser);
     usernameInput.focus();
     setStatus('Choose the username Zo2y should use everywhere.', '');
   }
@@ -178,9 +178,14 @@
        }
      } catch (_e) {}
      
-      try {
-        sessionStorage.setItem('zo2y-intentional-logout', 'true');
-      } catch (_e) {}
+     // Mark that user intentionally logged out to prevent automatic session restoration
+     try {
+       sessionStorage.setItem('zo2y-intentional-logout', 'true');
+       // Clear the flag after a short delay to allow normal login flow
+       setTimeout(function() {
+         try { sessionStorage.removeItem('zo2y-intentional-logout'); } catch (_e) {}
+       }, 1000);
+     } catch (_e) {}
    }
 
   signOutButton.addEventListener('click', function () {

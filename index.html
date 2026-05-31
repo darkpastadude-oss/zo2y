@@ -1,20 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-auth-shell="landing">
 <head>
-    <style>
-    html.zt-loading { opacity: 0 !important; }
-    html.zt-ready { opacity: 1; transition: opacity 200ms ease; }
-    body.zt-page-exit-active { opacity: 0 !important; transform: translateY(6px) !important; pointer-events: none !important; transition: opacity 200ms ease, transform 200ms ease !important; }
-    @keyframes ztFadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .zt-page-enter { animation: ztFadeInUp 250ms ease forwards; }
-    @media (prefers-reduced-motion: reduce) { .zt-page-exit-active { transition: none !important; opacity: 1 !important; transform: none !important; } .zt-page-enter { animation: none !important; opacity: 1 !important; transform: none !important; } }
-  </style>
-    <script>
-(function(){var h=document.documentElement;h.classList.add('zt-loading');var a=0,d=0;function t(){if(a&&d){h.classList.remove('zt-loading');h.classList.add('zt-ready')}}document.addEventListener('zo2y-auth-gate-verified',function(){a=1;t()},{once:true});document.addEventListener('zo2y-auth-ready',function(){a=1;t()},{once:true});if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',function(){d=1;t()},{once:true})}else{d=1;t()}window.addEventListener('load',function(){a=1;d=1;t()},{once:true})})();
-</script>  
-
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" /><script src="/js/auth-gate.js?v=20260530a" defer></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <script src="/js/auth-gate.js?v=20260530a" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260530a" defer></script>
   <script src="/js/username-popup.js?v=20260530a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
@@ -67,7 +57,6 @@
   <link rel="dns-prefetch" href="//restcountries.com">
   <link rel="dns-prefetch" href="//www.thesportsdb.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-<script src="js/lib/helpers.js?v=20260531a" defer></script>
 <script src="js/list-utils.js?v=20260530a" defer></script>
   <script src="js/cover-cache.js?v=20260530a" defer></script>
   <script src="js/data/curated-media.js?v=20260530a" defer></script>
@@ -78,11 +67,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
-  <link rel="stylesheet" href="css/design-system.css?v=20260531a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/design-system.css?v=20260531a"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260530a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/animations.css?v=20260530a"></noscript>
-  <style>:root{--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
+  <style>:root{--color-bg-primary:#0b1633;--color-bg-secondary:#111827;--color-bg-tertiary:#132347;--color-bg-elevated:#172b58;--color-text-primary:#fff;--color-text-secondary:#8ca3c7;--color-accent:#f59e0b;--color-accent-hover:#ffb84d;--color-border:rgba(255,255,255,0.12);--color-border-hover:rgba(255,255,255,0.18);--color-success:#10b981;--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--shadow:0 10px 25px rgba(0,0,0,0.2);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
 <link rel="stylesheet" href="css/pages/index.css?v=20260530a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/pages/index.css?v=20260530a"></noscript>
 <link rel="preload" href="/css/pages/index-landing.css?v=20260530a" as="style">
@@ -102,7 +89,9 @@
   <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260530a"></noscript>
   <script src="js/referral-utils.js?v=20260530a" defer></script>
   <script src="js/shared-header.js?v=20260530a" defer></script>
-</head>
+<link rel="stylesheet" href="css/global-lowercase.css?v=20260530a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260530a"></noscript>
+  </head>
 <body>
   <div id="appRoot">
   <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
@@ -367,8 +356,8 @@
     <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
   </nav>
 
-<div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
-<div class="menu-modal-content">
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
         <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
@@ -388,8 +377,8 @@
     </div>
   </div>
 
-<div id="createListModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Create New List">
-<div class="menu-modal-content max-w-320">
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
@@ -446,30 +435,18 @@
     <script>
       (function() {
         var TEAMS = [
-          { title: 'Los Angeles Lakers', image: '/assets/logos/nba/losangeleslakers.png' },
-          { title: 'Boston Celtics', image: '/assets/logos/nba/bostonceltics.png' },
-          { title: 'Golden State Warriors', image: '/assets/logos/nba/goldenstatewarriors.png' },
-          { title: 'New York Knicks', image: '/assets/logos/nba/newyorkknicks.png' },
-          { title: 'Chicago Bulls', image: '/assets/logos/nba/chicagobulls.png' },
-          { title: 'Miami Heat', image: '/assets/logos/nba/miamiheat.png' },
-          { title: 'Phoenix Suns', image: '/assets/logos/nba/phoenixsuns.png' },
-          { title: 'Dallas Mavericks', image: '/assets/logos/nba/dallasmavericks.png' },
-          { title: 'Philadelphia 76ers', image: '/assets/logos/nba/philadelphia76ers.png' },
-          { title: 'Milwaukee Bucks', image: '/assets/logos/nba/milwaukeebucks.png' },
-          { title: 'Brooklyn Nets', image: '/assets/logos/nba/brooklynnets.png' },
-          { title: 'Denver Nuggets', image: '/assets/logos/nba/denvernuggets.png' },
-          { title: 'Kansas City Chiefs', image: '/assets/logos/nfl/kansascitychiefs.png' },
-          { title: 'Dallas Cowboys', image: '/assets/logos/nfl/dallascowboys.png' },
-          { title: 'San Francisco 49ers', image: '/assets/logos/nfl/sanfrancisco49ers.png' },
-          { title: 'Philadelphia Eagles', image: '/assets/logos/nfl/philadelphiaeagles.png' },
-          { title: 'Ferrari', image: '/assets/logos/f1/ferrari.png' },
-          { title: 'Red Bull Racing', image: '/assets/logos/f1/redbullracing.png' },
-          { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
-          { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
-          { title: 'Manchester City', image: '/assets/logos/football/english-premier-league/manchestercity.png' },
+          { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
           { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
-          { title: 'Liverpool', image: '/assets/logos/football/english-premier-league/liverpool.png' },
-          { title: 'Bayern Munich', image: 'https://upload.wikimedia.org/wikipedia/en/1/1f/FC_Bayern_M%C3%BCnchen_%28logo%29.svg' }
+          { title: 'New York Knicks', image: 'https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg' },
+          { title: 'Oklahoma City Thunder', image: 'https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder_logo.svg' },
+          { title: 'San Antonio Spurs', image: 'https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg' },
+          { title: 'Royal Challengers Bengaluru', image: 'https://upload.wikimedia.org/wikipedia/en/4/4c/Royal_Challengers_Bengaluru_Logo.svg' },
+          { title: 'Gujarat Titans', image: 'https://upload.wikimedia.org/wikipedia/en/0/09/Gujarat_Titans_Logo.svg' },
+          { title: 'Vegas Golden Knights', image: 'https://upload.wikimedia.org/wikipedia/en/8/85/Vegas_Golden_Knights_logo.svg' },
+          { title: 'Carolina Hurricanes', image: 'https://upload.wikimedia.org/wikipedia/en/3/32/Carolina_Hurricanes_logo.svg' },
+          { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+          { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' },
+          { title: 'Red Bull Racing', image: 'https://upload.wikimedia.org/wikipedia/en/1/18/Red_Bull_Racing_logo.svg' }
         ];
 
         function render() {

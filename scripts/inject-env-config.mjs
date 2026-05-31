@@ -4,14 +4,16 @@ import path from "node:path";
 const rootDir = process.cwd();
 
 // Environment variables to inject into frontend JavaScript
-function optional(name) {
-  return process.env[name] ?? "";
+function required(name) {
+  const val = process.env[name];
+  if (!val) throw new Error(`Missing required env var: ${name}`);
+  return val;
 }
 
 const ENV_REPLACEMENTS = {
-  SUPABASE_URL: optional("SUPABASE_URL"),
-  SUPABASE_ANON_KEY: optional("SUPABASE_ANON_KEY"),
-  SUPABASE_PROJECT_REF: optional("SUPABASE_PROJECT_REF")
+  SUPABASE_URL: required("SUPABASE_URL"),
+  SUPABASE_ANON_KEY: required("SUPABASE_ANON_KEY"),
+  SUPABASE_PROJECT_REF: required("SUPABASE_PROJECT_REF")
 };
 
 async function injectEnvConfig(filePath) {
@@ -36,6 +38,8 @@ async function main() {
     path.join(rootDir, "travel.html"),
     path.join(rootDir, "js", "pages", "team.js"),
     path.join(rootDir, "js", "pages", "sports.js"),
+    path.join(rootDir, "js", "pages", "restraunts.js"),
+    path.join(rootDir, "js", "pages", "restaurant.js"),
     path.join(rootDir, "js", "pages", "profile.js"),
     path.join(rootDir, "js", "pages", "index.js")
   ];

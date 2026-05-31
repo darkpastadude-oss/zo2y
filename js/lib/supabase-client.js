@@ -1,9 +1,7 @@
 (function () {
-  var AUTH_STORAGE_KEY = 'zo2y-auth-v2';
-  var PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v2';
-  var DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
+  var AUTH_STORAGE_KEY = 'zo2y-auth-storage-key';
   var LEGACY_AUTH_STORAGE_KEY = 'supabase-auth-key';
-  var OLD_PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist';
+  var PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist';
 
   var config = window.__ZO2Y_SUPABASE_CONFIG || {};
   var SUPABASE_URL = String(config.url || '').trim();
@@ -14,8 +12,8 @@
   function getAuthStorageKeys(key) {
     var value = String(key || '').trim();
     if (!value) return [];
-    if (value === AUTH_STORAGE_KEY || value === PERSIST_AUTH_STORAGE_KEY || value === DURABLE_AUTH_STORAGE_KEY || value === LEGACY_AUTH_STORAGE_KEY || value === OLD_PERSIST_AUTH_STORAGE_KEY) {
-      return [AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY, DURABLE_AUTH_STORAGE_KEY];
+    if (value === AUTH_STORAGE_KEY || value === LEGACY_AUTH_STORAGE_KEY || value === PERSIST_AUTH_STORAGE_KEY) {
+      return [AUTH_STORAGE_KEY, LEGACY_AUTH_STORAGE_KEY, PERSIST_AUTH_STORAGE_KEY];
     }
     return [value];
   }

@@ -1,6 +1,6 @@
 ﻿// Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v243';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v242';
 const PAGE_CACHE = 'zo2y-pages-v197';
 const IMAGE_CACHE = 'zo2y-images-v43';
 const API_CACHE = 'zo2y-api-v23';
@@ -25,8 +25,7 @@ const STATIC_ASSETS = [
   '/css/pages/index.css?v=20260530a',
   '/css/pages/index-landing.css?v=20260530a',
   '/css/shared-header.css?v=20260530a',
-  '/css/design-system.css?v=20260530a',
-  '/js/lib/helpers.js?v=20260530a',
+  '/css/global-lowercase.css?v=20260530a',
   '/js/pages/index.js?v=20260530a',
   '/js/pages/index-home-heavy-loaders.js?v=20260530a',
   '/js/home-desktop-rebrand.js?v=20260530a',
@@ -39,8 +38,11 @@ const STATIC_ASSETS = [
   '/js/auth-gate.js?v=20260530a',
   '/js/production-runtime.js?v=20260530a',
   '/js/igdb-client.js?v=20260530a',
+  '/js/mobile-webapp.js',
   '/js/mobile-webapp.js?v=20260530a',
+  '/js/mobile-app.css',
   '/js/mobile-app.css?v=20260530a',
+  '/favicon.ico',
   '/favicon.ico?v=20260530a',
   '/newlogo.webp',
   '/logo-placeholder.svg',
@@ -380,7 +382,7 @@ self.addEventListener('fetch', (event) => {
   const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
   if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
     url.searchParams.set('v', MOVIES_PAGE_VERSION);
-    event.respondWith(fetch(url.toString(), { cache: 'no-store' }).catch(function () { return Response.error(); }));
+    event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
     return;
   }
   const isLatestGamesPage =
