@@ -27,7 +27,8 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/lib/helpers.js?v=20260531a" defer></script>
-<script src="js/list-utils.js?v=20260529c" defer></script>
+  <script src="js/data/curated-media.js?v=20260530a" defer></script>
+  <script src="js/list-utils.js?v=20260529c" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260529c" defer></script>
 <script src="js/books-ranking.js?v=20260531a" defer></script>
 <script src="js/books-app.js?v=20260531a" defer></script>
@@ -753,36 +754,16 @@
     </div>
 
     <div id="discoverySections" class="discovery-sections">
+      <section class="section" data-section="popular">
+        <div class="section-head"><h2>Popular Books</h2><p>Curated top picks across genres</p></div>
+        <div class="grid section-grid"></div>
+      </section>
       <section class="section" data-section="trending">
         <div class="section-head"><h2>Trending Now</h2><p>Most popular books this week</p></div>
         <div class="grid section-grid"></div>
       </section>
-      <section class="section" data-section="popularThisYear">
-        <div class="section-head"><h2>Popular This Year</h2><p>Readers' top picks</p></div>
-        <div class="grid section-grid"></div>
-      </section>
       <section class="section" data-section="newReleases">
         <div class="section-head"><h2>New Releases</h2><p>Recently published books</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="fantasy">
-        <div class="section-head"><h2>Popular Fantasy</h2><p>Top fantasy novels</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="scifi">
-        <div class="section-head"><h2>Popular Sci-Fi</h2><p>Top science fiction novels</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="romance">
-        <div class="section-head"><h2>Popular Romance</h2><p>Top romance novels</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="thriller">
-        <div class="section-head"><h2>Popular Thriller</h2><p>Top thriller &amp; mystery novels</p></div>
-        <div class="grid section-grid"></div>
-      </section>
-      <section class="section" data-section="nonfiction">
-        <div class="section-head"><h2>Popular Non-Fiction</h2><p>Top non-fiction books</p></div>
         <div class="grid section-grid"></div>
       </section>
     </div>
@@ -906,6 +887,22 @@
           if (precise.books.length) { books = precise.books; totalFound = precise.totalFound; }
         }
         books = BooksRanking.rankBooks(books, state.search);
+        if (state.sort !== 'name' && state.sort !== 'released') {
+          books = books.slice().sort(function (a, b) {
+            var sa = BooksRanking.scoreTitleIntent(a, state.search);
+            var sb = BooksRanking.scoreTitleIntent(b, state.search);
+            var tier = function (s) { return s >= 600 ? 3 : s >= 200 ? 2 : 1; };
+            var ta = tier(sa), tb = tier(sb);
+            if (tb !== ta) return tb - ta;
+            var ya = BooksRanking.getYear(a);
+            var yb = BooksRanking.getYear(b);
+            if (yb !== ya) return yb - ya;
+            var ea = BooksRanking.isEnglish(a) ? 1 : 0;
+            var eb = BooksRanking.isEnglish(b) ? 1 : 0;
+            if (eb !== ea) return eb - ea;
+            return 0;
+          });
+        }
       } else {
         const result = await BooksApp.fetchPage('', state.page, 'relevance');
         if (result) { books = result.books; totalFound = result.totalFound; }
@@ -960,7 +957,7 @@
       if (!container) return;
       if (!sections || !Object.keys(sections).length) { container.style.display = 'none'; return; }
       container.style.display = '';
-      const order = ['trending', 'popularThisYear', 'newReleases', 'fantasy', 'scifi', 'romance', 'thriller', 'nonfiction'];
+      const order = ['popular', 'trending', 'newReleases'];
       for (const key of order) {
         const sec = container.querySelector(`[data-section="${key}"]`);
         if (!sec) continue;

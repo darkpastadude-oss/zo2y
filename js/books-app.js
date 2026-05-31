@@ -5,7 +5,7 @@
   const API_BASE = '/api/books';
   const FALLBACK_IMAGE = '/images/fallback/book.svg';
   const API_PAGE_SIZE = 40;
-  const CACHE_PREFIX = 'zo2y_books_v3:';
+  const CACHE_PREFIX = 'zo2y_books_v4:';
   const CACHE_TTL = 1000 * 60 * 30;
 
   let activeController = null;
@@ -52,6 +52,69 @@
       if (e.name === 'AbortError') return null;
       throw e;
     }
+  }
+
+  async function apiFetchParams(path, params) {
+    const url = new URL(API_BASE + path, window.location.origin);
+    for (const [k, v] of Object.entries(params || {})) {
+      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+    }
+    if (activeController) activeController.abort();
+    activeController = new AbortController();
+    try {
+      const res = await fetch(url.toString(), { signal: activeController.signal });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(e) {
+      if (e.name === 'AbortError') return null;
+      throw e;
+    }
+  }
+
+  function bookSeedScore(raw, seed) {
+    const nTitle = String(raw.title || raw.name || '').trim().toLowerCase();
+    const nSeedTitle = String(seed.title || '').trim().toLowerCase();
+    const nAuthor = String(raw.authors || (Array.isArray(raw.author_name) ? raw.author_name[0] : '') || raw.author || '').trim().toLowerCase();
+    const nSeedAuthor = String(seed.author || '').trim().toLowerCase();
+    let score = 0;
+    if (nTitle === nSeedTitle) score += 10;
+    else if (nTitle.startsWith(nSeedTitle) || nSeedTitle.startsWith(nTitle)) score += 6;
+    else if (nTitle.includes(nSeedTitle) || nSeedTitle.includes(nTitle)) score += 3;
+    if (nAuthor && nSeedAuthor && (nAuthor.includes(nSeedAuthor) || nSeedAuthor.includes(nAuthor))) score += 5;
+    return score;
+  }
+
+  function getYear(raw) {
+    const pd = String(raw.publishedDate || raw.published_date || raw.first_publish_year || '');
+    const m = pd.match(/\d{4}/);
+    return m ? Number(m[0]) : 0;
+  }
+
+  function scoreRecency(book) {
+    const year = getYear(book);
+    if (!year) return 0;
+    const age = new Date().getFullYear() - year;
+    if (age <= 1) return 5;
+    if (age <= 3) return 4;
+    if (age <= 5) return 3;
+    if (age <= 10) return 2;
+    if (age <= 20) return 1;
+    return 0;
+  }
+
+  function isEnglish(raw) {
+    const lang = String(raw.language || '').trim().toLowerCase();
+    if (lang === 'en' || lang === 'eng' || lang === 'english') return true;
+    if (!lang || lang === 'unknown') {
+      if (/^[a-zA-Z0-9\s\-'.,!?":;()]+$/.test(String(raw.title || ''))) return true;
+    }
+    return false;
+  }
+
+  function hasUsableCover(coverUrl) {
+    const c = String(coverUrl || '');
+    if (!c || c === FALLBACK_IMAGE || c.includes('fallback') || c.includes('nocover')) return false;
+    return c.startsWith('http');
   }
 
   function normalizeBook(raw) {
@@ -139,29 +202,84 @@
   async function fetchDiscoverySections() {
     const sections = {};
 
-    const cacheKey = CACHE_PREFIX + 'sections_v1';
+    const cacheKey = CACHE_PREFIX + 'sections_v2';
     const cached = readCache(cacheKey);
     if (cached) return cached;
 
-    const [trending, trendingMonthly, fantasy, scifi, romance, thriller, nonfiction, newReleases] = await Promise.all([
+    const seedPool = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) ? window.ZO2Y_CURATED_BOOK_SEEDS : [];
+    const shuffled = seedPool.slice().sort(function () { return Math.random() - 0.5; });
+    const seedSlice = shuffled.slice(0, 24);
+
+    const seedResults = seedSlice.length
+      ? await Promise.allSettled(seedSlice.map(function (seed) {
+          return apiFetchParams('/search', {
+            title: seed.title,
+            author: seed.author,
+            limit: 3,
+            page: 1,
+            language: 'en'
+          });
+        }))
+      : [];
+
+    var popularBooks = [];
+    var seenSeeds = new Set();
+    seedResults.forEach(function (result, idx) {
+      if (result.status !== 'fulfilled' || !result.value) return;
+      var docs = Array.isArray(result.value.books) ? result.value.books : [];
+      if (!docs.length) return;
+      var seed = seedSlice[idx];
+      if (!seed) return;
+      var best = docs.slice().sort(function (a, b) {
+        return bookSeedScore(b, seed) - bookSeedScore(a, seed);
+      })[0];
+      if (!best) return;
+      var n = normalizeBook(best);
+      var key = String(n.id || n.title || '').toLowerCase();
+      if (key && !seenSeeds.has(key)) { seenSeeds.add(key); popularBooks.push(n); }
+    });
+
+    var [trendingResult, newReleasesResult] = await Promise.allSettled([
       apiFetch('/trending?period=weekly&limit=40'),
-      apiFetch('/trending?period=monthly&limit=40'),
-      apiFetch('/popular?subject=fantasy&limit=40&page=1&language=en'),
-      apiFetch('/popular?subject=science+fiction&limit=40&page=1&language=en'),
-      apiFetch('/popular?subject=romance&limit=40&page=1&language=en'),
-      apiFetch('/popular?subject=thriller&limit=40&page=1&language=en'),
-      apiFetch('/popular?subject=nonfiction&limit=40&page=1&language=en'),
       apiFetch('/search?q=2025&limit=40&page=1&language=en&orderBy=newest')
     ]);
 
-    if (trending) sections.trending = dedupe(trending.books.map(normalizeBook)).slice(0, 30);
-    if (trendingMonthly) sections.popularThisYear = dedupe(trendingMonthly.books.map(normalizeBook)).slice(0, 30);
-    if (fantasy) sections.fantasy = dedupe(fantasy.books.map(normalizeBook)).slice(0, 30);
-    if (scifi) sections.scifi = dedupe(scifi.books.map(normalizeBook)).slice(0, 30);
-    if (romance) sections.romance = dedupe(romance.books.map(normalizeBook)).slice(0, 30);
-    if (thriller) sections.thriller = dedupe(thriller.books.map(normalizeBook)).slice(0, 30);
-    if (nonfiction) sections.nonfiction = dedupe(nonfiction.books.map(normalizeBook)).slice(0, 30);
-    if (newReleases) sections.newReleases = dedupe(newReleases.books.map(normalizeBook)).slice(0, 30);
+    var trendingBooks = [];
+    if (trendingResult.status === 'fulfilled' && trendingResult.value && trendingResult.value.books) {
+      trendingBooks = trendingResult.value.books.map(normalizeBook);
+    }
+
+    var newReleaseBooks = [];
+    if (newReleasesResult.status === 'fulfilled' && newReleasesResult.value && newReleasesResult.value.books) {
+      newReleaseBooks = newReleasesResult.value.books.map(normalizeBook);
+    }
+
+    trendingBooks.sort(function (a, b) {
+      var ra = scoreRecency(a);
+      var rb = scoreRecency(b);
+      if (rb !== ra) return rb - ra;
+      var ea = isEnglish(a) ? 1 : 0;
+      var eb = isEnglish(b) ? 1 : 0;
+      if (eb !== ea) return eb - ea;
+      var ca = hasUsableCover(a.coverUrl) ? 1 : 0;
+      var cb = hasUsableCover(b.coverUrl) ? 1 : 0;
+      if (cb !== ca) return cb - ca;
+      return 0;
+    });
+
+    newReleaseBooks.sort(function (a, b) {
+      var ya = getYear(a);
+      var yb = getYear(b);
+      if (yb !== ya) return yb - ya;
+      var ea = isEnglish(a) ? 1 : 0;
+      var eb = isEnglish(b) ? 1 : 0;
+      if (eb !== ea) return eb - ea;
+      return 0;
+    });
+
+    if (popularBooks.length) sections.popular = dedupe(popularBooks).slice(0, 24);
+    if (trendingBooks.length) sections.trending = dedupe(trendingBooks).slice(0, 30);
+    if (newReleaseBooks.length) sections.newReleases = dedupe(newReleaseBooks).slice(0, 30);
 
     writeCache(cacheKey, sections);
     return sections;
@@ -172,16 +290,16 @@
   }
 
   window.BooksApp = {
-    escape,
-    fetchPage,
-    fetchAllPages,
-    fetchDiscoverySections,
-    fetchBestSellers,
-    normalizeBook,
-    dedupe,
-    API_BASE,
-    API_PAGE_SIZE,
-    FALLBACK_IMAGE,
-    abort() { if (activeController) activeController.abort(); }
+    escape: escape,
+    fetchPage: fetchPage,
+    fetchAllPages: fetchAllPages,
+    fetchDiscoverySections: fetchDiscoverySections,
+    fetchBestSellers: fetchBestSellers,
+    normalizeBook: normalizeBook,
+    dedupe: dedupe,
+    API_BASE: API_BASE,
+    API_PAGE_SIZE: API_PAGE_SIZE,
+    FALLBACK_IMAGE: FALLBACK_IMAGE,
+    abort: function () { if (activeController) activeController.abort(); }
   };
 })();
