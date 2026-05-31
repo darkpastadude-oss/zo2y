@@ -980,7 +980,11 @@
       if (normalizedUrl === SUPABASE_URL && normalizedKey === SUPABASE_KEY) {
         return createClientWithFactory(originalCreateClient, options || {});
       }
-      return originalCreateClient(url, key, options);
+      try {
+        return originalCreateClient(url, key, options);
+      } catch (_e) {
+        return null;
+      }
     };
     namespace.__zo2yCreateClientPatched = true;
     window.__ZO2Y_SUPABASE_CREATE_CLIENT_ORIGINAL = originalCreateClient;

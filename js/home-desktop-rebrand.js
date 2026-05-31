@@ -434,17 +434,23 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
     for (let i = 0; i < 20; i += 1) {
       if (window.supabase?.createClient) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          auth: {
-            storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: false,
-            storageKey: 'zo2y-auth-v2'
-          }
-        });
-        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-        return supabaseClient;
+        try {
+          supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: {
+              storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: false,
+              storageKey: 'zo2y-auth-v2'
+            }
+          });
+        } catch (_e) {
+          break;
+        }
+        if (supabaseClient) {
+          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+          return supabaseClient;
+        }
       }
       await wait(120);
     }
