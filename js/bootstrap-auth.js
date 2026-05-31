@@ -17,7 +17,9 @@
     window.__AUTH_READY = true;
     try {
       window.dispatchEvent(new Event('zo2y-auth-ready'));
-    } catch (_e) {}
+    } catch (_e) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('bootstrap-auth: dispatchEvent failed', _e);
+    }
   }
   run();
 })();

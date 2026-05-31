@@ -77,9 +77,9 @@
         auth.redirectToPostAuthTarget(nextPath());
         return;
       }
-    } catch (_err) {}
-
-    usernameInput.value = getFallbackUsername(activeUser);
+    } catch (_err) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-onboarding: profile bootstrap failed', _err);
+    }
     usernameInput.focus();
     setStatus('Choose the username Zo2y should use everywhere.', '');
   }

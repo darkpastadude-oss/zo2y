@@ -1443,7 +1443,9 @@
       if (byId.error && String(byId.error.code || '') !== 'PGRST116') {
         throw byId.error;
       }
-    } catch (_byIdError) {}
+    } catch (_byIdError) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-gate: profile update by id failed', _byIdError);
+    }
 
     try {
       var byUserIdPayload = payload;
@@ -1468,7 +1470,9 @@
       if (byUserId.error && String(byUserId.error.code || '') !== 'PGRST116') {
         throw byUserId.error;
       }
-    } catch (_byUserIdError) {}
+    } catch (_byUserIdError) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-gate: profile update by user_id failed', _byUserIdError);
+    }
 
     var insertPayload = Object.assign({
       id: safeUserId,
@@ -1497,7 +1501,9 @@
       if (!inserted.error && Array.isArray(inserted.data) && inserted.data[0]) {
         return inserted.data[0];
       }
-    } catch (_insertError) {}
+    } catch (_insertError) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-gate: profile upsert failed', _insertError);
+    }
 
     return readAuthProfileRow(client, safeUserId);
   }
@@ -1961,7 +1967,9 @@
         if (!hasStoredSupabaseSession()) {
           var cachedClient = window.__ZO2Y_SUPABASE_CLIENT;
           if (cachedClient && cachedClient.auth && typeof cachedClient.auth.signOut === 'function') {
-            try { cachedClient.auth.signOut({ scope: 'local' }); } catch (_err) {}
+            try { cachedClient.auth.signOut({ scope: 'local' }); } catch (_err) {
+              if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('auth-gate: bfcache signOut failed', _err);
+            }
           }
         }
       }

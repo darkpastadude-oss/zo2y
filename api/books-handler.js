@@ -49,7 +49,10 @@ function normalizeBook(input) {
   const source = String(input?._source || input?.source || "").trim()
     || (googleId ? "google-books" : (rawKey ? "openlibrary" : "book"));
 
-  return { id, title, author, year, cover, source };
+  const rating = Number(input?.averageRating || 0) || null;
+  const ratingCount = Number(input?.ratingsCount || 0) || null;
+
+  return { id, title, author, year, cover, source, rating, ratingCount };
 }
 
 function dedupeBooks(rows = [], limit = 20) {
@@ -249,6 +252,8 @@ function normalizeGoogleBookDoc(volume, idx = 0) {
   const thumb = toHttpsUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || "");
   const previewLink = toHttpsUrl(info?.previewLink || "");
   const infoLink = toHttpsUrl(info?.infoLink || "");
+  const averageRating = Number(info?.averageRating || 0) || null;
+  const ratingsCount = Number(info?.ratingsCount || 0) || null;
 
   return {
     key: "",
@@ -264,7 +269,9 @@ function normalizeGoogleBookDoc(volume, idx = 0) {
     _googleVolumeId: String(volume?.id || "").trim(),
     _source: "google-books",
     _previewLink: previewLink,
-    _infoLink: infoLink
+    _infoLink: infoLink,
+    averageRating,
+    ratingsCount
   };
 }
 
@@ -647,7 +654,19 @@ export default async function handler(req, res) {
           "the da vinci code", "the housemaid", "the midnight library",
           "educated", "becoming", "sapiens", "where the crawdads sing",
           "onyx storm", "iron flame", "the shining", "it", "the stand", "carrie",
-          "the song of achilles", "circe", "normal people", "klara and the sun"];
+          "the song of achilles", "circe", "normal people", "klara and the sun",
+          "the boys", "the witcher", "game of thrones", "red rising",
+          "the stormlight archive", "the wheel of time", "ninth house",
+          "the institute", "fairy tale", "twilight", "verity", "it ends with us",
+          "ugly love", "the seven husbands of evelyn hugo", "daisy jones and the six",
+          "malibu rising", "the silent patient", "the maidens",
+          "the vanishing half", "the goldfinch", "a little life", "the book thief",
+          "all the light we cannot see", "the nightingale", "the great alone",
+          "the four winds", "the woman in the window", "the push",
+          "the sanatorium", "the retreat", "the last thing he told me",
+          "murder bot", "the bridgerton collection", "pet sematary",
+          "never flinch", "atmosphere", "james", "the wedding people",
+          "the tenant", "the perfect divorce", "great big beautiful life"];
         const qLower = String(query.q || "").trim().toLowerCase();
         const isKnown = knownPopular.some(k => qLower.includes(k) || k.includes(qLower));
         if (isKnown) {

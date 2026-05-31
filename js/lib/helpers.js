@@ -94,4 +94,52 @@
   root.getUniqueId = function (prefix) {
     return (prefix || 'id') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
   };
+
+  root.logError = function (context, err) {
+    try {
+      var message = '[zo2y] ' + context + ': ' + (err && err.message ? err.message : String(err || 'unknown'));
+      console.error(message);
+      if (err && err.stack) {
+        console.error('[zo2y] stack:', err.stack);
+      }
+    } catch (_) { /* logError must never throw */ }
+  };
+
+  var _focusTrapKey = null;
+
+  root.trapFocus = function (modalEl) {
+    if (!modalEl || typeof modalEl.addEventListener !== 'function') return;
+    root.releaseFocusTrap();
+    var focusable = modalEl.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (!focusable.length) return;
+    var first = focusable[0];
+    var last = focusable[focusable.length - 1];
+    var handler = function (e) {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handler);
+    _focusTrapKey = handler;
+    if (document.activeElement && modalEl.contains(document.activeElement)) return;
+    if (typeof first.focus === 'function') first.focus();
+  };
+
+  root.releaseFocusTrap = function () {
+    if (_focusTrapKey) {
+      document.removeEventListener('keydown', _focusTrapKey);
+      _focusTrapKey = null;
+    }
+  };
 })();

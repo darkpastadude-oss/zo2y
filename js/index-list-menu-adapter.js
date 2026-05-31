@@ -773,62 +773,72 @@
           }
         }
       }
-    } catch (_error) {}
+      } catch (_error) {
+        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: ensureClient catch bridge client', _error);
+      }
 
-    if (authClient?.auth) return authClient;
-    if (authClientPromise) return authClientPromise;
+      if (authClient?.auth) return authClient;
+      if (authClientPromise) return authClientPromise;
 
-    authClientPromise = (async () => {
-      try {
-        const runtime = window.ZO2Y_AUTH || null;
-        if (runtime && typeof runtime.waitForSupabase === 'function') {
-          await runtime.waitForSupabase(8000);
-        } else {
-          const startedAt = Date.now();
-          while (!window.supabase && (Date.now() - startedAt) < 8000) {
-            await new Promise((resolve) => window.setTimeout(resolve, 40));
+      authClientPromise = (async () => {
+        try {
+          const runtime = window.ZO2Y_AUTH || null;
+          if (runtime && typeof runtime.waitForSupabase === 'function') {
+            await runtime.waitForSupabase(8000);
+          } else {
+            const startedAt = Date.now();
+            while (!window.supabase && (Date.now() - startedAt) < 8000) {
+              await new Promise((resolve) => window.setTimeout(resolve, 40));
+            }
           }
+        } catch (_error) {
+          if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: waitForSupabase failed', _error);
         }
-      } catch (_error) {}
 
-      try {
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          const client = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-          if (client?.auth) return client;
+        try {
+          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+            const client = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+            if (client?.auth) return client;
+          }
+        } catch (_error) {
+          if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: ensureSupabaseClient failed', _error);
         }
-      } catch (_error) {}
 
-      try {
-        const runtime = window.ZO2Y_AUTH || null;
-        if (runtime && typeof runtime.ensureClient === 'function') {
-          const client = runtime.ensureClient();
-          if (client?.auth) return client;
+        try {
+          const runtime = window.ZO2Y_AUTH || null;
+          if (runtime && typeof runtime.ensureClient === 'function') {
+            const client = runtime.ensureClient();
+            if (client?.auth) return client;
+          }
+        } catch (_error) {
+          if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: runtime.ensureClient failed', _error);
         }
-      } catch (_error) {}
 
-      return null;
-    })();
+        return null;
+      })();
 
-    authClient = await authClientPromise;
-    authClientPromise = null;
-    
-    // On mobile, ensure the client has time to restore session before returning
-    if (authClient?.auth) {
-      try {
-        // Trigger session restoration if available
-        if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
-          window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+      authClient = await authClientPromise;
+      authClientPromise = null;
+      
+      // On mobile, ensure the client has time to restore session before returning
+      if (authClient?.auth) {
+        try {
+          // Trigger session restoration if available
+          if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
+            window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
+          }
+          if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+            await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(authClient);
+            // Give token refresh time to complete
+            await new Promise((resolve) => window.setTimeout(resolve, 80));
+          }
+        } catch (_error) {
+          if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: session restore failed', _error);
         }
-        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-          await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(authClient);
-          // Give token refresh time to complete
-          await new Promise((resolve) => window.setTimeout(resolve, 80));
-        }
-      } catch (_error) {}
+      }
+      
+      return authClient;
     }
-    
-    return authClient;
-  }
 
   function redirectToLogin() {
     try {
@@ -883,12 +893,16 @@
       if (typeof window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE === 'function') {
         window.__ZO2Y_HYDRATE_AUTH_STORAGE_FROM_DURABLE();
       }
-    } catch (_error) {}
-    try {
-      if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
-        await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+      } catch (_error) {
+        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: hydration failed', _error);
       }
-    } catch (_error) {}
+      try {
+        if (typeof window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT === 'function') {
+          await window.__ZO2Y_RESTORE_SESSION_FROM_SNAPSHOT(client);
+        }
+      } catch (_error) {
+        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: session restore from snapshot failed', _error);
+      }
     
     // Give Supabase time to restore the session from storage and refresh token
     await new Promise((resolve) => window.setTimeout(resolve, 100));
@@ -910,20 +924,26 @@
         try {
           const verifiedUser = await authRuntime.getVerifiedUser(client);
           if (verifiedUser?.id) return verifiedUser;
-        } catch (_error) {}
+        } catch (_error) {
+          if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: getVerifiedUser failed', _error);
+        }
       }
       try {
         const sessionResult = await client.auth.getSession();
         const sessionUser = sessionResult?.data?.session?.user || null;
         if (sessionUser?.id) return sessionUser;
-      } catch (_error) {}
+      } catch (_error) {
+        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: getSession failed', _error);
+      }
       try {
         const userResult = typeof client.auth.getUser === 'function'
           ? await client.auth.getUser()
           : null;
         const user = userResult?.data?.user || null;
         if (user?.id) return user;
-      } catch (_error) {}
+      } catch (_error) {
+        if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('list-menu: getUser failed', _error);
+      }
       return null;
     };
 
@@ -1261,6 +1281,7 @@
       itemModal.classList.remove('active');
       itemModal.setAttribute('aria-hidden', 'true');
     }
+    if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
     STATE.pendingQuickKeys = new Set();
     STATE.quickMutationVersions = {};
     STATE.pendingCustomListIds = new Set();
@@ -1291,6 +1312,7 @@
       createModal.classList.remove('active');
       createModal.setAttribute('aria-hidden', 'true');
     }
+    if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
     syncMenuModalBodyLock();
   }
 
@@ -1560,6 +1582,7 @@
         void content.offsetWidth;
         content.classList.add('menu-modal-fly-up');
       }
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.trapFocus(itemModal);
     }
     syncMenuModalBodyLock();
     void primeScopeCaches();
@@ -1622,6 +1645,7 @@
     if (nameInput) nameInput.value = '';
     if (itemModal) itemModal.classList.remove('active');
     if (createModal) {
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
       createModal.classList.add('active');
       createModal.setAttribute('aria-hidden', 'false');
       if (window.ListUtils) ListUtils.resetTierCreateState(createModal);
@@ -1632,6 +1656,7 @@
         void content.offsetWidth;
         content.classList.add('menu-modal-fly-up');
       }
+      if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.trapFocus(createModal);
     }
     syncMenuModalBodyLock();
   }

@@ -769,6 +769,7 @@
                     syncProfileModalViewport(modal);
                     playProfileModalFlyUp(modal);
                     syncProfileModalBodyLock();
+                    if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.trapFocus(modal);
                 }
             }
 
@@ -779,6 +780,7 @@
                     modal.setAttribute('aria-hidden', 'true');
                     syncProfileModalBodyLock();
                 }
+                if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
             }
 
             // ===== LOGOUT FUNCTION =====
@@ -855,8 +857,9 @@
                         await Promise.race([supabase.auth.signOut({ scope: 'global' }), raceTimeout]);
                     }
                     if (signOutTimer) clearTimeout(signOutTimer);
-                } catch (_err) {}
-
+                } catch (_err) {
+                    if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.logError('profile: signOut failed', _err);
+                }
                 // 5. Re-set the explicit signout marker — the SIGNED_OUT handler may have
                 //    cleared it, and we want it present on the next page load.
                 try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
@@ -9476,6 +9479,10 @@
                     url: safeUrl,
                     savedAt: Date.now()
                 });
+                if (previewAssetCache.size > 200) {
+                    const oldest = previewAssetCache.keys().next().value;
+                    if (oldest !== undefined) previewAssetCache.delete(oldest);
+                }
             }
 
             async function getPreviewItems(ids, contentType) {
@@ -12729,6 +12736,7 @@
                     syncProfileModalViewport(modal);
                     playProfileModalFlyUp(modal);
                     syncProfileModalBodyLock();
+                    if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.trapFocus(modal);
                     
                     if (modalId === 'addEntryModal') {
                         const visitDate = document.getElementById('visitDate');
@@ -12800,6 +12808,8 @@
                     modal.classList.remove('active');
                     modal.setAttribute('aria-hidden', 'true');
                     syncProfileModalBodyLock();
+                }
+                if (window.__ZO2Y_HELPERS) window.__ZO2Y_HELPERS.releaseFocusTrap();
                     
                     if (modalId === 'addEntryModal') {
                         const form = document.getElementById('journalEntryForm');
