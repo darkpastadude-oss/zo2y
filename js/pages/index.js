@@ -1,5 +1,4 @@
     const ENABLE_GAMES = true;
-    const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
     const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
@@ -9,8 +8,7 @@
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
-      ...(ENABLE_CARS ? ['car'] : []),
-      ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
+      ...(ENABLE_CARS ? ['car'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
     if (window.ZO2Y_SPORTS_LISTS == null) {
@@ -29,13 +27,6 @@
     const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
     const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
     const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
-    const FALLBACK_RESTAURANTS = [
-      { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
-      { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
-      { id: 'fallback-r3', name: 'Local Favorites', category: 'Local', rating: '4.9' },
-      { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
-      { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
-    ];
     const HOME_FASHION_FALLBACKS = [
       { id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com' },
       { id: '1982d6c7-716d-4f92-8529-039e03d83b72', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com' },
@@ -247,6 +238,7 @@
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
+    const HOME_HTTP_CACHE_MAX_ENTRIES = 200;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
     const HOME_PUBLIC_FEED_ENDPOINT = '/api/home-feed';
     const HOME_CHANNEL_TIMEOUT_MS = 5200;
@@ -754,6 +746,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     let homeInterestProfile = { types: [], tags: [] };
     const homeFeedState = Object.fromEntries(HOME_ACTIVE_MEDIA_TYPES.map((type) => [type, []]));
     const homeHttpCache = new Map();
+    function trimHomeHttpCache() {
+      if (homeHttpCache.size <= HOME_HTTP_CACHE_MAX_ENTRIES) return;
+      var entries = Array.from(homeHttpCache.entries());
+      entries.sort(function (a, b) { return (a[1].expiresAt || 0) - (b[1].expiresAt || 0); });
+      var toDelete = entries.slice(0, entries.length - HOME_HTTP_CACHE_MAX_ENTRIES);
+      toDelete.forEach(function (entry) { homeHttpCache.delete(entry[0]); });
+    }
     const homeCustomListState = {
       mediaType: null,
       itemId: null,
@@ -1690,6 +1689,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         promise: requestPromise,
         expiresAt: now + ttlMs
       });
+      trimHomeHttpCache();
 
       const data = await requestPromise;
       if (data && typeof data === 'object') {
@@ -1697,6 +1697,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           data: cloneJson(data, null),
           expiresAt: Date.now() + ttlMs
         });
+        trimHomeHttpCache();
       } else {
         homeHttpCache.delete(key);
       }
@@ -1746,15 +1747,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       } catch (_err) {
         return null;
       }
-    }
-
-    function resolveRestaurantImage(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      if (/^https?:\/\//i.test(raw)) return toHttpsUrl(raw);
-      const normalized = raw.replace(/^\/+/, '');
-      if (/^images\//i.test(normalized)) return toHttpsUrl(normalized);
-      return toHttpsUrl(`images/${normalized}`);
     }
 
     function resolveBrandLogo(row, mediaType) {
@@ -2089,15 +2081,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             ]
           };
         }
-        if (ENABLE_RESTAURANTS && type === 'restaurant') {
-          return {
-            customHref: 'restraunts.html',
-            rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
-            { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
-          ]
-        };
       }
       return null;
     }
@@ -3598,7 +3581,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes, listRes] = await Promise.all([
+        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes] = await Promise.all([
           client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
@@ -3611,21 +3594,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
             .then((res) => res)
-            .catch(() => ({ count: 0 })),
-          ENABLE_RESTAURANTS
-            ? client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
-            : Promise.resolve({ data: [] })
+            .catch(() => ({ count: 0 }))
         ]);
-
-        const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
-        let restaurantCount = 0;
-        if (ENABLE_RESTAURANTS && listIds.length) {
-          const { count } = await client
-            .from('lists_restraunts')
-            .select('id', { count: 'exact', head: true })
-            .in('list_id', listIds);
-          restaurantCount = Number(count || 0);
-        }
 
         const counts = {
           movie: Number(movieRes?.count || 0),
@@ -3634,8 +3604,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
           book: Number(bookRes?.count || 0),
           music: Number(musicRes?.count || 0),
-          travel: Number(travelRes?.count || 0),
-          ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
+          travel: Number(travelRes?.count || 0)
         };
         const interestProfile = await loadHomeInterestProfile(client);
         homeInterestProfile = interestProfile;
@@ -5754,24 +5723,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }));
 
       return {
-        ...(ENABLE_RESTAURANTS ? {
-          restaurant: FALLBACK_RESTAURANTS.map((r, index) => ({
-            mediaType: 'restaurant',
-            itemId: `seed-restaurant-${index + 1}`,
-            title: r.name,
-            subtitle: `${r.category} | ${r.rating}/5`,
-            image: fallbackImage,
-            logo: '',
-            backgroundImage: fallbackImage,
-            spotlightImage: fallbackImage,
-            spotlightMediaImage: fallbackImage,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            href: 'restraunts.html',
-            fallbackImage,
-            isPlaceholder: true
-          }))
-        } : {}),
         movie: [],
         tv: [],
         anime: [],
@@ -5873,7 +5824,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getHomeChannels() {
       return [
-        ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
@@ -8794,97 +8744,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       document.body.style.overflow = 'hidden';
     }
 
-      async function loadRestaurants() {
-        const client = await ensureHomeSupabase();
-        if (!client) {
-          return FALLBACK_RESTAURANTS.map((r) => ({
-            mediaType: 'restaurant',
-          itemId: String(r.id),
-          title: r.name,
-          subtitle: `${r.category} | ${r.rating}/5`,
-          image: '',
-          logo: '',
-          backgroundImage: '',
-          spotlightImage: '',
-          spotlightMediaImage: '',
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: 'restraunts.html'
-        }));
-      }
-      const fetchLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, HOME_CHANNEL_TARGET_ITEMS);
-      const { data, error } = await client
-        .from('restraunts')
-        .select('id,name,image,category,rating,slug,logo_url')
-        .order('rating', { ascending: false })
-        .limit(fetchLimit);
-      if (error || !data || !data.length) {
-        return FALLBACK_RESTAURANTS.map((r) => ({
-          mediaType: 'restaurant',
-          itemId: String(r.id),
-          title: r.name,
-          subtitle: `${r.category} | ${r.rating}/5`,
-          image: '',
-          logo: '',
-          backgroundImage: '',
-          spotlightImage: '',
-          spotlightMediaImage: '',
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          href: 'restraunts.html'
-        }));
-      }
-
-      const selectedRows = shuffleArray(data).slice(0, HOME_CHANNEL_TARGET_ITEMS);
-      const slugs = selectedRows.map((row) => String(row.slug || '').trim()).filter(Boolean);
-      const galleryBySlug = {};
-      if (slugs.length) {
-        const { data: galleryRows } = await client
-          .from('restaurant_gallery')
-          .select('restaurant_slug, image_url, image_type')
-          .in('restaurant_slug', slugs);
-        if (Array.isArray(galleryRows)) {
-          galleryRows.forEach((row) => {
-            const slug = String(row.restaurant_slug || '').trim();
-            const url = String(row.image_url || '').trim();
-            const imageType = String(row.image_type || '').trim().toLowerCase();
-            if (!slug || !url) return;
-            if (!galleryBySlug[slug]) {
-              galleryBySlug[slug] = {
-                cover: '',
-                logo: ''
-              };
-            }
-            if (imageType === 'cover' && !galleryBySlug[slug].cover) {
-              galleryBySlug[slug].cover = toHttpsUrl(url);
-            } else if (imageType === 'logo' && !galleryBySlug[slug].logo) {
-              galleryBySlug[slug].logo = toHttpsUrl(url);
-            }
-          });
-        }
-      }
-
-        return selectedRows.map((r) => {
-          const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
-          const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
-          const hasLogo = String(logoImage || '').trim().length > 0;
-          return {
-            mediaType: 'restaurant',
-          itemId: String(r.id || ''),
-          title: r.name || 'Restaurant',
-          subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
-          image: coverImage || logoImage || '',
-          logo: logoImage || '',
-          backgroundImage: coverImage || '',
-          spotlightImage: coverImage || '',
-          spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
-          spotlightMediaFit: hasLogo ? 'contain' : 'cover',
-          spotlightMediaShape: hasLogo ? 'square' : 'poster',
-            href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
-          };
-        });
-      }
-
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
@@ -10179,11 +10038,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const pointers = {};
         for (const cat of order) pointers[cat] = 0;
 
+        // Stage 1: guarantee one from every category that has teams
+        for (const cat of order) {
+          if (selected.length >= target) break;
+          for (const t of (categories[cat] || [])) {
+            const key = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (used.has(key)) continue;
+            used.add(key);
+            selected.push(t);
+            pointers[cat] = categories[cat].indexOf(t) + 1;
+            break;
+          }
+        }
+
+        // Stage 2: round-robin fill remaining slots
         while (selected.length < target) {
           let added = false;
           for (const cat of order) {
             const arr = categories[cat] || [];
-            const start = pointers[cat];
+            let start = pointers[cat];
+            if (start >= arr.length) { pointers[cat] = 0; start = 0; }
             for (let i = start; i < arr.length; i++) {
               if (selected.length >= target) break;
               const key = arr[i].name.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -10198,13 +10072,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             if (selected.length >= target) break;
           }
           if (!added) {
-            for (const cat of order) {
-              if (pointers[cat] > 0) {
-                pointers[cat] = 0;
-                added = true;
-                break;
-              }
-            }
+            // wrap-around: reset all pointers and try once more
+            for (const cat of order) pointers[cat] = 0;
+            added = true;
           }
           if (!added) break;
         }

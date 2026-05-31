@@ -197,9 +197,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <h2 class="profile-section-heading">Collections and lists</h2>
                 </div>
             <div class="nav-tabs">
-                <div class="nav-tab active profile-tab-collections" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                    <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
-                </div>
                 <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span> <i class="fas fa-chevron-down"></i>
                 </button>
@@ -222,68 +219,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
                 <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
             </div>
-            </div>
-
-            <!-- Restaurants Tab Content -->
-            <div class="tab-content active" id="restaurants-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="restaurantsTitle">My Collections</h2>
-                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your custom collections</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Restaurants Grid -->
-                    <div class="collection-grid" id="restaurantsGrid">
-                        <!-- Collections will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Restaurant Detail View -->
-            <div class="tab-content" id="restaurant-detail-view">
-                <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideRestaurantDetail()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="restaurantDetailTitle">
-                                <span id="restaurantDetailIcon"></span>
-                                <span id="restaurantDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="restaurantDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="restaurant">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions" id="restaurantDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="editRestaurantListBtn">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="window.location.href='index.html'" id="addToRestaurantListBtn">
-                                <i class="fas fa-search"></i> Browse Home
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="restaurantItemsContainer">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Collections Yet</h3>
-                            <p class="empty-description">Start adding items to this collection!</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Movies Tab Content -->
@@ -1127,10 +1062,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <section class="mobile-primary-panel" data-panel="lists">
             <!-- Mobile Tabs Navigation -->
             <div class="mobile-tabs">
-                <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                    <i class="fas fa-clapperboard"></i>
-                    <span id="mobileTabRestaurants">Collections</span>
-                </div>
                 <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span>
                     <i class="fas fa-chevron-down"></i>
@@ -1823,10 +1754,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <i class="fas fa-plus-circle"></i>
                 <span>New List</span>
             </div>
-            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('restaurants')">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </div>
             <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
                 <i class="fas fa-search"></i>
                 <span>Search</span>
@@ -2201,7 +2128,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <script src="js/list-utils.js?v=20260529c" defer></script>
     <script src="js/referral-utils.js?v=20260529c" defer></script>
     <script src="js/igdb-client.js?v=20260529c" defer></script>
-    <script src="js/taste_identity.js?v=20260529c" defer></script>
+    <script src="js/taste-identity.js?v=20260601a" defer></script>
     <script src="js/cover-cache.js?v=20260529c" defer></script>
     <script src="js/pages/games-shared.js?v=20260529c" defer></script>
     <script src="js/pages/profile.js?v=20260529c" defer></script>

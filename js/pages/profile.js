@@ -38,9 +38,8 @@
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
-            const ENABLE_RESTAURANTS = false;
             const GAMES_DISABLED = false;
-            const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
+            const DEFAULT_PROFILE_TAB = 'movies';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
             let currentPrimaryTab = 'lists';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
@@ -168,12 +167,9 @@
             let hasBoundStatsRealtimeLifecycle = false;
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
-                ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
-                ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
                 'movie',
                 'tv',
                 'anime',
@@ -186,7 +182,6 @@
                 'car'
             ]);
             const COLLECTION_TO_TAB = {
-                ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
                 movie: 'movies',
                 tv: 'tv',
                 anime: 'anime',
@@ -266,25 +261,16 @@
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
                     }
 
-                    disableRestaurantFeatures();
                     disableGameFeatures();
                     
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
 
-                    // Load restaurants in background
-                    if (ENABLE_RESTAURANTS) {
-                        loadRestaurants().catch(err => console.error('Restaurant load error:', err));
-                    }
-                    
                     // Initialize systems
                     communitySystem = createCommunitySystem();
                     
                     // Initialize list manager and community in background
                     const initTasks = [communitySystem.init()];
-                    if (ENABLE_RESTAURANTS) {
-                        initTasks.unshift(listManager.init());
-                    }
                     Promise.all(initTasks).catch(err => console.error('Initialization error:', err));
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
@@ -324,40 +310,6 @@
             function initializeMobile() {
                 updateMobileStats();
                 setupMobileTabsHint();
-            }
-
-            function disableRestaurantFeatures() {
-                if (ENABLE_RESTAURANTS) return;
-
-                const removeSelectors = [
-                    '.nav-tab[data-tab="restaurants"]',
-                    '#restaurants-tab',
-                    '#restaurant-detail-view',
-                    '#createRestaurantListBtn',
-                    '.mobile-tab[data-tab="restaurants"]',
-                    '#mobileRestaurantsSection',
-                    '#mobileRestaurantDetailSection',
-                    '#mobileCreateRestaurantListBtn',
-                    'button[onclick*="createListForType(\'restaurants\')"]',
-                    '.mobile-nav-item[href="restraunts.html"]',
-                    '.list-icon-option[data-icon="restaurant"]',
-                    '.edit-list-icon-option[data-icon="restaurant"]'
-                ];
-                removeSelectors.forEach((selector) => {
-                    document.querySelectorAll(selector).forEach((el) => el.remove());
-                });
-
-                const mobileProfileItem = document.querySelector('.mobile-bottom-nav-item[onclick*="showTab(\'restaurants\')"]');
-                if (mobileProfileItem) {
-                    mobileProfileItem.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
-                }
-
-                const desktopVisitedLabel = document.querySelector('.stats-grid .stat-card:first-child .stat-label');
-                if (desktopVisitedLabel) desktopVisitedLabel.textContent = 'Items Saved';
-                const mobileVisitedLabel = document.querySelector('.mobile-stats .mobile-stat:first-child .mobile-stat-label');
-                if (mobileVisitedLabel) mobileVisitedLabel.textContent = 'Saved';
-                const visitedMeta = document.getElementById('visitedCountMeta');
-                if (visitedMeta) visitedMeta.textContent = '0 saved items';
             }
 
             function disableGameFeatures() {
@@ -845,6 +797,9 @@
                         'oauthFlow',
                         'zo2y-post-auth-bootstrap-v2',
                         'zo2y_post_auth_bootstrap_v1',
+                        'zo2y-auth-explicit-signout-v2',
+                        'zo2y-auth-explicit-signout-v1',
+                        'zo2y_profile_collection_view_modes_v2',
                         'sb-gfkhjbztayjyojsgdpgk-auth-token'
                     ];
 
@@ -860,7 +815,7 @@
                             const k = localStorage.key(i);
                             if (!k) continue;
                             if (/^sb-[a-z0-9]+-auth-token$/i.test(k)) localStorage.removeItem(k);
-                            if (k.indexOf('zo2y-auth-onboarding-') === 0 || k.indexOf('zo2y_onboarding_') === 0) {
+                            if (k.indexOf('zo2y-auth-onboarding-') === 0 || k.indexOf('zo2y_onboarding_') === 0 || k.indexOf('zo2y_list_helper_seen_') === 0) {
                                 localStorage.removeItem(k);
                             }
                         }
@@ -891,18 +846,15 @@
                 // 4. Call signOut and wait for it with a 3s timeout.
                 //    We await so Supabase clears its in-memory session before we navigate away.
                 try {
-                    const authRuntime = window.ZO2Y_AUTH || null;
+                    var signOutTimer = null;
+                    var raceTimeout = new Promise(function (r) { signOutTimer = setTimeout(r, 3000); });
+                    var authRuntime = window.ZO2Y_AUTH || null;
                     if (authRuntime && typeof authRuntime.signOut === 'function') {
-                        await Promise.race([
-                            authRuntime.signOut(supabase),
-                            new Promise((r) => setTimeout(r, 3000))
-                        ]);
+                        await Promise.race([authRuntime.signOut(supabase), raceTimeout]);
                     } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
-                        await Promise.race([
-                            supabase.auth.signOut({ scope: 'global' }),
-                            new Promise((r) => setTimeout(r, 3000))
-                        ]);
+                        await Promise.race([supabase.auth.signOut({ scope: 'global' }), raceTimeout]);
                     }
+                    if (signOutTimer) clearTimeout(signOutTimer);
                 } catch (_err) {}
 
                 // 5. Re-set the explicit signout marker — the SIGNED_OUT handler may have
@@ -1680,9 +1632,6 @@
                     { table: 'book_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'music_reviews', filter: `user_id=eq.${safeId}` }
                 ];
-                if (ENABLE_RESTAURANTS) {
-                    defs.push({ table: 'lists', filter: `user_id=eq.${safeId}` });
-                }
                 return defs;
             }
 
@@ -1767,64 +1716,6 @@
                 }
             }
 
-            async function countRestaurantSavedItems(userId) {
-                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
-                try {
-                    const { data: ownedLists, error: ownedListsError } = await supabase
-                        .from('lists')
-                        .select('id')
-                        .eq('user_id', userId);
-                    if (ownedListsError) {
-                        if (isIgnorableStatsError(ownedListsError)) return 0;
-                        throw ownedListsError;
-                    }
-                    const listIds = (ownedLists || []).map((row) => row?.id).filter(Boolean);
-                    if (!listIds.length) return 0;
-
-                    const { count, error } = await supabase
-                        .from('lists_restraunts')
-                        .select('*', { count: 'exact', head: true })
-                        .in('list_id', listIds);
-                    if (error) {
-                        if (isIgnorableStatsError(error)) return 0;
-                        throw error;
-                    }
-                    return Number(count || 0);
-                } catch (error) {
-                    if (isIgnorableStatsError(error)) return 0;
-                    console.warn('Stats count failed for lists_restraunts:', error);
-                    return 0;
-                }
-            }
-
-            async function countRestaurantListsCreated(userId) {
-                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
-                try {
-                    let result = await supabase
-                        .from('lists')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('user_id', userId)
-                        .eq('is_default', false);
-
-                    if (result.error && String(result.error?.code || '').trim() === '42703') {
-                        result = await supabase
-                            .from('lists')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('user_id', userId);
-                    }
-
-                    if (result.error) {
-                        if (isIgnorableStatsError(result.error)) return 0;
-                        throw result.error;
-                    }
-                    return Number(result.count || 0);
-                } catch (error) {
-                    if (isIgnorableStatsError(error)) return 0;
-                    console.warn('Stats count failed for lists:', error);
-                    return 0;
-                }
-            }
-
             async function getUserStats(userId) {
                 const targetId = userId;
                 
@@ -1836,14 +1727,12 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
-                        restaurantSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
                         gameListsCount,
                         bookListsCount,
-                        musicListsCount,
-                        restaurantListsCount
+                        musicListsCount
                     ] = await Promise.all([
                         safeCountByUser('movie_list_items', targetId),
                         safeCountByUser('tv_list_items', targetId),
@@ -1851,14 +1740,12 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('music_list_items', targetId),
-                        countRestaurantSavedItems(targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
-                        safeCountByUser('music_lists', targetId),
-                        countRestaurantListsCreated(targetId)
+                        safeCountByUser('music_lists', targetId)
                     ]);
 
                     const savedItemsCount = Number(movieSavedCount || 0)
@@ -1866,15 +1753,13 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(restaurantSavedCount || 0);
+                        + Number(musicSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
                         + Number(gameListsCount || 0)
                         + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0)
-                        + Number(restaurantListsCount || 0);
+                        + Number(musicListsCount || 0);
 
                     return { savedItemsCount, listsCount };
                 } catch (error) {
@@ -1896,14 +1781,12 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
-                        restaurantSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
                         gameListsCount,
                         bookListsCount,
                         musicListsCount,
-                        restaurantListsCount,
                         journalReviewsCount,
                         movieReviewsCount,
                         tvReviewsCount,
@@ -1926,14 +1809,12 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('music_list_items', targetId),
-                        countRestaurantSavedItems(targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
                         safeCountByUser('music_lists', targetId),
-                        countRestaurantListsCreated(targetId),
                         safeCountByUser('journal_entries', targetId),
                         safeCountByUser('movie_reviews', targetId),
                         safeCountByUser('tv_reviews', targetId),
@@ -1957,15 +1838,13 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(restaurantSavedCount || 0);
+                        + Number(musicSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
                         + Number(gameListsCount || 0)
                         + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0)
-                        + Number(restaurantListsCount || 0);
+                        + Number(musicListsCount || 0);
                     const reviewsCount = Number(journalReviewsCount || 0)
                         + Number(movieReviewsCount || 0)
                         + Number(tvReviewsCount || 0)
@@ -2375,6 +2254,7 @@
                     allLists.forEach(list => {
                         const listCard = document.createElement('div');
                         listCard.className = 'list-card';
+                        const safeListId = escapeHtml(String(list.id));
                         
                         const previewItems = [];
                         const restaurantIds = list.restaurants || [];
@@ -2387,7 +2267,7 @@
                                 if (restaurant) {
                                     previewItems.push(`
                                         <div class="list-preview-item is-landscape">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${escapeHtml(restaurant.name || '')}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
@@ -2412,28 +2292,28 @@
                         
                         const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
                             <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${safeListId}')"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="kebab-dropdown" id="kebab-${safeListId}">
+                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${safeListId}')"><i class="fas fa-edit"></i> Edit</div>
+                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${safeListId}')"><i class="fas fa-trash"></i> Delete</div>
                                 </div>
-                            </div>` : '';
+                            ` : '';
                         
                         listCard.innerHTML = `
                             ${kebabHtml}
                             <div class="list-card-header">
                                 <div class="list-card-title">
-                                    <span style="font-size: 24px;">${list.icon}</span>
-                                    ${list.title}
+                                    <span style="font-size: 24px;">${escapeHtml(list.icon || '')}</span>
+                                    ${escapeHtml(list.title)}
                                 </div>
                             </div>
-                            <p class="list-card-description">${list.description}</p>
+                            <p class="list-card-description">${escapeHtml(list.description || '')}</p>
                             <div class="list-preview-grid">
                                 ${previewItems.join('')}
                             </div>
                             <div class="list-card-footer">
                                 <span class="list-card-count">${restaurantIds.length} places</span>
-                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
+                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${safeListId}')">View List</button>
                             </div>
                         `;
                         
@@ -2506,6 +2386,7 @@
                     allLists.forEach(list => {
                         const listCard = document.createElement('div');
                         listCard.className = 'mobile-list-card';
+                        const safeListId = escapeHtml(String(list.id));
                         
                         const previewItems = [];
                         const restaurantIds = list.restaurants || [];
@@ -2518,7 +2399,7 @@
                                 if (restaurant) {
                                     previewItems.push(`
                                         <div class="mobile-preview-item is-landscape">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
+                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${escapeHtml(restaurant.name || '')}" loading="lazy">
                                         </div>
                                     `);
                                 } else {
@@ -2543,10 +2424,10 @@
                         
                         const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
                             <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
+                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${safeListId}')"><i class="fas fa-ellipsis-v"></i></button>
+                                <div class="kebab-dropdown" id="kebab-${safeListId}">
+                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${safeListId}')"><i class="fas fa-edit"></i> Edit</div>
+                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${safeListId}')"><i class="fas fa-trash"></i> Delete</div>
                                 </div>
                             </div>` : '';
                         
@@ -2557,15 +2438,15 @@
                                     ${iconGlyph(list.icon, 'list')}
                                 </div>
                                 <div class="mobile-list-info">
-                                    <div class="mobile-list-title">${list.title}</div>
+                                    <div class="mobile-list-title">${escapeHtml(list.title)}</div>
                                     <div class="mobile-list-count">${restaurantIds.length} places</div>
                                 </div>
                             </div>
-                            ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
+                            ${list.description ? `<div class="mobile-list-description">${escapeHtml(list.description)}</div>` : ''}
                             <div class="mobile-list-preview">
                                 ${previewItems.join('')}
                             </div>
-                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${list.id}')" style="width: 100%;">
+                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${safeListId}')" style="width: 100%;">
                                 <i class="fas fa-eye"></i> View List
                             </button>
                         `;
@@ -3253,19 +3134,19 @@
                         
                         const restaurantImage = restaurant.image ? 
                             `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                            `                            <div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${escapeHtml(restaurant.name.charAt(0))}</div>`;
                         
                         entryElement.innerHTML = `
                             <div class="mobile-entry-header">
                                 <div class="mobile-restaurant-info">
                                     <div class="mobile-restaurant-image">
-                                        <a href="restaurant.html?slug=${restaurant.slug || ''}" style="text-decoration: none; color: inherit;">
+                                        <a href="restaurant.html?slug=${encodeURIComponent(restaurant.slug || '')}" style="text-decoration: none; color: inherit;">
                                             ${restaurantImage}
                                         </a>
                                     </div>
                                     <div class="mobile-restaurant-details">
-                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
-                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
+                                        <div class="mobile-restaurant-name">${escapeHtml(restaurant.name)}</div>
+                                        <div class="mobile-restaurant-category">${escapeHtml(restaurant.category)}</div>
                                     </div>
                                 </div>
                                 <div class="mobile-entry-rating">${'*'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
@@ -3277,20 +3158,20 @@
                                 </div>
                                 <div class="mobile-meta-badge">
                                     <i class="fas fa-clapperboard"></i>
-                                    ${restaurant.category}
+                                    ${escapeHtml(restaurant.category)}
                                 </div>
                             </div>
                             ${entry.notes ? `
-                                <div class="mobile-entry-notes">${entry.notes}</div>
+                                <div class="mobile-entry-notes">${escapeHtml(entry.notes)}</div>
                             ` : ''}
                             ${entry.tags ? `
                                 <div class="mobile-entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
+                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${escapeHtml(tag.trim())}</span>`).join('')}
                                 </div>
                             ` : ''}
                             ${isViewingOwnProfile ? `
                                 <div class="mobile-entry-actions">
-                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug || ''}'">
+                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${encodeURIComponent(restaurant.slug || '')}'">
                                         <i class="fas fa-external-link-alt"></i> View Restaurant
                                     </button>
                                 </div>
@@ -3301,10 +3182,10 @@
                         entryElement.style.cursor = 'pointer';
                         entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
                         
-                        const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
+                        const restaurantLink = restaurant.slug ? `restaurant.html?slug=${encodeURIComponent(restaurant.slug)}` : 'javascript:void(0)';
                         const restaurantImage = restaurant.image ? 
-                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
+                            `<img src="images/${restaurant.image}" alt="${escapeHtml(restaurant.name)}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
+                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${escapeHtml(restaurant.name.charAt(0))}</div>`;
                         
                         entryElement.innerHTML = `
                             <div class="entry-header">
@@ -3317,10 +3198,10 @@
                                     <div class="restaurant-details">
                                         <h3>
                                             <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                                ${restaurant.name}
+                                                ${escapeHtml(restaurant.name)}
                                             </a>
                                         </h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
+                                        <div class="restaurant-category">${escapeHtml(restaurant.category)}</div>
                                     </div>
                                 </div>
                                 <div class="entry-rating">
@@ -3335,25 +3216,25 @@
                                 </div>
                                 <div class="meta-badge">
                                     <i class="fas fa-clapperboard"></i>
-                                    ${restaurant.category}
+                                    ${escapeHtml(restaurant.category)}
                                 </div>
                                 <div class="meta-badge">
                                     <i class="fas fa-star"></i>
                                     ${entry.rating}/5
                                 </div>
                             </div>
-                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
+                            <div class="entry-notes">${escapeHtml(entry.notes || 'No review text provided')}</div>
                             ${entry.tags ? `
                                 <div class="entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
+                                    ${entry.tags.split(',').map(tag => `<span class="tag">${escapeHtml(tag.trim())}</span>`).join('')}
                                 </div>
                             ` : ''}
                             ${isViewingOwnProfile ? `
                                 <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(entry))}')), JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(restaurant))}')))">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
+                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', Number(decodeURIComponent('${encodeURIComponent(String(restaurant.id))}')))">
                                         <i class="fas fa-heart"></i> Favorite
                                     </button>
                                 </div>
@@ -3570,19 +3451,10 @@
                                 .in('id', uniqueFollowerIds);
 
                             if (!usersError) {
-                                // Fetch actual stats for each user
-                                const usersWithStats = await Promise.all(
-                                    (users || []).map(async (user) => {
-                                        const stats = await getUserStats(user.id);
-                                        return {
-                                            ...user,
-                                            savedItemsCount: stats.savedItemsCount,
-                                            createdListsCount: stats.listsCount
-                                        };
-                                    })
-                                );
-
-                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowersList' : 'followersList');
+                                const usersWithBasicInfo = (users || []).map(function (user) {
+                                    return Object.assign({}, user, { savedItemsCount: 0, createdListsCount: 0 });
+                                });
+                                this.displayUsers(usersWithBasicInfo, isMobile ? 'mobileFollowersList' : 'followersList');
                             }
                         } catch (error) {
                             console.error('Error loading followers:', error);
@@ -3640,19 +3512,10 @@
                                 .in('id', uniqueFollowingIds);
 
                             if (!usersError) {
-                                // Fetch actual stats for each user
-                                const usersWithStats = await Promise.all(
-                                    (users || []).map(async (user) => {
-                                        const stats = await getUserStats(user.id);
-                                        return {
-                                            ...user,
-                                            savedItemsCount: stats.savedItemsCount,
-                                            createdListsCount: stats.listsCount
-                                        };
-                                    })
-                                );
-
-                                this.displayUsers(usersWithStats, isMobile ? 'mobileFollowingList' : 'followingList');
+                                const usersWithBasicInfo = (users || []).map(function (user) {
+                                    return Object.assign({}, user, { savedItemsCount: 0, createdListsCount: 0 });
+                                });
+                                this.displayUsers(usersWithBasicInfo, isMobile ? 'mobileFollowingList' : 'followingList');
                             }
                         } catch (error) {
                             console.error('Error loading following:', error);
@@ -3736,7 +3599,6 @@
                     getActivityCustomListTable(mediaType) {
                         const normalized = String(mediaType || '').trim().toLowerCase();
                         if (!normalized) return '';
-                        if (normalized === 'restaurant' && ENABLE_RESTAURANTS) return 'lists';
                         return CUSTOM_LIST_TABLES[normalized] || '';
                     },
 
@@ -3959,9 +3821,6 @@
                             { table: 'book_lists', mediaType: 'book' },
                             { table: 'music_lists', mediaType: 'music' }
                         ];
-                        if (ENABLE_RESTAURANTS) {
-                            customListSources.push({ table: 'lists', mediaType: 'restaurant' });
-                        }
                         const reviewSources = [
                             { table: 'movie_reviews', mediaType: 'movie', itemField: 'movie_id', textField: 'comment' },
                             { table: 'tv_reviews', mediaType: 'tv', itemField: 'tv_id', textField: 'comment' },
@@ -3970,9 +3829,6 @@
                             { table: 'book_reviews', mediaType: 'book', itemField: 'book_id', textField: 'comment' },
                             { table: 'music_reviews', mediaType: 'music', itemField: 'track_id', textField: 'comment' }
                         ];
-                        if (ENABLE_RESTAURANTS) {
-                            reviewSources.push({ table: 'journal_entries', mediaType: 'restaurant', itemField: 'restraunt_id', textField: 'notes' });
-                        }
 
                         const listAddTasks = listItemSources.map(async (source) => {
                             const rows = await this.fetchRowsWithCreatedAtFallback(
@@ -4290,19 +4146,11 @@
 
                             if (error) throw error;
 
-                            // Fetch actual stats for each user
-                            const usersWithStats = await Promise.all(
-                                (users || []).map(async (user) => {
-                                    const stats = await getUserStats(user.id);
-                                    return {
-                                        ...user,
-                                        savedItemsCount: stats.savedItemsCount,
-                                        createdListsCount: stats.listsCount
-                                    };
-                                })
-                            );
-
-                            this.displayUsers(usersWithStats, 'searchResults');
+                            // Display user search results without per-user stats (avoids N+1 query)
+                            const usersWithBasicInfo = (users || []).map(function (user) {
+                                return Object.assign({}, user, { savedItemsCount: 0, createdListsCount: 0 });
+                            });
+                            this.displayUsers(usersWithBasicInfo, 'searchResults');
                             
                         } catch (error) {
                             console.error('Error searching users:', error);
@@ -4357,17 +4205,21 @@
                             
                             const savedItemsCount = user.savedItemsCount ?? user.saved_items_count ?? user.saved_count ?? user.visited_count ?? user.favorites_count ?? 0;
                             const createdListsCount = user.createdListsCount ?? user.created_lists_count ?? user.lists_count ?? 0;
+                            const safeUserId = escapeHtml(user.id);
+                            const safeUsername = escapeHtml(user.username || 'user');
+                            const safeAvatar = escapeHtml(user.avatar_icon || '') || iconGlyph('user');
+                            const safeFollowers = escapeHtml(String(user.followers_count || 0));
 
                             if (isMobile) {
                                 const userCard = document.createElement('div');
                                 userCard.className = 'mobile-community-card';
                                 
                                 userCard.innerHTML = `
-                                    <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
-                                        <div class="mobile-community-avatar">${user.avatar_icon || iconGlyph('user')}</div>
+                                    <div class="mobile-community-header" onclick="ProfileManager.viewUserProfile('${safeUserId}')" style="cursor: pointer;">
+                                        <div class="mobile-community-avatar">${safeAvatar}</div>
                                         <div class="mobile-community-info">
-                                            <div class="mobile-community-name">@${user.username || 'user'}</div>
-                                            <div class="mobile-community-username">@${user.username || 'user'}</div>
+                                            <div class="mobile-community-name">@${safeUsername}</div>
+                                            <div class="mobile-community-username">@${safeUsername}</div>
                                         </div>
                                     </div>
                                     <div class="mobile-community-stats">
@@ -4380,16 +4232,16 @@
                                             <span class="mobile-community-stat-label">Custom lists</span>
                                         </div>
                                         <div class="mobile-community-stat">
-                                            <span class="mobile-community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="mobile-community-stat-number">${safeFollowers}</span>
                                             <span class="mobile-community-stat-label">Followers</span>
                                         </div>
                                     </div>
                                     <div class="mobile-community-actions">
                                         ${!isCurrentUser ? `
-                                            <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                            <button class="mobile-action-btn secondary" style="flex: 1; padding: 8px 12px; font-size: 14px;" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${safeUserId}')">
                                                 <i class="fas fa-eye"></i> View
                                             </button>
-                                            <button class="mobile-action-btn ${isFollowing ? '' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                            <button class="mobile-action-btn ${isFollowing ? '' : 'primary'}" style="flex: 1; padding: 8px 12px; font-size: 14px; ${isFollowing ? 'background: var(--error); color: white;' : ''}" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${safeUserId}', this)">
                                                 ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
                                             </button>
                                         ` : `
@@ -4405,11 +4257,11 @@
                                 const userCard = document.createElement('div');
                                 userCard.className = 'community-card';
                                 userCard.innerHTML = `
-                                    <div class="community-header" onclick="ProfileManager.viewUserProfile('${user.id}')" style="cursor: pointer;">
-                                        <div class="community-avatar">${user.avatar_icon || iconGlyph('user')}</div>
+                                    <div class="community-header" onclick="ProfileManager.viewUserProfile('${safeUserId}')" style="cursor: pointer;">
+                                        <div class="community-avatar">${safeAvatar}</div>
                                         <div class="community-info">
-                                            <div class="community-name">@${user.username || 'user'}</div>
-                                            <div class="community-username">@${user.username || 'user'}</div>
+                                            <div class="community-name">@${safeUsername}</div>
+                                            <div class="community-username">@${safeUsername}</div>
                                         </div>
                                     </div>
                                     <div class="community-stats">
@@ -4422,16 +4274,16 @@
                                             <span class="community-stat-label">Custom lists</span>
                                         </div>
                                         <div class="community-stat">
-                                            <span class="community-stat-number">${user.followers_count || 0}</span>
+                                            <span class="community-stat-number">${safeFollowers}</span>
                                             <span class="community-stat-label">Followers</span>
                                         </div>
                                     </div>
                                     <div class="community-actions">
                                         ${!isCurrentUser ? `
-                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${user.id}')">
+                                            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); ProfileManager.viewUserProfile('${safeUserId}')">
                                                 <i class="fas fa-eye"></i> View Profile
                                             </button>
-                                            <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${user.id}', this)">
+                                            <button class="btn ${isFollowing ? 'btn-error' : 'btn-primary'} btn-sm" onclick="event.stopPropagation(); ProfileManager.toggleFollow('${safeUserId}', this)">
                                                 ${isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow'}
                                             </button>
                                         ` : `
@@ -4641,7 +4493,6 @@
                     const raw = localStorage.getItem(COLLECTION_VIEW_STORAGE_KEY);
                     const parsed = raw ? JSON.parse(raw) : {};
                     const base = {
-                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
                         anime: 'grid',
@@ -4660,7 +4511,6 @@
                     return base;
                 } catch (_error) {
                     return {
-                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
                         anime: 'grid',
@@ -7906,7 +7756,6 @@
                     return;
                 }
                 const handlers = {
-                    ...(ENABLE_RESTAURANTS ? { restaurants: () => renderRestaurants() } : {}),
                     movies: () => renderMovies(),
                     ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
                     tv: () => renderTvShows(),
@@ -13024,16 +12873,6 @@
             function createListForType(type) {
                 closeModal('createListTypeModal');
                 const normalized = String(type || '').toLowerCase();
-                if (normalized === 'restaurants') {
-                    if (!ENABLE_RESTAURANTS) {
-                        showToast('Collections are temporarily unavailable', 'info');
-                        showTab(DEFAULT_PROFILE_TAB);
-                        return;
-                    }
-                    showTab('restaurants');
-                    showCreateListModal();
-                    return;
-                }
                 if (normalized === 'movies') {
                     showTab('movies');
                     createMovieList();

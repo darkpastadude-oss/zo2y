@@ -738,24 +738,28 @@
   async function readAuthProfileRow(client, userId) {
     var safeUserId = String(userId || '').trim();
     if (!client || !safeUserId || !client.from) return null;
+    var firstResult;
     try {
-      var byId = await client
+      firstResult = await client
         .from('user_profiles')
         .select('id, username, full_name')
         .eq('id', safeUserId)
         .maybeSingle();
-      if (!byId || !byId.error) {
-        return byId && byId.data ? byId.data : null;
-      }
-      var byUserId = await client
+    } catch (err) { console.warn('readAuthProfileRow byId failed:', err); }
+    if (firstResult && !firstResult.error) {
+      return firstResult.data || null;
+    }
+    var fallbackResult;
+    try {
+      fallbackResult = await client
         .from('user_profiles')
         .select('id, username, full_name')
         .eq('user_id', safeUserId)
         .maybeSingle();
-      if (!byUserId || !byUserId.error) {
-        return byUserId && byUserId.data ? byUserId.data : null;
-      }
-    } catch (_err) {}
+    } catch (err) { console.warn('readAuthProfileRow byUserId failed:', err); }
+    if (fallbackResult && !fallbackResult.error) {
+      return fallbackResult.data || null;
+    }
     return null;
   }
 
@@ -916,6 +920,7 @@
       return client;
     }
     client.__zo2yAuthListenersBound = true;
+    var authEventEpoch = 0;
     client.auth.onAuthStateChange(function (event, session) {
       var normalizedEvent = String(event || '').trim().toUpperCase();
       lastKnownSessionSnapshot = session && session.access_token && session.refresh_token ? session : null;
@@ -936,10 +941,12 @@
         }
       }
       if (client === window.__ZO2Y_SUPABASE_CLIENT) {
-        if (authStateVerifyTimer) window.clearTimeout(authStateVerifyTimer);
-        authStateVerifyTimer = window.setTimeout(function () {
-          void verifyAndApplySession(true);
-        }, normalizedEvent === 'SIGNED_IN' ? 0 : 80);
+        var myEpoch = ++authEventEpoch;
+        verifyAndApplySession(true).then(function () {
+          if (authEventEpoch > myEpoch) {
+            verifyAndApplySession(true).catch(function (err) { console.warn('Auth state re-verify failed:', err); });
+          }
+        }).catch(function (err) { console.warn('Auth state verify failed:', err); });
       }
     });
     return client;
@@ -1287,7 +1294,7 @@
     if (activeClient && activeClient.auth && typeof activeClient.auth.signOut === 'function') {
       try {
         await activeClient.auth.signOut({ scope: 'local' });
-      } catch (_err) {}
+      } catch (err) { console.warn('signOut failed:', err); }
     }
     return true;
   }
@@ -1533,8 +1540,8 @@
       next: nextPath
     });
     if (flow === 'login') {
-      void persistReferralMetadata(client, session.user);
-      void ensureAuthProfile(client, session.user);
+      persistReferralMetadata(client, session.user).catch(function (err) { console.warn('Referral metadata failed:', err); });
+      ensureAuthProfile(client, session.user).catch(function (err) { console.warn('Auth profile ensure failed:', err); });
       redirectToPostAuthTarget(nextPath, {
         inPlace: opts.inPlace === true
       });
@@ -1543,10 +1550,10 @@
     if (flow === 'signup') {
       var bootstrapPayload = buildPostAuthBootstrapPayload(flow, session);
       if (bootstrapPayload) setPendingPostAuthBootstrap(bootstrapPayload);
-      void triggerWelcomeEmail(session, flow);
+      triggerWelcomeEmail(session, flow).catch(function (err) { console.warn('Welcome email failed:', err); });
     }
 
-    void persistReferralMetadata(client, session.user);
+    persistReferralMetadata(client, session.user).catch(function (err) { console.warn('Referral metadata failed:', err); });
 
     var profileResult = await ensureAuthProfile(client, session.user);
     if (profileResult && profileResult.ok && !profileResult.needsOnboarding && flow !== 'signup') {
@@ -1674,14 +1681,14 @@
     if (code && typeof activeClient.auth.exchangeCodeForSession === 'function') {
       try {
         await activeClient.auth.exchangeCodeForSession(code);
-      } catch (_err) {}
+      } catch (err) { console.warn('OAuth code exchange failed:', err); }
     } else if (accessToken && refreshToken && typeof activeClient.auth.setSession === 'function') {
       try {
         await activeClient.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
         });
-      } catch (_err2) {}
+      } catch (err) { console.warn('OAuth session restore failed:', err); }
     }
 
     return getActiveSession(activeClient, { refreshIfNeeded: false, restore: true });
@@ -1785,44 +1792,28 @@
     if (flow !== 'signup') flow = 'login';
     var nextPath = sanitizeNextPath(params.get('next') || readRequestedNextPath('') || getSanitizedCurrentPath());
 
-    pushAuthDebugEvent('oauth:inline:start', {
+    pushAuthDebugEvent('oauth:inline:redirect', {
       pageKey: pageKey,
       flow: flow,
       next: nextPath
     });
 
-    void (async function () {
-      try {
-        await waitForSupabase(8000);
-        var client = ensureSharedSupabaseClient();
-        if (!client) throw new Error('Google sign-in is unavailable right now.');
-        var session = await completeOAuthCallback({
-          client: client
-        });
-        await finishAuthRedirect({
-          client: client,
-          session: session,
-          flow: flow,
-          next: nextPath,
-          inPlace: true
-        });
-      } catch (error) {
-        pushAuthDebugEvent('oauth:inline:error', {
-          pageKey: pageKey,
-          flow: flow,
-          message: String(error && error.message || error || '').slice(0, 180)
-        });
-        var fallback = new URL(flow === 'signup' ? 'sign-up.html' : 'login.html', window.location.origin);
-        fallback.searchParams.set('next', nextPath);
-        window.location.replace(fallback.toString());
-      }
-    })();
+    var authUrl = new URL('auth-callback.html', window.location.origin);
+    if (window.location.search) authUrl.search = window.location.search;
+    if (window.location.hash) authUrl.hash = window.location.hash;
+    if (flow && !authUrl.searchParams.has('flow')) authUrl.searchParams.set('flow', flow);
+    var storedNext = readRequestedNextPath('');
+    if (storedNext && !authUrl.searchParams.has('next')) authUrl.searchParams.set('next', storedNext);
+    window.location.replace(authUrl.toString());
 
     return true;
   }
 
   async function verifyAndApplySession(force) {
-    if (verifyInFlight) return verifyInFlight;
+    if (verifyInFlight && !force) return verifyInFlight;
+    if (verifyInFlight && force) {
+      verifyInFlight = null;
+    }
 
     verifyInFlight = (async function () {
       var startedAt = Date.now();
@@ -1947,17 +1938,17 @@
 
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) {
-        void persistLiveClientSession();
+        persistLiveClientSession().catch(function (err) { console.warn('Persist session on hide failed:', err); });
         return;
       }
       if (!shouldThrottleResumeVerification()) {
-        void verifyAndApplySession(false);
+        verifyAndApplySession(false).catch(function (err) { console.warn('Verify on visibility change failed:', err); });
       }
     });
 
     window.addEventListener('focus', function () {
       if (!shouldThrottleResumeVerification()) {
-        void verifyAndApplySession(false);
+        verifyAndApplySession(false).catch(function (err) { console.warn('Verify on focus failed:', err); });
       }
     });
 
@@ -1975,16 +1966,16 @@
         }
       }
       if (!shouldThrottleResumeVerification()) {
-        void verifyAndApplySession(false);
+        verifyAndApplySession(false).catch(function (err) { console.warn('Verify on pageshow failed:', err); });
       }
     });
 
     window.addEventListener('pagehide', function () {
-      void persistLiveClientSession();
+      persistLiveClientSession().catch(function (err) { console.warn('Persist session on pagehide failed:', err); });
     });
 
     window.addEventListener('beforeunload', function () {
-      void persistLiveClientSession();
+      persistLiveClientSession().catch(function (err) { console.warn('Persist session on beforeunload failed:', err); });
     });
 
     window.addEventListener('storage', function (event) {
@@ -1996,7 +1987,7 @@
         key === DURABLE_STORAGE_KEY ||
         key === EXPLICIT_SIGNOUT_KEY
       ) {
-        void verifyAndApplySession(true);
+        verifyAndApplySession(true).catch(function (err) { console.warn('Verify on storage event failed:', err); });
       }
     });
   }
@@ -2113,6 +2104,6 @@
   bindLifecycleListeners();
 
   if (shouldVerifyCurrentPage()) {
-    void verifyAndApplySession(false);
+    verifyAndApplySession(false).catch(function (err) { console.warn('Auth verify on load failed:', err); });
   }
 })();

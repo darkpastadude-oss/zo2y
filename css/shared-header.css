@@ -1,14 +1,14 @@
-/* Shared exact header for all pages */
+/* Shared exact header for all pages (uses design-system tokens) */
 :root {
-  --zo2y-header-bg: rgba(10, 15, 30, 0.95);
-  --zo2y-header-border: rgba(255, 255, 255, 0.08);
-  --zo2y-header-text: #f9fafb;
-  --zo2y-header-muted: #9ca3af;
-  --zo2y-header-accent: #f59e0b;
-  --zo2y-header-card: #1f2937;
-  --zo2y-rail-expanded: 280px;
-  --zo2y-rail-collapsed: 72px;
-  --zo2y-rail-offset: 24px;
+  --zo2y-header-bg: var(--color-bg-primary);
+  --zo2y-header-border: var(--color-border);
+  --zo2y-header-text: var(--color-text-primary);
+  --zo2y-header-muted: var(--color-text-secondary);
+  --zo2y-header-accent: var(--color-accent);
+  --zo2y-header-card: var(--color-bg-tertiary);
+  --zo2y-rail-expanded: var(--sidebar-expanded, 280px);
+  --zo2y-rail-collapsed: var(--sidebar-collapsed, 72px);
+  --zo2y-rail-offset: var(--sidebar-gap, 24px);
 }
 
 /* Global UI chrome lowercase (keeps media/item titles untouched) */

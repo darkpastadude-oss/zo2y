@@ -1320,6 +1320,12 @@ const HEADER_HTML = `
   }
 
   function wireControlModals() {
+    if (window.__ZO2Y_MODAL_KEYDOWN_BOUND) {
+      document.querySelectorAll('button.control-icon-btn[id][data-zo2y-modal-wired="1"]').forEach(function (btn) {
+        btn.dataset.zo2yModalWired = '1';
+      });
+      return;
+    }
     const buttons = Array.from(document.querySelectorAll('button.control-icon-btn[id]'))
       .filter((btn) => /Filter(Btn|ToggleBtn)$/i.test(String(btn.id || '')));
 
@@ -1338,7 +1344,7 @@ const HEADER_HTML = `
         modal.classList.add('show');
         modal.setAttribute('aria-hidden', 'false');
       };
-      const close = () => {
+      const close = function () {
         modal.classList.remove('show');
         modal.setAttribute('aria-hidden', 'true');
       };
@@ -1348,11 +1354,18 @@ const HEADER_HTML = `
       modal.addEventListener('click', (event) => {
         if (event.target === modal) close();
       });
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') close();
-      });
 
       btn.dataset.zo2yModalWired = '1';
+    });
+
+    window.__ZO2Y_MODAL_KEYDOWN_BOUND = true;
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape') return;
+      var visibleModal = document.querySelector('.control-modal.show');
+      if (visibleModal) {
+        visibleModal.classList.remove('show');
+        visibleModal.setAttribute('aria-hidden', 'true');
+      }
     });
   }
 

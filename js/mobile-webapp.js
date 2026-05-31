@@ -103,8 +103,12 @@ const APP_RUNTIME_VERSION = '20260424-auth-runtime-d';
     if (isStandaloneMode()) return false;
     const isIos = isIosDevice();
     if (!isIos && !deferredInstallPrompt) return false;
-    if (localStorage.getItem(INSTALL_DONE_KEY) === '1') return false;
-    const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY) || 0);
+    var doneVal = '0';
+    var dismissVal = '0';
+    try { doneVal = localStorage.getItem(INSTALL_DONE_KEY) || '0'; } catch (_e) {}
+    try { dismissVal = localStorage.getItem(INSTALL_DISMISS_KEY) || '0'; } catch (_e) {}
+    if (doneVal === '1') return false;
+    const dismissedAt = Number(dismissVal || 0);
     if (dismissedAt && (Date.now() - dismissedAt) < INSTALL_REPROMPT_MS) return false;
     return true;
   };

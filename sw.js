@@ -382,7 +382,7 @@ self.addEventListener('fetch', (event) => {
   const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
   if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
     url.searchParams.set('v', MOVIES_PAGE_VERSION);
-    event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
+    event.respondWith(fetch(url.toString(), { cache: 'no-store' }).catch(function () { return Response.error(); }));
     return;
   }
   const isLatestGamesPage =
