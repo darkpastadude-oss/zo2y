@@ -957,7 +957,12 @@
       return window.__ZO2Y_SUPABASE_CLIENT;
     }
 
-    var client = factory(SUPABASE_URL, SUPABASE_KEY, createOptions);
+    var client;
+    try {
+      client = factory(SUPABASE_URL, SUPABASE_KEY, createOptions);
+    } catch (_e) {
+      return null;
+    }
     attachClientListeners(client);
     if (shouldShare) {
       window.__ZO2Y_SUPABASE_CLIENT = client;

@@ -3836,15 +3836,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         await waitForHomeSupabaseSdk();
       }
       if (!window.supabase?.createClient) return null;
-      homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-          storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: false,
-          storageKey: 'zo2y-auth-v2'
-        }
-      });
+      try {
+        homeSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          auth: {
+            storage: window.__ZO2Y_AUTH_STORAGE_BRIDGE || undefined,
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: false,
+            storageKey: 'zo2y-auth-v2'
+          }
+        });
+      } catch (_e) {
+        return null;
+      }
       window.__ZO2Y_SUPABASE_CLIENT = homeSupabaseClient;
       return homeSupabaseClient;
     }
