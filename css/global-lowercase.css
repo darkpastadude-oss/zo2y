@@ -1,6 +1,0 @@
-/* Global lowercase UI text - all text */
-
-html body,
-html body * {
-  text-transform: lowercase;
-}

@@ -24,9 +24,12 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260529c" defer></script>
+  <script src="js/lib/helpers.js?v=20260531a" defer></script>
+<script src="js/list-utils.js?v=20260529c" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260529c" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="css/design-system.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/design-system.css"></noscript>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260529c"></noscript>
@@ -48,9 +51,6 @@
   <link rel="stylesheet" href="css/shared-header.css?v=20260529c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260529c"></noscript>
 <script src="js/shared-header.js?v=20260529c" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260529c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260529c"></noscript>
-
   </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -96,8 +96,8 @@
       <button id="moviesSearchBtn" class="control-icon-btn" type="button" aria-label="Search movies"><i class="fas fa-search"></i></button>
       <button id="moviesFilterBtn" class="control-icon-btn" type="button" aria-label="Open movie filters"><i class="fas fa-sliders-h"></i></button>
     </section>
-    <div class="control-modal" id="moviesFilterModal" aria-hidden="true">
-      <div class="control-modal-card">
+<div class="control-modal" id="moviesFilterModal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Filter movies">
+<div class="control-modal-card">
         <div class="control-modal-head">
           <div class="control-modal-title">Filter movies</div>
           <button class="control-modal-close" id="moviesFilterCloseBtn" type="button" aria-label="Close movie filters">&times;</button>
@@ -145,8 +145,8 @@
     </section>
   </main>
 
-  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content">
+<div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
+<div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
         <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
@@ -166,8 +166,8 @@
     </div>
   </div>
 
-  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content max-w-320">
+<div id="createListModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Create New List">
+<div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>

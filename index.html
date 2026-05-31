@@ -67,6 +67,7 @@
   <link rel="dns-prefetch" href="//restcountries.com">
   <link rel="dns-prefetch" href="//www.thesportsdb.com">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="js/lib/helpers.js?v=20260531a" defer></script>
 <script src="js/list-utils.js?v=20260530a" defer></script>
   <script src="js/cover-cache.js?v=20260530a" defer></script>
   <script src="js/data/curated-media.js?v=20260530a" defer></script>
@@ -77,9 +78,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
+  <link rel="stylesheet" href="css/design-system.css?v=20260531a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/design-system.css?v=20260531a"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260530a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/animations.css?v=20260530a"></noscript>
-  <style>:root{--color-bg-primary:#0b1633;--color-bg-secondary:#111827;--color-bg-tertiary:#132347;--color-bg-elevated:#172b58;--color-text-primary:#fff;--color-text-secondary:#8ca3c7;--color-accent:#f59e0b;--color-accent-hover:#ffb84d;--color-border:rgba(255,255,255,0.12);--color-border-hover:rgba(255,255,255,0.18);--color-success:#10b981;--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--shadow:0 10px 25px rgba(0,0,0,0.2);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
+  <style>:root{--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
 <link rel="stylesheet" href="css/pages/index.css?v=20260530a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/pages/index.css?v=20260530a"></noscript>
 <link rel="preload" href="/css/pages/index-landing.css?v=20260530a" as="style">
@@ -99,9 +102,7 @@
   <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260530a"></noscript>
   <script src="js/referral-utils.js?v=20260530a" defer></script>
   <script src="js/shared-header.js?v=20260530a" defer></script>
-<link rel="stylesheet" href="css/global-lowercase.css?v=20260530a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260530a"></noscript>
-  </head>
+</head>
 <body>
   <div id="appRoot">
   <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
@@ -366,8 +367,8 @@
     <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
   </nav>
 
-  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content">
+<div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
+<div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
         <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
@@ -387,8 +388,8 @@
     </div>
   </div>
 
-  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content max-w-320">
+<div id="createListModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Create New List">
+<div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>

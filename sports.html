@@ -19,7 +19,9 @@
   <script src="/js/bootstrap-auth.js?v=20260530a" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Sports ? Zo2y</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="css/design-system.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/design-system.css"></noscript>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <style>:root{--color-bg-primary:#0b1633;--color-bg-secondary:#111827;--color-bg-tertiary:#132347;--color-bg-elevated:#172b58;--color-text-primary:#fff;--color-text-secondary:#8ca3c7;--color-accent:#f59e0b;--color-accent-hover:#ffb84d;--color-border:rgba(255,255,255,0.12);--color-border-hover:rgba(255,255,255,0.18);--color-success:#10b981;--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--shadow:0 10px 25px rgba(0,0,0,0.2);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:Inter,system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
 <link rel="stylesheet" href="css/pages/index.css?v=20260530a" media="print" onload="this.media='all'">
@@ -28,8 +30,6 @@
   <link rel="stylesheet" href="css/pages/sports-page.css?v=20260530a" />
   <link rel="stylesheet" href="css/shared-header.css?v=20260530a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260530a"></noscript>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260530a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260530a"></noscript>
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -43,7 +43,8 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260530a"></noscript>
   <script src="/js/mobile-webapp.js?v=20260530a" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260530a" defer></script>
+  <script src="js/lib/helpers.js?v=20260531a" defer></script>
+<script src="js/list-utils.js?v=20260530a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260530a" defer></script>
   <script src="js/shared-header.js?v=20260530a" defer></script>
   <script src="js/pages/sports.js?v=20260530a" defer></script>
@@ -95,8 +96,8 @@
       <span id="sportsCount">0 teams shown</span>
     </div>
 
-    <div class="control-modal" id="sportsFilterModal" aria-hidden="true">
-      <div class="control-modal-card">
+<div class="control-modal" id="sportsFilterModal" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Filter teams">
+<div class="control-modal-card">
         <div class="control-modal-head">
           <div class="control-modal-title">Filter teams</div>
           <button class="control-modal-close" id="sportsFilterClose" type="button">&times;</button>
@@ -138,8 +139,8 @@
 
   <div class="sports-toast" id="sportsToast"></div>
 
-  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content">
+<div id="itemMenuModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Add to List">
+<div class="menu-modal-content">
       <div class="menu-modal-header">
         <h3 id="menuModalTitle">Add to List</h3>
         <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
@@ -157,8 +158,8 @@
     </div>
   </div>
 
-  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content" style="max-width: 320px;">
+<div id="createListModal" class="menu-modal authenticated-only" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Create New List">
+<div class="menu-modal-content" style="max-width: 320px;">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>

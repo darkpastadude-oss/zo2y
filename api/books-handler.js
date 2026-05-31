@@ -636,6 +636,30 @@ export default async function handler(req, res) {
       let docs = Array.isArray(google.docs) ? google.docs : [];
       let numFound = Number(google.numFound || 0);
 
+      // For well-known popular queries, also fetch an intitle:"exact match" to ensure
+      // the expected book surfaces to the top
+      if (query.q && docs.length >= 1) {
+        const knownPopular = ["harry potter", "mistborn", "fourth wing", "atomic habits",
+          "the hobbit", "project hail mary", "dune", "the hunger games",
+          "1984", "the great gatsby", "to kill a mockingbird", "pride and prejudice",
+          "the lord of the rings", "a game of thrones", "the martian",
+          "ready player one", "the alchemist", "gone girl", "the girl on the train",
+          "the da vinci code", "the housemaid", "the midnight library",
+          "educated", "becoming", "sapiens", "where the crawdads sing",
+          "onyx storm", "iron flame", "the shining", "it", "the stand", "carrie",
+          "the song of achilles", "circe", "normal people", "klara and the sun"];
+        const qLower = String(query.q || "").trim().toLowerCase();
+        const isKnown = knownPopular.some(k => qLower.includes(k) || k.includes(qLower));
+        if (isKnown) {
+          // Boost: run a precise intitle search to bring the exact match up
+          const preciseParams = { ...params, q: `intitle:"${qLower}"`, limit: 5, page: 1 };
+          const precise = await fetchGoogleDocs(preciseParams);
+          if (Array.isArray(precise.docs) && precise.docs.length) {
+            docs = dedupeDocs([...precise.docs, ...docs], limit * 2);
+          }
+        }
+      }
+
       if (docs.length < limit) {
         const open = await fetchOpenLibraryDocs(params);
         if (Array.isArray(open.docs) && open.docs.length) {

@@ -523,6 +523,7 @@
 }
 
 /* Modals */
+/* Usage: <div class="modal-backdrop show"> <div class="modal show" role="dialog" aria-modal="true"> ... </div> </div> */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -656,6 +657,115 @@
   height: 220px;
   border-radius: var(--radius-lg);
   flex-shrink: 0;
+}
+
+/* === Toasts / Notifications === */
+/* Usage: <div class="toast-container"><div class="toast success" role="alert"> ... </div></div> */
+.toast-container {
+  position: fixed;
+  top: var(--space-5);
+  right: var(--space-5);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-xl);
+  pointer-events: auto;
+  animation: toastSlideIn 0.3s var(--ease-default);
+  border-left: 4px solid var(--color-accent);
+  min-width: 280px;
+  max-width: 420px;
+}
+
+.toast.info { border-left-color: var(--color-accent); }
+.toast.success { border-left-color: var(--color-success); }
+.toast.error { border-left-color: var(--color-error); }
+.toast.warning { border-left-color: var(--color-warning); }
+
+.toast-icon { font-size: var(--font-size-xl); flex-shrink: 0; }
+.toast.info .toast-icon { color: var(--color-accent); }
+.toast.success .toast-icon { color: var(--color-success); }
+.toast.error .toast-icon { color: var(--color-error); }
+.toast.warning .toast-icon { color: var(--color-warning); }
+
+.toast-content { flex: 1; min-width: 0; }
+.toast-title { font-weight: var(--font-weight-semibold); margin-bottom: 2px; color: var(--color-text-primary); }
+.toast-message { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+
+.toast-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-secondary); padding: 0; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border-radius: var(--radius-sm); transition: all var(--transition-fast) var(--ease-default);
+}
+.toast-close:hover { background: var(--color-bg-tertiary); color: var(--color-text-primary); }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* === Spinner / Loading === */
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: ds-spin 0.7s linear infinite;
+}
+
+.spinner-lg { width: 32px; height: 32px; border-width: 4px; }
+
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+
+/* === Modal overlay (for profile modals without overlay) === */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: calc(var(--z-modal) - 1);
+  background: rgba(4, 10, 23, 0.72); backdrop-filter: blur(6px);
+}
+
+/* === Search Bar (unified component) === */
+.search-bar {
+  position: relative; width: 100%; max-width: 520px;
+}
+.search-bar input {
+  width: 100%; height: 44px; padding: 0 46px 0 16px;
+  border-radius: 14px; border: 1px solid var(--color-border);
+  background: var(--color-bg-tertiary); color: var(--color-text-primary);
+  font-size: 15px; outline: none;
+  transition: border-color var(--transition-fast) var(--ease-default),
+              box-shadow var(--transition-fast) var(--ease-default);
+  -webkit-appearance: none; appearance: none;
+  box-sizing: border-box;
+}
+.search-bar input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+}
+.search-bar .search-btn {
+  position: absolute; right: 5px; top: 5px;
+  width: 34px; height: 34px; border-radius: 11px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-tertiary); color: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: border-color var(--transition-fast) var(--ease-default),
+              color var(--transition-fast) var(--ease-default);
+}
+.search-bar .search-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
 }
 
 /* === Focus Visible === */
