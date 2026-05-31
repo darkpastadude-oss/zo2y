@@ -18,6 +18,8 @@
 <script src="js/index-list-menu-adapter.js?v=20260531b" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260531b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/animations.css?v=20260531b"></noscript>
   <style>
     :root {
       --bg: #0b1633;
@@ -344,6 +346,23 @@
       align-items: center;
       justify-content: center;
       font-size: 18px;
+    }
+    .books-clear-btn {
+      position: absolute;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .books-clear-btn.show {
+      display: inline-flex;
     }
 
     .grid {
@@ -906,6 +925,7 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
+        <button id="booksClearSearchBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -1071,7 +1091,13 @@
       { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
       { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
       { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Atomic Habits', author: 'James Clear', year: 2018 },
       { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Women', author: 'Kristin Hannah', year: 2024 },
+      { title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019 },
+      { title: 'Tomorrow, and Tomorrow, and Tomorrow', author: 'Gabrielle Zevin', year: 2022 },
+      { title: 'Yellowface', author: 'R. F. Kuang', year: 2023 },
+      { title: 'The Midnight Library', author: 'Matt Haig', year: 2020 },
       { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
       { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
       { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
@@ -1234,9 +1260,12 @@
 
             if (books.length < 15) {
               const fallbackQueries = [
-                'bestsellers 2025 fiction',
-                'popular books 2025',
-                '2025 bestseller'
+                'bestseller fiction',
+                'new release fiction',
+                'award winning fiction',
+                'popular fantasy',
+                'popular thriller',
+                'popular sci fi'
               ];
               await Promise.all(
                 fallbackQueries.map((q) =>

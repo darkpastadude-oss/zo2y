@@ -249,6 +249,47 @@
     will-change: transform, opacity;
 }
 
+/* === PAGE LOAD FADE-IN === */
+/* Prevents flash of unstyled content and logo */
+body {
+    opacity: 0 !important;
+    animation: pageFadeIn 0.4s var(--ease-smooth) forwards !important;
+    animation-delay: 0.05s !important;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* For tab content switching */
+.tab-content {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);
+}
+
+.tab-content.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Mobile sections */
+.mobile-section {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);
+}
+
+.mobile-section.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 /* === REDUCED MOTION SUPPORT === */
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -257,5 +298,10 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+    
+    body {
+        opacity: 1;
+        animation: none;
     }
 }

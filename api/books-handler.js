@@ -10,6 +10,55 @@ const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 const OPEN_LIBRARY_BASE = "https://openlibrary.org";
 const SUPABASE_KEY_HEADER = "x-zo2y-supabase-key";
 const DEFAULT_BOOK_COVER = "/images/patterns/open-book-01.svg";
+const CURRENT_YEAR = new Date().getUTCFullYear();
+const DISCOVERY_QUERIES = [
+  "bestseller fiction",
+  "new release fiction",
+  "award winning fiction",
+  "popular fantasy",
+  "popular thriller",
+  "popular sci fi"
+];
+const POPULAR_SERIES = [
+  "harry potter",
+  "the boys",
+  "a court of thorns and roses",
+  "the hunger games",
+  "percy jackson",
+  "lord of the rings",
+  "dune",
+  "wings of fire",
+  "diary of a wimpy kid"
+];
+const KNOWN_AUTHORS = [
+  "j k rowling",
+  "jk rowling",
+  "g t karber",
+  "gillian flynn",
+  "freida mcfadden",
+  "rebecca yarros",
+  "andy weir",
+  "james clear",
+  "matt haig",
+  "alex michaelides",
+  "r f kuang",
+  "gabrielle zevin",
+  "kristin hannah",
+  "stephen king",
+  "suzanne collins",
+  "rick riordan",
+  "garth ennis",
+  "darick robertson"
+];
+const JUNK_TEXT_PATTERNS = [
+  /\b(newspaper|magazine|periodical|journal|proceedings|conference|symposium|report|annual report)\b/i,
+  /\b(government|bureau|department|committee|commission|census|gazette|archive|archives)\b/i,
+  /\b(manual|catalogue|catalog|directory|bulletin|pamphlet|microform|thesis|dissertation)\b/i,
+  /\b(scanned|scan|public domain|historical document|academic pdf|working paper)\b/i
+];
+const EXPLICIT_TEXT_PATTERNS = [
+  /\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i
+];
 
 function getBooksKey() {
   return String(process.env.GOOGLE_BOOKS_KEY || "").trim();
@@ -50,6 +99,147 @@ function normalizeBook(input) {
     || (googleId ? "google-books" : (rawKey ? "openlibrary" : "book"));
 
   return { id, title, author, year, cover, source };
+}
+
+function normalizeRankText(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getDocAuthors(doc = {}) {
+  if (Array.isArray(doc?.author_name)) return doc.author_name.map((entry) => String(entry || "").trim()).filter(Boolean);
+  return String(doc?.author || doc?.authors || "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function getDocText(doc = {}) {
+  const parts = [
+    doc?.title,
+    getDocAuthors(doc).join(" "),
+    Array.isArray(doc?.subject) ? doc.subject.join(" ") : doc?.subject,
+    Array.isArray(doc?.publisher) ? doc.publisher.join(" ") : doc?.publisher,
+    doc?.description,
+    doc?.maturityRating,
+    doc?._source
+  ];
+  return parts.map((entry) => String(entry || "").trim()).filter(Boolean).join(" ");
+}
+
+function isJunkBookDoc(doc = {}) {
+  const text = getDocText(doc);
+  if (!String(doc?.title || "").trim()) return true;
+  if (EXPLICIT_TEXT_PATTERNS.some((pattern) => pattern.test(text))) return true;
+  if (JUNK_TEXT_PATTERNS.some((pattern) => pattern.test(text))) return true;
+  const maturity = String(doc?.maturityRating || "").toLowerCase();
+  if (maturity && maturity !== "not_mature" && maturity.includes("mature")) return true;
+  return false;
+}
+
+function filterSafeBookDocs(docs = []) {
+  return (Array.isArray(docs) ? docs : []).filter((doc) => !isJunkBookDoc(doc));
+}
+
+function hasQualityCover(doc = {}) {
+  const cover = toHttpsUrl(doc?._googleThumbnail || doc?.coverImage || doc?.cover || doc?.thumbnail || "");
+  if (!cover || cover === DEFAULT_BOOK_COVER) return false;
+  if (/placeholder|nocover|no-cover|default|blank/i.test(cover)) return false;
+  return /^https:\/\//i.test(cover);
+}
+
+function scoreCoverQuality(doc = {}) {
+  if (!hasQualityCover(doc)) return -120;
+  const cover = toHttpsUrl(doc?._googleThumbnail || doc?.coverImage || "");
+  let score = 50;
+  if (/zoom=|edge=curl|books\.google/i.test(cover)) score += 30;
+  if (/covers\.openlibrary\.org\/b\/id\/.+-L\.jpg/i.test(cover)) score += 18;
+  if (doc?._googleThumbnail || doc?._googleVolumeId) score += 24;
+  return score;
+}
+
+function scoreSeededBookMatch(row, seed) {
+  const normalizedTitle = normalizeRankText(row?.title || "");
+  const normalizedAuthor = normalizeRankText(getDocAuthors(row)[0] || "");
+  const seedTitle = normalizeRankText(seed?.title || "");
+  const seedAuthor = normalizeRankText(seed?.author || "");
+  const rowYear = Number(row?.first_publish_year || row?.year || 0) || 0;
+  const seedYear = Number(seed?.year || 0) || 0;
+  let score = 0;
+  if (normalizedTitle && seedTitle) {
+    if (normalizedTitle === seedTitle) score += 120;
+    else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+    else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+  }
+  if (normalizedAuthor && seedAuthor) {
+    if (normalizedAuthor === seedAuthor) score += 70;
+    else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+  }
+  score += scoreCoverQuality(row);
+  if (rowYear) score += 8;
+  if (seedYear && rowYear === seedYear) score += 24;
+  if (rowYear >= 2020 && rowYear <= CURRENT_YEAR + 1) score += 16;
+  return score;
+}
+
+function scoreBookSearchResult(doc = {}, query = "") {
+  const q = normalizeRankText(query);
+  const title = normalizeRankText(doc?.title || "");
+  const authors = normalizeRankText(getDocAuthors(doc).join(" "));
+  const haystack = normalizeRankText(getDocText(doc));
+  const year = Number(doc?.first_publish_year || doc?.year || 0) || 0;
+  let score = 0;
+
+  if (q && title) {
+    if (title === q) score += 500;
+    else if (title.startsWith(q)) score += 360;
+    else if (title.includes(q)) score += 260;
+    const queryTokens = q.split(" ").filter(Boolean);
+    const titleTokenHits = queryTokens.filter((token) => title.includes(token)).length;
+    if (queryTokens.length && titleTokenHits === queryTokens.length) score += 180;
+  }
+
+  if (q && POPULAR_SERIES.some((series) => q.includes(series) || title.includes(series))) score += 300;
+  if (POPULAR_SERIES.some((series) => title.includes(series))) score += 200;
+  if (authors && KNOWN_AUTHORS.some((author) => authors.includes(author))) score += 100;
+  if (haystack.includes("english") || doc?._source === "google-books") score += 150;
+  score += scoreCoverQuality(doc);
+  if (year >= 1990 && year <= CURRENT_YEAR + 1) score += 50;
+  if (year && year < 1950) score -= 180;
+  if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 40;
+  if (isJunkBookDoc(doc)) score -= 700;
+
+  return score;
+}
+
+function sortBookDocsForQuery(docs = [], query = "") {
+  return filterSafeBookDocs(docs).slice().sort((a, b) => {
+    const diff = scoreBookSearchResult(b, query) - scoreBookSearchResult(a, query);
+    if (diff) return diff;
+    return scoreCoverQuality(b) - scoreCoverQuality(a);
+  });
+}
+
+function buildDiscoveryQuery(page = 1, subject = "") {
+  const cleanSubject = String(subject || "").trim();
+  if (cleanSubject && cleanSubject !== "fiction") return `popular ${cleanSubject}`;
+  const index = Math.max(0, (Number(page || 1) - 1) % DISCOVERY_QUERIES.length);
+  return DISCOVERY_QUERIES[index];
+}
+
+function normalizeSearchQueryForBooks(raw) {
+  const normalized = String(raw || "").trim().replace(/\s+/g, " ");
+  const lowered = normalizeRankText(normalized);
+  if (lowered === "the boys") return 'intitle:"The Boys" comics graphic novel';
+  if (lowered === "housemaid") return 'intitle:"The Housemaid" Freida McFadden';
+  if (lowered === "harry potter") return 'intitle:"Harry Potter" J.K. Rowling';
+  return normalized;
 }
 
 function dedupeBooks(rows = [], limit = 20) {
@@ -198,7 +388,7 @@ function pushQueryParam(params, key, value) {
 }
 
 function buildGoogleQuery(params = {}) {
-  const qRaw = String(params?.q || "").trim();
+  const qRaw = normalizeSearchQueryForBooks(params?.q);
   const title = String(params?.title || "").trim();
   const author = String(params?.author || "").trim();
   const subject = String(params?.subject || "").trim();
@@ -474,6 +664,45 @@ async function enrichMissingCoversWithGoogle(docs = [], maxLookups = 8) {
   return nextDocs;
 }
 
+async function enrichOpenLibraryDocsWithGoogle(docs = [], maxLookups = 10) {
+  if (!Array.isArray(docs) || !docs.length) return [];
+  const candidates = docs.slice(0, maxLookups);
+  const enriched = await Promise.all(
+    candidates.map(async (doc) => {
+      const title = String(doc?.title || "").trim();
+      const author = String(getDocAuthors(doc)[0] || "").trim();
+      if (!title) return doc;
+      try {
+        const google = await fetchGoogleDocs({
+          q: [title, author].filter(Boolean).join(" "),
+          title,
+          author,
+          limit: 3,
+          page: 1,
+          orderBy: "relevance",
+          language: "en"
+        });
+        const best = sortBookDocsForQuery(google.docs || [], title)[0];
+        if (!best || scoreSeededBookMatch(best, { title, author }) < 90) return doc;
+        return {
+          ...doc,
+          isbn: Array.isArray(best?.isbn) && best.isbn.length ? best.isbn : doc.isbn || [],
+          first_publish_year: best.first_publish_year || doc.first_publish_year || null,
+          subject: Array.isArray(best?.subject) && best.subject.length ? best.subject : doc.subject || [],
+          publisher: Array.isArray(best?.publisher) && best.publisher.length ? best.publisher : doc.publisher || [],
+          coverImage: toHttpsUrl(best.coverImage || best._googleThumbnail || doc.coverImage || ""),
+          _googleThumbnail: toHttpsUrl(best._googleThumbnail || best.coverImage || ""),
+          _googleVolumeId: String(best._googleVolumeId || "").trim(),
+          _source: "google-books+openlibrary"
+        };
+      } catch (_error) {
+        return doc;
+      }
+    })
+  );
+  return enriched;
+}
+
 function readQuery(req) {
   if (req.query && typeof req.query === "object") return req.query;
   try {
@@ -633,20 +862,21 @@ export default async function handler(req, res) {
 
       const google = await fetchGoogleDocs(params);
       let source = google.source;
-      let docs = Array.isArray(google.docs) ? google.docs : [];
+      let docs = filterSafeBookDocs(Array.isArray(google.docs) ? google.docs : []);
       let numFound = Number(google.numFound || 0);
 
       if (docs.length < limit) {
         const open = await fetchOpenLibraryDocs(params);
         if (Array.isArray(open.docs) && open.docs.length) {
-          docs = dedupeDocs([...docs, ...open.docs], limit);
+          const openEnriched = await enrichOpenLibraryDocsWithGoogle(filterSafeBookDocs(open.docs), Math.min(10, limit));
+          docs = dedupeDocs([...docs, ...openEnriched], limit * 2);
           numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
           source = docs.length > (google.docs?.length || 0) ? "google-books+openlibrary" : source;
         }
       }
 
-      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
-      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
+      const enriched = await enrichMissingCoversWithGoogle(sortBookDocsForQuery(docs, String(query.q || query.title || "")), 8);
+      const books = dedupeBooks(sortBookDocsForQuery(enriched, String(query.q || query.title || "")).map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
         books,
@@ -667,7 +897,7 @@ export default async function handler(req, res) {
       const limit = clampInt(query.limit, 1, 40, 20);
       const page = clampInt(query.page, 1, 1000, 1);
       const subject = String(query.subject || "fiction").trim() || "fiction";
-      const q = String(query.q || "").trim() || `subject:${subject}`;
+      const q = String(query.q || "").trim() || buildDiscoveryQuery(page, subject);
       const google = await fetchGoogleDocs({
         q,
         limit,
@@ -676,7 +906,7 @@ export default async function handler(req, res) {
         orderBy: String(query.orderBy || "relevance").trim() || "relevance"
       });
 
-      let docs = Array.isArray(google.docs) ? google.docs : [];
+      let docs = filterSafeBookDocs(Array.isArray(google.docs) ? google.docs : []);
       let source = google.source;
       let numFound = Number(google.numFound || 0);
 
@@ -689,15 +919,16 @@ export default async function handler(req, res) {
           language: "eng"
         });
         if (Array.isArray(open.docs) && open.docs.length) {
-          docs = dedupeDocs([...docs, ...open.docs], limit);
+          const openEnriched = await enrichOpenLibraryDocsWithGoogle(filterSafeBookDocs(open.docs), Math.min(8, limit));
+          docs = dedupeDocs([...docs, ...openEnriched], limit * 2);
           numFound = Math.max(numFound, Number(open.numFound || docs.length), docs.length);
           source = "google-books+openlibrary";
         }
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
-      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
+      const enriched = await enrichMissingCoversWithGoogle(sortBookDocsForQuery(docs, q), 8);
+      const books = dedupeBooks(sortBookDocsForQuery(enriched, q).map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
         books,
@@ -731,7 +962,7 @@ export default async function handler(req, res) {
           const works = Array.isArray(json?.works) ? json.works : [];
           docs = dedupeDocs(
             works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
-            limit
+            limit * 2
           );
           if (docs.length > 0) {
             source = "openlibrary-trending";
@@ -743,7 +974,7 @@ export default async function handler(req, res) {
 
       if (!docs.length) {
         const popular = await fetchGoogleDocs({
-          q: "subject:fiction",
+          q: buildDiscoveryQuery(1, "fiction"),
           orderBy: "relevance",
           limit,
           page: 1,
@@ -753,8 +984,11 @@ export default async function handler(req, res) {
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
-      const enriched = await enrichMissingCoversWithGoogle(docs, 8);
-      const books = dedupeBooks(enriched.map(normalizeBook).filter(Boolean), limit);
+      const googleEnriched = source === "openlibrary-trending"
+        ? await enrichOpenLibraryDocsWithGoogle(filterSafeBookDocs(docs), Math.min(10, limit))
+        : filterSafeBookDocs(docs);
+      const enriched = await enrichMissingCoversWithGoogle(sortBookDocsForQuery(googleEnriched, "popular fiction"), 8);
+      const books = dedupeBooks(sortBookDocsForQuery(enriched, "popular fiction").map(normalizeBook).filter(Boolean), limit);
       return res.json({
         ok: true,
         books,
