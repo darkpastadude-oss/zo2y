@@ -6,6 +6,7 @@ const rootDir = process.cwd();
 const authGatePath = path.join(rootDir, "dist", "js", "auth-gate.js");
 const loginPath = path.join(rootDir, "dist", "login.html");
 const signupPath = path.join(rootDir, "dist", "sign-up.html");
+const expectedAssetVersion = "20260531b";
 
 function extractVar(content, name) {
   const match = content.match(new RegExp(`var\\s+${name}\\s*=\\s*'([^']*)'`));
@@ -31,6 +32,8 @@ async function main() {
   assert(!authGate.includes("resolveInjectedConfigValue('__SUPABASE_"), "auth smoke: dist auth-gate still contains unresolved Supabase config");
   assert(loginHtml.includes("js/pages/auth-login.js"), "auth smoke: login page is missing auth-login script");
   assert(signupHtml.includes("js/pages/auth-signup.js"), "auth smoke: signup page is missing auth-signup script");
+  assert(loginHtml.includes(`/js/auth-gate.js?v=${expectedAssetVersion}`), "auth smoke: login page is not using the current auth-gate cache version");
+  assert(signupHtml.includes(`/js/auth-gate.js?v=${expectedAssetVersion}`), "auth smoke: signup page is not using the current auth-gate cache version");
 
   const client = createClient(supabaseUrl, supabaseKey, {
     auth: {
