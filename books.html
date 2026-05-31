@@ -1174,7 +1174,7 @@
       if (isNaN(date.getTime())) return true;
       const now = new Date();
       const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
-      const minYear = 1990;
+      const minYear = 1800; // Allow older books
       return date >= new Date(minYear, 0, 1) && date <= twoYearsFromNow;
     }
 
@@ -1420,16 +1420,16 @@
       if (POPULAR_SERIES.some((series) => title.includes(series))) score += 200;
       if (authors && KNOWN_AUTHORS.some((author) => authors.includes(author))) score += 100;
 
-      // Aggressive English priority
-      if (language === "en" || language === "eng" || language === "english") score += 300;
-      else if (haystack.includes("english") || doc?._source === "google-books") score += 150;
-      else if (language && language !== "en" && language !== "eng" && language !== "english") score -= 200;
+      // English priority (less aggressive to avoid filtering out too many books)
+      if (language === "en" || language === "eng" || language === "english") score += 200;
+      else if (haystack.includes("english") || doc?._source === "google-books") score += 100;
+      else if (language && language !== "en" && language !== "eng" && language !== "english") score -= 100;
 
       score += scoreCoverQuality(doc);
       if (year >= 1990 && year <= new Date().getUTCFullYear() + 1) score += 50;
-      if (year && year < 1950) score -= 180;
-      if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 40;
-      if (isJunkBookDoc(doc)) score -= 700;
+      if (year && year < 1950) score -= 50; // Reduced penalty for old books
+      if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 20; // Reduced penalty
+      if (isJunkBookDoc(doc)) score -= 200; // Reduced penalty to avoid false positives
 
       return score;
     }
