@@ -269,21 +269,6 @@
       box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
       outline: none;
     }
-    .search-clear-btn {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: var(--muted, #999);
-      cursor: pointer;
-      padding: 8px;
-      font-size: 16px;
-      line-height: 1;
-      z-index: 2;
-    }
-    .search-clear-btn:hover { color: var(--white, #fff); }
     .controls input, .controls select {
       height: 56px;
       border: 1px solid var(--border);
@@ -958,7 +943,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
-        <button id="clearSearchBtn" class="search-clear-btn" type="button" aria-label="Clear search" style="display:none"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -1155,7 +1139,13 @@
       } else {
         const result = await BooksApp.fetchPage('', page, 'relevance');
         if (result) { books = result.books; totalFound = result.totalFound; }
-        // Year-aware fallback is handled internally by BooksApp.fetchPage
+        if (books.length < 20 && page === 1) {
+          const more = await BooksApp.fetchPage('bestsellers 2025', 1, 'relevance');
+          if (more) {
+            const all = BooksApp.dedupe([...books, ...more.books]);
+            books = all; totalFound = Math.max(totalFound, more.totalFound);
+          }
+        }
       }
 
       // Apply genre filter client-side
@@ -1398,10 +1388,6 @@
       if (searchTimer) clearTimeout(searchTimer);
       state.search = query;
       state.page = 1;
-      var sq = document.getElementById('q');
-      if (sq) sq.value = query;
-      var scb = document.getElementById('clearSearchBtn');
-      if (scb) scb.style.display = query ? '' : 'none';
       await loadGrid();
       await loadListStatus();
     }
@@ -1420,24 +1406,14 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Search input
       const q = document.getElementById('q');
-      const clearBtn = document.getElementById('clearSearchBtn');
       if (q) {
         q.addEventListener('input', e => {
           const query = String(e.target.value || '').trim();
-          if (clearBtn) clearBtn.style.display = query ? '' : 'none';
           if (!query) { if (searchTimer) clearTimeout(searchTimer); executeSearch(''); return; }
           debounceSearch(query);
         });
         q.addEventListener('keydown', e => {
           if (e.key === 'Enter') { e.preventDefault(); if (searchTimer) clearTimeout(searchTimer); executeSearch(String(e.target.value || '').trim()); }
-        });
-      }
-      if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-          if (q) { q.value = ''; q.focus(); }
-          clearBtn.style.display = 'none';
-          if (searchTimer) clearTimeout(searchTimer);
-          executeSearch('');
         });
       }
       document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
