@@ -678,6 +678,29 @@
 
       }
 
+      // Filter out non-video-game entries (e.g. football clubs stored in the games table)
+      // Real video games have platforms, non-sports genres, or video game keywords in description
+      games = games.filter((game) => {
+        const extra = game.extra || {};
+        const genres = Array.isArray(extra.genres) ? extra.genres : [];
+        const platforms = Array.isArray(extra.platforms) ? extra.platforms : [];
+        const description = String(game.description || '').trim().toLowerCase();
+        const title = String(game.title || '').trim().toLowerCase();
+        const hasPlatforms = platforms.length > 0;
+        const hasNonSportsGenre = genres.length > 0 && genres.some((g) => {
+          const slug = String(g?.slug || '').toLowerCase();
+          return slug && slug !== 'sports';
+        });
+        const hasVideoGameText = description.includes('video game') || description.includes('developed by') || description.includes('published by') || description.includes('gameplay');
+        const hasReleaseDate = !!game.release_date;
+        const isSportsOnlyGenre = genres.length > 0 && genres.every((g) => String(g?.slug || '').toLowerCase() === 'sports');
+        if (hasPlatforms) return true;
+        if (hasNonSportsGenre) return true;
+        if (hasVideoGameText) return true;
+        if (isSportsOnlyGenre && hasReleaseDate) return true;
+        return false;
+      });
+
       // Map games with cover resolution
       // Handle both Supabase games and Wikipedia fallback games
       state.games = games.map((game) => {
@@ -1364,7 +1387,7 @@
 
     function wireGridActions() {
 
-      document.querySelectorAll('.card-menu-btn').forEach((btn) => {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
 
         btn.addEventListener('click', (e) => {
 
@@ -1381,6 +1404,8 @@
           }
 
         });
+
+      });
 
       });
 
