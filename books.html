@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260601b" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260601b" defer></script>
+  <script src="/js/auth-gate.js?v=20260531b" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260531b" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,11 +14,12 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
+  <script src="js/list-utils.js?v=20260531b" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260531b" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
-  <link rel="stylesheet" href="css/animations.css?v=20260601b">
+
+
   <style>
     :root {
       --bg: #0b1633;
@@ -280,8 +281,8 @@
       align-items: center;
       justify-content: center;
       padding: 18px;
-      background: rgba(6, 12, 28, 0.72);
-      backdrop-filter: blur(4px);
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
     }
     .control-modal.show {
       display: flex;
@@ -306,9 +307,9 @@
       font-weight: 800;
     }
     .control-modal-close {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
       border: 1px solid var(--border);
       background: rgba(255,255,255,0.04);
       color: #fff;
@@ -381,9 +382,9 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: transform 0.2s ease;
+
     }
-    .card:hover { transform: translateY(-2px); }
+
 
     .card-media {
       width: 100%;
@@ -507,26 +508,6 @@
     .menu button:hover { border-color: var(--accent); color: var(--accent); }
     .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
 
-    .book-loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 14px;
-      padding: 48px 20px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .book-loader .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid rgba(245,158,11,0.15);
-      border-top-color: #f59e0b;
-      border-radius: 50%;
-      animation: book-spin 0.85s linear infinite;
-    }
-    @keyframes book-spin { to { transform: rotate(360deg); } }
-
     .empty { color: var(--muted); font-size: 13px; padding: 20px; }
 
     .pagination {
@@ -616,8 +597,8 @@
       left: 0;
       width: 100dvw;
       height: 100dvh;
-      background: rgba(6, 12, 28, 0.72);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
       padding: 0;
       align-items: center;
       justify-content: center;
@@ -632,7 +613,7 @@
       transform: translate(-50%, -50%);
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 20px;
       width: 100%;
       max-width: 380px;
       max-height: 80vh;
@@ -872,14 +853,14 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260601b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
-<script src="js/shared-header.js?v=20260601b" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260531b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260531b"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260531b" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260531b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260531b"></noscript>
+<script src="js/shared-header.js?v=20260531b" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260531b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260531b"></noscript>
 
   </head>
 <body>
@@ -924,7 +905,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
-        <button id="booksClearBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times-circle"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -952,7 +932,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid books-grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
+      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -1031,7 +1011,6 @@
     let currentUser = null;
     const state = {
       books: [],
-      _fullBooks: [],
       search: '',
       genre: '',
       sort: 'popular',
@@ -1042,7 +1021,7 @@
     };
     const BOOKS_CACHE_PREFIX = 'zo2y_books_page_cache_v3:';
     const BOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
-    const BOOKS_CACHE_BUSTER = '20260601b';
+    const BOOKS_CACHE_BUSTER = '20260601a';
     const booksRequestCache = new Map();
     let activeBooksRequestController = null;
 
@@ -1175,7 +1154,7 @@
       if (isNaN(date.getTime())) return true;
       const now = new Date();
       const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
-      const minYear = 1800; // Allow older books
+      const minYear = 1990;
       return date >= new Date(minYear, 0, 1) && date <= twoYearsFromNow;
     }
 
@@ -1421,16 +1400,16 @@
       if (POPULAR_SERIES.some((series) => title.includes(series))) score += 200;
       if (authors && KNOWN_AUTHORS.some((author) => authors.includes(author))) score += 100;
 
-      // English priority (less aggressive to avoid filtering out too many books)
-      if (language === "en" || language === "eng" || language === "english") score += 200;
-      else if (haystack.includes("english") || doc?._source === "google-books") score += 100;
-      else if (language && language !== "en" && language !== "eng" && language !== "english") score -= 100;
+      // Aggressive English priority
+      if (language === "en" || language === "eng" || language === "english") score += 300;
+      else if (haystack.includes("english") || doc?._source === "google-books") score += 150;
+      else if (language && language !== "en" && language !== "eng" && language !== "english") score -= 200;
 
       score += scoreCoverQuality(doc);
       if (year >= 1990 && year <= new Date().getUTCFullYear() + 1) score += 50;
-      if (year && year < 1950) score -= 50; // Reduced penalty for old books
-      if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 20; // Reduced penalty
-      if (isJunkBookDoc(doc)) score -= 200; // Reduced penalty to avoid false positives
+      if (year && year < 1950) score -= 180;
+      if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 40;
+      if (isJunkBookDoc(doc)) score -= 700;
 
       return score;
     }
@@ -1454,6 +1433,7 @@
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
       const apiPageStart = Math.floor(startIndex / API_PAGE_SIZE) + 1;
+      const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
@@ -1484,7 +1464,7 @@
 
           // === SEEDED BOOKS (homepage approach) ===
           const fetchSeededTopBooks = async (limit = BOOKS_PER_PAGE) => {
-            const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, 8);
+            const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 24)));
             const results = await Promise.allSettled(pool.map(async (seed) => {
               const params = {
                 title: seed.title,
@@ -1516,40 +1496,34 @@
             books = cachedPopular.books.slice();
             apiTotalResults = cachedPopular.total || cachedPopular.books.length;
           } else {
-            // Fetch multiple popular pages + trending in parallel
-            const popPages = [1, 2, 3, 4, 5, 6];
-            const [popResults, trendingResult] = await Promise.all([
-              Promise.allSettled(
-                popPages.map(p =>
-                  fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&language=en&orderBy=relevance&limit=${API_PAGE_SIZE}&page=${p}`)
-                )
-              ),
-              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${API_PAGE_SIZE}`)
+            // Use homepage strategy: seeded + popular + trending
+            const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
+              fetchSeededTopBooks(BOOKS_PER_PAGE),
+              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&language=en&orderBy=relevance&limit=${BOOKS_PER_PAGE}&page=1`),
+              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`)
             ]);
 
-            // Merge and dedupe all results
+            const seededBooks = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value)
+              ? seededResult.value
+              : [];
+            const popularBooks = Array.isArray(popularResult?.books) ? popularResult.books.slice(0, BOOKS_PER_PAGE) : [];
+            const trendingBooks = Array.isArray(trendingResult?.books) ? trendingResult.books.slice(0, BOOKS_PER_PAGE) : [];
+
+            // Merge and dedupe
             const merged = [];
             const seenMerge = new Set();
-            const addToMerged = (batch) => {
-              const arr = Array.isArray(batch) ? batch : [];
-              for (const book of arr) {
-                const title = normalizeBookSeedText(book?.title || '');
-                const author = normalizeBookSeedText(book?.author || '');
-                const key = `${title}::${author}`;
-                if (!title || !key || seenMerge.has(key)) continue;
-                seenMerge.add(key);
-                merged.push(book);
-              }
-            };
-            popResults.forEach(result => {
-              if (result.status !== 'fulfilled' || !result.value) return;
-              addToMerged(result.value?.books);
+            [...seededBooks, ...popularBooks, ...trendingBooks].forEach((book) => {
+              const title = normalizeBookSeedText(book?.title || '');
+              const author = normalizeBookSeedText(book?.author || '');
+              const key = `${title}::${author}`;
+              if (!title || seenMerge.has(key)) return;
+              seenMerge.add(key);
+              merged.push(book);
             });
-            addToMerged(trendingResult?.books);
 
             // Fallback if not enough books
-            if (merged.length < BOOKS_PAGE_SIZE) {
-              const needed = Math.max(1, BOOKS_PAGE_SIZE - merged.length);
+            if (merged.length < BOOKS_PER_PAGE) {
+              const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
               const fallbackQueries = [
                 'bestseller fiction',
                 'new release fiction',
@@ -1573,39 +1547,28 @@
           console.error('Failed to load popular books', _err);
         }
       } else {
-        // === SEARCH WITH RANKING (fetch 6 API pages for hundreds of results) ===
+        // === SEARCH WITH RANKING (homepage approach) ===
         const searchQuery = query + (state.genre ? `+subject:${state.genre}` : '');
         const cachedSearch = readBooksRequestCache(searchQuery, apiPageStart, 'relevance');
         if (cachedSearch?.books?.length) {
           books = cachedSearch.books.slice();
           apiTotalResults = cachedSearch.total || cachedSearch.books.length;
         } else {
-          const searchPages = [apiPageStart, apiPageStart + 1, apiPageStart + 2, apiPageStart + 3, apiPageStart + 4, apiPageStart + 5];
-          const searchResults = await Promise.allSettled(
-            searchPages.map(p =>
-              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${p}&language=en&orderBy=relevance`, { signal })
-                .then(res => res.ok ? res.json() : null)
-                .catch(err => { if (err?.name === 'AbortError') throw err; return null; })
-            )
-          );
-
-          const allRawBooks = [];
-          const seenSearchIds = new Set();
-          let totalFound = 0;
-          for (const result of searchResults) {
-            if (result.status !== 'fulfilled' || !result.value) continue;
-            const batch = Array.isArray(result.value?.books) ? result.value.books : (Array.isArray(result.value?.docs) ? result.value.docs : []);
-            totalFound = Math.max(totalFound, Number(result.value?.meta?.numFound || result.value?.numFound || result.value?.total || 0));
-            for (const book of batch) {
-              const id = book.id || book._googleVolumeId || '';
-              if (!id || seenSearchIds.has(id)) continue;
-              seenSearchIds.add(id);
-              allRawBooks.push(book);
+          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=relevance`;
+          try {
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              const rawBooks = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+              // Apply search ranking from backend
+              books = sortBookDocsForQuery(rawBooks, query);
+              apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
+              writeBooksRequestCache(searchQuery, apiPageStart, 'relevance', books, apiTotalResults);
             }
+          } catch (_err) {
+            if (_err?.name === 'AbortError') return;
+            console.error('Failed to search books', _err);
           }
-          books = sortBookDocsForQuery(allRawBooks, query);
-          apiTotalResults = totalFound || books.length;
-          writeBooksRequestCache(searchQuery, apiPageStart, 'relevance', books, apiTotalResults);
         }
       }
 
@@ -1624,75 +1587,61 @@
         return true;
       });
 
-      const mappedBooks = safeBooks.map((book) => ({
+      state.books = safeBooks.map((book) => ({
         id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
         title: book.title || book.name || 'Unknown Book',
         authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
         description: book.description || '',
         coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
         publishedDate: book.publishedDate || book.published_date || '',
-        pageCount: book.pageCount || book.page_count || 0,
-        language: String(book.language || book.lang || '').toLowerCase().trim()
+        pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
       const seen = new Set();
-      const fullBooks = mappedBooks.filter(book => {
+      state.books = state.books.filter(book => {
         if (seen.has(book.id)) return false;
         seen.add(book.id);
         return true;
       });
 
-      // Language filter: if 100+ English results exist, drop non-English ones
-      const engBooks = fullBooks.filter(b => !b.language || ['en','eng','english'].includes(b.language));
-      const filteredBooks = engBooks.length >= 100 ? engBooks : fullBooks;
-
-      // Track query for accumulation across page navigations
-      const effectiveQuery = query + '::' + (state.genre || '') + '::' + (state.sort || '');
-      const isNewQuery = effectiveQuery !== state._lastBookQuery;
-      if (isNewQuery) {
-        state._fullBooks = [];
-        state._lastBookQuery = effectiveQuery;
-      }
-
-      // Merge with existing _fullBooks
-      const existingIds = new Set(state._fullBooks.map(b => b.id));
-      for (const book of filteredBooks) {
-        if (!existingIds.has(book.id)) {
-          state._fullBooks.push(book);
-          existingIds.add(book.id);
-        }
-      }
-
-      // Boost popular/seed books to the front
-      if (!query) {
+      // Boost popular/seed books to the front of page 1
+      if (!query && state.page === 1) {
         const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
         const boosted = [];
         const rest = [];
-        for (const book of state._fullBooks) {
+        for (const book of state.books) {
           if (seedTitles.has(normalizeBookSeedText(book.title))) {
             boosted.push(book);
           } else {
             rest.push(book);
           }
         }
-        state._fullBooks = [...boosted, ...rest];
+        state.books = [...boosted, ...rest];
       }
 
-      // Apply user-selected sort to the full list
+      // Keep the first page stable (popular first), shuffle additional pages for variety.
+      if (!query && state.page > 1) {
+        state.books = shuffleArray(state.books);
+      }
+
+      // Apply user-selected sort
       if (state.sort === 'name') {
-        state._fullBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        state.books.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       } else if (state.sort === 'released') {
-        state._fullBooks.sort((a, b) => {
+        state.books.sort((a, b) => {
           const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
           const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
           return dateB - dateA;
         });
       }
 
-      const pageSize = computeGridPageSize();
-      const startIdx = (state.page - 1) * pageSize;
-      state.books = state._fullBooks.slice(startIdx, startIdx + pageSize);
-      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / pageSize));
+      state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
+
+      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / BOOKS_PAGE_SIZE));
+      } else {
+        state.totalPages = 1;
+      }
     }
 
     function debounceSearch(query) {
@@ -1800,11 +1749,10 @@
         updatePagination();
         return;
       }
-      grid.innerHTML = state.books.map((book, index) => {
+      grid.innerHTML = state.books.map((book) => {
         const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
-        const staggerDelay = index * 0.05; // Stagger cards by 50ms
         return `
-        <article class="card" data-id="${escapeHtml(book.id)}" style="animation-delay: ${staggerDelay}s">
+        <article class="card" data-id="${escapeHtml(book.id)}">
           <div class="card-media">
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
           </div>
@@ -1935,27 +1883,16 @@
       renderGrid();
     }
 
-    const searchInput = document.getElementById('q');
-    const clearBtn = document.getElementById('booksClearBtn');
-
-    function toggleClearBtn() {
-      const hasText = searchInput && searchInput.value.length > 0;
-      clearBtn?.classList.toggle('show', hasText);
-    }
-
-    searchInput?.addEventListener('input', async (e) => {
-      toggleClearBtn();
+    document.getElementById('q')?.addEventListener('input', async (e) => {
       const query = String(e.target.value || '').trim();
       if (!query) {
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        if (state.search !== '') {
-          await executeSearch('');
-        }
+        await executeSearch('');
         return;
       }
       debounceSearch(query);
     });
-    searchInput?.addEventListener('keydown', (e) => {
+    document.getElementById('q')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -1963,17 +1900,8 @@
         executeSearch(query);
       }
     });
-    clearBtn?.addEventListener('click', async () => {
-      if (searchInput) searchInput.value = '';
-      toggleClearBtn();
-      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-      if (state.search !== '') {
-        await executeSearch('');
-      }
-      searchInput?.focus();
-    });
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
-      const query = String(searchInput?.value || '').trim();
+      const query = String(document.getElementById('q')?.value || '').trim();
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       await executeSearch(query);
     });
@@ -1983,55 +1911,32 @@
     document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
     });
-    async function applyFiltersAndRefresh() {
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
       state.page = 1;
       await loadBooksWithFallback();
       await loadListStatus();
       renderGrid();
-    }
-
-    document.getElementById('genre')?.addEventListener('change', async (e) => {
-      state.genre = String(e.target.value || '').trim();
-      await applyFiltersAndRefresh();
     });
-    document.getElementById('sort')?.addEventListener('change', async (e) => {
-      state.sort = String(e.target.value || 'popular').trim();
-      await applyFiltersAndRefresh();
-    });
-    document.getElementById('refresh')?.addEventListener('click', applyFiltersAndRefresh);
-    function sliceBooksForPage() {
-      const pageSize = computeGridPageSize();
-      const startIndex = (state.page - 1) * pageSize;
-      state.books = state._fullBooks.slice(startIndex, startIndex + pageSize);
-      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / pageSize));
-    }
-
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
       if (state.page <= 1) return;
       state.page -= 1;
-      if (state._fullBooks.length) {
-        sliceBooksForPage();
-        await loadListStatus();
-        renderGrid();
-      } else {
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      }
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (state.page >= state.totalPages) return;
       state.page += 1;
-      if (state._fullBooks.length) {
-        sliceBooksForPage();
-        await loadListStatus();
-        renderGrid();
-      } else {
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      }
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -2073,6 +1978,7 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260601b" defer></script>
+  <script src="js/production-runtime.js?v=20260531b" defer></script>
 </body>
 </html>
+
