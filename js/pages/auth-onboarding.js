@@ -178,15 +178,13 @@
        }
      } catch (_e) {}
      
-     // Mark that user intentionally logged out to prevent automatic session restoration
-     try {
-       sessionStorage.setItem('zo2y-intentional-logout', 'true');
-       // Clear the flag after a short delay to allow normal login flow
-       setTimeout(function() {
-         try { sessionStorage.removeItem('zo2y-intentional-logout'); } catch (_e) {}
-       }, 1000);
-     } catch (_e) {}
-   }
+      // Mark that user intentionally logged out to prevent automatic session restoration
+      // Consumers (auth-gate.js, shared-header.js, onboarding.js) clear this flag
+      // when they read it, so no need for a timeout-based cleanup.
+      try {
+        sessionStorage.setItem('zo2y-intentional-logout', 'true');
+      } catch (_e) {}
+    }
 
   signOutButton.addEventListener('click', function () {
     clearAuthStorage();

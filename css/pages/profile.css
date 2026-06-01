@@ -2159,8 +2159,8 @@
             left: 0;
             width: 100dvw;
             height: 100dvh;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px);
+            background: rgba(6, 12, 28, 0.72);
+            backdrop-filter: blur(4px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -2213,8 +2213,9 @@
             color: var(--muted);
             line-height: 1;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -2231,14 +2232,14 @@
         /* Unified custom-list modal (matches index/menu adapter UI) */
         #createListModal.menu-modal {
             z-index: 10000;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px);
+            background: rgba(6, 12, 28, 0.72);
+            backdrop-filter: blur(4px);
         }
 
         #createListModal .menu-modal-content {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 20px;
+            border-radius: 18px;
             width: 100%;
             max-width: 380px;
             max-height: 80vh;
@@ -3283,7 +3284,7 @@
             background: var(--card);
             border-top: 1px solid var(--border);
             padding: 30px 0;
-            margin-top: 40px;
+            margin-top: auto;
         }
 
         .footer-content {
@@ -3323,7 +3324,7 @@
             left: 0;
             width: 100dvw;
             height: 100dvh;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(6, 12, 28, 0.72);
             backdrop-filter: blur(5px);
             display: none;
             align-items: center;
@@ -4252,7 +4253,12 @@
             }
             
             .desktop-only {
-                display: block;
+                display: flex;
+                flex-direction: column;
+                min-height: 100dvh;
+            }
+            .desktop-only > .container:last-of-type {
+                flex: 1;
             }
         }
 

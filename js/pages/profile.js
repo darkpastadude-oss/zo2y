@@ -899,7 +899,7 @@
                         ]);
                     } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
                         await Promise.race([
-                            supabase.auth.signOut({ scope: 'global' }),
+                            supabase.auth.signOut({ scope: 'local' }),
                             new Promise((r) => setTimeout(r, 3000))
                         ]);
                     }
@@ -7700,7 +7700,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this movie list? This cannot be undone.')) return;
+                showConfirmModal('Delete List', 'Delete this movie list? This cannot be undone.', async function() {
                 const userId = currentUser.id;
                 await supabase
                     .from('movie_list_items')
@@ -7719,6 +7719,7 @@
                 hideMovieDetail();
                 await renderMovies();
                 showToast('List deleted', 'success');
+                });
             }
 
             async function renameTvList(listId) {
@@ -7736,7 +7737,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this TV show list? This cannot be undone.')) return;
+                showConfirmModal('Delete List', 'Delete this TV show list? This cannot be undone.', async function() {
                 const userId = currentUser.id;
                 await supabase
                     .from('tv_list_items')
@@ -7755,6 +7756,7 @@
                 hideTvDetail();
                 await renderTvShows();
                 showToast('List deleted', 'success');
+                });
             }
 
             async function renameAnimeList(listId) {
@@ -7772,7 +7774,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this anime list? This cannot be undone.')) return;
+                showConfirmModal('Delete List', 'Delete this anime list? This cannot be undone.', async function() {
                 const userId = currentUser.id;
                 await supabase
                     .from('anime_list_items')
@@ -7791,6 +7793,7 @@
                 hideAnimeDetail();
                 await renderAnimeShows();
                 showToast('List deleted', 'success');
+                });
             }
 
             async function renameGameList(listId) {
@@ -7808,7 +7811,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this game list? This cannot be undone.')) return;
+                showConfirmModal('Delete List', 'Delete this game list? This cannot be undone.', async function() {
                 const userId = currentUser.id;
                 await supabase
                     .from('game_list_items')
@@ -7827,6 +7830,7 @@
                 hideGameDetail();
                 await renderGames();
                 showToast('List deleted', 'success');
+                });
             }
 
             function scrollActiveMobileTabIntoView(tabName) {
@@ -11944,8 +11948,7 @@
                     return;
                 }
 
-                if (!confirm('Delete this book list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this book list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
 
@@ -11972,6 +11975,7 @@
                     console.error('Error deleting book list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             async function createMusicList() {
@@ -11989,8 +11993,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this music list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this music list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
                     await supabase
@@ -12012,6 +12015,7 @@
                     console.error('Error deleting music list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             async function createTravelList() {
@@ -12029,8 +12033,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this travel list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this travel list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
                     await supabase
@@ -12052,6 +12055,7 @@
                     console.error('Error deleting travel list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             async function createFashionList() {
@@ -12069,8 +12073,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this fashion list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this fashion list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
                     await supabase
@@ -12092,6 +12095,7 @@
                     console.error('Error deleting fashion list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             async function createFoodList() {
@@ -12117,8 +12121,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this food list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this food list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
                     await supabase
@@ -12140,6 +12143,7 @@
                     console.error('Error deleting food list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             async function deleteCarList(listId) {
@@ -12149,8 +12153,7 @@
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-                if (!confirm('Delete this car list? This cannot be undone.')) return;
-
+                showConfirmModal('Delete List', 'Delete this car list? This cannot be undone.', async function() {
                 try {
                     const userId = currentUser.id;
                     await supabase
@@ -12172,6 +12175,7 @@
                     console.error('Error deleting car list:', error);
                     showToast('Could not delete list', 'error');
                 }
+                });
             }
 
             function hideRestaurantDetail() {

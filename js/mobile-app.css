@@ -356,7 +356,7 @@ body.zo2y-popup-open {
   position: fixed;
   inset: 0;
   display: none;
-  background: rgba(3, 10, 25, 0.74);
+  background: rgba(6, 12, 28, 0.72);
   backdrop-filter: blur(4px);
   z-index: 4490;
 }
@@ -367,7 +367,7 @@ body.zo2y-popup-open {
 
 .list-menu-backdrop.active,
 .rail-menu-backdrop.active {
-  background: rgba(3, 10, 25, 0.74) !important;
+  background: rgba(6, 12, 28, 0.72) !important;
   backdrop-filter: blur(4px);
   z-index: 4490 !important;
 }
@@ -425,9 +425,9 @@ body.zo2y-popup-open {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(8, 16, 38, 0.95);
   color: #ffffff;

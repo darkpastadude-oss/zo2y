@@ -641,7 +641,8 @@
       showNotification('Please sign in to delete reviews', 'info');
       return;
     }
-    if (!confirm('Delete this review?')) return;
+    if (!window.ProfileManager) return;
+    ProfileManager.showConfirmModal('Delete Review', 'Delete this review?', async function() {
     const { error } = await supabaseClient
       .from(reviewTable)
       .delete()
@@ -652,6 +653,7 @@
     }
     await loadReviews();
     showNotification('Review deleted', 'success');
+    });
   };
 
   function resetReviewForm() {

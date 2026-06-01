@@ -71,7 +71,7 @@
       .username-popup-overlay {
         position: absolute;
         inset: 0;
-        background: rgba(11, 22, 51, 0.85);
+        background: rgba(6, 12, 28, 0.72);
         backdrop-filter: blur(4px);
       }
       
@@ -81,7 +81,7 @@
         max-width: 480px;
         background: linear-gradient(135deg, #132347 0%, #0b1633 100%);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
+        border-radius: 18px;
         padding: 24px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         animation: usernamePopupSlideIn 0.3s ease-out;
@@ -114,11 +114,11 @@
       }
       
       .username-popup-close {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border: none;
         background: rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
+        border-radius: 8px;
         color: #8ca3c7;
         cursor: pointer;
         display: flex;

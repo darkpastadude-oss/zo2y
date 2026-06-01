@@ -1095,9 +1095,8 @@ async function deleteReview(reviewId) {
         return;
     }
 
-    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
-        return;
-    }
+    if (!window.ProfileManager) return;
+    ProfileManager.showConfirmModal('Delete Review', 'Are you sure you want to delete this review? This action cannot be undone.', async function() {
 
     try {
         const { error } = await supabaseClient
@@ -1115,6 +1114,7 @@ async function deleteReview(reviewId) {
         console.error('Error deleting review:', error);
         showNotification('Error deleting review', 'error');
     }
+    });
 }
 
 function setupSortControls() {

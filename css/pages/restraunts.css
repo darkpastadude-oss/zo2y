@@ -1132,8 +1132,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(11, 22, 51, 0.95);
-    backdrop-filter: blur(20px);
+    background: rgba(6, 12, 28, 0.72);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -1149,7 +1149,7 @@
 
   .actions-content {
     background: var(--card);
-    border-radius: 20px;
+    border-radius: 18px;
     padding: 30px;
     max-width: 400px;
     width: 100%;
@@ -1267,8 +1267,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(11, 22, 51, 0.95);
-    backdrop-filter: blur(20px);
+    background: rgba(6, 12, 28, 0.72);
+    backdrop-filter: blur(4px);
     z-index: 1001;
     align-items: center;
     justify-content: center;
@@ -1284,7 +1284,7 @@
 
   .custom-lists-content {
     background: var(--card);
-    border-radius: 20px;
+    border-radius: 18px;
     padding: 30px;
     max-width: 500px;
     width: 100%;
@@ -1626,8 +1626,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(11, 22, 51, 0.98);
-    backdrop-filter: blur(20px);
+    background: rgba(6, 12, 28, 0.72);
+    backdrop-filter: blur(4px);
     z-index: 1002;
     align-items: center;
     justify-content: center;
@@ -1643,7 +1643,7 @@
 
   .auth-prompt-content {
     background: var(--card);
-    border-radius: 20px;
+    border-radius: 18px;
     padding: 40px;
     max-width: 480px;
     width: 100%;
