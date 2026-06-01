@@ -924,6 +924,7 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
+        <button id="booksClearBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times-circle"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -1453,7 +1454,6 @@
       BOOKS_PAGE_SIZE = computeGridPageSize();
       const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
       const apiPageStart = Math.floor(startIndex / API_PAGE_SIZE) + 1;
-      const withinOffset = startIndex % API_PAGE_SIZE;
 
       if (!query) {
         const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
@@ -1516,34 +1516,40 @@
             books = cachedPopular.books.slice();
             apiTotalResults = cachedPopular.total || cachedPopular.books.length;
           } else {
-            // Use homepage strategy: seeded + popular + trending
-            const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
-              fetchSeededTopBooks(BOOKS_PER_PAGE),
-              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&language=en&orderBy=relevance&limit=${BOOKS_PER_PAGE}&page=1`),
-              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${BOOKS_PER_PAGE}`)
+            // Fetch multiple popular pages + trending in parallel
+            const popPages = [1, 2, 3, 4, 5, 6];
+            const [popResults, trendingResult] = await Promise.all([
+              Promise.allSettled(
+                popPages.map(p =>
+                  fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=fiction&language=en&orderBy=relevance&limit=${API_PAGE_SIZE}&page=${p}`)
+                )
+              ),
+              fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=weekly&limit=${API_PAGE_SIZE}`)
             ]);
 
-            const seededBooks = seededResult.status === 'fulfilled' && Array.isArray(seededResult.value)
-              ? seededResult.value
-              : [];
-            const popularBooks = Array.isArray(popularResult?.books) ? popularResult.books.slice(0, BOOKS_PER_PAGE) : [];
-            const trendingBooks = Array.isArray(trendingResult?.books) ? trendingResult.books.slice(0, BOOKS_PER_PAGE) : [];
-
-            // Merge and dedupe
+            // Merge and dedupe all results
             const merged = [];
             const seenMerge = new Set();
-            [...seededBooks, ...popularBooks, ...trendingBooks].forEach((book) => {
-              const title = normalizeBookSeedText(book?.title || '');
-              const author = normalizeBookSeedText(book?.author || '');
-              const key = `${title}::${author}`;
-              if (!title || seenMerge.has(key)) return;
-              seenMerge.add(key);
-              merged.push(book);
+            const addToMerged = (batch) => {
+              const arr = Array.isArray(batch) ? batch : [];
+              for (const book of arr) {
+                const title = normalizeBookSeedText(book?.title || '');
+                const author = normalizeBookSeedText(book?.author || '');
+                const key = `${title}::${author}`;
+                if (!title || !key || seenMerge.has(key)) continue;
+                seenMerge.add(key);
+                merged.push(book);
+              }
+            };
+            popResults.forEach(result => {
+              if (result.status !== 'fulfilled' || !result.value) return;
+              addToMerged(result.value?.books);
             });
+            addToMerged(trendingResult?.books);
 
             // Fallback if not enough books
-            if (merged.length < BOOKS_PER_PAGE) {
-              const needed = Math.max(1, BOOKS_PER_PAGE - merged.length);
+            if (merged.length < BOOKS_PAGE_SIZE) {
+              const needed = Math.max(1, BOOKS_PAGE_SIZE - merged.length);
               const fallbackQueries = [
                 'bestseller fiction',
                 'new release fiction',
@@ -1567,28 +1573,39 @@
           console.error('Failed to load popular books', _err);
         }
       } else {
-        // === SEARCH WITH RANKING (homepage approach) ===
+        // === SEARCH WITH RANKING (fetch 6 API pages for hundreds of results) ===
         const searchQuery = query + (state.genre ? `+subject:${state.genre}` : '');
         const cachedSearch = readBooksRequestCache(searchQuery, apiPageStart, 'relevance');
         if (cachedSearch?.books?.length) {
           books = cachedSearch.books.slice();
           apiTotalResults = cachedSearch.total || cachedSearch.books.length;
         } else {
-          const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=relevance`;
-          try {
-            const res = await fetch(url, { signal });
-            if (res.ok) {
-              const json = await res.json();
-              const rawBooks = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-              // Apply search ranking from backend
-              books = sortBookDocsForQuery(rawBooks, query);
-              apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
-              writeBooksRequestCache(searchQuery, apiPageStart, 'relevance', books, apiTotalResults);
+          const searchPages = [apiPageStart, apiPageStart + 1, apiPageStart + 2, apiPageStart + 3, apiPageStart + 4, apiPageStart + 5];
+          const searchResults = await Promise.allSettled(
+            searchPages.map(p =>
+              fetch(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${p}&language=en&orderBy=relevance`, { signal })
+                .then(res => res.ok ? res.json() : null)
+                .catch(err => { if (err?.name === 'AbortError') throw err; return null; })
+            )
+          );
+
+          const allRawBooks = [];
+          const seenSearchIds = new Set();
+          let totalFound = 0;
+          for (const result of searchResults) {
+            if (result.status !== 'fulfilled' || !result.value) continue;
+            const batch = Array.isArray(result.value?.books) ? result.value.books : (Array.isArray(result.value?.docs) ? result.value.docs : []);
+            totalFound = Math.max(totalFound, Number(result.value?.meta?.numFound || result.value?.numFound || result.value?.total || 0));
+            for (const book of batch) {
+              const id = book.id || book._googleVolumeId || '';
+              if (!id || seenSearchIds.has(id)) continue;
+              seenSearchIds.add(id);
+              allRawBooks.push(book);
             }
-          } catch (_err) {
-            if (_err?.name === 'AbortError') return;
-            console.error('Failed to search books', _err);
           }
+          books = sortBookDocsForQuery(allRawBooks, query);
+          apiTotalResults = totalFound || books.length;
+          writeBooksRequestCache(searchQuery, apiPageStart, 'relevance', books, apiTotalResults);
         }
       }
 
@@ -1607,29 +1624,51 @@
         return true;
       });
 
-      state.books = safeBooks.map((book) => ({
+      const mappedBooks = safeBooks.map((book) => ({
         id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
         title: book.title || book.name || 'Unknown Book',
         authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
         description: book.description || '',
         coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
         publishedDate: book.publishedDate || book.published_date || '',
-        pageCount: book.pageCount || book.page_count || 0
+        pageCount: book.pageCount || book.page_count || 0,
+        language: String(book.language || book.lang || '').toLowerCase().trim()
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
       const seen = new Set();
-      const fullBooks = state.books.filter(book => {
+      const fullBooks = mappedBooks.filter(book => {
         if (seen.has(book.id)) return false;
         seen.add(book.id);
         return true;
       });
+
+      // Language filter: if 100+ English results exist, drop non-English ones
+      const engBooks = fullBooks.filter(b => !b.language || ['en','eng','english'].includes(b.language));
+      const filteredBooks = engBooks.length >= 100 ? engBooks : fullBooks;
+
+      // Track query for accumulation across page navigations
+      const effectiveQuery = query + '::' + (state.genre || '') + '::' + (state.sort || '');
+      const isNewQuery = effectiveQuery !== state._lastBookQuery;
+      if (isNewQuery) {
+        state._fullBooks = [];
+        state._lastBookQuery = effectiveQuery;
+      }
+
+      // Merge with existing _fullBooks
+      const existingIds = new Set(state._fullBooks.map(b => b.id));
+      for (const book of filteredBooks) {
+        if (!existingIds.has(book.id)) {
+          state._fullBooks.push(book);
+          existingIds.add(book.id);
+        }
+      }
 
       // Boost popular/seed books to the front
       if (!query) {
         const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
         const boosted = [];
         const rest = [];
-        for (const book of fullBooks) {
+        for (const book of state._fullBooks) {
           if (seedTitles.has(normalizeBookSeedText(book.title))) {
             boosted.push(book);
           } else {
@@ -1637,8 +1676,6 @@
           }
         }
         state._fullBooks = [...boosted, ...rest];
-      } else {
-        state._fullBooks = fullBooks;
       }
 
       // Apply user-selected sort to the full list
@@ -1652,8 +1689,10 @@
         });
       }
 
-      state.books = state._fullBooks.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
-      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / BOOKS_PAGE_SIZE));
+      const pageSize = computeGridPageSize();
+      const startIdx = (state.page - 1) * pageSize;
+      state.books = state._fullBooks.slice(startIdx, startIdx + pageSize);
+      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / pageSize));
     }
 
     function debounceSearch(query) {
@@ -1896,16 +1935,27 @@
       renderGrid();
     }
 
-    document.getElementById('q')?.addEventListener('input', async (e) => {
+    const searchInput = document.getElementById('q');
+    const clearBtn = document.getElementById('booksClearBtn');
+
+    function toggleClearBtn() {
+      const hasText = searchInput && searchInput.value.length > 0;
+      clearBtn?.classList.toggle('show', hasText);
+    }
+
+    searchInput?.addEventListener('input', async (e) => {
+      toggleClearBtn();
       const query = String(e.target.value || '').trim();
       if (!query) {
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        await executeSearch('');
+        if (state.search !== '') {
+          await executeSearch('');
+        }
         return;
       }
       debounceSearch(query);
     });
-    document.getElementById('q')?.addEventListener('keydown', (e) => {
+    searchInput?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
         if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
@@ -1913,8 +1963,17 @@
         executeSearch(query);
       }
     });
+    clearBtn?.addEventListener('click', async () => {
+      if (searchInput) searchInput.value = '';
+      toggleClearBtn();
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      if (state.search !== '') {
+        await executeSearch('');
+      }
+      searchInput?.focus();
+    });
     document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
-      const query = String(document.getElementById('q')?.value || '').trim();
+      const query = String(searchInput?.value || '').trim();
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       await executeSearch(query);
     });
@@ -1924,24 +1983,28 @@
     document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
       document.getElementById('booksFilterModal')?.classList.remove('show');
     });
-    document.getElementById('genre')?.addEventListener('change', (e) => {
-      state.genre = String(e.target.value || '').trim();
-    });
-    document.getElementById('sort')?.addEventListener('change', (e) => {
-      state.sort = String(e.target.value || 'popular').trim();
-    });
-    document.getElementById('refresh')?.addEventListener('click', async () => {
+    async function applyFiltersAndRefresh() {
       document.getElementById('booksFilterModal')?.classList.remove('show');
       state.page = 1;
       await loadBooksWithFallback();
       await loadListStatus();
       renderGrid();
+    }
+
+    document.getElementById('genre')?.addEventListener('change', async (e) => {
+      state.genre = String(e.target.value || '').trim();
+      await applyFiltersAndRefresh();
     });
+    document.getElementById('sort')?.addEventListener('change', async (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+      await applyFiltersAndRefresh();
+    });
+    document.getElementById('refresh')?.addEventListener('click', applyFiltersAndRefresh);
     function sliceBooksForPage() {
-      const BOOKS_PAGE_SIZE = computeGridPageSize();
-      const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
-      state.books = state._fullBooks.slice(startIndex, startIndex + BOOKS_PAGE_SIZE);
-      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / BOOKS_PAGE_SIZE));
+      const pageSize = computeGridPageSize();
+      const startIndex = (state.page - 1) * pageSize;
+      state.books = state._fullBooks.slice(startIndex, startIndex + pageSize);
+      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / pageSize));
     }
 
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
