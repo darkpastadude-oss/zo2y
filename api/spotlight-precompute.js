@@ -263,7 +263,8 @@ export default async function handler(req, res) {
     );
 
   if (error) {
-    return res.status(500).json({ message: "Failed to store precompute feed", error: error.message });
+    console.error("Failed to store precompute feed:", error.message);
+    return res.status(500).json({ message: "Failed to store precompute feed" });
   }
 
   const counts = Object.fromEntries(

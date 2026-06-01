@@ -160,9 +160,10 @@ export default async function handler(req, res) {
       }
 
       if (profileWrite.error) {
+        console.error("Profile write failed:", profileWrite.error.message);
         return res.status(500).json({
           success: false,
-          message: profileWrite.error.message || "Account was created, but the profile could not be saved."
+          message: "Account was created, but the profile could not be saved."
         });
       }
 
@@ -224,7 +225,8 @@ export default async function handler(req, res) {
       });
 
       if (error) {
-        return res.status(500).json({ success: false, message: error.message || "Could not generate verification link." });
+        console.error("Verification link generation failed:", error.message);
+        return res.status(500).json({ success: false, message: "Could not generate verification link." });
       }
 
       if (emailConfigured()) {

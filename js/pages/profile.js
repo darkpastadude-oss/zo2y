@@ -2423,17 +2423,17 @@
                             ${kebabHtml}
                             <div class="list-card-header">
                                 <div class="list-card-title">
-                                    <span style="font-size: 24px;">${list.icon}</span>
-                                    ${list.title}
+                                    <span style="font-size: 24px;">${escapeHtml(list.icon)}</span>
+                                    ${escapeHtml(list.title)}
                                 </div>
                             </div>
-                            <p class="list-card-description">${list.description}</p>
+                            <p class="list-card-description">${escapeHtml(list.description)}</p>
                             <div class="list-preview-grid">
                                 ${previewItems.join('')}
                             </div>
                             <div class="list-card-footer">
                                 <span class="list-card-count">${restaurantIds.length} places</span>
-                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${list.id}')">View List</button>
+                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${escapeHtml(list.id)}')">View List</button>
                             </div>
                         `;
                         
@@ -2557,15 +2557,15 @@
                                     ${iconGlyph(list.icon, 'list')}
                                 </div>
                                 <div class="mobile-list-info">
-                                    <div class="mobile-list-title">${list.title}</div>
+                                    <div class="mobile-list-title">${escapeHtml(list.title)}</div>
                                     <div class="mobile-list-count">${restaurantIds.length} places</div>
                                 </div>
                             </div>
-                            ${list.description ? `<div class="mobile-list-description">${list.description}</div>` : ''}
+                            ${list.description ? `<div class="mobile-list-description">${escapeHtml(list.description)}</div>` : ''}
                             <div class="mobile-list-preview">
                                 ${previewItems.join('')}
                             </div>
-                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${list.id}')" style="width: 100%;">
+                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${escapeHtml(list.id)}')" style="width: 100%;">
                                 <i class="fas fa-eye"></i> View List
                             </button>
                         `;
@@ -4540,6 +4540,15 @@
 
             async function deleteList(listId) {
                 try {
+                    const { data: listOwner } = await supabase
+                        .from('lists')
+                        .select('user_id')
+                        .eq('id', listId)
+                        .maybeSingle();
+                    if (!listOwner || listOwner.user_id !== currentUser?.id) {
+                        showToast('Only the list owner can delete this list', 'warning');
+                        return;
+                    }
                     await supabase.from('lists_restraunts').delete().eq('list_id', listId);
                     
                     const { error } = await supabase
@@ -12571,7 +12580,17 @@
                 };
 
                 try {
-                    if (type !== 'restaurant') {
+                    if (type === 'restaurant') {
+                        const { data: listOwner } = await supabase
+                            .from('lists')
+                            .select('user_id')
+                            .eq('id', collectionId)
+                            .maybeSingle();
+                        if (!listOwner || listOwner.user_id !== currentUser?.id) {
+                            showToast('You do not have permission to edit this list', 'warning');
+                            return;
+                        }
+                    } else {
                         let canEdit = canEditCollectionItems(type, collectionId, listType);
                         if (!canEdit && String(listType || '').toLowerCase() === 'custom') {
                             const accessRecord = await fetchCustomListAccessRecord(type, collectionId);
@@ -12701,7 +12720,17 @@
             }
 
             async function deleteCollection(id, type) {
-                if (type !== 'restaurant') {
+                if (type === 'restaurant') {
+                    const { data: listOwner } = await supabase
+                        .from('lists')
+                        .select('user_id')
+                        .eq('id', id)
+                        .maybeSingle();
+                    if (!listOwner || listOwner.user_id !== currentUser?.id) {
+                        showToast('Only the list owner can delete this list', 'warning');
+                        return;
+                    }
+                } else {
                     const accessRecord = await fetchCustomListAccessRecord(type, id);
                     if (!accessRecord || !canDeleteCustomCollection(type, id, accessRecord)) {
                         showToast('Only the list owner can delete this list', 'warning');
@@ -13701,8 +13730,9 @@
                 // Stats are already updated in updateStatsUI
             }
 
-            // 6. ADD: Debug function to check for duplicate lists
+            // 6. ADD: Debug function to check for duplicate lists (gated behind debug flag)
             window.checkDuplicateLists = async function() {
+                if (!window.__ZO2Y_DEBUG && !/debug=1/.test(location.search)) return;
                 console.log('=== CHECKING FOR DUPLICATE LISTS ===');
                 
                 const { data: lists } = await supabase

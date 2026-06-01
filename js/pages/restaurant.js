@@ -13,6 +13,16 @@ let supabaseClient = null;
 let restaurantId = null;
 let listManager = null;
 
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // ========== SUPABASE CONFIG ==========
 const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
 const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
@@ -292,7 +302,7 @@ function setupRestaurantButtons(restaurant) {
     const hotlineBtn = document.getElementById('call-hotline');
     if (restaurant.hotline) {
         hotlineBtn.href = `tel:${restaurant.hotline}`;
-        hotlineBtn.innerHTML = `<span>ðŸ“ž</span> Call: ${restaurant.hotline}`;
+        hotlineBtn.innerHTML = `<span>ðŸ“ž</span> Call: ${escapeHtml(restaurant.hotline)}`;
     } else {
         hotlineBtn.style.display = 'none';
     }
@@ -325,7 +335,7 @@ function renderOverview(restaurant) {
     const overviewContent = document.getElementById('overview-content');
     overviewContent.innerHTML = `
         <div class="overview-summary">
-            <p>${restaurant.description || 'Delicious food served with care'}</p>
+            <p>${escapeHtml(restaurant.description || 'Delicious food served with care')}</p>
             <div class="overview-details" style="margin-top: 20px;">
                 ${restaurant.rating ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Rating:</strong>
@@ -333,11 +343,11 @@ function renderOverview(restaurant) {
                 </div>` : ''}
                 ${restaurant.hotline ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Hotline:</strong>
-                    <a href="tel:${restaurant.hotline}" style="color: var(--accent); text-decoration: none;">${restaurant.hotline}</a>
+                    <a href="tel:${escapeHtml(restaurant.hotline)}" style="color: var(--accent); text-decoration: none;">${escapeHtml(restaurant.hotline)}</a>
                 </div>` : ''}
                 ${restaurant.category ? `<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                     <strong style="color: var(--text);">Category:</strong>
-                    <span style="color: var(--text2);">${restaurant.category}</span>
+                    <span style="color: var(--text2);">${escapeHtml(restaurant.category)}</span>
                 </div>` : ''}
             </div>
         </div>
@@ -364,8 +374,8 @@ function renderContactInfo(restaurant, branches) {
                 branchCard.classList.add('is-hidden');
             }
             branchCard.innerHTML = `
-                <h3>${branch.branch_name}</h3>
-                <p>${branch.details || 'Location details not available'}</p>
+                <h3>${escapeHtml(branch.branch_name)}</h3>
+                <p>${escapeHtml(branch.details || 'Location details not available')}</p>
                 ${branch.directions_link
                     ? `<a href="${branch.directions_link}" target="_blank" rel="noopener">ðŸ“ Get directions</a>`
                     : `<span class="branch-directions disabled">ðŸ“ Get directions</span>`
@@ -418,7 +428,7 @@ function renderMenu(menuItems, restaurant) {
         Object.keys(groupedByCategory).forEach(category => {
             const categoryDiv = document.createElement('div');
             categoryDiv.className = 'menu-category';
-            categoryDiv.innerHTML = `<h3>${category}</h3>`;
+            categoryDiv.innerHTML = `<h3>${escapeHtml(category)}</h3>`;
             
             groupedByCategory[category].forEach(item => {
                 const menuItem = document.createElement('div');
@@ -428,10 +438,10 @@ function renderMenu(menuItems, restaurant) {
                 
                 menuItem.innerHTML = `
                     <div class="menu-item-header">
-                        <span class="menu-item-name">${item.item_name}</span>
+                        <span class="menu-item-name">${escapeHtml(item.item_name)}</span>
                         ${hasDescription ? `<button class="menu-expand-btn">â–¼</button>` : ''}
                     </div>
-                    ${hasDescription ? `<div class="menu-item-description">${item.description}</div>` : ''}
+                    ${hasDescription ? `<div class="menu-item-description">${escapeHtml(item.description)}</div>` : ''}
                 `;
                 
                 if (hasDescription) {
@@ -498,12 +508,12 @@ function displayGalleryImages(images, restaurantName) {
     }
     
     container.innerHTML = filteredImages.map((image, index) => `
-        <div class="gallery-item" onclick="openImageModal('${image.image_url}', '${restaurantName} - ${image.image_type}')">
-            <img src="${image.image_url}" 
-                 alt="${restaurantName} - ${image.image_type}"
+        <div class="gallery-item" onclick="openImageModal('${escapeHtml(image.image_url)}', '${escapeHtml(restaurantName)} - ${escapeHtml(image.image_type)}')">
+            <img src="${escapeHtml(image.image_url)}" 
+                 alt="${escapeHtml(restaurantName)} - ${escapeHtml(image.image_type)}"
                  loading="lazy"
                  class="gallery-image">
-            <div class="gallery-caption">${image.image_type.charAt(0).toUpperCase() + image.image_type.slice(1)}</div>
+            <div class="gallery-caption">${escapeHtml(image.image_type.charAt(0).toUpperCase() + image.image_type.slice(1))}</div>
         </div>
     `).join('');
 }
@@ -826,7 +836,8 @@ async function displayReviews(reviewsToDisplay) {
     container.innerHTML = reviewsToDisplay.map(review => {
         const user = userMap[review.user_id];
         const displayName = user?.full_name || user?.username || 'Anonymous';
-        const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        const safeDisplayName = escapeHtml(displayName);
+        const initials = safeDisplayName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         const canEditDelete = currentUser && currentUser.id === review.user_id;
         const isEditing = editingReviewId === review.id;
 
@@ -836,7 +847,7 @@ async function displayReviews(reviewsToDisplay) {
                     <div class="reviewer-info">
                         <div class="reviewer-avatar">${initials}</div>
                         <div class="reviewer-details">
-                            <div class="reviewer-name">${displayName}</div>
+                            <div class="reviewer-name">${safeDisplayName}</div>
                             <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { 
                                 year: 'numeric', 
                                 month: 'long', 
@@ -846,13 +857,13 @@ async function displayReviews(reviewsToDisplay) {
                     </div>
                     <div class="review-rating">${renderStarRating(review.rating)}</div>
                 </div>
-                <p class="review-comment">${review.comment}</p>
+                <p class="review-comment">${escapeHtml(review.comment)}</p>
                 ${canEditDelete ? `
                     <div class="review-actions">
-                        <button class="review-edit" onclick="editReview('${review.id}')">
+                        <button class="review-edit" onclick="editReview('${escapeHtml(review.id)}')">
                             ${isEditing ? 'Editing...' : 'Edit'}
                         </button>
-                        <button class="review-delete" onclick="deleteReview('${review.id}')">
+                        <button class="review-delete" onclick="deleteReview('${escapeHtml(review.id)}')">
                             Delete
                         </button>
                     </div>

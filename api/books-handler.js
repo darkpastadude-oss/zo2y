@@ -335,28 +335,20 @@ function getSupabasePublicKeyFromReq(req) {
   return String(direct || alt || fromObj || "").trim();
 }
 
-async function testBooksWriteRls({ supabaseUrl, apikey, bearerToken }) {
+async function testBooksAuth({ supabaseUrl, apikey, bearerToken }) {
   if (!supabaseUrl || !apikey || !bearerToken) {
     return { ok: false, configured: false, status: 0, message: "Missing SUPABASE_URL / apikey / bearer token" };
   }
 
-  const id = `diag-${Date.now()}`;
-  const url = `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/books`;
+  const url = `${supabaseUrl.replace(/\/+$/, "")}/rest/v1/books?select=id&limit=1`;
   try {
     const upstream = await fetch(url, {
-      method: "POST",
+      method: "GET",
       headers: {
         apikey,
         Authorization: `Bearer ${bearerToken}`,
-        Prefer: "return=minimal,tx=rollback",
         "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        id,
-        title: "diag",
-        authors: "diag",
-        updated_at: new Date().toISOString()
-      })
+      }
     });
 
     if (upstream.ok) {
@@ -368,7 +360,7 @@ async function testBooksWriteRls({ supabaseUrl, apikey, bearerToken }) {
       ok: false,
       configured: true,
       status: upstream.status,
-      message: text || `Books write failed (${upstream.status})`
+      message: text || `Books query failed (${upstream.status})`
     };
   } catch (error) {
     return { ok: false, configured: true, status: 0, message: error?.message || "Network error" };
@@ -765,8 +757,8 @@ export default async function handler(req, res) {
     const bearerToken = getBearerToken(req);
 
     const rlsProbe = bearerToken && apikey && supabaseUrl
-      ? await testBooksWriteRls({ supabaseUrl, apikey, bearerToken })
-      : { ok: false, configured: false, status: 0, message: "Send Authorization + apikey to test RLS" };
+      ? await testBooksAuth({ supabaseUrl, apikey, bearerToken })
+      : { ok: false, configured: false, status: 0, message: "Send Authorization + apikey to test auth" };
 
     return res.json({
       ok: true,
@@ -837,7 +829,8 @@ export default async function handler(req, res) {
 
       return res.json({ ok: true });
     } catch (error) {
-      return res.status(500).json({ ok: false, message: error?.message || "Book sync error" });
+      console.error("Book sync error:", error?.message);
+      return res.status(500).json({ ok: false, message: "Book sync failed" });
     }
   }
 
@@ -1037,9 +1030,10 @@ export default async function handler(req, res) {
         }
       }
 
-      return res.status(502).json({ message: lastError?.message || "Books proxy upstream failure" });
+      return res.status(502).json({ message: "Books proxy upstream failure" });
     } catch (error) {
-      return res.status(500).json({ message: error.message || "Books proxy error" });
+      console.error("Books proxy error:", error.message);
+      return res.status(500).json({ message: "Books proxy error" });
     }
   }
 
