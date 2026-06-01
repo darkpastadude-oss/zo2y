@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260531b" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260531b" defer></script>
+  <script src="/js/auth-gate.js?v=20260601a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260601a" defer></script>
   <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
   <title>Zo2y - Books</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260531b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260531b" defer></script>
+  <script src="js/list-utils.js?v=20260601a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260601a" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <style>
@@ -661,14 +661,14 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260531b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260531b"></noscript>
-<script src="js/shared-header.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260531b"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601a"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260601a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601a"></noscript>
+<script src="js/shared-header.js?v=20260601a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601a"></noscript>
 
   </head>
 <body>
@@ -970,7 +970,7 @@
             return json;
           };
 
-          // 1. Open Library trending — real popular books based on actual usage
+          // 1. Open Library trending â€” real popular books based on actual usage
           for (const period of ['weekly', 'monthly', 'daily']) {
             if (books.length >= apiLimit) break;
             await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${apiLimit}`);
@@ -985,7 +985,7 @@
             }
           }
 
-          // 3. Ultimate fallback — Google Books search
+          // 3. Ultimate fallback â€” Google Books search
           if (books.length < 15) {
             const fallbackQueries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
             for (const q of fallbackQueries) {
@@ -1390,6 +1390,6 @@
       loadPage();
     });
   </script>
-  <script src="js/production-runtime.js?v=20260531b" defer></script>
+  <script src="js/production-runtime.js?v=20260601a" defer></script>
 </body>
 </html>

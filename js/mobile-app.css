@@ -26,14 +26,8 @@ body.mobile-webapp {
   -webkit-tap-highlight-color: rgba(245, 158, 11, 0.22);
 }
 
-body.mobile-webapp.app-booting {
-  opacity: 0;
-}
-
-body.mobile-webapp.app-ready {
-  opacity: 1;
-  transition: opacity 220ms ease;
-}
+/* body opacity removed — was causing blue screen when JS DOMContentLoaded
+   never fired on mobile. Content-level fade-in handles animation now. */
 
 @media (max-width: 900px) {
   html,

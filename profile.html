@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<script src="/js/auth-gate.js?v=20260531b" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260531b" defer></script>
+<script src="/js/auth-gate.js?v=20260601a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260601a" defer></script>
   <meta name="robots" content="index,follow" />
     <title>Zo2y - Profile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <link rel="stylesheet" href="css/animations.css?v=20260531b">
+    <link rel="stylesheet" href="css/animations.css?v=20260601a">
     <style>
 :root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,9 +19,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 @keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes zo2y-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <link rel="stylesheet" href="css/animations.css?v=20260531b">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/pages/profile.css?v=20260531b"></noscript>
+    <link rel="stylesheet" href="css/animations.css?v=20260601a">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/pages/profile.css?v=20260601a"></noscript>
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -29,16 +29,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest?v=20260531b" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260601a" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260531b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260531b"></noscript>
-<script src="js/shared-header.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260531b"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601a"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260601a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601a"></noscript>
+<script src="js/shared-header.js?v=20260601a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260601a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601a"></noscript>
 
   </head>
 <body>
@@ -2190,14 +2190,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260531b" defer></script>
-    <script src="js/referral-utils.js?v=20260531b" defer></script>
-    <script src="js/igdb-client.js?v=20260531b" defer></script>
-    <script src="js/taste_identity.js?v=20260531b" defer></script>
-    <script src="js/cover-cache.js?v=20260531b" defer></script>
-    <script src="js/pages/games-shared.js?v=20260531b" defer></script>
-    <script src="js/pages/profile.js?v=20260531b" defer></script>
-    <script src="js/production-runtime.js?v=20260531b" defer></script>
+    <script src="js/list-utils.js?v=20260601a" defer></script>
+    <script src="js/referral-utils.js?v=20260601a" defer></script>
+    <script src="js/igdb-client.js?v=20260601a" defer></script>
+    <script src="js/taste_identity.js?v=20260601a" defer></script>
+    <script src="js/cover-cache.js?v=20260601a" defer></script>
+    <script src="js/pages/games-shared.js?v=20260601a" defer></script>
+    <script src="js/pages/profile.js?v=20260601a" defer></script>
+    <script src="js/production-runtime.js?v=20260601a" defer></script>
 
 </body>
 </html>

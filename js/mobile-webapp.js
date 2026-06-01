@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260531-auth-runtime-b';
+const APP_RUNTIME_VERSION = '20260601a';
   const isLocalhostRuntime = (() => {
     const hostname = String(window.location.hostname || '').trim().toLowerCase();
     return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
@@ -741,6 +741,11 @@ const APP_RUNTIME_VERSION = '20260531-auth-runtime-b';
     }
   });
 
+  window.setTimeout(() => {
+    document.body?.classList.remove('app-booting');
+    document.body?.classList.add('app-ready');
+  }, 5000);
+
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
     if (!ENABLE_MOBILE_INSTALL_PROMPT) return;
@@ -848,7 +853,7 @@ const APP_RUNTIME_VERSION = '20260531-auth-runtime-b';
         return;
       }
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260531b').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260601a').catch(() => {
         // silent fail to avoid runtime noise
         });
       });
