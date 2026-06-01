@@ -467,13 +467,24 @@ const HEADER_HTML = `
       if (toggle) toggle.classList.toggle('active', hasActive);
     });
 
+    // Restore persisted mobile accordion states (user preference).
+    // Falls back to auto-open if the accordion contains the active page
+    // and no user preference has been saved yet.
+    const storedStates = (() => { try { return JSON.parse(sessionStorage.getItem(getAccordionStorageKey())); } catch (_e) { return null; } })();
+    const hasPersistedStates = storedStates && typeof storedStates === 'object';
     document.querySelectorAll('.zo2y-mobile-accordion').forEach((accordion) => {
       const panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
       const toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
-      const hasActive = !!accordion.querySelector('[data-nav-page].active');
-      accordion.classList.toggle('open', hasActive);
-      if (toggle) toggle.setAttribute('aria-expanded', hasActive ? 'true' : 'false');
-      if (panel) panel.style.maxHeight = hasActive ? `${panel.scrollHeight}px` : '';
+      const label = toggle?.textContent?.trim() || '';
+      let shouldOpen;
+      if (hasPersistedStates && label && label in storedStates) {
+        shouldOpen = !!storedStates[label];
+      } else {
+        shouldOpen = !!accordion.querySelector('[data-nav-page].active');
+      }
+      accordion.classList.toggle('open', shouldOpen);
+      if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+      if (panel) panel.style.maxHeight = shouldOpen ? `${panel.scrollHeight}px` : '';
     });
   }
 
@@ -978,6 +989,35 @@ const HEADER_HTML = `
     });
   }
 
+  function getAccordionStorageKey() {
+    return 'zo2y-mobile-accordion-open';
+  }
+
+  function saveAccordionStates() {
+    const states = {};
+    document.querySelectorAll('.zo2y-mobile-accordion').forEach((acc) => {
+      const label = acc.querySelector('.zo2y-mobile-accordion-toggle')?.textContent?.trim() || '';
+      if (label) states[label] = acc.classList.contains('open');
+    });
+    try { sessionStorage.setItem(getAccordionStorageKey(), JSON.stringify(states)); } catch (_e) {}
+  }
+
+  function restoreAccordionStates() {
+    let states;
+    try { states = JSON.parse(sessionStorage.getItem(getAccordionStorageKey())); } catch (_e) {}
+    if (!states || typeof states !== 'object') return;
+    document.querySelectorAll('.zo2y-mobile-accordion').forEach((acc) => {
+      const label = acc.querySelector('.zo2y-mobile-accordion-toggle')?.textContent?.trim() || '';
+      if (!label || !(label in states)) return;
+      const shouldOpen = !!states[label];
+      const panel = acc.querySelector('.zo2y-mobile-accordion-panel');
+      const toggle = acc.querySelector('.zo2y-mobile-accordion-toggle');
+      acc.classList.toggle('open', shouldOpen);
+      if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+      if (panel) panel.style.maxHeight = shouldOpen ? `${panel.scrollHeight}px` : '';
+    });
+  }
+
   function wireMobileAccordions() {
     const accordions = Array.from(document.querySelectorAll('.zo2y-mobile-accordion'));
     if (!accordions.length) return;
@@ -991,6 +1031,7 @@ const HEADER_HTML = `
         const isOpen = accordion.classList.toggle('open');
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         panel.style.maxHeight = isOpen ? `${panel.scrollHeight}px` : '';
+        saveAccordionStates();
       });
     });
   }
