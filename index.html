@@ -91,7 +91,7 @@
 <link rel="stylesheet" href="css/global-lowercase.css?v=20260531b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260531b"></noscript>
   </head>
-<body>
+<body class="page-fade">
   <div id="appRoot">
   <div class="landing-experience landing-v4" id="homeLandingPage" aria-label="Zo2y introduction">
     <header class="landing-v4-header">
@@ -481,6 +481,9 @@
       })();
     </script>
  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded',function(){requestAnimationFrame(function(){document.querySelectorAll('.page-fade').forEach(function(e){e.classList.add('visible')})})});
+  </script>
   </body>
 </html>
 

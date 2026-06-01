@@ -7903,7 +7903,7 @@
             function requestTabRender(tabName, requestToken) {
                 const safeTab = normalizeProfileTab(tabName);
                 if (safeTab !== 'community' && hasFreshTabRender(safeTab)) {
-                    return;
+                    return Promise.resolve();
                 }
                 const handlers = {
                     ...(ENABLE_RESTAURANTS ? { restaurants: () => renderRestaurants() } : {}),
@@ -7921,7 +7921,7 @@
                     community: () => showCommunitySection('followers')
                 };
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
-                Promise.resolve()
+                return Promise.resolve()
                     .then(() => handler())
                     .catch((error) => {
                         if (requestToken !== tabSwitchToken) return;
@@ -7930,7 +7930,7 @@
                     });
             }
 
-            function showTab(tabName, options = {}) {
+            async function showTab(tabName, options = {}) {
                 const safeTab = normalizeProfileTab(tabName);
                 const requestToken = ++tabSwitchToken;
                 const isMobile = window.innerWidth <= 768;
@@ -7963,7 +7963,6 @@
                 
                 if (isMobile) {
                     document.querySelectorAll('.mobile-section').forEach(section => {
-                        // Skip hiding sections that contain visible detail sections if skipDetailReset is true
                         if (options.skipDetailReset) {
                             const detailSection = section.querySelector('[id*="DetailSection"]');
                             if (detailSection && detailSection.style.display === 'block') {
@@ -7971,7 +7970,7 @@
                             }
                         }
                         section.style.display = 'none';
-                        section.classList.remove('active');
+                        section.classList.remove('active', 'rendered');
                     });
                     
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
@@ -7986,6 +7985,7 @@
                     if (activeSection) {
                         activeSection.style.display = 'block';
                         activeSection.classList.add('active');
+                        activeSection.classList.remove('rendered');
                     }
                     
                     const activeTab = document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`);
@@ -8002,11 +8002,21 @@
                     
                     currentTab = safeTab;
                     if (!options.skipRender) {
-                        requestTabRender(safeTab, requestToken);
+                        const renderPromise = requestTabRender(safeTab, requestToken);
+                        if (renderPromise) {
+                            await renderPromise;
+                            if (requestToken === tabSwitchToken && activeSection) {
+                                requestAnimationFrame(() => {
+                                    activeSection.classList.add('rendered');
+                                });
+                            }
+                        }
+                    } else if (activeSection) {
+                        activeSection.classList.add('rendered');
                     }
                 } else {
                     document.querySelectorAll('.tab-content').forEach(tab => {
-                        tab.classList.remove('active');
+                        tab.classList.remove('active', 'rendered');
                     });
                     
                     const tabElement =
@@ -8015,6 +8025,7 @@
                         document.getElementById('movies-tab');
                     if (tabElement) {
                         tabElement.classList.add('active');
+                        tabElement.classList.remove('rendered');
                     }
                     
                     document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -8033,7 +8044,17 @@
                     
                     currentTab = safeTab;
                     if (!options.skipRender) {
-                        requestTabRender(safeTab, requestToken);
+                        const renderPromise = requestTabRender(safeTab, requestToken);
+                        if (renderPromise) {
+                            await renderPromise;
+                            if (requestToken === tabSwitchToken && tabElement) {
+                                requestAnimationFrame(() => {
+                                    tabElement.classList.add('rendered');
+                                });
+                            }
+                        }
+                    } else if (tabElement) {
+                        tabElement.classList.add('rendered');
                     }
                 }
             }
