@@ -54,7 +54,12 @@ const JUNK_TEXT_PATTERNS = [
   /\b(newspaper|magazine|periodical|journal|proceedings|conference|symposium|report|annual report)\b/i,
   /\b(government|bureau|department|committee|commission|census|gazette|archive|archives)\b/i,
   /\b(manual|catalogue|catalog|directory|bulletin|pamphlet|microform|thesis|dissertation)\b/i,
-  /\b(scanned|scan|public domain|historical document|academic pdf|working paper)\b/i
+  /\b(scanned|scan|public domain|historical document|academic pdf|working paper)\b/i,
+  /\b(textbook|study guide|workbook|coursebook|student guide|teacher guide)\b/i,
+  /\b(newsletter|bulletin|gazette|chronicle|times|herald|tribune|post|observer)\b/i,
+  /\b(proceedings|transactions|lecture notes|seminar|workshop|colloquium)\b/i,
+  /\b(dissertation|thesis|monograph|treatise|compilation|anthology)\b/i,
+  /\b(digitized|microfilm|microfiche|reprint|facsimile|transcription)\b/i
 ];
 const EXPLICIT_TEXT_PATTERNS = [
   /\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i
@@ -145,6 +150,24 @@ function isJunkBookDoc(doc = {}) {
 
 function filterSafeBookDocs(docs = []) {
   return (Array.isArray(docs) ? docs : []).filter((doc) => !isJunkBookDoc(doc));
+}
+
+function detectContentType(doc = {}) {
+  const text = getDocText(doc);
+  const title = String(doc?.title || "").toLowerCase();
+  const subjects = Array.isArray(doc?.subject) ? doc.subject.join(" ") : String(doc?.subject || "").toLowerCase();
+  const publisher = Array.isArray(doc?.publisher) ? doc.publisher[0] || "" : String(doc?.publisher || "").toLowerCase();
+  const haystack = `${title} ${subjects} ${publisher}`;
+
+  if (/\b(newspaper|magazine|periodical|newsletter|gazette|chronicle|bulletin)\b/i.test(haystack)) return "periodical";
+  if (/\b(proceedings|conference|symposium|seminar|workshop|colloquium|lecture notes)\b/i.test(haystack)) return "academic";
+  if (/\b(textbook|study guide|workbook|coursebook|student guide|teacher guide)\b/i.test(haystack)) return "textbook";
+  if (/\b(thesis|dissertation|monograph|treatise)\b/i.test(haystack)) return "academic";
+  if (/\b(manual|handbook|guidebook|catalogue|catalog|directory|pamphlet|microform)\b/i.test(haystack)) return "reference";
+  if (/\b(report|annual report|government|bureau|department|committee|commission|census)\b/i.test(haystack)) return "report";
+  if (/\b(scanned|scan|public domain|historical document|academic pdf|working paper|digitized|microfilm|microfiche|reprint|facsimile)\b/i.test(haystack)) return "archive";
+  if (/\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i.test(haystack)) return "explicit";
+  return "book";
 }
 
 function hasQualityCover(doc = {}) {
@@ -432,7 +455,7 @@ function normalizeGoogleBookDoc(volume, idx = 0) {
   const previewLink = toHttpsUrl(info?.previewLink || "");
   const infoLink = toHttpsUrl(info?.infoLink || "");
 
-  return {
+  const normalized = {
     key: "",
     title,
     author_name: authorNames.length ? authorNames : ["Unknown author"],
@@ -448,6 +471,8 @@ function normalizeGoogleBookDoc(volume, idx = 0) {
     _previewLink: previewLink,
     _infoLink: infoLink
   };
+  normalized._contentType = detectContentType(normalized);
+  return normalized;
 }
 
 function normalizeOpenLibraryDoc(doc, idx = 0) {
@@ -470,7 +495,7 @@ function normalizeOpenLibraryDoc(doc, idx = 0) {
   const key = String(doc?.key || "").trim();
   const coverImage = buildOpenLibraryCoverUrl({ cover_i: coverId, isbn }, "L");
 
-  return {
+  const normalized = {
     key,
     title,
     author_name: authorNames.length ? authorNames : ["Unknown author"],
@@ -484,6 +509,8 @@ function normalizeOpenLibraryDoc(doc, idx = 0) {
     _googleVolumeId: "",
     _source: "openlibrary"
   };
+  normalized._contentType = detectContentType(normalized);
+  return normalized;
 }
 
 function dedupeDocs(rows = [], limit = 20) {
@@ -945,35 +972,31 @@ export default async function handler(req, res) {
       const limit = clampInt(query.limit, 1, 40, 20);
 
       let docs = [];
-      let source = "google-books-fallback";
+      let source = "google-books";
 
-      try {
-        const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
-        const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
-        if (upstream.ok) {
-          const json = await upstream.json();
-          const works = Array.isArray(json?.works) ? json.works : [];
-          docs = dedupeDocs(
-            works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
-            limit * 2
-          );
-          if (docs.length > 0) {
-            source = "openlibrary-trending";
-          }
-        }
-      } catch (_olError) {
-        // Open Library failed, will use Google Books fallback
-      }
+      const popular = await fetchGoogleDocs({
+        q: buildDiscoveryQuery(1, "fiction"),
+        orderBy: "relevance",
+        limit,
+        page: 1,
+        language: "en"
+      });
+      docs = Array.isArray(popular.docs) ? popular.docs : [];
 
       if (!docs.length) {
-        const popular = await fetchGoogleDocs({
-          q: buildDiscoveryQuery(1, "fiction"),
-          orderBy: "relevance",
-          limit,
-          page: 1,
-          language: "en"
-        });
-        docs = Array.isArray(popular.docs) ? popular.docs : [];
+        try {
+          const url = new URL(`${OPEN_LIBRARY_BASE}/trending/${period}.json`);
+          const upstream = await fetchWithRetry(url.toString(), { headers: { Accept: "application/json" } }, 3);
+          if (upstream.ok) {
+            const json = await upstream.json();
+            const works = Array.isArray(json?.works) ? json.works : [];
+            docs = dedupeDocs(
+              works.map((work, idx) => normalizeOpenLibraryDoc(work, idx)).filter(Boolean),
+              limit * 2
+            );
+            if (docs.length > 0) source = "openlibrary-trending";
+          }
+        } catch (_olError) {}
       }
 
       res.setHeader("Cache-Control", "public, max-age=120, s-maxage=600, stale-while-revalidate=1200");
