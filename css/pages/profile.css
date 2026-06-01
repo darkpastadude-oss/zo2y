@@ -3284,7 +3284,7 @@
             background: var(--card);
             border-top: 1px solid var(--border);
             padding: 30px 0;
-            margin-top: auto;
+            margin-top: 40px;
         }
 
         .footer-content {
@@ -4253,12 +4253,7 @@
             }
             
             .desktop-only {
-                display: flex;
-                flex-direction: column;
-                min-height: 100dvh;
-            }
-            .desktop-only > .container:last-of-type {
-                flex: 1;
+                display: block;
             }
         }
 
