@@ -1031,6 +1031,7 @@
     let currentUser = null;
     const state = {
       books: [],
+      _fullBooks: [],
       search: '',
       genre: '',
       sort: 'popular',
@@ -1484,7 +1485,7 @@
 
           // === SEEDED BOOKS (homepage approach) ===
           const fetchSeededTopBooks = async (limit = BOOKS_PER_PAGE) => {
-            const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 24)));
+            const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, 8);
             const results = await Promise.allSettled(pool.map(async (seed) => {
               const params = {
                 title: seed.title,
@@ -1618,50 +1619,42 @@
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
       const seen = new Set();
-      state.books = state.books.filter(book => {
+      const fullBooks = state.books.filter(book => {
         if (seen.has(book.id)) return false;
         seen.add(book.id);
         return true;
       });
 
-      // Boost popular/seed books to the front of page 1
-      if (!query && state.page === 1) {
+      // Boost popular/seed books to the front
+      if (!query) {
         const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
         const boosted = [];
         const rest = [];
-        for (const book of state.books) {
+        for (const book of fullBooks) {
           if (seedTitles.has(normalizeBookSeedText(book.title))) {
             boosted.push(book);
           } else {
             rest.push(book);
           }
         }
-        state.books = [...boosted, ...rest];
+        state._fullBooks = [...boosted, ...rest];
+      } else {
+        state._fullBooks = fullBooks;
       }
 
-      // Keep the first page stable (popular first), shuffle additional pages for variety.
-      if (!query && state.page > 1) {
-        state.books = shuffleArray(state.books);
-      }
-
-      // Apply user-selected sort
+      // Apply user-selected sort to the full list
       if (state.sort === 'name') {
-        state.books.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        state._fullBooks.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
       } else if (state.sort === 'released') {
-        state.books.sort((a, b) => {
+        state._fullBooks.sort((a, b) => {
           const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
           const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
           return dateB - dateA;
         });
       }
 
-      state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
-
-      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / BOOKS_PAGE_SIZE));
-      } else {
-        state.totalPages = 1;
-      }
+      state.books = state._fullBooks.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
+      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / BOOKS_PAGE_SIZE));
     }
 
     function debounceSearch(query) {
@@ -1945,19 +1938,38 @@
       await loadListStatus();
       renderGrid();
     });
+    function sliceBooksForPage() {
+      const BOOKS_PAGE_SIZE = computeGridPageSize();
+      const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
+      state.books = state._fullBooks.slice(startIndex, startIndex + BOOKS_PAGE_SIZE);
+      state.totalPages = Math.max(1, Math.ceil(state._fullBooks.length / BOOKS_PAGE_SIZE));
+    }
+
     document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
       if (state.page <= 1) return;
       state.page -= 1;
-      await loadBooksWithFallback();
-      await loadListStatus();
-      renderGrid();
+      if (state._fullBooks.length) {
+        sliceBooksForPage();
+        await loadListStatus();
+        renderGrid();
+      } else {
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }
     });
     document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
       if (state.page >= state.totalPages) return;
       state.page += 1;
-      await loadBooksWithFallback();
-      await loadListStatus();
-      renderGrid();
+      if (state._fullBooks.length) {
+        sliceBooksForPage();
+        await loadListStatus();
+        renderGrid();
+      } else {
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }
     });
 
     document.addEventListener('DOMContentLoaded', () => {

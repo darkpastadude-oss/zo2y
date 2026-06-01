@@ -3697,7 +3697,7 @@
 
             .mobile-section.active {
                 display: block;
-                animation: fadeIn 0.3s ease;
+                animation: fadeIn 0.3s ease forwards;
             }
 
             .mobile-section-title {

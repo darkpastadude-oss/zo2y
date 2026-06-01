@@ -1029,8 +1029,8 @@
         pageCount: book.pageCount || book.page_count || 0
       })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
 
-      // Boost popular/seed books to the front of page 1
-      if (!query && state.page === 1) {
+      // Boost popular/seed books to the front
+      if (!query) {
         const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
         const boosted = [];
         const rest = [];
@@ -1043,12 +1043,6 @@
         }
         state.books = [...boosted, ...rest];
       }
-
-      if (!query && state.page > 1) {
-        state.books = shuffleArray(state.books);
-      }
-
-      state.totalPages = apiTotalPages;
     }
 
     function debounceSearch(query) {
