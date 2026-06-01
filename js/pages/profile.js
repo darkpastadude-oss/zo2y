@@ -3513,11 +3513,60 @@
                                 followingCountBadge.style.display = (followingCount || 0) > 0 ? 'inline-block' : 'none';
                             }
 
+                            // Get activity count
+                            this.loadActivityCount(targetId);
+
                             await renderCommunityPreview(targetId, followersCount || 0, followingCount || 0);
 
                         } catch (error) {
                             console.error('Error loading follow stats:', error);
                         }
+                    },
+
+                    async loadActivityCount(targetId) {
+                        try {
+                            const { data: follows } = await supabase
+                                .from('follows')
+                                .select('followed_id')
+                                .eq('follower_id', targetId)
+                                .limit(80);
+
+                            const actorIds = [...new Set([
+                                String(targetId || '').trim(),
+                                ...((follows || []).map((row) => String(row?.followed_id || '').trim()))
+                            ].filter(Boolean))].slice(0, 80);
+
+                            if (!actorIds.length) {
+                                this.updateActivityBadge(0);
+                                return;
+                            }
+
+                            const { count, error } = await supabase
+                                .from('user_activity_feed')
+                                .select('id', { count: 'exact', head: true })
+                                .in('actor_id', actorIds);
+
+                            if (!error) {
+                                this.updateActivityBadge(count || 0);
+                            } else {
+                                const code = String(error?.code || '').toUpperCase();
+                                const msg = String(error?.message || '').toLowerCase();
+                                const missingTable = code === 'PGRST205' || msg.includes('user_activity_feed') || msg.includes('could not find the table');
+                                if (!missingTable) {
+                                    console.warn('Activity count query failed:', error);
+                                }
+                            }
+                        } catch (e) {
+                            // silently fail
+                        }
+                    },
+
+                    updateActivityBadge(count) {
+                        const badge = document.getElementById('activityCountBadge');
+                        const mobileBadge = document.getElementById('mobileActivityCountBadge');
+                        const text = String(count || 0);
+                        if (badge) { badge.textContent = text; badge.style.display = count > 0 ? 'inline-block' : 'none'; }
+                        if (mobileBadge) { mobileBadge.textContent = text; mobileBadge.style.display = count > 0 ? 'inline-block' : 'none'; }
                     },
 
                     async loadFollowers() {
@@ -4118,6 +4167,7 @@
                             }
 
                             const rows = await this.fetchActivityRows(actorIds);
+                            this.updateActivityBadge(rows?.length || 0);
                             if (!rows || !rows.length) {
                                 list.innerHTML = isMobile
                                     ? `

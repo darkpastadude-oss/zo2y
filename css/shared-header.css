@@ -1016,7 +1016,8 @@ body.zo2y-mobile-menu-open {
 }
 
 .zo2y-nav-group:hover .zo2y-nav-menu,
-.zo2y-nav-group:focus-within .zo2y-nav-menu {
+.zo2y-nav-group:focus-within .zo2y-nav-menu,
+.zo2y-nav-group.active .zo2y-nav-menu {
   display: flex;
 }
 

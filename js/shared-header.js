@@ -484,7 +484,7 @@ const HEADER_HTML = `
       }
       accordion.classList.toggle('open', shouldOpen);
       if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-      if (panel) panel.style.maxHeight = shouldOpen ? `${panel.scrollHeight}px` : '';
+      if (panel) panel.style.maxHeight = '';
     });
   }
 

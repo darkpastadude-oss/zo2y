@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
+import { sendVerificationEmail, emailConfigured } from "../backend/lib/email/service.js";
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -106,12 +107,17 @@ export default async function handler(req, res) {
         });
       }
 
-      const { data, error } = await admin.auth.admin.createUser({
+      const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
+      const redirectTo = `${baseUrl}/auth-callback.html?flow=signup`;
+
+      const { data, error } = await admin.auth.admin.generateLink({
+        type: "signup",
         email,
         password,
-        email_confirm: true,
-        user_metadata: {
-          needs_username: true
+        options: {
+          redirectTo,
+          should_include_email: false,
+          data: { needs_username: true }
         }
       });
 
@@ -147,7 +153,6 @@ export default async function handler(req, res) {
 
       if (profileWrite.error && profileUpsertNeedsFallback(profileWrite.error, "id")) {
         const fallbackPayload = { ...profilePayload };
-        // Some deployments use `user_id` as the primary key instead of `id`.
         if (profileUpsertNeedsFallback(profileWrite.error, "id")) delete fallbackPayload.id;
         profileWrite = await admin
           .from("user_profiles")
@@ -161,8 +166,25 @@ export default async function handler(req, res) {
         });
       }
 
+      // Send verification email via Resend
+      if (emailConfigured()) {
+        const confirmationUrl = data?.properties?.action_link || "";
+        if (confirmationUrl) {
+          try {
+            await sendVerificationEmail({
+              to: email,
+              name: email.split("@")[0],
+              confirmationUrl
+            });
+          } catch (emailError) {
+            console.error("Failed to send verification email:", emailError?.message || emailError);
+          }
+        }
+      }
+
       return res.status(201).json({
         success: true,
+        verification_sent: true,
         user: {
           id: data.user.id,
           email: data.user.email || email,
@@ -174,6 +196,51 @@ export default async function handler(req, res) {
         success: false,
         message: error?.message || "Signup failed"
       });
+    }
+  }
+
+  if (section === "resend-verification" && method === "POST") {
+    try {
+      const email = normalizeEmail(req.body?.email);
+      if (!isValidEmail(email)) {
+        return res.status(400).json({ success: false, message: "Please provide a valid email address." });
+      }
+
+      const admin = getSupabaseAdminClient();
+      if (!admin) {
+        return res.status(500).json({ success: false, message: "Verification service is not configured." });
+      }
+
+      const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
+      const redirectTo = `${baseUrl}/auth-callback.html?flow=signup`;
+
+      const { data, error } = await admin.auth.admin.generateLink({
+        type: "signup",
+        email,
+        options: {
+          redirectTo,
+          should_include_email: false
+        }
+      });
+
+      if (error) {
+        return res.status(500).json({ success: false, message: error.message || "Could not generate verification link." });
+      }
+
+      if (emailConfigured()) {
+        const confirmationUrl = data?.properties?.action_link || "";
+        if (confirmationUrl) {
+          await sendVerificationEmail({
+            to: email,
+            name: email.split("@")[0],
+            confirmationUrl
+          });
+        }
+      }
+
+      return res.status(200).json({ success: true, message: "Verification email sent." });
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error?.message || "Could not resend verification." });
     }
   }
 

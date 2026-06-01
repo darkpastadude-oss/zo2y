@@ -63,6 +63,64 @@
     errorEl.classList.remove('show');
   }
 
+  function showVerificationView(email) {
+    var panel = document.querySelector('.auth-panel-card');
+    if (!panel) return;
+    var altHtml = '';
+    var altLink = panel.querySelector('.alt-link');
+    if (altLink) altHtml = altLink.outerHTML;
+    var loginUrl = 'login.html';
+    if (referralUtils) loginUrl = referralUtils.appendReferralToHref('login.html', {
+      referral: activeReferral,
+      next: auth.readRequestedNextPath(window.location.search)
+    });
+    panel.innerHTML =
+      '<div class="verify-email-view">' +
+        '<div class="verify-icon"><i class="fas fa-envelope-circle-check"></i></div>' +
+        '<h2>Check your email</h2>' +
+        '<p class="verify-text">We sent a verification link to <strong>' + escapeHtml(email) + '</strong>.</p>' +
+        '<p class="verify-hint">Click the link in the email to confirm your account and get started.</p>' +
+        '<div id="verifyError" class="message error"></div>' +
+        '<button class="submit-btn" id="resendBtn" type="button">' +
+          '<i class="fas fa-rotate"></i> <span>Resend verification</span>' +
+        '</button>' +
+      '</div>' +
+      '<div class="alt-link">Already have an account? <a href="' + escapeHtml(loginUrl) + '">Log in</a></div>';
+
+    document.getElementById('resendBtn').addEventListener('click', function () {
+      var btn = this;
+      var errEl = document.getElementById('verifyError');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading"></div> Sending...';
+      if (errEl) { errEl.classList.remove('show'); }
+      fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      }).then(function (r) { return r.json(); }).then(function (data) {
+        if (data && data.success) {
+          btn.innerHTML = '<i class="fas fa-check"></i> <span>Sent!</span>';
+          window.setTimeout(function () {
+            btn.innerHTML = '<i class="fas fa-rotate"></i> <span>Resend verification</span>';
+            btn.disabled = false;
+          }, 3000);
+        } else {
+          btn.innerHTML = '<i class="fas fa-rotate"></i> <span>Resend verification</span>';
+          btn.disabled = false;
+          if (errEl) { errEl.textContent = data && data.message || 'Could not resend. Try again.'; errEl.classList.add('show'); }
+        }
+      }).catch(function () {
+        btn.innerHTML = '<i class="fas fa-rotate"></i> <span>Resend verification</span>';
+        btn.disabled = false;
+        if (errEl) { errEl.textContent = 'Could not resend. Try again.'; errEl.classList.add('show'); }
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
   function clearMessages() {
     errorEl.classList.remove('show');
     successEl.classList.remove('show');
@@ -205,49 +263,15 @@
         return;
       }
 
-      await auth.waitForSupabase(6000);
-      var client = auth.ensureClient();
-      if (!client || !client.auth || typeof client.auth.signInWithPassword !== 'function') {
-        throw new Error('Auth service is unavailable.');
-      }
-
-      var signInResult = await withTimeout(
-        client.auth.signInWithPassword({
-          email: email,
-          password: password
-        }),
-        15000,
-        'Automatic sign-in timed out'
-      );
-
-      if (signInResult && signInResult.error) throw signInResult.error;
-      if (!signInResult || !signInResult.data || !signInResult.data.session || !signInResult.data.session.user) {
-        throw new Error('Account was created, but automatic sign-in failed. Please log in.');
-      }
-
       track('signup_success', {
         method: 'password',
-        auto_login: true,
+        auto_login: false,
         path: window.location.pathname
       }, true);
       markFirstAction('first_signup_success', { method: 'password' });
       redirectInFlight = true;
-      showSuccess('Account created!');
 
-      // Set flag to trigger username popup
-      if (window.ZO2Y_USERNAME_POPUP && typeof window.ZO2Y_USERNAME_POPUP.setRequired === 'function') {
-        window.ZO2Y_USERNAME_POPUP.setRequired(true);
-      }
-
-      // Redirect after short delay to allow popup to show
-      setTimeout(function () {
-        auth.finishAuthRedirect({
-          client: client,
-          session: signInResult.data.session,
-          flow: 'signup',
-          next: auth.readRequestedNextPath(window.location.search)
-        });
-      }, 500);
+      showVerificationView(email);
     } catch (error) {
       track('signup_error', {
         method: 'password',

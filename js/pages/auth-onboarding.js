@@ -4,7 +4,9 @@
   var statusEl = document.getElementById('status');
   var usernameInput = document.getElementById('usernameInput');
   var saveButton = document.getElementById('saveBtn');
+  var skipButton = document.getElementById('skipBtn');
   var signOutButton = document.getElementById('signOutBtn');
+  var toTeamsButton = document.getElementById('toTeamsBtn');
   var auth = window.ZO2Y_AUTH;
   var client = null;
   var activeUser = null;
@@ -17,7 +19,7 @@
     return;
   }
 
-  if (!statusEl || !usernameInput || !saveButton || !signOutButton) return;
+  if (!statusEl || !usernameInput || !saveButton || !skipButton || !signOutButton) return;
 
   function setStatus(message, type) {
     statusEl.className = 'status' + (type ? ' ' + type : '');
@@ -139,7 +141,7 @@
   usernameInput.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      void completeOnboarding();
+      if (toTeamsButton) toTeamsButton.click();
     }
     if (event.key === ' ') {
       event.preventDefault();
@@ -149,6 +151,12 @@
   saveButton.addEventListener('click', function () {
     void completeOnboarding();
   });
+
+  if (skipButton) {
+    skipButton.addEventListener('click', function () {
+      void completeOnboarding();
+    });
+  }
 
    function clearAuthStorage() {
      var knownKeys = [

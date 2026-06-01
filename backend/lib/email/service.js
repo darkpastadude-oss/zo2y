@@ -254,6 +254,39 @@ export async function sendReminderEmail({ to, name, reminderText, actionUrl, act
   });
 }
 
+function buildVerificationEmail({ name, confirmationUrl }) {
+  const safeName = escapeHtml(name || "there");
+  const safeUrl = escapeHtml(confirmationUrl || process.env.APP_BASE_URL || "https://zo2y.com");
+  return {
+    subject: "Verify your Zo2y account",
+    text: `Hi ${safeName}, confirm your email to activate your Zo2y account: ${safeUrl}`,
+    html: baseTemplate({
+      title: "Verify your email",
+      subtitle: "Click the button below to confirm your account and start using Zo2y.",
+      preheader: "Confirm your email address to activate your Zo2y account.",
+      bodyHtml: `
+        <p style="margin:0 0 10px 0;">Hi ${safeName},</p>
+        <p style="margin:0 0 10px 0;">Thanks for signing up. Please confirm your email address by clicking the button below.</p>
+        <p style="margin:0;">Once confirmed, you will be able to set up your profile and start building lists.</p>
+      `,
+      ctaLabel: "Confirm account",
+      ctaUrl: safeUrl,
+      footerText: "If you did not sign up for Zo2y, you can ignore this email."
+    })
+  };
+}
+
+export async function sendVerificationEmail({ to, name, confirmationUrl }) {
+  const payload = buildVerificationEmail({ name, confirmationUrl });
+  return sendEmail({
+    to,
+    subject: payload.subject,
+    html: payload.html,
+    text: payload.text,
+    tags: [{ name: "type", value: "verification" }],
+  });
+}
+
 export function emailConfigured() {
   return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
 }

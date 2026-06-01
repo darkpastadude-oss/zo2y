@@ -16,308 +16,294 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260601b" defer></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <style>
-    :root{
-      --bg:#0b1633;
-      --card:#132347;
-      --muted:#8ca3c7;
-      --accent:#f59e0b;
-      --white:#fff;
-      --border:rgba(255,255,255,.1);
-      --gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);
+    :root {
+      --bg: #0b1633;
+      --card: #132347;
+      --muted: #8ca3c7;
+      --accent: #f59e0b;
+      --white: #fff;
+      --border: rgba(255,255,255,.12);
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--white);
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      padding:22px;
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      margin: 0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
     }
-    body::before{
-      content:"";
-      position:fixed;
-      inset:-25% 0 0 0;
-      background:radial-gradient(circle at 50% 0%, rgba(245,158,11,.16), transparent 62%);
-      pointer-events:none;
-      z-index:-2;
-    }
-    body::after{
-      content:"";
-      position:fixed;
-      inset:0;
-      background:repeating-linear-gradient(135deg, rgba(245,158,11,.08) 0 12px, rgba(255,184,77,0) 12px 24px);
-      opacity:.22;
-      pointer-events:none;
-      z-index:-3;
-    }
-    .shell{
-      width:min(560px,100%);
-      border:1px solid var(--border);
-      border-radius:22px;
-      background:rgba(19,35,71,.86);
-      box-shadow:0 18px 50px rgba(0,0,0,.35);
-      padding:18px;
-      text-transform:lowercase;
-    }
-    .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:10px;
-    }
-    .brand{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      font-weight:900;
-      letter-spacing:-.02em;
-    }
-    .brand img{
-      width:36px;
-      height:36px;
-      border-radius:12px;
-      object-fit:cover;
-      background:#0f1f40;
-    }
-    .signout{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
-      color:#eaf2ff;
-      cursor:pointer;
-    }
-    .signout:hover{border-color:rgba(245,158,11,.45);color:var(--accent)}
-    h1{
-      margin:10px 0 6px;
-      font-size:26px;
-      letter-spacing:-.03em;
-      line-height:1.05;
-    }
-    .sub{
-      margin:0 0 14px;
-      color:#d7e7ff;
-      font-size:14px;
-      line-height:1.55;
-      text-transform:none;
-    }
-    .row{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 160px;
-      gap:12px;
-      align-items:center;
-    }
-    .input{
-      width:100%;
-      height:56px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:#10224a;
-      color:#fff;
-      padding:0 16px;
-      outline:none;
-      font-size:16px;
-      text-transform:none;
-    }
-    .input:focus{
-      border-color:rgba(245,158,11,.6);
-      box-shadow:0 0 0 3px rgba(245,158,11,.16);
-    }
-    .btn{
-      height:56px;
-      border-radius:18px;
-      border:1px solid rgba(245,158,11,.35);
-      background:var(--gradient);
-      color:#0b1633;
-      font-weight:900;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      text-transform:lowercase;
-    }
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .hint{
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.4;
-      text-transform:none;
-    }
-    .status{
-      min-height:20px;
-      margin-top:8px;
-      font-size:13px;
-      color:var(--muted);
-      text-transform:none;
-    }
-    .status.error{color:#ffb4b4}
-    .status.success{color:#b9ffe4}
-
-    @media (prefers-reduced-motion: no-preference){
-      body::after{animation:zo2yDrift 16s linear infinite}
-      .shell{animation:zo2yEnter .46s cubic-bezier(.2,.9,.2,1) both}
-      .btn{transition:transform .18s ease, filter .18s ease}
-      .btn:not(:disabled):hover{transform:translateY(-1px);filter:saturate(1.08)}
-      .btn:not(:disabled):active{transform:translateY(0)}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -25% 0 0 0;
+      background: radial-gradient(circle at 50% 0%, rgba(245,158,11,.14), transparent 62%);
+      pointer-events: none;
+      z-index: -1;
     }
 
-    @keyframes zo2yEnter{
-      from{opacity:0;transform:translateY(10px) scale(.99)}
-      to{opacity:1;transform:translateY(0) scale(1)}
+    .card {
+      width: min(480px, 100%);
+      background: rgba(19,35,71,.88);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      padding: 28px 24px 24px;
     }
 
-    @keyframes zo2yDrift{
-      0%{transform:translate3d(-2%, -1%, 0)}
-      50%{transform:translate3d(2%, 1%, 0)}
-      100%{transform:translate3d(-2%, -1%, 0)}
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
     }
-    @media (max-width: 520px){
-      .row{grid-template-columns:1fr}
-      .btn{width:100%}
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: -.03em;
+    }
+    .brand img {
+      width: 32px; height: 32px;
+      border-radius: 10px;
+      background: #0f1f40;
+    }
+    .signout {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255,255,255,.04);
+      color: #d7e7ff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .signout:hover { border-color: rgba(245,158,11,.4); color: var(--accent); }
+
+    .step-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.16);
+    }
+    .step-dot.active { background: var(--accent); }
+    .step-dot.done { background: rgba(245,158,11,.45); }
+
+    .step-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: -.03em;
+      margin-bottom: 6px;
+    }
+    .step-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .input-wrap {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .input {
+      flex: 1;
+      height: 52px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: #0e1e3d;
+      color: #fff;
+      padding: 0 16px;
+      outline: none;
+      font-size: 16px;
+    }
+    .input:focus {
+      border-color: rgba(245,158,11,.55);
+      box-shadow: 0 0 0 3px rgba(245,158,11,.12);
+    }
+
+    .btn {
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 14px;
+      border: 0;
+      background: linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);
+      color: #0b1633;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-sm {
+      height: 40px;
+      padding: 0 18px;
+      font-size: 14px;
+      border-radius: 12px;
+    }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.1);
+      color: #d7e7ff;
+      font-weight: 600;
+    }
+    .btn-ghost:hover { border-color: rgba(245,158,11,.35); color: var(--accent); }
+
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .status {
+      min-height: 20px;
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .status.error { color: #ffb4b4; }
+    .status.success { color: #b9ffe4; }
+
+    .steps {
+      position: relative;
+      overflow: hidden;
+    }
+    .step-pane {
+      display: none;
+      animation: fadeSlideIn .35s cubic-bezier(.16,1,.3,1);
+    }
+    .step-pane.active { display: block; }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .team-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background .15s, border-color .15s, box-shadow .15s;
+    }
+    .team-chip:hover {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.15);
+    }
+    .team-chip.selected {
+      background: rgba(245,158,11,.14);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(245,158,11,.25);
+    }
+    .team-chip .check {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .team-chip.selected .check {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .team-chip .check i {
+      font-size: 10px;
+      color: #0b1633;
+      display: none;
+    }
+    .team-chip.selected .check i { display: block; }
+
+    .step-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .step-footer-right {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 20px 16px; }
+      .team-grid { grid-template-columns: 1fr; }
+      .input-wrap { flex-direction: column; }
+      .input-wrap .btn { width: 100%; }
+      .step-footer { flex-direction: column; align-items: stretch; }
+      .step-footer-right { margin-left: 0; }
+      .step-footer .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .card { animation: cardIn .5s cubic-bezier(.16,1,.3,1) both; }
+      .btn { transition: transform .15s, box-shadow .15s; }
+      .btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,158,11,.25); }
+      .team-chip { transition: background .15s, border-color .15s; }
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(14px) scale(.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
   </style>
-
-  </head>
+</head>
 <body>
-  <div class="shell">
-    <!-- Add sports loading script similar to index.html -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "Zo2y",
-        "url": "https://zo2y.com/",
-        "description": "All your interests in one place.",
-        "image": "https://zo2y.com/images/zo2y-search-illustration.png"
-      }
-    </script>
-    <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="dns-prefetch" href="//image.tmdb.org">
-    <link rel="dns-prefetch" href="//covers.openlibrary.org">
-    <link rel="dns-prefetch" href="//books.googleusercontent.com">
-    <link rel="dns-prefetch" href="//i.scdn.co">
-    <link rel="dns-prefetch" href="//images.igdb.com">
-    <link rel="dns-prefetch" href="//flagcdn.com">
-    <link rel="dns-prefetch" href="//commons.wikimedia.org">
-    <link rel="dns-prefetch" href="//restcountries.com">
-    <link rel="dns-prefetch" href="//www.thesportsdb.com">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="/js/list-utils.js?v=20260601b" defer></script>
-    <script src="js/shared-header.js?v=20260601b" defer></script>
-    
-     <!-- Load and display popular sports teams in onboarding -->
-     <script>
-       (function() {
-         var TEAMS = [
-           { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
-           { title: 'Barcelona', image: 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg' },
-           { title: 'Manchester City', image: 'https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg' },
-           { title: 'Liverpool', image: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg' },
-           { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
-           { title: 'Los Angeles Lakers', image: 'https://upload.wikimedia.org/wikipedia/en/3/3c/Los_Angeles_Lakers_logo.svg' },
-           { title: 'Golden State Warriors', image: 'https://upload.wikimedia.org/wikipedia/en/0/01/Golden_State_Warriors_logo.svg' },
-           { title: 'Kansas City Chiefs', image: 'https://upload.wikimedia.org/wikipedia/en/e/e1/Kansas_City_Chiefs_logo.svg' },
-           { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' },
-           { title: 'Boston Celtics', image: 'https://upload.wikimedia.org/wikipedia/en/8/8f/Boston_Celtics.svg' },
-           { title: 'Chicago Bulls', image: 'https://upload.wikimedia.org/wikipedia/en/6/67/Chicago_Bulls_logo.svg' },
-           { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' }
-         ];
-
-         function render() {
-           var grid = document.getElementById('onboardingSportsGrid');
-           if (!grid) return;
-           var shuffled = TEAMS.slice().sort(function() { return Math.random() - 0.5; });
-           var count = Math.min(8, shuffled.length);
-           grid.innerHTML = '';
-           for (var i = 0; i < count; i++) {
-             var team = shuffled[i];
-             var card = document.createElement('div');
-             card.className = 'onboarding-team-card';
-             card.innerHTML = '<img src="' + (team.image || '/images/fallback/sports.svg') + '" alt="' + (team.title || 'Sports') + '" class="team-logo" onerror="this.onerror=null;this.src=\'/images/fallback/sports.svg\'"><div class="team-name">' + (team.title || 'Sports') + '</div>';
-             (function(t) {
-               card.onclick = function() {
-                 card.classList.toggle('selected');
-                 var selected = JSON.parse(localStorage.getItem('onboardingSports') || '[]');
-                 var name = t.title || 'Sports';
-                 var idx = selected.indexOf(name);
-                 if (card.classList.contains('selected')) {
-                   if (idx === -1) selected.push(name);
-                 } else {
-                   if (idx > -1) selected.splice(idx, 1);
-                 }
-                 localStorage.setItem('onboardingSports', JSON.stringify(selected));
-               };
-             })(team);
-             grid.appendChild(card);
-           }
-         }
-
-         if (document.readyState === 'loading') {
-           document.addEventListener('DOMContentLoaded', render);
-         } else {
-           render();
-         }
-       })();
-     </script>
-    <style>
-      .onboarding-team-card {
-        text-align: center;
-        background: rgba(255,255,255,0.05);
-        border-radius: 12px;
-        padding: 12px;
-        width: 80px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid transparent;
-      }
-      
-      .onboarding-team-card:hover {
-        background: rgba(255,255,255,0.1);
-        transform: translateY(-2px);
-      }
-      
-      .onboarding-team-card.selected {
-        background: rgba(245,158,11,0.2);
-        border-color: var(--accent);
-        transform: translateY(-2px);
-      }
-      
-      .onboarding-team-card .team-logo {
-        width: 48px;
-        height: 48px;
-        object-fit: contain;
-        margin-bottom: 8px;
-      }
-      
-      .onboarding-team-card .team-name {
-        font-size: 12px;
-        color: var(--white);
-        font-weight: 600;
-      }
-    </style>
+  <div class="card">
     <div class="top">
       <div class="brand">
-        <img src="/file.svg" alt="logo" />
+        <img src="/file.svg" alt="" />
         <span>zo2y</span>
       </div>
       <button class="signout" id="signOutBtn" type="button" aria-label="sign out">
@@ -326,35 +312,134 @@
       </button>
     </div>
 
-    <h1>finish your setup</h1>
-    <p class="sub">pick your username once and Zo2y will use it everywhere.</p>
+    <div class="step-dots">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="step-dot" id="dot2"></div>
+    </div>
 
-     <div class="row">
-       <input id="usernameInput" class="input" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
-         placeholder="your username" maxlength="30" aria-label="username" />
-       <button id="saveBtn" class="btn" type="button">
-         <i class="fas fa-check"></i>
-         <span>continue</span>
-       </button>
-     </div>
+    <div class="steps">
+      <!-- Step 1: Username -->
+      <div class="step-pane active" id="step1">
+        <div class="step-label">step 1 of 2</div>
+        <div class="step-title">pick your username</div>
+        <div class="step-sub">This is how you&rsquo;ll appear across Zo2y. Make it yours.</div>
 
-     <div class="hint">Use 3 to 30 letters, numbers, or underscores. No spaces.</div>
-     
-     <!-- Sports selection -->
-     <div class="row" style="margin-top: 20px;">
-       <div style="flex-basis: 100%; grid-column: 1 / -1;">
-         <h3 style="margin: 0 0 10px 0; color: var(--white); font-size: 18px;">Pick your favorite teams</h3>
-         <p style="margin: 0 0 15px 0; color: var(--muted); font-size: 14px;">Select teams to follow in your feed</p>
-         <div id="onboardingSportsGrid" class="sports-grid" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-           <!-- Sports teams will be populated here -->
-         </div>
-       </div>
-     </div>
-     
-     <div id="status" class="status"></div>
+        <div class="input-wrap">
+          <input id="usernameInput" class="input" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"
+            placeholder="your username" maxlength="30" aria-label="username" />
+          <button id="toTeamsBtn" class="btn" type="button">
+            <span>next</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="hint">3&ndash;30 letters, numbers, or underscores. No spaces.</div>
+      </div>
+
+      <!-- Step 2: Teams -->
+      <div class="step-pane" id="step2">
+        <div class="step-label">step 2 of 2</div>
+        <div class="step-title">follow some teams</div>
+        <div class="step-sub">Select teams you care about so your feed stays interesting.</div>
+
+        <div class="team-grid" id="teamGrid">
+          <!-- populated by JS -->
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="step-footer">
+          <button class="btn btn-ghost btn-sm" id="backBtn" type="button">
+            <i class="fas fa-arrow-left"></i>
+            <span>back</span>
+          </button>
+          <div class="step-footer-right">
+            <button class="btn btn-ghost btn-sm" id="skipBtn" type="button">
+              <span>skip</span>
+            </button>
+            <button class="btn btn-sm" id="saveBtn" type="button">
+              <i class="fas fa-check"></i>
+              <span>done</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-<script src="js/pages/auth-onboarding.js?v=20260601b" defer></script>
+  <script src="/js/list-utils.js?v=20260601b" defer></script>
+  <script src="js/pages/auth-onboarding.js?v=20260601b" defer></script>
+  <script defer>
+    (function () {
+      // Step navigation state
+      var currentStep = 1;
+
+      function showStep(n) {
+        currentStep = n;
+        document.getElementById('step1').classList.toggle('active', n === 1);
+        document.getElementById('step2').classList.toggle('active', n === 2);
+        document.getElementById('dot1').className = 'step-dot' + (n === 1 ? ' active' : ' done');
+        document.getElementById('dot2').className = 'step-dot' + (n === 2 ? ' active' : '');
+      }
+
+      // Team data – no images, just text chips
+      var TEAMS = [
+        'Real Madrid', 'Barcelona', 'Manchester City', 'Liverpool',
+        'PSG', 'Arsenal', 'LA Lakers', 'Golden State Warriors',
+        'Kansas City Chiefs', 'Boston Celtics', 'Chicago Bulls',
+        'Ferrari', 'Red Bull Racing', 'New York Yankees', 'Dodgers',
+        'Al Nassr', 'Inter Miami', 'AC Milan'
+      ];
+
+      function shuffle(a) {
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+        }
+        return a;
+      }
+
+      function renderTeams() {
+        var grid = document.getElementById('teamGrid');
+        if (!grid) return;
+        var shuffled = shuffle(TEAMS.slice());
+        var selected = (function () {
+          try { return JSON.parse(localStorage.getItem('onboardingSports') || '[]'); } catch (e) { return []; }
+        })();
+
+        grid.innerHTML = '';
+        shuffled.forEach(function (name) {
+          var chip = document.createElement('div');
+          chip.className = 'team-chip' + (selected.indexOf(name) !== -1 ? ' selected' : '');
+          chip.innerHTML = '<div class="check"><i class="fas fa-check"></i></div><span>' + name + '</span>';
+          chip.onclick = function () {
+            chip.classList.toggle('selected');
+            var cur = (function () {
+              try { return JSON.parse(localStorage.getItem('onboardingSports') || '[]'); } catch (e) { return []; }
+            })();
+            var idx = cur.indexOf(name);
+            if (chip.classList.contains('selected')) {
+              if (idx === -1) cur.push(name);
+            } else {
+              if (idx > -1) cur.splice(idx, 1);
+            }
+            try { localStorage.setItem('onboardingSports', JSON.stringify(cur)); } catch (e) {}
+          };
+          grid.appendChild(chip);
+        });
+      }
+
+      // Wire step nav
+      document.getElementById('toTeamsBtn').addEventListener('click', function () {
+        showStep(2);
+      });
+
+      document.getElementById('backBtn').addEventListener('click', function () {
+        showStep(1);
+      });
+
+      document.addEventListener('DOMContentLoaded', renderTeams);
+    })();
+  </script>
 </body>
 </html>
 
