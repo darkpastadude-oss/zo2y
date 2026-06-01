@@ -974,6 +974,21 @@ body.zo2y-mobile-menu-open {
   align-items: center;
 }
 
+.zo2y-nav-group::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 18px;
+  pointer-events: none;
+}
+
+.zo2y-nav-group:hover::after,
+.zo2y-nav-group:focus-within::after {
+  pointer-events: auto;
+}
+
 .zo2y-nav-toggle {
   display: inline-flex;
   align-items: center;

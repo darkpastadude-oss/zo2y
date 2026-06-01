@@ -3699,6 +3699,8 @@
             .mobile-section.active {
                 display: block;
                 animation: fadeIn 0.3s ease forwards;
+                content-visibility: auto;
+                contain-intrinsic-size: 120px;
             }
 
             .mobile-section-title {
