@@ -249,17 +249,6 @@
     will-change: transform, opacity;
 }
 
-/* === PAGE LOAD FADE-IN === */
-/* Content is invisible until fully loaded, then fades in smoothly */
-.page-fade {
-    opacity: 0;
-    transition: opacity 0.35s var(--ease-smooth);
-}
-
-.page-fade.visible {
-    opacity: 1;
-}
-
 /* === TAB CONTENT SWITCHING === */
 /* Tab starts display:none; active makes it block+opacity:0 for layout;
    rendered class triggers the fade-in after content is loaded */
@@ -300,11 +289,6 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-    }
-    
-    .page-fade,
-    .page-fade.visible {
-        opacity: 1;
     }
     
     .tab-content.active,

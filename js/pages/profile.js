@@ -8546,46 +8546,46 @@
                 }
             }
 
+            const pendingBookRequests = new Map();
+
             async function fetchBookDetails(bookId) {
                 if (bookCache.has(bookId)) return bookCache.get(bookId);
-                try {
-                    const normalizedId = String(bookId || '').replace(/^\/works\//i, '').trim();
-                    if (!normalizedId || !/^[A-Za-z0-9]+W$/.test(normalizedId)) return null;
-                    const path = `/works/${encodeURIComponent(normalizedId)}.json`;
-                    const requestTargets = [
-                        `${OPEN_LIBRARY_PROXY_BASE}${path}`,
-                        `${OPEN_LIBRARY_BASE}${path}`
-                    ];
-                    let data = null;
-                    for (const target of requestTargets) {
-                        for (let attempt = 0; attempt < 4; attempt += 1) {
+                if (pendingBookRequests.has(bookId)) return pendingBookRequests.get(bookId);
+                const promise = (async () => {
+                    try {
+                        const normalizedId = String(bookId || '').replace(/^\/works\//i, '').trim();
+                        if (!normalizedId || !/^[A-Za-z0-9]+W$/.test(normalizedId)) return null;
+                        const path = `/works/${encodeURIComponent(normalizedId)}.json`;
+                        const target = `${OPEN_LIBRARY_PROXY_BASE}${path}`;
+                        for (let attempt = 0; attempt < 2; attempt += 1) {
                             const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 7000 + (attempt * 1000));
+                            const timeoutId = setTimeout(() => controller.abort(), 3000 + (attempt * 2000));
                             try {
                                 const res = await fetch(target, { signal: controller.signal, headers: { Accept: 'application/json' } });
                                 clearTimeout(timeoutId);
                                 if (res.ok) {
-                                    data = await res.json();
-                                    break;
+                                    const data = await res.json();
+                                    bookCache.set(bookId, data);
+                                    return data;
                                 }
                                 const retryable = res.status === 429 || res.status >= 500;
                                 if (!retryable) break;
                             } catch (_error) {
                                 clearTimeout(timeoutId);
                             }
-                            if (attempt < 3) {
-                                await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+                            if (attempt < 1) {
+                                await new Promise((resolve) => setTimeout(resolve, 500));
                             }
                         }
-                        if (data) break;
+                        return null;
+                    } catch (error) {
+                        console.error('Error fetching book details:', error);
+                        return null;
                     }
-                    if (!data) return null;
-                    bookCache.set(bookId, data);
-                    return data;
-                } catch (error) {
-                    console.error('Error fetching book details:', error);
-                    return null;
-                }
+                })();
+                pendingBookRequests.set(bookId, promise);
+                promise.finally(() => pendingBookRequests.delete(bookId));
+                return promise;
             }
 
             function normalizeBookImageUrl(url) {
@@ -8625,9 +8625,10 @@
                 if (!cleanId || cleanId.startsWith('search-')) return null;
                 try {
                     const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
-                    volumeUrl.searchParams.set('cb', BOOKS_CACHE_BUSTER);
-                    volumeUrl.searchParams.set('_', String(Date.now()));
-                    const res = await fetch(volumeUrl.toString(), { headers: { Accept: 'application/json' }, cache: 'no-store' });
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 5000);
+                    const res = await fetch(volumeUrl.toString(), { signal: controller.signal, headers: { Accept: 'application/json' } });
+                    clearTimeout(timeoutId);
                     if (!res.ok) return null;
                     const json = await res.json();
                     const info = json?.volumeInfo || {};
