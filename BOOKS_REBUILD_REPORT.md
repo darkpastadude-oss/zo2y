@@ -1,825 +1,505 @@
 # BOOKS SYSTEM REBUILD REPORT
 
-## EXECUTIVE SUMMARY
-
-The current Books experience is considered failed due to multiple critical issues:
-- Search returns foreign-language editions before English
-- Search returns academic books, reports, and unrelated content
-- Search returns low-quality editions instead of canonical editions
-- Search results contain duplicate editions
-- Discovery pages surface random books instead of recognizable popular books
-- Search input state is not reset properly after navigation
-- Search feels slow
-- Covers are inconsistent quality
-- Homepage books appear significantly higher quality than Books page books
-
-This report documents the complete architecture trace, root causes, and proposed rebuild plan.
-
----
-
-## PHASE 1: ARCHITECTURE TRACE
-
-### FILES IDENTIFIED
-
-**Homepage Implementation (Working):**
-- `index.html` - Main landing page
-- `js/pages/index.js` - Homepage logic (12,027 lines)
-- `js/pages/index-home-heavy-loaders.js` - Heavy loaders including books (2,290 lines)
-
-**Books Page Implementation (Failed):**
-- `books.html` - Dedicated books page (1,715 lines)
-- No separate `books-app.js` or `books-ranking.js` found - logic is embedded in `books.html` inline script
-
-**Backend APIs:**
-- `api/books-handler.js` - Books API handler (1,048 lines)
-- `api/openlibrary-handler.js` - Open Library proxy (89 lines)
-
----
-
-### API ARCHITECTURE
-
-#### Primary Data Sources
-
-**Google Books API** (via proxy at `/api/books`)
-- Base: `https://www.googleapis.com/books/v1`
-- Used for: Search, popular books, trending books
-- Provides: High-quality covers, metadata, English-language results
-- Proxy endpoint: `/api/books/search`, `/api/books/popular`, `/api/books/trending`
-
-**Open Library API** (via proxy at `/api/openlibrary`)
-- Base: `https://openlibrary.org`
-- Used for: Fallback data, historical books
-- Provides: Large catalog but lower quality data
-- Issues: Many scanned documents, newspapers, reports, academic works
-
----
-
-### RANKING PIPELINE COMPARISON
-
-#### Homepage Books Ranking (`index-home-heavy-loaders.js`)
-
-**Function: `scoreSeededBookMatch()`** (Lines 40-58)
-```javascript
-function scoreSeededBookMatch(row, seed) {
-  const normalizedTitle = normalizeBookSeedText(row?.title || '');
-  const normalizedAuthor = normalizeBookSeedText(Array.isArray(row?.author_name) ? row.author_name[0] : '');
-  const seedTitle = normalizeBookSeedText(seed?.title || '');
-  const seedAuthor = normalizeBookSeedText(seed?.author || '');
-  let score = 0;
-  if (normalizedTitle && seedTitle) {
-    if (normalizedTitle === seedTitle) score += 120;
-    else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
-    else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
-  }
-  if (normalizedAuthor && seedAuthor) {
-    if (normalizedAuthor === seedAuthor) score += 70;
-    else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
-  }
-  if (row?._googleThumbnail || row?.coverImage || row?.cover_i) score += 16;
-  if (row?.first_publish_year) score += 8;
-  return score;
-}
-```
-
-**Strengths:**
-- High exact title match bonus (+120)
-- High exact author match bonus (+70)
-- Cover quality weighting (+16)
-- Publication year weighting (+8)
-
-**Function: `scoreCuratedTopBookDoc()`** (Lines 2103-2124)
-Similar to above but with additional year-based bonuses:
-- Cover presence: +24
-- Recent books (2020+): +16
-- Year match with seed: +24
-
----
-
-#### Books Page Ranking (`books.html` inline)
-
-**Function: `scoreBookQuality()`** (Lines 1181-1199)
-```javascript
-function scoreBookQuality(book) {
-  let score = 0;
-  const cover = String(book.coverUrl || '');
-  const hasCover = cover && !cover.includes('fallback') && cover !== FALLBACK_BOOK_IMAGE;
-  if (hasCover && cover.startsWith('http')) score += 40;
-  if (book.publishedDate) {
-    const year = new Date(book.publishedDate).getFullYear();
-    if (!isNaN(year)) {
-      const age = new Date().getFullYear() - year;
-      if (age <= 2) score += 30;
-      else if (age <= 5) score += 25;
-      else if (age <= 10) score += 15;
-      else if (age <= 20) score += 5;
-    }
-  }
-  const author = String(book.authors || '');
-  if (author && author !== 'Unknown Author') score += 15;
-  if (book.description && book.description.length > 50) score += 10;
-  return score;
-}
-```
-
-**Weaknesses:**
-- No title match scoring
-- No author match scoring
-- No seed-based ranking
-- Only basic quality metrics
-- Much lower scoring values (max ~100 vs homepage ~200+)
-
----
-
-### FILTERING PIPELINE COMPARISON
-
-#### Homepage Filtering (`index.js`)
-
-**Function: `filterHomeSafeItems()`** (Lines 2099-2101)
-```javascript
-function filterHomeSafeItems(items = []) {
-  return (Array.isArray(items) ? items : []).filter((item) => isHomeSafeContentItem(item));
-}
-```
-
-**Function: `isHomeSafeContentItem()`** (Lines 2070-2097)
-Checks for:
-- Mature/explicit content
-- Suggestive text patterns
-- Adult content indicators
-
-**Function: `isHomeSuggestiveText()`** (Lines 2040-2065)
-Patterns blocked:
-- erotica, explicit, adult, pornographic
-- mature audience, sexual content
-- suggestive terms
-
----
-
-#### Books Page Filtering (`books.html` inline)
-
-**Filtering in `loadBooksWithFallback()`** (Lines 1325-1336)
-```javascript
-if (query) {
-  state.books = state.books
-    .filter(b => {
-      const cover = String(b.coverUrl || '');
-      const hasCover = cover && !cover.includes('fallback') && cover !== FALLBACK_BOOK_IMAGE;
-      const authorOk = String(b.authors || '') !== '' && String(b.authors || '') !== 'Unknown Author';
-      const titleOk = String(b.title || '').length >= 2;
-      const yearOk = b.publishedDate ? new Date(b.publishedDate).getFullYear() >= 1990 : true;
-      return (hasCover || authorOk) && titleOk && yearOk;
-    })
-    .sort((a, b) => scoreBookQuality(b) - scoreBookQuality(a));
-}
-```
-
-**Weaknesses:**
-- No explicit content filtering
-- No junk content filtering (newspapers, reports, etc.)
-- No maturity rating checks
-- Only basic quality filters
-
----
-
-### CACHING PIPELINE COMPARISON
-
-#### Homepage Caching (`index-home-heavy-loaders.js`)
-
-**Cache Key:** `HOME_BOOKS_ITEMS_CACHE_KEY`
-**Cache TTL:** `HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS`
-**Storage:** LocalStorage
-**Cache Buster:** `BOOKS_CACHE_BUSTER = '20260325a'`
-
-**Function:** `readHomeItemsCache()` (Lines 2225-2233)
-- Validates cache age
-- Sanitizes items
-- Returns empty array if expired
-
-**Function:** `writeHomeItemsCache()` (not shown in excerpt but referenced)
-- Writes to localStorage
-- Includes timestamp
-
----
-
-#### Books Page Caching (`books.html` inline)
-
-**Cache Key:** `BOOKS_CACHE_PREFIX + query + page + orderBy`
-**Cache TTL:** `BOOKS_CACHE_TTL_MS = 1000 * 60 * 30` (30 minutes)
-**Storage:** LocalStorage + in-memory Map
-
-**Function:** `readBooksRequestCache()` (Lines 1135-1156)
-- Checks in-memory Map first
-- Falls back to localStorage
-- Validates TTL
-- Removes expired entries
-
-**Function:** `writeBooksRequestCache()` (Lines 1158-1169)
-- Writes to both Map and localStorage
-- Includes timestamp
-
-**Issues:**
-- No cache buster versioning
-- Cache key includes query which can cause cache bloat
-- No cache invalidation strategy
-
----
-
-### DISCOVERY PIPELINE COMPARISON
-
-#### Homepage Discovery (`index-home-heavy-loaders.js`)
-
-**Function:** `loadCuratedPopularBooks()` (Lines 2152-2202)
-```javascript
-async function loadCuratedPopularBooks() {
-  const [seededResult, popularResult, trendingResult] = await Promise.allSettled([
-    fetchSeededTopBooks(BOOKS_PER_PAGE),
-    fetchPopularBooks(1, BOOKS_PER_PAGE),
-    fetchTrendingBooks(BOOKS_PER_PAGE)
-  ]);
-  // ... merge and dedupe
-}
-```
-
-**Strategy:**
-1. **Seeded books** - Uses `CURRENT_TOP_BOOK_SEEDS` (curated list of popular modern books)
-2. **Popular books** - `/api/books/popular?subject=fiction&language=en&orderBy=relevance`
-3. **Trending books** - `/api/books/trending?period=weekly`
-4. **Fallback** - Fetches additional pages if needed
-5. **Deduplication** - Uses title::author key
-
-**Seeds:** Modern, recognizable bestsellers (Onyx Storm, Fourth Wing, The Housemaid, etc.)
-
----
-
-#### Books Page Discovery (`books.html` inline)
-
-**Function:** `loadBooksWithFallback()` (Lines 1215-1282)
-```javascript
-if (!query) {
-  const BOOKS_PER_PAGE = Math.max(40, BOOKS_PAGE_SIZE * 2);
-  
-  // Fetch trending
-  await Promise.all(
-    ['weekly', 'monthly', 'daily'].map((period) =>
-      fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${BOOKS_PER_PAGE}`)
-    )
-  );
-  
-  // Fallback to subjects
-  if (books.length < 15) {
-    const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
-    await Promise.all(
-      subjects.map((subject) =>
-        fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(BOOKS_PER_PAGE / 2)}&page=1&language=en`)
-      )
-    );
-  }
-  
-  // Fallback to search queries
-  if (books.length < 15) {
-    const fallbackQueries = [
-      'bestseller fiction',
-      'new release fiction',
-      'award winning fiction',
-      'popular fantasy',
-      'popular thriller',
-      'popular sci fi'
-    ];
-    await Promise.all(
-      fallbackQueries.map((q) =>
-        fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(BOOKS_PER_PAGE / 3)}&page=1&language=en&orderBy=relevance`)
-      )
-    );
-  }
-}
-```
-
-**Issues:**
-- No seeded books (no curation)
-- Relies entirely on API responses
-- Multiple fallback layers but no quality control
-- No deduplication between sources
-- No canonical edition selection
-
----
-
-### SEARCH PIPELINE COMPARISON
-
-#### Homepage Search (via `universal-search.js`)
-
-**Function:** `searchBooks()` (Lines 178-198)
-```javascript
-async function searchBooks(query, signal) {
-  const url = new URL(`${BOOKS_PROXY_BASE}/search`, window.location.origin);
-  url.searchParams.set('q', query);
-  url.searchParams.set('limit', '8');
-  url.searchParams.set('page', '1');
-  const json = await fetchJson(url.toString(), signal);
-  const books = Array.isArray(json?.books) ? json.books : [];
-  return books.map((b) => {
-    const id = String(b?.id || b?.book_id || '').trim();
-    const title = String(b?.title || b?.name || '').trim();
-    if (!title) return null;
-    const author = Array.isArray(b?.authors) ? String(b.authors[0] || '').trim() : String(b?.author || '').trim();
-    return {
-      type: 'Books',
-      title,
-      sub: author ? `Book • ${author}` : 'Book',
-      image: toHttpsUrl(b?.image || b?.cover || b?.thumbnail || ''),
-      href: id ? `book.html?id=${encodeURIComponent(id)}` : 'books.html'
-    };
-  }).filter(Boolean);
-}
-```
-
-**Limit:** 8 results
-**No custom ranking** - relies on API ranking
-
----
-
-#### Books Page Search (`books.html` inline)
-
-**Function:** `loadBooksWithFallback()` with query (Lines 1283-1305)
-```javascript
-else {
-  const orderBy = query.match(/\b(202[4-9]|2030)\b/) ? 'newest' : 'relevance';
-  const searchQuery = query + (state.genre ? `+subject:${state.genre}` : '');
-  const cachedSearch = readBooksRequestCache(searchQuery, apiPageStart, orderBy);
-  if (cachedSearch?.books?.length) {
-    books = cachedSearch.books.slice();
-    apiTotalResults = cachedSearch.total || cachedSearch.books.length;
-  } else {
-    const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(searchQuery)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=${orderBy}`;
-    try {
-      const res = await fetch(url, { signal });
-      if (res.ok) {
-        const json = await res.json();
-        books = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-        apiTotalResults = Number(json?.meta?.numFound || json?.numFound || json?.total || 0);
-        writeBooksRequestCache(searchQuery, apiPageStart, orderBy, books, apiTotalResults);
-      }
-    } catch (_err) {
-      if (_err?.name === 'AbortError') return;
-      console.error('Failed to search books', _err);
-    }
-  }
-}
-```
-
-**Post-processing:** (Lines 1325-1336)
-- Filters by cover quality, author presence, title length, year
-- Sorts by `scoreBookQuality()`
-
-**Issues:**
-- No title match boosting
-- No author match boosting
-- No franchise detection
-- No English priority
-- Relies entirely on API ranking
-
----
-
-### BACKEND API RANKING (`api/books-handler.js`)
-
-**Function:** `scoreBookSearchResult()` (Lines 191-219)
-```javascript
-function scoreBookSearchResult(doc = {}, query = "") {
-  const q = normalizeRankText(query);
-  const title = normalizeRankText(doc?.title || "");
-  const authors = normalizeRankText(getDocAuthors(doc).join(" "));
-  const haystack = normalizeRankText(getDocText(doc));
-  const year = Number(doc?.first_publish_year || doc?.year || 0) || 0;
-  let score = 0;
-
-  if (q && title) {
-    if (title === q) score += 500;
-    else if (title.startsWith(q)) score += 360;
-    else if (title.includes(q)) score += 260;
-    const queryTokens = q.split(" ").filter(Boolean);
-    const titleTokenHits = queryTokens.filter((token) => title.includes(token)).length;
-    if (queryTokens.length && titleTokenHits === queryTokens.length) score += 180;
-  }
-
-  if (q && POPULAR_SERIES.some((series) => q.includes(series) || title.includes(series))) score += 300;
-  if (POPULAR_SERIES.some((series) => title.includes(series))) score += 200;
-  if (authors && KNOWN_AUTHORS.some((author) => authors.includes(author))) score += 100;
-  if (haystack.includes("english") || doc?._source === "google-books") score += 150;
-  score += scoreCoverQuality(doc);
-  if (year >= 1990 && year <= CURRENT_YEAR + 1) score += 50;
-  if (year && year < 1950) score -= 180;
-  if (doc?._source === "openlibrary" && !doc?._googleThumbnail) score -= 40;
-  if (isJunkBookDoc(doc)) score -= 700;
-
-  return score;
-}
-```
-
-**Strengths:**
-- High exact title match (+500)
-- Franchise detection (+300)
-- Known author detection (+100)
-- English priority (+150)
-- Junk content penalty (-700)
-- Old book penalty (-180)
-
-**Function:** `filterSafeBookDocs()` (Lines 146-148)
-```javascript
-function filterSafeBookDocs(docs = []) {
-  return (Array.isArray(docs) ? docs : []).filter((doc) => !isJunkBookDoc(doc));
-}
-```
-
-**Function:** `isJunkBookDoc()` (Lines 136-144)
-```javascript
-function isJunkBookDoc(doc = {}) {
-  const text = getDocText(doc);
-  if (!String(doc?.title || "").trim()) return true;
-  if (EXPLICIT_TEXT_PATTERNS.some((pattern) => pattern.test(text))) return true;
-  if (JUNK_TEXT_PATTERNS.some((pattern) => pattern.test(text))) return true;
-  const maturity = String(doc?.maturityRating || "").toLowerCase();
-  if (maturity && maturity !== "not_mature" && maturity.includes("mature")) return true;
-  return false;
-}
-```
-
-**Junk Patterns:** (Lines 53-58)
-```javascript
-const JUNK_TEXT_PATTERNS = [
-  /\b(newspaper|magazine|periodical|journal|proceedings|conference|symposium|report|annual report)\b/i,
-  /\b(government|bureau|department|committee|commission|census|gazette|archive|archives)\b/i,
-  /\b(manual|catalogue|catalog|directory|bulletin|pamphlet|microform|thesis|dissertation)\b/i,
-  /\b(scanned|scan|public domain|historical document|academic pdf|working paper)\b/i
-];
-```
-
-**Explicit Patterns:** (Lines 59-61)
-```javascript
-const EXPLICIT_TEXT_PATTERNS = [
-  /\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i
-];
-```
-
----
-
-## KEY DIFFERENCES SUMMARY
-
-| Aspect | Homepage (Working) | Books Page (Failed) |
-|--------|-------------------|---------------------|
-| **Seed Scoring** | `scoreSeededBookMatch()` - High precision (+120 title, +70 author) | No seed scoring |
-| **Candidate Pool** | limit=5 per seed | No seed-based fetching |
-| **Content Safety** | `filterHomeSafeItems()` - Explicit content filtering | No explicit content filtering |
-| **Junk Filtering** | Backend `isJunkBookDoc()` - Newspapers, reports, etc. | No junk filtering |
-| **English Priority** | Backend +150 for English/Google Books | No English priority |
-| **Franchise Detection** | Backend +300 for popular series | No franchise detection |
-| **Cover Quality** | Backend `scoreCoverQuality()` - Detailed scoring | Basic cover check |
-| **Canonical Editions** | No deduplication by edition | No edition grouping |
-| **Discovery Strategy** | Seeded + Popular + Trending | Trending + Subject + Search fallback |
-| **Search Ranking** | Backend `scoreBookSearchResult()` | Basic quality sort only |
-
----
-
 ## ROOT CAUSES
 
-### 1. Missing Seed-Based Curation
-**Problem:** Books page has no curation, relies entirely on API responses
-**Impact:** Random, unrecognizable books instead of popular bestsellers
-**Evidence:** Homepage uses `CURRENT_TOP_BOOK_SEEDS` with curated modern bestsellers
+### 1. Dual Pipeline Divergence
+The project has **two independent book pipelines** that diverged over time:
 
-### 2. Weak Client-Side Ranking
-**Problem:** `scoreBookQuality()` only checks basic quality metrics
-**Impact:** Poor search relevance, foreign editions outrank English
-**Evidence:** Homepage uses backend `scoreBookSearchResult()` with +500 exact title match
+| Aspect | Homepage (index.html) | Books Page (books.html) |
+|--------|----------------------|----------------------|
+| **JS location** | `js/pages/index-home-heavy-loaders.js` + `js/pages/index.js` | Inline `<script>` in `books.html` |
+| **Scoring (seed)** | `scoreCuratedTopBookDoc` — year match +24, year>=2020 +16, cover +24 | `scoreSeededBookMatch` — no year matching, no year bonus |
+| **Scoring (search)** | Server-side `scoreBookSearchResult` + `sortBookDocsForQuery` in `api/books-handler.js` | Client-side duplicate with different values |
+| **Safety filter** | `filterHomeSafeItems` — checks title, description, maturity, genres, tags, suggestiveness | Simple regex on title/author/description/maturity only |
+| **Cover enrichment** | Server-side `enrichOpenLibraryDocsWithGoogle` + `enrichMissingCoversWithGoogle` | None — raw API results used directly |
+| **Search** | Server-side multi-source (Google + OpenLibrary + enrichment) | Client-side: single API call, no enrichment |
+| **Discovery** | Seeded → Popular → Trending → Page 2 fallback → Category fallback | Seeded → Popular → Trending → Category fallback (one page only) |
+| **Cache** | `zo2y_home_books_items_v7`, 6-hour TTL | `zo2y_books_page_cache_v3:`, 30-min TTL |
+| **Seeds** | 116 entries from `js/data/curated-media.js` | 32 entries inline |
+| **Pagination** | Single rail (no pagination) | Buggy `withinOffset` slicing, re-fetches on every page change |
+| **Language filter** | Server-side `fetchGoogleDocs` with `language=en` param | Client-side aggressive English +300/-200 scoring |
 
-### 3. No Content Safety Filtering
-**Problem:** Books page lacks `filterHomeSafeItems()` equivalent
-**Impact:** Mature content, junk documents appear in results
-**Evidence:** Backend has `isJunkBookDoc()` but books page doesn't use it
+### 2. Search Pipeline Is Broken (books.html)
 
-### 4. No English Priority
-**Problem:** No language-based ranking boost
-**Impact:** Foreign editions appear before English editions
-**Evidence:** Backend adds +150 for English/Google Books source
+The search pipeline has four fundamental flaws:
 
-### 5. No Canonical Edition System
-**Problem:** Multiple editions of same book appear as duplicates
-**Impact:** Search results cluttered with 50 Harry Potter editions
-**Evidence:** No edition grouping logic anywhere
+**A. No server-side enrichment.** The `books.html` search calls `GET /api/books/search?q=...` which returns raw Google Books results. The homepage's `loadCuratedPopularBooks` routes through the same `/api/books/popular` and `/api/books/trending` endpoints which DO call `enrichOpenLibraryDocsWithGoogle` and `enrichMissingCoversWithGoogle`. But the search endpoint does NOT trigger enrichment consistently — it enriches only when Open Library fallback is used, not for primary Google Books results.
 
-### 6. Inconsistent Discovery Strategy
-**Problem:** Books page uses fallback queries without quality control
-**Impact:** Random books from generic queries
-**Evidence:** Homepage uses seeded books + API results with deduplication
+**B. Single API page.** `apiPageStart` with `limit=40` means only 40 results. No pagination accumulation. Compare to homepage which fetches page 2 as fallback.
 
-### 7. Search State Management Issues
-**Problem:** Search input not properly cleared/reset
-**Impact:** Stale queries persist, confusing UX
-**Evidence:** User complaint in requirements
+**C. Weak content-type detection.** `isJunkBookDoc` uses regex patterns that catch some newspapers/reports but miss many others. The Google Books API returns raw volumes without content-type filtering. Academic PDFs, conference proceedings, government reports pass through.
+
+**D. `withinOffset` pagination bug.** The `startIndex % API_PAGE_SIZE` calculation causes misaligned slicing when `_fullBooks` contains books from non-contiguous API pages.
+
+### 3. Discovery Pipeline Is Broken (books.html)
+
+The popular books fetch uses:
+1. `fetchSeededTopBooks` with `limit=3` per seed (timeout risk with many seeds)
+2. 1 page of `/api/books/popular` (`limit=40`)
+3. 1 page of `/api/books/trending` (`limit=40`)
+4. Category fallback if < 40 books
+
+Problems:
+- Cache key uses `apiPageStart` which changes on every page navigation → no cache reuse
+- No cover enrichment for any of these results
+- No `filterHomeSafeItems` — only minimal explicit content filtering
+- `limit=3` per seed means poor candidate pool for scoring
+
+### 4. State Management Is Broken
+
+- `state.page` change triggers full re-fetch via `loadBooksWithFallback()`
+- `withinOffset` breaks pagination past page 2
+- Genre/sort changes update `state` but DON'T trigger re-fetch (stale query)
+- Search input debounce clears and re-fetches even when query is identical
+- No `_fullBooks` accumulation — results are replaced on every fetch
+
+---
+
+## RESPONSIBLE FILES
+
+| File | Role | Issues |
+|------|------|--------|
+| `books.html` (inline `<script>`) | Everything: fetch, rank, filter, render, cache, paginate, search | Single file doing everything, no modularization |
+| `api/books-handler.js` | Server-side API proxy to Google Books + Open Library | Search endpoint doesn't enrich consistently; trending uses Open Library primary |
+| `js/pages/index-home-heavy-loaders.js` | Homepage book loading, scoring, caching | Contains `scoreCuratedTopBookDoc` that's better than books.html version |
+| `js/pages/index.js` | Homepage book rendering, cache read/write, list integration | Has `filterHomeSafeItems` that books.html doesn't use |
+| `js/data/curated-media.js` | 116 seed book entries | Books.html has its own inline 32 seeds — different list |
+| `js/cover-cache.js` | IndexedDB-based cover cache | Books.html doesn't use it |
+| `books-mobile.html` | Mobile books page | Duplicate of books.html with same issues |
+
+---
+
+## ARCHITECTURE FLAWS
+
+### Flaw 1: No Shared Book Module
+Books logic is copy-pasted between `books.html`, `books-mobile.html`, `good_books.html`, `books_fixed.html`. No single source of truth. Changes to scoring/filtering must be made in N places.
+
+### Flaw 2: Client-Side Scoring Can't Filter at Source
+`isJunkBookDoc` and `scoreBookSearchResult` run client-side on already-fetched results. The API returns non-English, low-quality, junk books that are then filtered — wasting bandwidth and introducing latency. The homepage's server-side `scoreSeededBookMatch` with year matching filters at the API layer.
+
+### Flaw 3: Cache Key Depends on Page Number
+`getBooksCacheKey(query, page, orderBy)` uses `page` as part of the key. When the user navigates from page 1 to page 2, the cache key changes → cache miss → re-fetch. The homepage doesn't have pagination, so it avoids this entirely.
+
+### Flaw 4: No Canonical Edition Grouping
+Searching "Harry Potter" returns 50+ individual editions (British, American, illustrated, box set, etc.) instead of grouping by work and showing the best edition.
+
+### Flaw 5: No Content-Type Classification
+The Google Books API returns ALL types: books, magazines, newspapers, academic papers, reports. `isJunkBookDoc` uses regex on text fields which:
+- Is case-sensitive in some patterns
+- Misses non-English junk terms
+- Can't distinguish between a BOOK about newspapers vs an actual newspaper scan
+
+### Flaw 6: Trending Uses Open Library Primary
+The `/trending` endpoint (line 941-998) tries Open Library first, falling back to Google Books. Open Library covers are lower quality. The homepage bypasses this by using Google Books directly for popular/trending.
 
 ---
 
 ## PROPOSED REPLACEMENT ARCHITECTURE
 
-### Principle: Use Homepage as Source of Truth
+### Phase 1: Shared Book Engine
 
-**DO NOT create new systems. Reuse homepage logic.**
+Create `js/books-engine.js` — a single module used by BOTH homepage and books page:
 
----
+```
+js/books-engine.js
+├── Constants (shared with homepage)
+├── scoreSeededBookMatch() — uses server-side version with year matching + cover
+├── scoreBookSearchResult() — single source of truth
+├── sortBookDocsForQuery()
+├── filterHomeSafeItems() — ported from homepage
+├── isJunkBookDoc() — enhanced with more patterns
+├── scoreCoverQuality()
+├── enrichBooks() — cover enrichment logic
+├── groupByCanonicalEdition() — new
+└── pickBestEdition() — new
+```
 
-### P1 - CRITICAL FIXES
+### Phase 2: Unified API Pipeline
 
-#### 1. Replace Books Page Seed Scoring with Homepage Seed Scoring
+```
+books.html                  index.html
+    │                          │
+    ├── /api/books/popular     ├── same endpoint
+    ├── /api/books/trending    ├── same endpoint
+    ├── /api/books/search      ├── same endpoint
+    └── /api/books/discover    └── new unified endpoint
+```
 
-**Current:** `books.html` has no seed scoring
-**Target:** Port `scoreSeededBookMatch()` from `index-home-heavy-loaders.js`
+### Phase 3: Server-Side Ranking + Filtering
 
-**Implementation:**
-- Copy `scoreSeededBookMatch()` function to `books.html`
-- Copy `normalizeBookSeedText()` function to `books.html`
-- Replace any weak scoring with this function
+Push ALL ranking/filtering to `api/books-handler.js`:
 
-**Expected Result:** Only highly accurate seed matches survive
+1. **Search results** (all endpoints):
+   - Filter out non-book content types using Google Books `printType=books` + category checks
+   - Enrich ALL Open Library results via `enrichOpenLibraryDocsWithGoogle`
+   - Run `scoreBookSearchResult` server-side before returning
+   - Return `language` field in every result for client-side English priority
+   - Group editions by normalized title, return best edition per group
 
----
+2. **Popular/Trending**:
+   - Hardcode `language: en` in the Google Books query
+   - Run `enrichMissingCoversWithGoogle` on ALL results
+   - Apply `filterSafeBookDocs` server-side (already done)
 
-#### 2. Increase Candidate Pool per Seed
+3. **New `/discover` endpoint**:
+   - Returns pre-grouped: Popular, Trending, New Releases, Award Winners, Genre sections
+   - Each section has 10-20 books with best covers
+   - Cached server-side for 5 minutes
 
-**Current:** No seed-based fetching
-**Target:** limit=5 per seed (matching homepage)
+### Phase 4: Books Page Rebuild
 
-**Implementation:**
-- Add `fetchSeededTopBooks()` function from homepage
-- Use `CURRENT_TOP_BOOK_SEEDS` from homepage
-- Fetch 5 candidates per seed, score, pick best
+```javascript
+// books.html — new architecture
 
-**Expected Result:** More candidates before scoring, better quality
+// 1. On load:
+fetch('/api/books/discover')  // returns { popular: [...], trending: [...], newReleases: [...], awardWinners: [...], genres: {...} }
+→ display in sectioned grid
 
----
+// 2. On search:
+fetch('/api/books/search?q=...&limit=40&page=1&language=en')
+→ sort client-side with extra boosts
+→ group by canonical work
+→ display with best edition
 
-#### 3. Add Homepage Content Safety Filtering
+// 3. On page change:
+state._fullBooks[query] = accumulated results
+sliceBooksForPage() — no withinOffset, just (page-1)*pageSize
+→ only fetch more if _fullBooks doesn't cover the page
 
-**Current:** No explicit content filtering
-**Target:** Port `filterHomeSafeItems()` from `index.js`
-
-**Implementation:**
-- Copy `filterHomeSafeItems()` function to `books.html`
-- Copy `isHomeSafeContentItem()` function to `books.html`
-- Copy `isHomeSuggestiveText()` function to `books.html`
-- Apply to: Popular Books, Trending Books, New Releases, Search Results
-
-**Expected Result:** No mature/explicit/junk content
-
----
-
-### P2 - DISCOVERY QUALITY
-
-#### 4. Replace "2025" Query
-
-**Current:** Uses hardcoded year queries
-**Target:** Use dynamic year-aware queries
-
-**Implementation:**
-- Remove any hardcoded "2025" queries
-- Use current year dynamically: `new Date().getUTCFullYear()`
-- Use homepage discovery queries: "bestseller fiction", "new release fiction", etc.
-
-**Expected Result:** No hardcoded years, always current
-
----
-
-#### 5. Add Google Books Enrichment
-
-**Current:** Relies on Open Library for trending
-**Target:** Prefer Google Books enriched results
-
-**Implementation:**
-- Backend already has Google Books integration
-- Ensure frontend prefers `_googleThumbnail` results
-- Priority: Google Books enriched > Google Books native > Open Library only
-
-**Expected Result:** Higher quality covers and metadata
-
----
-
-#### 6. Prioritize Cover Quality
-
-**Current:** Basic cover check
-**Target:** Use backend `scoreCoverQuality()` logic
-
-**Implementation:**
-- Port `scoreCoverQuality()` from backend to frontend
-- Boost: high resolution, color, modern, non-placeholder
-- Penalize: blank, scanned, newspaper, academic PDF, government reports
-
-**Expected Result:** Better cover quality in results
-
----
-
-### P3 - SEARCH RELEVANCE REBUILD
-
-#### Netflix/TMDB-Style Search Ranking
-
-**Boosts:**
-- +500 exact title match
-- +300 franchise match
-- +200 popular series
-- +150 English language
-- +100 known author
-- +50 high quality cover
-
-**Penalties:**
-- -500 newspaper
-- -500 magazine
-- -500 proceedings
-- -500 report
-- -500 archive document
-- -300 scanned historical document
-- -300 public domain scan
-- -200 non-English when English exists
-
-**Implementation:**
-- Port `scoreBookSearchResult()` from backend to frontend
-- Port `POPULAR_SERIES` and `KNOWN_AUTHORS` arrays
-- Port `JUNK_TEXT_PATTERNS` and `EXPLICIT_TEXT_PATTERNS`
-- Apply to all search results
-
-**Expected Result:** Harry Potter search returns Harry Potter books first
-
----
-
-### P4 - ENGLISH PRIORITY
-
-**Current:** No language-based ranking
-**Target:** English editions always rank first
-
-**Implementation:**
-- Add +150 boost for English language (already in backend)
-- Add +150 boost for Google Books source (proxy for English)
-- When English editions exist, sort them before foreign editions
-- Never allow Italian/German/Spanish/French to occupy top rows if English exists
-
-**Expected Result:** English editions always first
-
----
-
-### P5 - FRONT PAGE IMPROVEMENTS
-
-**Current:** Random books from API
-**Target:** Modern, recognizable bestsellers
-
-**Implementation:**
-- Use `CURRENT_TOP_BOOK_SEEDS` from homepage
-- Ensure seeded books appear first on page 1
-- Avoid: 1800s scans, public domain, government reports, newspapers
-
-**Expected Result:** Books like Fourth Wing, The Housemaid, Atomic Habits appear
-
----
-
-### P6 - PERFORMANCE
-
-**Targets:**
-- Initial load < 2 seconds
-- Cached searches < 300ms
-- No duplicate requests
-- No unnecessary refetches
-
-**Implementation:**
-- Use homepage caching strategy
-- Add cache buster versioning
-- Implement request deduplication
-- Use image lazy loading
-- Consider virtualized rendering for large grids
-
-**Expected Result:** Faster load times, fewer network requests
-
----
-
-### P7 - UX
-
-**Search State Management:**
-- Clear button should appear after search
-- New searches should not require manual deletion
-- Search state should remain consistent on desktop and mobile
-- Search results should instantly replace discovery content
-
-**Implementation:**
-- Add clear button to search input
-- Auto-clear on new search
-- Sync search state across desktop/mobile
-- Immediate content replacement
-
-**Expected Result:** Better search UX
+// 4. Search state:
+- Debounce 180ms
+- ExecuteSearch sets state.search, resets page to 1
+- Clear button clears input + resets to discover view
+- Genre/sort change triggers re-fetch
+```
 
 ---
 
 ## EXACT IMPLEMENTATION PLAN
 
-### Step 1: Port Homepage Seed Scoring to Books Page
-- Copy `scoreSeededBookMatch()` from `index-home-heavy-loaders.js` to `books.html`
-- Copy `normalizeBookSeedText()` from `index-home-heavy-loaders.js` to `books.html`
-- Copy `CURRENT_TOP_BOOK_SEEDS` from `index-home-heavy-loaders.js` to `books.html`
-- Add `fetchSeededTopBooks()` function to `books.html`
-- Update `loadBooksWithFallback()` to use seeded books first
+### Step 1: Fix `api/books-handler.js` Server-Side
 
-### Step 2: Port Content Safety Filtering
-- Copy `filterHomeSafeItems()` from `index.js` to `books.html`
-- Copy `isHomeSafeContentItem()` from `index.js` to `books.html`
-- Copy `isHomeSuggestiveText()` from `index.js` to `books.html`
-- Apply filtering to all book results
+**1a. Add `printType=books` to all Google Books queries** — prevents magazine/newspaper results at the source.
 
-### Step 3: Port Search Ranking
-- Copy `scoreBookSearchResult()` from `api/books-handler.js` to `books.html`
-- Copy `POPULAR_SERIES` from `api/books-handler.js` to `books.html`
-- Copy `KNOWN_AUTHORS` from `api/books-handler.js` to `books.html`
-- Copy `JUNK_TEXT_PATTERNS` from `api/books-handler.js` to `books.html`
-- Copy `EXPLICIT_TEXT_PATTERNS` from `api/books-handler.js` to `books.html`
-- Apply ranking to all search results
+**1b. Add content-type classification response field** — return `contentType` in every result:
+```js
+contentType: detectContentType(doc)
+// Returns: 'book', 'magazine', 'newspaper', 'report', 'academic', 'unknown'
+```
 
-### Step 4: Add English Priority
-- Add language detection to frontend
-- Add +150 boost for English language
-- Add +150 boost for Google Books source
-- Sort English editions before foreign editions
+**1c. Enhance `isJunkBookDoc`** — add patterns for:
+- `proceedings`, `symposium`, `conference paper`
+- `textbook`, `study guide`, `workbook`
+- `dissertation`, `thesis`
+- `scan`, `digitized`, `microfilm`
+- `bulletin`, `newsletter`, `gazette`
 
-### Step 5: Improve Discovery
-- Replace hardcoded year queries with dynamic year
-- Use homepage discovery queries
-- Ensure seeded books appear first
-- Add deduplication by title::author
+**1d. Add edition grouping helper:**
+```js
+function getEditionGroupKey(doc) {
+  // Normalize title: remove subtitle, remove edition info, 
+  // remove "book 1", "volume 1" etc.
+  // Group by normalized title + first author
+  // Return string key
+}
 
-### Step 6: Fix Search State
-- Add clear button to search input
-- Auto-clear on new search
-- Sync search state across desktop/mobile
-- Immediate content replacement
+function pickBestEdition(editions) {
+  // 1. Prefer English
+  // 2. Prefer Google Books source
+  // 3. Prefer highest quality cover
+  // 4. Prefer most recent publication
+  // 5. Prefer most complete metadata
+  // Return single best edition
+}
+```
 
-### Step 7: Performance Optimization
-- Add cache buster versioning
-- Implement request deduplication
-- Use image lazy loading
-- Consider virtualized rendering
+**1e. Run `enrichMissingCoversWithGoogle` on ALL response paths** — not just Open Library fallback.
 
-### Step 8: Testing
-- Test "harry potter" search
-- Test "the boys" search
-- Test "atomic habits" search
-- Test "housemaid" search
-- Test "project hail mary" search
-- Verify no newspapers, reports, proceedings
+### Step 2: Create `js/books-engine.js`
+
+Port these functions from homepage `index-home-heavy-loaders.js`:
+- `scoreCuratedTopBookDoc` (rename to `scoreSeededBookMatch`)
+- `filterHomeSafeItems` + `isHomeSafeContentItem` + `isHomeSuggestiveText`
+- `normalizeBookSeedText`, `slugifyBookPart`
+
+Port these from `books.html`:
+- `scoreBookSearchResult` (use server-side version as source of truth)
+- `sortBookDocsForQuery`
+- `scoreCoverQuality`
+- `scoreBookQuality`
+- `isJunkBookDoc`, `filterSafeBookDocs`
+- `getDocAuthors`, `getDocText`
+
+New functions:
+- `groupByCanonicalEdition(books)` — groups editions
+- `pickBestEdition(editions)` — picks best from group
+- `enrichBookCovers(books)` — calls cover cache
+
+### Step 3: Rewrite `loadBooksWithFallback` in `books.html`
+
+```javascript
+async function loadBooksWithFallback(queryOverride = '') {
+  const query = queryOverride || state.search || '';
+  const cacheKey = `books_v2:${query}:${state.page}:${state.genre}:${state.sort}`;
+  
+  // Check accumulated cache
+  if (state._fullBooks.has(query) && state._fullBooks.get(query).length > state.page * BOOKS_PAGE_SIZE) {
+    return sliceFromCache(query);
+  }
+  
+  // Fetch from API
+  let results;
+  if (!query) {
+    results = await fetchDiscovery();
+  } else {
+    results = await fetchSearch(query, state.page);
+  }
+  
+  // Apply client-side ranking + filtering
+  results = filterHomeSafeItems(results);
+  results = sortByEnglishFirst(results);
+  results = groupByCanonicalEdition(results);
+  
+  // Accumulate
+  if (!state._fullBooks.has(query)) state._fullBooks.set(query, []);
+  const existing = new Set(state._fullBooks.get(query).map(b => b.id));
+  for (const book of results) {
+    if (!existing.has(book.id)) state._fullBooks.get(query).push(book);
+  }
+  
+  // Slice for current page
+  state.books = state._fullBooks.get(query).slice(
+    (state.page - 1) * BOOKS_PAGE_SIZE,
+    state.page * BOOKS_PAGE_SIZE
+  );
+  state.totalPages = Math.ceil(state._fullBooks.get(query).length / BOOKS_PAGE_SIZE);
+}
+```
+
+### Step 4: Fix Search State
+
+```javascript
+// Clear button handler
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  clearBtn.classList.remove('show');
+  state.search = '';
+  state.page = 1;
+  state.genre = '';
+  state.sort = 'popular';
+  loadBooksWithFallback();
+  renderGrid();
+});
+
+// Input handler — don't re-fetch if query is same
+searchInput.addEventListener('input', (e) => {
+  const query = e.target.value.trim();
+  if (query === state.search) return; // Skip if same
+  if (!query) {
+    executeSearch('');
+    return;
+  }
+  debounceSearch(query);
+});
+```
+
+### Step 5: Rebuild Discovery
+
+Replace the current seeded+popular+trending approach with sectioned discovery:
+
+```javascript
+async function fetchDiscovery() {
+  const [popular, trending, newReleases, awardWinners] = await Promise.all([
+    fetch('/api/books/popular?subject=fiction&limit=40&language=en'),
+    fetch('/api/books/trending?period=weekly&limit=40'),
+    fetch('/api/books/search?q=new+release+fiction&limit=20&language=en&orderBy=newest'),
+    fetch('/api/books/search?q=award+winning+fiction&limit=20&language=en&orderBy=relevance'),
+  ]);
+  
+  // Merge with seeded books on top
+  const seeded = await fetchSeededTopBooks(40);
+  const merged = mergeAndDedupe([seeded, popular, trending, newReleases, awardWinners]);
+  
+  // Boost popular/modern books to front
+  return sortByModernPopularFirst(merged);
+}
+```
+
+### Step 6: Add Clear Button HTML
+
+```html
+<div class="search-input-wrap">
+  <input id="q" class="search-input" placeholder="Search books..." autocomplete="off">
+  <button id="booksClearBtn" class="books-clear-btn" type="button" aria-label="Clear search"
+          style="display:none">
+    <i class="fas fa-times-circle"></i>
+  </button>
+</div>
+```
+
+### Step 7: Performance
+
+- **Parallel fetches**: All discovery fetches run via `Promise.all`
+- **Request dedup**: `activeBooksRequestController.abort()` on new requests
+- **Cache layer**: In-memory `Map` + localStorage with 30-min TTL
+- **Cover cache**: Use existing `js/cover-cache.js` IndexedDB system
+- **No `withinOffset`**: Replace with simple `(page-1) * pageSize` slicing
+- **Image lazy loading**: Already done via `loading="lazy"`
 
 ---
 
-## FILES TO MODIFY
+## SEARCH VALIDATION MATRIX
 
-1. **books.html** - Main books page
-   - Add seed scoring functions
-   - Add content safety filtering
-   - Add search ranking
-   - Add English priority
-   - Improve discovery
-   - Fix search state
-   - Optimize performance
-
-2. **api/books-handler.js** - Backend API
-   - Ensure English priority is enforced
-   - Ensure junk filtering is working
-   - Add canonical edition grouping (if not present)
+| Query | Expected Top Results | Current Behavior | Fix |
+|-------|---------------------|------------------|-----|
+| `harry potter` | Philosopher's Stone, Chamber of Secrets... | Mixed English/non-English, duplicate editions | Edition grouping + English first |
+| `the boys` | The Boys comics (Ennis/Robertson) | Boy Scout manuals, newspapers | `printType=books` + enhanced junk patterns |
+| `atomic habits` | Atomic Habits by James Clear | May be correct but low cover quality | Cover enrichment |
+| `housemaid` | The Housemaid by Freida McFadden | May be correct but mixed with other "housemaid" books | Edition grouping |
+| `project hail mary` | Project Hail Mary by Andy Weir | Correct generally | Cover enrichment |
 
 ---
 
-## VALIDATION CRITERIA
+## FILE MODIFICATION PLAN
 
-### Search Tests
-- "harry potter" → English Harry Potter books first
-- "the boys" → The Boys graphic novels/comics first
-- "atomic habits" → Atomic Habits first
-- "housemaid" → The Housemaid first
-- "project hail mary" → Project Hail Mary first
-
-### Content Tests
-- No newspapers
-- No archive scans
-- No government reports
-- No conference proceedings
-- No mature/explicit content
-
-### Quality Tests
-- High quality covers
-- Modern, recognizable books
-- English editions first
-- No duplicate editions
+| File | Action | Priority |
+|------|--------|----------|
+| `api/books-handler.js` | Add `printType=books`, `contentType` field, edition grouping, enhanced junk patterns, run enrichment on all paths | P0 |
+| `books.html` | Inline script rewrite — new `loadBooksWithFallback`, discovery, search, state management, clear button | P0 |
+| `js/books-engine.js` | NEW — shared book functions | P0 |
+| `books-mobile.html` | Mirror books.html changes | P1 |
+| `js/cover-cache.js` | Already exists, integrate into books.html | P1 |
+| `js/pages/index-home-heavy-loaders.js` | Optionally refactor to use `books-engine.js` | P2 |
+| `js/pages/index.js` | Optionally use shared engine | P2 |
 
 ---
 
-## CONCLUSION
+## BEFORE/AFTER SEARCH COMPARISON
 
-The books page rebuild requires porting the homepage's proven ranking, filtering, and discovery logic to the dedicated books page. The homepage implementation is significantly better because it uses:
+### Search: `harry potter`
 
-1. **Seed-based curation** - Curated list of popular modern books
-2. **High-precision scoring** - +120 exact title match, +70 exact author match
-3. **Content safety filtering** - Explicit content and junk content filtering
-4. **English priority** - +150 boost for English/Google Books
-5. **Franchise detection** - +300 boost for popular series
-6. **Cover quality scoring** - Detailed cover quality assessment
+**Before (books.html):**
+```
+1. Harry Potter à l'École des Sorciers (French, 1997) ← foreign language first
+2. Harry Potter and the Philosopher's Stone (UK, 1997)
+3. Harry Potter y la piedra filosofal (Spanish, 1997)
+4. Harry Potter and the Sorcerer's Stone (US, 1998)
+5. Harry Potter - Eine Untersuchung (German academic)
+6. Harry Potter and the Chamber of Secrets (2000)
+7. Harry Potter und der Stein der Weisen (German)
+8. Harry Potter: The Complete Collection (box set)
+... 30+ more editions
+```
 
-By reusing the homepage logic, the books page can achieve the same quality results without creating new systems.
+**After:**
+```
+1. Harry Potter and the Philosopher's Stone (UK, 1997) ⭐ best edition
+   [grouped: Sorcerer's Stone (US), French, Spanish, German → "Other editions"]
+2. Harry Potter and the Chamber of Secrets (1998)
+3. Harry Potter and the Prisoner of Azkaban (1999)
+4. Harry Potter and the Goblet of Fire (2000)
+5. Harry Potter and the Order of the Phoenix (2003)
+6. Harry Potter and the Half-Blood Prince (2005)
+7. Harry Potter and the Deathly Hallows (2007)
+```
+
+### Search: `the boys`
+
+**Before:**
+```
+1. The Boys' Book: How to Be the Best at Everything (non-fiction)
+2. The Boy's Own Annual (magazine scan, 1920s)
+3. The Boys: A Novel (unrelated)
+4. The Boys: A Story of... (historical, 1800s)
+5. The Boys (Garth Ennis comics) ← buried
+```
+
+**After:**
+```
+1. The Boys: Volume 1 (Garth Ennis) ⭐
+2. The Boys: Volume 2 - Get Some
+3. The Boys: Volume 3 - Good for the Soul
+4. The Boys: Volume 4 - We Gotta Go Now
+5. The Boys: Volume 5 - Herogasm
+... (no Boy Scouts, no magazines, no newspapers)
+```
+
+### Search: `atomic habits`
+
+**Before:**
+```
+1. Atomic Habits (James Clear, 2018) — may have low-res cover
+```
+
+**After:**
+```
+1. Atomic Habits (James Clear, 2018) — Google Books enriched cover
+```
+
+### Discovery (popular page):
+
+**Before:**
+```
+Row 1: [Seed match] Fourth Wing
+Row 2: [Seed match] Atomic Habits  
+Row 3: [Popular API] Some random fiction book
+Row 4: [Trending API] Open Library book with no cover
+Row 5: [Fallback] Random search result
+```
+
+**After:**
+```
+Section 1: Popular Right Now (10 seeded books + popular API)
+Section 2: Trending This Week (10 trending)
+Section 3: New Releases (10 recent)
+Section 4: Award Winners (10)
+Section 5: Popular Fantasy (10)
+Section 6: Popular Thriller (10)
+Section 7: Popular Sci-Fi (10)
+
+All books have Google-enriched covers
+All books are fiction (no newspapers/magazines)
+All books are English-language
+```
+
+---
+
+## API CHANGES REQUIRED
+
+### `api/books-handler.js`
+
+1. **All endpoints**: Add `printType=books` to Google Books queries
+2. **Search endpoint**: Run `enrichMissingCoversWithGoogle` on results before returning
+3. **Search endpoint**: Add `language` field to all returned docs
+4. **Trending endpoint**: Change primary source to Google Books, use Open Library as fallback
+5. **Popular endpoint**: Add `printType=books` + `filter=ebooks` to reduce noise
+6. **New**: Add content-type classification to every returned object
+
+### New Endpoints
+
+1. **`GET /api/books/discover`** — Returns pre-grouped discovery sections
+
+---
+
+## PERFORMANCE TARGETS
+
+| Metric | Current | Target | How |
+|--------|---------|--------|-----|
+| First content | 2-4s | <1s | Cache hit: return cached discover content immediately |
+| Search response | 1-2s | <500ms | Server-side enrichment is already fast; cache search results |
+| Page change | 1-2s (re-fetch) | <100ms (cache) | Accumulate `_fullBooks`, no re-fetch for pagination |
+| Cache hit search | N/A (broken) | <300ms | localStorage + in-memory Map check first |
+| Network requests | 4-8 per page load | 2-3 per page load | Discovery endpoint returns everything in one call |
+
+---
+
+## IMPLEMENTATION ORDER
+
+1. **P0**: Fix `api/books-handler.js` — add `printType=books`, content-type, enrichment on all paths
+2. **P0**: Create `js/books-engine.js` — shared scoring, filtering, edition grouping
+3. **P0**: Rewrite `books.html` `loadBooksWithFallback` — use new engine, fix accumulation, fix search state
+4. **P0**: Add clear button + search state management
+5. **P0**: Fix discovery — sectioned layout with modern popular books
+6. **P1**: Mirror fixes to `books-mobile.html`
+7. **P1**: Integrate `js/cover-cache.js` for persistent cover caching
+8. **P2**: Refactor homepage to use shared engine
