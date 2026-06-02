@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260531b" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260531b" defer></script>
-  <meta name="robots" content="index,follow,max-image-preview:none,noimageindex" />
+  <script src="/js/auth-gate.js?v=20260602a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260602a" defer></script>
+  <meta name="robots" content="index,follow" />
   <title>Zo2y - Books</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -14,837 +14,26 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260531b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260531b" defer></script>
+  <script src="js/list-utils.js?v=20260602a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260602a" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
-
-
+  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260602a">
   <style>
     :root {
-      --bg: #0b1633;
-      --card: #132347;
-      --card-2: #172b58;
-      --muted: #8ca3c7;
-      --accent: #f59e0b;
-      --white: #fff;
-      --border: rgba(255,255,255,0.12);
-      --surface: rgba(12, 26, 57, 0.84);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      background:
-        radial-gradient(circle at 18% -10%, rgba(245,158,11,0.18), transparent 35%),
-        radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
-        var(--bg);
-      color: var(--white);
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      overflow-y: scroll;
-      padding-bottom: 18px;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    .container { width: min(1240px, calc(100% - 28px)); margin: 0 auto; }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px) saturate(180%);
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .header-inner {
-      min-height: 72px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 12px 0;
-      flex-wrap: wrap;
-    }
-
-    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
-    .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
-
-    .search-wrap { flex: 1; min-width: 210px; max-width: 420px; position: relative; margin-left: 8px; }
-    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; }
-    .search {
-      width: 100%; height: 42px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
-      color: var(--white); padding: 0 14px 0 34px; outline: none;
-    }
-    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
-
-    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .top-nav { display: inline-flex; align-items: center; gap: 8px; opacity: 0.92; }
-    .nav-pill {
-      border: 1px solid transparent; color: #e2ecff; background: transparent; border-radius: 999px; font-size: 12px;
-      font-weight: 600; padding: 8px 10px; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
-    }
-    .nav-pill.active, .nav-pill:hover { border-color: var(--border); color: var(--accent); background: rgba(255,255,255,0.04); }
-    .auth-actions { display: inline-flex; align-items: center; gap: 8px; }
-    .btn {
-      border: 1px solid var(--border); background: var(--card); color: var(--white); height: 40px; padding: 0 14px;
-      border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-    }
-    .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
-
-    .page-shell { margin-top: 18px; display: grid; gap: 16px; }
-
-    .hero {
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: clamp(20px, 4vw, 34px);
-      background:
-        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
-        url("https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80") center/cover;
-      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
-    }
-    .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }
-    .hero p { color: #d3e5ff; margin-top: 10px; max-width: 650px; line-height: 1.45; }
-    .hero-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .media-spotlight {
-      width: 100%;
-    }
-
-    .media-spotlight[hidden] { display: none; }
-
-    .media-spotlight-shell {
-      position: relative;
-      overflow: hidden;
-      border-radius: 22px;
-      border: 1px solid var(--border);
-      min-height: 300px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) clamp(248px, 28vw, 360px);
-      gap: 0;
-      align-items: stretch;
-      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
-      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
-    }
-
-    .media-spotlight-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38));
-      background-size: cover;
-      background-position: center center;
-    }
-
-    .media-spotlight-copy,
-    .media-spotlight-poster { position: relative; z-index: 1; }
-
-    .media-spotlight-copy {
-      padding: 22px 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      justify-content: flex-start;
-      min-width: 0;
-    }
-
-    .media-spotlight-kicker {
-      display: inline-flex;
-      width: fit-content;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.16);
-      background: rgba(19,35,71,0.48);
-      color: #dbe7ff;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .media-spotlight-meta,
-    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
-
-    .media-spotlight-meta {
-      font-size: 13px;
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .media-spotlight-summary {
-      font-size: 14px;
-      max-width: 36ch;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .media-spotlight-poster {
-      padding: 0;
-      display: flex;
-      align-items: stretch;
-      justify-content: stretch;
-      overflow: hidden;
-      height: 100%;
-      min-height: 100%;
-      border-left: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .media-spotlight-poster img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      object-position: center center;
-      border-radius: 0;
-      box-shadow: none;
-      background: rgba(255,255,255,0.04);
-      padding: 10px 12px;
-    }
-
-    .media-spotlight-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 4px; }
-
-    .section {
-      background: rgba(19, 35, 71, 0.9);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: 0 12px 34px rgba(0,0,0,0.22);
-      overflow: hidden;
-    }
-    .section-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-    .section-head h2 { font-size: 23px; margin-bottom: 3px; }
-    .section-head p { color: var(--muted); font-size: 13px; }
-
-    .controls {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 56px 56px;
-      gap: 12px;
-      max-width: 1240px;
-      margin: 12px auto 0;
-    }
-    .search-input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
+      --category-hero-image: url("https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80");
     }
     .search-input-wrap input {
-      width: 100%;
-      height: 56px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: #10224a;
-      color: #fff;
-      padding: 0 44px 0 18px;
-      font-size: 16px;
-      -webkit-appearance: none;
-      appearance: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .search-input-wrap input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
-      outline: none;
-    }
-    .controls input, .controls select {
-      height: 56px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: #10224a;
-      color: #fff;
-      padding: 0 18px;
-      font-size: 16px;
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    .controls button, .pager button {
-      height: 56px;
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      padding: 0;
-      cursor: pointer;
-    }
-    .control-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 1700;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      background: rgba(4, 10, 23, 0.72);
-      backdrop-filter: blur(6px);
-    }
-    .control-modal.show {
-      display: flex;
-    }
-    .control-modal-card {
-      width: min(480px, 100%);
-      border-radius: 18px;
-      border: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-      padding: 16px;
-    }
-    .control-modal-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .control-modal-title {
-      font-size: 18px;
-      font-weight: 800;
-    }
-    .control-modal-close {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: rgba(255,255,255,0.04);
-      color: #fff;
-      cursor: pointer;
-    }
-    .control-modal-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    .control-modal-grid select,
-    .control-modal-action {
-      width: 100%;
-      height: 48px;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      background: #10224a;
-      color: #fff;
-      padding: 0 14px;
-      font-size: 14px;
-    }
-    .control-modal-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: var(--card);
-      color: #fff;
-      cursor: pointer;
-    }
-    .control-icon-btn {
-      width: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
+      padding-right: 44px;
     }
     .books-clear-btn {
-      position: absolute;
-      right: 12px;
-      width: 34px;
-      height: 34px;
-      border: 0;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      color: var(--muted);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .books-clear-btn.show {
-      display: inline-flex;
-    }
-
-    .grid {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: repeat(6, 156px);
-      gap: 11px;
-      align-items: stretch;
-      justify-content: center;
-    }
-
-    .card {
-      border-radius: 14px;
-      overflow: hidden;
-      background: var(--card-2);
-      min-height: 300px;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-
-    }
-
-
-    .card-media {
-      width: 100%;
-      aspect-ratio: 2/3;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-      display: grid;
-      place-items: center;
-      color: var(--muted);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .card-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      transform: scale(1.001);
-    }
-
-    .card-media.cover img {
-      object-fit: cover;
-    }
-
-    .card-media-fallback {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 64px;
-      color: var(--muted);
-      opacity: 0.5;
-    }
-
-    .card-meta { padding: 4px; display: flex; flex-direction: column; gap: 1px; flex: 1; }
-
-    .card-type {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      color: #dbe7ff;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.16);
-      border-radius: 999px;
-      padding: 3px 8px;
-      margin-bottom: 3px;
-      width: fit-content;
-    }
-
-    .card-meta-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 2px;
-    }
-
-    .card-name {
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.2;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .card-title { font-size: 14px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-extra {
-      color: #abc5e8;
-      font-size: 12px;
-      line-height: 1.2;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      margin-top: auto;
-    }
-
-    .card-actions {
-      display: grid;
-      grid-template-columns: auto auto;
-      gap: 6px;
-      margin-top: 1px;
-      justify-content: end;
-    }
-    .icon-btn {
-      height: 32px; width: 32px; border-radius: 9px; border: 1px solid var(--border);
-      background: rgba(15,39,72,0.9); color: #d7e8ff; display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .mini-btn {
-      height: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9);
-      color: #d7e8ff; font-size: 12px; padding: 0 10px; cursor: pointer;
-    }
-    .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .menu {
-      position: absolute;
-      right: 10px;
-      bottom: 44px;
-      width: 190px;
-      background: #0e284b;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
-      padding: 8px;
-      display: none;
-      z-index: 12;
-    }
-    .menu.open { display: block; }
-    .menu button {
-      width: 100%; border: 1px solid var(--border); background: transparent; color: #eef4ff; border-radius: 8px;
-      padding: 8px; font-size: 12px; margin-bottom: 6px; text-align: left; cursor: pointer;
-    }
-    .menu button:last-child { margin-bottom: 0; }
-    .menu button:hover { border-color: var(--accent); color: var(--accent); }
-    .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
-
-    .empty { color: var(--muted); font-size: 13px; padding: 20px; }
-
-    .pagination {
-      padding: 0 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    .page-btn {
-      min-width: 44px;
-      height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--white);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .page-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .page-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .page-info {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .modal {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      background: rgba(6, 12, 28, 0.72); z-index: 240; padding: 16px;
-    }
-    .modal.active { display: flex; }
-    .modal-content {
-      width: min(420px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px;
-    }
-    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .modal-list { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; padding: 6px 0; }
-    .modal-list-item {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px;
-      border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); cursor: pointer;
-    }
-    .modal-list-item.active { border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
-    .modal-input { display: flex; gap: 8px; margin-top: 8px; }
-    .modal-input input {
-      flex: 1; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-2);
-      color: var(--white); padding: 0 10px;
-    }
-
-    @media (max-width: 860px) {
-      .top-nav { display: none; }
-    }
-
-    @media (max-width: 760px) {
-      .container { width: calc(100% - 16px); }
-      body { padding-bottom: 86px; }
-      .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
-      .grid { grid-template-columns: repeat(3, 110px); gap: 10px; justify-content: center; }
-      .media-spotlight-shell {
-        grid-template-columns: 1fr;
-      }
-      .media-spotlight-copy {
-        padding: 18px 18px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        justify-content: flex-start;
-        min-width: 0;
-      }
-      .media-spotlight-poster {
-        padding: 18px 18px 18px 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-    }
-
-    .menu-modal {
-      display: none;
-      position: fixed;
-      z-index: 10000;
-      top: 0;
-      left: 0;
-      width: 100dvw;
-      height: 100dvh;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(5px);
-      padding: 0;
-      align-items: center;
-      justify-content: center;
-    }
-    .menu-modal.active {
-      display: flex;
-    }
-    .menu-modal-content {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 380px;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
-    }
-    .menu-modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .menu-modal-header h3 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--white);
-      margin: 0;
-    }
-    .menu-modal-close {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 24px;
-      cursor: pointer;
-      width: 32px;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      transition: all 0.2s ease;
-    }
-    .menu-modal-close:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--white);
-    }
-    .menu-modal-body {
-      padding: 16px 20px;
-    }
-    .menu-quick-lists {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .menu-quick-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .menu-quick-item:hover {
-      border-color: var(--accent);
-      background: rgba(245, 158, 11, 0.1);
-    }
-    .menu-quick-item.active {
-      border-color: var(--accent);
-      background: rgba(245, 158, 11, 0.15);
-    }
-    .menu-quick-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .menu-quick-left i {
-      width: 20px;
-      color: var(--accent);
-    }
-    .menu-quick-left span {
-      font-weight: 500;
-    }
-    .menu-quick-state {
-      color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .menu-custom-section {
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
-    }
-    .menu-custom-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .menu-create-list-btn {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-    .menu-create-list-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .menu-custom-lists {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .menu-custom-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .menu-custom-item:hover {
-      border-color: var(--accent);
-    }
-    .menu-custom-item.active {
-      border-color: var(--accent);
-      background: rgba(245, 158, 11, 0.1);
-    }
-    .menu-custom-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .menu-custom-left i {
-      width: 18px;
-      color: var(--accent);
-      font-size: 14px;
-    }
-    .menu-custom-left span {
-      font-size: 14px;
-    }
-    .menu-custom-state {
-      color: var(--accent);
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .menu-input {
-      width: 100%;
-      padding: 12px 16px;
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      color: var(--white);
-      font-size: 14px;
-      margin-bottom: 16px;
-    }
-    .menu-icon-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .menu-icon-option {
-      height: 44px;
-      border: 1px solid var(--border);
-      background: var(--card-2);
-      border-radius: 10px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-    }
-    .menu-icon-option:hover {
-      border-color: var(--accent);
-    }
-    .menu-icon-option.selected {
-      border-color: var(--accent);
-      background: rgba(245, 158, 11, 0.15);
-    }
-    .menu-icon-option i {
-      font-size: 18px;
-      color: var(--muted);
-    }
-    .menu-icon-option.selected i {
-      color: var(--accent);
-    }
-    .menu-modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-    }
-    .menu-btn {
-      flex: 1;
-      height: 40px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .menu-btn-secondary {
-      background: var(--card-2);
-      color: var(--white);
-    }
-    .menu-btn-secondary:hover {
-      border-color: var(--accent);
-    }
-    .menu-btn-primary {
-      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
-      color: #0b1633;
-      border: none;
-    }
-    .menu-btn-primary:hover {
-      opacity: 0.9;
-    }
-    .authenticated-only {
-      display: none;
-    }
-    body.authenticated .authenticated-only {
-      display: block;
-    }
+      position: absolute; right: 12px; width: 34px; height: 34px; border: 0;
+      border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--muted);
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .books-clear-btn.show { display: inline-flex; }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -853,14 +42,14 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260531b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260531b"></noscript>
-<script src="js/shared-header.js?v=20260531b" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260531b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260531b"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260602a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260602a"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260602a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260602a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260602a"></noscript>
+<script src="js/shared-header.js?v=20260602a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260602a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260602a"></noscript>
 
   </head>
 <body>
@@ -897,10 +86,8 @@
     <section class="hero">
       <h1>books</h1>
       <p>Discover trending books across all genres and save them to your book lists.</p>
-      <div class="mt-2 text-xs text-muted opacity-86">sources: Google Books + Open Library. <a href="credits.html" class="text-accent">all credits</a></div>
-      <div class="hero-actions">
-        <!-- Refresh Picks removed -->
-      </div>
+      <div class="mt-2 text-xs text-muted opacity-86">source: Google Books. <a href="credits.html" class="text-accent">all credits</a></div>
+      <div class="hero-actions"></div>
     </section>
     <section class="controls">
       <div class="search-input-wrap">
@@ -933,7 +120,7 @@
         <h2>popular books right now</h2>
         <p>Trending books across all genres.</p>
       </div>
-      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
+      <div class="grid" id="booksGrid"><div class="category-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -993,626 +180,458 @@
     </div>
   </div>
 
-  <script src="/js/books-engine.js?v=20260601a" defer></script>
   <script>
     (function () {
       document.addEventListener('DOMContentLoaded', function () {
-        if (!window.__zo2yBooksEngine) {
-          var grid = document.getElementById('booksGrid');
-          if (grid) grid.innerHTML = '<div class="empty">Loading books engine...</div>';
-          return;
-        }
+        var GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+        var API_PAGE_SIZE = 40;
+        var supabaseClient = null;
+        var currentUser = null;
+        var searchDebounceTimer = null;
+        var activeRequestController = null;
+        var BOOKS_PAGE_SIZE = 18;
 
-        var ENG = window.__zo2yBooksEngine;
-      var supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      var GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      var API_PAGE_SIZE = 40;
-      var BOOKS_CACHE_PREFIX = 'zo2y_books_cache_v4:';
-      var BOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
-      var BOOKS_CACHE_BUSTER = '20260601b';
-      var _fullBooks = new Map();
-      var supabaseClient = null;
-      var currentUser = null;
-      var searchDebounceTimer = null;
-      var activeRequestController = null;
+        var BOOK_GENRES = [
+          'Fiction', 'Non-fiction', 'Fantasy', 'Thriller', 'Romance',
+          'Science Fiction', 'Mystery', 'Horror', 'Biography', 'History',
+          'Self-Help', 'Science', 'Young Adult', 'Classics', 'Poetry',
+          'Drama', 'Humor', 'Travel'
+        ];
 
-      var state = {
-        books: [],
-        search: '',
-        genre: '',
-        sort: 'popular',
-        page: 1,
-        totalPages: 1,
-        listStatusMap: new Map(),
-        pendingQuickOps: new Set()
-      };
-
-      var CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
-        ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
-        : [
-            { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
-            { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
-            { title: 'Atomic Habits', author: 'James Clear', year: 2018 },
-            { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
-            { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
-            { title: 'The Women', author: 'Kristin Hannah', year: 2024 },
-            { title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019 },
-            { title: 'Tomorrow, and Tomorrow, and Tomorrow', author: 'Gabrielle Zevin', year: 2022 },
-            { title: 'Yellowface', author: 'R. F. Kuang', year: 2023 },
-            { title: 'The Midnight Library', author: 'Matt Haig', year: 2020 },
-            { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
-            { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
-            { title: 'The Wedding People', author: 'Alison Espach', year: 2024 },
-            { title: 'James', author: 'Percival Everett', year: 2024 },
-            { title: 'Intermezzo', author: 'Sally Rooney', year: 2024 },
-            { title: 'The God of the Woods', author: 'Liz Moore', year: 2024 },
-            { title: 'Funny Story', author: 'Emily Henry', year: 2024 },
-            { title: 'House of Flame and Shadow', author: 'Sarah J. Maas', year: 2024 }
-          ];
-
-      function escapeHtml(value) {
-        return String(value || '')
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;').replace(/\"/g, '&quot;')
-          .replace(/'/g, '&#039;');
-      }
-
-      function showToast(message, isError) {
-        var el = document.createElement('div');
-        el.style.position = 'fixed'; el.style.top = '16px'; el.style.right = '16px';
-        el.style.zIndex = '9999'; el.style.background = isError ? '#dc2626' : '#f59e0b';
-        el.style.color = '#fff'; el.style.padding = '10px 14px';
-        el.style.borderRadius = '10px'; el.style.fontSize = '13px';
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(function () { el.remove(); }, 2200);
-      }
-
-      function getCacheKey(query, page, orderBy) {
-        var q = String(query || '').trim().toLowerCase() || '__popular__';
-        var p = Math.max(1, Number(page || 1));
-        var o = String(orderBy || '').trim().toLowerCase() || '__default__';
-        return BOOKS_CACHE_PREFIX + q + ':' + p + ':' + o;
-      }
-
-      function readCache(query, page, orderBy) {
-        var key = getCacheKey(query, page, orderBy);
-        try {
-          var raw = localStorage.getItem(key);
-          if (!raw) return null;
-          var parsed = JSON.parse(raw);
-          var savedAt = Number(parsed?.savedAt || 0);
-          if (!savedAt || (Date.now() - savedAt) > BOOKS_CACHE_TTL_MS) {
-            localStorage.removeItem(key);
-            return null;
-          }
-          return { books: Array.isArray(parsed.books) ? parsed.books : [], total: Number(parsed.total || 0) };
-        } catch (_) { return null; }
-      }
-
-      function writeCache(query, page, orderBy, books, total) {
-        var key = getCacheKey(query, page, orderBy);
-        try {
-          localStorage.setItem(key, JSON.stringify({
-            books: Array.isArray(books) ? books : [],
-            total: Number(total || 0),
-            savedAt: Date.now()
-          }));
-        } catch (_) {}
-      }
-
-      function isDateWithinAcceptableRange(dateString) {
-        if (!dateString) return true;
-        var date = new Date(dateString);
-        if (isNaN(date.getTime())) return true;
-        var now = new Date();
-        var twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
-        return date >= new Date(1990, 0, 1) && date <= twoYearsFromNow;
-      }
-
-      function normalizeBookDoc(raw) {
-        if (!raw) return null;
-        var id = raw.id || String(raw._googleVolumeId || raw.googleBooksId || '');
-        var title = raw.title || raw.name || 'Unknown Book';
-        var authors = Array.isArray(raw.authors)
-          ? raw.authors.join(', ')
-          : (Array.isArray(raw.author_name)
-            ? raw.author_name.join(', ')
-            : (raw.authors || raw.author || 'Unknown Author'));
-        var coverUrl = raw.thumbnail || raw.cover || raw.image || raw.coverImage || '';
-        return {
-          id: id,
-          title: title,
-          authors: authors,
-          description: raw.description || '',
-          coverUrl: coverUrl,
-          publishedDate: raw.publishedDate || raw.published_date || '',
-          pageCount: raw.pageCount || raw.page_count || 0,
-          _source: raw._source || '',
-          _contentType: raw._contentType || ''
+        var state = {
+          books: [],
+          search: '',
+          genre: '',
+          sort: 'popular',
+          page: 1,
+          totalPages: 1,
+          listStatusMap: new Map(),
+          pendingQuickOps: new Set()
         };
-      }
 
-      async function fetchDiscovery() {
-        var BOOKS_PER_PAGE = Math.max(40, ENG.computeGridPageSize() * 2);
-        var seededBooks = [];
-        var popularBooks = [];
-        var trendingBooks = [];
+        function escapeHtml(value) {
+          return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
+        }
 
-        try {
-          // Seeded books
-          var pool = ENG.shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, 24);
-          var seedResults = await Promise.allSettled(pool.map(function (seed) {
-            var params = { title: seed.title, author: seed.author, limit: 5, page: 1 };
-            if (seed?.year) params.first_publish_year = seed.year;
-            var url = GOOGLE_BOOKS_PROXY_BASE + '/search?' + new URLSearchParams(params).toString();
-            return fetch(url, { signal: activeRequestController?.signal }).then(function (r) {
-              if (!r.ok) return null;
-              return r.json().then(function (json) {
-                var docs = Array.isArray(json?.books) ? json.books : [];
-                if (!docs.length) return null;
-                return docs.slice().sort(function (a, b) {
-                  return ENG.scoreSeededBookMatch(b, seed) - ENG.scoreSeededBookMatch(a, seed);
-                })[0] || null;
-              });
-            }).catch(function () { return null; });
-          }));
-          var seen = {};
-          seedResults.forEach(function (res) {
-            if (res.status !== 'fulfilled' || !res.value) return;
-            var doc = res.value;
-            var key = ENG.normalizeBookSeedText(doc?.title || '') + '::' + ENG.normalizeBookSeedText(doc?.author || '');
-            if (!key || seen[key]) return;
-            seen[key] = true;
-            seededBooks.push(doc);
-          });
+        function showToast(message, isError) {
+          var el = document.createElement('div');
+          el.style.position = 'fixed'; el.style.top = '16px'; el.style.right = '16px';
+          el.style.zIndex = '9999'; el.style.background = isError ? '#dc2626' : '#f59e0b';
+          el.style.color = '#fff'; el.style.padding = '10px 14px';
+          el.style.borderRadius = '10px'; el.style.fontSize = '13px';
+          el.textContent = message;
+          document.body.appendChild(el);
+          setTimeout(function () { el.remove(); }, 2200);
+        }
 
-          // Popular
-          var popRes = await fetch(GOOGLE_BOOKS_PROXY_BASE + '/popular?subject=fiction&language=en&orderBy=relevance&limit=' + BOOKS_PER_PAGE + '&page=1', { signal: activeRequestController?.signal });
-          if (popRes.ok) {
-            var popJson = await popRes.json();
-            popularBooks = Array.isArray(popJson?.books) ? popJson.books : [];
-          }
-
-          // Trending
-          var trendRes = await fetch(GOOGLE_BOOKS_PROXY_BASE + '/trending?period=weekly&limit=' + BOOKS_PER_PAGE, { signal: activeRequestController?.signal });
-          if (trendRes.ok) {
-            var trendJson = await trendRes.json();
-            trendingBooks = Array.isArray(trendJson?.books) ? trendJson.books : [];
-          }
-        } catch (_) {}
-
-        var merged = [];
-        var seenMerge = {};
-        [seededBooks, popularBooks, trendingBooks].forEach(function (batch) {
-          (batch || []).forEach(function (book) {
-            var key = (book.id || book._googleVolumeId || '');
-            if (!key || seenMerge[key]) return;
-            seenMerge[key] = true;
-            merged.push(book);
-          });
-        });
-
-        // Fallback: page 2 popular if too few
-        if (merged.length < 20) {
+        function computeGridPageSize() {
+          var grid = document.getElementById('booksGrid');
+          if (!grid) return 18;
           try {
-            var fbRes = await fetch(GOOGLE_BOOKS_PROXY_BASE + '/popular?subject=fiction&language=en&orderBy=relevance&limit=' + BOOKS_PER_PAGE + '&page=2', { signal: activeRequestController?.signal });
-            if (fbRes.ok) {
-              var fbJson = await fbRes.json();
-              var fbBooks = Array.isArray(fbJson?.books) ? fbJson.books : [];
-              fbBooks.forEach(function (book) {
-                var key = (book.id || book._googleVolumeId || '');
-                if (!key || seenMerge[key]) return;
-                seenMerge[key] = true;
-                merged.push(book);
-              });
-            }
-          } catch (_) {}
+            var cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+            return cols * 3;
+          } catch (_) { return 18; }
         }
 
-        return merged;
-      }
-
-      async function loadBooksWithFallback(queryOverride) {
-        var query = String(queryOverride || state.search || '').trim();
-
-        if (activeRequestController) activeRequestController.abort();
-        activeRequestController = new AbortController();
-        var signal = activeRequestController.signal;
-
-        var BOOKS_PAGE_SIZE = ENG.computeGridPageSize();
-
-        // Accumulated cache approach: store all fetched books per query, slice per page
-        if (_fullBooks.has(query) && _fullBooks.get(query).length > (state.page - 1) * BOOKS_PAGE_SIZE) {
-          var cachedList = _fullBooks.get(query);
-          state.books = cachedList.slice((state.page - 1) * BOOKS_PAGE_SIZE, state.page * BOOKS_PAGE_SIZE);
-          state.totalPages = Math.max(1, Math.ceil(cachedList.length / BOOKS_PAGE_SIZE));
-          renderGrid();
-          return;
+        function initFilters() {
+          var genreSelect = document.getElementById('genre');
+          if (genreSelect) {
+            BOOK_GENRES.forEach(function (g) {
+              var opt = document.createElement('option');
+              opt.value = g.toLowerCase();
+              opt.textContent = g;
+              genreSelect.appendChild(opt);
+            });
+          }
         }
 
-        var rawBooks = [];
-        var apiTotalResults = null;
+        function shuffleArray(array) {
+          var arr = array.slice();
+          for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = tmp;
+          }
+          return arr;
+        }
 
-        if (!query) {
-          rawBooks = await fetchDiscovery();
-          apiTotalResults = rawBooks.length;
-        } else {
-          var searchQuery = query + (state.genre ? '+subject:' + state.genre : '');
-          var cached = readCache(searchQuery, 1, 'relevance');
-          if (cached?.books?.length) {
-            rawBooks = cached.books;
-            apiTotalResults = cached.total;
-          } else {
-            try {
-              var url = GOOGLE_BOOKS_PROXY_BASE + '/search?q=' + encodeURIComponent(searchQuery) + '&limit=40&page=1&language=en&orderBy=relevance';
+        async function loadBooks() {
+          var query = String(state.search || '').trim();
+
+          if (activeRequestController) activeRequestController.abort();
+          activeRequestController = new AbortController();
+          var signal = activeRequestController.signal;
+
+          BOOKS_PAGE_SIZE = computeGridPageSize();
+
+          var allBooks = [];
+          var booksMap = {};
+
+          function addBooks(batch) {
+            (batch || []).forEach(function (b) {
+              var id = String(b.id || '').trim();
+              if (id && !booksMap[id]) {
+                booksMap[id] = true;
+                allBooks.push(b);
+              }
+            });
+          }
+
+          try {
+            if (!query) {
+              // Discovery: popular + trending
+              var popUrl = GOOGLE_BOOKS_PROXY_BASE + '/popular?limit=' + API_PAGE_SIZE + '&page=1&language=en' + (state.genre ? '&subject=' + encodeURIComponent(state.genre) : '');
+              var popRes = await fetch(popUrl, { signal: signal });
+              if (popRes.ok) {
+                var popJson = await popRes.json();
+                addBooks(Array.isArray(popJson?.books) ? popJson.books : []);
+              }
+
+              // Second page for more variety
+              var popUrl2 = GOOGLE_BOOKS_PROXY_BASE + '/popular?limit=' + API_PAGE_SIZE + '&page=2&language=en' + (state.genre ? '&subject=' + encodeURIComponent(state.genre) : '');
+              var popRes2 = await fetch(popUrl2, { signal: signal });
+              if (popRes2.ok) {
+                var popJson2 = await popRes2.json();
+                addBooks(Array.isArray(popJson2?.books) ? popJson2.books : []);
+              }
+
+              allBooks = shuffleArray(allBooks);
+
+              // Apply client-side sort
+              if (state.sort === 'name') {
+                allBooks.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
+              } else if (state.sort === 'released') {
+                allBooks.sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
+              }
+            } else {
+              var searchQuery = query + (state.genre ? ' subject:' + state.genre : '');
+              var url = GOOGLE_BOOKS_PROXY_BASE + '/search?q=' + encodeURIComponent(searchQuery) + '&limit=' + API_PAGE_SIZE + '&page=1&language=en&orderBy=relevance';
               var res = await fetch(url, { signal: signal });
               if (res.ok) {
                 var json = await res.json();
-                rawBooks = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
-                apiTotalResults = Number(json?.meta?.numFound || json?.numFound || 0);
-                writeCache(searchQuery, 1, 'relevance', rawBooks, apiTotalResults);
+                addBooks(Array.isArray(json?.books) ? json.books : []);
               }
-            } catch (err) {
-              if (err?.name === 'AbortError') return;
+            }
+          } catch (err) {
+            if (err?.name === 'AbortError') return;
+          }
+
+          if (signal.aborted) return;
+
+          state.totalPages = Math.max(1, Math.ceil(allBooks.length / BOOKS_PAGE_SIZE));
+          state.books = allBooks.slice((state.page - 1) * BOOKS_PAGE_SIZE, state.page * BOOKS_PAGE_SIZE);
+          renderGrid();
+        }
+
+        async function ensureSupabase() {
+          if (supabaseClient) return supabaseClient;
+          var authRuntime = window.ZO2Y_AUTH || null;
+          if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+            await authRuntime.waitForSupabase(8000);
+          } else {
+            var startedAt = Date.now();
+            while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+              await new Promise(function (resolve) { setTimeout(resolve, 40); });
             }
           }
-        }
-
-        if (signal.aborted) return;
-
-        // Normalize, dedupe, apply safety filter
-        var normalized = (rawBooks || []).map(normalizeBookDoc).filter(Boolean);
-        var deduped = ENG.dedupeBooks(normalized, 200);
-        var safe = deduped.filter(function (b) {
-          if (!b.id || !isDateWithinAcceptableRange(b.publishedDate)) return false;
-          var text = (b.title + ' ' + b.authors + ' ' + (b.description || '')).toLowerCase();
-          return !/\b(erotica|explicit|adult|pornographic|mature audience|sexual content)\b/i.test(text);
-        });
-
-        // Accumulate into _fullBooks for this query
-        if (!_fullBooks.has(query)) _fullBooks.set(query, []);
-        var existing = _fullBooks.get(query);
-        var existingKeys = {};
-        for (var ei = 0; ei < existing.length; ei++) {
-          existingKeys[existing[ei].id] = true;
-        }
-        for (var ni = 0; ni < safe.length; ni++) {
-          if (!existingKeys[safe[ni].id]) {
-            existing.push(safe[ni]);
-            existingKeys[safe[ni].id] = true;
+          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+            supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+            if (supabaseClient) return supabaseClient;
           }
-        }
-
-        // Apply sort
-        if (query) {
-          // For search, keep the server ranking order (already sorted by API)
-        } else if (state.sort === 'name') {
-          existing.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
-        } else if (state.sort === 'released') {
-          existing.sort(function (a, b) {
-            var da = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
-            var db = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
-            return db - da;
-          });
-        }
-
-        state.books = existing.slice((state.page - 1) * BOOKS_PAGE_SIZE, state.page * BOOKS_PAGE_SIZE);
-        state.totalPages = Math.max(1, Math.ceil(existing.length / BOOKS_PAGE_SIZE));
-
-        renderGrid();
-      }
-
-      async function ensureSupabase() {
-        if (supabaseClient) return supabaseClient;
-        var authRuntime = window.ZO2Y_AUTH || null;
-        if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-          await authRuntime.waitForSupabase(8000);
-        } else {
-          var startedAt = Date.now();
-          while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-            await new Promise(function (resolve) { setTimeout(resolve, 40); });
+          if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+            supabaseClient = window.supabase.createClient(
+              window.__ZO2Y_SUPABASE_CONFIG.url,
+              window.__ZO2Y_SUPABASE_CONFIG.key,
+              { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+            );
+            window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+            return supabaseClient;
           }
+          return null;
         }
-        if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-          supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-          if (supabaseClient) return supabaseClient;
-        }
-        if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-          supabaseClient = window.supabase.createClient(
-            window.__ZO2Y_SUPABASE_CONFIG.url,
-            window.__ZO2Y_SUPABASE_CONFIG.key,
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-          );
-          window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          return supabaseClient;
-        }
-        return null;
-      }
 
-      async function initAuthUi() {
-        var client = await ensureSupabase();
-        if (!client) return;
-        var loginBtn = document.getElementById('loginBtn');
-        var signupBtn = document.getElementById('signupBtn');
-        var profileBtn = document.getElementById('profileBtn');
-        var result = await client.auth.getUser();
-        currentUser = result?.data?.user || null;
-        if (currentUser) {
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (signupBtn) signupBtn.style.display = 'none';
-          if (profileBtn) {
-            profileBtn.style.display = 'inline-flex';
-            profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
-          }
-        } else {
-          if (loginBtn) loginBtn.style.display = 'inline-flex';
-          if (signupBtn) signupBtn.style.display = 'inline-flex';
-          if (profileBtn) profileBtn.style.display = 'none';
-        }
-      }
-
-      async function loadListStatus() {
-        state.listStatusMap = new Map();
-        if (!currentUser?.id || !state.books.length) return;
-        var client = await ensureSupabase();
-        if (!client) return;
-        var ids = state.books.map(function (b) { return b.id; }).filter(Boolean);
-        if (!ids.length) return;
-        var result = await client.from('book_list_items')
-          .select('book_id, list_type')
-          .eq('user_id', currentUser.id)
-          .in('book_id', ids);
-        (result?.data || []).forEach(function (row) {
-          var id = String(row.book_id || '');
-          if (!id) return;
-          if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
-          var bucket = state.listStatusMap.get(id);
-          if (row.list_type in bucket) bucket[row.list_type] = true;
-        });
-      }
-
-      function getBookListStatus(bookId) {
-        var id = String(bookId || '').trim();
-        var empty = { favorites: false, read: false, toread: false };
-        if (!id) return empty;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { ...empty });
-        return state.listStatusMap.get(id);
-      }
-
-      function renderGrid() {
-        var grid = document.getElementById('booksGrid');
-        if (!grid) return;
-        if (!state.books.length) {
-          grid.innerHTML = '<div class="empty">No books found.</div>';
-          updatePagination();
-          return;
-        }
-        grid.innerHTML = state.books.map(function (book) {
-          var coverUrl = book.coverUrl || ENG.FALLBACK_BOOK_IMAGE;
-          return '<article class="card" data-id="' + escapeHtml(book.id) + '">'
-            + '<div class="card-media">'
-            + '<img src="' + escapeHtml(coverUrl) + '" alt="' + escapeHtml(book.title) + '" loading="lazy" onerror="this.src=\'' + escapeHtml(ENG.FALLBACK_BOOK_IMAGE) + '\'">'
-            + '</div>'
-            + '<div class="card-meta">'
-            + '<span class="card-type"><i class="fa-solid fa-book"></i> Book</span>'
-            + '<div class="card-meta-top"><p class="card-title">' + escapeHtml(book.title) + '</p></div>'
-            + '<p class="card-sub">' + escapeHtml(book.authors) + '</p>'
-            + '<p class="card-extra"></p>'
-            + '<div class="card-actions">'
-            + '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
-            + '</div></div></article>';
-        }).join('');
-        wireGridActions();
-        updatePagination();
-      }
-
-      function updatePagination() {
-        var prevBtn = document.getElementById('prevPageBtn');
-        var nextBtn = document.getElementById('nextPageBtn');
-        var info = document.getElementById('pageInfo');
-        if (state.page > state.totalPages) state.page = state.totalPages;
-        if (state.page < 1) state.page = 1;
-        if (prevBtn) prevBtn.disabled = state.page <= 1;
-        if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-        if (info) info.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
-      }
-
-      async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-        var bookId = String(itemId || '').trim();
-        if (!bookId) return { ok: false, saved: false };
-        var book = state.books.find(function (r) { return String(r.id || '').trim() === bookId; });
-        if (!book) return { ok: false, saved: false };
-        var client = await ensureSupabase();
-        if (!client || !currentUser?.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
-        var status = getBookListStatus(bookId);
-        if (!(listType in status)) return { ok: false, saved: false };
-        var previousSaved = !!status[listType];
-        var nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-        var opKey = bookId + ':' + listType;
-        if (state.pendingQuickOps.has(opKey)) return { ok: false, saved: previousSaved };
-        state.pendingQuickOps.add(opKey);
-        status[listType] = nextSaved;
-        try {
-          if (nextSaved) {
-            var res = await client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
-            if (res.error && String(res.error.code || '') !== '23505') throw res.error;
-            showToast('Added to list');
+        async function initAuthUi() {
+          var client = await ensureSupabase();
+          if (!client) return;
+          var loginBtn = document.getElementById('loginBtn');
+          var signupBtn = document.getElementById('signupBtn');
+          var profileBtn = document.getElementById('profileBtn');
+          var result = await client.auth.getUser();
+          currentUser = result?.data?.user || null;
+          if (currentUser) {
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (signupBtn) signupBtn.style.display = 'none';
+            if (profileBtn) {
+              profileBtn.style.display = 'inline-flex';
+              profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+            }
           } else {
-            var delRes = await client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
-            if (delRes.error) throw delRes.error;
-            showToast('Removed from list');
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (signupBtn) signupBtn.style.display = 'inline-flex';
+            if (profileBtn) profileBtn.style.display = 'none';
           }
-          return { ok: true, saved: nextSaved };
-        } catch (error) {
-          status[listType] = previousSaved;
-          showToast('Could not update list', true);
-          return { ok: false, saved: previousSaved };
-        } finally {
-          state.pendingQuickOps.delete(opKey);
         }
-      }
 
-      function wireGridActions() {
-        document.querySelectorAll('.menu-btn').forEach(function (btn) {
-          btn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            var card = btn.closest('.card');
-            if (!card) return;
-            if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(card);
-          });
-        });
-        document.querySelectorAll('.card').forEach(function (card) {
-          card.addEventListener('click', function (e) {
-            if (e.target.closest('.menu-btn')) return;
-            var id = String(card.getAttribute('data-id') || '').trim();
+        async function loadListStatus() {
+          state.listStatusMap = new Map();
+          if (!currentUser?.id || !state.books.length) return;
+          var client = await ensureSupabase();
+          if (!client) return;
+          var ids = state.books.map(function (b) { return b.id; }).filter(Boolean);
+          if (!ids.length) return;
+          var result = await client.from('book_list_items')
+            .select('book_id, list_type')
+            .eq('user_id', currentUser.id)
+            .in('book_id', ids);
+          (result?.data || []).forEach(function (row) {
+            var id = String(row.book_id || '');
             if (!id) return;
-            window.location.href = 'book.html?id=' + encodeURIComponent(id);
+            if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
+            var bucket = state.listStatusMap.get(id);
+            if (row.list_type in bucket) bucket[row.list_type] = true;
           });
-        });
-      }
-
-      async function loadPage() {
-        try {
-          await initAuthUi();
-          await loadBooksWithFallback();
-          await loadListStatus();
-          renderGrid();
-        } catch (_err) {
-          var grid = document.getElementById('booksGrid');
-          if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
         }
-      }
 
-      async function executeSearch(query) {
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        state.search = query;
-        state.page = 1;
-        _fullBooks.set(query, []); // Reset accumulated cache for this query
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      }
+        function getBookListStatus(bookId) {
+          var id = String(bookId || '').trim();
+          var empty = { favorites: false, read: false, toread: false };
+          if (!id) return empty;
+          if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { ...empty });
+          return state.listStatusMap.get(id);
+        }
 
-      function debounceSearch(query) {
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        if (!query) return;
-        searchDebounceTimer = setTimeout(function () {
-          executeSearch(query);
-        }, 180);
-      }
-
-      // Clear button for search
-      var qInput = document.getElementById('q');
-      var clearBtn = document.getElementById('booksClearBtn');
-
-      if (qInput && clearBtn) {
-        qInput.addEventListener('input', function (e) {
-          var query = String(e.target.value || '').trim();
-          clearBtn.classList.toggle('show', !!query);
-          if (!query) {
-            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-            executeSearch('');
+        function renderGrid() {
+          var grid = document.getElementById('booksGrid');
+          if (!grid) return;
+          if (!state.books.length) {
+            grid.innerHTML = '<div class="empty">No books found.</div>';
+            updatePagination();
             return;
           }
-          debounceSearch(query);
-        });
-        qInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-            executeSearch(String(e.target.value || '').trim());
-          }
-        });
-        clearBtn.addEventListener('click', function () {
-          qInput.value = '';
-          clearBtn.classList.remove('show');
-          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-          executeSearch('');
-        });
-      }
-
-      document.getElementById('booksSearchBtn')?.addEventListener('click', async function () {
-        var query = String(document.getElementById('q')?.value || '').trim();
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        executeSearch(query);
-      });
-
-      document.getElementById('booksFilterBtn')?.addEventListener('click', function () {
-        document.getElementById('booksFilterModal')?.classList.add('show');
-      });
-      document.getElementById('booksFilterCloseBtn')?.addEventListener('click', function () {
-        document.getElementById('booksFilterModal')?.classList.remove('show');
-      });
-      document.getElementById('genre')?.addEventListener('change', function (e) {
-        state.genre = String(e.target.value || '').trim();
-      });
-      document.getElementById('sort')?.addEventListener('change', function (e) {
-        state.sort = String(e.target.value || 'popular').trim();
-      });
-      document.getElementById('refresh')?.addEventListener('click', async function () {
-        document.getElementById('booksFilterModal')?.classList.remove('show');
-        state.page = 1;
-        _fullBooks.set(state.search, []);
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      });
-      document.getElementById('prevPageBtn')?.addEventListener('click', async function () {
-        if (state.page <= 1) return;
-        state.page -= 1;
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      });
-      document.getElementById('nextPageBtn')?.addEventListener('click', async function () {
-        state.page += 1;
-        await loadBooksWithFallback();
-        await loadListStatus();
-        renderGrid();
-      });
-
-      // Universal search
-      if (window.initUniversalSearch) {
-        var initSearch = function () {
-          window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books.html' });
-        };
-        if (typeof window.requestIdleCallback === 'function') {
-          window.requestIdleCallback(initSearch, { timeout: 1500 });
-        } else {
-          window.setTimeout(initSearch, 0);
+          grid.innerHTML = state.books.map(function (book) {
+            var coverUrl = book.cover || book.coverUrl || '/images/fallback/book.svg';
+            var year = book.year ? String(book.year) : '';
+            var author = book.author || book.authors || 'Unknown Author';
+            return '<article class="card" data-id="' + escapeHtml(book.id) + '">'
+              + '<div class="card-media">'
+              + '<img src="' + escapeHtml(coverUrl) + '" alt="' + escapeHtml(book.title) + '" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML=\'<div class=\\\\\'card-media-fallback\\\\\'><i class=\\\\\'fa-solid fa-book\\\\\'></i></div>\';">'
+              + '</div>'
+              + '<div class="card-meta">'
+              + '<span class="card-type"><i class="fa-solid fa-book"></i> Book</span>'
+              + '<div class="card-meta-top"><p class="card-title">' + escapeHtml(book.title) + '</p></div>'
+              + '<p class="card-sub">' + escapeHtml(author) + '</p>'
+              + '<p class="card-extra">' + (year ? escapeHtml(year) : '') + '</p>'
+              + '<div class="card-actions">'
+              + '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
+              + '</div></div></article>';
+          }).join('');
+          wireGridActions();
+          updatePagination();
         }
-      }
 
-      // List menu
-      if (window.initIndexStyleListMenu) {
-        window.initIndexStyleListMenu({
-          mediaType: 'book',
-          itemIdAttr: 'data-id',
-          getVisibleItemIds: function () {
-            return Array.from(document.querySelectorAll('.card[data-id]')).map(function (c) { return c.getAttribute('data-id'); }).filter(Boolean);
-          },
-          getQuickStatusForItem: function (itemId) {
-            var key = String(itemId || '').trim();
-            var status = state.listStatusMap.get(key);
-            return status ? { ...status } : null;
-          },
-          ensureClient: async function () {
-            if (supabaseClient) return supabaseClient;
-            await ensureSupabase();
-            return supabaseClient;
-          },
-          getCurrentUser: function () { return currentUser; },
-          notify: function (message, isError) { showToast(message, !!isError); },
-          toggleDefaultList: async function (opts) { return toggleDefaultList(opts.itemId, opts.listType, opts.card, opts.nextSaved); }
+        function updatePagination() {
+          var prevBtn = document.getElementById('prevPageBtn');
+          var nextBtn = document.getElementById('nextPageBtn');
+          var info = document.getElementById('pageInfo');
+          if (state.page > state.totalPages) state.page = state.totalPages;
+          if (state.page < 1) state.page = 1;
+          if (prevBtn) prevBtn.disabled = state.page <= 1;
+          if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+          if (info) info.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
+        }
+
+        async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+          var bookId = String(itemId || '').trim();
+          if (!bookId) return { ok: false, saved: false };
+          var book = state.books.find(function (r) { return String(r.id || '').trim() === bookId; });
+          if (!book) return { ok: false, saved: false };
+          var client = await ensureSupabase();
+          if (!client || !currentUser?.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
+          var status = getBookListStatus(bookId);
+          if (!(listType in status)) return { ok: false, saved: false };
+          var previousSaved = !!status[listType];
+          var nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+          var opKey = bookId + ':' + listType;
+          if (state.pendingQuickOps.has(opKey)) return { ok: false, saved: previousSaved };
+          state.pendingQuickOps.add(opKey);
+          status[listType] = nextSaved;
+          try {
+            if (nextSaved) {
+              var res = await client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
+              if (res.error && String(res.error.code || '') !== '23505') throw res.error;
+              showToast('Added to list');
+            } else {
+              var delRes = await client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
+              if (delRes.error) throw delRes.error;
+              showToast('Removed from list');
+            }
+            return { ok: true, saved: nextSaved };
+          } catch (error) {
+            status[listType] = previousSaved;
+            showToast('Could not update list', true);
+            return { ok: false, saved: previousSaved };
+          } finally {
+            state.pendingQuickOps.delete(opKey);
+          }
+        }
+
+        function wireGridActions() {
+          document.querySelectorAll('.menu-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              var card = btn.closest('.card');
+              if (!card) return;
+              if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(card);
+            });
+          });
+          document.querySelectorAll('.card').forEach(function (card) {
+            card.addEventListener('click', function (e) {
+              if (e.target.closest('.menu-btn')) return;
+              var id = String(card.getAttribute('data-id') || '').trim();
+              if (!id) return;
+              window.location.href = 'book.html?id=' + encodeURIComponent(id);
+            });
+          });
+        }
+
+        function debounceSearch(query) {
+          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+          searchDebounceTimer = setTimeout(async function () {
+            state.search = query;
+            state.page = 1;
+            await loadBooks();
+            await loadListStatus();
+            renderGrid();
+          }, 400);
+        }
+
+        async function executeSearch(query) {
+          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+          state.search = query;
+          state.page = 1;
+          await loadBooks();
+          await loadListStatus();
+          renderGrid();
+        }
+
+        async function loadPage() {
+          try {
+            await initAuthUi();
+            await loadBooks();
+            await loadListStatus();
+            renderGrid();
+          } catch (_err) {
+            var grid = document.getElementById('booksGrid');
+            if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
+          }
+        }
+
+        // Search input
+        var qInput = document.getElementById('q');
+        var clearBtn = document.getElementById('booksClearBtn');
+        if (qInput && clearBtn) {
+          qInput.addEventListener('input', function (e) {
+            var query = String(e.target.value || '').trim();
+            clearBtn.classList.toggle('show', !!query);
+            debounceSearch(query);
+          });
+          qInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+              executeSearch(String(e.target.value || '').trim());
+            }
+          });
+          clearBtn.addEventListener('click', function () {
+            qInput.value = '';
+            clearBtn.classList.remove('show');
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            executeSearch('');
+          });
+        }
+
+        document.getElementById('booksSearchBtn')?.addEventListener('click', async function () {
+          var query = String(document.getElementById('q')?.value || '').trim();
+          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+          executeSearch(query);
         });
-      }
 
-      loadPage();
+        document.getElementById('booksFilterBtn')?.addEventListener('click', function () {
+          document.getElementById('booksFilterModal')?.classList.add('show');
+        });
+        document.getElementById('booksFilterCloseBtn')?.addEventListener('click', function () {
+          document.getElementById('booksFilterModal')?.classList.remove('show');
+        });
+        document.getElementById('genre')?.addEventListener('change', function (e) {
+          state.genre = String(e.target.value || '').trim();
+        });
+        document.getElementById('sort')?.addEventListener('change', function (e) {
+          state.sort = String(e.target.value || 'popular').trim();
+        });
+        document.getElementById('refresh')?.addEventListener('click', async function () {
+          document.getElementById('booksFilterModal')?.classList.remove('show');
+          state.page = 1;
+          await loadBooks();
+          await loadListStatus();
+          renderGrid();
+        });
+        document.getElementById('prevPageBtn')?.addEventListener('click', async function () {
+          if (state.page <= 1) return;
+          state.page -= 1;
+          await loadBooks();
+          await loadListStatus();
+          renderGrid();
+        });
+        document.getElementById('nextPageBtn')?.addEventListener('click', async function () {
+          if (state.page >= state.totalPages) return;
+          state.page += 1;
+          await loadBooks();
+          await loadListStatus();
+          renderGrid();
+        });
+
+        // Universal search
+        if (window.initUniversalSearch) {
+          var initSearch = function () {
+            window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books.html' });
+          };
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(initSearch, { timeout: 1500 });
+          } else {
+            window.setTimeout(initSearch, 0);
+          }
+        }
+
+        // List menu
+        if (window.initIndexStyleListMenu) {
+          window.initIndexStyleListMenu({
+            mediaType: 'book',
+            itemIdAttr: 'data-id',
+            getVisibleItemIds: function () {
+              return Array.from(document.querySelectorAll('.card[data-id]')).map(function (c) { return c.getAttribute('data-id'); }).filter(Boolean);
+            },
+            getQuickStatusForItem: function (itemId) {
+              var key = String(itemId || '').trim();
+              var status = state.listStatusMap.get(key);
+              return status ? { ...status } : null;
+            },
+            ensureClient: async function () {
+              if (supabaseClient) return supabaseClient;
+              await ensureSupabase();
+              return supabaseClient;
+            },
+            getCurrentUser: function () { return currentUser; },
+            notify: function (message, isError) { showToast(message, !!isError); },
+            toggleDefaultList: async function (opts) { return toggleDefaultList(opts.itemId, opts.listType, opts.card, opts.nextSaved); }
+          });
+        }
+
+        initFilters();
+        loadPage();
       });
     })();
   </script>
-  <script src="js/production-runtime.js?v=20260531b" defer></script>
+  <script src="js/production-runtime.js?v=20260602a" defer></script>
 </body>
 </html>
-
