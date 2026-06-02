@@ -150,11 +150,16 @@ function buildGoogleQuery(params = {}) {
   const title = String(params?.title || "").trim();
   const author = String(params?.author || "").trim();
   const subject = String(params?.subject || "").trim();
+  const yearFrom = String(params?.year_from || "").trim();
+  const yearTo = String(params?.year_to || "").trim();
   const chunks = [];
   if (qRaw) chunks.push(qRaw);
   if (title) chunks.push(`intitle:"${title}"`);
   if (author) chunks.push(`inauthor:"${author}"`);
   if (subject) chunks.push(`subject:${subject}`);
+  if (yearFrom && yearTo) chunks.push(`publishedDate:${yearFrom}-${yearTo}`);
+  else if (yearFrom) chunks.push(`publishedDate:>=${yearFrom}`);
+  else if (yearTo) chunks.push(`publishedDate:<=${yearTo}`);
   return chunks.join(" ").trim();
 }
 
@@ -447,6 +452,7 @@ export default async function handler(req, res) {
       const params = {
         q: query.q, title: query.title, author: query.author, subject: query.subject,
         first_publish_year: query.first_publish_year, year: query.year,
+        year_from: query.year_from, year_to: query.year_to,
         language: query.language, limit, page, orderBy
       };
       const google = await fetchGoogleDocs(params);
