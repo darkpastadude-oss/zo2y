@@ -3,88 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  
-  <script src="/js/auth-gate.js?v=20260602a" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260602a" defer></script>
+
+  <script src="/js/auth-gate.js?v=20260602b" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260602b" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Zo2y - Books</title>
-<link rel="icon" href="/favicon.ico" sizes="any" />
-<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
-  <meta name="description" content="Discover trending books and save them to your book lists." />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+  <meta name="description" content="Discover trending books across every genre. Curated bestsellers, new releases, fantasy, sci-fi, romance, mystery, BookTok favorites, and more." />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://books.google.com" crossorigin>
+  <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260602a" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260602a" defer></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
-  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a"></noscript>
-  <link rel="stylesheet" href="css/animations.css?v=20260602a">
+  <script src="js/list-utils.js?v=20260602b" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260602b" defer></script>
+  <script src="js/books-engine.js?v=20260602b" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602b"></noscript>
+  <link rel="stylesheet" href="/css/pages/books-page.css?v=20260602b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/pages/books-page.css?v=20260602b"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260602b">
   <style>
     :root {
       --category-hero-image: url("https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80");
     }
     .container { width: calc(100% - 16px); margin: 0 auto; }
     .page-shell { margin-top: 14px; display: grid; gap: 12px; padding-bottom: 18px; }
-    .hero { border-radius: 18px; padding: 18px 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.26); }
-    .hero h1 { font-size: 26px; line-height: 1.1; }
-    .hero p { margin-top: 8px; font-size: 14px; line-height: 1.4; }
-    .hero-actions { margin-top: 12px; gap: 8px; }
-    .section { border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
-    .section-head { padding: 12px 14px; }
-    .section-head h2 { font-size: 18px; margin-bottom: 2px; }
-    .section-head p { font-size: 12px; }
-    .controls { grid-template-columns: minmax(0, 1fr) 52px 52px; gap: 10px; }
-    .controls input, .controls select { height: 52px; }
-    .controls button, .pager button { height: 52px; }
-    .control-icon-btn { width: 52px; }
-    .search-input-wrap input { padding-right: 44px; }
-    .books-clear-btn {
-      position: absolute; right: 12px; width: 34px; height: 34px; border: 0;
-      border-radius: 999px; background: rgba(255,255,255,0.08); color: var(--muted);
-      display: none; align-items: center; justify-content: center; cursor: pointer;
-    }
-    .books-clear-btn.show { display: inline-flex; }
-
-    .section-tabs {
-      display: flex; gap: 6px; margin: 8px 0 0; flex-wrap: wrap;
-    }
-    .section-tab {
-      padding: 5px 14px; border-radius: 999px; border: 1px solid var(--border, rgba(255,255,255,0.12));
-      background: transparent; color: var(--muted, #9ca3af); cursor: pointer; font-size: 12px; transition: 0.2s;
-    }
-    .section-tab:hover { border-color: var(--accent, #6366f1); color: var(--accent, #6366f1); }
-    .section-tab.active { background: var(--accent, #6366f1); border-color: var(--accent, #6366f1); color: #fff; }
-
-    .genre-chips {
-      display: flex; gap: 5px; margin: 8px 0 0; flex-wrap: wrap;
-    }
-    .genre-chip {
-      padding: 3px 12px; border-radius: 999px; border: 1px solid var(--border, rgba(255,255,255,0.12));
-      background: transparent; color: var(--muted, #9ca3af); cursor: pointer; font-size: 11px; transition: 0.2s;
-    }
-    .genre-chip:hover { border-color: var(--accent, #6366f1); color: var(--text, #e5e7eb); }
-    .genre-chip.active { background: var(--accent, #6366f1); border-color: var(--accent, #6366f1); color: #fff; }
-
-    .filter-year-group {
-      display: flex; gap: 6px; grid-column: 1 / -1;
-    }
-    .filter-year-group input {
-      flex: 1; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border, rgba(255,255,255,0.15));
-      background: var(--card-bg, #1e293b); color: var(--text, #e5e7eb); font-size: 12px;
-    }
-    .filter-year-group input::placeholder { color: var(--muted, #6b7280); }
-
-    .grid { padding: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-    .card { border-radius: 12px; min-height: 260px; }
-    .card-media { background: linear-gradient(135deg, #102545 0%, #0b1c35 100%); }
-    .card-media img { object-fit: cover; display: block; }
-    .card-meta { padding: 2px; }
-    .pagination { padding: 10px 14px 14px; gap: 10px; }
-    .page-btn { min-width: 40px; height: 34px; }
-    .page-info { font-size: 12px; }
     .hero { display: none !important; }
+
+    .books-shell { gap: 12px; }
+    .books-shell .books-discover-wrap { display: grid; gap: 12px; }
+    .books-shell .book-section { border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.22); }
+    .books-shell .book-section .section-head { padding: 12px 14px; }
+    .books-shell .book-section .section-head h2 { font-size: 18px; }
+    .books-shell .book-section .section-head p { font-size: 12px; }
+    .books-shell .book-section .grid.book-grid {
+      padding: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .books-shell .card { border-radius: 12px; min-height: 260px; }
+    .books-shell .card-media { background: linear-gradient(135deg, #102545 0%, #0b1c35 100%); }
+    .books-shell .card-media img { object-fit: cover; display: block; }
+    .books-shell .card-meta { padding: 2px; }
+    .books-shell .card-title { font-size: 13px; line-height: 1.25; }
+    .books-shell .card-sub { font-size: 11px; }
+    .books-shell .card-extra { font-size: 10px; }
+
+    .books-shell .controls {
+      grid-template-columns: minmax(0, 1fr) 52px 52px;
+      gap: 10px;
+    }
+    .books-shell .controls input,
+    .books-shell .controls select { height: 52px; }
+    .books-shell .controls button,
+    .books-shell .pager button { height: 52px; }
+    .books-shell .control-icon-btn { width: 52px; }
+    .books-shell .search-input-wrap input { padding-right: 44px; }
+
+    .books-shell #booksFlatSection .pagination {
+      padding: 10px 14px 14px;
+      gap: 10px;
+    }
+    .books-shell #booksFlatSection .page-btn { min-width: 40px; height: 34px; }
+    .books-shell #booksFlatSection .page-info { font-size: 12px; }
+
+    .books-shell .book-empty-state { padding: 36px 16px; }
+    .books-shell .book-empty-state i { font-size: 32px; }
+    .books-shell .book-empty-state h3 { font-size: 16px; }
+    .books-shell .book-empty-state p { font-size: 12px; }
+
+    .books-shell .books-mode-tab { padding: 6px 14px; font-size: 12px; }
+    .books-shell .books-genre-chip { padding: 4px 11px; font-size: 11px; }
+    .books-shell .books-genre-chips { gap: 5px; }
+    .books-shell .section-more-btn { height: 30px; padding: 0 10px; font-size: 11px; }
+    .books-shell .card-edition-badge { font-size: 9px; padding: 2px 7px; top: 6px; right: 6px; }
+
+    .books-shell .filter-modal-card { width: calc(100% - 24px); max-width: 380px; }
+    .books-shell .filter-year-group input { height: 44px; font-size: 13px; }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -93,66 +92,58 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260602a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260602a"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260602a" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260602a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260602a"></noscript>
-<script src="js/shared-header.js?v=20260602a" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260602a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260602a"></noscript>
-
-  </head>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260602b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260602b"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260602b" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260602b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260602b"></noscript>
+  <script src="js/shared-header.js?v=20260602b" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260602b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260602b"></noscript>
+</head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
-  <div class="zo2y-shared-header-inner">
-    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
-      <img src="/file.svg" alt="Logo" />
-    </a>
-    <div class="nav-search zo2y-shared-search">
-      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search..." aria-label="Search" />
-      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
-      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    <div class="zo2y-shared-header-inner">
+      <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+        <img src="/file.svg" alt="Logo" />
+      </a>
+      <div class="nav-search zo2y-shared-search">
+        <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search..." aria-label="Search" />
+        <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+        <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+      </div>
+      <div class="zo2y-shared-auth">
+        <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+        <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+        <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
+      </div>
     </div>
-    <div class="zo2y-shared-auth">
-      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
-      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
-</div>
-  </div>
-</header>
+  </header>
 
-  <main class="container page-shell">
+  <main class="container page-shell books-shell">
     <section class="hero">
       <h1>books</h1>
       <p>Discover trending books across all genres and save them to your book lists.</p>
       <div class="mt-2 text-xs text-muted opacity-86">source: Google Books. <a href="credits.html" class="text-accent">all credits</a></div>
-      <div class="hero-actions"></div>
+      <div class="hero-actions">
+        <div class="books-mode-tabs" id="booksModeTabs" role="tablist" aria-label="Books view mode">
+          <button class="books-mode-tab active" type="button" role="tab" data-mode="discover">Discover</button>
+          <button class="books-mode-tab" type="button" role="tab" data-mode="browse">Browse</button>
+        </div>
+      </div>
     </section>
+
     <section class="controls">
       <div class="search-input-wrap">
-        <input id="q" class="search-input" placeholder="Search books, authors, genres..." autocomplete="off">
+        <input id="q" class="search-input" placeholder="Search books, authors, series..." autocomplete="off" inputmode="search" type="search">
         <button id="booksClearBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
     </section>
-    <div class="section-tabs" id="sectionTabs">
-      <button class="section-tab active" data-section="trending">Trending</button>
-      <button class="section-tab" data-section="new">New Releases</button>
-      <button class="section-tab" data-section="popular">Popular</button>
-    </div>
-    <div class="genre-chips" id="genreChips">
-      <button class="genre-chip active" data-genre="">All</button>
-      <button class="genre-chip" data-genre="fiction">Fiction</button>
-      <button class="genre-chip" data-genre="fantasy">Fantasy</button>
-      <button class="genre-chip" data-genre="thriller">Thriller</button>
-      <button class="genre-chip" data-genre="romance">Romance</button>
-      <button class="genre-chip" data-genre="science fiction">Sci-Fi</button>
-      <button class="genre-chip" data-genre="mystery">Mystery</button>
-      <button class="genre-chip" data-genre="horror">Horror</button>
-      <button class="genre-chip" data-genre="biography">Biography</button>
-    </div>
+
+    <div class="books-genre-chips" id="booksGenreChips" role="tablist" aria-label="Genre filter" hidden></div>
+
     <div class="control-modal" id="booksFilterModal" aria-hidden="true">
       <div class="control-modal-card">
         <div class="control-modal-head">
@@ -160,28 +151,29 @@
           <button class="control-modal-close" id="booksFilterCloseBtn" type="button" aria-label="Close book filters">&times;</button>
         </div>
         <div class="control-modal-grid">
-          <select id="genre"><option value="">All Genres</option></select>
           <select id="sort">
-            <option value="popular">Popularity</option>
-            <option value="newest">Newest First</option>
-            <option value="name">Name A-Z</option>
-            <option value="name_desc">Name Z-A</option>
+            <option value="relevance">Most relevant</option>
+            <option value="newest">Newest first</option>
           </select>
           <div class="filter-year-group">
             <input type="number" id="yearFrom" placeholder="From year" min="1500" max="2099">
             <input type="number" id="yearTo" placeholder="To year" min="1500" max="2099">
           </div>
-          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Apply</button>
         </div>
       </div>
     </div>
 
-    <section class="section">
+    <div id="booksDiscover" class="books-discover-wrap"></div>
+
+    <section id="booksFlatSection" class="section book-section" hidden>
       <div class="section-head">
-        <h2 id="sectionTitle">popular books right now</h2>
-        <p id="sectionDesc">Trending books across all genres.</p>
+        <div class="section-head-text">
+          <h2 id="flatSectionTitle">popular books</h2>
+          <p id="flatSectionDesc">All-time reader favorites.</p>
+        </div>
       </div>
-      <div class="grid" id="booksGrid"><div class="category-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
+      <div class="grid book-grid" id="booksGrid"></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -215,7 +207,7 @@
     <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
-        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+        <button class="menu-modal-close" id="closeCreateListBtn" aria-label="Close">&times;</button>
       </div>
       <div class="menu-modal-body">
         <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
@@ -242,382 +234,197 @@
   </div>
 
   <script>
-    (function () {
-      document.addEventListener('DOMContentLoaded', function () {
-        var GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-        var API_PAGE_SIZE = 40;
-        var supabaseClient = null;
-        var currentUser = null;
-        var searchDebounceTimer = null;
-        var activeRequestController = null;
-        var BOOKS_PAGE_SIZE = 18;
+  /*
+   * Zo2y Books Page (Mobile) - thin orchestrator over window.Zo2yBooks engine.
+   * Reuses the same engine as the desktop page; only the chrome differs.
+   */
+  (function () {
+    function ready(fn) {
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(fn, 0);
+      } else {
+        document.addEventListener('DOMContentLoaded', fn);
+      }
+    }
 
-        var BOOK_GENRES = [
-          'Fiction', 'Non-fiction', 'Fantasy', 'Thriller', 'Romance',
-          'Science Fiction', 'Mystery', 'Horror', 'Biography', 'History',
-          'Self-Help', 'Science', 'Young Adult', 'Classics', 'Poetry',
-          'Drama', 'Humor', 'Travel'
-        ];
+    function waitForEngine(maxMs) {
+      return new Promise(function (resolve, reject) {
+        var start = Date.now();
+        (function tick() {
+          if (window.Zo2yBooks && typeof window.Zo2yBooks.fetchDiscovery === 'function') return resolve(window.Zo2yBooks);
+          if (Date.now() - start > (maxMs || 5000)) return reject(new Error('Books engine timeout'));
+          setTimeout(tick, 30);
+        })();
+      });
+    }
 
-        var SECTION_LABELS = {
-          trending: { title: 'trending books', desc: 'Most talked-about books right now.' },
-          new: { title: 'new releases', desc: 'Recently published books.' },
-          popular: { title: 'popular books', desc: 'All-time reader favorites.' }
-        };
+    ready(function () {
+      waitForEngine(6000).then(function (Engine) { init(Engine); }).catch(function (err) {
+        var discover = document.getElementById('booksDiscover');
+        if (discover) discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Books feed unavailable</h3><p>'+ (err && err.message ? err.message : 'Please retry shortly.') +'</p></div>';
+      });
+    });
 
-        var state = {
-          books: [],
-          search: '',
-          genre: '',
-          sort: 'popular',
-          section: 'trending',
-          yearFrom: '',
-          yearTo: '',
-          page: 1,
-          totalPages: 1,
-          listStatusMap: new Map(),
-          pendingQuickOps: new Set()
-        };
+    function init(Engine) {
+      var state = {
+        mode: 'discover',
+        section: 'popular',
+        search: '',
+        subject: '',
+        sort: 'relevance',
+        yearFrom: '',
+        yearTo: '',
+        page: 1,
+        pageSize: 12,
+        totalPages: 1,
+        booksByPage: new Map(),
+        accumulated: [],
+        seenIds: new Set(),
+        currentRequestId: 0,
+        listStatusMap: new Map(),
+        pendingQuickOps: new Set()
+      };
 
-        function escapeHtml(value) {
-          return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
-        }
+      var supabaseClient = null;
+      var currentUser = null;
+      var searchDebounceTimer = null;
+      var lastSearchRendered = '';
 
-        function showToast(message, isError) {
-          var el = document.createElement('div');
-          el.style.position = 'fixed'; el.style.top = '12px'; el.style.right = '12px';
-          el.style.zIndex = '9999'; el.style.background = isError ? '#dc2626' : '#f59e0b';
-          el.style.color = '#fff'; el.style.padding = '8px 12px';
-          el.style.borderRadius = '8px'; el.style.fontSize = '12px';
-          el.textContent = message;
-          document.body.appendChild(el);
-          setTimeout(function () { el.remove(); }, 2000);
-        }
+      var dom = {
+        discover: document.getElementById('booksDiscover'),
+        flatSection: document.getElementById('booksFlatSection'),
+        flatTitle: document.getElementById('flatSectionTitle'),
+        flatDesc: document.getElementById('flatSectionDesc'),
+        grid: document.getElementById('booksGrid'),
+        prevBtn: document.getElementById('prevPageBtn'),
+        nextBtn: document.getElementById('nextPageBtn'),
+        pageInfo: document.getElementById('pageInfo'),
+        searchInput: document.getElementById('q'),
+        searchBtn: document.getElementById('booksSearchBtn'),
+        clearBtn: document.getElementById('booksClearBtn'),
+        filterBtn: document.getElementById('booksFilterBtn'),
+        filterModal: document.getElementById('booksFilterModal'),
+        filterClose: document.getElementById('booksFilterCloseBtn'),
+        sortSelect: document.getElementById('sort'),
+        yearFrom: document.getElementById('yearFrom'),
+        yearTo: document.getElementById('yearTo'),
+        refresh: document.getElementById('refresh'),
+        modeTabs: document.getElementById('booksModeTabs'),
+        genreChips: document.getElementById('booksGenreChips')
+      };
 
-        function computeGridPageSize() {
-          var grid = document.getElementById('booksGrid');
-          if (!grid) return 18;
-          try {
-            var cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
-            return cols * 3;
-          } catch (_) { return 18; }
-        }
-
-        function initFilters() {
-          var genreSelect = document.getElementById('genre');
-          if (genreSelect) {
-            BOOK_GENRES.forEach(function (g) {
-              var opt = document.createElement('option');
-              opt.value = g.toLowerCase();
-              opt.textContent = g;
-              genreSelect.appendChild(opt);
+      function ensureSupabase() {
+        if (supabaseClient) return Promise.resolve(supabaseClient);
+        var runtime = window.ZO2Y_AUTH || null;
+        var ready = runtime && typeof runtime.waitForSupabase === 'function'
+          ? runtime.waitForSupabase(8000)
+          : new Promise(function (resolve) {
+              var start = Date.now();
+              (function tick() {
+                if (window.supabase && typeof window.supabase.createClient === 'function') return resolve();
+                if (Date.now() - start > 8000) return resolve();
+                setTimeout(tick, 40);
+              })();
             });
-          }
-          if (genreSelect) {
-            genreSelect.addEventListener('change', function (e) {
-              state.genre = String(e.target.value || '').trim();
-            });
-          }
-          var sortSelect = document.getElementById('sort');
-          if (sortSelect) {
-            sortSelect.addEventListener('change', function (e) {
-              state.sort = String(e.target.value || 'popular').trim();
-            });
-          }
-          var yearFromInput = document.getElementById('yearFrom');
-          var yearToInput = document.getElementById('yearTo');
-          if (yearFromInput) {
-            yearFromInput.addEventListener('change', function (e) {
-              state.yearFrom = String(e.target.value || '').trim();
-            });
-          }
-          if (yearToInput) {
-            yearToInput.addEventListener('change', function (e) {
-              state.yearTo = String(e.target.value || '').trim();
-            });
-          }
-        }
-
-        function initSectionTabs() {
-          var tabs = document.querySelectorAll('#sectionTabs .section-tab');
-          tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () {
-              var section = tab.getAttribute('data-section');
-              if (!section || section === state.section) return;
-              tabs.forEach(function (t) { t.classList.remove('active'); });
-              tab.classList.add('active');
-              state.section = section;
-              state.search = '';
-              state.page = 1;
-              var qInput = document.getElementById('q');
-              if (qInput) qInput.value = '';
-              updateSectionHeading();
-              loadBooks().then(function () {
-                loadListStatus();
-                renderGrid();
-              });
-            });
-          });
-        }
-
-        function initGenreChips() {
-          var chips = document.querySelectorAll('#genreChips .genre-chip');
-          chips.forEach(function (chip) {
-            chip.addEventListener('click', function () {
-              var genre = chip.getAttribute('data-genre') || '';
-              if (genre === state.genre) return;
-              chips.forEach(function (c) { c.classList.remove('active'); });
-              chip.classList.add('active');
-              state.genre = genre;
-              state.page = 1;
-              loadBooks().then(function () {
-                loadListStatus();
-                renderGrid();
-              });
-            });
-          });
-        }
-
-        function updateSectionHeading() {
-          var labels = SECTION_LABELS[state.section] || SECTION_LABELS.trending;
-          var titleEl = document.getElementById('sectionTitle');
-          var descEl = document.getElementById('sectionDesc');
-          var query = String(state.search || '').trim();
-          if (query) {
-            if (titleEl) titleEl.textContent = 'search results';
-            if (descEl) descEl.textContent = 'Results for "' + escapeHtml(query) + '".';
-          } else {
-            if (titleEl) titleEl.textContent = labels.title;
-            if (descEl) descEl.textContent = labels.desc;
-          }
-        }
-
-        function shuffleArray(array) {
-          var arr = array.slice();
-          for (var i = arr.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var tmp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = tmp;
-          }
-          return arr;
-        }
-
-        async function loadBooks() {
-          var query = String(state.search || '').trim();
-
-          if (activeRequestController) activeRequestController.abort();
-          activeRequestController = new AbortController();
-          var signal = activeRequestController.signal;
-
-          BOOKS_PAGE_SIZE = computeGridPageSize();
-
-          var allBooks = [];
-          var booksMap = {};
-
-          function addBooks(batch) {
-            (batch || []).forEach(function (b) {
-              var id = String(b.id || '').trim();
-              if (id && !booksMap[id]) {
-                booksMap[id] = true;
-                allBooks.push(b);
-              }
-            });
-          }
-
-          try {
-            if (query) {
-              var searchQuery = query;
-              if (state.genre) searchQuery += ' subject:' + state.genre;
-              var url = GOOGLE_BOOKS_PROXY_BASE + '/search?q=' + encodeURIComponent(searchQuery) + '&limit=' + API_PAGE_SIZE + '&page=1&language=en&orderBy=relevance';
-              if (state.yearFrom) url += '&year_from=' + encodeURIComponent(state.yearFrom);
-              if (state.yearTo) url += '&year_to=' + encodeURIComponent(state.yearTo);
-              var res = await fetch(url, { signal: signal });
-              if (res.ok) {
-                var json = await res.json();
-                addBooks(Array.isArray(json?.books) ? json.books : []);
-              }
-            } else {
-              var orderBy = 'relevance';
-              if (state.section === 'new') orderBy = 'newest';
-              var baseUrl = GOOGLE_BOOKS_PROXY_BASE + '/popular?limit=' + API_PAGE_SIZE + '&language=en&orderBy=' + orderBy;
-              if (state.genre) baseUrl += '&subject=' + encodeURIComponent(state.genre);
-
-              var url1 = baseUrl + '&page=1';
-              var res1 = await fetch(url1, { signal: signal });
-              if (res1.ok) {
-                var json1 = await res1.json();
-                addBooks(Array.isArray(json1?.books) ? json1.books : []);
-              }
-
-              if (!signal.aborted) {
-                var url2 = baseUrl + '&page=2';
-                var res2 = await fetch(url2, { signal: signal });
-                if (res2.ok) {
-                  var json2 = await res2.json();
-                  addBooks(Array.isArray(json2?.books) ? json2.books : []);
-                }
-              }
-
-              allBooks = shuffleArray(allBooks);
-            }
-          } catch (err) {
-            if (err?.name === 'AbortError') return;
-          }
-
-          if (signal.aborted) return;
-
-          // Client-side year filter
-          if (state.yearFrom || state.yearTo) {
-            var yf = parseInt(state.yearFrom, 10);
-            var yt = parseInt(state.yearTo, 10);
-            allBooks = allBooks.filter(function (b) {
-              var y = parseInt(b.year, 10);
-              if (!y) return !state.yearFrom && !state.yearTo;
-              if (!isNaN(yf) && y < yf) return false;
-              if (!isNaN(yt) && y > yt) return false;
-              return true;
-            });
-          }
-
-          // Client-side sort
-          if (state.sort === 'name') {
-            allBooks.sort(function (a, b) { return (a.title || '').localeCompare(b.title || ''); });
-          } else if (state.sort === 'name_desc') {
-            allBooks.sort(function (a, b) { return (b.title || '').localeCompare(a.title || ''); });
-          } else if (state.sort === 'newest') {
-            allBooks.sort(function (a, b) { return (b.year || 0) - (a.year || 0); });
-          }
-
-          state.totalPages = Math.max(1, Math.ceil(allBooks.length / BOOKS_PAGE_SIZE));
-          state.books = allBooks.slice((state.page - 1) * BOOKS_PAGE_SIZE, state.page * BOOKS_PAGE_SIZE);
-          renderGrid();
-        }
-
-        async function ensureSupabase() {
-          if (supabaseClient) return supabaseClient;
-          var authRuntime = window.ZO2Y_AUTH || null;
-          if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-            await authRuntime.waitForSupabase(8000);
-          } else {
-            var startedAt = Date.now();
-            while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
-              await new Promise(function (resolve) { setTimeout(resolve, 40); });
-            }
-          }
+        return ready.then(function () {
           if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-            supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-            if (supabaseClient) return supabaseClient;
+            return window.__ZO2Y_ENSURE_SUPABASE_CLIENT().then(function (c) {
+              if (c) supabaseClient = c; return supabaseClient;
+            });
           }
-          if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+          if (window.supabase && window.__ZO2Y_SUPABASE_CONFIG) {
             supabaseClient = window.supabase.createClient(
               window.__ZO2Y_SUPABASE_CONFIG.url,
               window.__ZO2Y_SUPABASE_CONFIG.key,
               { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
             );
             window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-            return supabaseClient;
           }
-          return null;
-        }
+          return supabaseClient;
+        });
+      }
 
-        async function initAuthUi() {
-          var client = await ensureSupabase();
+      function initAuthUi() {
+        return ensureSupabase().then(function (client) {
           if (!client) return;
-          var loginBtn = document.getElementById('loginBtn');
-          var signupBtn = document.getElementById('signupBtn');
-          var profileBtn = document.getElementById('profileBtn');
-          var result = await client.auth.getUser();
-          currentUser = result?.data?.user || null;
-          if (currentUser) {
-            if (loginBtn) loginBtn.style.display = 'none';
-            if (signupBtn) signupBtn.style.display = 'none';
-            if (profileBtn) {
-              profileBtn.style.display = 'inline-flex';
-              profileBtn.innerHTML = '<i class="fas fa-user"></i>';
+          return client.auth.getUser().then(function (r) {
+            currentUser = r && r.data && r.data.user || null;
+            var loginBtn = document.getElementById('loginBtn');
+            var signupBtn = document.getElementById('signupBtn');
+            var profileBtn = document.getElementById('profileBtn');
+            if (currentUser) {
+              if (loginBtn) loginBtn.style.display = 'none';
+              if (signupBtn) signupBtn.style.display = 'none';
+              if (profileBtn) {
+                profileBtn.style.display = 'inline-flex';
+                profileBtn.innerHTML = '<i class="fas fa-user"></i>';
+              }
+            } else {
+              if (loginBtn) loginBtn.style.display = 'inline-flex';
+              if (signupBtn) signupBtn.style.display = 'inline-flex';
+              if (profileBtn) profileBtn.style.display = 'none';
             }
-          } else {
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
-            if (signupBtn) signupBtn.style.display = 'inline-flex';
-            if (profileBtn) profileBtn.style.display = 'none';
-          }
-        }
+          });
+        }).catch(function () { /* offline / not configured */ });
+      }
 
-        async function loadListStatus() {
-          state.listStatusMap = new Map();
-          if (!currentUser?.id || !state.books.length) return;
-          var client = await ensureSupabase();
+      function showToast(message, isError) {
+        var el = document.createElement('div');
+        el.style.position = 'fixed'; el.style.top = '12px'; el.style.right = '12px';
+        el.style.zIndex = '9999'; el.style.background = isError ? '#dc2626' : '#f59e0b';
+        el.style.color = '#fff'; el.style.padding = '8px 12px';
+        el.style.borderRadius = '8px'; el.style.fontSize = '12px';
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(function () { el.remove(); }, 2000);
+      }
+
+      function loadListStatusForVisible() {
+        state.listStatusMap = new Map();
+        if (!currentUser || !currentUser.id) return Promise.resolve();
+        var ids = collectVisibleBookIds();
+        if (!ids.length) return Promise.resolve();
+        return ensureSupabase().then(function (client) {
           if (!client) return;
-          var ids = state.books.map(function (b) { return b.id; }).filter(Boolean);
-          if (!ids.length) return;
-          var result = await client.from('book_list_items')
+          return client.from('book_list_items')
             .select('book_id, list_type')
             .eq('user_id', currentUser.id)
-            .in('book_id', ids);
-          (result?.data || []).forEach(function (row) {
-            var id = String(row.book_id || '');
-            if (!id) return;
-            if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
-            var bucket = state.listStatusMap.get(id);
-            if (row.list_type in bucket) bucket[row.list_type] = true;
-          });
-        }
+            .in('book_id', ids)
+            .then(function (res) {
+              (res && res.data || []).forEach(function (row) {
+                var id = String(row.book_id || '');
+                if (!id) return;
+                if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
+                var bucket = state.listStatusMap.get(id);
+                if (row.list_type in bucket) bucket[row.list_type] = true;
+              });
+            });
+        }).catch(function () { /* silent */ });
+      }
 
-        function getBookListStatus(bookId) {
-          var id = String(bookId || '').trim();
-          var empty = { favorites: false, read: false, toread: false };
-          if (!id) return empty;
-          if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { ...empty });
-          return state.listStatusMap.get(id);
+      function collectVisibleBookIds() {
+        var nodes = document.querySelectorAll('.card[data-id]');
+        var ids = [];
+        for (var i = 0; i < nodes.length; i++) {
+          var id = String(nodes[i].getAttribute('data-id') || '').trim();
+          if (id) ids.push(id);
         }
+        return ids;
+      }
 
-        function renderGrid() {
-          var grid = document.getElementById('booksGrid');
-          if (!grid) return;
-          if (!state.books.length) {
-            grid.innerHTML = '<div class="empty">No books found.</div>';
-            updatePagination();
-            return;
-          }
-          grid.innerHTML = state.books.map(function (book) {
-            var coverUrl = book.cover || book.coverUrl || '/images/fallback/book.svg';
-            var year = book.year ? String(book.year) : '';
-            var author = book.author || book.authors || 'Unknown Author';
-            return '<article class="card" data-id="' + escapeHtml(book.id) + '">'
-              + '<div class="card-media">'
-              + '<img src="' + escapeHtml(coverUrl) + '" alt="' + escapeHtml(book.title) + '" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML=\'<div class=\\\\\'card-media-fallback\\\\\'><i class=\\\\\'fa-solid fa-book\\\\\'></i></div>\';">'
-              + '</div>'
-              + '<div class="card-meta">'
-              + '<span class="card-type"><i class="fa-solid fa-book"></i> Book</span>'
-              + '<div class="card-meta-top"><p class="card-title">' + escapeHtml(book.title) + '</p></div>'
-              + '<p class="card-sub">' + escapeHtml(author) + '</p>'
-              + '<p class="card-extra">' + (year ? escapeHtml(year) : '') + '</p>'
-              + '<div class="card-actions">'
-              + '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>'
-              + '</div></div></article>';
-          }).join('');
-          wireGridActions();
-          updatePagination();
-        }
+      function getBookListStatus(bookId) {
+        var id = String(bookId || '').trim();
+        var empty = { favorites: false, read: false, toread: false };
+        if (!id) return empty;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, Object.assign({}, empty));
+        return state.listStatusMap.get(id);
+      }
 
-        function updatePagination() {
-          var prevBtn = document.getElementById('prevPageBtn');
-          var nextBtn = document.getElementById('nextPageBtn');
-          var info = document.getElementById('pageInfo');
-          if (state.page > state.totalPages) state.page = state.totalPages;
-          if (state.page < 1) state.page = 1;
-          if (prevBtn) prevBtn.disabled = state.page <= 1;
-          if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-          if (info) info.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
-        }
-
-        async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-          var bookId = String(itemId || '').trim();
-          if (!bookId) return { ok: false, saved: false };
-          var book = state.books.find(function (r) { return String(r.id || '').trim() === bookId; });
-          if (!book) return { ok: false, saved: false };
-          var client = await ensureSupabase();
-          if (!client || !currentUser?.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
+      function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+        var bookId = String(itemId || '').trim();
+        if (!bookId) return Promise.resolve({ ok: false, saved: false });
+        return ensureSupabase().then(function (client) {
+          if (!client || !currentUser || !currentUser.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
           var status = getBookListStatus(bookId);
           if (!(listType in status)) return { ok: false, saved: false };
           var previousSaved = !!status[listType];
@@ -626,178 +433,439 @@
           if (state.pendingQuickOps.has(opKey)) return { ok: false, saved: previousSaved };
           state.pendingQuickOps.add(opKey);
           status[listType] = nextSaved;
-          try {
-            if (nextSaved) {
-              var res = await client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
-              if (res.error && String(res.error.code || '') !== '23505') throw res.error;
-              showToast('Added to list');
-            } else {
-              var delRes = await client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
-              if (delRes.error) throw delRes.error;
-              showToast('Removed from list');
+          var op;
+          if (nextSaved) {
+            op = client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
+          } else {
+            op = client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
+          }
+          return Promise.resolve(op).then(function (res) {
+            if (res && res.error && String(res.error.code || '') !== '23505') {
+              status[listType] = previousSaved;
+              showToast('Could not update list', true);
+              return { ok: false, saved: previousSaved };
             }
+            showToast(nextSaved ? 'Added to list' : 'Removed from list');
             return { ok: true, saved: nextSaved };
-          } catch (error) {
+          }).catch(function () {
             status[listType] = previousSaved;
             showToast('Could not update list', true);
             return { ok: false, saved: previousSaved };
-          } finally {
+          }).then(function (result) {
             state.pendingQuickOps.delete(opKey);
-          }
-        }
+            return result;
+          });
+        });
+      }
 
-        function wireGridActions() {
-          document.querySelectorAll('.menu-btn').forEach(function (btn) {
-            btn.addEventListener('click', function (e) {
-              e.stopPropagation();
-              var card = btn.closest('.card');
-              if (!card) return;
-              if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(card);
+      function recomputePageSize() {
+        // On mobile we want enough cards to cover the screen + a bit of buffer.
+        state.pageSize = Engine.computeGridPageSize(dom.grid, 4) || 12;
+      }
+
+      function showFlatSection() {
+        if (dom.discover) dom.discover.hidden = true;
+        if (dom.flatSection) dom.flatSection.hidden = false;
+      }
+      function showDiscoverSections() {
+        if (dom.discover) dom.discover.hidden = false;
+        if (dom.flatSection) dom.flatSection.hidden = true;
+      }
+      function showSkeleton(target, sectionsCount) {
+        if (!target) return;
+        target.innerHTML = Engine.skeletonSectionsHtml(sectionsCount || 3);
+      }
+      function showGridSkeleton() {
+        if (!dom.grid) return;
+        var n = state.pageSize || 12;
+        var cards = '';
+        for (var i = 0; i < n; i++) {
+          cards += '<article class="card book-skeleton-card"><div class="card-media skeleton-shimmer"></div>'
+                +  '<div class="card-meta">'
+                +  '<span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>'
+                +  '<span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>'
+                +  '<span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>'
+                +  '</div></article>';
+        }
+        dom.grid.innerHTML = cards;
+      }
+      function showGridEmpty(message) {
+        if (!dom.grid) return;
+        dom.grid.innerHTML = '<div class="book-empty-state"><i class="fas fa-book-open"></i><h3>No books found</h3><p>'+ Engine.escapeHtml(message || 'Try a different search or filter.') +'</p></div>';
+      }
+      function updatePagination(totalCount) {
+        if (!dom.pageInfo) return;
+        state.totalPages = Math.max(1, Math.ceil((totalCount || 0) / Math.max(1, state.pageSize)));
+        if (state.page > state.totalPages) state.page = state.totalPages;
+        if (state.page < 1) state.page = 1;
+        if (dom.prevBtn) dom.prevBtn.disabled = state.page <= 1;
+        if (dom.nextBtn) dom.nextBtn.disabled = state.page >= state.totalPages;
+        dom.pageInfo.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
+      }
+      function buildGenreChips() {
+        if (!dom.genreChips) return;
+        if (dom.genreChips.children.length) return;
+        var chips = (Engine.GENRE_CHIPS || []).map(function (chip, idx) {
+          var active = (idx === 0) ? ' active' : '';
+          return '<button type="button" class="books-genre-chip'+ active +'" role="tab" data-genre="'+ Engine.escapeHtml(chip.value) +'" data-id="'+ Engine.escapeHtml(chip.id) +'">'+ Engine.escapeHtml(chip.label) +'</button>';
+        }).join('');
+        dom.genreChips.innerHTML = chips;
+        dom.genreChips.addEventListener('click', function (e) {
+          var btn = e.target && e.target.closest('.books-genre-chip');
+          if (!btn) return;
+          var chips = dom.genreChips.querySelectorAll('.books-genre-chip');
+          for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+          btn.classList.add('active');
+          state.subject = btn.getAttribute('data-genre') || '';
+          state.page = 1;
+          state.accumulated = [];
+          state.seenIds.clear();
+          state.booksByPage.clear();
+          state.section = state.subject ? state.subject.replace(/\s+/g, '-') : 'popular';
+          updateFlatHeading();
+          fetchAndRenderFlat();
+        });
+      }
+      function updateFlatHeading() {
+        if (!dom.flatTitle || !dom.flatDesc) return;
+        if (state.mode === 'search') {
+          dom.flatTitle.textContent = 'search results';
+          dom.flatDesc.innerHTML = 'for &ldquo;'+ Engine.escapeHtml(state.search) +'&rdquo;';
+        } else if (state.subject) {
+          dom.flatTitle.textContent = 'browse '+ state.subject;
+          dom.flatDesc.textContent = 'Top '+ state.subject +' titles in English.';
+        } else {
+          var section = (Engine.DISCOVERY_SECTIONS || []).find(function (s) { return s.id === state.section; });
+          dom.flatTitle.textContent = section ? section.label : 'browse books';
+          dom.flatDesc.textContent = section ? section.desc : 'Popular books across all genres.';
+        }
+      }
+
+      function loadAndRenderDiscover() {
+        showDiscoverSections();
+        showSkeleton(dom.discover, 3);
+        return Engine.fetchDiscovery().then(function (data) {
+          renderDiscover(data && data.sections || []);
+          loadListStatusForVisible();
+        }).catch(function (err) {
+          if (dom.discover) {
+            dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Could not load discovery</h3><p>'+ Engine.escapeHtml(err && err.message || 'Try again shortly.') +'</p><button id="discoverRetryBtn" type="button"><i class="fas fa-rotate"></i> Retry</button></div>';
+            var retry = document.getElementById('discoverRetryBtn');
+            if (retry) retry.addEventListener('click', loadAndRenderDiscover);
+          }
+        });
+      }
+      function renderDiscover(sections) {
+        if (!dom.discover) return;
+        if (!sections || !sections.length) {
+          dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-book"></i><h3>No books yet</h3><p>Curated rails will appear shortly.</p></div>';
+          return;
+        }
+        // On mobile, show fewer cards per rail to keep things snappy.
+        var html = sections.map(function (s) {
+          return Engine.renderSection(s, { limit: 12, showMore: true });
+        }).join('');
+        dom.discover.innerHTML = html;
+        wireDiscoverActions();
+      }
+      function wireDiscoverActions() {
+        var moreBtns = dom.discover.querySelectorAll('.section-more-btn');
+        for (var i = 0; i < moreBtns.length; i++) {
+          moreBtns[i].addEventListener('click', function (e) {
+            var sid = e.currentTarget.getAttribute('data-more-section') || 'popular';
+            state.mode = 'browse';
+            state.section = sid;
+            state.subject = '';
+            state.page = 1;
+            state.accumulated = [];
+            state.seenIds.clear();
+            state.booksByPage.clear();
+            syncModeUi();
+            updateFlatHeading();
+            fetchAndRenderFlat().then(function () {
+              if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
           });
-          document.querySelectorAll('.card').forEach(function (card) {
+        }
+        wireCardActions(dom.discover);
+      }
+
+      function fetchAndRenderFlat() {
+        showFlatSection();
+        recomputePageSize();
+        var reqId = ++state.currentRequestId;
+        var sliceStart = (state.page - 1) * state.pageSize;
+        var sliceEnd = sliceStart + state.pageSize;
+        if (state.accumulated.length >= sliceEnd || state.accumulated._exhausted) {
+          renderFlatSlice();
+          return Promise.resolve();
+        }
+        showGridSkeleton();
+        var fetcher;
+        if (state.mode === 'search' && state.search) {
+          fetcher = Engine.search(state.search, {
+            page: Math.max(1, Math.ceil(sliceEnd / 24)),
+            limit: 40,
+            subject: state.subject || '',
+            orderBy: state.sort === 'newest' ? 'newest' : 'relevance',
+            year_from: state.yearFrom || '',
+            year_to: state.yearTo || ''
+          });
+        } else {
+          var sectionId = state.section || 'popular';
+          var matchingSection = (Engine.DISCOVERY_SECTIONS || []).find(function (s) { return s.id === sectionId; })
+                              || (Engine.DISCOVERY_SECTIONS || [])[0];
+          fetcher = Engine.fetchFlat({
+            section: matchingSection ? matchingSection.id : 'popular',
+            subject: state.subject || '',
+            page: Math.max(1, Math.ceil(sliceEnd / 24)),
+            orderBy: state.sort === 'newest' ? 'newest' : 'relevance'
+          }).then(function (res) { return { books: res.books || [] }; });
+        }
+        return fetcher.then(function (data) {
+          if (reqId !== state.currentRequestId) return;
+          var books = data && data.books || [];
+          var added = 0;
+          for (var i = 0; i < books.length; i++) {
+            var b = books[i];
+            if (!b || !b.id || state.seenIds.has(b.id)) continue;
+            state.seenIds.add(b.id);
+            state.accumulated.push(b);
+            added++;
+          }
+          if (!added && state.accumulated.length) state.accumulated._exhausted = true;
+          if (!state.accumulated.length && (!data || !data.books || !data.books.length)) {
+            showGridEmpty(state.mode === 'search' ? 'No matches for that search.' : 'No books available right now.');
+            updatePagination(0);
+            return;
+          }
+          renderFlatSlice();
+        }).catch(function () {
+          if (reqId !== state.currentRequestId) return;
+          showGridEmpty('Could not load books.');
+          updatePagination(0);
+        });
+      }
+      function renderFlatSlice() {
+        var sliceStart = (state.page - 1) * state.pageSize;
+        var sliceEnd = sliceStart + state.pageSize;
+        var slice = state.accumulated.slice(sliceStart, sliceEnd);
+        Engine.renderGrid(dom.grid, slice);
+        var estimatedTotal = state.accumulated._exhausted
+          ? state.accumulated.length
+          : Math.max(state.accumulated.length, sliceEnd + 1);
+        updatePagination(estimatedTotal);
+        wireCardActions(dom.grid);
+        loadListStatusForVisible();
+      }
+
+      function wireCardActions(scope) {
+        if (!scope) return;
+        var cards = scope.querySelectorAll('.card[data-id]');
+        for (var i = 0; i < cards.length; i++) {
+          (function (card) {
             card.addEventListener('click', function (e) {
-              if (e.target.closest('.menu-btn')) return;
+              if (e.target && e.target.closest('.menu-btn')) return;
               var id = String(card.getAttribute('data-id') || '').trim();
               if (!id) return;
-              window.location.href = 'book.html?id=' + encodeURIComponent(id);
+              var title = encodeURIComponent(card.getAttribute('data-title') || '');
+              var author = encodeURIComponent(card.getAttribute('data-author') || '');
+              window.location.href = 'book.html?id=' + encodeURIComponent(id) + '&title=' + title + '&author=' + author;
             });
-          });
-        }
-
-        function debounceSearch(query) {
-          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-          searchDebounceTimer = setTimeout(async function () {
-            state.search = query;
-            state.page = 1;
-            updateSectionHeading();
-            await loadBooks();
-            await loadListStatus();
-            renderGrid();
-          }, 400);
-        }
-
-        async function executeSearch(query) {
-          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-          state.search = query;
-          state.page = 1;
-          updateSectionHeading();
-          await loadBooks();
-          await loadListStatus();
-          renderGrid();
-        }
-
-        async function loadPage() {
-          try {
-            await initAuthUi();
-            updateSectionHeading();
-            await loadBooks();
-            await loadListStatus();
-            renderGrid();
-          } catch (_err) {
-            var grid = document.getElementById('booksGrid');
-            if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
-          }
-        }
-
-        var qInput = document.getElementById('q');
-        var clearBtn = document.getElementById('booksClearBtn');
-        if (qInput && clearBtn) {
-          qInput.addEventListener('input', function (e) {
-            var query = String(e.target.value || '').trim();
-            clearBtn.classList.toggle('show', !!query);
-            debounceSearch(query);
-          });
-          qInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-              executeSearch(String(e.target.value || '').trim());
+            var menuBtn = card.querySelector('.menu-btn');
+            if (menuBtn) {
+              menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(card);
+              });
             }
-          });
-          clearBtn.addEventListener('click', function () {
-            qInput.value = '';
-            clearBtn.classList.remove('show');
-            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-            executeSearch('');
-          });
+          })(cards[i]);
         }
+      }
 
-        document.getElementById('booksSearchBtn')?.addEventListener('click', async function () {
-          var query = String(document.getElementById('q')?.value || '').trim();
-          if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-          executeSearch(query);
-        });
-
-        document.getElementById('booksFilterBtn')?.addEventListener('click', function () {
-          document.getElementById('booksFilterModal')?.classList.add('show');
-        });
-        document.getElementById('booksFilterCloseBtn')?.addEventListener('click', function () {
-          document.getElementById('booksFilterModal')?.classList.remove('show');
-        });
-        document.getElementById('refresh')?.addEventListener('click', async function () {
-          document.getElementById('booksFilterModal')?.classList.remove('show');
-          state.page = 1;
-          await loadBooks();
-          await loadListStatus();
-          renderGrid();
-        });
-        document.getElementById('prevPageBtn')?.addEventListener('click', async function () {
-          if (state.page <= 1) return;
-          state.page -= 1;
-          await loadBooks();
-          await loadListStatus();
-          renderGrid();
-        });
-        document.getElementById('nextPageBtn')?.addEventListener('click', async function () {
-          if (state.page >= state.totalPages) return;
-          state.page += 1;
-          await loadBooks();
-          await loadListStatus();
-          renderGrid();
-        });
-
-        if (window.initUniversalSearch) {
-          var initSearch = function () {
-            window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books.html' });
-          };
-          if (typeof window.requestIdleCallback === 'function') {
-            window.requestIdleCallback(initSearch, { timeout: 1500 });
-          } else {
-            window.setTimeout(initSearch, 0);
+      function executeSearch(query) {
+        var q = String(query || '').trim();
+        if (q === lastSearchRendered && state.mode === 'search') return;
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        if (!q) {
+          state.search = '';
+          lastSearchRendered = '';
+          if (dom.clearBtn) dom.clearBtn.classList.remove('show');
+          if (state.mode === 'search') {
+            state.mode = 'discover';
+            syncModeUi();
+            loadAndRenderDiscover();
           }
+          return;
         }
+        state.search = q;
+        lastSearchRendered = q;
+        state.mode = 'search';
+        state.page = 1;
+        state.accumulated = [];
+        state.seenIds.clear();
+        state.booksByPage.clear();
+        syncModeUi();
+        updateFlatHeading();
+        fetchAndRenderFlat();
+      }
+      function debounceSearch(query) {
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(function () { executeSearch(query); }, Engine.SEARCH_DEBOUNCE_MS || 220);
+      }
 
-        if (window.initIndexStyleListMenu) {
-          window.initIndexStyleListMenu({
-            mediaType: 'book',
-            itemIdAttr: 'data-id',
-            getVisibleItemIds: function () {
-              return Array.from(document.querySelectorAll('.card[data-id]')).map(function (c) { return c.getAttribute('data-id'); }).filter(Boolean);
-            },
-            getQuickStatusForItem: function (itemId) {
-              var key = String(itemId || '').trim();
-              var status = state.listStatusMap.get(key);
-              return status ? { ...status } : null;
-            },
-            ensureClient: async function () {
-              if (supabaseClient) return supabaseClient;
-              await ensureSupabase();
-              return supabaseClient;
-            },
-            getCurrentUser: function () { return currentUser; },
-            notify: function (message, isError) { showToast(message, !!isError); },
-            toggleDefaultList: async function (opts) { return toggleDefaultList(opts.itemId, opts.listType, opts.card, opts.nextSaved); }
-          });
+      function syncModeUi() {
+        var tabs = dom.modeTabs ? dom.modeTabs.querySelectorAll('.books-mode-tab') : [];
+        for (var i = 0; i < tabs.length; i++) {
+          var tab = tabs[i];
+          tab.classList.toggle('active', tab.getAttribute('data-mode') === (state.mode === 'search' ? 'browse' : state.mode));
         }
+        if (dom.genreChips) dom.genreChips.hidden = !(state.mode === 'browse' || state.mode === 'search');
+        if (state.mode === 'discover') {
+          showDiscoverSections();
+        } else {
+          showFlatSection();
+        }
+      }
+      function switchMode(mode) {
+        if (mode === state.mode) return;
+        state.mode = mode;
+        state.search = '';
+        if (dom.searchInput) dom.searchInput.value = '';
+        if (dom.clearBtn) dom.clearBtn.classList.remove('show');
+        lastSearchRendered = '';
+        state.page = 1;
+        state.accumulated = [];
+        state.seenIds.clear();
+        state.booksByPage.clear();
+        syncModeUi();
+        if (mode === 'discover') {
+          loadAndRenderDiscover();
+        } else {
+          buildGenreChips();
+          updateFlatHeading();
+          fetchAndRenderFlat();
+        }
+      }
 
-        initFilters();
-        initSectionTabs();
-        initGenreChips();
-        loadPage();
+      if (dom.searchInput) {
+        dom.searchInput.addEventListener('input', function (e) {
+          var v = String(e.target.value || '').trim();
+          if (dom.clearBtn) dom.clearBtn.classList.toggle('show', !!v);
+          debounceSearch(v);
+        });
+        dom.searchInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            executeSearch(String(dom.searchInput.value || '').trim());
+          }
+        });
+      }
+      if (dom.searchBtn) dom.searchBtn.addEventListener('click', function () {
+        executeSearch(String((dom.searchInput && dom.searchInput.value) || '').trim());
       });
-    })();
+      if (dom.clearBtn) dom.clearBtn.addEventListener('click', function () {
+        if (dom.searchInput) dom.searchInput.value = '';
+        executeSearch('');
+        if (dom.searchInput) dom.searchInput.focus();
+      });
+      if (dom.filterBtn) dom.filterBtn.addEventListener('click', function () {
+        if (dom.filterModal) dom.filterModal.classList.add('show');
+      });
+      if (dom.filterClose) dom.filterClose.addEventListener('click', function () {
+        if (dom.filterModal) dom.filterModal.classList.remove('show');
+      });
+      if (dom.refresh) dom.refresh.addEventListener('click', function () {
+        if (dom.filterModal) dom.filterModal.classList.remove('show');
+        state.sort = (dom.sortSelect && dom.sortSelect.value) || 'relevance';
+        state.yearFrom = (dom.yearFrom && dom.yearFrom.value) || '';
+        state.yearTo = (dom.yearTo && dom.yearTo.value) || '';
+        state.page = 1;
+        state.accumulated = [];
+        state.seenIds.clear();
+        state.booksByPage.clear();
+        if (state.mode === 'discover') {
+          state.mode = 'browse';
+          syncModeUi();
+          buildGenreChips();
+          updateFlatHeading();
+          fetchAndRenderFlat();
+        } else {
+          fetchAndRenderFlat();
+        }
+      });
+      if (dom.modeTabs) {
+        dom.modeTabs.addEventListener('click', function (e) {
+          var tab = e.target && e.target.closest('.books-mode-tab');
+          if (!tab) return;
+          var mode = tab.getAttribute('data-mode');
+          if (!mode) return;
+          if (mode === 'browse') {
+            switchMode('browse');
+          } else {
+            switchMode('discover');
+          }
+        });
+      }
+      if (dom.prevBtn) dom.prevBtn.addEventListener('click', function () {
+        if (state.page <= 1) return;
+        state.page -= 1;
+        fetchAndRenderFlat();
+        if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      if (dom.nextBtn) dom.nextBtn.addEventListener('click', function () {
+        if (state.page >= state.totalPages && state.accumulated._exhausted) return;
+        state.page += 1;
+        fetchAndRenderFlat();
+        if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      if (window.initUniversalSearch) {
+        var initSearch = function () {
+          window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books-mobile.html' });
+        };
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: collectVisibleBookIds,
+          getQuickStatusForItem: function (itemId) {
+            var key = String(itemId || '').trim();
+            var status = state.listStatusMap.get(key);
+            return status ? Object.assign({}, status) : null;
+          },
+          ensureClient: function () { return ensureSupabase(); },
+          getCurrentUser: function () { return currentUser; },
+          notify: function (message, isError) { showToast(message, !!isError); },
+          toggleDefaultList: function (opts) {
+            return toggleDefaultList(opts.itemId, opts.listType, opts.card, opts.nextSaved);
+          }
+        });
+      }
+
+      buildGenreChips();
+      initAuthUi();
+      loadAndRenderDiscover();
+
+      var resizeTimer = null;
+      window.addEventListener('resize', function () {
+        if (resizeTimer) clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          var oldSize = state.pageSize;
+          recomputePageSize();
+          if (state.mode !== 'discover' && oldSize !== state.pageSize) renderFlatSlice();
+        }, 180);
+      });
+    }
+  })();
   </script>
-  <script src="js/production-runtime.js?v=20260602a" defer></script>
+  <script src="js/production-runtime.js?v=20260602b" defer></script>
 </body>
 </html>
