@@ -15,16 +15,13 @@
  * - Pagination
  */
 
-(function () {
-  'use strict';
+// ============================================================
+// CONSTANTS
+// ============================================================
 
-  // ============================================================
-  // CONSTANTS
-  // ============================================================
-
-  var GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1/volumes';
-  var OPEN_LIBRARY_BASE = 'https://openlibrary.org';
-  var DEFAULT_BOOK_COVER = '/images/fallback/book.svg';
+var GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1/volumes';
+var OPEN_LIBRARY_BASE = 'https://openlibrary.org';
+var DEFAULT_BOOK_COVER = '/images/fallback/book.svg';
 
 // Junk filtering patterns
 var JUNK_TITLE_PATTERNS = [
@@ -920,5 +917,3 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = exports;
 }
-
-})();
