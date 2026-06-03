@@ -727,29 +727,31 @@
   <!-- Hero section with background image -->
   <div class="elevated-hero" id="heroBackground">
     <div class="elevated-content">
-      <div class="elevated-poster-section">
-        <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
-      </div>
-      <div class="elevated-info">
-        <div class="title-row">
-          <h1 id="title" class="elevated-title">Loading...</h1>
-          <div class="menu-wrapper">
-            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu" id="movieListMenu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played </span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog </span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+      <div class="elevated-hero-content">
+        <div class="elevated-poster-section">
+          <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
+        </div>
+        <div class="elevated-info">
+          <div class="title-row">
+            <h1 id="title" class="elevated-title">Loading...</h1>
+            <div class="menu-wrapper">
+              <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+              <div class="list-menu" id="movieListMenu">
+                <div class="list-menu-title">Save to list</div>
+                <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+                <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played </span><span class="list-action-state">Add</span></button>
+                <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog </span><span class="list-action-state">Add</span></button>
+                <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+              </div>
             </div>
           </div>
-        </div>
-        <div id="meta" class="elevated-meta"></div>
-        <div id="tags" class="elevated-tags"></div>
-        <p id="overview" class="elevated-description"></p>
-        <div class="elevated-actions">
-          <button class="elevated-btn elevated-btn-primary"><i class="fas fa-play"></i> Watch Clip</button>
-          <button class="elevated-btn elevated-btn-secondary"><i class="fas fa-plus"></i> Add to Backlog</button>
+          <div id="meta" class="elevated-meta"></div>
+          <div id="tags" class="elevated-tags"></div>
+          <p id="overview" class="elevated-description"></p>
+          <div class="elevated-actions">
+            <button class="elevated-btn elevated-btn-primary"><i class="fas fa-play"></i> Watch Clip</button>
+            <button class="elevated-btn elevated-btn-secondary"><i class="fas fa-plus"></i> Add to Backlog</button>
+          </div>
         </div>
       </div>
     </div>
@@ -757,7 +759,9 @@
 
   <!-- Details section -->
   <div class="elevated-content">
-    <div class="elevated-details" id="metaGrid"></div>
+    <div class="elevated-details-wrapper">
+      <div class="elevated-details" id="metaGrid"></div>
+    </div>
   </div>
 
   <!-- Additional sections -->
