@@ -15,16 +15,19 @@
  * - Pagination
  */
 
-// ============================================================
-// CONSTANTS
-// ============================================================
+(function () {
+  'use strict';
 
-const GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1/volumes';
-const OPEN_LIBRARY_BASE = 'https://openlibrary.org';
-const DEFAULT_BOOK_COVER = '/images/fallback/book.svg';
+  // ============================================================
+  // CONSTANTS
+  // ============================================================
+
+  var GOOGLE_BOOKS_BASE = 'https://www.googleapis.com/books/v1/volumes';
+  var OPEN_LIBRARY_BASE = 'https://openlibrary.org';
+  var DEFAULT_BOOK_COVER = '/images/fallback/book.svg';
 
 // Junk filtering patterns
-const JUNK_TITLE_PATTERNS = [
+var JUNK_TITLE_PATTERNS = [
   /\b(proceedings|symposium|conference paper|workshop)\b/i,
   /\b(dissertation|thesis|monograph)\b/i,
   /\b(annual report|technical report|white paper|working paper)\b/i,
@@ -37,20 +40,20 @@ const JUNK_TITLE_PATTERNS = [
   /\b(catalog|catalogue|directory|almanac|index of)\b/i
 ];
 
-const JUNK_PUBLISHER_PATTERNS = [
+var JUNK_PUBLISHER_PATTERNS = [
   /\b(government printing office|gpo)\b/i,
   /\b(ieee|acm|springer|elsevier|wiley)\s+(proceedings|symposium)\b/i
 ];
 
-const EXPLICIT_TEXT_PATTERNS = [
+var EXPLICIT_TEXT_PATTERNS = [
   /\b(porn|erotica|adult content)\b/i
 ];
 
 // Non-Lin title detection for language filtering
-const NON_LATIN_TITLE = /[\u4e00-\u9fff\u0400-\u04FF\u0E00-\u0E7F\u3040-\u309F\u30A0-\u30FF]/;
+var NON_LATIN_TITLE = /[\u4e00-\u9fff\u0400-\u04FF\u0E00-\u0E7F\u3040-\u309F\u30A0-\u30FF]/;
 
 // Franchise hints for search query rewriting
-const FRANCHISE_HINTS = [
+var FRANCHISE_HINTS = [
   { keys: ["harry potter"],          hint: 'intitle:"Harry Potter" J.K. Rowling' },
   { keys: ["the boys"],              hint: 'intitle:"The Boys" Garth Ennis Dynamite' },
   { keys: ["housemaid"],             hint: 'intitle:"The Housemaid" Freida McFadden' },
@@ -87,7 +90,7 @@ const FRANCHISE_HINTS = [
 ];
 
 // Discovery sections
-const DISCOVERY_SECTIONS = [
+var DISCOVERY_SECTIONS = [
   { id: "popular",     label: "popular right now",
     desc: "The most-read books across Zo2y this week.",
     query: "bestseller fiction novel",     subject: "fiction", orderBy: "relevance", limit: 20 },
@@ -484,7 +487,7 @@ function scoreQueryRelevance(doc, query) {
 }
 
 // Known popular authors (boost their books in ranking)
-const POPULAR_AUTHORS = [
+var POPULAR_AUTHORS = [
   'stephen king', 'j.k. rowling', 'j.k rowling', 'jk rowling',
   'george r.r. martin', 'george r r martin', 'george rr martin',
   'brandon sanderson', 'suzanne collins', 'rick riordan',
@@ -853,7 +856,7 @@ async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
 // ============================================================
 
 // Export object for both browser and server environments
-const exports = {
+var exports = {
   // Constants
   GOOGLE_BOOKS_BASE,
   OPEN_LIBRARY_BASE,
@@ -917,3 +920,5 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = exports;
 }
+
+})();
