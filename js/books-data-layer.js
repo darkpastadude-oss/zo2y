@@ -852,8 +852,8 @@ async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
 // EXPORTS
 // ============================================================
 
-// ES Module exports for server-side (Node.js/Cloudflare Functions)
-export {
+// Export object for both browser and server environments
+const exports = {
   // Constants
   GOOGLE_BOOKS_BASE,
   OPEN_LIBRARY_BASE,
@@ -910,58 +910,10 @@ export {
 
 // Browser environment: expose to window for client-side use
 if (typeof window !== 'undefined') {
-  window.Zo2yBooksDataLayer = {
-    // Constants
-    GOOGLE_BOOKS_BASE,
-    OPEN_LIBRARY_BASE,
-    DEFAULT_BOOK_COVER,
-    JUNK_TITLE_PATTERNS,
-    JUNK_PUBLISHER_PATTERNS,
-    EXPLICIT_TEXT_PATTERNS,
-    FRANCHISE_HINTS,
-    DISCOVERY_SECTIONS,
-    
-    // Utility functions
-    toHttpsUrl,
-    normalizeText,
-    clampInt,
-    
-    // Search query rewriting
-    rewriteSearchQuery,
-    
-    // Google Books API
-    buildGoogleQuery,
-    fetchGoogleDocs,
-    normalizeGoogleBookDoc,
-    
-    // Content type detection
-    detectContentType,
-    
-    // Junk filtering
-    getDocText,
-    isJunkBookDoc,
-    filterSafeBookDocs,
-    
-    // Scoring engine
-    scoreCoverQuality,
-    scoreEnglishConfidence,
-    scoreMetadata,
-    scorePopularity,
-    scoreQueryRelevance,
-    scoreBookDoc,
-    rankDocs,
-    
-    // Edition grouping
-    editionKey,
-    groupBestEditions,
-    
-    // Cover enrichment
-    enrichMissingCovers,
-    
-    // Normalization
-    normalizeBook,
-    
-    // Main pipeline
-    runBookPipeline
-  };
+  window.Zo2yBooksDataLayer = exports;
+}
+
+// Server environment: use CommonJS export
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = exports;
 }

@@ -1,12 +1,7 @@
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
-import {
-  DISCOVERY_SECTIONS,
-  runBookPipeline,
-  DEFAULT_BOOK_COVER,
-  toHttpsUrl
-} from "../js/books-data-layer.js";
+import { createRequire } from "module";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -18,6 +13,15 @@ const SUPABASE_KEY_HEADER = "x-zo2y-supabase-key";
 // Server-side cache for discovery responses.
 const DISCOVERY_CACHE = new Map();
 const DISCOVERY_CACHE_TTL_MS = 10 * 60 * 1000;
+
+// Use createRequire to import CommonJS-style module in ESM environment
+const require = createRequire(import.meta.url);
+const {
+  DISCOVERY_SECTIONS,
+  runBookPipeline,
+  DEFAULT_BOOK_COVER,
+  toHttpsUrl
+} = require("../js/books-data-layer.js");
 
 // ----------------------------------------------------------------------
 // Helpers
