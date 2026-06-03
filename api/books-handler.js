@@ -63,10 +63,13 @@ function toHttpsUrl(url) {
 
 // Inline runBookPipeline to avoid import issues in Cloudflare Functions
 async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
+  console.log('[Books API] runBookPipeline called with params:', params);
   const google = await fetchGoogleDocs(params, apiKey, signal);
   let docs = Array.isArray(google.docs) ? google.docs : [];
+  console.log('[Books API] Initial docs count:', docs.length);
   
   docs = filterSafeBookDocs(docs, { strict: opts.strict !== false });
+  console.log('[Books API] After filterSafeBookDocs:', docs.length);
   
   if (opts.enrichCovers !== false) docs = await enrichMissingCovers(docs);
   
@@ -75,8 +78,10 @@ async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
   docs = ensurePaginationStability(docs, { query: params.q || params.title || '' });
   
   if (opts.groupEditions !== false) docs = groupBestEditions(docs, { query: params.q || params.title || '' });
+  console.log('[Books API] After groupBestEditions:', docs.length);
   
   const books = docs.map(normalizeBook).filter(Boolean);
+  console.log('[Books API] Final books count:', books.length);
   
   return { 
     books, 
@@ -157,6 +162,7 @@ function buildGoogleQuery(params = {}) {
 
 async function fetchGoogleDocs(params = {}, apiKey = '', signal = null) {
   const query = buildGoogleQuery(params);
+  console.log('[Books API] Google Books query:', query);
   if (!query) return { docs: [], numFound: 0, source: 'google-books' };
   
   const limit = clampInt(params.limit, 1, 40, 20);
@@ -176,6 +182,7 @@ async function fetchGoogleDocs(params = {}, apiKey = '', signal = null) {
   if (orderBy === 'newest' || orderBy === 'relevance') url.searchParams.set('orderBy', orderBy);
   if (apiKey) url.searchParams.set('key', apiKey);
 
+  console.log('[Books API] Fetching URL:', url.toString());
   const controller = signal || new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 6000);
   
@@ -187,11 +194,17 @@ async function fetchGoogleDocs(params = {}, apiKey = '', signal = null) {
     });
     clearTimeout(timeoutId);
     
-    if (!res.ok) return { docs: [], numFound: 0, source: 'google-books' };
+    console.log('[Books API] Response status:', res.status);
+    if (!res.ok) {
+      console.log('[Books API] Response not OK');
+      return { docs: [], numFound: 0, source: 'google-books' };
+    }
     
     const json = await res.json();
     const items = Array.isArray(json?.items) ? json.items : [];
+    console.log('[Books API] Total items from Google:', json?.totalItems || 0, 'Items returned:', items.length);
     const docs = items.map((entry, idx) => normalizeGoogleBookDoc(entry, idx)).filter(Boolean);
+    console.log('[Books API] Normalized docs:', docs.length);
     const totalItems = Number(json?.totalItems || 0);
     
     return {
@@ -201,6 +214,7 @@ async function fetchGoogleDocs(params = {}, apiKey = '', signal = null) {
     };
   } catch (error) {
     clearTimeout(timeoutId);
+    console.log('[Books API] Fetch error:', error.message);
     return { docs: [], numFound: 0, source: 'google-books' };
   }
 }
