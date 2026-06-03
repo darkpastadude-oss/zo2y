@@ -678,9 +678,11 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b"></noscript>
+  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a"></noscript>
 
   </head>
-<body>
+<body class="elevated-media-page">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -710,36 +712,63 @@
   </div>
 </header>
 
-  <div class="wrap">
-    <img id="poster" class="poster" src="images/placeholder.jpg" alt="Poster" loading="lazy">
-    <div class="card">
-      <div class="title-row">
-        <h1 id="title" class="title">Loading...</h1>
-        <div class="menu-wrapper">
-          <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-          <div class="list-menu" id="movieListMenu">
-            <div class="list-menu-title">Save to list</div>
-            <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+  <!-- Hero section with background image -->
+  <div class="elevated-hero" id="heroBackground">
+    <div class="elevated-content">
+      <div class="elevated-poster-section">
+        <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy">
+      </div>
+      <div class="elevated-info">
+        <div class="title-row">
+          <h1 id="title" class="elevated-title">Loading...</h1>
+          <div class="menu-wrapper">
+            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu" id="movieListMenu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
+            </div>
           </div>
         </div>
+        <div id="meta" class="elevated-meta"></div>
+        <div id="tags" class="elevated-tags"></div>
+        <p id="overview" class="elevated-description"></p>
+        <div class="elevated-actions">
+          <button class="elevated-btn elevated-btn-primary"><i class="fas fa-play"></i> Watch Trailer</button>
+          <button class="elevated-btn elevated-btn-secondary"><i class="fas fa-plus"></i> Add to Watchlist</button>
+        </div>
       </div>
-      <div id="meta" class="meta"></div>
-      <div id="tags"></div>
-      <p id="overview" class="overview"></p>
-      <div class="meta-grid" id="metaGrid"></div>
-      <h3 class="section-title">Details</h3>
+    </div>
+  </div>
+
+  <!-- Details section -->
+  <div class="elevated-content">
+    <div class="elevated-details" id="metaGrid"></div>
+  </div>
+
+  <!-- Additional sections -->
+  <div class="elevated-content">
+    <div class="elevated-section">
+      <h3 class="elevated-section-title">Details</h3>
       <div id="details" class="list-stack"></div>
-      <h3 class="section-title">Trailer</h3>
+    </div>
+    <div class="elevated-section">
+      <h3 class="elevated-section-title">Trailer</h3>
       <div id="trailer"></div>
-      <h3 class="section-title">Creator</h3>
-      <div id="directors" class="people-list"></div>
-      <h3 class="section-title">Seasons</h3>
-      <div id="writers" class="people-list"></div>
-      <h3 class="section-title">Cast</h3>
-      <div id="cast" class="people-list"></div>
+    </div>
+    <div class="elevated-section">
+      <h3 class="elevated-section-title">Creator</h3>
+      <div id="directors" class="elevated-people-list"></div>
+    </div>
+    <div class="elevated-section">
+      <h3 class="elevated-section-title">Seasons</h3>
+      <div id="writers" class="elevated-people-list"></div>
+    </div>
+    <div class="elevated-section">
+      <h3 class="elevated-section-title">Cast</h3>
+      <div id="cast" class="elevated-people-list"></div>
     </div>
   </div>
 
@@ -935,7 +964,30 @@
         const externals = payload?.external_ids || {};
         document.getElementById('title').textContent = data.name || data.original_name || data.title || 'Untitled';
         document.getElementById('overview').textContent = data.overview || 'No description available.';
-        document.getElementById('meta').textContent = `${data.first_air_date || data.release_date || ''} - ${(Array.isArray(data.episode_run_time) && data.episode_run_time.length ? data.episode_run_time[0] : '')} min`;
+        
+        // Set elevated meta with icons
+        const metaEl = document.getElementById('meta');
+        if (metaEl) {
+          const metaItems = [];
+          if (data.first_air_date || data.release_date) {
+            const date = data.first_air_date || data.release_date;
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-calendar"></i> ${date.slice(0, 4)}</div>`);
+          }
+          if (Array.isArray(data.episode_run_time) && data.episode_run_time.length) {
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> ${data.episode_run_time[0]} min</div>`);
+          }
+          if (data.vote_average) {
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-star"></i> ${data.vote_average.toFixed(1)}</div>`);
+          }
+          metaEl.innerHTML = metaItems.join('');
+        }
+        
+        // Set background image (different from poster)
+        const heroBg = document.getElementById('heroBackground');
+        if (heroBg && data.backdrop_path) {
+          heroBg.style.backgroundImage = `url('${optimizeRemoteImage(POSTER_BASE + data.backdrop_path, { width: 1920, quality: 60, fit: 'cover' })}')`;
+        }
+        
         const posterEl = document.getElementById('poster');
         if (posterEl) {
           posterEl.src = data.poster_path
@@ -948,18 +1000,23 @@
         }
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
-          tags.innerHTML = data.genres.map(g => `<span class="tag">${g.name}</span>`).join('');
+          tags.innerHTML = data.genres.map(g => `<span class="elevated-tag">${g.name}</span>`).join('');
         }
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (data.original_language) items.push(`Language: ${data.original_language.toUpperCase()}`);
-          if (data.status) items.push(`Status: ${data.status}`);
-          if (typeof data.vote_average === 'number') items.push(`Rating: ${data.vote_average.toFixed(1)} (${data.vote_count || 0})`);
-          if (typeof data.popularity === 'number') items.push(`Popularity: ${Math.round(data.popularity)}`);
-          if (data.budget) items.push(`Budget: $${data.budget.toLocaleString()}`);
-          if (data.revenue) items.push(`Revenue: $${data.revenue.toLocaleString()}`);
-          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
+          if (data.original_language) items.push({ title: 'Language', value: data.original_language.toUpperCase() });
+          if (data.status) items.push({ title: 'Status', value: data.status });
+          if (typeof data.vote_average === 'number') items.push({ title: 'Rating', value: `${data.vote_average.toFixed(1)} (${data.vote_count || 0})` });
+          if (typeof data.popularity === 'number') items.push({ title: 'Popularity', value: Math.round(data.popularity) });
+          if (data.number_of_seasons) items.push({ title: 'Seasons', value: data.number_of_seasons });
+          if (data.number_of_episodes) items.push({ title: 'Episodes', value: data.number_of_episodes });
+          metaGrid.innerHTML = items.map(i => `
+            <div class="elevated-detail-card">
+              <div class="elevated-detail-title">${i.title}</div>
+              <div class="elevated-detail-value">${i.value}</div>
+            </div>
+          `).join('');
         }
         const detailsEl = document.getElementById('details');
         if (detailsEl) {
@@ -995,15 +1052,39 @@
         const cast = (credits.cast || []).slice(0, 12);
         const directorsEl = document.getElementById('directors');
         if (directorsEl) {
-          directorsEl.innerHTML = directors.length ? directors.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+          directorsEl.innerHTML = directors.length ? directors.map(p => `
+            <div class="elevated-person-card">
+              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
+              <div>
+                <div class="elevated-person-name">${p.name}</div>
+                <div class="elevated-person-role">Creator</div>
+              </div>
+            </div>
+          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Creator</div></div></div>';
         }
         const writersEl = document.getElementById('writers');
         if (writersEl) {
-          writersEl.innerHTML = writers.length ? writers.map(p => `<span class="person-chip">${p.name}</span>`).join('') : '<span class="person-chip">N/A</span>';
+          writersEl.innerHTML = writers.length ? writers.map(p => `
+            <div class="elevated-person-card">
+              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
+              <div>
+                <div class="elevated-person-name">${p.name}</div>
+                <div class="elevated-person-role">Season</div>
+              </div>
+            </div>
+          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Season</div></div></div>';
         }
         const castEl = document.getElementById('cast');
         if (castEl) {
-          castEl.innerHTML = cast.length ? cast.map(p => `<span class="person-chip">${p.name}${p.character ? ` as ${p.character}` : ''}</span>`).join('') : '<span class="person-chip">N/A</span>';
+          castEl.innerHTML = cast.length ? cast.map(p => `
+            <div class="elevated-person-card">
+              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
+              <div>
+                <div class="elevated-person-name">${p.name}</div>
+                <div class="elevated-person-role">${p.character || 'Actor'}</div>
+              </div>
+            </div>
+          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Actor</div></div></div>';
         }
       }
 
