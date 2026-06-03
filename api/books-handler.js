@@ -209,12 +209,18 @@ function normalizeGoogleBookDoc(volume, idx = 0) {
     thumb = thumb.replace(/&edge=curl/i, "").replace(/&zoom=\d/i, "");
     if (!/zoom=/i.test(thumb)) thumb += "&zoom=2";
   }
+  // Extract ISBN identifiers so the client can build OpenLibrary cover fallback URLs.
+  const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
+  const isbn = identifiers
+    .map((entry) => String(entry?.identifier || "").replace(/[^0-9Xx]/g, ""))
+    .filter(Boolean);
   return {
     id: String(volume?.id || "").trim() || null,
     title: subtitle ? title : title,
     subtitle: subtitle,
     author_name: authorNames.length ? authorNames : ["Unknown author"],
     first_publish_year: Number.isFinite(year) ? year : null,
+    isbn,
     subject: categories,
     publisher: publisher ? [publisher] : [],
     coverImage: thumb || "",
@@ -245,6 +251,15 @@ function normalizeBook(input) {
   const year = Number(input?.first_publish_year || input?.published_year || input?.year || 0) || null;
   const cover = toHttpsUrl(input?.cover || input?.coverImage || input?.thumbnail || input?._googleThumbnail || "") || "";
   const source = String(input?._source || "").trim() || "google-books";
+  // Preserve ISBN list + Open Library cover_i so the client can build a
+  // multi-step OpenLibrary cover fallback chain when the primary cover 404s.
+  const rawIsbnSource = Array.isArray(input?.isbn)
+    ? input.isbn
+    : (input?.isbn ? [input.isbn] : []);
+  const isbn = rawIsbnSource
+    .map((entry) => String(entry || "").replace(/[^0-9Xx]/g, ""))
+    .filter(Boolean);
+  const coverId = Number(input?.cover_i || input?.coverId || 0) || 0;
   return {
     id,
     title,
@@ -261,7 +276,9 @@ function normalizeBook(input) {
             : [],
     description: String(input?.description || "").trim(),
     contentType: detectContentType(input),
-    maturityRating: String(input?.maturityRating || "").trim()
+    maturityRating: String(input?.maturityRating || "").trim(),
+    isbn,
+    cover_i: coverId > 0 ? coverId : null
   };
 }
 

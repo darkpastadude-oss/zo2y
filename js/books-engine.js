@@ -405,6 +405,16 @@
     var publisher = '';
     if (Array.isArray(raw.publisher)) publisher = String(raw.publisher[0] || '').trim();
     else if (raw.publisher) publisher = String(raw.publisher).trim();
+    // Preserve ISBN list (server already strips non-digits) so we can build
+    // OpenLibrary cover fallback URLs when the Google Books cover fails to load.
+    var isbnList = [];
+    if (Array.isArray(raw.isbn)) {
+      isbnList = raw.isbn.map(function (entry) { return String(entry || '').replace(/[^0-9Xx]/g, ''); }).filter(Boolean);
+    } else if (raw.isbn) {
+      var clean = String(raw.isbn).replace(/[^0-9Xx]/g, '');
+      if (clean) isbnList = [clean];
+    }
+    var coverId = Number(raw.cover_i || raw.coverId || 0) || 0;
     return {
       id: id,
       title: title,
@@ -418,7 +428,9 @@
       source: String(raw.source || raw._source || 'google-books').trim(),
       rating: Number(raw.rating || raw.averageRating || 0) || 0,
       ratingCount: Number(raw.ratingCount || raw.ratingsCount || 0) || 0,
-      maturityRating: String(raw.maturityRating || '').trim()
+      maturityRating: String(raw.maturityRating || '').trim(),
+      isbn: isbnList,
+      cover_i: coverId > 0 ? coverId : null
     };
   }
   function normalizeApiBooks(arr) {
@@ -614,6 +626,29 @@
   // ============================================================
   // RENDER HELPERS - reuse the Zo2y .card markup verbatim
   // ============================================================
+  function buildOpenLibraryFallbackChain(book) {
+    var chain = [];
+    var current = String(book && book.cover || '').trim();
+    var isbnList = Array.isArray(book && book.isbn) ? book.isbn : [];
+    isbnList.forEach(function (entry) {
+      var clean = String(entry || '').replace(/[^0-9Xx]/g, '');
+      if (!clean) return;
+      chain.push('https://covers.openlibrary.org/b/isbn/' + encodeURIComponent(clean) + '-L.jpg');
+      chain.push('https://covers.openlibrary.org/b/isbn/' + encodeURIComponent(clean) + '-M.jpg');
+    });
+    var coverId = Number(book && book.cover_i || 0) || 0;
+    if (coverId > 0) {
+      chain.push('https://covers.openlibrary.org/b/id/' + encodeURIComponent(String(coverId)) + '-L.jpg');
+      chain.push('https://covers.openlibrary.org/b/id/' + encodeURIComponent(String(coverId)) + '-M.jpg');
+    }
+    var seen = {};
+    return chain.filter(function (url) {
+      if (!url || url === current || seen[url]) return false;
+      seen[url] = true;
+      return true;
+    });
+  }
+
   function cardHtml(book) {
     var coverUrl = book.cover && book.cover.trim() ? book.cover : FALLBACK_COVER;
     var year = book.year ? String(book.year) : '';
@@ -623,9 +658,17 @@
       editionsBadge = '<span class="card-edition-badge">' + (book._editionCount) + ' editions</span>';
     }
     var hasRealCover = !!book.cover;
+    var olChain = buildOpenLibraryFallbackChain(book);
+    // The chain JSON is single-quoted-attribute safe (no unescaped single quotes in URLs).
+    var chainAttr = olChain.length
+      ? ' data-fallback-chain=\'' + escapeHtml(JSON.stringify(olChain)) + '\''
+      : '';
+    var finalFallbackAttr = ' data-final-fallback="' + escapeHtml(FALLBACK_COVER) + '"'
+      + ' data-final-action="replace-parent"'
+      + ' data-final-html="' + escapeHtml('<div class="card-media-fallback"><i class="fa-solid fa-book"></i></div>') + '"';
     var mediaInner = hasRealCover
       ? '<img src="' + escapeHtml(coverUrl) + '" alt="' + escapeHtml(book.title) + '" loading="lazy"'
-        + ' onerror="this.onerror=null;this.parentNode.innerHTML=\'<div class=\\\'card-media-fallback\\\'><i class=\\\'fa-solid fa-book\\\'></i></div>\';">'
+        + chainAttr + finalFallbackAttr + '>'
       : '<div class="card-media-fallback"><i class="fa-solid fa-book"></i></div>';
     return ''
       + '<article class="card" data-id="' + escapeHtml(book.id) + '" data-title="' + escapeHtml(book.title) + '" data-author="' + escapeHtml(author) + '">'

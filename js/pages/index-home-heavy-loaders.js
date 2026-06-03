@@ -153,6 +153,14 @@ async function loadBooks(signal) {
               toHttpsUrl(normalized?.coverImage || '')
             ].filter(Boolean);
           const cover = coverCandidates[0] || '/images/landing-wall-poster.svg';
+          // The remaining cover candidates form the OpenLibrary fallback chain
+          // that the home rail will walk through if the primary cover 404s.
+          const seenChain = new Set([cover]);
+          const fallbackChain = coverCandidates.filter((url) => {
+            if (!url || seenChain.has(url)) return false;
+            seenChain.add(url);
+            return true;
+          });
 
           const dedupeKey = `${title.toLowerCase()}::${author.toLowerCase()}`;
           if (seen.has(dedupeKey)) return null;
@@ -186,8 +194,10 @@ async function loadBooks(signal) {
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             fallbackImage: '/images/landing-wall-poster.svg',
+            fallbackChain,
             maturityRating: String(normalized?.maturityRating || '').trim(),
             isbn,
+            coverId: Number(normalized?.cover_i || 0) || 0,
             href
           };
         }).filter(Boolean);
@@ -213,6 +223,15 @@ async function loadBooks(signal) {
         const itemId = String(item?.itemId || '').trim();
         const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
         if (!title || !itemId || !image) return null;
+        const rawChain = Array.isArray(item?.fallbackChain) ? item.fallbackChain : [];
+        const seenChain = new Set([image]);
+        const fallbackChain = rawChain
+          .map((url) => toHttpsUrl(String(url || '').trim()))
+          .filter((url) => {
+            if (!url || seenChain.has(url)) return false;
+            seenChain.add(url);
+            return true;
+          });
         return {
           ...item,
           mediaType: 'book',
@@ -224,6 +243,9 @@ async function loadBooks(signal) {
           backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
           spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
           spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          fallbackChain,
+          isbn: String(item?.isbn || '').replace(/[^0-9Xx]/g, ''),
+          coverId: Number(item?.coverId || 0) || 0,
           href: String(item?.href || '').trim() || 'books.html'
         };
       };
@@ -2207,6 +2229,15 @@ async function loadBooks(signal) {
         const itemId = String(item?.itemId || '').trim();
         const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
         if (!title || !itemId || !image) return null;
+        const rawChain = Array.isArray(item?.fallbackChain) ? item.fallbackChain : [];
+        const seenChain = new Set([image]);
+        const fallbackChain = rawChain
+          .map((url) => toHttpsUrl(String(url || '').trim()))
+          .filter((url) => {
+            if (!url || seenChain.has(url)) return false;
+            seenChain.add(url);
+            return true;
+          });
         return {
           ...item,
           mediaType: 'book',
@@ -2218,6 +2249,9 @@ async function loadBooks(signal) {
           backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
           spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
           spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          fallbackChain,
+          isbn: String(item?.isbn || '').replace(/[^0-9Xx]/g, ''),
+          coverId: Number(item?.coverId || 0) || 0,
           href: String(item?.href || '').trim() || 'books.html'
         };
       };
@@ -2246,6 +2280,21 @@ async function loadBooks(signal) {
           const titleParam = encodeURIComponent(title);
           const authorParam = encodeURIComponent(author);
           const href = `book.html?id=${encodeURIComponent(itemId)}&title=${titleParam}&author=${authorParam}`;
+          // Build OpenLibrary fallback URLs from any ISBN / cover_i metadata the
+          // server preserved through `normalizeBook`.
+          const isbnList = Array.isArray(book?.isbn)
+            ? book.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
+            : (book?.isbn ? [String(book.isbn).replace(/[^0-9Xx]/g, '')].filter(Boolean) : []);
+          const coverId = Number(book?.cover_i || book?.coverId || 0) || 0;
+          const fallbackChain = [];
+          isbnList.forEach((isbn) => {
+            fallbackChain.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`);
+            fallbackChain.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-M.jpg`);
+          });
+          if (coverId > 0) {
+            fallbackChain.push(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`);
+            fallbackChain.push(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-M.jpg`);
+          }
           return sanitizeHomeBookItem({
             mediaType: 'book',
             itemId,
@@ -2258,6 +2307,9 @@ async function loadBooks(signal) {
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             fallbackImage: FALLBACK_BOOK_IMAGE,
+            fallbackChain,
+            isbn: isbnList[0] || '',
+            coverId,
             href
           });
         }).filter(Boolean);

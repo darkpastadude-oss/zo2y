@@ -672,6 +672,7 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260601b" defer></script>
+  <script src="/js/lib/img-fallback.js?v=20260601b" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
 <script src="js/shared-header.js?v=20260601b" defer></script>
@@ -712,7 +713,7 @@
 </header>
 
   <div class="wrap">
-    <img id="poster" class="poster" src="/newlogo.webp" alt="Poster" loading="eager" decoding="async" fetchpriority="high" onerror="this.onerror=null;this.src='/newlogo.webp';">
+    <img id="poster" class="poster" src="/newlogo.webp" alt="Poster" loading="eager" decoding="async" fetchpriority="high" data-final-fallback="/images/fallback/book.svg">
     <div class="card">
       <div class="title-row">
         <h1 id="title" class="title">Loading...</h1>
@@ -1337,7 +1338,28 @@
         document.getElementById('title').textContent = info.title || 'Untitled';
         document.getElementById('overview').textContent = (description || 'No description available.').replace(/<[^>]+>/g, '');
         document.getElementById('meta').textContent = `${publishedYear || ''}` + '';
-        document.getElementById('poster').src = bookCoverUrl || '/newlogo.webp';
+        const posterEl = document.getElementById('poster');
+        if (posterEl) {
+          posterEl.src = bookCoverUrl || '/newlogo.webp';
+          // Wire an OpenLibrary fallback chain (ISBN -> cover_i -> OLID -> local SVG)
+          // so a broken Google Books cover does not leave a busted poster behind.
+          if (window.Zo2yImgFallback && typeof window.Zo2yImgFallback.applyBookChain === 'function') {
+            const coverIdList = [];
+            if (Number(info?.cover_i || 0) > 0) coverIdList.push(Number(info.cover_i));
+            if (Array.isArray(info?.covers)) {
+              info.covers.forEach((entry) => {
+                const id = Number(entry || 0);
+                if (id > 0 && !coverIdList.includes(id)) coverIdList.push(id);
+              });
+            }
+            window.Zo2yImgFallback.applyBookChain(posterEl, {
+              isbn: Array.isArray(info?.isbn) ? info.isbn : [],
+              coverId: coverIdList,
+              olid: typeof info?.key === 'string' && info.key.startsWith('/works/') ? '' : '',
+              finalFallback: '/images/fallback/book.svg'
+            });
+          }
+        }
 
         // categories/tags: subjects
         const tags = document.getElementById('tags');

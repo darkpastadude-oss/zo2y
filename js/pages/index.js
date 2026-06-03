@@ -5656,6 +5656,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const actualSrc = String(src || '');
       const fallbackSrc = String(fallbackImage || '');
       const shouldDefer = shouldDeferHomeImageLoad(loading);
+      // Optional ordered list of URLs to try before falling back to `fallbackImage`.
+      // Used by books to walk through OpenLibrary cover URLs when the primary
+      // Google Books thumbnail 404s.
+      const chainRaw = Array.isArray(extra?.fallbackChain) ? extra.fallbackChain : [];
+      const fallbackChain = chainRaw
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => entry && entry !== actualSrc);
+      const chainJson = fallbackChain.length
+        ? JSON.stringify(fallbackChain).replace(/"/g, '&quot;')
+        : '';
       const attrs = [
         `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
         shouldDefer ? `data-home-src="${actualSrc}"` : '',
@@ -5667,6 +5677,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         `data-home-image-state="${shouldDefer ? 'deferred' : 'loading'}"`,
         'data-image-ready="0"',
         `data-fallback-image="${fallbackSrc}"`,
+        chainJson ? `data-fallback-chain="${chainJson}"` : '',
         'data-fallback-applied="0"',
         extra.ariaHidden ? 'aria-hidden="true"' : '',
         extra.altEmpty ? 'alt=""' : ''
@@ -6750,12 +6761,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const optimizedTravelImage = mediaTypeRaw === 'travel'
           ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
           : '';
+        // Books carry an OpenLibrary cover fallback chain so we can retry a few
+        // alternate cover URLs before falling back to the local placeholder.
+        const homeImageExtra = (mediaTypeRaw === 'book' && Array.isArray(itemData?.fallbackChain) && itemData.fallbackChain.length)
+          ? { fallbackChain: itemData.fallbackChain }
+          : {};
         let mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
               ${logo ? `<span class="restaurant-logo-badge"><img ${buildHomeImageAttrs(logo, 'lazy', 'low', fallbackImage)} alt="${title} logo"></span>` : ''}
             `
-          : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
+          : `${safeImage ? `<img ${buildHomeImageAttrs(mediaTypeRaw === 'travel' ? optimizedTravelImage : safeImage, imageLoading, imagePriority, fallbackImage, homeImageExtra)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}`;
 
         if (mediaTypeRaw === 'travel') {
           const initialTravelVariant = getStableHomeTravelVariant(itemData, landscape);
@@ -6845,6 +6861,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const mediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
         const isBrandRail = BRAND_RAIL_MEDIA_TYPES.has(mediaType);
 
+        const tryFallbackChain = () => {
+          const raw = img.getAttribute('data-fallback-chain') || '';
+          if (!raw) return null;
+          let chain;
+          try { chain = JSON.parse(raw); } catch (_err) { return null; }
+          if (!Array.isArray(chain) || !chain.length) return null;
+          const stepRaw = img.getAttribute('data-fallback-chain-step') || '0';
+          let step = Math.max(0, parseInt(stepRaw, 10) || 0);
+          const currentSrc = String(img.currentSrc || img.src || '').trim();
+          while (step < chain.length) {
+            const candidate = String(chain[step] || '').trim();
+            step += 1;
+            if (!candidate || candidate === currentSrc) continue;
+            img.setAttribute('data-fallback-chain-step', String(step));
+            return candidate;
+          }
+          img.setAttribute('data-fallback-chain-step', String(chain.length));
+          return null;
+        };
+
         const handleMissing = () => {
           if (isBrandRail) {
             markLogoMissing(card, img);
@@ -6859,6 +6895,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const wrapper = getHomeImageWrapper(img);
             if (wrapper) wrapper.classList.add('is-loading-media');
             img.src = directSrc;
+            return;
+          }
+          // Walk through the OpenLibrary cover chain (books) before falling back
+          // to the generic local placeholder.
+          const nextChainUrl = tryFallbackChain();
+          if (nextChainUrl) {
+            img.setAttribute('data-image-ready', '0');
+            img.setAttribute('data-home-image-state', 'loading');
+            const wrapper = getHomeImageWrapper(img);
+            if (wrapper) wrapper.classList.add('is-loading-media');
+            img.src = nextChainUrl;
             return;
           }
           const fallback = String(img.getAttribute('data-fallback-image') || '').trim();
