@@ -690,8 +690,8 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b"></noscript>
-  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a"></noscript>
+  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604h" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604h"></noscript>
 
   </head>
 <body class="elevated-media-page">
@@ -724,67 +724,103 @@
   </div>
 </header>
 
-  <!-- Hero section with background image -->
+  <!-- Hero section with layered backdrop + foreground -->
   <div class="elevated-hero" id="heroBackground">
-    <div class="elevated-content">
-      <div class="elevated-hero-content">
-        <div class="elevated-poster-section">
-          <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='/newlogo.webp';">
+    <div class="elevated-hero-backdrop" id="heroBackdrop" aria-hidden="true"></div>
+    <div class="elevated-hero-blur" id="heroBackdropBlur" aria-hidden="true"></div>
+    <div class="elevated-hero-grain" aria-hidden="true"></div>
+    <div class="elevated-hero-foreground">
+      <div class="elevated-poster-frame" id="posterFrame" aria-label="Game cover">
+        <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Game cover" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+        <div class="elevated-poster-fallback" aria-hidden="true">
+          <i class="fas fa-gamepad"></i>
+          no cover
         </div>
-        <div class="elevated-info">
-          <div class="title-row">
-            <h1 id="title" class="elevated-title">Loading...</h1>
-            <div class="menu-wrapper">
-              <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-              <div class="list-menu" id="movieListMenu">
-                <div class="list-menu-title">Save to list</div>
-                <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played </span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog </span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-              </div>
+      </div>
+      <div class="elevated-info">
+        <div class="elevated-title-row">
+          <h1 id="title" class="elevated-title">Loading...</h1>
+          <div class="menu-wrapper">
+            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists" title="Save to list"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu" id="movieListMenu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
           </div>
-          <div id="meta" class="elevated-meta"></div>
-          <div id="tags" class="elevated-tags"></div>
-          <p id="overview" class="elevated-description"></p>
-          <div class="elevated-actions">
-            <button class="elevated-btn elevated-btn-primary"><i class="fas fa-play"></i> Watch Clip</button>
-            <button class="elevated-btn elevated-btn-secondary"><i class="fas fa-plus"></i> Add to Backlog</button>
-          </div>
+        </div>
+        <p id="tagline" class="elevated-tagline" hidden></p>
+        <div id="meta" class="elevated-meta" aria-label="Game metadata"></div>
+        <div id="tags" class="elevated-tags" aria-label="Genres"></div>
+        <div class="elevated-description-wrap">
+          <p id="overview" class="elevated-description is-clamped"></p>
+          <button class="elevated-readmore" id="overviewToggle" type="button" aria-expanded="false" aria-controls="overview">
+            <span class="elevated-readmore-label">read more</span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="elevated-actions">
+          <button class="elevated-btn elevated-btn-primary" id="watchTrailerBtn" type="button"><i class="fas fa-play"></i> Watch Clip</button>
+          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to Backlog</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Details section -->
+  <!-- Quick facts grid -->
   <div class="elevated-content">
-    <div class="elevated-details-wrapper">
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Quick facts</h3>
+        <span class="elevated-section-sub" id="metaGridSub"></span>
+      </div>
       <div class="elevated-details" id="metaGrid"></div>
     </div>
   </div>
 
-  <!-- Additional sections -->
+  <!-- Trailer lightbox -->
+  <div class="elevated-trailer-modal" id="trailerModal" role="dialog" aria-modal="true" aria-label="Trailer player" aria-hidden="true">
+    <div class="elevated-trailer-modal-frame">
+      <button class="elevated-trailer-modal-close" id="trailerModalClose" type="button" aria-label="Close trailer">
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+      </button>
+      <iframe id="trailerModalFrame" title="Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- Trailer + people + details -->
   <div class="elevated-content">
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Details</h3>
-      <div id="details" class="list-stack"></div>
-    </div>
-    <div class="elevated-section">
-      <h3 class="elevated-section-title">Clip</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Clip</h3>
+      </div>
       <div id="trailer"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Developers</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Developers</h3>
+      </div>
       <div id="directors" class="elevated-people-list"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Publishers</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Publishers</h3>
+      </div>
       <div id="writers" class="elevated-people-list"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Platforms</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Platforms</h3>
+      </div>
       <div id="cast" class="elevated-people-list"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Details</h3>
+      </div>
+      <div id="details" class="elevated-list"></div>
     </div>
   </div>
 
@@ -982,6 +1018,215 @@
         return String(value || '').replace(/<[^>]+>/g, '').trim();
       }
 
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function formatCount(n) {
+        const num = Number(n) || 0;
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(num);
+      }
+
+      // Get a usable backdrop URL — sized large enough to be sharp on
+      // high-DPR mobile. IGDB images come from images.igdb.com, and we
+      // can swap the size segment in the path.
+      function getGameBackdropUrl(url) {
+        const raw = String(url || '').trim();
+        if (!raw) return '';
+        // IGDB URLs look like https://images.igdb.com/igdb/image/upload/t_original/abc.jpg
+        // We swap ANY size segment → t_1080p for a good balance of quality / size.
+        if (/^https?:\/\/images\.igdb\.com\//i.test(raw)) {
+          return raw.replace(/\/t_[a-z0-9_]+\//i, '/t_1080p/');
+        }
+        return raw;
+      }
+
+      function getGameBackdropUrlBlur(url) {
+        const raw = String(url || '').trim();
+        if (!raw) return '';
+        if (/^https?:\/\/images\.igdb\.com\//i.test(raw)) {
+          return raw.replace(/\/t_[a-z0-9_]+\//i, '/t_720p/');
+        }
+        return raw;
+      }
+
+      function setHeroBackdrop(url) {
+        if (!url) return;
+        const backdrop = document.getElementById('heroBackdrop');
+        const blur = document.getElementById('heroBackdropBlur');
+        const hero = document.getElementById('heroBackground');
+        if (!backdrop || !hero) return;
+        const primary = getGameBackdropUrl(url);
+        const blurUrl = getGameBackdropUrlBlur(url);
+        backdrop.style.backgroundImage = `url("${primary}")`;
+        if (blur) blur.style.backgroundImage = `url("${blurUrl}")`;
+        const img = new Image();
+        img.onload = () => hero.classList.add('is-loaded');
+        img.onerror = () => hero.classList.add('is-loaded');
+        img.src = primary;
+      }
+
+      function setPosterImage(url) {
+        const posterEl = document.getElementById('poster');
+        const frame = document.getElementById('posterFrame');
+        if (!posterEl) return;
+        if (!url) {
+          posterEl.style.display = 'none';
+          if (frame) frame.classList.add('is-missing');
+          return;
+        }
+        posterEl.onerror = () => {
+          posterEl.onerror = null;
+          posterEl.style.display = 'none';
+          if (frame) frame.classList.add('is-missing');
+        };
+        posterEl.addEventListener('load', () => {
+          if (frame) frame.classList.remove('is-missing');
+          posterEl.style.display = '';
+        }, { once: true });
+        posterEl.src = url;
+      }
+
+      function wireOverviewToggle() {
+        const overview = document.getElementById('overview');
+        const toggle = document.getElementById('overviewToggle');
+        const wrap = document.querySelector('.elevated-description-wrap');
+        const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
+        if (!overview || !toggle) return;
+
+        let isExpanded = false;
+
+        const measureAndSync = () => {
+          overview.classList.add('is-clamped');
+          if (wrap) wrap.classList.add('is-clamped');
+          void overview.offsetHeight;
+          const visibleHeight = overview.clientHeight;
+
+          overview.classList.remove('is-clamped');
+          if (wrap) wrap.classList.remove('is-clamped');
+          void overview.offsetHeight;
+          const naturalHeight = overview.scrollHeight;
+
+          const shouldClamp = isExpanded ? false : (naturalHeight > visibleHeight + 2);
+          overview.classList.toggle('is-clamped', shouldClamp);
+          if (wrap) wrap.classList.toggle('is-clamped', shouldClamp);
+
+          if (naturalHeight <= visibleHeight + 2) {
+            toggle.hidden = true;
+            return;
+          }
+          toggle.hidden = false;
+          toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          if (label) label.textContent = isExpanded ? 'show less' : 'read more';
+        };
+
+        toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          isExpanded = !isExpanded;
+          measureAndSync();
+        });
+
+        let resizeRaf = 0;
+        window.addEventListener('resize', () => {
+          cancelAnimationFrame(resizeRaf);
+          resizeRaf = requestAnimationFrame(measureAndSync);
+        });
+
+        const observer = new MutationObserver(() => {
+          requestAnimationFrame(measureAndSync);
+        });
+        observer.observe(overview, { childList: true, characterData: true, subtree: true });
+
+        requestAnimationFrame(() => requestAnimationFrame(measureAndSync));
+        setTimeout(measureAndSync, 600);
+        setTimeout(measureAndSync, 1500);
+      }
+
+      function openTrailerLightbox(key) {
+        if (!key) return;
+        const modal = document.getElementById('trailerModal');
+        const frame = document.getElementById('trailerModalFrame');
+        if (!modal || !frame) return;
+        frame.src = `https://www.youtube.com/embed/${encodeURIComponent(key)}?rel=0&autoplay=1&modestbranding=1`;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zo2y-trailer-open');
+      }
+
+      function closeTrailerLightbox() {
+        const modal = document.getElementById('trailerModal');
+        const frame = document.getElementById('trailerModalFrame');
+        if (!modal || !frame) return;
+        modal.setAttribute('aria-hidden', 'true');
+        frame.src = '';
+        document.body.classList.remove('zo2y-trailer-open');
+      }
+
+      function wireTrailerLightbox() {
+        const modal = document.getElementById('trailerModal');
+        const closeBtn = document.getElementById('trailerModalClose');
+        if (closeBtn) closeBtn.addEventListener('click', closeTrailerLightbox);
+        if (modal) {
+          modal.addEventListener('click', (event) => {
+            if (event.target === modal) closeTrailerLightbox();
+          });
+        }
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeTrailerLightbox();
+        });
+      }
+
+      function wireHeroActions() {
+        const trailerBtn = document.getElementById('watchTrailerBtn');
+        if (trailerBtn) {
+          trailerBtn.addEventListener('click', () => {
+            const key = trailerBtn.dataset.trailerKey;
+            if (key) {
+              openTrailerLightbox(key);
+              return;
+            }
+            const trailer = document.getElementById('trailer');
+            if (trailer) trailer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          });
+        }
+        const watchlistBtn = document.getElementById('addWatchlistBtn');
+        if (watchlistBtn) {
+          watchlistBtn.addEventListener('click', async () => {
+            const result = await toggleList('watchlist');
+            if (result && typeof result.saved === 'boolean') {
+              const icon = watchlistBtn.querySelector('i');
+              const text = watchlistBtn.childNodes[watchlistBtn.childNodes.length - 1];
+              if (icon) {
+                icon.className = result.saved ? 'fas fa-check' : 'fas fa-bookmark';
+              }
+              if (text && text.nodeType === 3) {
+                text.textContent = result.saved ? ' in backlog' : ' add to backlog';
+              }
+            }
+          });
+        }
+      }
+
+      // Extract a YouTube video key from any common URL shape.
+      function extractYouTubeKey(url) {
+        const raw = String(url || '').trim();
+        if (!raw) return '';
+        const m1 = raw.match(/[?&]v=([^&]+)/);
+        if (m1) return m1[1];
+        const m2 = raw.match(/youtu\.be\/([^?&]+)/);
+        if (m2) return m2[1];
+        const m3 = raw.match(/embed\/([^?&]+)/);
+        if (m3) return m3[1];
+        return '';
+      }
+
       function normalizeNameList(input, nestedKey = '') {
         const rows = Array.isArray(input) ? input : [];
         const out = [];
@@ -1124,20 +1369,202 @@
         const description = stripHtml(data.description || extra.description || extra.summary || '');
         const releaseDate = String(data.release_date || '').trim();
         const playtime = Number(extra.playtime || 0);
-        const metaParts = [];
-        if (releaseDate) metaParts.push(releaseDate);
-        if (Number.isFinite(playtime) && playtime > 0) metaParts.push(`${playtime} hrs`);
+        const rating = typeof data.rating === 'number' ? data.rating : null;
+        const ratingCount = Number(data.rating_count || 0);
 
         document.getElementById('title').textContent = title;
-        document.getElementById('overview').textContent = description || 'No description available.';
-        
-        // Set elevated meta with icons
+        const overviewEl = document.getElementById('overview');
+        if (overviewEl) {
+          overviewEl.textContent = description && description.length
+            ? description
+            : 'No description is available for this game yet.';
+        }
+
+        // Tagline (we don't have one for games, so hide it)
+        const taglineEl = document.getElementById('tagline');
+        if (taglineEl) taglineEl.hidden = true;
+
+        // Metadata row (year, playtime, rating) — only render items we actually have
         const metaEl = document.getElementById('meta');
         if (metaEl) {
           const metaItems = [];
           if (releaseDate) {
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-calendar"></i> ${releaseDate.slice(0, 4)}</div>`);
+            const yearMatch = releaseDate.match(/^(\d{4})/);
+            if (yearMatch) {
+              metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-calendar"></i> <span>${escapeHtml(yearMatch[1])}</span></div>`);
+            }
           }
+          if (Number.isFinite(playtime) && playtime > 0) {
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> <span>${escapeHtml(String(playtime))} hrs</span></div>`);
+          }
+          if (rating !== null) {
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-star"></i> <span>${escapeHtml(rating.toFixed(1))}${ratingCount ? ` <em class="elevated-meta-count">(${formatCount(ratingCount)})</em>` : ''}</span></div>`);
+          }
+          metaEl.innerHTML = metaItems.join('');
+        }
+
+        // Pick a backdrop that is visually distinct from the cover.
+        // 1. data.hero_url (preferred — IGDB screenshot, wider aspect)
+        // 2. data.background_image or first screenshot
+        // 3. nothing — render a strong gradient with the cover only
+        const heroEl = document.getElementById('heroBackground');
+        const coverUrl = resolveGameImageSource(data);
+        const extractUrl = (entry) => {
+          if (typeof entry === 'string') return entry;
+          if (entry && typeof entry === 'object') return entry.url || entry.image || '';
+          return '';
+        };
+        const candidateBackdrops = [
+          data.hero_url,
+          data.background_image,
+          ...(Array.isArray(data.screenshots) ? data.screenshots.map(extractUrl) : []),
+          ...(Array.isArray(data.short_screenshots) ? data.short_screenshots.map(extractUrl) : []),
+        ].map(normalizeGameImageUrl).filter(Boolean);
+        const isSameAsCover = (u) => !!u && !!coverUrl && u === coverUrl;
+        const backdropUrl = candidateBackdrops.find((u) => !isSameAsCover(u)) || '';
+        if (backdropUrl) {
+          if (heroEl) heroEl.classList.remove('is-no-backdrop');
+          setHeroBackdrop(backdropUrl);
+        } else {
+          if (heroEl) heroEl.classList.add('is-no-backdrop');
+          const backdropEl = document.getElementById('heroBackdrop');
+          const blurEl = document.getElementById('heroBackdropBlur');
+          if (backdropEl) backdropEl.style.backgroundImage = '';
+          if (blurEl) blurEl.style.backgroundImage = '';
+        }
+
+        // Cover image (poster)
+        const posterEl = document.getElementById('poster');
+        if (coverUrl) {
+          setPosterImage(coverUrl);
+        } else {
+          setPosterImage('');
+        }
+
+        // If the main payload didn't include a cover, hydrate a best-effort cover via the shared resolver.
+        if (
+          !coverUrl
+          && posterEl
+          && window.__zo2yGamesShared?.fetchCoverForTitle
+        ) {
+          window.__zo2yGamesShared.fetchCoverForTitle(title)
+            .then((hydrated) => {
+              if (!hydrated || !posterEl.isConnected) return;
+              setPosterImage(hydrated);
+            })
+            .catch(() => {});
+        }
+
+        // Tags (genres)
+        const genres = normalizeGameGenres(extra);
+        const tagsEl = document.getElementById('tags');
+        if (tagsEl) {
+          tagsEl.innerHTML = genres.length
+            ? genres.map((g) => `<span class="elevated-tag">${escapeHtml(g.name)}</span>`).join('')
+            : '';
+        }
+
+        // Quick facts grid
+        const platforms = normalizeGamePlatforms(extra);
+        const metaGrid = document.getElementById('metaGrid');
+        if (metaGrid) {
+          const items = [];
+          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` · ${formatCount(ratingCount)} votes` : ''}` });
+          if (releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Released', value: releaseDate });
+          if (playtime > 0) items.push({ icon: 'fas fa-clock', title: 'Avg. Playtime', value: `${playtime} hrs` });
+          if (platforms.length) items.push({ icon: 'fas fa-gamepad', title: 'Platforms', value: platforms.slice(0, 4).join(', ') });
+          if (genres.length) items.push({ icon: 'fas fa-tags', title: 'Primary Genre', value: genres[0].name });
+          if (data.source) items.push({ icon: 'fas fa-database', title: 'Source', value: String(data.source).toUpperCase() });
+          metaGrid.innerHTML = items.length
+            ? items.map((item) => `
+              <div class="elevated-detail-card">
+                <div class="elevated-detail-title"><i class="${item.icon}"></i> ${escapeHtml(item.title)}</div>
+                <div class="elevated-detail-value">${escapeHtml(item.value)}</div>
+              </div>
+            `).join('')
+            : '<div class="elevated-detail-card"><div class="elevated-detail-title">No metadata</div><div class="elevated-detail-value">available</div></div>';
+          metaGrid.className = 'elevated-details';
+        }
+
+        // Trailer / clip — find a YouTube key
+        const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
+        const youtubeId = extractYouTubeKey(trailerUrl);
+        const trailerEl = document.getElementById('trailer');
+        if (trailerEl) {
+          trailerEl.innerHTML = youtubeId
+            ? `<div class="elevated-trailer-frame"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}?rel=0" title="Game clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
+            : '<div class="elevated-trailer-empty"><i class="fas fa-video-slash"></i> no clip available</div>';
+        }
+        const trailerBtn = document.getElementById('watchTrailerBtn');
+        if (trailerBtn) {
+          if (youtubeId) {
+            trailerBtn.dataset.trailerKey = youtubeId;
+            trailerBtn.removeAttribute('disabled');
+          } else {
+            delete trailerBtn.dataset.trailerKey;
+            trailerBtn.setAttribute('disabled', 'true');
+            trailerBtn.setAttribute('title', 'No clip available');
+          }
+        }
+
+        // Details list (slug, IGDB ID, website, etc.)
+        const detailsEl = document.getElementById('details');
+        if (detailsEl) {
+          const detailRows = [];
+          if (data.slug) detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Slug</span><span class="elevated-list-value">${escapeHtml(data.slug)}</span></div>`);
+          if (data.igdb_id) detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">IGDB ID</span><span class="elevated-list-value">${escapeHtml(String(data.igdb_id))}</span></div>`);
+          if (data.rawg_id) detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">RAWG ID</span><span class="elevated-list-value">${escapeHtml(String(data.rawg_id))}</span></div>`);
+          if (extra.website) {
+            try {
+              const url = new URL(extra.website);
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">${escapeHtml(url.hostname.replace(/^www\./, ''))} →</a></span></div>`);
+            } catch (_) {
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">Open →</a></span></div>`);
+            }
+          }
+          if (extra.reddit_url) {
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Reddit</span><span class="elevated-list-value"><a href="${escapeHtml(extra.reddit_url)}" target="_blank" rel="noopener">Open →</a></span></div>`);
+          }
+          detailsEl.innerHTML = detailRows.length
+            ? detailRows.join('')
+            : '<div class="elevated-list-row"><span class="elevated-list-value" style="color: var(--md-text-3);">No extra details available.</span></div>';
+          detailsEl.className = 'elevated-list';
+        }
+
+        // People lists
+        const renderPerson = (name, role) => {
+          const safeName = escapeHtml(name || 'Unknown');
+          const initial = safeName.charAt(0);
+          return `<div class="elevated-person-card">
+              <div class="elevated-person-avatar">${initial}</div>
+              <div class="elevated-person-body">
+                <div class="elevated-person-name">${safeName}</div>
+                <div class="elevated-person-role">${escapeHtml(role)}</div>
+              </div>
+            </div>`;
+        };
+        const fallbackPerson = (role) => `<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div class="elevated-person-body"><div class="elevated-person-name">N/A</div><div class="elevated-person-role">${escapeHtml(role)}</div></div></div>`;
+        const developers = normalizeNameList(extra.developers);
+        const publishers = normalizeNameList(extra.publishers);
+        const directorsEl = document.getElementById('directors');
+        if (directorsEl) {
+          directorsEl.innerHTML = developers.length
+            ? developers.map((n) => renderPerson(n, 'Developer')).join('')
+            : fallbackPerson('Developer');
+        }
+        const writersEl = document.getElementById('writers');
+        if (writersEl) {
+          writersEl.innerHTML = publishers.length
+            ? publishers.map((n) => renderPerson(n, 'Publisher')).join('')
+            : fallbackPerson('Publisher');
+        }
+        const castEl = document.getElementById('cast');
+        if (castEl) {
+          castEl.innerHTML = platforms.length
+            ? platforms.map((n) => renderPerson(n, 'Platform')).join('')
+            : fallbackPerson('Platform');
+        }
+      }
           if (Number.isFinite(playtime) && playtime > 0) {
             metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> ${playtime} hrs</div>`);
           }
@@ -1978,6 +2405,9 @@
         await initSupabase();
         initPageSearch();
         bindUnifiedListMenu();
+        wireOverviewToggle();
+        wireTrailerLightbox();
+        wireHeroActions();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
         });

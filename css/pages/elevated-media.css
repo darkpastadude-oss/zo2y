@@ -86,6 +86,31 @@
   opacity: 1;
 }
 
+/* When no backdrop image is available, we still want a rich cinematic
+   hero. Layer a moody radial wash + a colored glow behind the poster so
+   the page never feels like an empty box. */
+.elevated-hero.is-no-backdrop {
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 22% 40%,
+      rgba(245, 158, 11, 0.18) 0%,
+      rgba(245, 158, 11, 0.05) 40%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 78% 60%,
+      rgba(99, 102, 241, 0.16) 0%,
+      rgba(99, 102, 241, 0.04) 45%,
+      transparent 75%
+    ),
+    linear-gradient(135deg, #0a0f24 0%, #0e1530 50%, #07091a 100%);
+}
+
+.elevated-hero.is-no-backdrop .elevated-hero-backdrop,
+.elevated-hero.is-no-backdrop .elevated-hero-blur {
+  display: none;
+}
+
 /* Layer 1 — top fade so the sticky header reads cleanly */
 .elevated-hero::before {
   content: "";
@@ -181,6 +206,16 @@
   min-height: clamp(560px, 86vh, 880px);
 }
 
+/* Kebab menu sits directly next to the title, not at the far right edge */
+.elevated-title-row .menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
 /* ============================================================
    POSTER  —  anchored, perfectly proportioned
    ============================================================ */
@@ -273,15 +308,15 @@
 }
 
 .elevated-title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
+  /* Inline flow so the kebab menu sits right after the last letter of
+     the title — including when the title wraps to multiple lines. */
+  display: block;
+  text-align: left;
 }
 
 .elevated-title {
   margin: 0;
+  display: inline;
   font-size: clamp(2rem, 4.6vw, 3.6rem);
   font-weight: 800;
   line-height: 1.05;
@@ -290,8 +325,6 @@
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
   word-break: break-word;
   hyphens: auto;
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 .elevated-tagline {
@@ -436,21 +469,40 @@
   position: relative;
   display: block;
   overflow: visible;
+  word-break: break-word;
 }
 
-/* Bulletproof clamp: combines -webkit-line-clamp with max-height fallback
-   so the toggle button can always tell if text is overflowing. */
+/* Clamped state: 3 lines max with a hard cut-off. No mask-image — the
+   ellipsis from -webkit-line-clamp is the visual cue, the max-height is
+   the bulletproof fallback. The .elevated-description-wrap gets a
+   subtle fade overlay via a pseudo-element so the cut-off still reads
+   as "there's more below" instead of an abrupt truncation. */
 .elevated-description.is-clamped {
   display: -webkit-box;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
-  max-height: calc(1.7em * 4);
+  max-height: calc(1.7em * 3);
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-word;
-  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+}
+
+/* Soft fade at the bottom of the wrap when clamped, so the cut-off
+   reads as "there's more" without a harsh truncation line. */
+.elevated-description-wrap.is-clamped::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 44px;
+  height: 28px;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 9, 26, 0) 0%,
+    rgba(7, 9, 26, 0.55) 60%,
+    rgba(7, 9, 26, 0.78) 100%
+  );
 }
 
 .elevated-readmore {
@@ -458,27 +510,34 @@
   align-items: center;
   gap: 6px;
   margin-top: 10px;
-  padding: 0;
+  padding: 6px 12px;
   border: 0;
-  background: transparent;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
   color: var(--md-accent-2);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   text-transform: lowercase;
-  transition: color 0.2s var(--md-ease);
+  transition: all 0.2s var(--md-ease);
   font-family: inherit;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .elevated-readmore:hover {
+  background: rgba(245, 158, 11, 0.18);
   color: var(--md-text);
+}
+
+.elevated-readmore:active {
+  transform: scale(0.97);
 }
 
 .elevated-readmore:focus-visible {
   outline: 2px solid var(--md-accent);
-  outline-offset: 4px;
-  border-radius: 4px;
+  outline-offset: 3px;
 }
 
 .elevated-readmore i {
@@ -1005,12 +1064,10 @@ body.zo2y-trailer-open {
   }
 
   .elevated-title-row {
-    justify-content: center;
-    width: 100%;
+    text-align: center;
   }
 
   .elevated-title {
-    text-align: center;
     font-size: clamp(1.7rem, 7vw, 2.2rem);
     line-height: 1.1;
   }
@@ -1054,6 +1111,11 @@ body.zo2y-trailer-open {
     -webkit-line-clamp: 3;
     line-clamp: 3;
     max-height: calc(1.7em * 3);
+  }
+
+  .elevated-description-wrap.is-clamped::after {
+    bottom: 42px;
+    height: 22px;
   }
 
   .elevated-actions {

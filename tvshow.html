@@ -679,8 +679,8 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b"></noscript>
-  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604e" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604e"></noscript>
+  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604h" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604h"></noscript>
 
   </head>
 <body class="elevated-media-page">
@@ -957,9 +957,15 @@
         const blur = document.getElementById('heroBackdropBlur');
         const hero = document.getElementById('heroBackground');
         if (!backdrop || !hero) return;
-        const primary = buildBackdropUrl(path, 'w1280');
+        // Mobile displays are usually high-DPR (2x–3x), so a w1280 image
+        // renders blurry on a 414px-wide phone. We always use `original`
+        // for the visible backdrop so the hero stays crisp; the blurred
+        // glow copy uses w780 because it's blurred 48px and lower-res
+        // is unnoticeable there.
+        const primary = buildBackdropUrl(path, 'original');
+        const blurUrl = buildBackdropUrl(path, 'w780');
         backdrop.style.backgroundImage = `url("${primary}")`;
-        if (blur) blur.style.backgroundImage = `url("${primary}")`;
+        if (blur) blur.style.backgroundImage = `url("${blurUrl}")`;
         const img = new Image();
         img.onload = () => {
           hero.classList.add('is-loaded');
@@ -1003,39 +1009,69 @@
       function wireOverviewToggle() {
         const overview = document.getElementById('overview');
         const toggle = document.getElementById('overviewToggle');
+        const wrap = document.querySelector('.elevated-description-wrap');
         const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
         if (!overview || !toggle) return;
-        const sync = () => {
-          // Read scrollHeight BEFORE clamping is applied (otherwise we measure
-          // the clamped height, not the true overflow). We do this by temporarily
-          // removing the clamp, measuring, then re-applying.
-          const wasClamped = overview.classList.contains('is-clamped');
-          if (wasClamped) overview.classList.remove('is-clamped');
-          const fullHeight = overview.scrollHeight;
-          const visibleHeight = overview.clientHeight;
-          if (wasClamped) overview.classList.add('is-clamped');
 
-          const overflowing = fullHeight > visibleHeight + 4;
-          if (!overflowing) {
-            overview.classList.remove('is-clamped');
+        let isExpanded = false;
+
+        const measureAndSync = () => {
+          // Step 1: force the clamp ON so the box collapses to its visible size.
+          overview.classList.add('is-clamped');
+          if (wrap) wrap.classList.add('is-clamped');
+          // Force a synchronous reflow so clientHeight reflects the clamped box.
+          void overview.offsetHeight;
+          const visibleHeight = overview.clientHeight;
+
+          // Step 2: remove the clamp so the box expands to its natural size.
+          overview.classList.remove('is-clamped');
+          if (wrap) wrap.classList.remove('is-clamped');
+          // Force another reflow so scrollHeight reflects the unclamped box.
+          void overview.offsetHeight;
+          const naturalHeight = overview.scrollHeight;
+
+          // Step 3: decide whether the clamp should be visible.
+          //   - If the user expanded it, never clamp.
+          //   - Otherwise clamp only when natural > visible (text overflows).
+          const shouldClamp = isExpanded ? false : (naturalHeight > visibleHeight + 2);
+          overview.classList.toggle('is-clamped', shouldClamp);
+          if (wrap) wrap.classList.toggle('is-clamped', shouldClamp);
+
+          // Step 4: hide the button entirely if the text fits in 3 lines.
+          if (naturalHeight <= visibleHeight + 2) {
             toggle.hidden = true;
             return;
           }
           toggle.hidden = false;
-          const expanded = toggle.getAttribute('aria-expanded') === 'true';
-          overview.classList.toggle('is-clamped', !expanded);
-          if (label) label.textContent = expanded ? 'show less' : 'read more';
+          toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          if (label) label.textContent = isExpanded ? 'show less' : 'read more';
         };
-        toggle.addEventListener('click', () => {
-          const expanded = toggle.getAttribute('aria-expanded') === 'true';
-          toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-          sync();
+
+        toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          isExpanded = !isExpanded;
+          measureAndSync();
         });
-        window.addEventListener('resize', sync);
-        const observer = new MutationObserver(() => requestAnimationFrame(sync));
+
+        let resizeRaf = 0;
+        window.addEventListener('resize', () => {
+          cancelAnimationFrame(resizeRaf);
+          resizeRaf = requestAnimationFrame(measureAndSync);
+        });
+
+        // Re-measure whenever the overview text is replaced (e.g. by load()).
+        const observer = new MutationObserver(() => {
+          requestAnimationFrame(measureAndSync);
+        });
         observer.observe(overview, { childList: true, characterData: true, subtree: true });
-        // Run sync after the browser has laid out the freshly-injected overview text.
-        requestAnimationFrame(sync);
+
+        // Initial measurement. The overview text is injected by load() after
+        // this function runs, so we schedule a chain of rAFs and a delayed
+        // fallback so we always land AFTER load() finishes writing text.
+        requestAnimationFrame(() => requestAnimationFrame(measureAndSync));
+        setTimeout(measureAndSync, 600);
+        setTimeout(measureAndSync, 1500);
       }
 
       function openTrailerLightbox(key) {
@@ -1273,7 +1309,7 @@
         if (!id) return;
         let payload;
         try {
-          payload = await tmdbFetch(`/tv/${id}?language=en&append_to_response=credits,videos,keywords,external_ids`);
+          payload = await tmdbFetch(`/tv/${id}?language=en&append_to_response=credits,videos,keywords,external_ids,images&include_image_language=en,null`);
         } catch (error) {
           document.getElementById('title').textContent = 'TV show unavailable';
           document.getElementById('overview').textContent = 'We could not load this TV show right now. Please try again in a moment.';
@@ -1285,6 +1321,7 @@
         const videos = payload?.videos || {};
         const keywords = payload?.keywords || {};
         const externals = payload?.external_ids || {};
+        const imagesObj = payload?.images || {};
         document.getElementById('title').textContent = data.name || data.original_name || data.title || 'Untitled';
         const taglineEl = document.getElementById('tagline');
         if (taglineEl) {
@@ -1324,12 +1361,36 @@
           metaEl.innerHTML = metaItems.join('');
         }
 
-        // Set background image (different from poster) — use highest resolution with srcset
-        if (data.backdrop_path) {
-          setHeroBackdrop(data.backdrop_path);
+        // Pick a backdrop that is visually distinct from the poster.
+        // Priority:
+        //   1. data.backdrop_path (the media's "primary" backdrop)
+        //   2. any other backdrop from images.backdrops (skip the one that
+        //      matches the primary; if all are the same pick the next one)
+        //   3. nothing — render a stronger hero gradient with the poster only.
+        const hero = document.getElementById('heroBackground');
+        const posterPath = data.poster_path || '';
+        const isSameAsPoster = (p) => !!p && !!posterPath && p === posterPath;
+        const backdrops = Array.isArray(imagesObj.backdrops) ? imagesObj.backdrops : [];
+        let backdropPath = '';
+        if (data.backdrop_path && !isSameAsPoster(data.backdrop_path)) {
+          backdropPath = data.backdrop_path;
         } else {
-          // Fallback: poster as backdrop
-          if (data.poster_path) setHeroBackdrop(data.poster_path);
+          const alt = backdrops
+            .map((b) => b?.file_path)
+            .filter((p) => p && !isSameAsPoster(p))
+            .find(Boolean);
+          if (alt) backdropPath = alt;
+        }
+        if (backdropPath) {
+          if (hero) hero.classList.remove('is-no-backdrop');
+          setHeroBackdrop(backdropPath);
+        } else {
+          if (hero) hero.classList.add('is-no-backdrop');
+          // Clear any leftover inline backdrop image so it doesn't bleed through.
+          const backdropEl = document.getElementById('heroBackdrop');
+          const blurEl = document.getElementById('heroBackdropBlur');
+          if (backdropEl) backdropEl.style.backgroundImage = '';
+          if (blurEl) blurEl.style.backgroundImage = '';
         }
 
         // Set poster with responsive srcset
