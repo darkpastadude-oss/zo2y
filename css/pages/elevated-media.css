@@ -96,12 +96,12 @@
   background:
     linear-gradient(
       to bottom,
-      rgba(7, 9, 26, 0.92) 0%,
-      rgba(7, 9, 26, 0.55) 14%,
-      rgba(7, 9, 26, 0.18) 28%,
-      rgba(7, 9, 26, 0.05) 46%,
-      rgba(7, 9, 26, 0.45) 72%,
-      rgba(7, 9, 26, 0.92) 100%
+      rgba(7, 9, 26, 0.94) 0%,
+      rgba(7, 9, 26, 0.68) 12%,
+      rgba(7, 9, 26, 0.30) 26%,
+      rgba(7, 9, 26, 0.08) 44%,
+      rgba(7, 9, 26, 0.55) 66%,
+      rgba(7, 9, 26, 0.96) 100%
     );
 }
 
@@ -407,6 +407,25 @@
 }
 
 /* DESCRIPTION ------------------------------------------------- */
+.elevated-description-wrap {
+  position: relative;
+  max-width: 64ch;
+  margin: 0;
+  padding: 14px 18px 12px;
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(7, 9, 26, 0.72) 0%,
+    rgba(7, 9, 26, 0.58) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow:
+    0 8px 24px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
 .elevated-description {
   margin: 0;
   max-width: 64ch;
@@ -415,13 +434,23 @@
   color: var(--md-text-2);
   letter-spacing: 0.005em;
   position: relative;
+  display: block;
+  overflow: visible;
 }
 
+/* Bulletproof clamp: combines -webkit-line-clamp with max-height fallback
+   so the toggle button can always tell if text is overflowing. */
 .elevated-description.is-clamped {
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;
   -webkit-box-orient: vertical;
+  max-height: calc(1.7em * 4);
   overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
 }
 
 .elevated-readmore {
@@ -433,16 +462,23 @@
   border: 0;
   background: transparent;
   color: var(--md-accent-2);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
   text-transform: lowercase;
   transition: color 0.2s var(--md-ease);
+  font-family: inherit;
 }
 
 .elevated-readmore:hover {
   color: var(--md-text);
+}
+
+.elevated-readmore:focus-visible {
+  outline: 2px solid var(--md-accent);
+  outline-offset: 4px;
+  border-radius: 4px;
 }
 
 .elevated-readmore i {
@@ -513,6 +549,27 @@
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.32);
   color: var(--md-text);
+}
+
+.elevated-btn:focus-visible {
+  outline: 2px solid var(--md-accent);
+  outline-offset: 3px;
+}
+
+.elevated-btn:disabled,
+.elevated-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  transform: none;
+  box-shadow: none;
+}
+
+.elevated-btn:disabled:hover,
+.elevated-btn[disabled]:hover {
+  transform: none;
+  filter: grayscale(0.4);
+  box-shadow: none;
 }
 
 .elevated-btn-ghost {
@@ -770,6 +827,99 @@
   text-transform: lowercase;
 }
 
+/* TRAILER LIGHTBOX ------------------------------------------- */
+.elevated-trailer-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(12px, 4vw, 48px);
+  background: rgba(2, 4, 14, 0.78);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  animation: md-modal-in 0.25s var(--md-ease) both;
+}
+
+.elevated-trailer-modal[aria-hidden="false"] {
+  display: flex;
+}
+
+@keyframes md-modal-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.elevated-trailer-modal-frame {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  box-shadow:
+    0 30px 90px -20px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: md-modal-pop 0.35s var(--md-ease) both;
+}
+
+@keyframes md-modal-pop {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.elevated-trailer-modal-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.elevated-trailer-modal-close {
+  position: absolute;
+  top: clamp(-44px, -4vw, -52px);
+  right: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(20, 28, 56, 0.85);
+  color: var(--md-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--md-ease);
+  backdrop-filter: blur(6px);
+}
+
+.elevated-trailer-modal-close:hover {
+  background: var(--md-accent);
+  color: #0b1633;
+  border-color: var(--md-accent);
+  transform: scale(1.05);
+}
+
+.elevated-trailer-modal-close:focus-visible {
+  outline: 2px solid var(--md-accent);
+  outline-offset: 3px;
+}
+
+body.zo2y-trailer-open {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .elevated-trailer-modal-close {
+    top: -44px;
+    right: 0;
+  }
+}
+
 /* ============================================================
    ENTRY ANIMATION  —  subtle, not flashy
    ============================================================ */
@@ -892,6 +1042,18 @@
     max-width: 100%;
     font-size: 0.95rem;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .elevated-description-wrap {
+    max-width: 100%;
+    padding: 12px 14px 10px;
+  }
+
+  .elevated-description.is-clamped {
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    max-height: calc(1.7em * 3);
   }
 
   .elevated-actions {

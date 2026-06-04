@@ -679,8 +679,8 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b"></noscript>
-  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604c"></noscript>
+  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604e" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604e"></noscript>
 
   </head>
 <body class="elevated-media-page">
@@ -766,6 +766,16 @@
         <span class="elevated-section-sub" id="metaGridSub"></span>
       </div>
       <div class="elevated-details" id="metaGrid"></div>
+    </div>
+  </div>
+
+  <!-- Trailer lightbox -->
+  <div class="elevated-trailer-modal" id="trailerModal" role="dialog" aria-modal="true" aria-label="Trailer player" aria-hidden="true">
+    <div class="elevated-trailer-modal-frame">
+      <button class="elevated-trailer-modal-close" id="trailerModalClose" type="button" aria-label="Close trailer">
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+      </button>
+      <iframe id="trailerModalFrame" title="Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div>
   </div>
 
@@ -996,7 +1006,16 @@
         const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
         if (!overview || !toggle) return;
         const sync = () => {
-          const overflowing = overview.scrollHeight > overview.clientHeight + 4;
+          // Read scrollHeight BEFORE clamping is applied (otherwise we measure
+          // the clamped height, not the true overflow). We do this by temporarily
+          // removing the clamp, measuring, then re-applying.
+          const wasClamped = overview.classList.contains('is-clamped');
+          if (wasClamped) overview.classList.remove('is-clamped');
+          const fullHeight = overview.scrollHeight;
+          const visibleHeight = overview.clientHeight;
+          if (wasClamped) overview.classList.add('is-clamped');
+
+          const overflowing = fullHeight > visibleHeight + 4;
           if (!overflowing) {
             overview.classList.remove('is-clamped');
             toggle.hidden = true;
@@ -1013,24 +1032,58 @@
           sync();
         });
         window.addEventListener('resize', sync);
-        const observer = new MutationObserver(sync);
+        const observer = new MutationObserver(() => requestAnimationFrame(sync));
         observer.observe(overview, { childList: true, characterData: true, subtree: true });
-        sync();
+        // Run sync after the browser has laid out the freshly-injected overview text.
+        requestAnimationFrame(sync);
+      }
+
+      function openTrailerLightbox(key) {
+        if (!key) return;
+        const modal = document.getElementById('trailerModal');
+        const frame = document.getElementById('trailerModalFrame');
+        if (!modal || !frame) return;
+        frame.src = `https://www.youtube.com/embed/${encodeURIComponent(key)}?rel=0&autoplay=1&modestbranding=1`;
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zo2y-trailer-open');
+      }
+
+      function closeTrailerLightbox() {
+        const modal = document.getElementById('trailerModal');
+        const frame = document.getElementById('trailerModalFrame');
+        if (!modal || !frame) return;
+        modal.setAttribute('aria-hidden', 'true');
+        frame.src = '';
+        document.body.classList.remove('zo2y-trailer-open');
+      }
+
+      function wireTrailerLightbox() {
+        const modal = document.getElementById('trailerModal');
+        const closeBtn = document.getElementById('trailerModalClose');
+        if (closeBtn) closeBtn.addEventListener('click', closeTrailerLightbox);
+        if (modal) {
+          modal.addEventListener('click', (event) => {
+            if (event.target === modal) closeTrailerLightbox();
+          });
+        }
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeTrailerLightbox();
+        });
       }
 
       function wireHeroActions() {
         const trailerBtn = document.getElementById('watchTrailerBtn');
         if (trailerBtn) {
           trailerBtn.addEventListener('click', () => {
-            const trailer = document.getElementById('trailer');
-            if (trailer) {
-              const frame = trailer.querySelector('.elevated-trailer-frame, .video-frame');
-              if (frame) {
-                frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-              }
+            const key = trailerBtn.dataset.trailerKey;
+            if (key) {
+              openTrailerLightbox(key);
+              return;
             }
-            window.dispatchEvent(new CustomEvent('zo2y:scroll-trailer'));
+            // No trailer: scroll to the trailer section so the user sees the
+            // "no trailer available" placeholder rather than feeling a dead click.
+            const trailer = document.getElementById('trailer');
+            if (trailer) trailer.scrollIntoView({ behavior: 'smooth', block: 'center' });
           });
         }
         const watchlistBtn = document.getElementById('addWatchlistBtn');
@@ -1338,6 +1391,17 @@
           trailerEl.innerHTML = trailer
             ? `<div class="elevated-trailer-frame"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(trailer.key)}?rel=0" title="Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
             : '<div class="elevated-trailer-empty"><i class="fas fa-video-slash"></i> no trailer available</div>';
+          const trailerBtn = document.getElementById('watchTrailerBtn');
+          if (trailerBtn) {
+            if (trailer && trailer.key) {
+              trailerBtn.dataset.trailerKey = trailer.key;
+              trailerBtn.removeAttribute('disabled');
+            } else {
+              delete trailerBtn.dataset.trailerKey;
+              trailerBtn.setAttribute('disabled', 'true');
+              trailerBtn.setAttribute('title', 'No trailer available');
+            }
+          }
         }
         const directors = (credits.crew || []).filter(p => p.job === 'Director').slice(0, 3);
         const writers = (credits.crew || []).filter(p => ['Writer', 'Screenplay', 'Story'].includes(p.job)).slice(0, 6);
@@ -2088,6 +2152,7 @@ const url = new URL('movies.html?v=20260601b', window.location.href);
         initPageSearch();
         bindUnifiedListMenu();
         wireOverviewToggle();
+        wireTrailerLightbox();
         wireHeroActions();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
