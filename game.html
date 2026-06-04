@@ -729,12 +729,14 @@
     <div class="elevated-hero-backdrop" id="heroBackdrop" aria-hidden="true"></div>
     <div class="elevated-hero-blur" id="heroBackdropBlur" aria-hidden="true"></div>
     <div class="elevated-hero-grain" aria-hidden="true"></div>
+    <div class="elevated-hero-watermark" id="heroWatermark" aria-hidden="true"></div>
     <div class="elevated-hero-foreground">
       <div class="elevated-poster-frame" id="posterFrame" aria-label="Game cover">
         <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Game cover" loading="lazy" decoding="async" referrerpolicy="no-referrer">
-        <div class="elevated-poster-fallback" aria-hidden="true">
-          <i class="fas fa-gamepad"></i>
-          no cover
+        <div class="elevated-poster-fallback" id="posterFallback" aria-hidden="true">
+          <i class="fas fa-gamepad elevated-poster-fallback-icon" id="posterFallbackIcon"></i>
+          <div class="elevated-poster-fallback-title" id="posterFallbackTitle"></div>
+          <div class="elevated-poster-fallback-label">no cover available</div>
         </div>
       </div>
       <div class="elevated-info">
@@ -1192,6 +1194,12 @@
               openTrailerLightbox(key);
               return;
             }
+            // No clip in our catalog — fall back to a YouTube search.
+            const searchUrl = trailerBtn.dataset.searchUrl;
+            if (searchUrl) {
+              window.open(searchUrl, '_blank', 'noopener');
+              return;
+            }
             const trailer = document.getElementById('trailer');
             if (trailer) trailer.scrollIntoView({ behavior: 'smooth', block: 'center' });
           });
@@ -1225,6 +1233,150 @@
         const m3 = raw.match(/embed\/([^?&]+)/);
         if (m3) return m3[1];
         return '';
+      }
+
+      // Deterministic 32-bit hash of a string — used to derive a consistent
+      // color palette per game title for the procedural art fallback.
+      function hashString(str) {
+        let hash = 0;
+        const s = String(str || '');
+        for (let i = 0; i < s.length; i++) {
+          hash = ((hash << 5) - hash) + s.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      // Build a color palette for the procedural cover/background based on
+      // the game title. Same title always produces the same colors, so the
+      // generated art is stable and recognizable.
+      function getProceduralPalette(title) {
+        const hash = hashString(title);
+        const hue1 = hash % 360;
+        const hue2 = (hash * 7 + 53) % 360;
+        const hue3 = (hash * 13 + 97) % 360;
+        return {
+          c1: `hsl(${hue1}, 38%, 14%)`,
+          c2: `hsl(${hue2}, 32%, 9%)`,
+          c3: `hsl(${hue3}, 45%, 5%)`,
+          glowA: `hsla(${hue1}, 80%, 60%, 0.42)`,
+          glowASoft: `hsla(${hue1}, 80%, 60%, 0.10)`,
+          glowB: `hsla(${hue2}, 70%, 55%, 0.36)`,
+          glowBSoft: `hsla(${hue2}, 70%, 55%, 0.08)`,
+          initial: (String(title || '?').trim().charAt(0) || '?').toUpperCase()
+        };
+      }
+
+      // Apply the procedural palette as CSS custom properties on a root
+      // element so the CSS can pick them up. Also paints the watermark
+      // (a giant faded initial) and the poster-fallback title.
+      function applyProceduralPalette(title) {
+        const palette = getProceduralPalette(title);
+        const hero = document.getElementById('heroBackground');
+        const fallback = document.getElementById('posterFallback');
+        const fallbackTitle = document.getElementById('posterFallbackTitle');
+        const watermark = document.getElementById('heroWatermark');
+
+        const vars = [
+          '--md-fallback-c1', palette.c1,
+          '--md-fallback-c2', palette.c2,
+          '--md-fallback-c3', palette.c3,
+          '--md-fallback-glow-a', palette.glowA,
+          '--md-fallback-glow-a-soft', palette.glowASoft,
+          '--md-fallback-glow-b', palette.glowB,
+          '--md-fallback-glow-b-soft', palette.glowBSoft
+        ];
+        if (hero) vars.forEach((_, i) => i % 2 === 0 && hero.style.setProperty(vars[i], vars[i + 1]));
+        if (fallback) vars.forEach((_, i) => i % 2 === 0 && fallback.style.setProperty(vars[i], vars[i + 1]));
+        if (fallback) fallback.style.setProperty('--md-fallback-initial', `"${palette.initial}"`);
+        if (fallbackTitle) fallbackTitle.textContent = String(title || 'Untitled');
+        if (watermark) watermark.textContent = String(title || '').toUpperCase();
+        return palette;
+      }
+
+      // Build a YouTube search URL for the game's trailer.
+      function getYouTubeSearchUrl(title) {
+        const q = encodeURIComponent(`${String(title || '').trim()} game trailer`);
+        return `https://www.youtube.com/results?search_query=${q}`;
+      }
+
+      // Render a graceful "not found" state when the game doesn't exist
+      // in the local catalog. Includes a search box and external links
+      // so the user can still find the game elsewhere.
+      function renderGameNotFound() {
+        const hero = document.getElementById('heroBackground');
+        const heroEl = document.getElementById('heroBackground');
+        const contentArea = document.querySelector('.elevated-content');
+        const metaGrid = document.getElementById('metaGrid');
+
+        if (hero) {
+          hero.classList.add('is-no-backdrop');
+          // Build a procedural palette even when we have no title so the
+          // page doesn't look like a blank error.
+          applyProceduralPalette('Game');
+        }
+
+        if (metaGrid) {
+          metaGrid.innerHTML = '';
+          metaGrid.className = 'elevated-notfound';
+          metaGrid.innerHTML = `
+            <div class="elevated-notfound-icon"><i class="fas fa-gamepad"></i></div>
+            <h2 class="elevated-notfound-title">we couldn't find this game</h2>
+            <p class="elevated-notfound-sub">It might be a new release or a title we haven't added to the catalog yet. Try searching for it below, or jump to the games page to browse the full library.</p>
+            <form class="elevated-notfound-search" id="notfoundSearchForm" role="search">
+              <input type="search" id="notfoundSearchInput" placeholder="search games..." aria-label="Search games" autocomplete="off">
+              <button type="submit"><i class="fas fa-search"></i> search</button>
+            </form>
+            <div class="elevated-notfound-external">
+              <a href="games.html"><i class="fas fa-th-large"></i> browse all games</a>
+              <a href="https://www.igdb.com/search" target="_blank" rel="noopener"><i class="fas fa-database"></i> search igdb</a>
+              <a href="https://store.steampowered.com/search/?term=${encodeURIComponent('')}" target="_blank" rel="noopener" id="notfoundSteam"><i class="fab fa-steam"></i> search steam</a>
+            </div>
+          `;
+        }
+
+        // Wire the search form to redirect to games.html with the query.
+        const form = document.getElementById('notfoundSearchForm');
+        const input = document.getElementById('notfoundSearchInput');
+        if (form && input) {
+          form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const q = String(input.value || '').trim();
+            if (q) {
+              window.location.href = `games.html?search=${encodeURIComponent(q)}`;
+            } else {
+              window.location.href = 'games.html';
+            }
+          });
+        }
+
+        // Hide the other sections — they don't have data.
+        const trailerSection = document.getElementById('trailer');
+        if (trailerSection) trailerSection.closest('.elevated-section').style.display = 'none';
+        ['directors', 'writers', 'cast', 'details'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.closest('.elevated-section').style.display = 'none';
+        });
+        // Show the overview/poster as a friendly message instead of empty fields.
+        const titleEl = document.getElementById('title');
+        if (titleEl) titleEl.textContent = 'Game not found';
+        const overviewEl = document.getElementById('overview');
+        if (overviewEl) {
+          overviewEl.textContent = 'This game isn\'t in our catalog yet. Browse the games page or use the search above to find it.';
+        }
+        const taglineEl = document.getElementById('tagline');
+        if (taglineEl) taglineEl.hidden = true;
+        const metaEl = document.getElementById('meta');
+        if (metaEl) metaEl.innerHTML = '';
+        const tagsEl = document.getElementById('tags');
+        if (tagsEl) tagsEl.innerHTML = '';
+        const trailerBtn = document.getElementById('watchTrailerBtn');
+        if (trailerBtn) {
+          trailerBtn.setAttribute('disabled', 'true');
+          trailerBtn.setAttribute('title', 'Game not found');
+        }
+        const posterFrame = document.getElementById('posterFrame');
+        if (posterFrame) posterFrame.classList.add('is-missing');
       }
 
       function normalizeNameList(input, nestedKey = '') {
@@ -1362,7 +1514,13 @@
       async function load() {
         if (!Number.isFinite(gameId)) return;
         const data = await fetchCatalogGameById();
-        if (!data) throw new Error('Game not found');
+        if (!data) {
+          // Game isn't in the local catalog — render a graceful fallback
+          // instead of throwing. The user can search for the game or jump
+          // to external sources.
+          renderGameNotFound();
+          return;
+        }
 
         const extra = data.extra && typeof data.extra === 'object' ? data.extra : {};
         const title = String(data.title || 'Untitled').trim() || 'Untitled';
@@ -1371,6 +1529,10 @@
         const playtime = Number(extra.playtime || 0);
         const rating = typeof data.rating === 'number' ? data.rating : null;
         const ratingCount = Number(data.rating_count || 0);
+
+        // Apply the procedural palette as early as possible so even
+        // before data renders, the hero/poster fallbacks have colors.
+        applyProceduralPalette(title);
 
         document.getElementById('title').textContent = title;
         const overviewEl = document.getElementById('overview');
@@ -1486,24 +1648,37 @@
           metaGrid.className = 'elevated-details';
         }
 
-        // Trailer / clip — find a YouTube key
+        // Trailer / clip — find a YouTube key, fall back to a YouTube search link
         const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
         const youtubeId = extractYouTubeKey(trailerUrl);
         const trailerEl = document.getElementById('trailer');
         if (trailerEl) {
-          trailerEl.innerHTML = youtubeId
-            ? `<div class="elevated-trailer-frame"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}?rel=0" title="Game clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
-            : '<div class="elevated-trailer-empty"><i class="fas fa-video-slash"></i> no clip available</div>';
+          if (youtubeId) {
+            trailerEl.innerHTML = `<div class="elevated-trailer-frame"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(youtubeId)}?rel=0" title="Game clip" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+          } else {
+            const searchUrl = getYouTubeSearchUrl(title);
+            trailerEl.innerHTML = `
+              <div class="elevated-trailer-empty">
+                <div class="elevated-trailer-empty-line"><i class="fas fa-video-slash"></i> no clip in our catalog</div>
+                <a class="elevated-trailer-search-btn" href="${searchUrl}" target="_blank" rel="noopener">
+                  <i class="fab fa-youtube"></i> search youtube for "${escapeHtml(title)} trailer"
+                </a>
+              </div>
+            `;
+          }
         }
         const trailerBtn = document.getElementById('watchTrailerBtn');
         if (trailerBtn) {
           if (youtubeId) {
             trailerBtn.dataset.trailerKey = youtubeId;
             trailerBtn.removeAttribute('disabled');
+            trailerBtn.removeAttribute('title');
+            delete trailerBtn.dataset.searchUrl;
           } else {
             delete trailerBtn.dataset.trailerKey;
-            trailerBtn.setAttribute('disabled', 'true');
-            trailerBtn.setAttribute('title', 'No clip available');
+            trailerBtn.removeAttribute('disabled');
+            trailerBtn.dataset.searchUrl = getYouTubeSearchUrl(title);
+            trailerBtn.setAttribute('title', 'Search YouTube for this trailer');
           }
         }
 

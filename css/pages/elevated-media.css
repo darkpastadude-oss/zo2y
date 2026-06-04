@@ -93,17 +93,63 @@
   background:
     radial-gradient(
       ellipse 70% 50% at 22% 40%,
-      rgba(245, 158, 11, 0.18) 0%,
-      rgba(245, 158, 11, 0.05) 40%,
+      var(--md-fallback-glow-a, rgba(245, 158, 11, 0.22)) 0%,
+      var(--md-fallback-glow-a-soft, rgba(245, 158, 11, 0.06)) 40%,
       transparent 70%
     ),
     radial-gradient(
       ellipse 60% 50% at 78% 60%,
-      rgba(99, 102, 241, 0.16) 0%,
-      rgba(99, 102, 241, 0.04) 45%,
+      var(--md-fallback-glow-b, rgba(99, 102, 241, 0.20)) 0%,
+      var(--md-fallback-glow-b-soft, rgba(99, 102, 241, 0.05)) 45%,
       transparent 75%
     ),
-    linear-gradient(135deg, #0a0f24 0%, #0e1530 50%, #07091a 100%);
+    linear-gradient(135deg, var(--md-fallback-c1, #0a0f24) 0%, var(--md-fallback-c2, #0e1530) 50%, var(--md-fallback-c3, #07091a) 100%);
+  position: relative;
+}
+
+/* Procedural hero background — a giant faded title watermark + gamepad
+   silhouette so the hero never looks empty when no backdrop exists. */
+.elevated-hero.is-no-backdrop::before {
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 22% 40%,
+      var(--md-fallback-glow-a, rgba(245, 158, 11, 0.22)) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 78% 60%,
+      var(--md-fallback-glow-b, rgba(99, 102, 241, 0.20)) 0%,
+      transparent 75%
+    );
+  z-index: 0;
+}
+
+.elevated-hero.is-no-backdrop .elevated-hero-watermark {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4%;
+  font-size: clamp(140px, 22vw, 360px);
+  font-weight: 900;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.05);
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.82;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.elevated-hero.is-no-backdrop .elevated-hero-watermark i {
+  font-size: clamp(180px, 28vw, 440px);
+  color: rgba(255, 255, 255, 0.04);
+  transform: rotate(-8deg);
 }
 
 .elevated-hero.is-no-backdrop .elevated-hero-backdrop,
@@ -271,21 +317,91 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  gap: 10px;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: var(--md-text-3);
+  color: rgba(255, 255, 255, 0.75);
   letter-spacing: 0.04em;
   text-transform: lowercase;
-  background: linear-gradient(180deg, #1a2447, #0a0f24);
+  background:
+    radial-gradient(circle at 30% 20%, var(--md-fallback-glow-a, rgba(245, 158, 11, 0.35)) 0%, transparent 55%),
+    radial-gradient(circle at 70% 80%, var(--md-fallback-glow-b, rgba(99, 102, 241, 0.35)) 0%, transparent 55%),
+    linear-gradient(135deg, var(--md-fallback-c1, #1a2447) 0%, var(--md-fallback-c2, #0a0f24) 100%);
   text-align: center;
-  padding: 0 16px;
+  padding: 0 18px;
+  overflow: hidden;
+}
+
+.elevated-poster-fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.04) 0 2px,
+      transparent 2px 14px
+    );
+  pointer-events: none;
+}
+
+.elevated-poster-fallback::after {
+  content: "";
+  position: absolute;
+  left: -25%;
+  bottom: -35%;
+  width: 150%;
+  height: 80%;
+  font-size: clamp(120px, 18vw, 220px);
+  font-weight: 900;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  content: var(--md-fallback-initial, "?");
+  line-height: 0.85;
+}
+
+.elevated-poster-fallback-icon {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(28px, 5vw, 40px);
+  color: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+}
+
+.elevated-poster-fallback-title {
+  position: relative;
+  z-index: 1;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.35;
+  max-width: 16ch;
+  word-break: break-word;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+
+.elevated-poster-fallback-label {
+  position: relative;
+  z-index: 1;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .elevated-poster-fallback i {
   font-size: 28px;
-  margin-bottom: 8px;
   display: block;
-  color: var(--md-text-3);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .elevated-poster-frame.is-missing .elevated-poster-fallback {
@@ -872,9 +988,10 @@
 
 .elevated-trailer-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
   aspect-ratio: 16 / 9;
   border-radius: 12px;
@@ -884,6 +1001,166 @@
   font-size: 0.9rem;
   font-weight: 500;
   text-transform: lowercase;
+  text-align: center;
+  padding: 16px;
+}
+
+.elevated-trailer-empty-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.elevated-trailer-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--md-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: lowercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s var(--md-ease);
+}
+
+.elevated-trailer-search-btn:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: var(--md-text);
+  transform: translateY(-1px);
+}
+
+.elevated-trailer-search-btn i {
+  color: var(--md-accent);
+  font-size: 0.95em;
+}
+
+/* GAME NOT FOUND state -------------------------------------- */
+.elevated-notfound {
+  width: min(680px, 100% - 32px);
+  margin: 0 auto;
+  padding: 48px 28px 56px;
+  text-align: center;
+}
+
+.elevated-notfound-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(99, 102, 241, 0.18));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--md-text);
+  font-size: 32px;
+  margin-bottom: 22px;
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.elevated-notfound-title {
+  margin: 0 0 10px;
+  font-size: clamp(1.4rem, 3.2vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--md-text);
+}
+
+.elevated-notfound-sub {
+  margin: 0 auto 24px;
+  max-width: 48ch;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--md-text-2);
+}
+
+.elevated-notfound-search {
+  display: flex;
+  gap: 8px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.elevated-notfound-search input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--md-text);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s var(--md-ease), background 0.2s var(--md-ease);
+}
+
+.elevated-notfound-search input:focus {
+  border-color: var(--md-accent);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.elevated-notfound-search input::placeholder {
+  color: var(--md-text-3);
+}
+
+.elevated-notfound-search button {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 0;
+  background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+  color: #0b1633;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s var(--md-ease), box-shadow 0.2s var(--md-ease);
+}
+
+.elevated-notfound-search button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -8px rgba(245, 158, 11, 0.55);
+}
+
+.elevated-notfound-external {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.elevated-notfound-external a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--md-text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-transform: lowercase;
+  transition: all 0.2s var(--md-ease);
+}
+
+.elevated-notfound-external a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--md-text);
+}
+
+@media (max-width: 600px) {
+  .elevated-notfound-search {
+    flex-direction: column;
+  }
+  .elevated-notfound-search button {
+    width: 100%;
+  }
 }
 
 /* TRAILER LIGHTBOX ------------------------------------------- */
