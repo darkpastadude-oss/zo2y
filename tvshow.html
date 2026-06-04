@@ -679,8 +679,8 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260601b"></noscript>
-  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604a"></noscript>
+  <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260604c"></noscript>
 
   </head>
 <body class="elevated-media-page">
@@ -715,65 +715,91 @@
 
   <!-- Hero section with background image -->
   <div class="elevated-hero" id="heroBackground">
-    <div class="elevated-content">
-      <div class="elevated-hero-content">
-        <div class="elevated-poster-section">
-          <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy">
+    <div class="elevated-hero-backdrop" id="heroBackdrop" aria-hidden="true"></div>
+    <div class="elevated-hero-blur" id="heroBackdropBlur" aria-hidden="true"></div>
+    <div class="elevated-hero-grain" aria-hidden="true"></div>
+    <div class="elevated-hero-foreground">
+      <div class="elevated-poster-frame" id="posterFrame" aria-label="Media poster">
+        <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async">
+        <div class="elevated-poster-fallback" aria-hidden="true">
+          <i class="fas fa-image"></i>
+          no poster
         </div>
-        <div class="elevated-info">
-          <div class="title-row">
-            <h1 id="title" class="elevated-title">Loading...</h1>
-            <div class="menu-wrapper">
-              <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-              <div class="list-menu" id="movieListMenu">
-                <div class="list-menu-title">Save to list</div>
-                <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-                <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-              </div>
+      </div>
+      <div class="elevated-info">
+        <div class="elevated-title-row">
+          <h1 id="title" class="elevated-title">Loading...</h1>
+          <div class="menu-wrapper">
+            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists" title="Save to list"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="list-menu" id="movieListMenu">
+              <div class="list-menu-title">Save to list</div>
+              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
+              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
             </div>
           </div>
-          <div id="meta" class="elevated-meta"></div>
-          <div id="tags" class="elevated-tags"></div>
-          <p id="overview" class="elevated-description"></p>
-          <div class="elevated-actions">
-            <button class="elevated-btn elevated-btn-primary"><i class="fas fa-play"></i> Watch Trailer</button>
-            <button class="elevated-btn elevated-btn-secondary"><i class="fas fa-plus"></i> Add to Watchlist</button>
-          </div>
+        </div>
+        <p id="tagline" class="elevated-tagline" hidden></p>
+        <div id="meta" class="elevated-meta" aria-label="Media metadata"></div>
+        <div id="tags" class="elevated-tags" aria-label="Genres"></div>
+        <div class="elevated-description-wrap">
+          <p id="overview" class="elevated-description is-clamped"></p>
+          <button class="elevated-readmore" id="overviewToggle" type="button" aria-expanded="false" aria-controls="overview">
+            <span class="elevated-readmore-label">read more</span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="elevated-actions">
+          <button class="elevated-btn elevated-btn-primary" id="watchTrailerBtn" type="button"><i class="fas fa-play"></i> Watch Trailer</button>
+          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to Watchlist</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Details section -->
+  <!-- Quick facts grid -->
   <div class="elevated-content">
-    <div class="elevated-details-wrapper">
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Quick facts</h3>
+        <span class="elevated-section-sub" id="metaGridSub"></span>
+      </div>
       <div class="elevated-details" id="metaGrid"></div>
     </div>
   </div>
 
-  <!-- Additional sections -->
+  <!-- Trailer + more details + cast -->
   <div class="elevated-content">
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Details</h3>
-      <div id="details" class="list-stack"></div>
-    </div>
-    <div class="elevated-section">
-      <h3 class="elevated-section-title">Trailer</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Trailer</h3>
+      </div>
       <div id="trailer"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Creator</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Cast</h3>
+      </div>
+      <div id="cast" class="elevated-people-list"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Creator</h3>
+      </div>
       <div id="directors" class="elevated-people-list"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Seasons</h3>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Seasons</h3>
+      </div>
       <div id="writers" class="elevated-people-list"></div>
     </div>
     <div class="elevated-section">
-      <h3 class="elevated-section-title">Cast</h3>
-      <div id="cast" class="elevated-people-list"></div>
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Details</h3>
+      </div>
+      <div id="details" class="elevated-list"></div>
     </div>
   </div>
 
@@ -858,7 +884,9 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim();
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
       const TMDB_PROXY_BASE = '/api/tmdb';
-      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p';
+      const BACKDROP_SIZES = ['w300', 'w780', 'w1280', 'original'];
+      const POSTER_SIZES = ['w185', 'w342', 'w500', 'w780', 'original'];
       const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const tvId = id ? Number(id) : null;
@@ -881,6 +909,146 @@
         if (normalized.startsWith('//')) normalized = `https:${normalized}`;
         normalized = normalized.replace(/^http:\/\//i, 'https://');
         return normalized;
+      }
+
+      function formatCount(n) {
+        const num = Number(n) || 0;
+        if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+        if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k';
+        return String(num);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function buildBackdropUrl(path, size) {
+        return `${POSTER_BASE}/${size}${path}`;
+      }
+
+      function buildBackdropSrcset(path) {
+        if (!path) return '';
+        return BACKDROP_SIZES.map((size) => `${buildBackdropUrl(path, size)} ${size === 'original' ? '2000w' : size.replace('w', '') + 'w'}`).join(', ');
+      }
+
+      function buildPosterSrcset(path) {
+        if (!path) return '';
+        return POSTER_SIZES.map((size) => `${POSTER_BASE}/${size}${path} ${size === 'original' ? '1000w' : size.replace('w', '') + 'w'}`).join(', ');
+      }
+
+      function setHeroBackdrop(path) {
+        if (!path) return;
+        const backdrop = document.getElementById('heroBackdrop');
+        const blur = document.getElementById('heroBackdropBlur');
+        const hero = document.getElementById('heroBackground');
+        if (!backdrop || !hero) return;
+        const primary = buildBackdropUrl(path, 'w1280');
+        backdrop.style.backgroundImage = `url("${primary}")`;
+        if (blur) blur.style.backgroundImage = `url("${primary}")`;
+        const img = new Image();
+        img.onload = () => {
+          hero.classList.add('is-loaded');
+        };
+        img.onerror = () => {
+          hero.classList.add('is-loaded');
+        };
+        img.src = primary;
+      }
+
+      function setPosterImage(path) {
+        const posterEl = document.getElementById('poster');
+        const frame = document.getElementById('posterFrame');
+        if (!posterEl) return;
+        if (!path) {
+          posterEl.style.display = 'none';
+          if (frame) frame.classList.add('is-missing');
+          return;
+        }
+        const primary = buildBackdropUrl(path, 'w500');
+        const fallback = buildBackdropUrl(path, 'w342');
+        const srcset = buildPosterSrcset(path);
+        posterEl.src = primary;
+        if (srcset) posterEl.srcset = srcset;
+        posterEl.sizes = '(max-width: 760px) 168px, (max-width: 1024px) 220px, 280px';
+        posterEl.onerror = () => {
+          posterEl.onerror = null;
+          if (fallback && posterEl.src !== fallback) {
+            posterEl.src = fallback;
+            return;
+          }
+          posterEl.style.display = 'none';
+          if (frame) frame.classList.add('is-missing');
+        };
+        posterEl.addEventListener('load', () => {
+          if (frame) frame.classList.remove('is-missing');
+          posterEl.style.display = '';
+        }, { once: true });
+      }
+
+      function wireOverviewToggle() {
+        const overview = document.getElementById('overview');
+        const toggle = document.getElementById('overviewToggle');
+        const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
+        if (!overview || !toggle) return;
+        const sync = () => {
+          const overflowing = overview.scrollHeight > overview.clientHeight + 4;
+          if (!overflowing) {
+            overview.classList.remove('is-clamped');
+            toggle.hidden = true;
+            return;
+          }
+          toggle.hidden = false;
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          overview.classList.toggle('is-clamped', !expanded);
+          if (label) label.textContent = expanded ? 'show less' : 'read more';
+        };
+        toggle.addEventListener('click', () => {
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+          sync();
+        });
+        window.addEventListener('resize', sync);
+        const observer = new MutationObserver(sync);
+        observer.observe(overview, { childList: true, characterData: true, subtree: true });
+        sync();
+      }
+
+      function wireHeroActions() {
+        const trailerBtn = document.getElementById('watchTrailerBtn');
+        if (trailerBtn) {
+          trailerBtn.addEventListener('click', () => {
+            const trailer = document.getElementById('trailer');
+            if (trailer) {
+              const frame = trailer.querySelector('.elevated-trailer-frame, .video-frame');
+              if (frame) {
+                frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+              }
+            }
+            window.dispatchEvent(new CustomEvent('zo2y:scroll-trailer'));
+          });
+        }
+        const watchlistBtn = document.getElementById('addWatchlistBtn');
+        if (watchlistBtn) {
+          watchlistBtn.addEventListener('click', async () => {
+            const result = await toggleList('watchlist');
+            if (result && typeof result.saved === 'boolean') {
+              const icon = watchlistBtn.querySelector('i');
+              const text = watchlistBtn.childNodes[watchlistBtn.childNodes.length - 1];
+              if (icon) {
+                icon.className = result.saved ? 'fas fa-check' : 'fas fa-bookmark';
+              }
+              if (text && text.nodeType === 3) {
+                text.textContent = result.saved ? ' in watchlist' : ' add to watchlist';
+              }
+            }
+          });
+        }
       }
 
       async function tmdbFetch(path) {
@@ -1065,8 +1233,17 @@
         const keywords = payload?.keywords || {};
         const externals = payload?.external_ids || {};
         document.getElementById('title').textContent = data.name || data.original_name || data.title || 'Untitled';
+        const taglineEl = document.getElementById('tagline');
+        if (taglineEl) {
+          if (data.tagline && String(data.tagline).trim()) {
+            taglineEl.textContent = data.tagline.trim();
+            taglineEl.hidden = false;
+          } else {
+            taglineEl.hidden = true;
+          }
+        }
         document.getElementById('overview').textContent = data.overview || 'No description available.';
-        
+
         // Set elevated meta with icons
         const metaEl = document.getElementById('meta');
         if (metaEl) {
@@ -1076,46 +1253,57 @@
             metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-calendar"></i> ${date.slice(0, 4)}</div>`);
           }
           if (Array.isArray(data.episode_run_time) && data.episode_run_time.length) {
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> ${data.episode_run_time[0]} min</div>`);
+            const runtime = data.episode_run_time[0];
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> ${runtime} min</div>`);
           }
           if (data.vote_average) {
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-star"></i> ${data.vote_average.toFixed(1)}</div>`);
+            const votes = data.vote_count ? `<span class="elevated-meta-votes">(${formatCount(data.vote_count)})</span>` : '';
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-star"></i> <span class="elevated-meta-rating">${data.vote_average.toFixed(1)}</span>${votes}</div>`);
+          }
+          if (data.status) {
+            const statusBadge = String(data.status).toLowerCase();
+            const accent = statusBadge.includes('returning') || statusBadge.includes('continuing');
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-circle" style="color:${accent ? 'var(--md-success)' : 'var(--md-text-3)'};font-size:0.6em;"></i> ${escapeHtml(data.status)}</div>`);
+          }
+          if (data.number_of_seasons) {
+            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-layer-group"></i> ${data.number_of_seasons} season${data.number_of_seasons === 1 ? '' : 's'}</div>`);
           }
           metaEl.innerHTML = metaItems.join('');
         }
-        
-        // Set background image (different from poster)
-        const heroBg = document.getElementById('heroBackground');
-        if (heroBg && data.backdrop_path) {
-          heroBg.style.backgroundImage = `url('${optimizeRemoteImage(POSTER_BASE + data.backdrop_path, { width: 1920, quality: 60, fit: 'cover' })}')`;
+
+        // Set background image (different from poster) — use highest resolution with srcset
+        if (data.backdrop_path) {
+          setHeroBackdrop(data.backdrop_path);
+        } else {
+          // Fallback: poster as backdrop
+          if (data.poster_path) setHeroBackdrop(data.poster_path);
         }
-        
-        const posterEl = document.getElementById('poster');
-        if (posterEl) {
-          posterEl.src = data.poster_path
-            ? optimizeRemoteImage(POSTER_BASE + data.poster_path, { width: 560, quality: 74, fit: 'contain' })
-            : 'images/placeholder.jpg';
-          posterEl.onerror = () => {
-            posterEl.onerror = null;
-            posterEl.src = 'images/placeholder.jpg';
-          };
-        }
+
+        // Set poster with responsive srcset
+        setPosterImage(data.poster_path);
+
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
-          tags.innerHTML = data.genres.map(g => `<span class="elevated-tag">${g.name}</span>`).join('');
+          tags.innerHTML = data.genres.map(g => `<span class="elevated-tag">${escapeHtml(g.name)}</span>`).join('');
+        } else if (tags) {
+          tags.innerHTML = '';
         }
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (data.original_language) items.push({ title: 'Language', value: data.original_language.toUpperCase() });
-          if (data.status) items.push({ title: 'Status', value: data.status });
-          if (typeof data.vote_average === 'number') items.push({ title: 'Rating', value: `${data.vote_average.toFixed(1)} (${data.vote_count || 0})` });
-          if (typeof data.popularity === 'number') items.push({ title: 'Popularity', value: Math.round(data.popularity) });
-          if (data.number_of_seasons) items.push({ title: 'Seasons', value: data.number_of_seasons });
-          if (data.number_of_episodes) items.push({ title: 'Episodes', value: data.number_of_episodes });
+          if (data.original_language) items.push({ icon: 'fas fa-globe', title: 'Original Language', value: data.original_language.toUpperCase() });
+          if (data.status) items.push({ icon: 'fas fa-circle-info', title: 'Status', value: data.status });
+          if (typeof data.vote_average === 'number' && data.vote_average > 0) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${data.vote_average.toFixed(1)} <span style="color:var(--md-text-3);font-weight:500;">(${formatCount(data.vote_count || 0)})</span>` });
+          if (typeof data.popularity === 'number') items.push({ icon: 'fas fa-fire', title: 'Popularity', value: formatCount(Math.round(data.popularity)) });
+          if (data.number_of_seasons) items.push({ icon: 'fas fa-layer-group', title: 'Seasons', value: data.number_of_seasons });
+          if (data.number_of_episodes) items.push({ icon: 'fas fa-film', title: 'Episodes', value: data.number_of_episodes });
+          if (data.type) items.push({ icon: 'fas fa-tv', title: 'Type', value: data.type });
+          if (Array.isArray(data.genres) && data.genres[0]) items.push({ icon: 'fas fa-masks-theater', title: 'Primary Genre', value: data.genres[0].name });
+          if (Array.isArray(data.origin_country) && data.origin_country[0]) items.push({ icon: 'fas fa-flag', title: 'Origin', value: data.origin_country.join(', ') });
+          if (data.original_name && data.original_name !== data.name) items.push({ icon: 'fas fa-language', title: 'Original Title', value: data.original_name });
           metaGrid.innerHTML = items.map(i => `
             <div class="elevated-detail-card">
-              <div class="elevated-detail-title">${i.title}</div>
+              <div class="elevated-detail-title"><i class="${i.icon}"></i> ${escapeHtml(i.title)}</div>
               <div class="elevated-detail-value">${i.value}</div>
             </div>
           `).join('');
@@ -1123,70 +1311,71 @@
         const detailsEl = document.getElementById('details');
         if (detailsEl) {
           const detailRows = [];
-          if (data.tagline) detailRows.push(`<div class="list-row"><span class="list-label">Tagline:</span> ${data.tagline}</div>`);
+          if (data.tagline) detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Tagline</span><span class="elevated-list-value">${escapeHtml(data.tagline)}</span></div>`);
           if (Array.isArray(data.production_companies) && data.production_companies.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Studios:</span> ${data.production_companies.map(c => c.name).join(', ')}</div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Studios</span><span class="elevated-list-value">${data.production_companies.map(c => escapeHtml(c.name)).join(', ')}</span></div>`);
           }
           if (Array.isArray(data.production_countries) && data.production_countries.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Countries:</span> ${data.production_countries.map(c => c.name).join(', ')}</div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Countries</span><span class="elevated-list-value">${data.production_countries.map(c => escapeHtml(c.name)).join(', ')}</span></div>`);
           }
           if (Array.isArray(data.spoken_languages) && data.spoken_languages.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Languages:</span> ${data.spoken_languages.map(l => l.english_name || l.name).join(', ')}</div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Languages</span><span class="elevated-list-value">${data.spoken_languages.map(l => escapeHtml(l.english_name || l.name)).join(', ')}</span></div>`);
           }
           if (externals && externals.imdb_id) {
-            detailRows.push(`<div class="list-row"><span class="list-label">IMDB:</span> <a class="tag" href="https://www.imdb.com/title/${externals.imdb_id}/" target="_blank" rel="noopener">Open</a></div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">IMDB</span><span class="elevated-list-value"><a href="https://www.imdb.com/title/${escapeHtml(externals.imdb_id)}/" target="_blank" rel="noopener">View on IMDB →</a></span></div>`);
+          }
+          if (data.homepage) {
+            try {
+              const home = new URL(data.homepage);
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Homepage</span><span class="elevated-list-value"><a href="${escapeHtml(data.homepage)}" target="_blank" rel="noopener">${escapeHtml(home.hostname.replace(/^www\./, ''))} →</a></span></div>`);
+            } catch (_) {}
           }
           const keywordList = (keywords.keywords || []).slice(0, 8).map(k => k.name);
           if (keywordList.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Keywords:</span> ${keywordList.join(', ')}</div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Keywords</span><span class="elevated-list-value">${keywordList.map(k => escapeHtml(k)).join(', ')}</span></div>`);
           }
-          detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
+          detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="elevated-list-row"><span class="elevated-list-value" style="color:var(--md-text-3);">No extra details available.</span></div>';
+          detailsEl.className = 'elevated-list';
         }
         const trailerEl = document.getElementById('trailer');
         if (trailerEl) {
           const trailer = (videos.results || []).find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser'));
           trailerEl.innerHTML = trailer
-            ? `<iframe class="video-frame" src="https://www.youtube.com/embed/${trailer.key}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
-            : '<div class="meta-item">No trailer available.</div>';
+            ? `<div class="elevated-trailer-frame"><iframe src="https://www.youtube.com/embed/${encodeURIComponent(trailer.key)}?rel=0" title="Trailer" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`
+            : '<div class="elevated-trailer-empty"><i class="fas fa-video-slash"></i> no trailer available</div>';
         }
         const directors = (credits.crew || []).filter(p => p.job === 'Creator' || p.department === 'Creator').slice(0, 3);
-        const writers = (data.seasons || []).slice(0, 6).map(s => ({ name: `${s.name}${typeof s.episode_count === 'number' ? ` (${s.episode_count} eps)` : ''}` }));
+        const writers = (data.seasons || []).filter(s => s.season_number > 0).slice(0, 6).map(s => ({ name: s.name, sub: typeof s.episode_count === 'number' ? `${s.episode_count} episode${s.episode_count === 1 ? '' : 's'}` : 'season' }));
         const cast = (credits.cast || []).slice(0, 12);
+        const renderPerson = (p, role) => {
+          const name = escapeHtml(p.name || 'Unknown');
+          const initial = name.charAt(0);
+          return `<div class="elevated-person-card">
+              <div class="elevated-person-avatar">${initial}</div>
+              <div class="elevated-person-body">
+                <div class="elevated-person-name">${name}</div>
+                <div class="elevated-person-role">${escapeHtml(p.sub || role || '')}</div>
+              </div>
+            </div>`;
+        };
+        const fallbackPerson = (role) => `<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div class="elevated-person-body"><div class="elevated-person-name">N/A</div><div class="elevated-person-role">${escapeHtml(role)}</div></div></div>`;
         const directorsEl = document.getElementById('directors');
         if (directorsEl) {
-          directorsEl.innerHTML = directors.length ? directors.map(p => `
-            <div class="elevated-person-card">
-              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
-              <div>
-                <div class="elevated-person-name">${p.name}</div>
-                <div class="elevated-person-role">Creator</div>
-              </div>
-            </div>
-          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Creator</div></div></div>';
+          directorsEl.innerHTML = directors.length
+            ? directors.map(p => renderPerson(p, 'Creator')).join('')
+            : fallbackPerson('Creator');
         }
         const writersEl = document.getElementById('writers');
         if (writersEl) {
-          writersEl.innerHTML = writers.length ? writers.map(p => `
-            <div class="elevated-person-card">
-              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
-              <div>
-                <div class="elevated-person-name">${p.name}</div>
-                <div class="elevated-person-role">Season</div>
-              </div>
-            </div>
-          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Season</div></div></div>';
+          writersEl.innerHTML = writers.length
+            ? writers.map(p => renderPerson(p, 'Season')).join('')
+            : fallbackPerson('Season');
         }
         const castEl = document.getElementById('cast');
         if (castEl) {
-          castEl.innerHTML = cast.length ? cast.map(p => `
-            <div class="elevated-person-card">
-              <div class="elevated-person-avatar">${p.name.charAt(0)}</div>
-              <div>
-                <div class="elevated-person-name">${p.name}</div>
-                <div class="elevated-person-role">${p.character || 'Actor'}</div>
-              </div>
-            </div>
-          `).join('') : '<div class="elevated-person-card"><div class="elevated-person-avatar">?</div><div><div class="elevated-person-name">N/A</div><div class="elevated-person-role">Actor</div></div></div>';
+          castEl.innerHTML = cast.length
+            ? cast.map(p => renderPerson({ name: p.name, sub: p.character || 'Actor' }, 'Actor')).join('')
+            : fallbackPerson('Actor');
         }
       }
 
@@ -1902,6 +2091,8 @@
         await initSupabase();
         initPageSearch();
         bindUnifiedListMenu();
+        wireOverviewToggle();
+        wireHeroActions();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
         });
@@ -1922,6 +2113,12 @@
         await initAuth();
         await load();
         await initReviewSystem();
+        const subEl = document.getElementById('metaGridSub');
+        const metaGrid = document.getElementById('metaGrid');
+        if (subEl && metaGrid) {
+          const count = metaGrid.querySelectorAll('.elevated-detail-card').length;
+          if (count) subEl.textContent = `${count} data point${count === 1 ? '' : 's'}`;
+        }
       })().catch((error) => {
         console.error('TV page init failed:', error);
         showNotification(String(error?.message || 'Could not load this TV show right now.'), 'error', 4200);
