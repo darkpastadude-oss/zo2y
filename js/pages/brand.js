@@ -41,6 +41,16 @@
     related: document.getElementById('brandRelated'),
     relatedSection: document.getElementById('brandRelatedSection'),
     relatedSub: document.getElementById('brandRelatedSub'),
+    trendingRail: document.getElementById('brandTrendingRail'),
+    trendingSection: document.getElementById('brandTrendingSection'),
+    trendingSub: document.getElementById('brandTrendingSub'),
+    collections: document.getElementById('brandCollections'),
+    collectionsSection: document.getElementById('brandCollectionsSection'),
+    collectionsSub: document.getElementById('brandCollectionsSub'),
+    communityPopular: document.getElementById('brandCommunityPopular'),
+    communitySaved: document.getElementById('brandCommunitySaved'),
+    communityRecent: document.getElementById('brandCommunityRecent'),
+    communitySection: document.getElementById('brandCommunitySection'),
     saveBtn: document.getElementById('brandSaveBtn'),
     menuBtn: document.getElementById('brandMenuBtn'),
     website: document.getElementById('brandWebsite'),
@@ -585,10 +595,13 @@
       }
       const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
       const summary = await summaryRes.json();
+      // Prefer original image for backdrops; fall back to thumbnail
+      const heroImage = summary.originalimage?.source || summary.thumbnail?.source || '';
       const result = {
         title: summary.title || title,
         description: summary.extract || '',
         thumbnail: summary.thumbnail?.source || '',
+        heroImage,
         url: summary.content_urls?.desktop?.page || '',
         wikiSource: title
       };
@@ -1018,6 +1031,405 @@
     await loadReviews();
   }
 
+  function getInitials(name) {
+    const text = String(name || '').trim();
+    if (!text) return '?';
+    return text.split(/\s+/).map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  function buildRailCard(row) {
+    if (!row) return '';
+    const id = String(row.id || row.slug || row.domain || row.name || '').trim();
+    const name = String(row.name || 'Brand').trim() || 'Brand';
+    const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
+    const meta = [row.category, row.country].filter(Boolean).join(' · ') || CATEGORY_LABEL;
+    const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
+    const initials = getInitials(name);
+    const thumb = logo
+      ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-rail-card-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
+      : `<span class="elevated-rail-card-thumb-fallback">${escapeHtml(initials)}</span>`;
+    return `
+      <a class="elevated-rail-card" href="${escapeHtml(href)}" role="listitem" aria-label="${escapeHtml(name)}">
+        <span class="elevated-rail-card-thumb">${thumb}</span>
+        <span class="elevated-rail-card-name">${escapeHtml(name)}</span>
+        <span class="elevated-rail-card-meta">${escapeHtml(meta)}</span>
+      </a>
+    `;
+  }
+
+  function renderRailSkeleton(target, count = 6) {
+    if (!target) return;
+    target.innerHTML = Array.from({ length: count }, () => '<div class="elevated-rail-skeleton"></div>').join('');
+  }
+
+  function renderEmptyRail(target, message) {
+    if (!target) return;
+    target.innerHTML = `<div class="elevated-rail-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
+  }
+
+  function wireRailScrollers(scope) {
+    const root = scope || document;
+    const buttons = root.querySelectorAll('.elevated-rail-btn[data-rail-target]');
+    buttons.forEach((btn) => {
+      if (btn.dataset.wired === '1') return;
+      btn.dataset.wired = '1';
+      const targetId = btn.getAttribute('data-rail-target');
+      const dir = parseInt(btn.getAttribute('data-rail-dir') || '1', 10);
+      const targetEl = targetId ? document.getElementById(targetId) : null;
+      if (!targetEl) return;
+      btn.addEventListener('click', () => {
+        const amount = Math.max(220, Math.round(targetEl.clientWidth * 0.85));
+        targetEl.scrollBy({ left: dir * amount, behavior: 'smooth' });
+      });
+    });
+    root.querySelectorAll('.elevated-rail').forEach((rail) => {
+      if (rail.dataset.wired === '1') return;
+      rail.dataset.wired = '1';
+      const updateButtons = () => {
+        const prevBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="-1"]');
+        const nextBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="1"]');
+        const atStart = rail.scrollLeft <= 4;
+        const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4;
+        if (prevBtn) prevBtn.disabled = atStart;
+        if (nextBtn) nextBtn.disabled = atEnd;
+      };
+      rail.addEventListener('scroll', updateButtons, { passive: true });
+      window.addEventListener('resize', updateButtons);
+      requestAnimationFrame(updateButtons);
+    });
+  }
+
+  async function loadTrending(brand) {
+    if (!dom.trendingRail || !dom.trendingSection) return;
+    renderRailSkeleton(dom.trendingRail, 8);
+    const client = ensureSupabase();
+    if (!client) {
+      renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
+      return;
+    }
+    try {
+      let query = client.from(brandTable)
+        .select('id,name,slug,domain,logo_url,category,country,founded')
+        .neq('id', brand?.id || '__none__')
+        .order('name', { ascending: true })
+        .limit(24);
+      const { data, error } = await query;
+      if (error || !data || !data.length) {
+        renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
+        return;
+      }
+      const items = data
+        .map(normalizeBrand)
+        .filter((b) => b.id && b.id !== brand?.id);
+      const popular = items.filter((b) => /nike|adidas|gucci|prada|louis|tesla|bmw|ferrari|starbucks|mcdonald|kfc|nintendo|chanel|dior|fendi|apple/i.test(b.name));
+      const pool = (popular.length >= 6 ? popular : items).slice(0, 12);
+      if (!pool.length) {
+        renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
+        return;
+      }
+      const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+      dom.trendingRail.innerHTML = shuffled.map(buildRailCard).join('');
+      if (dom.trendingSub) {
+        const cat = brand?.category ? ` ${brand.category}` : '';
+        dom.trendingSub.textContent = `Top picks right now in ${CATEGORY_LABEL.toLowerCase()}${cat}`;
+      }
+    } catch (_err) {
+      renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
+    }
+  }
+
+  function getBrandCollections(brand) {
+    const type = String(brandType || '').toLowerCase();
+    const label = CATEGORY_LABEL.toLowerCase();
+    if (type === 'car') {
+      return [
+        {
+          kicker: 'supercars',
+          icon: 'fa-bolt',
+          name: 'European Supercar Hall of Fame',
+          desc: 'Mid-engine legends, V12 royalty, and the brands behind them.',
+          count: 12,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.32), transparent 65%)'
+        },
+        {
+          kicker: 'everyday',
+          icon: 'fa-car-side',
+          name: 'Everyday Icons',
+          desc: 'Reliable, beloved sedans, hatchbacks, and crossovers that defined a generation.',
+          count: 18,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.28), transparent 65%)'
+        },
+        {
+          kicker: 'electric',
+          icon: 'fa-charging-station',
+          name: 'EV Pioneers',
+          desc: 'The electric revolution starts with these brands.',
+          count: 9,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.3), transparent 65%)'
+        }
+      ];
+    }
+    if (type === 'food') {
+      return [
+        {
+          kicker: 'michelin',
+          icon: 'fa-utensils',
+          name: 'Chef-Driven Icons',
+          desc: 'Restaurants and chefs that have shaped fine dining.',
+          count: 14,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'
+        },
+        {
+          kicker: 'quick bites',
+          icon: 'fa-burger',
+          name: 'Fast Food Legends',
+          desc: 'The chains that built the drive-thru.',
+          count: 22,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.28), transparent 65%)'
+        },
+        {
+          kicker: 'cup',
+          icon: 'fa-mug-hot',
+          name: 'Coffee & Cafés',
+          desc: 'From third-wave to global chains — your caffeine favorites.',
+          count: 11,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(120, 53, 15, 0.32), transparent 65%)'
+        }
+      ];
+    }
+    if (type === 'fashion') {
+      return [
+        {
+          kicker: 'luxury',
+          icon: 'fa-gem',
+          name: 'Luxury Houses',
+          desc: 'Italian leather, Parisian ateliers, and the heritage that defines luxury.',
+          count: 16,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.3), transparent 65%)'
+        },
+        {
+          kicker: 'streetwear',
+          icon: 'fa-shirt',
+          name: 'Streetwear Royalty',
+          desc: 'The labels redefining what a hoody can be.',
+          count: 10,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.28), transparent 65%)'
+        },
+        {
+          kicker: 'basics',
+          icon: 'fa-layer-group',
+          name: 'Wardrobe Essentials',
+          desc: 'The brands that built the modern basics closet.',
+          count: 8,
+          gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.26), transparent 65%)'
+        }
+      ];
+    }
+    return [
+      {
+        kicker: 'all',
+        icon: 'fa-grid-2',
+        name: `Top ${label} brands`,
+        desc: `Browse the most-followed ${label} picks on Zo2y.`,
+        count: 24,
+        gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'
+      }
+    ];
+  }
+
+  function buildCollectionCard(item) {
+    if (!item) return '';
+    const styleVar = `--collection-bg: ${item.gradient || 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'};`;
+    return `
+      <a class="elevated-collection-card" style="${styleVar}" href="javascript:void(0)" role="link" aria-label="${escapeHtml(item.name)}">
+        <span class="elevated-collection-kicker"><i class="fa-solid ${escapeHtml(item.icon || 'fa-shapes')}"></i> ${escapeHtml(item.kicker || 'collection')}</span>
+        <h3 class="elevated-collection-name">${escapeHtml(item.name)}</h3>
+        <p class="elevated-collection-desc">${escapeHtml(item.desc || '')}</p>
+        <div class="elevated-collection-foot">
+          <span class="elevated-collection-count"><i class="fa-solid fa-layer-group"></i> ${item.count} brands</span>
+          <span class="elevated-collection-cta">view <i class="fa-solid fa-arrow-right"></i></span>
+        </div>
+      </a>
+    `;
+  }
+
+  function loadCollections(brand) {
+    if (!dom.collections || !dom.collectionsSection) return;
+    const items = getBrandCollections(brand);
+    if (!items.length) {
+      dom.collectionsSection.hidden = true;
+      return;
+    }
+    dom.collectionsSection.hidden = false;
+    if (dom.collectionsSub) {
+      dom.collectionsSub.textContent = `Curated groups in ${CATEGORY_LABEL.toLowerCase()}`;
+    }
+    dom.collections.innerHTML = items.map(buildCollectionCard).join('');
+  }
+
+  function buildCommunityRow(row, rank) {
+    if (!row) return '';
+    const name = String(row.name || 'Brand').trim() || 'Brand';
+    const id = String(row.id || row.slug || row.domain || row.name || '').trim();
+    const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
+    const sub = [row.category, row.country].filter(Boolean).join(' · ') || 'Brand';
+    const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
+    const initials = getInitials(name);
+    const thumb = logo
+      ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-community-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
+      : `<span class="elevated-community-thumb-fallback">${escapeHtml(initials)}</span>`;
+    const rankHtml = rank ? `<span class="elevated-community-rank">${rank}</span>` : '';
+    return `
+      <a class="elevated-community-row" href="${escapeHtml(href)}" aria-label="${escapeHtml(name)}">
+        ${rankHtml}
+        <span class="elevated-community-thumb">${thumb}</span>
+        <span class="elevated-community-body">
+          <span class="elevated-community-name">${escapeHtml(name)}</span>
+          <span class="elevated-community-meta">${escapeHtml(sub)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function renderEmptyCommunity(target, message) {
+    if (!target) return;
+    target.innerHTML = `<div class="elevated-community-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
+  }
+
+  async function loadCommunity(brand) {
+    if (!dom.communitySection) return;
+    const client = ensureSupabase();
+    if (!client) {
+      renderEmptyCommunity(dom.communityPopular, 'No data yet.');
+      renderEmptyCommunity(dom.communitySaved, 'No data yet.');
+      renderEmptyCommunity(dom.communityRecent, 'No data yet.');
+      return;
+    }
+    try {
+      // Popular this week — proxy via most-reviewed brands
+      const { data: popular } = await client
+        .from(reviewTable)
+        .select('brand_id')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .limit(200);
+      const popularCounts = new Map();
+      (popular || []).forEach((row) => {
+        const id = String(row.brand_id || '').trim();
+        if (!id) return;
+        popularCounts.set(id, (popularCounts.get(id) || 0) + 1);
+      });
+      const popularIds = Array.from(popularCounts.keys());
+      let popularRows = [];
+      if (popularIds.length) {
+        const { data } = await client.from(brandTable)
+          .select('id,name,slug,domain,logo_url,category,country')
+          .in('id', popularIds)
+          .limit(20);
+        popularRows = (data || []).map(normalizeBrand);
+        popularRows.sort((a, b) => (popularCounts.get(b.id) || 0) - (popularCounts.get(a.id) || 0));
+      }
+      const popularTop = popularRows.filter((r) => r.id !== brand?.id).slice(0, 5);
+      if (popularTop.length) {
+        dom.communityPopular.innerHTML = popularTop
+          .map((row, i) => buildCommunityRow(row, i + 1))
+          .join('');
+      } else {
+        renderEmptyCommunity(dom.communityPopular, 'No activity this week yet.');
+      }
+
+      // Most saved — query list items
+      const listTable = HOME_DEFAULT_LIST_TABLES[brandType]?.table;
+      if (listTable) {
+        const { data: saved } = await client.from(listTable).select('brand_id').limit(2000);
+        const savedCounts = new Map();
+        (saved || []).forEach((row) => {
+          const id = String(row.brand_id || '').trim();
+          if (!id) return;
+          savedCounts.set(id, (savedCounts.get(id) || 0) + 1);
+        });
+        const savedIds = Array.from(savedCounts.keys());
+        if (savedIds.length) {
+          const { data } = await client.from(brandTable)
+            .select('id,name,slug,domain,logo_url,category,country')
+            .in('id', savedIds)
+            .limit(20);
+          const savedRows = (data || []).map(normalizeBrand);
+          savedRows.sort((a, b) => (savedCounts.get(b.id) || 0) - (savedCounts.get(a.id) || 0));
+          const savedTop = savedRows.filter((r) => r.id !== brand?.id).slice(0, 5);
+          if (savedTop.length) {
+            dom.communitySaved.innerHTML = savedTop
+              .map((row, i) => buildCommunityRow(row, i + 1))
+              .join('');
+          } else {
+            renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
+          }
+        } else {
+          renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
+        }
+      } else {
+        renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
+      }
+
+      // Recently added — by recency of reviews (proxy for engagement) or fallback
+      const { data: recent } = await client.from(brandTable)
+        .select('id,name,slug,domain,logo_url,category,country,created_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      const recentRows = (recent || [])
+        .map(normalizeBrand)
+        .filter((r) => r.id && r.id !== brand?.id)
+        .slice(0, 5);
+      if (recentRows.length) {
+        dom.communityRecent.innerHTML = recentRows
+          .map((row) => buildCommunityRow(row, 0))
+          .join('');
+      } else {
+        // Fallback: just take alphabetical that are not the current brand
+        const { data: fallback } = await client.from(brandTable)
+          .select('id,name,slug,domain,logo_url,category,country')
+          .neq('id', brand?.id || '__none__')
+          .order('name', { ascending: true })
+          .limit(5);
+        const fallbackRows = (fallback || []).map(normalizeBrand);
+        if (fallbackRows.length) {
+          dom.communityRecent.innerHTML = fallbackRows
+            .map((row) => buildCommunityRow(row, 0))
+            .join('');
+        } else {
+          renderEmptyCommunity(dom.communityRecent, 'No new entries yet.');
+        }
+      }
+    } catch (_err) {
+      renderEmptyCommunity(dom.communityPopular, 'No data yet.');
+      renderEmptyCommunity(dom.communitySaved, 'No data yet.');
+      renderEmptyCommunity(dom.communityRecent, 'No data yet.');
+    }
+  }
+
+  async function applyWikipediaBackdrop(brand) {
+    if (!brand) return;
+    const wiki = await fetchWikipedia(brand);
+    if (!wiki) return;
+    mergeWikiIntoBrand(brand, wiki);
+    if (wiki.thumbnail) {
+      applyBackdrop(wiki.thumbnail);
+    } else if (wiki.url) {
+      // Try to fetch a Wikipedia image via REST summary
+      try {
+        const title = wiki.wikiSource || wiki.title;
+        if (title) {
+          const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+          if (summaryRes.ok) {
+            const summary = await summaryRes.json();
+            const image = summary.originalimage?.source || summary.thumbnail?.source;
+            if (image) applyBackdrop(image);
+          }
+        }
+      } catch (_e) {}
+    }
+    return wiki;
+  }
+
   function openListMenuFromCard() {
     if (dom.actionCard && window.openIndexStyleListMenu) {
       window.openIndexStyleListMenu(dom.actionCard);
@@ -1085,13 +1497,20 @@
       if (dom.aboutSource) {
         dom.aboutSource.innerHTML = `Source: <a href="${escapeHtml(wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>`;
       }
-      if (wiki.thumbnail) applyBackdrop(wiki.thumbnail);
+      const heroImg = wiki.heroImage || wiki.thumbnail;
+      if (heroImg) applyBackdrop(heroImg);
       renderInfoGrid(brand, wiki);
       renderSocial(brand, wiki);
     }
 
     // Related brands — non-blocking
     fetchRelatedBrands(brand).catch(() => {});
+
+    // Trending rail, Collections, Community — non-blocking
+    loadTrending(brand).catch(() => {});
+    loadCollections(brand);
+    loadCommunity(brand).catch(() => {});
+    requestAnimationFrame(() => wireRailScrollers(dom.body));
 
     if (supabaseClient?.auth?.onAuthStateChange) {
       supabaseClient.auth.onAuthStateChange((_event, session) => {

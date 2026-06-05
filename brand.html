@@ -154,7 +154,35 @@
       <div id="brandSocial" class="elevated-social"></div>
     </section>
 
-    <section class="elevated-section" id="brandRelatedSection" hidden>
+    <section class="elevated-section elevated-section-rail" id="brandTrendingSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-arrow-trend-up"></i> trending now
+        </h2>
+        <span class="elevated-section-sub" id="brandTrendingSub">Top picks in this category</span>
+      </div>
+      <div class="elevated-rail-controls" aria-hidden="true">
+        <button class="elevated-rail-btn" type="button" data-rail-dir="-1" data-rail-target="brandTrendingRail" aria-label="Scroll left">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="elevated-rail-btn" type="button" data-rail-dir="1" data-rail-target="brandTrendingRail" aria-label="Scroll right">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      <div id="brandTrendingRail" class="elevated-rail" role="list"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="brandCollectionsSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-shapes"></i> collections
+        </h2>
+        <span class="elevated-section-sub" id="brandCollectionsSub">Hand-picked by our editors</span>
+      </div>
+      <div id="brandCollections" class="elevated-collections"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="brandRelatedSection" hidden>
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
           <i class="fa-solid fa-layer-group"></i> related brands
@@ -162,6 +190,29 @@
         <span class="elevated-section-sub" id="brandRelatedSub">More in the same category</span>
       </div>
       <div id="brandRelated" class="elevated-related"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="brandCommunitySection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-people-group"></i> community
+        </h2>
+        <span class="elevated-section-sub" id="brandCommunitySub">What fans are saying right now</span>
+      </div>
+      <div class="elevated-community-grid">
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-fire"></i> popular this week</h3>
+          <div id="brandCommunityPopular" class="elevated-community-list"></div>
+        </div>
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-bookmark"></i> most saved</h3>
+          <div id="brandCommunitySaved" class="elevated-community-list"></div>
+        </div>
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-sparkles"></i> recently added</h3>
+          <div id="brandCommunityRecent" class="elevated-community-list"></div>
+        </div>
+      </div>
     </section>
 
     <section id="reviews-section" class="elevated-section">

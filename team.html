@@ -150,7 +150,35 @@
       <p class="elevated-media-empty" id="teamMediaEmpty" hidden>No extra media yet.</p>
     </section>
 
-    <section class="elevated-section" id="teamRelatedSection" hidden>
+    <section class="elevated-section elevated-section-rail" id="teamTrendingSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-arrow-trend-up"></i> trending now
+        </h2>
+        <span class="elevated-section-sub" id="teamTrendingSub">Top teams in this sport</span>
+      </div>
+      <div class="elevated-rail-controls" aria-hidden="true">
+        <button class="elevated-rail-btn" type="button" data-rail-dir="-1" data-rail-target="teamTrendingRail" aria-label="Scroll left">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="elevated-rail-btn" type="button" data-rail-dir="1" data-rail-target="teamTrendingRail" aria-label="Scroll right">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      <div id="teamTrendingRail" class="elevated-rail" role="list"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="teamCollectionsSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-shapes"></i> collections
+        </h2>
+        <span class="elevated-section-sub" id="teamCollectionsSub">Hand-picked matchday groups</span>
+      </div>
+      <div id="teamCollections" class="elevated-collections"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="teamRelatedSection" hidden>
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
           <i class="fa-solid fa-layer-group"></i> related teams
@@ -158,6 +186,29 @@
         <span class="elevated-section-sub" id="teamRelatedSub">More in the same league or sport</span>
       </div>
       <div id="teamRelated" class="elevated-related"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="teamCommunitySection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-people-group"></i> community
+        </h2>
+        <span class="elevated-section-sub" id="teamCommunitySub">What fans are talking about</span>
+      </div>
+      <div class="elevated-community-grid">
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-fire"></i> popular this week</h3>
+          <div id="teamCommunityPopular" class="elevated-community-list"></div>
+        </div>
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-bookmark"></i> most saved</h3>
+          <div id="teamCommunitySaved" class="elevated-community-list"></div>
+        </div>
+        <div class="elevated-community-block">
+          <h3 class="elevated-community-title"><i class="fa-solid fa-sparkles"></i> recently added</h3>
+          <div id="teamCommunityRecent" class="elevated-community-list"></div>
+        </div>
+      </div>
     </section>
   </div>
 
