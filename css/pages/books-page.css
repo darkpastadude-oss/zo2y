@@ -99,18 +99,13 @@
 }
 .filter-year-group input::placeholder { color: var(--muted); }
 
-/* ---------- Skeleton shimmer loader ---------- */
-@keyframes books-shimmer {
-  0%   { background-position: -300px 0; }
-  100% { background-position: 300px 0; }
-}
+/* ---------- Skeleton placeholder (static) ---------- */
 .skeleton-shimmer {
   background: linear-gradient(90deg,
     rgba(255,255,255,0.04) 0%,
     rgba(255,255,255,0.10) 50%,
     rgba(255,255,255,0.04) 100%);
   background-size: 600px 100%;
-  animation: books-shimmer 1.4s infinite linear;
   border-radius: 6px;
 }
 .book-section-skeleton .skeleton-line {

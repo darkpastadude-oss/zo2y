@@ -398,11 +398,13 @@ function scoreEnglishConfidence(doc) {
   const title = String(doc?.title || '');
   const lang = String(doc?.language || '').toLowerCase();
   const description = String(doc?.description || '').toLowerCase();
-  
-  // Strong boost for explicitly English books
-  if (lang === 'en' || lang === 'eng') s += 80;
-  else if (lang && lang !== 'en') s -= 120;
-  
+  const haystack = (title + ' ' + description).toLowerCase();
+
+  // Aggressive English priority (ported from books.html@8a77cc1).
+  if (lang === 'en' || lang === 'eng' || lang === 'english') s += 300;
+  else if (haystack.includes('english') || doc?._source === 'google-books') s += 150;
+  else if (lang && lang !== 'en' && lang !== 'eng' && lang !== 'english') s -= 200;
+
   // Heavy penalty for non-Latin titles (indicates non-English)
   if (NON_LATIN_TITLE.test(title)) s -= 300;
   
@@ -478,6 +480,25 @@ function scoreQueryRelevance(doc, query) {
   if (t === q) s += 120;
   else if (t.startsWith(q)) s += 80;
   else if (t.includes(q)) s += 50;
+
+  if (q && t) {
+    const queryTokens = q.split(' ').filter(Boolean);
+    const titleTokenHits = queryTokens.filter((token) => t.includes(token)).length;
+    if (queryTokens.length) {
+      if (titleTokenHits === queryTokens.length) s += 80;
+      else if (titleTokenHits >= Math.ceil(queryTokens.length / 2)) s += 50;
+      else if (titleTokenHits > 0) s += 25;
+      if (queryTokens.length >= 2 && titleTokenHits >= 2) s += 30;
+    }
+    if (q.length >= 3) {
+      const titleWords = t.split(' ');
+      for (const word of titleWords) {
+        if (!word) continue;
+        if (word.includes(q) || q.includes(word)) { s += 25; break; }
+      }
+    }
+  }
+
   if (a && q.includes(a)) s += 30;
   if (a && a.includes(q)) s += 20;
   return s;
@@ -531,21 +552,21 @@ function detectFranchise(doc) {
 function scoreAuthorPopularity(doc) {
   const authors = Array.isArray(doc?.author_name) ? doc.author_name : [];
   const author = String(authors[0] || '').toLowerCase();
-  
+
   for (const popAuthor of POPULAR_AUTHORS) {
-    if (author.includes(popAuthor) || popAuthor.includes(author)) return 25;
+    if (author.includes(popAuthor) || popAuthor.includes(author)) return 100;
   }
-  
+
   return 0;
 }
 
 function scoreSeries(doc) {
-  if (detectSeries(doc)) return 15;
+  if (detectSeries(doc)) return 200;
   return 0;
 }
 
 function scoreFranchise(doc) {
-  if (detectFranchise(doc)) return 20;
+  if (detectFranchise(doc)) return 100;
   return 0;
 }
 
