@@ -535,19 +535,30 @@
                 const deferMs = window.innerWidth <= 768 ? 2200 : 1200;
                 setTimeout(() => {
                     if (document.hidden) return;
-                    const activeTab = String(currentTab || 'movies').trim().toLowerCase();
+                    const activeTab = String(currentTab || DEFAULT_PROFILE_TAB).trim().toLowerCase();
                     const preloadTasks = [];
-                    if (activeTab === 'movies' && !hasFreshTabRender('movies')) preloadTasks.push(renderMovies());
-                    if (activeTab === 'tv' && !hasFreshTabRender('tv')) preloadTasks.push(renderTvShows());
-                    if (activeTab === 'anime' && !hasFreshTabRender('anime')) preloadTasks.push(renderAnimeShows());
-                    if (activeTab === 'games' && !GAMES_DISABLED && !hasFreshTabRender('games')) preloadTasks.push(renderGames());
-                    if (activeTab === 'books' && !hasFreshTabRender('books')) preloadTasks.push(renderBooks());
-                    if (activeTab === 'music' && !hasFreshTabRender('music')) preloadTasks.push(renderMusic());
-                    if (activeTab === 'sports' && !hasFreshTabRender('sports')) preloadTasks.push(renderSports());
-                    if (activeTab === 'travel' && !hasFreshTabRender('travel')) preloadTasks.push(renderTravel());
-                    if (activeTab === 'fashion' && !hasFreshTabRender('fashion')) preloadTasks.push(renderFashion());
-                    if (activeTab === 'food' && !hasFreshTabRender('food')) preloadTasks.push(renderFood());
-                    if (activeTab === 'cars' && !hasFreshTabRender('cars')) preloadTasks.push(renderCars());
+                    // Preload OTHER tabs (not the active one — that one is already
+                    // being rendered by showTab). Preloading them warms the cache so
+                    // a later tab switch is instant.
+                    const candidates = [
+                        { key: 'movies', fn: () => renderMovies(), enabled: true },
+                        { key: 'tv', fn: () => renderTvShows(), enabled: true },
+                        { key: 'anime', fn: () => renderAnimeShows(), enabled: true },
+                        { key: 'games', fn: () => renderGames(), enabled: !GAMES_DISABLED },
+                        { key: 'books', fn: () => renderBooks(), enabled: true },
+                        { key: 'music', fn: () => renderMusic(), enabled: true },
+                        { key: 'sports', fn: () => renderSports(), enabled: true },
+                        { key: 'travel', fn: () => renderTravel(), enabled: true },
+                        { key: 'fashion', fn: () => renderFashion(), enabled: true },
+                        { key: 'food', fn: () => renderFood(), enabled: true },
+                        { key: 'cars', fn: () => renderCars(), enabled: true }
+                    ];
+                    for (const c of candidates) {
+                        if (!c.enabled) continue;
+                        if (c.key === activeTab) continue;          // skip active
+                        if (hasFreshTabRender(c.key)) continue;     // already fresh
+                        preloadTasks.push(c.fn());
+                    }
                     if (!preloadTasks.length) return;
                     Promise.allSettled(preloadTasks).catch(() => {});
                 }, deferMs);
@@ -7990,7 +8001,36 @@
                         if (requestToken !== tabSwitchToken) return;
                         console.error(`Tab render failed (${safeTab}):`, error);
                         showToast('Could not load this tab right now', 'error');
+                        // Paint an error state into the grid so the section is never
+                        // empty when the user looks at it.
+                        try {
+                            const isMobile = window.innerWidth <= 768;
+                            const gridId = isMobile
+                                ? `mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Grid`
+                                : `${safeTab}Grid`;
+                            const grid = document.getElementById(gridId);
+                            if (grid && !grid.querySelector('.collection-card')) {
+                                grid.innerHTML = `
+                                    <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                        <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                        <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Couldn’t load this tab</h3>
+                                        <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Tap the tab again to retry.</p>
+                                    </div>
+                                `;
+                            }
+                        } catch (_) { /* never let a fallback paint throw */ }
                     });
+            }
+
+            function ensureTabSectionVisible(safeTab, isMobile) {
+                const section = isMobile
+                    ? document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`)
+                    : document.getElementById(`${safeTab}-tab`);
+                if (!section) return;
+                if (section.classList.contains('rendered')) return;
+                requestAnimationFrame(() => {
+                    section.classList.add('rendered');
+                });
             }
 
             async function showTab(tabName, options = {}) {
@@ -8000,7 +8040,12 @@
                 const alreadyActive = isMobile
                     ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
                     : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
-                if (safeTab === currentTab && alreadyActive) return;
+
+                // Even on repeat clicks, make sure the section is visible.
+                if (safeTab === currentTab && alreadyActive) {
+                    ensureTabSectionVisible(safeTab, isMobile);
+                    return;
+                }
 
                 if (!options.skipDetailReset) {
                 resetDetailPanels();
@@ -8023,7 +8068,7 @@
                     const nextUrl = buildProfileUrl({ tab: safeTab });
                     history.replaceState({}, '', nextUrl);
                 }
-                
+
                 if (isMobile) {
                     document.querySelectorAll('.mobile-section').forEach(section => {
                         if (options.skipDetailReset) {
@@ -8035,12 +8080,12 @@
                         section.style.display = 'none';
                         section.classList.remove('active', 'rendered');
                     });
-                    
+
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
                         tab.classList.remove('active');
                     });
                     closeProfileTabGroups();
-                    
+
                     const activeSection =
                         document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
                         document.getElementById(`mobile${DEFAULT_PROFILE_TAB.charAt(0).toUpperCase() + DEFAULT_PROFILE_TAB.slice(1)}Section`) ||
@@ -8050,7 +8095,7 @@
                         activeSection.classList.add('active');
                         activeSection.classList.remove('rendered');
                     }
-                    
+
                     const activeTab = document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`);
                     if (activeTab) {
                         activeTab.classList.add('active');
@@ -8062,26 +8107,26 @@
                     scrollActiveMobileTabIntoView(safeTab);
                     const swipeHint = document.getElementById('mobileTabsSwipeHint');
                     if (swipeHint) swipeHint.classList.add('hidden');
-                    
+
                     currentTab = safeTab;
+                    // Make the section visible IMMEDIATELY so the user always sees the
+                    // chrome (title, nav, grid container) even while the render is in
+                    // flight. Without this, the section sits at opacity:0 with only a
+                    // tiny spinner and a long render looks like a blank panel.
+                    ensureTabSectionVisible(safeTab, isMobile);
                     if (!options.skipRender) {
                         const renderPromise = requestTabRender(safeTab, requestToken);
                         if (renderPromise) {
-                            await renderPromise;
-                            if (requestToken === tabSwitchToken && activeSection) {
-                                requestAnimationFrame(() => {
-                                    activeSection.classList.add('rendered');
-                                });
-                            }
+                            // Run the render in the background — do not block on it.
+                            // The section is already visible; the render populates it.
+                            renderPromise.catch(() => {});
                         }
-                    } else if (activeSection) {
-                        activeSection.classList.add('rendered');
                     }
                 } else {
                     document.querySelectorAll('.tab-content').forEach(tab => {
                         tab.classList.remove('active', 'rendered');
                     });
-                    
+
                     const tabElement =
                         document.getElementById(`${safeTab}-tab`) ||
                         document.getElementById(`${DEFAULT_PROFILE_TAB}-tab`) ||
@@ -8090,12 +8135,12 @@
                         tabElement.classList.add('active');
                         tabElement.classList.remove('rendered');
                     }
-                    
+
                     document.querySelectorAll('.nav-tab').forEach(btn => {
                         btn.classList.remove('active');
                     });
                     closeProfileTabGroups();
-                    
+
                     const activeButton = document.querySelector(`.nav-tab[data-tab="${safeTab}"]`);
                     if (activeButton) {
                         activeButton.classList.add('active');
@@ -8104,20 +8149,14 @@
                         if (fallbackButton) fallbackButton.classList.add('active');
                     }
                     ensureProfileGroupRowVisible(safeTab);
-                    
+
                     currentTab = safeTab;
+                    ensureTabSectionVisible(safeTab, isMobile);
                     if (!options.skipRender) {
                         const renderPromise = requestTabRender(safeTab, requestToken);
                         if (renderPromise) {
-                            await renderPromise;
-                            if (requestToken === tabSwitchToken && tabElement) {
-                                requestAnimationFrame(() => {
-                                    tabElement.classList.add('rendered');
-                                });
-                            }
+                            renderPromise.catch(() => {});
                         }
-                    } else if (tabElement) {
-                        tabElement.classList.add('rendered');
                     }
                 }
             }

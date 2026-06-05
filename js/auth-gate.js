@@ -121,12 +121,14 @@
     try {
       var params = new URLSearchParams(window.location.search || '');
       if (params.get('debug_auth') === '1') {
-        if (window.localStorage) window.localStorage.setItem(AUTH_DEBUG_KEY, '1');
+        try {
+          if (window.sessionStorage) window.sessionStorage.setItem(AUTH_DEBUG_KEY, '1');
+        } catch (_ePersist) {}
         return true;
       }
     } catch (_err) {}
     try {
-      return !!(window.localStorage && window.localStorage.getItem(AUTH_DEBUG_KEY) === '1');
+      return !!(window.sessionStorage && window.sessionStorage.getItem(AUTH_DEBUG_KEY) === '1');
     } catch (_err2) {
       return false;
     }
@@ -516,10 +518,13 @@
   function sanitizeNextPath(raw) {
     var value = String(raw || '').trim();
     if (!value) return 'index.html';
-    if (/^https?:\/\//i.test(value) || value.indexOf('//') === 0) return 'index.html';
+    if (/^https?:\/\//i.test(value)) return 'index.html';
+    if (value.indexOf('//') === 0 || value.indexOf('/\\') === 0 || value.charAt(0) === '\\') return 'index.html';
+    if (value.indexOf('\\') !== -1) return 'index.html';
     var normalized = value.charAt(0) === '/' ? (value.slice(1) || 'index.html') : value;
     try {
       var target = new URL(normalized, window.location.origin);
+      if (target.origin !== window.location.origin) return 'index.html';
       ['auth_return', 'authv', 'native_oauth', 'code', 'state', 'error', 'error_description'].forEach(function (key) {
         target.searchParams.delete(key);
       });
@@ -1305,7 +1310,7 @@
     var activeClient = client || ensureSharedSupabaseClient();
     if (activeClient && activeClient.auth && typeof activeClient.auth.signOut === 'function') {
       try {
-        await activeClient.auth.signOut({ scope: 'local' });
+        await activeClient.auth.signOut({ scope: 'global' });
       } catch (_err) {}
     }
     return true;

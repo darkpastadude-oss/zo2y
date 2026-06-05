@@ -47,12 +47,8 @@
     track(eventName, properties, true);
   }
 
-  function showError(message, allowHtml) {
-    if (allowHtml) {
-      errorEl.innerHTML = message;
-    } else {
-      errorEl.textContent = message;
-    }
+  function showError(message) {
+    errorEl.textContent = message;
     errorEl.classList.add('show');
     successEl.classList.remove('show');
   }

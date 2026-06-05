@@ -32,7 +32,7 @@ function resolveBaseUrl(req) {
 }
 
 function isAuthorized(req) {
-  if (!PRECOMPUTE_SECRET) return true;
+  if (!PRECOMPUTE_SECRET) return false;
   const headerSecret = String(req.headers["x-precompute-secret"] || "").trim();
   const querySecret = String(req.query?.secret || "").trim();
   return headerSecret === PRECOMPUTE_SECRET || querySecret === PRECOMPUTE_SECRET;

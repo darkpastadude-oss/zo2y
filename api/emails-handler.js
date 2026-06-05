@@ -69,7 +69,7 @@ async function readJsonBody(req) {
 
 function requireEmailApiKey(req) {
   const expected = normalizeText(process.env.EMAIL_API_KEY, 200);
-  if (!expected) return true;
+  if (!expected) return false;
   const provided = normalizeText(getHeader(req, "x-email-api-key"), 200);
   return !!provided && provided === expected;
 }

@@ -61,32 +61,143 @@ function toHttpsUrl(url) {
   return str.replace(/^http:/i, 'https:');
 }
 
+const OPEN_LIBRARY_SEARCH_URL = 'https://openlibrary.org/search.json';
+const OPEN_LIBRARY_COVER_URL = 'https://covers.openlibrary.org';
+
+function buildOpenLibraryQuery(params = {}) {
+  const qRaw = rewriteSearchQuery(params.q);
+  const title = String(params.title || '').trim();
+  const author = String(params.author || '').trim();
+  const subject = String(params.subject || '').trim();
+  const chunks = [];
+  if (qRaw) chunks.push(qRaw);
+  if (title) chunks.push(title);
+  if (author) chunks.push(author);
+  if (subject) chunks.push(subject);
+  return chunks.join(' ').trim() || 'popular fiction';
+}
+
+function normalizeOpenLibraryDoc(doc, idx = 0) {
+  const title = String(doc?.title || '').trim();
+  if (!title) return null;
+
+  const authorNames = Array.isArray(doc?.author_name)
+    ? doc.author_name.map((name) => String(name || '').trim()).filter(Boolean)
+    : [];
+  const isbnList = Array.isArray(doc?.isbn) ? doc.isbn : [];
+  const publisherList = Array.isArray(doc?.publisher) ? doc.publisher : [];
+  const subjectList = Array.isArray(doc?.subject) ? doc.subject.slice(0, 8) : [];
+  const year = Number(doc?.first_publish_year || 0) || null;
+  const coverId = Number(doc?.cover_i || 0) || 0;
+  const language = String(
+    Array.isArray(doc?.language) ? doc.language[0] :
+    typeof doc?.language === 'string' ? doc.language : ''
+  ).trim().toLowerCase();
+  const workKey = String(doc?.key || '').trim();
+  const workId = workKey.replace(/^\/works\//, '').trim();
+
+  return {
+    id: workId,
+    title,
+    author_name: authorNames.length ? authorNames : ['Unknown author'],
+    first_publish_year: year,
+    isbn: isbnList,
+    coverImage: coverId > 0 ? `${OPEN_LIBRARY_COVER_URL}/b/id/${coverId}-L.jpg` : '',
+    cover_i: coverId,
+    publisher: publisherList,
+    subject: subjectList,
+    language,
+    description: String(doc?.first_sentence?.[0] || '').trim(),
+    rating: 0,
+    ratingCount: Number(doc?.ratings_count || doc?.want_to_read_count || 0) || 0,
+    saleability: '',
+    maturityRating: '',
+    pageCount: 0,
+    _googleThumbnail: '',
+    _googleVolumeId: '',
+    _source: 'open-library'
+  };
+}
+
+async function fetchOpenLibraryDocs(params = {}, signal = null) {
+  const query = buildOpenLibraryQuery(params);
+  if (!query) return { docs: [], numFound: 0, source: 'open-library' };
+
+  const limit = clampInt(params.limit, 1, 40, 20);
+  const page = clampInt(params.page, 1, 1000, 1);
+
+  const url = new URL(OPEN_LIBRARY_SEARCH_URL);
+  url.searchParams.set('q', query);
+  url.searchParams.set('limit', String(limit));
+  url.searchParams.set('page', String(page));
+  // Open Library uses ISO 639-2/B 3-letter codes (e.g. 'eng' not 'en').
+  const lang = String(params.language || '').trim().toLowerCase();
+  if (lang === 'en' || lang === 'eng') url.searchParams.set('language', 'eng');
+  else if (lang) url.searchParams.set('language', lang);
+  if (params.first_publish_year) url.searchParams.set('first_publish_year', String(params.first_publish_year));
+
+  const controller = signal || new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      console.log('[Books API] Open Library response not OK:', res.status);
+      return { docs: [], numFound: 0, source: 'open-library' };
+    }
+    const json = await res.json();
+    const items = Array.isArray(json?.docs) ? json.docs : [];
+    const docs = items.map((entry, idx) => normalizeOpenLibraryDoc(entry, idx)).filter(Boolean);
+    const numFound = Number(json?.numFound || json?.num_found || 0);
+    return { docs, numFound, source: 'open-library' };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    console.log('[Books API] Open Library fetch error:', error?.message || error);
+    return { docs: [], numFound: 0, source: 'open-library' };
+  }
+}
+
 // Inline runBookPipeline to avoid import issues in Cloudflare Functions
 async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
   console.log('[Books API] runBookPipeline called with params:', params);
-  const google = await fetchGoogleDocs(params, apiKey, signal);
+  let google = await fetchGoogleDocs(params, apiKey, signal);
   let docs = Array.isArray(google.docs) ? google.docs : [];
-  console.log('[Books API] Initial docs count:', docs.length);
-  
+  console.log('[Books API] Google docs count:', docs.length, 'source:', google.source);
+
+  // FALLBACK: if Google returns 0 (rate-limited, missing API key, or no matches),
+  // try Open Library so the books page never appears empty.
+  if (docs.length === 0) {
+    const ol = await fetchOpenLibraryDocs(params, signal);
+    const olDocs = Array.isArray(ol.docs) ? ol.docs : [];
+    console.log('[Books API] Open Library fallback docs count:', olDocs.length);
+    if (olDocs.length > 0) {
+      docs = olDocs;
+      google = { docs: olDocs, numFound: ol.numFound, source: 'open-library' };
+    }
+  }
+
   docs = filterSafeBookDocs(docs, { strict: opts.strict !== false });
   console.log('[Books API] After filterSafeBookDocs:', docs.length);
-  
+
   if (opts.enrichCovers !== false) docs = await enrichMissingCovers(docs);
-  
+
   docs = rankDocs(docs, { query: params.q || params.title || '' });
-  
+
   docs = ensurePaginationStability(docs, { query: params.q || params.title || '' });
-  
+
   if (opts.groupEditions !== false) docs = groupBestEditions(docs, { query: params.q || params.title || '' });
   console.log('[Books API] After groupBestEditions:', docs.length);
-  
+
   const books = docs.map(normalizeBook).filter(Boolean);
   console.log('[Books API] Final books count:', books.length);
-  
-  return { 
-    books, 
-    numFound: google.numFound, 
-    source: google.source 
+
+  return {
+    books,
+    numFound: google.numFound,
+    source: google.source
   };
 }
 
