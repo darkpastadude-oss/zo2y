@@ -160,6 +160,120 @@ async function fetchOpenLibraryDocs(params = {}, signal = null) {
   }
 }
 
+// ============================================================
+// CURATED DISCOVERY (inlined; mirrors js/books-data-layer.js)
+// ------------------------------------------------------------
+// Inline because Cloudflare Functions can't reliably require()
+// the shared data layer. Keep this in sync with the data layer.
+// ============================================================
+
+function normalizeBookSeedText(value) {
+  return String(value == null ? '' : value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function scoreCuratedTopBookDocServer(doc, seed) {
+  const normalizedTitle = normalizeBookSeedText(doc && (doc.title || doc._rawTitle));
+  const normalizedAuthor = normalizeBookSeedText(
+    doc && (Array.isArray(doc.author_name) ? doc.author_name[0] : (doc.author || doc._rawAuthor))
+  );
+  const seedTitle = normalizeBookSeedText(seed && seed.title);
+  const seedAuthor = normalizeBookSeedText(seed && seed.author);
+  const seedYear = Number(seed && seed.year || 0) || 0;
+  const docYear = Number(doc && (doc.first_publish_year || doc.year) || 0) || 0;
+  let score = 0;
+  if (normalizedTitle && seedTitle) {
+    if (normalizedTitle === seedTitle) score += 120;
+    else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+    else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+  }
+  if (normalizedAuthor && seedAuthor) {
+    if (normalizedAuthor === seedAuthor) score += 70;
+    else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+  }
+  if (String((doc && (doc.coverImage || doc.cover_i || doc.cover)) || '').trim()) score += 24;
+  if (docYear >= 2020) score += 16;
+  if (seedYear && docYear === seedYear) score += 24;
+  return score;
+}
+
+function runCuratedDiscoveryServer(docs, seeds, opts) {
+  opts = opts || {};
+  const limit = Number(opts.limit || 18) || 18;
+  const pool = Array.isArray(docs) ? docs : [];
+  const seedList = Array.isArray(seeds) ? seeds : [];
+  if (!pool.length || !seedList.length) return { books: [], matched: 0 };
+
+  const seen = new Set();
+  const matched = [];
+  for (let i = 0; i < seedList.length && matched.length < limit; i++) {
+    const seed = seedList[i];
+    let best = null;
+    let bestScore = 0;
+    for (let j = 0; j < pool.length; j++) {
+      const s = scoreCuratedTopBookDocServer(pool[j], seed);
+      if (s > bestScore) { bestScore = s; best = pool[j]; }
+    }
+    if (!best || bestScore <= 0) continue;
+    const key = normalizeBookSeedText(best.title) + '::' + normalizeBookSeedText(
+      Array.isArray(best.author_name) ? best.author_name[0] : (best.author || '')
+    );
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    matched.push(best);
+  }
+  return { books: matched, matched: matched.length };
+}
+
+// Hand-picked trending seeds per period (subset of js/data/curated-media.js).
+// Period = "most recent 6 months" for daily, "this year" for weekly, "last 2 years" for monthly.
+const CURATED_BOOK_SEEDS_BY_PERIOD = {
+  daily: [
+    { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
+    { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+    { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+    { title: 'Sunrise on the Reaping', author: 'Suzanne Collins', year: 2025 },
+    { title: 'Dream Count', author: 'Chimamanda Ngozi Adichie', year: 2025 },
+    { title: 'My Friends', author: 'Fredrik Backman', year: 2025 },
+    { title: 'King of Ashes', author: 'S. A. Cosby', year: 2025 },
+    { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+    { title: 'The Dream Hotel', author: 'Laila Lalami', year: 2025 },
+    { title: 'Broken Country', author: 'Clare Leslie Hall', year: 2025 },
+    { title: 'The Favorites', author: 'Layne Fargo', year: 2025 },
+    { title: "Say You'll Remember Me", author: 'Abby Jimenez', year: 2025 }
+  ],
+  weekly: [
+    { title: 'James', author: 'Percival Everett', year: 2024 },
+    { title: 'The Women', author: 'Kristin Hannah', year: 2024 },
+    { title: 'All Fours', author: 'Miranda July', year: 2024 },
+    { title: 'Intermezzo', author: 'Sally Rooney', year: 2024 },
+    { title: 'Martyr!', author: 'Kaveh Akbar', year: 2024 },
+    { title: 'The Ministry of Time', author: 'Kaliane Bradley', year: 2024 },
+    { title: 'The God of the Woods', author: 'Liz Moore', year: 2024 },
+    { title: 'Funny Story', author: 'Emily Henry', year: 2024 },
+    { title: 'The Wedding People', author: 'Alison Espach', year: 2024 },
+    { title: 'House of Flame and Shadow', author: 'Sarah J. Maas', year: 2024 },
+    { title: 'Orbital', author: 'Samantha Harvey', year: 2024 },
+    { title: 'Creation Lake', author: 'Rachel Kushner', year: 2024 },
+    { title: 'North Woods', author: 'Daniel Mason', year: 2023 }
+  ],
+  monthly: [
+    { title: 'Surrounded by Idiots', author: 'Thomas Erikson', year: 2019 },
+    { title: 'The Subtle Art of Not Giving a F*ck', author: 'Mark Manson', year: 2016 },
+    { title: 'Atomic Habits', author: 'James Clear', year: 2018 },
+    { title: 'Ikigai', author: 'Hector Garcia', year: 2017 },
+    { title: 'The Psychology of Money', author: 'Morgan Housel', year: 2020 },
+    { title: 'Make Your Bed', author: 'William H. McRaven', year: 2017 },
+    { title: '101 Essays That Will Change The Way You Think', author: 'Brianna Wiest', year: 2016 },
+    { title: 'The Mountain Is You', author: 'Brianna Wiest', year: 2020 },
+    { title: 'Everything Is F*cked', author: 'Mark Manson', year: 2019 }
+  ]
+};
+
 // Inline runBookPipeline to avoid import issues in Cloudflare Functions
 async function runBookPipeline(params, opts = {}, apiKey = '', signal = null) {
   console.log('[Books API] runBookPipeline called with params:', params);
@@ -1115,18 +1229,53 @@ export default async function handler(req, res) {
     }
   }
 
-  // -------- TRENDING (Google Books primary - no more Open Library primary) --------
+  // -------- TRENDING (period-aware, multi-source cascade) --------
   if (section === "trending") {
     try {
       const limit = clampInt(query.limit, 1, 40, 24);
-      const result = await runBookPipeline({
-        q: "trending fiction novel bestseller 2026",
-        orderBy: "relevance", limit, page: 1, language: "en"
+      const period = String(query.period || "weekly").toLowerCase();
+      const validPeriod = ["daily", "weekly", "monthly"].includes(period) ? period : "weekly";
+
+      // Cascade:
+      //   1. Curated hand-picked seeds for the period (highest quality)
+      //   2. Period-tuned query against Google Books / Open Library
+      //   3. Generic "trending fiction" query (broadest)
+      const periodQueries = {
+        daily: "bestseller fiction 2025",
+        weekly: "bestseller fiction",
+        monthly: "popular fiction classic"
+      };
+
+      const seeds = Array.isArray(CURATED_BOOK_SEEDS_BY_PERIOD[validPeriod])
+        ? CURATED_BOOK_SEEDS_BY_PERIOD[validPeriod]
+        : [];
+
+      let result = await runBookPipeline({
+        q: periodQueries[validPeriod],
+        orderBy: "relevance", limit: Math.max(limit, 40), page: 1, language: "en"
       }, { strict: true, enrichCovers: true, groupEditions: true }, getBooksKey());
+
+      let books = Array.isArray(result.books) ? result.books : [];
+
+      // If we have curated seeds, prepend the best matches to ensure
+      // the hand-picked popular books always lead the rail.
+      if (seeds.length && books.length && typeof runCuratedDiscoveryServer === "function") {
+        const curated = runCuratedDiscoveryServer(books, seeds, { limit: Math.ceil(limit / 2) });
+        if (curated && Array.isArray(curated.books) && curated.books.length) {
+          const seen = new Set(curated.books.map((b) => String(b && b.id || "")));
+          books = curated.books.concat(books.filter((b) => !seen.has(String(b && b.id || ""))));
+          books = books.slice(0, limit);
+        }
+      }
+
       res.setHeader("Cache-Control", "public, max-age=180, s-maxage=600, stale-while-revalidate=1200");
       return res.json({
-        ok: true, books: result.books,
-        meta: { source: result.source, period: "weekly", limit, numFound: Math.max(Number(result.numFound || 0), result.books.length) }
+        ok: true, books,
+        meta: {
+          source: result.source, period: validPeriod, limit,
+          numFound: Math.max(Number(result.numFound || 0), books.length),
+          curated: seeds.length > 0
+        }
       });
     } catch (error) {
       return res.status(502).json({ message: error?.message || "Trending books request failed" });

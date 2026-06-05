@@ -131,34 +131,48 @@
   };
 
   // ============================================================
-  // CACHE LAYER (in-memory + localStorage)
+  // CACHE LAYER (in-memory + localStorage with stale-while-revalidate)
   // ============================================================
   var memoryCache = new Map();
   function nowMs() { return Date.now(); }
-  function cacheGet(key, ttlMs) {
+
+  // Fresh: cache hit younger than ttlMs is returned directly.
+  // Stale: cache hit between ttlMs and staleMs is returned AND a background refresh is scheduled.
+  function cacheGet(key, ttlMs, staleMs) {
+    staleMs = staleMs || (ttlMs * 4);
     var hit = memoryCache.get(key);
-    if (hit && (nowMs() - hit.t) < ttlMs) return hit.v;
-    try {
-      var raw = localStorage.getItem(LS_CACHE_PREFIX + key);
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return null;
-      if ((nowMs() - Number(parsed.t || 0)) > ttlMs) {
-        try { localStorage.removeItem(LS_CACHE_PREFIX + key); } catch (_) {}
-        return null;
-      }
-      memoryCache.set(key, { v: parsed.v, t: parsed.t });
-      return parsed.v;
-    } catch (_) { return null; }
+    var stored = null;
+    var storedT = 0;
+    if (hit) { stored = hit.v; storedT = hit.t; }
+    else {
+      try {
+        var raw = localStorage.getItem(LS_CACHE_PREFIX + key);
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') { stored = parsed.v; storedT = Number(parsed.t || 0); }
+        }
+      } catch (_) {}
+    }
+    if (stored == null) return null;
+    var age = nowMs() - storedT;
+    if (age < ttlMs) return { value: stored, stale: false, age: age };
+    if (age < staleMs) return { value: stored, stale: true, age: age };
+    // too stale
+    try { localStorage.removeItem(LS_CACHE_PREFIX + key); } catch (_) {}
+    return null;
   }
   function cacheSet(key, value) {
     var entry = { v: value, t: nowMs() };
     memoryCache.set(key, entry);
     try {
       var payload = JSON.stringify(entry);
-      // Don't try to write extremely large payloads to localStorage (some browsers cap at 5MB total).
       if (payload.length < 600000) localStorage.setItem(LS_CACHE_PREFIX + key, payload);
     } catch (_) { /* quota or disabled */ }
+  }
+  // Back-compat: when caller wants the raw value only.
+  function cacheGetRaw(key, ttlMs) {
+    var hit = cacheGet(key, ttlMs, ttlMs);
+    return hit ? hit.value : null;
   }
 
   // ============================================================
@@ -224,8 +238,8 @@
     var page = clampInt(opts.page, 1, 200, 1);
     var rewritten = rewriteQuery(query);
     var key = 'search:' + normalizeText(query) + ':' + page + ':' + limit + ':' + (opts.subject || '') + ':' + (opts.orderBy || '');
-    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS);
-    if (cached) return Promise.resolve(cached);
+    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS, MEMORY_CACHE_TTL_MS);
+    if (cached) return Promise.resolve(cached.value);
     var params = {
       q: rewritten, limit: limit, page: page,
       language: opts.language || 'en',
@@ -255,8 +269,8 @@
     var params = pick(opts.params || {}, section.params || {});
     if (opts.page) params.page = opts.page;
     var key = 'section:' + section.id + ':' + (params.page || 1) + ':' + (params.subject || '') + ':' + (params.q || '');
-    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS);
-    if (cached) return Promise.resolve(cached);
+    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS, MEMORY_CACHE_TTL_MS);
+    if (cached) return Promise.resolve(cached.value);
     return apiFetch(section.endpoint || '/popular', params, { dedupKey: 'sect:' + key })
       .then(function (json) {
         var raw = json && json.books ? json.books : [];
@@ -273,16 +287,175 @@
   }
 
   // ============================================================
-  // PUBLIC: DISCOVERY (parallel fetch of all sections)
+  // PUBLIC: TRENDING (multi-period, with curated seeds prepended)
   // ============================================================
+  function fetchTrending(opts) {
+    opts = opts || {};
+    var period = String(opts.period || 'weekly').toLowerCase();
+    if (['daily', 'weekly', 'monthly'].indexOf(period) < 0) period = 'weekly';
+    var limit = clampInt(opts.limit, 1, 40, 24);
+    var key = 'trending:' + period + ':' + limit;
+    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS, MEMORY_CACHE_TTL_MS);
+    if (cached) return Promise.resolve(cached.value);
+    var params = { period: period, limit: limit, language: 'en' };
+    return apiFetch('/trending', params, { dedupKey: 'trend:' + key })
+      .then(function (json) {
+        var raw = json && json.books ? json.books : [];
+        var books = filterSafe(normalizeApiBooks(raw));
+        var ranked = rankBooks(books, {});
+        var grouped = groupEditions(ranked, {});
+        var result = { period: period, books: grouped, source: json && json.meta && json.meta.source };
+        cacheSet(key, result);
+        return result;
+      })
+      .catch(function () {
+        return { period: period, books: [], source: null };
+      });
+  }
+
+  // ============================================================
+  // PUBLIC: CURATED (uses ZO2Y_CURATED_BOOK_SEEDS + a /popular pool)
+  // ------------------------------------------------------------
+  // Returns the hand-picked books that match the curated seed list,
+  // matched against live /popular data so covers/authors/years are real.
+  // ============================================================
+  function fetchCurated(opts) {
+    opts = opts || {};
+    var limit = clampInt(opts.limit, 1, 40, 18);
+    var seeds = (window.ZO2Y_CURATED_BOOK_SEEDS && window.ZO2Y_CURATED_BOOK_SEEDS.slice(0, limit * 3)) || [];
+    if (!seeds.length) {
+      // No seeds available; degrade to plain popular.
+      return fetchSection(DISCOVERY_SECTIONS[0]).then(function (s) {
+        return { books: s.books.slice(0, limit), curated: false };
+      });
+    }
+    var key = 'curated:' + limit;
+    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS, MEMORY_CACHE_TTL_MS);
+    if (cached) return Promise.resolve(cached.value);
+
+    // Fetch a generous pool so seed matching has good coverage.
+    var poolLimit = Math.max(40, limit * 4);
+    return apiFetch('/popular', { language: 'en', subject: 'fiction', limit: poolLimit, orderBy: 'relevance' }, { dedupKey: 'curatedpool:' + poolLimit })
+      .then(function (json) {
+        var pool = filterSafe(normalizeApiBooks((json && json.books) || []));
+        var result = DataLayer.runCuratedDiscovery(pool, seeds, { limit: limit });
+        var payload = { books: result.books, curated: true, matched: result.matched, totalSeeds: result.totalSeeds };
+        cacheSet(key, payload);
+        return payload;
+      })
+      .catch(function () {
+        return { books: [], curated: false, matched: 0 };
+      });
+  }
+
+  // ============================================================
+  // PUBLIC: DISCOVERY (SWR + parallel + hard timeout + onSection callback)
+  // ------------------------------------------------------------
+  // Returns a Promise<{sections, fromCache}>.
+  //   - If cache fresh (< DISCOVERY_CACHE_TTL_MS): resolves immediately, no fetch.
+  //   - If cache stale (< STALE_MULT * TTL): resolves immediately AND triggers background refresh
+  //     that calls onSection(section, isUpdate) as each section arrives.
+  //   - If no cache: kicks off fetch, resolves with the first batch after timeout, then continues
+  //     updating via onSection until all done (or hard timeout).
+  // ============================================================
+  var DISCOVERY_HARD_TIMEOUT_MS = 4500;       // never make the user wait longer than this
+  var DISCOVERY_FIRST_BATCH_MS = 1800;        // resolve the promise after the first section lands (or 1.8s)
+  var DISCOVERY_SWR_STALE_MULT = 4;           // cache age up to 4x TTL still serves as stale-while-revalidate
+
   function fetchDiscovery(opts) {
     opts = opts || {};
-    var cached = cacheGet('discover:all', DISCOVERY_CACHE_TTL_MS);
-    if (cached && !opts.force) return Promise.resolve(cached);
-    return Promise.all(DISCOVERY_SECTIONS.map(function (s) { return fetchSection(s); }))
-      .then(function (sections) {
-        var result = { sections: sections.filter(function (s) { return s && s.books && s.books.length; }) };
-        cacheSet('discover:all', result);
+    var onSection = typeof opts.onSection === 'function' ? opts.onSection : null;
+    var cacheKey = 'discover:all';
+    var cached = cacheGet(cacheKey, DISCOVERY_CACHE_TTL_MS, DISCOVERY_CACHE_TTL_MS * DISCOVERY_SWR_STALE_MULT);
+
+    if (cached && !cached.stale && !opts.force) {
+      return Promise.resolve({ sections: cached.value.sections, fromCache: true });
+    }
+
+    if (cached && cached.stale && !opts.force) {
+      // Stale-while-revalidate: serve immediately, refresh in background.
+      setTimeout(function () { refreshDiscoveryInBackground(onSection); }, 0);
+      return Promise.resolve({ sections: cached.value.sections, fromCache: true, stale: true });
+    }
+
+    // No cache (or forced): fetch with progressive rendering.
+    return fetchDiscoveryFresh(onSection, opts.force);
+  }
+
+  function refreshDiscoveryInBackground(onSection) {
+    return fetchDiscoveryFresh(onSection, false).catch(function () { /* swallow background errors */ });
+  }
+
+  function fetchDiscoveryFresh(onSection, forced) {
+    var firstBatchResolve;
+    var firstBatchPromise = new Promise(function (resolve) { firstBatchResolve = resolve; });
+    var firstBatchFired = false;
+
+    var overallTimeout = new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error('discovery-timeout')); }, DISCOVERY_HARD_TIMEOUT_MS);
+    });
+
+    var collected = [];
+    var pending = DISCOVERY_SECTIONS.length;
+
+    // Race: timeout vs first-section-landed-or-all
+    var racePromise = new Promise(function (resolve) {
+      var sectionsDone = 0;
+      DISCOVERY_SECTIONS.forEach(function (s) {
+        fetchSection(s).then(function (sec) {
+          if (sec && sec.books && sec.books.length) {
+            collected.push(sec);
+            if (onSection) {
+              try { onSection(sec, false); } catch (_) {}
+            }
+          }
+          sectionsDone++;
+          if (!firstBatchFired && (sectionsDone >= 1 || pending === sectionsDone)) {
+            firstBatchFired = true;
+            firstBatchResolve({ sections: collected.slice(), fromCache: false });
+          }
+        }).catch(function () {
+          sectionsDone++;
+          if (!firstBatchFired && sectionsDone >= pending) {
+            firstBatchFired = true;
+            firstBatchResolve({ sections: collected.slice(), fromCache: false });
+          }
+        });
+      });
+    });
+
+    return Promise.race([firstBatchPromise, racePromise, overallTimeout])
+      .then(function (result) {
+        // Don't wait for all sections; schedule background completion.
+        if (collected.length) cacheSet('discover:all', { sections: collected });
+        return result;
+      })
+      .catch(function (err) {
+        // Hard timeout or error: return whatever we have.
+        if (collected.length) {
+          cacheSet('discover:all', { sections: collected });
+          return { sections: collected, fromCache: false, timedOut: true };
+        }
+        return { sections: [], fromCache: false, timedOut: true, error: err && err.message };
+      })
+      .then(function (result) {
+        // Continue filling in remaining sections in background (best-effort).
+        if (!forced) {
+          setTimeout(function () {
+            DISCOVERY_SECTIONS.forEach(function (s) {
+              // Skip if section already collected
+              if (collected.some(function (c) { return c.id === s.id; })) return;
+              fetchSection(s).then(function (sec) {
+                if (!sec || !sec.books || !sec.books.length) return;
+                if (onSection) { try { onSection(sec, true); } catch (_) {} }
+                // Re-cache
+                var all = collected.concat([sec]);
+                collected = all;
+                cacheSet('discover:all', { sections: all });
+              }).catch(function () {});
+            });
+          }, 0);
+        }
         return result;
       });
   }
@@ -301,8 +474,8 @@
     if (opts.orderBy) params.orderBy = opts.orderBy;
     if (opts.q) params.q = opts.q;
     var key = 'flat:' + sectionId + ':' + page + ':' + (opts.subject || '') + ':' + (opts.orderBy || '');
-    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS);
-    if (cached) return Promise.resolve(cached);
+    var cached = cacheGet(key, MEMORY_CACHE_TTL_MS, MEMORY_CACHE_TTL_MS);
+    if (cached) return Promise.resolve(cached.value);
     return apiFetch(section.endpoint || '/popular', params, { dedupKey: 'flat:' + key })
       .then(function (json) {
         var raw = json && json.books ? json.books : [];
@@ -477,6 +650,8 @@
     fetchSection: fetchSection,
     fetchDiscovery: fetchDiscovery,
     fetchFlat: fetchFlat,
+    fetchTrending: fetchTrending,
+    fetchCurated: fetchCurated,
     abortAll: abortAll,
 
     // Renderers
@@ -487,7 +662,18 @@
 
     // Cache
     _cacheGet: cacheGet,
-    _cacheSet: cacheSet
+    _cacheGetRaw: cacheGetRaw,
+    _cacheSet: cacheSet,
+
+    // Timing constants (for testing/tuning)
+    _timing: {
+      MEMORY_CACHE_TTL_MS: MEMORY_CACHE_TTL_MS,
+      LS_CACHE_TTL_MS: LS_CACHE_TTL_MS,
+      DISCOVERY_CACHE_TTL_MS: DISCOVERY_CACHE_TTL_MS,
+      DISCOVERY_HARD_TIMEOUT_MS: DISCOVERY_HARD_TIMEOUT_MS,
+      DISCOVERY_FIRST_BATCH_MS: DISCOVERY_FIRST_BATCH_MS,
+      SEARCH_DEBOUNCE_MS: SEARCH_DEBOUNCE_MS
+    }
   };
 
   // Keep the old global identifier alive for any legacy callers.

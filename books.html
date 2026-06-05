@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <script src="/js/auth-gate.js?v=20260602a" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260602a" defer></script>
+  <script src="/js/auth-gate.js?v=20260605a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260605a" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -15,19 +15,21 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://books.google.com" crossorigin>
   <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
+  <link rel="preconnect" href="https://openlibrary.org" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-  <script src="js/list-utils.js?v=20260602a" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260602a" defer></script>
-  <script src="/js/lib/img-fallback.js?v=20260602a" defer></script>
-  <script src="js/books-data-layer.js?v=20260603b" defer></script>
-  <script src="js/books-engine.js?v=20260603b" defer></script>
+  <script src="js/list-utils.js?v=20260605a" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260605a" defer></script>
+  <script src="/js/lib/img-fallback.js?v=20260605a" defer></script>
+  <script src="js/data/curated-media.js?v=20260605a" defer></script>
+  <script src="js/books-data-layer.js?v=20260605a" defer></script>
+  <script src="js/books-engine.js?v=20260605a" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
-  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260602a"></noscript>
-  <link rel="stylesheet" href="/css/pages/books-page.css?v=20260602b" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/css/pages/books-page.css?v=20260602b"></noscript>
-  <link rel="stylesheet" href="css/animations.css?v=20260602a">
+  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260605a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260605a"></noscript>
+  <link rel="stylesheet" href="/css/pages/books-page.css?v=20260605a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/pages/books-page.css?v=20260605a"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260605a">
   <style>
     :root {
       --category-hero-image: url("https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1600&q=80");
@@ -40,14 +42,14 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260602a" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260602a"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260602a" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260602a" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260602a"></noscript>
-  <script src="js/shared-header.js?v=20260602a" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260602a" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260602a"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260605a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260605a"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260605a" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260605a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605a"></noscript>
+  <script src="js/shared-header.js?v=20260605a" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260605a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260605a"></noscript>
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -521,21 +523,58 @@
       }
 
       // ============================================================
-      // DATA: Discover sections
+      // DATA: Discover sections (SWR + progressive rendering)
+      // ------------------------------------------------------------
+      // Each section is rendered the moment it lands (via onSection callback),
+      // so the user sees the first section in ~1s instead of waiting for all
+      // 12 sections to resolve. SWR serves cached content immediately on
+      // repeat visits and refreshes in the background.
       // ============================================================
+      var renderedSectionIds = new Set();
       function loadAndRenderDiscover() {
         showDiscoverSections();
         showSkeleton(dom.discover, 4);
-        return Engine.fetchDiscovery().then(function (data) {
-          renderDiscover(data && data.sections || []);
-          loadListStatusForVisible();
-        }).catch(function (err) {
-          if (dom.discover) {
-            dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Could not load discovery</h3><p>'+ Engine.escapeHtml(err && err.message || 'Try again shortly.') +'</p><button id="discoverRetryBtn" type="button"><i class="fas fa-rotate"></i> Retry</button></div>';
-            var retry = document.getElementById('discoverRetryBtn');
-            if (retry) retry.addEventListener('click', loadAndRenderDiscover);
+        renderedSectionIds = new Set();
+        return Engine.fetchDiscovery({
+          onSection: function (section, isUpdate) {
+            if (!section || !section.id || renderedSectionIds.has(section.id)) return;
+            renderedSectionIds.add(section.id);
+            appendDiscoverSection(section);
           }
+        }).then(function (data) {
+          var sections = (data && data.sections) || [];
+          if (data && data.timedOut && !sections.length) {
+            showDiscoverError('Discovery took too long.');
+            return;
+          }
+          if (data && data.fromCache && !sections.length) {
+            showDiscoverError('No cached discovery yet.');
+            return;
+          }
+          if (!renderedSectionIds.size && !sections.length) {
+            showDiscoverError('No books available right now.');
+            return;
+          }
+          if (!data || !data.fromCache) loadListStatusForVisible();
+        }).catch(function (err) {
+          if (!renderedSectionIds.size) showDiscoverError((err && err.message) || 'Try again shortly.');
         });
+      }
+      function appendDiscoverSection(section) {
+        if (!dom.discover) return;
+        // Replace skeleton blocks with real content as they arrive.
+        var skeleton = dom.discover.querySelector('.book-section-skeleton');
+        if (skeleton) skeleton.remove();
+        var html = Engine.renderSection(section, { limit: 18, showMore: true });
+        dom.discover.insertAdjacentHTML('beforeend', html);
+        wireDiscoverActions();
+        loadListStatusForVisible();
+      }
+      function showDiscoverError(msg) {
+        if (!dom.discover) return;
+        dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Could not load discovery</h3><p>'+ Engine.escapeHtml(msg) +'</p><button id="discoverRetryBtn" type="button"><i class="fas fa-rotate"></i> Retry</button></div>';
+        var retry = document.getElementById('discoverRetryBtn');
+        if (retry) retry.addEventListener('click', loadAndRenderDiscover);
       }
       function renderDiscover(sections) {
         if (!dom.discover) return;

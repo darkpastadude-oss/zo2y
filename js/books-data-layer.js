@@ -570,6 +570,83 @@ function scoreFranchise(doc) {
   return 0;
 }
 
+// ============================================================
+// CURATED DISCOVERY (ported from index-home-heavy-loaders.js)
+// ------------------------------------------------------------
+// Given a pool of hand-picked book seeds and a list of API docs,
+// boost docs that match the seeds so the home/discover rails are
+// populated with the "books Zo2y actually wants to feature" first.
+// ============================================================
+
+function normalizeBookSeedText(value) {
+  return String(value == null ? '' : value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function scoreCuratedTopBookDoc(doc, seed) {
+  const normalizedTitle = normalizeBookSeedText(doc && (doc.title || doc._rawTitle));
+  const normalizedAuthor = normalizeBookSeedText(
+    doc && (Array.isArray(doc.author_name) ? doc.author_name[0] : (doc.author || doc._rawAuthor))
+  );
+  const seedTitle = normalizeBookSeedText(seed && seed.title);
+  const seedAuthor = normalizeBookSeedText(seed && seed.author);
+  const seedYear = Number(seed && seed.year || 0) || 0;
+  const docYear = Number(doc && (doc.first_publish_year || doc.year) || 0) || 0;
+  let score = 0;
+  if (normalizedTitle && seedTitle) {
+    if (normalizedTitle === seedTitle) score += 120;
+    else if (normalizedTitle.startsWith(seedTitle) || seedTitle.startsWith(normalizedTitle)) score += 80;
+    else if (normalizedTitle.includes(seedTitle) || seedTitle.includes(normalizedTitle)) score += 48;
+  }
+  if (normalizedAuthor && seedAuthor) {
+    if (normalizedAuthor === seedAuthor) score += 70;
+    else if (normalizedAuthor.includes(seedAuthor) || seedAuthor.includes(normalizedAuthor)) score += 42;
+  }
+  if (String((doc && (doc.coverImage || doc.cover)) || '').trim()) score += 24;
+  if (docYear >= 2020) score += 16;
+  if (seedYear && docYear === seedYear) score += 24;
+  return score;
+}
+
+// For each seed, pick the best-matching doc from the pool (if any).
+// Returns array of {seed, doc} for seeds that produced a match.
+function bestMatchForSeed(docs, seed) {
+  if (!seed || !docs || !docs.length) return null;
+  let best = null;
+  let bestScore = 0;
+  for (let i = 0; i < docs.length; i++) {
+    const s = scoreCuratedTopBookDoc(docs[i], seed);
+    if (s > bestScore) { bestScore = s; best = docs[i]; }
+  }
+  return bestScore > 0 ? { seed, doc: best, score: bestScore } : null;
+}
+
+function runCuratedDiscovery(docs, seeds, opts) {
+  opts = opts || {};
+  const limit = Number(opts.limit || 18) || 18;
+  const pool = Array.isArray(docs) ? docs : [];
+  const seedList = Array.isArray(seeds) ? seeds : [];
+  if (!pool.length || !seedList.length) return { books: [], matched: 0, totalSeeds: 0 };
+
+  const seen = new Set();
+  const matched = [];
+  for (let i = 0; i < seedList.length && matched.length < limit; i++) {
+    const result = bestMatchForSeed(pool, seedList[i]);
+    if (!result || !result.doc) continue;
+    const key = normalizeBookSeedText(result.doc.title) + '::' + normalizeBookSeedText(
+      Array.isArray(result.doc.author_name) ? result.doc.author_name[0] : (result.doc.author || '')
+    );
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    matched.push(result.doc);
+  }
+  return { books: matched, matched: matched.length, totalSeeds: seedList.length };
+}
+
 function scoreBookDoc(doc, opts = {}) {
   return scoreCoverQuality(doc)
        + scoreEnglishConfidence(doc)
@@ -914,6 +991,11 @@ var exports = {
   scoreQueryRelevance,
   scoreBookDoc,
   rankDocs,
+
+  // Curated discovery
+  normalizeBookSeedText,
+  scoreCuratedTopBookDoc,
+  runCuratedDiscovery,
   
   // Edition grouping
   editionKey,
