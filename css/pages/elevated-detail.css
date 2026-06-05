@@ -25,7 +25,7 @@
   --dt-text: #f4f7ff;
   --dt-text-2: #b6c0d8;
   --dt-text-3: #7d8aa6;
-  --dt-accent: var(--dt-accent);
+  --dt-accent: #f59e0b;
   --dt-accent-2: #fbbf24;
   --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
   --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
@@ -53,7 +53,7 @@
 .elevated-detail-page[data-elevated-category="fashion"],
 .elevated-detail-page[data-elevated-category="car"],
 .elevated-detail-page[data-elevated-category="team"] {
-  --dt-accent: var(--dt-accent);
+  --dt-accent: #f59e0b;
   --dt-accent-2: #fbbf24;
   --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
   --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
@@ -2403,6 +2403,12 @@
 @media (max-width: 768px) {
   .elevated-detail-page .elevated-hero {
     min-height: auto;
+  }
+  .elevated-detail-page .elevated-hero-backdrop,
+  .elevated-detail-page .elevated-hero-blur {
+    transform: none;
+    background-attachment: scroll;
+    background-position: center center;
   }
   .elevated-detail-page .elevated-hero-foreground {
     grid-template-columns: 1fr;

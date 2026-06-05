@@ -5,7 +5,7 @@
             --color-bg-tertiary: #132347;
             --color-text-primary: #ffffff;
             --color-text-secondary: #cbd5e1;
-            --color-accent: var(--color-accent);
+            --color-accent: #f59e0b;
             --color-border: rgba(255,255,255,0.1);
             --color-bg-hover: #1a2c5a;
             --color-error: #ef4444;
@@ -75,7 +75,7 @@
         body.profile-theme-navy {
             --color-bg-primary: #0b1633;
             --color-bg-tertiary: #132347;
-            --color-accent: var(--color-accent);
+            --color-accent: #f59e0b;
             --color-bg-hover: #1a2c5a;
             --color-border: rgba(255,255,255,0.1);
             /* Legacy Aliases */

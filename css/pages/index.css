@@ -6,8 +6,8 @@
       --color-bg-elevated: #172b58;
       --color-text-primary: #fff;
       --color-text-secondary: #8ca3c7;
-      --color-accent: var(--color-accent);
-      --color-accent-hover: #fbbf24;
+      --color-accent: #f59e0b;
+      --color-accent-hover: #ffb84d;
       --color-border: rgba(255,255,255,0.12);
       --color-border-hover: rgba(255,255,255,0.18);
       --color-success: #10b981;
@@ -573,6 +573,12 @@
       color: var(--accent);
       font-size: 12px;
       font-weight: 600;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .rail-title a:hover {
+      color: var(--color-accent-hover);
+      transform: translateX(2px);
     }
 
     .popular-title {
@@ -701,6 +707,7 @@
 
     .card:hover {
       border-color: var(--accent);
+      box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 22%, transparent);
       transform: translateY(-2px);
     }
 

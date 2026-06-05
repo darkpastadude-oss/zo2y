@@ -619,7 +619,7 @@
       let photoImage = '';
       try {
         const imagesRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=20&format=json&origin=*`
+          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=40&format=json&origin=*`
         );
         if (imagesRes.ok) {
           const imagesData = await imagesRes.json();
@@ -627,10 +627,20 @@
           const titles = [];
           pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
           // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
-          const SKIP = /logo|icon|wordmark|seal|flag|svg/i;
+          // Also exclude buildings/factories/headquarters/plants/people/CEO for car brands
+          // so we prefer actual product photos (the cars themselves).
+          const SKIP = /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic/i;
           const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
-          // Resolve the first 6 candidates to URLs
-          const slice = candidates.slice(0, 6);
+          // For car brands, prefer images that look like product shots (car model names,
+          // front/side/rear view, studio shots, press photos). We boost those to the top.
+          const PRODUCT_BOOST = /front|side|rear|view|press|show|model|sedan|coupe|suv|truck|hatch|wagon|roadster|convertible|hybrid|electric|gt|racing|race|track|motor|auto|vehicle|\b\d{4}\b/i;
+          const ranked = candidates.slice().sort((a, b) => {
+            const aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
+            const bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
+            return aScore - bScore;
+          });
+          // Resolve the first 8 candidates to URLs
+          const slice = ranked.slice(0, 8);
           if (slice.length) {
             const urlsRes = await fetch(
               `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`
