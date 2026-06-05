@@ -38,7 +38,7 @@
   <script src="js/pages/brand.js?v=20260601b" defer></script>
 
   </head>
-<body class="elevated-detail-page" data-elevated-category="fashion">
+<body class="elevated-detail-page" data-elevated-category="food">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -72,13 +72,13 @@
   </div>
 </header>
 
-  <section class="elevated-hero is-no-backdrop" id="brandHero" aria-label="Brand header">
+  <section class="elevated-hero elevated-hero-centered is-no-backdrop" id="brandHero" aria-label="Brand header">
     <div class="elevated-hero-backdrop" id="brandBackdrop" aria-hidden="true"></div>
     <div class="elevated-hero-blur" id="brandBackdropBlur" aria-hidden="true"></div>
     <div class="elevated-hero-grain" aria-hidden="true"></div>
     <div class="elevated-hero-watermark" aria-hidden="true">brand</div>
     <div class="elevated-hero-foreground">
-      <a class="elevated-poster-frame" id="brandPosterFrame" href="#" target="_blank" rel="noopener" aria-label="Brand website">
+      <a class="elevated-poster-frame elevated-logo-card" id="brandPosterFrame" href="#" target="_blank" rel="noopener" aria-label="Brand website">
         <img id="brandLogo" class="elevated-poster" src="/newlogo.webp" alt="Brand logo" loading="lazy" decoding="async">
         <div class="elevated-poster-fallback" aria-hidden="true">
           <i class="elevated-poster-fallback-icon fa-solid fa-tag"></i>
@@ -91,12 +91,12 @@
           <i class="fa-solid fa-tag"></i> <span id="brandKickerLabel">brand spotlight</span>
         </span>
         <div class="elevated-title-row">
-          <h1 class="elevated-title" id="brandName">Loading brand…</h1>
+          <h1 class="elevated-title" id="brandName">Loading brand.</h1>
         </div>
         <div id="brandMeta" class="elevated-meta" aria-label="Brand metadata"></div>
         <div id="brandTags" class="elevated-tags" aria-label="Brand tags"></div>
         <div class="elevated-description-wrap">
-          <p id="brandDescription" class="elevated-description is-clamped">Loading brand details…</p>
+          <p id="brandDescription" class="elevated-description is-clamped">Loading brand details.</p>
           <button class="elevated-readmore" id="brandDescriptionToggle" type="button" aria-expanded="false" aria-controls="brandDescription">
             <span class="elevated-readmore-label">read more</span>
             <i class="fa-solid fa-chevron-down"></i>
@@ -154,32 +154,24 @@
       <div id="brandSocial" class="elevated-social"></div>
     </section>
 
-    <section class="elevated-section elevated-section-rail" id="brandTrendingSection">
+    <section class="elevated-section" id="brandTrailerSection" hidden>
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
-          <i class="fa-solid fa-arrow-trend-up"></i> trending now
+          <i class="fa-solid fa-circle-play"></i> video
         </h2>
-        <span class="elevated-section-sub" id="brandTrendingSub">Top picks in this category</span>
+        <span class="elevated-section-sub" id="brandTrailerSub">Watch and learn more about this brand</span>
       </div>
-      <div class="elevated-rail-controls" aria-hidden="true">
-        <button class="elevated-rail-btn" type="button" data-rail-dir="-1" data-rail-target="brandTrendingRail" aria-label="Scroll left">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <button class="elevated-rail-btn" type="button" data-rail-dir="1" data-rail-target="brandTrendingRail" aria-label="Scroll right">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-      </div>
-      <div id="brandTrendingRail" class="elevated-rail" role="list"></div>
+      <div id="brandTrailer" class="elevated-trailer-frame"></div>
     </section>
 
-    <section class="elevated-section elevated-section-rail" id="brandCollectionsSection">
+    <section class="elevated-section" id="brandGallerySection" hidden>
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
-          <i class="fa-solid fa-shapes"></i> collections
+          <i class="fa-solid fa-images"></i> gallery
         </h2>
-        <span class="elevated-section-sub" id="brandCollectionsSub">Hand-picked by our editors</span>
+        <span class="elevated-section-sub" id="brandGallerySub">Photos and visuals from this brand</span>
       </div>
-      <div id="brandCollections" class="elevated-collections"></div>
+      <div id="brandGallery" class="elevated-gallery"></div>
     </section>
 
     <section class="elevated-section elevated-section-rail" id="brandRelatedSection" hidden>
@@ -190,29 +182,6 @@
         <span class="elevated-section-sub" id="brandRelatedSub">More in the same category</span>
       </div>
       <div id="brandRelated" class="elevated-related"></div>
-    </section>
-
-    <section class="elevated-section elevated-section-rail" id="brandCommunitySection">
-      <div class="elevated-section-head">
-        <h2 class="elevated-section-title">
-          <i class="fa-solid fa-people-group"></i> community
-        </h2>
-        <span class="elevated-section-sub" id="brandCommunitySub">What fans are saying right now</span>
-      </div>
-      <div class="elevated-community-grid">
-        <div class="elevated-community-block">
-          <h3 class="elevated-community-title"><i class="fa-solid fa-fire"></i> popular this week</h3>
-          <div id="brandCommunityPopular" class="elevated-community-list"></div>
-        </div>
-        <div class="elevated-community-block">
-          <h3 class="elevated-community-title"><i class="fa-solid fa-bookmark"></i> most saved</h3>
-          <div id="brandCommunitySaved" class="elevated-community-list"></div>
-        </div>
-        <div class="elevated-community-block">
-          <h3 class="elevated-community-title"><i class="fa-solid fa-sparkles"></i> recently added</h3>
-          <div id="brandCommunityRecent" class="elevated-community-list"></div>
-        </div>
-      </div>
     </section>
 
     <section id="reviews-section" class="elevated-section">

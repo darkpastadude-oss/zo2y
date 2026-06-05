@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
@@ -53,16 +53,12 @@
     related: document.getElementById('teamRelated'),
     relatedSection: document.getElementById('teamRelatedSection'),
     relatedSub: document.getElementById('teamRelatedSub'),
-    trendingRail: document.getElementById('teamTrendingRail'),
-    trendingSection: document.getElementById('teamTrendingSection'),
-    trendingSub: document.getElementById('teamTrendingSub'),
-    collections: document.getElementById('teamCollections'),
-    collectionsSection: document.getElementById('teamCollectionsSection'),
-    collectionsSub: document.getElementById('teamCollectionsSub'),
-    communityPopular: document.getElementById('teamCommunityPopular'),
-    communitySaved: document.getElementById('teamCommunitySaved'),
-    communityRecent: document.getElementById('teamCommunityRecent'),
-    communitySection: document.getElementById('teamCommunitySection'),
+    trailer: document.getElementById('teamTrailer'),
+    trailerSection: document.getElementById('teamTrailerSection'),
+    trailerSub: document.getElementById('teamTrailerSub'),
+    gallery: document.getElementById('teamGallery'),
+    gallerySection: document.getElementById('teamGallerySection'),
+    gallerySub: document.getElementById('teamGallerySub'),
     toast: document.getElementById('teamToast')
   };
 
@@ -475,7 +471,7 @@
     }
     ui.roster.innerHTML = state.roster.slice(0, 16).map((p) => {
       const initials = (p.name || 'P').split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
-      const sub = [p.number && `#${p.number}`, p.position].filter(Boolean).join(' · ');
+      const sub = [p.number && `#${p.number}`, p.position].filter(Boolean).join(' Â· ');
       const thumb = p.thumb;
       return `
         <div class="elevated-person-card" title="${escapeHtml(p.name)}">
@@ -499,7 +495,7 @@
     }
     ui.relatedSection.hidden = false;
     ui.related.innerHTML = state.related.slice(0, 6).map((team) => {
-      const sub = [team.league, team.sport].filter(Boolean).join(' · ') || 'Team';
+      const sub = [team.league, team.sport].filter(Boolean).join(' Â· ') || 'Team';
       const hrefParams = new URLSearchParams();
       hrefParams.set('team', team.name);
       if (team.league) hrefParams.set('league', team.league);
@@ -549,315 +545,86 @@
     }
   }
 
-  function getTeamInitials(name) {
-    const text = String(name || '').trim();
-    if (!text) return '?';
-    return text.split(/\s+/).map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  function searchYouTubeForTeam(query) {
+    if (!query) return null;
+    try {
+      const q = encodeURIComponent(String(query));
+      return `https://www.youtube.com/results?search_query=${q}`;
+    } catch (_e) { return null; }
   }
 
-  function buildTeamRailCard(row) {
-    if (!row) return '';
-    const name = String(row.name || 'Team').trim() || 'Team';
-    const badge = row.badge || row.logo_url || row.logo || '';
-    const sub = [row.league, row.sport].filter(Boolean).join(' · ') || 'Team';
-    const hrefParams = new URLSearchParams();
-    hrefParams.set('team', name);
-    if (row.league) hrefParams.set('league', row.league);
-    if (row.sport) hrefParams.set('sport', row.sport);
-    if (row.country) hrefParams.set('country', row.country);
-    const initials = getTeamInitials(name);
-    const thumb = badge
-      ? `<img src="${escapeHtml(badge)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-rail-card-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
-      : `<span class="elevated-rail-card-thumb-fallback">${escapeHtml(initials)}</span>`;
-    return `
-      <a class="elevated-rail-card" href="team.html?${hrefParams.toString()}" role="listitem" aria-label="${escapeHtml(name)}">
-        <span class="elevated-rail-card-thumb">${thumb}</span>
-        <span class="elevated-rail-card-name">${escapeHtml(name)}</span>
-        <span class="elevated-rail-card-meta">${escapeHtml(sub)}</span>
-      </a>
+  function loadTeamTrailer(team) {
+    if (!ui.trailer || !ui.trailerSection) return;
+    if (!team || !team.name) {
+      ui.trailerSection.hidden = true;
+      return;
+    }
+    const sport = team.sport ? ` ${team.sport}` : '';
+    const query = `${team.name}${sport} highlights`.trim();
+    const searchUrl = searchYouTubeForTeam(query);
+    if (ui.trailerSub) ui.trailerSub.textContent = `Watch highlights and videos of ${team.name}`;
+    ui.trailerSection.hidden = false;
+    ui.trailer.innerHTML = `
+      <div class="elevated-trailer-empty">
+        <i class="fa-brands fa-youtube"></i>
+        <span>no embedded video available for this team</span>
+        <a class="elevated-trailer-cta" href="${escapeHtml(searchUrl || '#')}" target="_blank" rel="noopener">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube
+        </a>
+      </div>
     `;
   }
 
-  function renderTeamRailSkeleton(target, count = 6) {
-    if (!target) return;
-    target.innerHTML = Array.from({ length: count }, () => '<div class="elevated-rail-skeleton"></div>').join('');
-  }
-
-  function renderEmptyTeamRail(target, message) {
-    if (!target) return;
-    target.innerHTML = `<div class="elevated-rail-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
-  }
-
-  function wireTeamRailScrollers(scope) {
-    const root = scope || document;
-    const buttons = root.querySelectorAll('.elevated-rail-btn[data-rail-target]');
-    buttons.forEach((btn) => {
-      if (btn.dataset.wired === '1') return;
-      btn.dataset.wired = '1';
-      const targetId = btn.getAttribute('data-rail-target');
-      const dir = parseInt(btn.getAttribute('data-rail-dir') || '1', 10);
-      const targetEl = targetId ? document.getElementById(targetId) : null;
-      if (!targetEl) return;
-      btn.addEventListener('click', () => {
-        const amount = Math.max(220, Math.round(targetEl.clientWidth * 0.85));
-        targetEl.scrollBy({ left: dir * amount, behavior: 'smooth' });
-      });
-    });
-    root.querySelectorAll('.elevated-rail').forEach((rail) => {
-      if (rail.dataset.wired === '1') return;
-      rail.dataset.wired = '1';
-      const updateButtons = () => {
-        const prevBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="-1"]');
-        const nextBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="1"]');
-        const atStart = rail.scrollLeft <= 4;
-        const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4;
-        if (prevBtn) prevBtn.disabled = atStart;
-        if (nextBtn) nextBtn.disabled = atEnd;
-      };
-      rail.addEventListener('scroll', updateButtons, { passive: true });
-      window.addEventListener('resize', updateButtons);
-      requestAnimationFrame(updateButtons);
-    });
-  }
-
-  async function loadTeamTrending(team) {
-    if (!ui.trendingRail || !ui.trendingSection) return;
-    renderTeamRailSkeleton(ui.trendingRail, 8);
-    const supabase = state.supabase;
-    if (!supabase) {
-      renderEmptyTeamRail(ui.trendingRail, 'Trending picks will appear here soon.');
+  function loadTeamGallery(team) {
+    if (!ui.gallery || !ui.gallerySection) return;
+    if (!team || !team.name) {
+      ui.gallerySection.hidden = true;
       return;
     }
-    try {
-      const orFilters = [];
-      if (team.sport) orFilters.push(`sport.ilike.${team.sport}`);
-      if (team.league) orFilters.push(`league.ilike.${team.league}`);
-      let query = supabase.from('teams')
-        .select('id,name,sport,league,logo_url')
-        .neq('id', team.id)
-        .limit(24);
-      if (orFilters.length) query = query.or(orFilters.join(','));
-      const { data, error } = await query;
-      if (error || !data || !data.length) {
-        renderEmptyTeamRail(ui.trendingRail, 'Trending picks will appear here soon.');
-        return;
-      }
-      const popularRegex = /real|barcelona|madrid|united|city|chelsea|arsenal|liverpool|psg|juventus|bayern|ferrari|mercedes|red bull|mclaren|ferrari|yankees|lakers|celtics|bulls|warriors|knicks|dodgers/i;
-      const pool = (popularRegex ? data.filter((r) => popularRegex.test(r.name || '')) : data).length >= 4
-        ? data.filter((r) => popularRegex.test(r.name || ''))
-        : data;
-      const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 10);
-      if (!shuffled.length) {
-        renderEmptyTeamRail(ui.trendingRail, 'Trending picks will appear here soon.');
-        return;
-      }
-      ui.trendingRail.innerHTML = shuffled.map((row) => buildTeamRailCard({
-        id: row.id, name: row.name, sport: row.sport, league: row.league, badge: row.logo_url
-      })).join('');
-      if (ui.trendingSub) {
-        const league = team.league ? ` ${team.league}` : (team.sport ? ` ${team.sport}` : '');
-        ui.trendingSub.textContent = `Top teams in${league}`;
-      }
-    } catch (_err) {
-      renderEmptyTeamRail(ui.trendingRail, 'Trending picks will appear here soon.');
+    const images = [];
+    // Team badge as a fallback
+    if (team.badge) images.push({ src: team.badge, caption: 'crest' });
+    if (team.banner) images.push({ src: team.banner, caption: team.name });
+    if (team.stadiumThumb) images.push({ src: team.stadiumThumb, caption: 'stadium' });
+    if (team.jersey) images.push({ src: team.jersey, caption: 'kit' });
+    if (team.fanart) images.push({ src: team.fanart, caption: team.name });
+    // Wikipedia REST image list â€” extra photos
+    if (team.wikiTitle) {
+      const commonsUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|images&titles=${encodeURIComponent(team.wikiTitle)}&format=json&origin=*&piprop=original&imlimit=8`;
+      fetch(commonsUrl).then((r) => r.ok ? r.json() : null).then((data) => {
+        if (!data || !data.query || !data.query.pages) return;
+        const pages = Object.values(data.query.pages);
+        pages.forEach((page) => {
+          if (page.original && page.original.source && !images.find((i) => i.src === page.original.source)) {
+            images.push({ src: page.original.source, caption: page.title || team.name });
+          }
+        });
+        if (!images.length) return;
+        ui.gallery.innerHTML = images.slice(0, 12).map((img) => `
+          <figure class="elevated-gallery-item">
+            <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+            ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+          </figure>
+        `).join('');
+      }).catch(() => {});
     }
-  }
-
-  function getTeamCollections(team) {
-    const sport = String(team?.sport || '').toLowerCase();
-    if (sport.includes('football') && !sport.includes('american')) {
-      return [
-        { kicker: 'derby', icon: 'fa-fire', name: 'Iconic Derbies', desc: 'The rivalries that define football culture.', count: 14, gradient: 'radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.3), transparent 65%)' },
-        { kicker: 'elite', icon: 'fa-trophy', name: 'Champions League Royalty', desc: 'Most successful clubs in European competition.', count: 16, gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)' },
-        { kicker: 'rising', icon: 'fa-arrow-trend-up', name: 'Rising Powers', desc: 'New-money clubs reshaping the game.', count: 8, gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.28), transparent 65%)' }
-      ];
-    }
-    if (sport.includes('basketball')) {
-      return [
-        { kicker: 'dynasty', icon: 'fa-crown', name: 'NBA Dynasties', desc: 'The franchises that built basketball history.', count: 10, gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)' },
-        { kicker: 'young core', icon: 'fa-bolt', name: 'Young Cores', desc: 'Rebuilding teams with the brightest future.', count: 8, gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.28), transparent 65%)' },
-        { kicker: 'iconic', icon: 'fa-medal', name: 'All-Time Greats', desc: 'The franchises of legends.', count: 12, gradient: 'radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3), transparent 65%)' }
-      ];
-    }
-    if (sport.includes('motorsport') || sport.includes('racing') || sport.includes('f1')) {
-      return [
-        { kicker: 'works', icon: 'fa-wrench', name: 'Factory Teams', desc: 'The constructor giants of motorsport.', count: 10, gradient: 'radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.3), transparent 65%)' },
-        { kicker: 'classic', icon: 'fa-flag-checkered', name: 'Heritage Builders', desc: 'The teams that defined eras.', count: 9, gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)' },
-        { kicker: 'privateer', icon: 'fa-medal', name: 'Independent Entries', desc: 'Customer teams punching above their weight.', count: 7, gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.28), transparent 65%)' }
-      ];
-    }
-    if (sport.includes('american')) {
-      return [
-        { kicker: 'dynasty', icon: 'fa-trophy', name: 'NFL Dynasties', desc: 'Franchises that owned the Super Bowl era.', count: 10, gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)' },
-        { kicker: 'classic', icon: 'fa-shield', name: 'Original Six', desc: 'The league’s foundational franchises.', count: 8, gradient: 'radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.3), transparent 65%)' },
-        { kicker: 'modern', icon: 'fa-bolt', name: 'Modern Powerhouses', desc: 'The teams of the analytics era.', count: 6, gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.28), transparent 65%)' }
-      ];
-    }
-    return [
-      { kicker: 'all', icon: 'fa-grid-2', name: 'Top teams in this sport', desc: 'Browse the most-followed teams on Zo2y.', count: 18, gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.3), transparent 65%)' }
-    ];
-  }
-
-  function buildTeamCollectionCard(item) {
-    if (!item) return '';
-    const styleVar = `--collection-bg: ${item.gradient || 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.3), transparent 65%)'};`;
-    return `
-      <a class="elevated-collection-card" style="${styleVar}" href="javascript:void(0)" role="link" aria-label="${escapeHtml(item.name)}">
-        <span class="elevated-collection-kicker"><i class="fa-solid ${escapeHtml(item.icon || 'fa-shapes')}"></i> ${escapeHtml(item.kicker || 'collection')}</span>
-        <h3 class="elevated-collection-name">${escapeHtml(item.name)}</h3>
-        <p class="elevated-collection-desc">${escapeHtml(item.desc || '')}</p>
-        <div class="elevated-collection-foot">
-          <span class="elevated-collection-count"><i class="fa-solid fa-layer-group"></i> ${item.count} teams</span>
-          <span class="elevated-collection-cta">view <i class="fa-solid fa-arrow-right"></i></span>
+    if (ui.gallerySub) ui.gallerySub.textContent = `Photos and visuals of ${team.name}`;
+    ui.gallerySection.hidden = false;
+    if (!images.length) {
+      ui.gallery.innerHTML = `
+        <div class="elevated-gallery-empty">
+          <i class="fa-regular fa-image"></i>
+          no photos available for this team yet
         </div>
-      </a>
-    `;
-  }
-
-  function loadTeamCollections(team) {
-    if (!ui.collections || !ui.collectionsSection) return;
-    const items = getTeamCollections(team);
-    if (!items.length) {
-      ui.collectionsSection.hidden = true;
+      `;
       return;
     }
-    ui.collectionsSection.hidden = false;
-    if (ui.collectionsSub) {
-      ui.collectionsSub.textContent = 'Hand-picked matchday groups';
-    }
-    ui.collections.innerHTML = items.map(buildTeamCollectionCard).join('');
-  }
-
-  function buildTeamCommunityRow(row, rank) {
-    if (!row) return '';
-    const name = String(row.name || 'Team').trim() || 'Team';
-    const badge = row.badge || row.logo_url || row.logo || '';
-    const sub = [row.league, row.sport].filter(Boolean).join(' · ') || 'Team';
-    const hrefParams = new URLSearchParams();
-    hrefParams.set('team', name);
-    if (row.league) hrefParams.set('league', row.league);
-    if (row.sport) hrefParams.set('sport', row.sport);
-    if (row.country) hrefParams.set('country', row.country);
-    const initials = getTeamInitials(name);
-    const thumb = badge
-      ? `<img src="${escapeHtml(badge)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-community-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
-      : `<span class="elevated-community-thumb-fallback">${escapeHtml(initials)}</span>`;
-    const rankHtml = rank ? `<span class="elevated-community-rank">${rank}</span>` : '';
-    return `
-      <a class="elevated-community-row" href="team.html?${hrefParams.toString()}" aria-label="${escapeHtml(name)}">
-        ${rankHtml}
-        <span class="elevated-community-thumb">${thumb}</span>
-        <span class="elevated-community-body">
-          <span class="elevated-community-name">${escapeHtml(name)}</span>
-          <span class="elevated-community-meta">${escapeHtml(sub)}</span>
-        </span>
-      </a>
-    `;
-  }
-
-  function renderEmptyTeamCommunity(target, message) {
-    if (!target) return;
-    target.innerHTML = `<div class="elevated-community-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
-  }
-
-  async function loadTeamCommunity(team) {
-    if (!ui.communitySection) return;
-    const supabase = state.supabase;
-    if (!supabase) {
-      renderEmptyTeamCommunity(ui.communityPopular, 'No data yet.');
-      renderEmptyTeamCommunity(ui.communitySaved, 'No data yet.');
-      renderEmptyTeamCommunity(ui.communityRecent, 'No data yet.');
-      return;
-    }
-    try {
-      // Popular this week — proxy via most-favorited teams in the last 7 days
-      const { data: popular } = await supabase
-        .from('user_favorite_teams')
-        .select('team_id,created_at')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .limit(500);
-      const popularCounts = new Map();
-      (popular || []).forEach((row) => {
-        const id = String(row.team_id || '').trim();
-        if (!id) return;
-        popularCounts.set(id, (popularCounts.get(id) || 0) + 1);
-      });
-      const popularIds = Array.from(popularCounts.keys());
-      let popularRows = [];
-      if (popularIds.length) {
-        const { data } = await supabase.from('teams')
-          .select('id,name,sport,league,logo_url,country')
-          .in('id', popularIds)
-          .limit(20);
-        popularRows = (data || []);
-        popularRows.sort((a, b) => (popularCounts.get(b.id) || 0) - (popularCounts.get(a.id) || 0));
-      }
-      const popularTop = popularRows.filter((r) => r.id !== team?.id).slice(0, 5);
-      if (popularTop.length) {
-        ui.communityPopular.innerHTML = popularTop
-          .map((row, i) => buildTeamCommunityRow(row, i + 1))
-          .join('');
-      } else {
-        renderEmptyTeamCommunity(ui.communityPopular, 'No activity this week yet.');
-      }
-
-      // Most saved
-      const { data: saved } = await supabase.from('user_favorite_teams').select('team_id').limit(2000);
-      const savedCounts = new Map();
-      (saved || []).forEach((row) => {
-        const id = String(row.team_id || '').trim();
-        if (!id) return;
-        savedCounts.set(id, (savedCounts.get(id) || 0) + 1);
-      });
-      const savedIds = Array.from(savedCounts.keys());
-      if (savedIds.length) {
-        const { data } = await supabase.from('teams')
-          .select('id,name,sport,league,logo_url,country')
-          .in('id', savedIds)
-          .limit(20);
-        const savedRows = (data || []);
-        savedRows.sort((a, b) => (savedCounts.get(b.id) || 0) - (savedCounts.get(a.id) || 0));
-        const savedTop = savedRows.filter((r) => r.id !== team?.id).slice(0, 5);
-        if (savedTop.length) {
-          ui.communitySaved.innerHTML = savedTop
-            .map((row, i) => buildTeamCommunityRow(row, i + 1))
-            .join('');
-        } else {
-          renderEmptyTeamCommunity(ui.communitySaved, 'Nothing saved yet.');
-        }
-      } else {
-        renderEmptyTeamCommunity(ui.communitySaved, 'Nothing saved yet.');
-      }
-
-      // Recently added
-      const { data: recent } = await supabase.from('teams')
-        .select('id,name,sport,league,logo_url,country,created_at')
-        .order('created_at', { ascending: false })
-        .limit(20);
-      const recentRows = (recent || []).filter((r) => r.id && r.id !== team?.id).slice(0, 5);
-      if (recentRows.length) {
-        ui.communityRecent.innerHTML = recentRows
-          .map((row) => buildTeamCommunityRow(row, 0))
-          .join('');
-      } else {
-        const { data: fallback } = await supabase.from('teams')
-          .select('id,name,sport,league,logo_url,country')
-          .neq('id', team?.id || '__none__')
-          .order('name', { ascending: true })
-          .limit(5);
-        if (fallback && fallback.length) {
-          ui.communityRecent.innerHTML = fallback
-            .map((row) => buildTeamCommunityRow(row, 0))
-            .join('');
-        } else {
-          renderEmptyTeamCommunity(ui.communityRecent, 'No new entries yet.');
-        }
-      }
-    } catch (_err) {
-      renderEmptyTeamCommunity(ui.communityPopular, 'No data yet.');
-      renderEmptyTeamCommunity(ui.communitySaved, 'No data yet.');
-      renderEmptyTeamCommunity(ui.communityRecent, 'No data yet.');
-    }
+    ui.gallery.innerHTML = images.slice(0, 12).map((img) => `
+      <figure class="elevated-gallery-item">
+        <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+        ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+      </figure>
+    `).join('');
   }
 
   function setHero(team) {
@@ -1229,7 +996,7 @@
       };
     }
 
-    // TheSportsDB — fetch full data including images
+    // TheSportsDB â€” fetch full data including images
     let sportsdbRaw = null;
     if (teamName) {
       let payload = null;
@@ -1286,6 +1053,8 @@
           remoteTeam.fanart = wikiData.thumbnail;
           remoteTeam.fanarts = [wikiData.thumbnail];
         }
+        if (wikiData.wikiSource) remoteTeam.wikiTitle = wikiData.wikiSource;
+        if (wikiData.heroImage && !remoteTeam.fanart) remoteTeam.fanart = wikiData.heroImage;
       }
     }
 
@@ -1309,11 +1078,9 @@
     // Related teams (non-blocking)
     fetchRelatedTeams(team).then(() => renderRelated()).catch(() => {});
 
-    // Trending rail, Collections, Community — non-blocking
-    loadTeamTrending(team).catch(() => {});
-    loadTeamCollections(team);
-    loadTeamCommunity(team).catch(() => {});
-    requestAnimationFrame(() => wireTeamRailScrollers(ui.body));
+    // Trailer (YouTube search fallback) + Gallery (team visuals)
+    loadTeamTrailer(team);
+    loadTeamGallery(team);
 
     // Save enriched data back to Supabase
     if (state.supabase && remoteTeam) {

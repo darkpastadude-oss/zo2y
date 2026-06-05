@@ -1,13 +1,18 @@
-(() => {
+﻿(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
   const params = new URLSearchParams(window.location.search);
-  const brandType = String(params.get('type') || 'fashion').toLowerCase();
+  const brandType = String(params.get('type') || 'food').toLowerCase();
   const brandIdParam = String(params.get('id') || '').trim();
   const brandTable = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
   const reviewTable = brandType === 'food' ? 'food_reviews' : (brandType === 'car' ? 'car_reviews' : 'fashion_reviews');
+
+  // Apply theme immediately to prevent flash of pink (fashion default)
+  if (document.body) {
+    document.body.dataset.elevatedCategory = brandType;
+  }
   const HOME_DEFAULT_LIST_TABLES = {
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
     food: { table: 'food_list_items', itemField: 'brand_id' },
@@ -41,16 +46,12 @@
     related: document.getElementById('brandRelated'),
     relatedSection: document.getElementById('brandRelatedSection'),
     relatedSub: document.getElementById('brandRelatedSub'),
-    trendingRail: document.getElementById('brandTrendingRail'),
-    trendingSection: document.getElementById('brandTrendingSection'),
-    trendingSub: document.getElementById('brandTrendingSub'),
-    collections: document.getElementById('brandCollections'),
-    collectionsSection: document.getElementById('brandCollectionsSection'),
-    collectionsSub: document.getElementById('brandCollectionsSub'),
-    communityPopular: document.getElementById('brandCommunityPopular'),
-    communitySaved: document.getElementById('brandCommunitySaved'),
-    communityRecent: document.getElementById('brandCommunityRecent'),
-    communitySection: document.getElementById('brandCommunitySection'),
+    trailer: document.getElementById('brandTrailer'),
+    trailerSection: document.getElementById('brandTrailerSection'),
+    trailerSub: document.getElementById('brandTrailerSub'),
+    gallery: document.getElementById('brandGallery'),
+    gallerySection: document.getElementById('brandGallerySection'),
+    gallerySub: document.getElementById('brandGallerySub'),
     saveBtn: document.getElementById('brandSaveBtn'),
     menuBtn: document.getElementById('brandMenuBtn'),
     website: document.getElementById('brandWebsite'),
@@ -559,7 +560,7 @@
         const name = String(row.name || 'Brand');
         const id = String(row.id || row.slug || row.name || '');
         const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
-        const sub = [row.category, row.country].filter(Boolean).join(' · ') || 'Brand';
+        const sub = [row.category, row.country].filter(Boolean).join(' Â· ') || 'Brand';
         const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
         return `
           <a class="elevated-related-card" href="${escapeHtml(href)}">
@@ -621,6 +622,7 @@
 
   function mergeWikiIntoBrand(brand, wiki) {
     if (!wiki) return brand;
+    brand.wiki = wiki;
     if (!brand.description && wiki.description) {
       brand.description = wiki.description;
     }
@@ -634,7 +636,7 @@
   function updateHero(brand) {
     setCategoryAccent();
     document.body.dataset.navPage = brandType;
-    document.title = `${brand.name} · ${CATEGORY_LABEL} · Zo2y`;
+    document.title = `${brand.name} Â· ${CATEGORY_LABEL} Â· Zo2y`;
 
     const initials = setBrandNameInitials(brand.name);
     setFallbackInitial(initials);
@@ -761,18 +763,18 @@
     if (!reviews.length) {
       dom.reviewsStats.innerHTML = `
         <div class="elevated-review-big">
-          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-value">â€”<span class="elevated-review-big-denom">/5</span></div>
           <div class="elevated-review-big-stars" aria-hidden="true">
             <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
           </div>
           <div class="elevated-review-big-count">be the first to review</div>
         </div>
         <div class="elevated-review-bars">
-          <div class="elevated-review-bar-row"><span class="label">5★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">4★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">3★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">2★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">1★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">5â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">4â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">3â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">2â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">1â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
         </div>
       `;
       if (dom.reviewsCount) dom.reviewsCount.textContent = 'no reviews yet';
@@ -791,12 +793,12 @@
       <div class="elevated-review-big">
         <div class="elevated-review-big-value">${average.toFixed(1)}<span class="elevated-review-big-denom">/5</span></div>
         ${renderStarRating(average)}
-        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} · ${fivePct}% 5★</div>
+        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} Â· ${fivePct}% 5â˜…</div>
       </div>
       <div class="elevated-review-bars">
         ${[5, 4, 3, 2, 1].map((stars) => `
           <div class="elevated-review-bar-row">
-            <span class="label">${stars}★</span>
+            <span class="label">${stars}â˜…</span>
             <div class="elevated-review-bar">
               <div class="elevated-review-bar-fill" style="width:${(distribution[stars] / totalReviews) * 100}%"></div>
             </div>
@@ -806,7 +808,7 @@
       </div>
     `;
     if (dom.reviewsCount) {
-      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} · ${average.toFixed(1)}/5 average`;
+      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} Â· ${average.toFixed(1)}/5 average`;
     }
   }
 
@@ -814,7 +816,7 @@
     if (!dom.reviewsList || !dom.reviewsStats || !brandData) return;
     const client = ensureSupabase();
     if (!client) return;
-    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviews…</div>';
+    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviewsâ€¦</div>';
     const { data, error } = await client
       .from(reviewTable)
       .select('*')
@@ -844,7 +846,7 @@
   async function displayReviews(reviewsToDisplay) {
     if (!dom.reviewsList) return;
     if (!reviewsToDisplay || !reviewsToDisplay.length) {
-      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet — be the first to share your thoughts!</div>';
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet â€” be the first to share your thoughts!</div>';
       return;
     }
 
@@ -1030,380 +1032,87 @@
     }
     await loadReviews();
   }
-
-  function getInitials(name) {
-    const text = String(name || '').trim();
-    if (!text) return '?';
-    return text.split(/\s+/).map((n) => n[0]).slice(0, 2).join('').toUpperCase();
-  }
-
-  function buildRailCard(row) {
-    if (!row) return '';
-    const id = String(row.id || row.slug || row.domain || row.name || '').trim();
-    const name = String(row.name || 'Brand').trim() || 'Brand';
-    const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
-    const meta = [row.category, row.country].filter(Boolean).join(' · ') || CATEGORY_LABEL;
-    const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
-    const initials = getInitials(name);
-    const thumb = logo
-      ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-rail-card-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
-      : `<span class="elevated-rail-card-thumb-fallback">${escapeHtml(initials)}</span>`;
-    return `
-      <a class="elevated-rail-card" href="${escapeHtml(href)}" role="listitem" aria-label="${escapeHtml(name)}">
-        <span class="elevated-rail-card-thumb">${thumb}</span>
-        <span class="elevated-rail-card-name">${escapeHtml(name)}</span>
-        <span class="elevated-rail-card-meta">${escapeHtml(meta)}</span>
-      </a>
-    `;
-  }
-
-  function renderRailSkeleton(target, count = 6) {
-    if (!target) return;
-    target.innerHTML = Array.from({ length: count }, () => '<div class="elevated-rail-skeleton"></div>').join('');
-  }
-
-  function renderEmptyRail(target, message) {
-    if (!target) return;
-    target.innerHTML = `<div class="elevated-rail-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
-  }
-
-  function wireRailScrollers(scope) {
-    const root = scope || document;
-    const buttons = root.querySelectorAll('.elevated-rail-btn[data-rail-target]');
-    buttons.forEach((btn) => {
-      if (btn.dataset.wired === '1') return;
-      btn.dataset.wired = '1';
-      const targetId = btn.getAttribute('data-rail-target');
-      const dir = parseInt(btn.getAttribute('data-rail-dir') || '1', 10);
-      const targetEl = targetId ? document.getElementById(targetId) : null;
-      if (!targetEl) return;
-      btn.addEventListener('click', () => {
-        const amount = Math.max(220, Math.round(targetEl.clientWidth * 0.85));
-        targetEl.scrollBy({ left: dir * amount, behavior: 'smooth' });
-      });
-    });
-    root.querySelectorAll('.elevated-rail').forEach((rail) => {
-      if (rail.dataset.wired === '1') return;
-      rail.dataset.wired = '1';
-      const updateButtons = () => {
-        const prevBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="-1"]');
-        const nextBtn = rail.parentElement?.querySelector('.elevated-rail-btn[data-rail-dir="1"]');
-        const atStart = rail.scrollLeft <= 4;
-        const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4;
-        if (prevBtn) prevBtn.disabled = atStart;
-        if (nextBtn) nextBtn.disabled = atEnd;
-      };
-      rail.addEventListener('scroll', updateButtons, { passive: true });
-      window.addEventListener('resize', updateButtons);
-      requestAnimationFrame(updateButtons);
-    });
-  }
-
-  async function loadTrending(brand) {
-    if (!dom.trendingRail || !dom.trendingSection) return;
-    renderRailSkeleton(dom.trendingRail, 8);
-    const client = ensureSupabase();
-    if (!client) {
-      renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
-      return;
-    }
+  function searchYouTubeForBrand(query) {
+    if (!query) return null;
     try {
-      let query = client.from(brandTable)
-        .select('id,name,slug,domain,logo_url,category,country,founded')
-        .neq('id', brand?.id || '__none__')
-        .order('name', { ascending: true })
-        .limit(24);
-      const { data, error } = await query;
-      if (error || !data || !data.length) {
-        renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
-        return;
-      }
-      const items = data
-        .map(normalizeBrand)
-        .filter((b) => b.id && b.id !== brand?.id);
-      const popular = items.filter((b) => /nike|adidas|gucci|prada|louis|tesla|bmw|ferrari|starbucks|mcdonald|kfc|nintendo|chanel|dior|fendi|apple/i.test(b.name));
-      const pool = (popular.length >= 6 ? popular : items).slice(0, 12);
-      if (!pool.length) {
-        renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
-        return;
-      }
-      const shuffled = pool.sort(() => Math.random() - 0.5).slice(0, 10);
-      dom.trendingRail.innerHTML = shuffled.map(buildRailCard).join('');
-      if (dom.trendingSub) {
-        const cat = brand?.category ? ` ${brand.category}` : '';
-        dom.trendingSub.textContent = `Top picks right now in ${CATEGORY_LABEL.toLowerCase()}${cat}`;
-      }
-    } catch (_err) {
-      renderEmptyRail(dom.trendingRail, 'Trending picks will appear here soon.');
-    }
+      const q = encodeURIComponent(String(query));
+      return `https://www.youtube.com/results?search_query=${q}`;
+    } catch (_e) { return null; }
   }
 
-  function getBrandCollections(brand) {
-    const type = String(brandType || '').toLowerCase();
-    const label = CATEGORY_LABEL.toLowerCase();
-    if (type === 'car') {
-      return [
-        {
-          kicker: 'supercars',
-          icon: 'fa-bolt',
-          name: 'European Supercar Hall of Fame',
-          desc: 'Mid-engine legends, V12 royalty, and the brands behind them.',
-          count: 12,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.32), transparent 65%)'
-        },
-        {
-          kicker: 'everyday',
-          icon: 'fa-car-side',
-          name: 'Everyday Icons',
-          desc: 'Reliable, beloved sedans, hatchbacks, and crossovers that defined a generation.',
-          count: 18,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.28), transparent 65%)'
-        },
-        {
-          kicker: 'electric',
-          icon: 'fa-charging-station',
-          name: 'EV Pioneers',
-          desc: 'The electric revolution starts with these brands.',
-          count: 9,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.3), transparent 65%)'
-        }
-      ];
+  function loadTrailer(brand) {
+    if (!dom.trailer || !dom.trailerSection) return;
+    if (!brand || !brand.name) {
+      dom.trailerSection.hidden = true;
+      return;
     }
-    if (type === 'food') {
-      return [
-        {
-          kicker: 'michelin',
-          icon: 'fa-utensils',
-          name: 'Chef-Driven Icons',
-          desc: 'Restaurants and chefs that have shaped fine dining.',
-          count: 14,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'
-        },
-        {
-          kicker: 'quick bites',
-          icon: 'fa-burger',
-          name: 'Fast Food Legends',
-          desc: 'The chains that built the drive-thru.',
-          count: 22,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(239, 68, 68, 0.28), transparent 65%)'
-        },
-        {
-          kicker: 'cup',
-          icon: 'fa-mug-hot',
-          name: 'Coffee & Cafés',
-          desc: 'From third-wave to global chains — your caffeine favorites.',
-          count: 11,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(120, 53, 15, 0.32), transparent 65%)'
-        }
-      ];
-    }
-    if (type === 'fashion') {
-      return [
-        {
-          kicker: 'luxury',
-          icon: 'fa-gem',
-          name: 'Luxury Houses',
-          desc: 'Italian leather, Parisian ateliers, and the heritage that defines luxury.',
-          count: 16,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(236, 72, 153, 0.3), transparent 65%)'
-        },
-        {
-          kicker: 'streetwear',
-          icon: 'fa-shirt',
-          name: 'Streetwear Royalty',
-          desc: 'The labels redefining what a hoody can be.',
-          count: 10,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.28), transparent 65%)'
-        },
-        {
-          kicker: 'basics',
-          icon: 'fa-layer-group',
-          name: 'Wardrobe Essentials',
-          desc: 'The brands that built the modern basics closet.',
-          count: 8,
-          gradient: 'radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.26), transparent 65%)'
-        }
-      ];
-    }
-    return [
-      {
-        kicker: 'all',
-        icon: 'fa-grid-2',
-        name: `Top ${label} brands`,
-        desc: `Browse the most-followed ${label} picks on Zo2y.`,
-        count: 24,
-        gradient: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'
-      }
-    ];
-  }
-
-  function buildCollectionCard(item) {
-    if (!item) return '';
-    const styleVar = `--collection-bg: ${item.gradient || 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.3), transparent 65%)'};`;
-    return `
-      <a class="elevated-collection-card" style="${styleVar}" href="javascript:void(0)" role="link" aria-label="${escapeHtml(item.name)}">
-        <span class="elevated-collection-kicker"><i class="fa-solid ${escapeHtml(item.icon || 'fa-shapes')}"></i> ${escapeHtml(item.kicker || 'collection')}</span>
-        <h3 class="elevated-collection-name">${escapeHtml(item.name)}</h3>
-        <p class="elevated-collection-desc">${escapeHtml(item.desc || '')}</p>
-        <div class="elevated-collection-foot">
-          <span class="elevated-collection-count"><i class="fa-solid fa-layer-group"></i> ${item.count} brands</span>
-          <span class="elevated-collection-cta">view <i class="fa-solid fa-arrow-right"></i></span>
-        </div>
-      </a>
+    const query = `${brand.name} ${CATEGORY_LABEL} brand`.trim();
+    const searchUrl = searchYouTubeForBrand(query);
+    if (dom.trailerSub) dom.trailerSub.textContent = `Watch trailers and videos about ${brand.name}`;
+    dom.trailerSection.hidden = false;
+    dom.trailer.innerHTML = `
+      <div class="elevated-trailer-empty">
+        <i class="fa-brands fa-youtube"></i>
+        <span>no embedded video available for this brand</span>
+        <a class="elevated-trailer-cta" href="${escapeHtml(searchUrl || '#')}" target="_blank" rel="noopener">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube
+        </a>
+      </div>
     `;
   }
 
-  function loadCollections(brand) {
-    if (!dom.collections || !dom.collectionsSection) return;
-    const items = getBrandCollections(brand);
-    if (!items.length) {
-      dom.collectionsSection.hidden = true;
+  function loadGallery(brand) {
+    if (!dom.gallery || !dom.gallerySection) return;
+    if (!brand || !brand.name) {
+      dom.gallerySection.hidden = true;
       return;
     }
-    dom.collectionsSection.hidden = false;
-    if (dom.collectionsSub) {
-      dom.collectionsSub.textContent = `Curated groups in ${CATEGORY_LABEL.toLowerCase()}`;
-    }
-    dom.collections.innerHTML = items.map(buildCollectionCard).join('');
-  }
-
-  function buildCommunityRow(row, rank) {
-    if (!row) return '';
-    const name = String(row.name || 'Brand').trim() || 'Brand';
-    const id = String(row.id || row.slug || row.domain || row.name || '').trim();
-    const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
-    const sub = [row.category, row.country].filter(Boolean).join(' · ') || 'Brand';
-    const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
-    const initials = getInitials(name);
-    const thumb = logo
-      ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML='<span class=&quot;elevated-community-thumb-fallback&quot;>${escapeHtml(initials)}</span>';">`
-      : `<span class="elevated-community-thumb-fallback">${escapeHtml(initials)}</span>`;
-    const rankHtml = rank ? `<span class="elevated-community-rank">${rank}</span>` : '';
-    return `
-      <a class="elevated-community-row" href="${escapeHtml(href)}" aria-label="${escapeHtml(name)}">
-        ${rankHtml}
-        <span class="elevated-community-thumb">${thumb}</span>
-        <span class="elevated-community-body">
-          <span class="elevated-community-name">${escapeHtml(name)}</span>
-          <span class="elevated-community-meta">${escapeHtml(sub)}</span>
-        </span>
-      </a>
-    `;
-  }
-
-  function renderEmptyCommunity(target, message) {
-    if (!target) return;
-    target.innerHTML = `<div class="elevated-community-empty">${escapeHtml(message || 'Nothing here yet.')}</div>`;
-  }
-
-  async function loadCommunity(brand) {
-    if (!dom.communitySection) return;
-    const client = ensureSupabase();
-    if (!client) {
-      renderEmptyCommunity(dom.communityPopular, 'No data yet.');
-      renderEmptyCommunity(dom.communitySaved, 'No data yet.');
-      renderEmptyCommunity(dom.communityRecent, 'No data yet.');
-      return;
-    }
-    try {
-      // Popular this week — proxy via most-reviewed brands
-      const { data: popular } = await client
-        .from(reviewTable)
-        .select('brand_id')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .limit(200);
-      const popularCounts = new Map();
-      (popular || []).forEach((row) => {
-        const id = String(row.brand_id || '').trim();
-        if (!id) return;
-        popularCounts.set(id, (popularCounts.get(id) || 0) + 1);
-      });
-      const popularIds = Array.from(popularCounts.keys());
-      let popularRows = [];
-      if (popularIds.length) {
-        const { data } = await client.from(brandTable)
-          .select('id,name,slug,domain,logo_url,category,country')
-          .in('id', popularIds)
-          .limit(20);
-        popularRows = (data || []).map(normalizeBrand);
-        popularRows.sort((a, b) => (popularCounts.get(b.id) || 0) - (popularCounts.get(a.id) || 0));
-      }
-      const popularTop = popularRows.filter((r) => r.id !== brand?.id).slice(0, 5);
-      if (popularTop.length) {
-        dom.communityPopular.innerHTML = popularTop
-          .map((row, i) => buildCommunityRow(row, i + 1))
-          .join('');
-      } else {
-        renderEmptyCommunity(dom.communityPopular, 'No activity this week yet.');
-      }
-
-      // Most saved — query list items
-      const listTable = HOME_DEFAULT_LIST_TABLES[brandType]?.table;
-      if (listTable) {
-        const { data: saved } = await client.from(listTable).select('brand_id').limit(2000);
-        const savedCounts = new Map();
-        (saved || []).forEach((row) => {
-          const id = String(row.brand_id || '').trim();
-          if (!id) return;
-          savedCounts.set(id, (savedCounts.get(id) || 0) + 1);
-        });
-        const savedIds = Array.from(savedCounts.keys());
-        if (savedIds.length) {
-          const { data } = await client.from(brandTable)
-            .select('id,name,slug,domain,logo_url,category,country')
-            .in('id', savedIds)
-            .limit(20);
-          const savedRows = (data || []).map(normalizeBrand);
-          savedRows.sort((a, b) => (savedCounts.get(b.id) || 0) - (savedCounts.get(a.id) || 0));
-          const savedTop = savedRows.filter((r) => r.id !== brand?.id).slice(0, 5);
-          if (savedTop.length) {
-            dom.communitySaved.innerHTML = savedTop
-              .map((row, i) => buildCommunityRow(row, i + 1))
-              .join('');
-          } else {
-            renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
+    const images = [];
+    // Wikipedia hero image (large)
+    if (brand.wiki?.heroImage) images.push({ src: brand.wiki.heroImage, caption: brand.name });
+    else if (brand.wiki?.thumbnail) images.push({ src: brand.wiki.thumbnail, caption: brand.name });
+    // Logo as gallery fallback
+    const logoUrl = brand.logo_url || brand.logo;
+    const logo = logoUrl ? resolveLogo(logoUrl, brand.domain, brand.name) : '';
+    if (logo) images.push({ src: logo, caption: 'logo' });
+    // Wikipedia REST image list â€” extra photos for the entity
+    const wikiTitle = brand.wiki?.wikiSource || brand.wiki?.title;
+    if (wikiTitle) {
+      const commonsUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|images&titles=${encodeURIComponent(wikiTitle)}&format=json&origin=*&piprop=original&imlimit=8`;
+      fetch(commonsUrl).then((r) => r.ok ? r.json() : null).then((data) => {
+        if (!data || !data.query || !data.query.pages) return;
+        const pages = Object.values(data.query.pages);
+        pages.forEach((page) => {
+          if (page.original && page.original.source && !images.find((i) => i.src === page.original.source)) {
+            images.push({ src: page.original.source, caption: page.title || brand.name });
           }
-        } else {
-          renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
-        }
-      } else {
-        renderEmptyCommunity(dom.communitySaved, 'Nothing saved yet.');
-      }
-
-      // Recently added — by recency of reviews (proxy for engagement) or fallback
-      const { data: recent } = await client.from(brandTable)
-        .select('id,name,slug,domain,logo_url,category,country,created_at')
-        .order('created_at', { ascending: false })
-        .limit(20);
-      const recentRows = (recent || [])
-        .map(normalizeBrand)
-        .filter((r) => r.id && r.id !== brand?.id)
-        .slice(0, 5);
-      if (recentRows.length) {
-        dom.communityRecent.innerHTML = recentRows
-          .map((row) => buildCommunityRow(row, 0))
-          .join('');
-      } else {
-        // Fallback: just take alphabetical that are not the current brand
-        const { data: fallback } = await client.from(brandTable)
-          .select('id,name,slug,domain,logo_url,category,country')
-          .neq('id', brand?.id || '__none__')
-          .order('name', { ascending: true })
-          .limit(5);
-        const fallbackRows = (fallback || []).map(normalizeBrand);
-        if (fallbackRows.length) {
-          dom.communityRecent.innerHTML = fallbackRows
-            .map((row) => buildCommunityRow(row, 0))
-            .join('');
-        } else {
-          renderEmptyCommunity(dom.communityRecent, 'No new entries yet.');
-        }
-      }
-    } catch (_err) {
-      renderEmptyCommunity(dom.communityPopular, 'No data yet.');
-      renderEmptyCommunity(dom.communitySaved, 'No data yet.');
-      renderEmptyCommunity(dom.communityRecent, 'No data yet.');
+        });
+        if (!images.length) return;
+        dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
+          <figure class="elevated-gallery-item">
+            <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+            ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+          </figure>
+        `).join('');
+      }).catch(() => {});
     }
+    if (dom.gallerySub) dom.gallerySub.textContent = `Photos and visuals of ${brand.name}`;
+    dom.gallerySection.hidden = false;
+    if (!images.length) {
+      dom.gallery.innerHTML = `
+        <div class="elevated-gallery-empty">
+          <i class="fa-regular fa-image"></i>
+          no photos available for this brand yet
+        </div>
+      `;
+      return;
+    }
+    dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
+      <figure class="elevated-gallery-item">
+        <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+        ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+      </figure>
+    `).join('');
   }
 
   async function applyWikipediaBackdrop(brand) {
@@ -1486,7 +1195,7 @@
     renderReviewForm();
     await initReviewSystem();
 
-    // Fetch Wikipedia in the background — populate about/info if it returns more
+    // Fetch Wikipedia in the background â€” populate about/info if it returns more
     const wiki = await fetchWikipedia(brand);
     if (wiki) {
       mergeWikiIntoBrand(brand, wiki);
@@ -1506,11 +1215,9 @@
     // Related brands — non-blocking
     fetchRelatedBrands(brand).catch(() => {});
 
-    // Trending rail, Collections, Community — non-blocking
-    loadTrending(brand).catch(() => {});
-    loadCollections(brand);
-    loadCommunity(brand).catch(() => {});
-    requestAnimationFrame(() => wireRailScrollers(dom.body));
+    // Trailer (YouTube search fallback) + Gallery (Wikipedia images)
+    loadTrailer(brand);
+    loadGallery(brand);
 
     if (supabaseClient?.auth?.onAuthStateChange) {
       supabaseClient.auth.onAuthStateChange((_event, session) => {
