@@ -582,31 +582,61 @@
       return;
     }
     const images = [];
-    // Team badge as a fallback
-    if (team.badge) images.push({ src: team.badge, caption: 'crest' });
-    if (team.banner) images.push({ src: team.banner, caption: team.name });
-    if (team.stadiumThumb) images.push({ src: team.stadiumThumb, caption: 'stadium' });
-    if (team.jersey) images.push({ src: team.jersey, caption: 'kit' });
-    if (team.fanart) images.push({ src: team.fanart, caption: team.name });
-    // Wikipedia REST image list â€” extra photos
+    const seen = new Set();
+    const pushImage = (src, caption) => {
+      if (!src || seen.has(src)) return;
+      seen.add(src);
+      images.push({ src, caption });
+    };
+    // 1) Real photo (stadium, players, kit) from Wikipedia page images
+    if (team.wikiPhoto) pushImage(team.wikiPhoto, 'stadium');
+    // 2) Wikipedia hero image — often the lead photo
+    if (team.wikiHero) pushImage(team.wikiHero, team.name);
+    // 3) Existing media from TheSportsDB
+    if (team.fanart) pushImage(team.fanart, team.name);
+    if (team.banner) pushImage(team.banner, team.name);
+    if (team.stadiumThumb) pushImage(team.stadiumThumb, 'stadium');
+    if (team.jersey) pushImage(team.jersey, 'kit');
+    // 4) Team badge / crest as last fallback
+    if (team.badge) pushImage(team.badge, 'crest');
+
+    // 5) Fetch extra photos from the Wikipedia page
     if (team.wikiTitle) {
-      const commonsUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|images&titles=${encodeURIComponent(team.wikiTitle)}&format=json&origin=*&piprop=original&imlimit=8`;
-      fetch(commonsUrl).then((r) => r.ok ? r.json() : null).then((data) => {
-        if (!data || !data.query || !data.query.pages) return;
-        const pages = Object.values(data.query.pages);
-        pages.forEach((page) => {
-          if (page.original && page.original.source && !images.find((i) => i.src === page.original.source)) {
-            images.push({ src: page.original.source, caption: page.title || team.name });
-          }
-        });
-        if (!images.length) return;
-        ui.gallery.innerHTML = images.slice(0, 12).map((img) => `
-          <figure class="elevated-gallery-item">
-            <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
-            ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
-          </figure>
-        `).join('');
-      }).catch(() => {});
+      const imagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(team.wikiTitle)}&prop=images&imlimit=30&format=json&origin=*`;
+      fetch(imagesUrl)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data || !data.query || !data.query.pages) return;
+          const pages = Object.values(data.query.pages);
+          const titles = [];
+          pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
+          const SKIP = /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem/i;
+          const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
+          const slice = candidates.slice(0, 8);
+          if (!slice.length) return;
+          return fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`
+          );
+        })
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((urlsData) => {
+          if (!urlsData || !urlsData.query || !urlsData.query.pages) return;
+          const urlPages = Object.values(urlsData.query.pages);
+          urlPages.forEach((p) => {
+            const info = p.imageinfo && p.imageinfo[0];
+            if (info && info.url && info.width >= 400) {
+              pushImage(info.url, p.title ? p.title.replace(/^File:/, '').replace(/\.[^.]+$/, '') : team.name);
+            }
+          });
+          if (!images.length) return;
+          ui.gallery.innerHTML = images.slice(0, 12).map((img) => `
+            <figure class="elevated-gallery-item">
+              <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+              ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+            </figure>
+          `).join('');
+        })
+        .catch(() => {});
     }
     if (ui.gallerySub) ui.gallerySub.textContent = `Photos and visuals of ${team.name}`;
     ui.gallerySection.hidden = false;
@@ -686,8 +716,8 @@
       }
     }
 
-    // Backdrop: prefer fanart, then banner, then stadium image, then sport fallback
-    const backdrop = team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb || team.badge;
+    // Backdrop: prefer real photo, then fanart, then banner, then stadium image, then badge
+    const backdrop = team.wikiPhoto || team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb || team.badge;
     if (backdrop) {
       applyBackdrop(backdrop);
     } else {
@@ -884,11 +914,45 @@
         }
       } catch (_e) {}
 
+      // Look for a real photo (stadium, players, kit) from the page's image list
+      let photoImage = '';
+      try {
+        const imagesRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=30&format=json&origin=*`
+        );
+        if (imagesRes.ok) {
+          const imagesData = await imagesRes.json();
+          const pages = imagesData?.query?.pages ? Object.values(imagesData.query.pages) : [];
+          const titles = [];
+          pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
+          const SKIP = /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem/i;
+          const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
+          const slice = candidates.slice(0, 6);
+          if (slice.length) {
+            const urlsRes = await fetch(
+              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`
+            );
+            if (urlsRes.ok) {
+              const urlsData = await urlsRes.json();
+              const urlPages = urlsData?.query?.pages ? Object.values(urlsData.query.pages) : [];
+              for (const p of urlPages) {
+                const info = p.imageinfo && p.imageinfo[0];
+                if (info && info.url && info.width >= 400) {
+                  photoImage = info.url;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (_e) { /* photo lookup is best-effort */ }
+
       return {
         title: summaryData.title || title,
         description: summaryData.extract || '',
         thumbnail: summaryData.thumbnail?.source || '',
         heroImage: summaryData.originalimage?.source || summaryData.thumbnail?.source || '',
+        photoImage,
         logoImage,
         url: summaryData.content_urls?.desktop?.page || '',
         wikiSource: title
@@ -1081,7 +1145,9 @@
           remoteTeam.fanarts = [wikiData.thumbnail];
         }
         if (wikiData.wikiSource) remoteTeam.wikiTitle = wikiData.wikiSource;
-        if (wikiData.heroImage && !remoteTeam.fanart) remoteTeam.fanart = wikiData.heroImage;
+        if (wikiData.heroImage) remoteTeam.wikiHero = wikiData.heroImage;
+        if (wikiData.photoImage) remoteTeam.wikiPhoto = wikiData.photoImage;
+        if (!remoteTeam.fanart && wikiData.heroImage) remoteTeam.fanart = wikiData.heroImage;
         // Wikipedia logo image (or thumbnail) can serve as a fallback badge
         if (!remoteTeam.badge) remoteTeam.badge = wikiData.logoImage || wikiData.thumbnail;
       }

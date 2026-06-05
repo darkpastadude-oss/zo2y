@@ -598,11 +598,50 @@
       const summary = await summaryRes.json();
       // Prefer original image for backdrops; fall back to thumbnail
       const heroImage = summary.originalimage?.source || summary.thumbnail?.source || '';
+
+      // Look for a real photo (shoes, car, food, clothing) by listing page images
+      // and picking the first non-SVG, non-icon image.
+      let photoImage = '';
+      try {
+        const imagesRes = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=20&format=json&origin=*`
+        );
+        if (imagesRes.ok) {
+          const imagesData = await imagesRes.json();
+          const pages = imagesData?.query?.pages ? Object.values(imagesData.query.pages) : [];
+          const titles = [];
+          pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
+          // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
+          const SKIP = /logo|icon|wordmark|seal|flag|svg/i;
+          const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
+          // Resolve the first 6 candidates to URLs
+          const slice = candidates.slice(0, 6);
+          if (slice.length) {
+            const urlsRes = await fetch(
+              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`
+            );
+            if (urlsRes.ok) {
+              const urlsData = await urlsRes.json();
+              const urlPages = urlsData?.query?.pages ? Object.values(urlsData.query.pages) : [];
+              // pick the first one that is reasonably large
+              for (const p of urlPages) {
+                const info = p.imageinfo && p.imageinfo[0];
+                if (info && info.url && info.width >= 400) {
+                  photoImage = info.url;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (_e) { /* photo lookup is best-effort */ }
+
       const result = {
         title: summary.title || title,
         description: summary.extract || '',
         thumbnail: summary.thumbnail?.source || '',
         heroImage,
+        photoImage, // a real photo (shoes, car, food, clothing) when available
         url: summary.content_urls?.desktop?.page || '',
         wikiSource: title
       };
@@ -712,16 +751,21 @@
     if (!brandIdParam) return null;
     const client = ensureSupabase();
     if (!client) return null;
-    let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,headquarters,ceo,employees,tags').limit(1);
-    if (isUuid(brandIdParam)) {
-      query = query.eq('id', brandIdParam);
-    } else {
-      const safe = resolveLegacyBrandLookup(brandIdParam).replace(/,/g, '');
-      query = query.or(`slug.eq.${safe},domain.eq.${safe},name.ilike.%${safe}%`);
+    try {
+      let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,headquarters,ceo,employees,tags').limit(1);
+      if (isUuid(brandIdParam)) {
+        query = query.eq('id', brandIdParam);
+      } else {
+        const safe = resolveLegacyBrandLookup(brandIdParam).replace(/,/g, '');
+        query = query.or(`slug.eq.${safe},domain.eq.${safe},name.ilike.%${safe}%`);
+      }
+      const { data, error } = await query;
+      if (error || !data || !data.length) return null;
+      return normalizeBrand(data[0]);
+    } catch (_err) {
+      // Supabase offline / network error — page will fall back to Wikipedia-only
+      return null;
     }
-    const { data, error } = await query;
-    if (error || !data || !data.length) return null;
-    return normalizeBrand(data[0]);
   }
 
   function renderStarRating(rating, options = {}) {
@@ -1068,33 +1112,61 @@
       return;
     }
     const images = [];
-    // Wikipedia hero image (large)
-    if (brand.wiki?.heroImage) images.push({ src: brand.wiki.heroImage, caption: brand.name });
-    else if (brand.wiki?.thumbnail) images.push({ src: brand.wiki.thumbnail, caption: brand.name });
-    // Logo as gallery fallback
+    const seen = new Set();
+    const pushImage = (src, caption) => {
+      if (!src) return;
+      if (seen.has(src)) return;
+      seen.add(src);
+      images.push({ src, caption });
+    };
+    // 1) Real photo (shoes, car, food, clothing) from Wikipedia page images
+    if (brand.wiki?.photoImage) pushImage(brand.wiki.photoImage, brand.name);
+    // 2) Wikipedia hero image (large) — often a building/photo of subject
+    if (brand.wiki?.heroImage) pushImage(brand.wiki.heroImage, brand.name);
+    else if (brand.wiki?.thumbnail) pushImage(brand.wiki.thumbnail, brand.name);
+    // 3) Logo as gallery item
     const logoUrl = brand.logo_url || brand.logo;
     const logo = logoUrl ? resolveLogo(logoUrl, brand.domain, brand.name) : '';
-    if (logo) images.push({ src: logo, caption: 'logo' });
-    // Wikipedia REST image list â€” extra photos for the entity
+    if (logo) pushImage(logo, 'logo');
+
+    // 4) Fetch extra photos from the Wikipedia page (non-SVG, non-logo filenames)
     const wikiTitle = brand.wiki?.wikiSource || brand.wiki?.title;
     if (wikiTitle) {
-      const commonsUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages|images&titles=${encodeURIComponent(wikiTitle)}&format=json&origin=*&piprop=original&imlimit=8`;
-      fetch(commonsUrl).then((r) => r.ok ? r.json() : null).then((data) => {
-        if (!data || !data.query || !data.query.pages) return;
-        const pages = Object.values(data.query.pages);
-        pages.forEach((page) => {
-          if (page.original && page.original.source && !images.find((i) => i.src === page.original.source)) {
-            images.push({ src: page.original.source, caption: page.title || brand.name });
-          }
-        });
-        if (!images.length) return;
-        dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
-          <figure class="elevated-gallery-item">
-            <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
-            ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
-          </figure>
-        `).join('');
-      }).catch(() => {});
+      const imagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=images&imlimit=30&format=json&origin=*`;
+      fetch(imagesUrl)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data || !data.query || !data.query.pages) return;
+          const pages = Object.values(data.query.pages);
+          const titles = [];
+          pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
+          const SKIP = /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem/i;
+          const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
+          const slice = candidates.slice(0, 8);
+          if (!slice.length) return;
+          return fetch(
+            `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`
+          );
+        })
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((urlsData) => {
+          if (!urlsData || !urlsData.query || !urlsData.query.pages) return;
+          const urlPages = Object.values(urlsData.query.pages);
+          urlPages.forEach((p) => {
+            const info = p.imageinfo && p.imageinfo[0];
+            if (info && info.url && info.width >= 400) {
+              pushImage(info.url, p.title ? p.title.replace(/^File:/, '').replace(/\.[^.]+$/, '') : brand.name);
+            }
+          });
+          if (!images.length) return;
+          dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
+            <figure class="elevated-gallery-item">
+              <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
+              ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
+            </figure>
+          `).join('');
+        })
+        .catch(() => {});
     }
     if (dom.gallerySub) dom.gallerySub.textContent = `Photos and visuals of ${brand.name}`;
     dom.gallerySection.hidden = false;
@@ -1206,7 +1278,7 @@
       if (dom.aboutSource) {
         dom.aboutSource.innerHTML = `Source: <a href="${escapeHtml(wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>`;
       }
-      const heroImg = wiki.heroImage || wiki.thumbnail;
+      const heroImg = wiki.photoImage || wiki.heroImage || wiki.thumbnail;
       if (heroImg) applyBackdrop(heroImg);
       renderInfoGrid(brand, wiki);
       renderSocial(brand, wiki);
