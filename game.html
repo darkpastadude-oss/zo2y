@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -682,7 +682,7 @@
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
-<script src="/js/mobile-webapp.js?v=20260601b" defer></script>
+<script src="/js/mobile-webapp.js?v=20260605h" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
 <script src="js/shared-header.js?v=20260601b" defer></script>
@@ -1036,14 +1036,14 @@
         return String(num);
       }
 
-      // Get a usable backdrop URL â€” sized large enough to be sharp on
+      // Get a usable backdrop URL — sized large enough to be sharp on
       // high-DPR mobile. IGDB images come from images.igdb.com, and we
       // can swap the size segment in the path.
       function getGameBackdropUrl(url) {
         const raw = String(url || '').trim();
         if (!raw) return '';
         // IGDB URLs look like https://images.igdb.com/igdb/image/upload/t_original/abc.jpg
-        // We swap ANY size segment â†’ t_1080p for a good balance of quality / size.
+        // We swap ANY size segment ? t_1080p for a good balance of quality / size.
         if (/^https?:\/\/images\.igdb\.com\//i.test(raw)) {
           return raw.replace(/\/t_[a-z0-9_]+\//i, '/t_1080p/');
         }
@@ -1194,7 +1194,7 @@
               openTrailerLightbox(key);
               return;
             }
-            // No clip in our catalog â€” fall back to a YouTube search.
+            // No clip in our catalog — fall back to a YouTube search.
             const searchUrl = trailerBtn.dataset.searchUrl;
             if (searchUrl) {
               window.open(searchUrl, '_blank', 'noopener');
@@ -1235,7 +1235,7 @@
         return '';
       }
 
-      // Deterministic 32-bit hash of a string â€” used to derive a consistent
+      // Deterministic 32-bit hash of a string — used to derive a consistent
       // color palette per game title for the procedural art fallback.
       function hashString(str) {
         let hash = 0;
@@ -1350,7 +1350,7 @@
           });
         }
 
-        // Hide the other sections â€” they don't have data.
+        // Hide the other sections — they don't have data.
         const trailerSection = document.getElementById('trailer');
         if (trailerSection) trailerSection.closest('.elevated-section').style.display = 'none';
         ['directors', 'writers', 'cast', 'details'].forEach((id) => {
@@ -1515,7 +1515,7 @@
         if (!Number.isFinite(gameId)) return;
         const data = await fetchCatalogGameById();
         if (!data) {
-          // Game isn't in the local catalog â€” render a graceful fallback
+          // Game isn't in the local catalog — render a graceful fallback
           // instead of throwing. The user can search for the game or jump
           // to external sources.
           renderGameNotFound();
@@ -1546,7 +1546,7 @@
         const taglineEl = document.getElementById('tagline');
         if (taglineEl) taglineEl.hidden = true;
 
-        // Metadata row (year, playtime, rating) â€” only render items we actually have
+        // Metadata row (year, playtime, rating) — only render items we actually have
         const metaEl = document.getElementById('meta');
         if (metaEl) {
           const metaItems = [];
@@ -1566,9 +1566,9 @@
         }
 
         // Pick a backdrop that is visually distinct from the cover.
-        // 1. data.hero_url (preferred â€” IGDB screenshot, wider aspect)
+        // 1. data.hero_url (preferred — IGDB screenshot, wider aspect)
         // 2. data.background_image or first screenshot
-        // 3. nothing â€” render a strong gradient with the cover only
+        // 3. nothing — render a strong gradient with the cover only
         const heroEl = document.getElementById('heroBackground');
         const coverUrl = resolveGameImageSource(data);
         const extractUrl = (entry) => {
@@ -1631,7 +1631,7 @@
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` Â· ${formatCount(ratingCount)} votes` : ''}` });
+          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` · ${formatCount(ratingCount)} votes` : ''}` });
           if (releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Released', value: releaseDate });
           if (playtime > 0) items.push({ icon: 'fas fa-clock', title: 'Avg. Playtime', value: `${playtime} hrs` });
           if (platforms.length) items.push({ icon: 'fas fa-gamepad', title: 'Platforms', value: platforms.slice(0, 4).join(', ') });
@@ -1648,7 +1648,7 @@
           metaGrid.className = 'elevated-details';
         }
 
-        // Trailer / clip â€” find a YouTube key, fall back to a YouTube search link
+        // Trailer / clip — find a YouTube key, fall back to a YouTube search link
         const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
         const youtubeId = extractYouTubeKey(trailerUrl);
         const trailerEl = document.getElementById('trailer');
@@ -1692,13 +1692,13 @@
           if (extra.website) {
             try {
               const url = new URL(extra.website);
-              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">${escapeHtml(url.hostname.replace(/^www\./, ''))} â†’</a></span></div>`);
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">${escapeHtml(url.hostname.replace(/^www\./, ''))} ?</a></span></div>`);
             } catch (_) {
-              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">Open â†’</a></span></div>`);
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Website</span><span class="elevated-list-value"><a href="${escapeHtml(extra.website)}" target="_blank" rel="noopener">Open ?</a></span></div>`);
             }
           }
           if (extra.reddit_url) {
-            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Reddit</span><span class="elevated-list-value"><a href="${escapeHtml(extra.reddit_url)}" target="_blank" rel="noopener">Open â†’</a></span></div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Reddit</span><span class="elevated-list-value"><a href="${escapeHtml(extra.reddit_url)}" target="_blank" rel="noopener">Open ?</a></span></div>`);
           }
           detailsEl.innerHTML = detailRows.length
             ? detailRows.join('')

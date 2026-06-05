@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -9,12 +9,16 @@
   <title>Brand Details - Zo2y</title>
   <meta name="description" content="Browse brand info, logo, website, and reviews on Zo2y.">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605d">
-  <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605g">
+  <link rel="stylesheet" href="css/shared-header.css?v=20260605i" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605i"></noscript>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -24,18 +28,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260605g" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260601b" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260605h" defer></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <script src="js/review-interactions.js?v=20260601b" defer></script>
+<script src="js/wiki-cache.js?v=20260605d" defer></script>
 <script src="js/shared-header.js?v=20260601b" defer></script>
-  <script src="js/pages/brand.js?v=20260605d" defer></script>
+  <script src="js/pages/brand.js?v=20260605e" defer></script>
 
   </head>
 <body class="elevated-detail-page" data-elevated-category="food">
@@ -136,7 +141,7 @@
         <span class="elevated-section-sub" id="brandAboutSource">From the brand's official record</span>
       </div>
       <div class="elevated-description-wrap">
-        <p id="brandAboutBody" class="elevated-description">Loading brand details…</p>
+        <p id="brandAboutBody" class="elevated-description">Loading brand details�</p>
         <button class="elevated-readmore" id="brandAboutToggle" type="button" aria-expanded="false" aria-controls="brandAboutBody">
           <span class="elevated-readmore-label">read more</span>
           <i class="fa-solid fa-chevron-down"></i>
@@ -193,18 +198,18 @@
       </div>
       <div id="reviewsStats" class="elevated-review-summary">
         <div class="elevated-review-big">
-          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-value">�<span class="elevated-review-big-denom">/5</span></div>
           <div class="elevated-review-big-stars" aria-hidden="true">
             <i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
           </div>
           <div class="elevated-review-big-count">be the first to review</div>
         </div>
         <div class="elevated-review-bars">
-          <div class="elevated-review-bar-row"><span class="label">5★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">4★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">3★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">2★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">1★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">5?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">4?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">3?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">2?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">1?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
         </div>
       </div>
       <div class="elevated-review-sort hidden" id="reviewsSortControls">
@@ -248,7 +253,7 @@
   </div>
 
   <p class="elevated-footnote">
-    <span><i class="fa-solid fa-circle-info"></i> sources: curated brand dataset · Wikipedia · <a href="credits.html">all credits</a></span>
+    <span><i class="fa-solid fa-circle-info"></i> sources: curated brand dataset � Wikipedia � <a href="credits.html">all credits</a></span>
   </p>
 
   <div id="brandActionCard" class="card hidden" data-item-id="">

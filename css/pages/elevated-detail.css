@@ -25,10 +25,10 @@
   --dt-text: #f4f7ff;
   --dt-text-2: #b6c0d8;
   --dt-text-3: #7d8aa6;
-  --dt-accent: #f59e0b;
+  --dt-accent: var(--dt-accent);
   --dt-accent-2: #fbbf24;
-  --dt-accent-soft: rgba(245, 158, 11, 0.16);
-  --dt-accent-line: rgba(245, 158, 11, 0.42);
+  --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
   --dt-success: #34d399;
   --dt-radius-poster: 16px;
   --dt-radius-card: 14px;
@@ -36,7 +36,7 @@
   --dt-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Per-page accent swatch — overridden per category */
-  --dt-glow-a: rgba(245, 158, 11, 0.22);
+  --dt-glow-a: color-mix(in srgb, var(--color-accent) 22%, transparent);
   --dt-glow-b: rgba(99, 102, 241, 0.20);
   --dt-fallback-c1: #0a0f24;
   --dt-fallback-c2: #0e1530;
@@ -53,11 +53,11 @@
 .elevated-detail-page[data-elevated-category="fashion"],
 .elevated-detail-page[data-elevated-category="car"],
 .elevated-detail-page[data-elevated-category="team"] {
-  --dt-accent: #f59e0b;
+  --dt-accent: var(--dt-accent);
   --dt-accent-2: #fbbf24;
-  --dt-accent-soft: rgba(245, 158, 11, 0.16);
-  --dt-accent-line: rgba(245, 158, 11, 0.42);
-  --dt-glow-a: rgba(245, 158, 11, 0.26);
+  --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
+  --dt-glow-a: color-mix(in srgb, var(--color-accent) 26%, transparent);
   --dt-glow-b: rgba(239, 68, 68, 0.20);
   --dt-fallback-c1: #1a0f04;
   --dt-fallback-c2: #2a1606;
@@ -526,7 +526,6 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
   letter-spacing: 0.04em;
-  text-transform: lowercase;
   background:
     radial-gradient(circle at 30% 20%, var(--dt-glow-a) 0%, transparent 55%),
     radial-gradient(circle at 70% 80%, var(--dt-glow-b) 0%, transparent 55%),
@@ -1587,8 +1586,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  text-transform: lowercase;
-  transition: all 0.2s var(--dt-ease);
+  transition: background 0.2s var(--dt-ease), border-color 0.2s var(--dt-ease);
 }
 
 .elevated-detail-page .elevated-cancel:hover {
@@ -2270,7 +2268,7 @@
 }
 
 /* Responsive for new sections */
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .elevated-detail-page .elevated-section-rail .elevated-section-head {
     padding-right: 0;
   }
@@ -2323,7 +2321,7 @@
   background: rgba(20, 28, 56, 0.95);
   border: 1px solid var(--dt-line-strong);
   color: var(--dt-text);
-  z-index: 9999;
+  z-index: var(--z-max);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
   display: none;
   animation: dt-toast-in 0.25s var(--dt-ease) both;
@@ -2402,7 +2400,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .elevated-detail-page .elevated-hero {
     min-height: auto;
   }
@@ -2471,9 +2469,9 @@
   }
   .elevated-detail-page .elevated-poster-frame { max-width: 140px; }
   .elevated-detail-page .elevated-title { font-size: clamp(1.45rem, 7.5vw, 1.85rem); }
-  .elevated-detail-page .elevated-actions { flex-direction: column; align-items: stretch; }
-  .elevated-detail-page .elevated-btn { width: 100%; min-height: 46px; }
-  .elevated-detail-page .elevated-btn-ghost { width: 100%; }
+  .elevated-detail-page .elevated-actions { flex-wrap: wrap; justify-content: center; width: 100%; }
+  .elevated-detail-page .elevated-btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: 0 14px; font-size: 0.88rem; }
+  .elevated-detail-page .elevated-btn-ghost { flex: 0 0 auto; width: 44px; padding: 0; }
   .elevated-detail-page .elevated-meta { font-size: 0.82rem; gap: 0; }
   .elevated-detail-page .elevated-meta-item { padding: 4px 8px 4px 0; }
   .elevated-detail-page .elevated-meta-item + .elevated-meta-item { padding-left: 8px; }
@@ -2509,7 +2507,7 @@
   border-bottom-color: var(--dt-accent-2);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .elevated-detail-page .elevated-footnote {
     width: calc(100% - 32px);
   }

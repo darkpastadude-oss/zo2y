@@ -236,6 +236,10 @@
     if (ui.backdropBlur) {
       ui.backdropBlur.style.background = style;
     }
+    const wc = window.__zo2yWikiCache;
+    if (wc && typeof wc.preloadImage === 'function') {
+      try { wc.preloadImage(url); } catch (_) {}
+    }
     if (ui.hero) {
       ui.hero.classList.remove('is-no-backdrop');
       ui.hero.classList.add('is-loaded');
@@ -891,6 +895,11 @@
   }
 
   async function fetchWikipedia(teamName) {
+    const wc = window.__zo2yWikiCache;
+    if (wc) {
+      const cached = await wc.getWiki(teamName);
+      if (cached) return cached;
+    }
     try {
       const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName + ' football club')}&format=json&origin=*`;
       const searchRes = await fetch(searchUrl);
@@ -960,7 +969,10 @@
         url: summaryData.content_urls?.desktop?.page || '',
         wikiSource: title
       };
+      if (wc) wc.setWiki(teamName, result);
+      return result;
     } catch (_err) {
+      if (wc) wc.setWiki(teamName, null);
       return null;
     }
   }

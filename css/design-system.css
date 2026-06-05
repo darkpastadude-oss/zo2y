@@ -17,11 +17,11 @@
   
   --color-accent: #f59e0b;
   --color-accent-hover: #fbbf24;
-  --color-accent-light: rgba(245, 158, 11, 0.1);
+  --color-accent-light: color-mix(in srgb, var(--color-accent) 10%, transparent);
   
   --color-success: #10b981;
   --color-error: #ef4444;
-  --color-warning: #f59e0b;
+  --color-warning: var(--color-accent);
   
   /* Spacing Scale */
   --space-1: 4px;
@@ -79,12 +79,24 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Z-Index Scale */
-  --z-dropdown: 1000;
-  --z-sticky: 1020;
+  --z-base: 1;
+  --z-raised: 10;
+  --z-dropdown: 100;
+  --z-overlay: 200;
+  --z-sticky: 1200;
+  --z-header: 1200;
+  --z-header-nav: 1300;
+  --z-drawer-backdrop: 1590;
+  --z-drawer: 1600;
+  --z-drawer-panel: 1700;
+  --z-modal: 2000;
+  --z-popover: 2100;
+  --z-toast: 3000;
+  --z-banner: 4000;
+  --z-loader: 9000;
+  --z-max: 9999;
   --z-fixed: 1030;
   --z-modal-backdrop: 1040;
-  --z-modal: 1050;
-  --z-popover: 1060;
   --z-tooltip: 1070;
 }
 
@@ -133,7 +145,7 @@
 }
 
 .z-9999 {
-  z-index: 9999;
+  z-index: var(--z-max);
 }
 
 .mb-1 { margin-bottom: var(--space-1); }

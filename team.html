@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -13,11 +13,15 @@
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605d">
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605g">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -28,8 +32,9 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260601b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260605i" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605i"></noscript>
+  <script src="js/wiki-cache.js?v=20260605d" defer></script>
   <script src="js/shared-header.js?v=20260601b" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
@@ -85,12 +90,12 @@
           <i class="fa-solid fa-trophy"></i> <span id="teamKicker">team spotlight</span>
         </span>
         <div class="elevated-title-row">
-          <h1 class="elevated-title" id="teamName">Loading teamâ€¦</h1>
+          <h1 class="elevated-title" id="teamName">Loading team…</h1>
         </div>
         <div id="teamMeta" class="elevated-meta" aria-label="Team metadata"></div>
         <div id="teamTags" class="elevated-tags" aria-label="Team tags"></div>
         <div class="elevated-description-wrap">
-          <p id="teamDescription" class="elevated-description is-clamped">Loading descriptionâ€¦</p>
+          <p id="teamDescription" class="elevated-description is-clamped">Loading description…</p>
           <button class="elevated-readmore" id="teamDescriptionToggle" type="button" aria-expanded="false" aria-controls="teamDescription">
             <span class="elevated-readmore-label">read more</span>
             <i class="fa-solid fa-chevron-down"></i>
@@ -182,13 +187,13 @@
   </div>
 
   <p class="elevated-footnote">
-    <span><i class="fa-solid fa-circle-info"></i> sources: TheSportsDB Â· Wikipedia Â· local team manifest. <a href="credits.html">all credits</a></span>
+    <span><i class="fa-solid fa-circle-info"></i> sources: TheSportsDB · Wikipedia · local team manifest. <a href="credits.html">all credits</a></span>
   </p>
 
   <div class="elevated-toast" id="teamToast" role="status" aria-live="polite"></div>
 
   <script src="js/sportsdb-client.js?v=20260601b" defer></script>
-  <script src="js/pages/team.js?v=20260605d" defer></script>
+  <script src="js/pages/team.js?v=20260605e" defer></script>
   <script src="js/production-runtime.js?v=20260601b" defer></script>
 </body>
 </html>

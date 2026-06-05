@@ -1,7 +1,7 @@
     html[data-auth-shell="landing"] body {
       padding-bottom: 0;
       background:
-        radial-gradient(circle at 12% 14%, rgba(245, 158, 11, 0.16), transparent 26%),
+        radial-gradient(circle at 12% 14%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 26%),
         radial-gradient(circle at 84% 10%, rgba(57, 120, 255, 0.2), transparent 32%),
         linear-gradient(180deg, #07122b 0%, #081630 48%, #091a3a 100%);
     }
@@ -48,7 +48,7 @@
 
     html[data-auth-shell="pending"] body {
       background:
-        radial-gradient(circle at 18% -8%, rgba(245, 158, 11, 0.16), transparent 35%),
+        radial-gradient(circle at 18% -8%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 35%),
         radial-gradient(circle at 85% -12%, rgba(88, 130, 255, 0.22), transparent 42%),
         #0b1633;
     }
@@ -150,7 +150,7 @@
       background: linear-gradient(135deg, #ffbc42 0%, #ff8d3a 100%);
       color: #091630;
       border-color: transparent;
-      box-shadow: 0 18px 30px rgba(245, 158, 11, 0.24);
+      box-shadow: 0 18px 30px color-mix(in srgb, var(--color-accent) 24%, transparent);
     }
 
     .landing-header-link:hover,
@@ -1029,7 +1029,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-top: 18px;
-      max-width: 760px;
+      max-width: 768px;
     }
 
     .landing-save-card {
@@ -1590,7 +1590,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
       }
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 768px) {
       .landing-header,
       .landing-main,
       .landing-legal-strip {
@@ -1890,7 +1890,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
 
     .search:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 14%, transparent);
     }
 
     .header-actions {
@@ -1962,7 +1962,7 @@ html[data-auth-shell="landing"] .card-hover-cue {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid rgba(255, 184, 77, 0.2);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 184, 77, 0.08));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), rgba(255, 184, 77, 0.08));
   color: #fff5df;
   display: inline-flex;
   align-items: center;
@@ -2064,7 +2064,7 @@ html[data-auth-shell="landing"] .landing-v4-primary {
   background: linear-gradient(135deg, #ffbc42 0%, #ff9642 100%);
   color: #07162f;
   border-color: transparent;
-  box-shadow: 0 18px 30px rgba(245, 158, 11, 0.22);
+  box-shadow: 0 18px 30px color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 html[data-auth-shell="landing"] .landing-v4-nav a:hover,
@@ -2399,7 +2399,7 @@ html[data-auth-shell="landing"] .landing-v4-hero-actions {
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   html[data-auth-shell="landing"] .landing-v4-header,
   html[data-auth-shell="landing"] .landing-v4-main,
   html[data-auth-shell="landing"] .landing-legal-strip {

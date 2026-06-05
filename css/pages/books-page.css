@@ -22,7 +22,7 @@
 }
 .books-mode-tab:hover { border-color: var(--accent); color: var(--accent); }
 .books-mode-tab.active {
-  background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+  background: linear-gradient(135deg, var(--color-accent) 0%, #ffb84d 100%);
   color: #0b1633; border-color: transparent;
 }
 
@@ -64,7 +64,7 @@
   position: absolute; top: 8px; right: 8px;
   background: rgba(11, 22, 51, 0.86);
   color: #ffd591;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
   border-radius: 999px;
   padding: 3px 9px;
   font-size: 10px; font-weight: 700;
@@ -85,7 +85,7 @@
   cursor: pointer; transition: .18s ease;
 }
 .books-clear-btn.show { display: inline-flex; }
-.books-clear-btn:hover { background: rgba(245,158,11,0.22); color: var(--accent); }
+.books-clear-btn:hover { background: color-mix(in srgb, var(--color-accent) 22%, transparent); color: var(--accent); }
 
 /* ---------- Year filter group ---------- */
 .filter-year-group {
@@ -144,7 +144,7 @@
 .book-empty-state button:hover { border-color: var(--accent); color: var(--accent); }
 
 /* ---------- Mobile adjustments ---------- */
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .book-section .section-head { gap: 8px; }
   .section-more-btn { height: 30px; padding: 0 10px; font-size: 11px; }
   .books-mode-tab { padding: 6px 14px; font-size: 12px; }

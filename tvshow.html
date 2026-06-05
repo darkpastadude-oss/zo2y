@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -957,7 +957,7 @@
         const blur = document.getElementById('heroBackdropBlur');
         const hero = document.getElementById('heroBackground');
         if (!backdrop || !hero) return;
-        // Mobile displays are usually high-DPR (2x–3x), so a w1280 image
+        // Mobile displays are usually high-DPR (2x�3x), so a w1280 image
         // renders blurry on a 414px-wide phone. We always use `original`
         // for the visible backdrop so the hero stays crisp; the blurred
         // glow copy uses w780 because it's blurred 48px and lower-res
@@ -1366,7 +1366,7 @@
         //   1. data.backdrop_path (the media's "primary" backdrop)
         //   2. any other backdrop from images.backdrops (skip the one that
         //      matches the primary; if all are the same pick the next one)
-        //   3. nothing — render a stronger hero gradient with the poster only.
+        //   3. nothing � render a stronger hero gradient with the poster only.
         const hero = document.getElementById('heroBackground');
         const posterPath = data.poster_path || '';
         const isSameAsPoster = (p) => !!p && !!posterPath && p === posterPath;
@@ -1436,12 +1436,12 @@
             detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Languages</span><span class="elevated-list-value">${data.spoken_languages.map(l => escapeHtml(l.english_name || l.name)).join(', ')}</span></div>`);
           }
           if (externals && externals.imdb_id) {
-            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">IMDB</span><span class="elevated-list-value"><a href="https://www.imdb.com/title/${escapeHtml(externals.imdb_id)}/" target="_blank" rel="noopener">View on IMDB →</a></span></div>`);
+            detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">IMDB</span><span class="elevated-list-value"><a href="https://www.imdb.com/title/${escapeHtml(externals.imdb_id)}/" target="_blank" rel="noopener">View on IMDB ?</a></span></div>`);
           }
           if (data.homepage) {
             try {
               const home = new URL(data.homepage);
-              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Homepage</span><span class="elevated-list-value"><a href="${escapeHtml(data.homepage)}" target="_blank" rel="noopener">${escapeHtml(home.hostname.replace(/^www\./, ''))} →</a></span></div>`);
+              detailRows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Homepage</span><span class="elevated-list-value"><a href="${escapeHtml(data.homepage)}" target="_blank" rel="noopener">${escapeHtml(home.hostname.replace(/^www\./, ''))} ?</a></span></div>`);
             } catch (_) {}
           }
           const keywordList = (keywords.keywords || []).slice(0, 8).map(k => k.name);

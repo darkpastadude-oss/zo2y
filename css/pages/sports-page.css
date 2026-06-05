@@ -100,7 +100,7 @@
   transform: translateY(10px);
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  z-index: 2200;
+  z-index: var(--z-popover);
 }
 
 .sports-toast.show {
@@ -138,7 +138,7 @@
   border-color: var(--accent);
 }
 
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .controls-meta {
     justify-content: center;
   }

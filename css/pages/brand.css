@@ -10,7 +10,7 @@
   --brand-card-soft: rgba(14, 20, 44, 0.78);
   --brand-border: rgba(255, 255, 255, 0.08);
   --brand-border-strong: rgba(255, 255, 255, 0.14);
-  --brand-accent: #f59e0b;
+  --brand-accent: var(--color-accent);
   --brand-accent-2: #fbbf24;
   --brand-muted: rgba(180, 192, 216, 0.78);
   --brand-text: #f4f7ff;
@@ -278,7 +278,7 @@ main.container {
 }
 
 /* === Mobile === */
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   main.container {
     width: min(100%, calc(100% - 24px));
     padding-bottom: 90px;

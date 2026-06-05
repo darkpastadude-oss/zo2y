@@ -80,7 +80,7 @@ main.container.category-shell {
 
 .category-search:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(245,158,11,0.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
 }
 
 .category-icon-btn {
@@ -98,7 +98,7 @@ main.container.category-shell {
 
 .category-icon-btn:hover,
 .category-icon-btn:focus-visible {
-  border-color: rgba(245, 158, 11, 0.6);
+  border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
   color: var(--accent);
   background: rgba(255,255,255,0.04);
 }
@@ -123,7 +123,7 @@ main.container.category-shell {
 .control-modal {
   position: fixed;
   inset: 0;
-  z-index: 1700;
+  z-index: var(--z-drawer-panel);
   display: none;
   align-items: center;
   justify-content: center;
@@ -194,7 +194,7 @@ main.container.category-shell {
 }
 
 /* Mobile: keep 3-per-row, but reduce spacing + move content down to avoid header overlap */
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   body {
     padding-bottom: 86px;
   }

@@ -406,6 +406,10 @@
       dom.hero.classList.remove('is-no-backdrop');
       dom.hero.classList.add('is-loaded');
     }
+    const wc = window.__zo2yWikiCache;
+    if (wc && typeof wc.preloadImage === 'function') {
+      try { wc.preloadImage(url); } catch (_) {}
+    }
   }
 
   function bindClampedDescription(pEl, wrapEl, toggleEl) {
@@ -584,6 +588,16 @@
     const name = String(brand.name || '').trim();
     if (!name) return null;
     if (wikipediaCache.has(name)) return wikipediaCache.get(name);
+
+    const wc = window.__zo2yWikiCache;
+    if (wc) {
+      const cached = await wc.getWiki(name);
+      if (cached) {
+        wikipediaCache.set(name, cached);
+        return cached;
+      }
+    }
+
     try {
       const search = await fetch(
         `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' ' + CATEGORY_LABEL + ' company')}&format=json&origin=*&srlimit=1`
@@ -592,6 +606,7 @@
       const title = searchData?.query?.search?.[0]?.title;
       if (!title) {
         wikipediaCache.set(name, null);
+        if (wc) wc.setWiki(name, null);
         return null;
       }
       const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
@@ -646,9 +661,11 @@
         wikiSource: title
       };
       wikipediaCache.set(name, result);
+      if (wc) wc.setWiki(name, result);
       return result;
     } catch (_err) {
       wikipediaCache.set(name, null);
+      if (wc) wc.setWiki(name, null);
       return null;
     }
   }

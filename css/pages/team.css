@@ -285,7 +285,7 @@ main.container,
 }
 
 /* === Mobile === */
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   main.container,
   .team-main {
     width: min(100%, calc(100% - 24px));
