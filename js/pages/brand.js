@@ -14,24 +14,50 @@
     car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
+  const CATEGORY_LABEL = brandType === 'food' ? 'Food' : brandType === 'car' ? 'Cars' : 'Fashion';
+  const CATEGORY_ICON = brandType === 'food' ? 'fa-burger' : brandType === 'car' ? 'fa-car' : 'fa-shirt';
+
   const dom = {
+    body: document.body,
+    hero: document.getElementById('brandHero'),
+    posterFrame: document.getElementById('brandPosterFrame'),
     logo: document.getElementById('brandLogo'),
+    posterFallbackTitle: document.getElementById('brandPosterFallbackTitle'),
+    backdrop: document.getElementById('brandBackdrop'),
+    backdropBlur: document.getElementById('brandBackdropBlur'),
+    kickerLabel: document.getElementById('brandKickerLabel'),
     name: document.getElementById('brandName'),
     meta: document.getElementById('brandMeta'),
+    tags: document.getElementById('brandTags'),
     desc: document.getElementById('brandDescription'),
+    descToggle: document.getElementById('brandDescriptionToggle'),
     about: document.getElementById('brandAboutBody'),
+    aboutToggle: document.getElementById('brandAboutToggle'),
+    aboutSource: document.getElementById('brandAboutSource'),
+    aboutSection: document.getElementById('brandAboutSection'),
+    infoGrid: document.getElementById('brandInfoGrid'),
+    social: document.getElementById('brandSocial'),
+    socialSection: document.getElementById('brandSocialSection'),
+    related: document.getElementById('brandRelated'),
+    relatedSection: document.getElementById('brandRelatedSection'),
+    relatedSub: document.getElementById('brandRelatedSub'),
+    saveBtn: document.getElementById('brandSaveBtn'),
     menuBtn: document.getElementById('brandMenuBtn'),
     website: document.getElementById('brandWebsite'),
     reviewsList: document.getElementById('reviewsList'),
     reviewsStats: document.getElementById('reviewsStats'),
+    reviewsCount: document.getElementById('reviewsCount'),
     reviewForm: document.getElementById('review-form'),
     authPrompt: document.getElementById('auth-prompt'),
     sortSelect: document.getElementById('sortSelect'),
+    reviewsSortControls: document.getElementById('reviewsSortControls'),
     ratingText: document.getElementById('ratingText'),
+    reviewStars: document.getElementById('reviewStars'),
     commentInput: document.getElementById('review-comment'),
     charCount: document.getElementById('charCount'),
     cancelEditBtn: document.querySelector('.cancel-edit-btn'),
-    actionCard: document.getElementById('brandActionCard')
+    actionCard: document.getElementById('brandActionCard'),
+    toast: document.getElementById('brandToast')
   };
 
   let supabaseClient = null;
@@ -41,6 +67,8 @@
   let editingReviewId = null;
   let reviews = [];
   let currentSort = 'latest';
+  let wikipediaCache = new Map();
+  let socialGuessesLoaded = false;
 
   function ensureSupabase() {
     if (supabaseClient) return supabaseClient;
@@ -67,6 +95,25 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  function showToast(message, level = 'info') {
+    if (!dom.toast) {
+      if (typeof window.showToast === 'function') {
+        window.showToast(message, level);
+        return;
+      }
+      console.log(message);
+      return;
+    }
+    dom.toast.textContent = message;
+    dom.toast.classList.toggle('is-error', level === 'error');
+    dom.toast.classList.toggle('is-success', level === 'success');
+    dom.toast.classList.add('show');
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(() => {
+      dom.toast.classList.remove('show');
+    }, 2400);
   }
 
   function resolveLogo(value, domain, name) {
@@ -108,7 +155,10 @@
       logo: resolveLogo(row.logo_url || row.logo, row.domain, row.name || row.brand_name),
       description: String(row.description || row.extract || '').trim(),
       country: String(row.country || '').trim(),
-      founded: String(row.founded || '').trim(),
+      founded: String(row.founded || row.founded_year || '').trim(),
+      headquarters: String(row.headquarters || row.hq || '').trim(),
+      ceo: String(row.ceo || '').trim(),
+      employees: String(row.employees || row.employee_count || '').trim(),
       slug: String(row.slug || '').trim(),
       tags: Array.isArray(row.tags) ? row.tags : []
     };
@@ -161,15 +211,6 @@
     return LEGACY_BRAND_ID_ALIASES[brandType]?.[safeValue] || safeValue;
   }
 
-  function showBrandToast(message, isError = false) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, isError ? 'error' : 'success');
-      return;
-    }
-    if (isError) console.error(message);
-    else console.log(message);
-  }
-
   function supportsHomeLists(mediaType) {
     const type = String(mediaType || '').toLowerCase();
     return type === 'fashion' || type === 'food' || type === 'car';
@@ -194,7 +235,7 @@
     const result = { ok: false, saved: null };
     const client = await ensureSupabase();
     if (!client) {
-      showBrandToast('List service unavailable', true);
+      showToast('List service unavailable', 'error');
       return result;
     }
     if (!currentUser?.id) {
@@ -207,7 +248,7 @@
     const nextSaved = typeof payload.nextSaved === 'boolean' ? payload.nextSaved : null;
     if (!payload.itemId || !listType) return result;
     if (!supportsHomeLists(mediaType)) {
-      showBrandToast('Lists are not available for this media yet.');
+      showToast('Lists are not available for this media yet.');
       return result;
     }
 
@@ -219,7 +260,7 @@
 
       if (defaultListTable) {
         if (itemId === null) {
-          showBrandToast('Could not update list', true);
+          showToast('Could not update list', 'error');
           return result;
         }
         const { table, itemField } = defaultListTable;
@@ -232,10 +273,10 @@
             .eq(itemField, itemId)
             .eq('list_type', listType);
           if (deleteError) {
-            showBrandToast('Could not update list', true);
+            showToast('Could not update list', 'error');
             return result;
           }
-          showBrandToast('Removed from list');
+          showToast('Removed from list', 'success');
           result.ok = true;
           result.saved = false;
           return result;
@@ -244,17 +285,17 @@
         if (nextSaved === true) {
           const ensured = await ensureLinkedMediaRecord(itemId);
           if (!ensured) {
-            showBrandToast('Book info is unavailable right now.', true);
+            showToast('Book info is unavailable right now.', 'error');
             return result;
           }
           const insertRow = { user_id: currentUser.id, list_type: listType };
           insertRow[itemField] = itemId;
           const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
-            showBrandToast('Could not add to list', true);
+            showToast('Could not add to list', 'error');
             return result;
           }
-          showBrandToast('Added to list');
+          showToast('Added to list', 'success');
           result.ok = true;
           result.saved = true;
           return result;
@@ -271,10 +312,10 @@
         if (existing?.id) {
           const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
           if (deleteError) {
-            showBrandToast('Could not update list', true);
+            showToast('Could not update list', 'error');
             return result;
           }
-          showBrandToast('Removed from list');
+          showToast('Removed from list', 'success');
           result.ok = true;
           result.saved = false;
           return result;
@@ -285,16 +326,16 @@
         insertRow[itemField] = itemId;
         const { error: insertError } = await client.from(table).insert(insertRow);
         if (insertError && String(insertError.code || '') !== '23505') {
-          showBrandToast('Could not add to list', true);
+          showToast('Could not add to list', 'error');
           return result;
         }
-        showBrandToast('Added to list');
+        showToast('Added to list', 'success');
         result.ok = true;
         result.saved = true;
         return result;
       }
     } catch (_err) {
-      showBrandToast('Could not add to list', true);
+      showToast('Could not add to list', 'error');
     }
     return result;
   }
@@ -320,53 +361,325 @@
     }
   }
 
-  function showNotification(message, level = 'info') {
-    const toast = document.createElement('div');
-    toast.style.position = 'fixed';
-    toast.style.top = '16px';
-    toast.style.right = '16px';
-    toast.style.zIndex = '99999';
-    toast.style.background = level === 'error' ? '#ef4444' : '#10b981';
-    if (level === 'info') toast.style.background = '#3b82f6';
-    toast.style.color = '#fff';
-    toast.style.padding = '10px 14px';
-    toast.style.borderRadius = '10px';
-    toast.style.fontSize = '13px';
-    toast.style.boxShadow = '0 10px 24px rgba(0,0,0,0.35)';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 2200);
+  function setCategoryAccent() {
+    if (dom.body) {
+      dom.body.dataset.elevatedCategory = brandType;
+    }
+  }
+
+  function setBrandNameInitials(name) {
+    const safe = String(name || '').trim();
+    if (!safe) return '?';
+    const parts = safe.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return safe.slice(0, 2).toUpperCase();
+  }
+
+  function setFallbackInitial(initial) {
+    if (dom.posterFrame) {
+      dom.posterFrame.style.setProperty('--dt-fallback-initial', JSON.stringify(String(initial || '?').toUpperCase()));
+    }
+  }
+
+  function applyBackdrop(url) {
+    if (!url) return;
+    const safeUrl = String(url).replace(/"/g, '\\"');
+    const style = `url("${safeUrl}") center 20% / cover no-repeat`;
+    if (dom.backdrop) {
+      dom.backdrop.style.background = style;
+    }
+    if (dom.backdropBlur) {
+      dom.backdropBlur.style.background = style;
+    }
+    if (dom.hero) {
+      dom.hero.classList.remove('is-no-backdrop');
+      dom.hero.classList.add('is-loaded');
+    }
+  }
+
+  function bindClampedDescription(pEl, wrapEl, toggleEl) {
+    if (!pEl || !wrapEl) return;
+    const labelEl = toggleEl ? toggleEl.querySelector('.elevated-readmore-label') : null;
+    const apply = () => {
+      const overflows = pEl.scrollHeight - pEl.clientHeight > 4;
+      if (overflows) {
+        pEl.classList.add('is-clamped');
+        wrapEl.classList.add('is-clamped');
+        if (toggleEl) toggleEl.style.display = '';
+        if (labelEl) labelEl.textContent = 'read more';
+        if (toggleEl) toggleEl.setAttribute('aria-expanded', 'false');
+      } else {
+        pEl.classList.remove('is-clamped');
+        wrapEl.classList.remove('is-clamped');
+        if (toggleEl) toggleEl.style.display = 'none';
+      }
+    };
+    requestAnimationFrame(apply);
+    window.addEventListener('resize', apply);
+    if (toggleEl) {
+      toggleEl.addEventListener('click', () => {
+        const expanded = toggleEl.getAttribute('aria-expanded') === 'true';
+        const next = !expanded;
+        toggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
+        pEl.classList.toggle('is-clamped', !next);
+        wrapEl.classList.toggle('is-clamped', !next);
+        if (labelEl) labelEl.textContent = next ? 'read less' : 'read more';
+      });
+    }
+  }
+
+  function renderTags(tags) {
+    if (!dom.tags) return;
+    const list = (Array.isArray(tags) ? tags : []).filter(Boolean).map(String).slice(0, 8);
+    if (!list.length) {
+      dom.tags.innerHTML = '';
+      return;
+    }
+    dom.tags.innerHTML = list.map((tag) => `
+      <span class="elevated-tag">${escapeHtml(tag)}</span>
+    `).join('');
+  }
+
+  function renderInfoGrid(brand, wiki) {
+    if (!dom.infoGrid) return;
+    const cards = [];
+    if (brand.category) {
+      cards.push({ icon: CATEGORY_ICON, label: 'Category', value: escapeHtml(brand.category) });
+    }
+    if (brand.country) {
+      cards.push({ icon: 'fa-flag', label: 'Country', value: escapeHtml(brand.country) });
+    }
+    if (brand.headquarters || (wiki && wiki.headquarters)) {
+      cards.push({ icon: 'fa-location-dot', label: 'Headquarters', value: escapeHtml(brand.headquarters || wiki.headquarters) });
+    }
+    if (brand.founded) {
+      cards.push({ icon: 'fa-calendar', label: 'Founded', value: escapeHtml(brand.founded) });
+    }
+    if (brand.ceo || (wiki && wiki.ceo)) {
+      cards.push({ icon: 'fa-user-tie', label: brandType === 'car' ? 'CEO' : 'CEO / Founder', value: escapeHtml(brand.ceo || wiki.ceo) });
+    }
+    if (brand.employees || (wiki && wiki.employees)) {
+      cards.push({ icon: 'fa-users', label: 'Employees', value: escapeHtml(brand.employees || wiki.employees) });
+    }
+    if (brand.domain) {
+      cards.push({ icon: 'fa-globe', label: 'Website', value: `<a href="https://${escapeHtml(brand.domain)}" target="_blank" rel="noopener">${escapeHtml(brand.domain)}</a>` });
+    }
+    if (wiki && wiki.parentCompany) {
+      cards.push({ icon: 'fa-building', label: 'Parent', value: escapeHtml(wiki.parentCompany) });
+    }
+    if (wiki && wiki.industry) {
+      cards.push({ icon: 'fa-industry', label: 'Industry', value: escapeHtml(wiki.industry) });
+    }
+
+    if (!cards.length) {
+      dom.infoGrid.innerHTML = `
+        <div class="elevated-detail-card">
+          <span class="elevated-detail-title"><i class="fa-solid fa-circle-info"></i> Status</span>
+          <span class="elevated-detail-value">No additional details available yet.</span>
+        </div>
+      `;
+      return;
+    }
+
+    dom.infoGrid.innerHTML = cards.map((c) => `
+      <div class="elevated-detail-card">
+        <span class="elevated-detail-title"><i class="fa-solid ${c.icon}"></i> ${escapeHtml(c.label)}</span>
+        <span class="elevated-detail-value">${c.value}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderSocial(brand, wiki) {
+    if (!dom.social || !dom.socialSection) return;
+    const links = [];
+    if (brand.domain) {
+      links.push({ href: `https://${brand.domain}`, icon: 'fa-globe', label: brand.domain });
+    }
+    if (wiki?.socials) {
+      wiki.socials.forEach((entry) => {
+        if (entry?.href) links.push(entry);
+      });
+    }
+    if (!links.length) {
+      dom.socialSection.hidden = true;
+      return;
+    }
+    dom.socialSection.hidden = false;
+    dom.social.innerHTML = links.slice(0, 6).map((link) => `
+      <a href="${escapeHtml(link.href)}" target="_blank" rel="noopener">
+        <i class="fa-solid ${escapeHtml(link.icon || 'fa-link')}"></i>
+        <span>${escapeHtml(link.label || link.href.replace(/^https?:\/\//, ''))}</span>
+      </a>
+    `).join('');
+  }
+
+  async function fetchRelatedBrands(brand) {
+    if (!dom.related || !dom.relatedSection) return;
+    const client = ensureSupabase();
+    if (!client || !brand) {
+      dom.relatedSection.hidden = true;
+      return;
+    }
+    try {
+      const orFilters = [];
+      if (brand.category) orFilters.push(`category.ilike.${brand.category}`);
+      if (brand.country) orFilters.push(`country.ilike.${brand.country}`);
+      let query = client.from(brandTable)
+        .select('id,name,slug,domain,logo_url,category,country')
+        .neq('id', brand.id)
+        .limit(8);
+      if (orFilters.length) {
+        query = query.or(orFilters.join(','));
+      } else {
+        query = query.limit(8);
+      }
+      const { data, error } = await query;
+      if (error || !data || !data.length) {
+        dom.relatedSection.hidden = true;
+        return;
+      }
+      const siblings = data.slice(0, 6);
+      dom.relatedSection.hidden = false;
+      if (dom.relatedSub) {
+        dom.relatedSub.textContent = brand.category
+          ? `More in ${brand.category}`
+          : 'Similar brands you may like';
+      }
+      dom.related.innerHTML = siblings.map((row) => {
+        const name = String(row.name || 'Brand');
+        const id = String(row.id || row.slug || row.name || '');
+        const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
+        const sub = [row.category, row.country].filter(Boolean).join(' · ') || 'Brand';
+        const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
+        return `
+          <a class="elevated-related-card" href="${escapeHtml(href)}">
+            <span class="elevated-related-thumb">
+              ${logo ? `<img src="${escapeHtml(logo)}" alt="${escapeHtml(name)}" loading="lazy" onerror="this.remove();">` : `<i class="fa-solid ${CATEGORY_ICON}" style="color:var(--dt-text-3);font-size:1rem"></i>`}
+            </span>
+            <span class="elevated-related-body">
+              <span class="elevated-related-name">${escapeHtml(name)}</span>
+              <span class="elevated-related-meta">${escapeHtml(sub)}</span>
+            </span>
+          </a>
+        `;
+      }).join('');
+    } catch (_err) {
+      dom.relatedSection.hidden = true;
+    }
+  }
+
+  async function fetchWikipedia(brand) {
+    if (!brand) return null;
+    const name = String(brand.name || '').trim();
+    if (!name) return null;
+    if (wikipediaCache.has(name)) return wikipediaCache.get(name);
+    try {
+      const search = await fetch(
+        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' ' + CATEGORY_LABEL + ' company')}&format=json&origin=*&srlimit=1`
+      );
+      const searchData = await search.json();
+      const title = searchData?.query?.search?.[0]?.title;
+      if (!title) {
+        wikipediaCache.set(name, null);
+        return null;
+      }
+      const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`);
+      const summary = await summaryRes.json();
+      const result = {
+        title: summary.title || title,
+        description: summary.extract || '',
+        thumbnail: summary.thumbnail?.source || '',
+        url: summary.content_urls?.desktop?.page || '',
+        wikiSource: title
+      };
+      wikipediaCache.set(name, result);
+      return result;
+    } catch (_err) {
+      wikipediaCache.set(name, null);
+      return null;
+    }
+  }
+
+  function guessSocialsFromDomain(domain) {
+    const root = String(domain || '').replace(/^www\./, '').trim();
+    if (!root) return [];
+    return [];
+  }
+
+  function mergeWikiIntoBrand(brand, wiki) {
+    if (!wiki) return brand;
+    if (!brand.description && wiki.description) {
+      brand.description = wiki.description;
+    }
+    if (!brand.headquarters) {
+      const match = (wiki.description || '').match(/headquarters(?: in|:| is)?\s+(?:located\s+)?(?:in\s+)?([A-Z][\w\s,.-]+?)[.,;]/);
+      if (match) brand.headquarters = match[1].trim();
+    }
+    return brand;
   }
 
   function updateHero(brand) {
+    setCategoryAccent();
     document.body.dataset.navPage = brandType;
-    const label = brandType === 'food' ? 'Food' : 'Fashion';
-    document.title = `${brand.name} · ${label} · Zo2y`;
+    document.title = `${brand.name} · ${CATEGORY_LABEL} · Zo2y`;
+
+    const initials = setBrandNameInitials(brand.name);
+    setFallbackInitial(initials);
+    if (dom.posterFallbackTitle) {
+      dom.posterFallbackTitle.textContent = brand.name;
+    }
+    if (dom.kickerLabel) {
+      dom.kickerLabel.textContent = `${brandType} spotlight`;
+    }
 
     if (dom.logo) {
       dom.logo.src = brand.logo || '/newlogo.webp';
+      dom.logo.alt = `${brand.name} logo`;
       dom.logo.onerror = () => {
         dom.logo.onerror = null;
         dom.logo.src = '/newlogo.webp';
+        if (dom.posterFrame) dom.posterFrame.classList.add('is-missing');
       };
+      if (!brand.logo) {
+        dom.posterFrame?.classList.add('is-missing');
+      } else {
+        dom.posterFrame?.classList.remove('is-missing');
+      }
     }
+
     if (dom.name) dom.name.textContent = brand.name;
-    if (dom.meta) {
-      dom.meta.innerHTML = [
-        brand.category ? `<span><i class="fa-solid fa-tag"></i> ${escapeHtml(brand.category)}</span>` : '',
-        brand.country ? `<span><i class="fa-solid fa-flag"></i> ${escapeHtml(brand.country)}</span>` : '',
-        brand.founded ? `<span><i class="fa-solid fa-calendar"></i> Founded ${escapeHtml(brand.founded)}</span>` : ''
-      ].filter(Boolean).join('');
+
+    const metaItems = [];
+    if (brand.category) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid ${CATEGORY_ICON}"></i> ${escapeHtml(brand.category)}</span>`);
+    if (brand.country) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-flag"></i> ${escapeHtml(brand.country)}</span>`);
+    if (brand.founded) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-calendar"></i> founded ${escapeHtml(brand.founded)}</span>`);
+    if (brand.headquarters) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(brand.headquarters)}</span>`);
+    if (dom.meta) dom.meta.innerHTML = metaItems.join('');
+
+    renderTags(brand.tags);
+
+    if (dom.desc) {
+      dom.desc.textContent = brand.description || 'No description yet.';
+      bindClampedDescription(dom.desc, dom.desc?.parentElement, dom.descToggle);
     }
-    if (dom.desc) dom.desc.textContent = brand.description || 'No description yet.';
-    if (dom.about) dom.about.textContent = brand.description || 'This brand does not have a bio yet.';
+
+    if (dom.about) {
+      dom.about.textContent = brand.description || 'This brand does not have a bio yet.';
+      bindClampedDescription(dom.about, dom.about?.parentElement, dom.aboutToggle);
+    }
 
     if (dom.website) {
       if (brand.domain) {
         dom.website.href = `https://${brand.domain}`;
-        dom.website.style.display = 'inline-flex';
+        dom.website.style.display = '';
+        if (dom.posterFrame) {
+          dom.posterFrame.href = `https://${brand.domain}`;
+        }
       } else {
         dom.website.style.display = 'none';
+        if (dom.posterFrame) {
+          dom.posterFrame.removeAttribute('href');
+        }
       }
     }
 
@@ -374,7 +687,7 @@
       dom.actionCard.setAttribute('data-item-id', brand.id);
       if (brand.logo) dom.actionCard.setAttribute('data-list-image', brand.logo);
       dom.actionCard.querySelector('.card-title')?.replaceChildren(document.createTextNode(brand.name));
-      dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || label));
+      dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || CATEGORY_LABEL));
       const img = dom.actionCard.querySelector('img');
       if (img) img.src = brand.logo || '/newlogo.webp';
     }
@@ -384,7 +697,7 @@
     if (!brandIdParam) return null;
     const client = ensureSupabase();
     if (!client) return null;
-    let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,tags').limit(1);
+    let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,headquarters,ceo,employees,tags').limit(1);
     if (isUuid(brandIdParam)) {
       query = query.eq('id', brandIdParam);
     } else {
@@ -401,41 +714,94 @@
     const safe = Number.isFinite(raw) ? Math.max(0, Math.min(5, raw)) : 0;
     const filled = Math.round(safe);
     const wrapper = options.wrapper !== false;
-    let html = wrapper ? `<span class="rating-stars" aria-label="${safe.toFixed(1)}/5">` : '';
+    let html = wrapper ? `<span class="elevated-review-big-stars" aria-label="${safe.toFixed(1)}/5">` : '';
     for (let i = 0; i < 5; i += 1) {
-      html += `<span class="rating-star${i < filled ? ' is-filled' : ''}" aria-hidden="true"></span>`;
+      html += `<i class="${i < filled ? 'fa-solid' : 'fa-regular'} fa-star" aria-hidden="true"></i>`;
     }
     if (wrapper) html += '</span>';
     return html;
   }
 
   function updateStarDisplay() {
-    const stars = document.querySelectorAll('.star');
-    const ratingText = dom.ratingText;
+    const stars = dom.reviewStars ? dom.reviewStars.querySelectorAll('.elevated-star') : [];
     stars.forEach((star) => {
       const starRating = parseInt(star.dataset.rating, 10);
-      star.classList.toggle('active', starRating <= currentRating);
+      star.classList.toggle('is-active', starRating <= currentRating);
     });
-    const ratingTexts = ['Select your rating', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-    if (ratingText) ratingText.textContent = ratingTexts[currentRating] || ratingTexts[0];
+    const ratingTexts = ['select your rating', 'poor', 'fair', 'good', 'very good', 'excellent'];
+    if (dom.ratingText) dom.ratingText.textContent = ratingTexts[currentRating] || ratingTexts[0];
   }
 
   function renderReviewForm() {
     if (!dom.reviewForm || !dom.authPrompt) return;
     if (!currentUser) {
       dom.reviewForm.style.display = 'none';
-      dom.authPrompt.style.display = 'block';
+      dom.authPrompt.style.display = '';
+    } else {
+      dom.reviewForm.style.display = '';
+      dom.authPrompt.style.display = 'none';
+    }
+  }
+
+  function renderReviewSummary() {
+    if (!dom.reviewsStats) return;
+    if (!reviews.length) {
+      dom.reviewsStats.innerHTML = `
+        <div class="elevated-review-big">
+          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-stars" aria-hidden="true">
+            <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+          </div>
+          <div class="elevated-review-big-count">be the first to review</div>
+        </div>
+        <div class="elevated-review-bars">
+          <div class="elevated-review-bar-row"><span class="label">5★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">4★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">3★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">2★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+          <div class="elevated-review-bar-row"><span class="label">1★</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
+        </div>
+      `;
+      if (dom.reviewsCount) dom.reviewsCount.textContent = 'no reviews yet';
       return;
     }
-    dom.reviewForm.style.display = 'block';
-    dom.authPrompt.style.display = 'none';
+
+    const totalReviews = reviews.length;
+    const average = reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r) => {
+      if (distribution[r.rating] !== undefined) distribution[r.rating] += 1;
+    });
+    const fivePct = Math.round((distribution[5] / totalReviews) * 100);
+
+    dom.reviewsStats.innerHTML = `
+      <div class="elevated-review-big">
+        <div class="elevated-review-big-value">${average.toFixed(1)}<span class="elevated-review-big-denom">/5</span></div>
+        ${renderStarRating(average)}
+        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} · ${fivePct}% 5★</div>
+      </div>
+      <div class="elevated-review-bars">
+        ${[5, 4, 3, 2, 1].map((stars) => `
+          <div class="elevated-review-bar-row">
+            <span class="label">${stars}★</span>
+            <div class="elevated-review-bar">
+              <div class="elevated-review-bar-fill" style="width:${(distribution[stars] / totalReviews) * 100}%"></div>
+            </div>
+            <span class="count">${distribution[stars]}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    if (dom.reviewsCount) {
+      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} · ${average.toFixed(1)}/5 average`;
+    }
   }
 
   async function loadReviews() {
     if (!dom.reviewsList || !dom.reviewsStats || !brandData) return;
     const client = ensureSupabase();
     if (!client) return;
-    dom.reviewsList.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviews…</div>';
     const { data, error } = await client
       .from(reviewTable)
       .select('*')
@@ -443,55 +809,14 @@
       .order('created_at', { ascending: false });
 
     if (error) {
-      dom.reviewsList.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
-      dom.reviewsStats.innerHTML = '<div class="reviews-empty">Error loading stats.</div>';
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Error loading reviews.</div>';
+      renderReviewSummary();
       return;
     }
 
     reviews = data || [];
-    if (!reviews.length) {
-      dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts!</div>';
-      dom.reviewsStats.innerHTML = '<div class="reviews-empty">No reviews yet</div>';
-      return;
-    }
-
-    const totalReviews = reviews.length;
-    const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
-    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach((review) => {
-      if (ratingDistribution[review.rating] !== undefined) ratingDistribution[review.rating] += 1;
-    });
-
-    dom.reviewsStats.innerHTML = `
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">${averageRating.toFixed(1)}</div>
-          <div class="stat-label">Average Rating</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">${totalReviews}</div>
-          <div class="stat-label">Total Reviews</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">${Math.round((ratingDistribution[5] / totalReviews) * 100)}%</div>
-          <div class="stat-label">5-Star Reviews</div>
-        </div>
-      </div>
-      <div class="rating-breakdown">
-        ${[5, 4, 3, 2, 1].map((stars) => `
-          <div class="rating-row">
-            <div class="rating-stars">${renderStarRating(stars, { wrapper: false })}</div>
-            <div class="rating-bar">
-              <div class="rating-fill" style="width: ${(ratingDistribution[stars] / totalReviews) * 100}%"></div>
-            </div>
-            <div class="rating-count">${ratingDistribution[stars]}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    const sortControls = document.getElementById('reviewsSortControls');
-    if (sortControls) sortControls.style.display = 'flex';
+    renderReviewSummary();
+    if (dom.reviewsSortControls) dom.reviewsSortControls.style.display = reviews.length ? 'flex' : 'none';
     sortAndRenderReviews();
   }
 
@@ -506,7 +831,7 @@
   async function displayReviews(reviewsToDisplay) {
     if (!dom.reviewsList) return;
     if (!reviewsToDisplay || !reviewsToDisplay.length) {
-      dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet.</div>';
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet — be the first to share your thoughts!</div>';
       return;
     }
 
@@ -536,22 +861,18 @@
       const canEditDelete = currentUser && currentUser.id === review.user_id;
       const comment = review.comment || review.review_text || '';
       return `
-        <div class="review-card" id="review-${review.id}" data-review-id="${review.id}">
-          <div class="review-header">
-            <div class="reviewer-info">
-              <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
-              <div>
-                <div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a></div>
-                <div class="review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-              </div>
-            </div>
-            <div class="review-rating">${renderStarRating(review.rating)}</div>
+        <div class="elevated-review-card" id="review-${review.id}" data-review-id="${review.id}">
+          <a class="elevated-reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
+          <div>
+            <a class="elevated-reviewer-name reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a>
+            <div class="elevated-review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
           </div>
-          <p class="review-comment">${escapeHtml(comment)}</p>
+          <div class="elevated-review-rating">${renderStarRating(review.rating)}</div>
+          <p class="elevated-review-comment">${escapeHtml(comment)}</p>
           ${canEditDelete ? `
-            <div class="review-actions">
-              <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
-              <button class="review-delete" onclick="deleteReview('${review.id}')">Delete</button>
+            <div class="elevated-review-actions">
+              <button class="review-edit" onclick="editReview('${review.id}')">edit</button>
+              <button class="review-delete danger" onclick="deleteReview('${review.id}')">delete</button>
             </div>
           ` : ''}
         </div>
@@ -566,8 +887,8 @@
         mediaType: brandType,
         currentUser,
         supabaseClient,
-        notify: (message, level) => showNotification(message, level || 'info'),
-        cardSelector: '.review-card',
+        notify: (message, level) => showToast(message, level || 'info'),
+        cardSelector: '.elevated-review-card',
         reviewIdAttribute: 'data-review-id'
       });
     }
@@ -576,12 +897,12 @@
   async function submitReview(e) {
     e.preventDefault();
     if (!currentUser) {
-      showNotification('Please sign in to submit a review', 'info');
+      showToast('Please sign in to submit a review', 'info');
       return;
     }
     const comment = dom.commentInput ? dom.commentInput.value.trim() : '';
     if (!currentRating) {
-      showNotification('Please select a rating', 'info');
+      showToast('Please select a rating', 'info');
       return;
     }
     const payload = {
@@ -604,7 +925,7 @@
       error = insertError;
     }
     if (error) {
-      showNotification('Error submitting review', 'error');
+      showToast('Error submitting review', 'error');
       return;
     }
     const wasEditing = !!editingReviewId;
@@ -616,7 +937,7 @@
     if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
       window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
     }
-    showNotification('Review saved', 'success');
+    showToast('Review saved', 'success');
   }
 
   window.editReview = async function (reviewId) {
@@ -631,14 +952,14 @@
     currentRating = review.rating;
     if (dom.commentInput) dom.commentInput.value = review.comment || review.review_text || '';
     updateStarDisplay();
-    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    const submitText = document.querySelector('.submit-review-btn .btn-text, .elevated-form-actions .btn-text');
     if (submitText) submitText.textContent = 'Update Review';
-    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = 'inline-flex';
+    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = '';
   };
 
   window.deleteReview = async function (reviewId) {
     if (!currentUser) {
-      showNotification('Please sign in to delete reviews', 'info');
+      showToast('Please sign in to delete reviews', 'info');
       return;
     }
     if (!window.ProfileManager) return;
@@ -648,11 +969,11 @@
       .delete()
       .eq('id', reviewId);
     if (error) {
-      showNotification('Error deleting review', 'error');
+      showToast('Error deleting review', 'error');
       return;
     }
     await loadReviews();
-    showNotification('Review deleted', 'success');
+    showToast('Review deleted', 'success');
     });
   };
 
@@ -661,7 +982,7 @@
     currentRating = 0;
     if (dom.reviewForm) dom.reviewForm.reset();
     updateStarDisplay();
-    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    const submitText = document.querySelector('.submit-review-btn .btn-text, .elevated-form-actions .btn-text');
     if (submitText) submitText.textContent = 'Submit Review';
     if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = 'none';
   }
@@ -686,13 +1007,21 @@
         if (dom.charCount) dom.charCount.textContent = String(count);
       });
     }
-    document.querySelectorAll('.star').forEach((star) => {
-      star.addEventListener('click', () => {
-        currentRating = parseInt(star.dataset.rating, 10);
-        updateStarDisplay();
+    if (dom.reviewStars) {
+      dom.reviewStars.querySelectorAll('.elevated-star').forEach((star) => {
+        star.addEventListener('click', () => {
+          currentRating = parseInt(star.dataset.rating, 10);
+          updateStarDisplay();
+        });
       });
-    });
+    }
     await loadReviews();
+  }
+
+  function openListMenuFromCard() {
+    if (dom.actionCard && window.openIndexStyleListMenu) {
+      window.openIndexStyleListMenu(dom.actionCard);
+    }
   }
 
   function initMenuBridge() {
@@ -702,10 +1031,7 @@
       getCurrentUser: () => currentUser,
       ensureClient: ensureSupabase,
       toggleDefaultList,
-      notify: (message, isError) => {
-        if (typeof window.showToast === 'function') window.showToast(message, isError ? 'error' : 'success');
-        else if (isError) console.error(message);
-      }
+      notify: (message, isError) => showToast(message, isError ? 'error' : 'success')
     });
     if (window.ListUtils && typeof window.ListUtils.bindGlobalListUx === 'function') {
       window.ListUtils.bindGlobalListUx();
@@ -716,14 +1042,19 @@
     if (dom.menuBtn) {
       dom.menuBtn.addEventListener('click', (event) => {
         event.stopPropagation();
-        if (dom.actionCard && window.openIndexStyleListMenu) {
-          window.openIndexStyleListMenu(dom.actionCard);
-        }
+        openListMenuFromCard();
+      });
+    }
+    if (dom.saveBtn) {
+      dom.saveBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openListMenuFromCard();
       });
     }
   }
 
   async function boot() {
+    setCategoryAccent();
     await loadSession();
     initMenuBridge();
     wireActions();
@@ -738,8 +1069,29 @@
 
     brandData = brand;
     updateHero(brand);
+    renderInfoGrid(brand, null);
+    renderSocial(brand, null);
     renderReviewForm();
     await initReviewSystem();
+
+    // Fetch Wikipedia in the background — populate about/info if it returns more
+    const wiki = await fetchWikipedia(brand);
+    if (wiki) {
+      mergeWikiIntoBrand(brand, wiki);
+      if (dom.about) {
+        dom.about.textContent = wiki.description || brand.description;
+        bindClampedDescription(dom.about, dom.about?.parentElement, dom.aboutToggle);
+      }
+      if (dom.aboutSource) {
+        dom.aboutSource.innerHTML = `Source: <a href="${escapeHtml(wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>`;
+      }
+      if (wiki.thumbnail) applyBackdrop(wiki.thumbnail);
+      renderInfoGrid(brand, wiki);
+      renderSocial(brand, wiki);
+    }
+
+    // Related brands — non-blocking
+    fetchRelatedBrands(brand).catch(() => {});
 
     if (supabaseClient?.auth?.onAuthStateChange) {
       supabaseClient.auth.onAuthStateChange((_event, session) => {
@@ -755,10 +1107,3 @@
     boot();
   }
 })();
-
-
-
-
-
-
-

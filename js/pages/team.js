@@ -12,18 +12,29 @@
     currentUser: null,
     favorites: new Set(),
     team: null,
-    localBadgeMap: {}
+    localBadgeMap: {},
+    roster: [],
+    related: []
   };
 
   const ui = {
+    body: document.body,
     hero: document.getElementById('teamHero'),
+    backdrop: document.getElementById('teamBackdrop'),
+    backdropBlur: document.getElementById('teamBackdropBlur'),
     heroMedia: document.getElementById('teamHeroMedia'),
+    posterFrame: document.getElementById('teamPosterFrame'),
+    posterFallbackTitle: document.getElementById('teamPosterFallbackTitle'),
     badge: document.getElementById('teamBadge'),
     name: document.getElementById('teamName'),
     meta: document.getElementById('teamMeta'),
+    tags: document.getElementById('teamTags'),
+    description: document.getElementById('teamDescription'),
+    descriptionToggle: document.getElementById('teamDescriptionToggle'),
     kicker: document.getElementById('teamKicker'),
     saveBtn: document.getElementById('teamSaveBtn'),
     website: document.getElementById('teamWebsite'),
+    infoGrid: document.getElementById('teamInfoGrid'),
     league: document.getElementById('teamLeague'),
     sport: document.getElementById('teamSport'),
     country: document.getElementById('teamCountry'),
@@ -31,10 +42,17 @@
     stadium: document.getElementById('teamStadium'),
     stadiumLocation: document.getElementById('teamStadiumLocation'),
     capacity: document.getElementById('teamCapacity'),
-    description: document.getElementById('teamDescription'),
     social: document.getElementById('teamSocial'),
+    socialSection: document.getElementById('teamSocialSection'),
     mediaGrid: document.getElementById('teamMediaGrid'),
     mediaEmpty: document.getElementById('teamMediaEmpty'),
+    mediaSection: document.getElementById('teamMediaSection'),
+    roster: document.getElementById('teamRoster'),
+    rosterSection: document.getElementById('teamRosterSection'),
+    rosterSub: document.getElementById('teamRosterSub'),
+    related: document.getElementById('teamRelated'),
+    relatedSection: document.getElementById('teamRelatedSection'),
+    relatedSub: document.getElementById('teamRelatedSub'),
     toast: document.getElementById('teamToast')
   };
 
@@ -89,12 +107,13 @@
   function showToast(message, type = 'info') {
     if (!ui.toast) return;
     ui.toast.textContent = message;
-    ui.toast.classList.toggle('error', type === 'error');
+    ui.toast.classList.toggle('is-error', type === 'error');
+    ui.toast.classList.toggle('is-success', type === 'success');
     ui.toast.classList.add('show');
     window.clearTimeout(showToast._timer);
     showToast._timer = window.setTimeout(() => {
       ui.toast.classList.remove('show');
-    }, 2800);
+    }, 2400);
   }
 
   function scoreTeamMatch(raw, criteria = {}) {
@@ -116,7 +135,7 @@
     const teamSport = normalizeTeamName(raw.strSport || '');
     if (sportNeedle) {
       if (teamSport === sportNeedle) score += 2;
-      else if (teamSport.includes(sportNeedle) || sportNeedle.includes(teamSport)) score += 1;
+      else if (teamSport.includes(sportNeedle) || sportNeedle.includes(sportNeedle)) score += 1;
     }
     const countryNeedle = normalizeTeamName(criteria.country || '');
     const teamCountry = normalizeTeamName(raw.strCountry || '');
@@ -158,16 +177,24 @@
       stadiumLocation: String(raw.strStadiumLocation || '').trim(),
       stadiumCapacity: String(raw.intStadiumCapacity || '').trim(),
       description: String(raw.strDescriptionEN || raw.strDescription || '').trim(),
+      manager: String(raw.strManager || '').trim(),
       badge: '',
-      banner: '',
-      fanart: '',
-      fanarts: [],
-      stadiumThumb: '',
-      jersey: '',
+      banner: String(raw.strBanner || '').trim(),
+      fanart: String(raw.strFanart1 || '').trim(),
+      fanarts: [
+        String(raw.strFanart1 || '').trim(),
+        String(raw.strFanart2 || '').trim(),
+        String(raw.strFanart3 || '').trim(),
+        String(raw.strFanart4 || '').trim()
+      ].filter(Boolean),
+      stadiumThumb: String(raw.strStadiumThumb || '').trim(),
+      jersey: String(raw.strEquipment || '').trim() || String(raw.strJersey || '').trim(),
       website: normalizeExternalUrl(raw.strWebsite || ''),
       facebook: normalizeExternalUrl(raw.strFacebook || ''),
       twitter: normalizeExternalUrl(raw.strTwitter || ''),
-      instagram: normalizeExternalUrl(raw.strInstagram || '')
+      instagram: normalizeExternalUrl(raw.strInstagram || ''),
+      youtube: normalizeExternalUrl(raw.strYoutube || ''),
+      raw
     };
   }
 
@@ -179,29 +206,190 @@
 
   function updateSaveButton(isSaved) {
     if (!ui.saveBtn) return;
-    ui.saveBtn.classList.toggle('saved', !!isSaved);
-    const icon = isSaved ? 'fa-check' : 'fa-heart';
-    const text = isSaved ? 'Saved' : 'Save team';
-    ui.saveBtn.innerHTML = `<i class="fas ${icon}"></i><span>${text}</span>`;
+    ui.saveBtn.classList.toggle('elevated-btn-saved', !!isSaved);
+    ui.saveBtn.classList.toggle('elevated-btn-primary', !isSaved);
+    const icon = isSaved ? 'fa-solid fa-check' : 'fa-solid fa-heart';
+    const text = isSaved ? 'saved' : 'save team';
+    ui.saveBtn.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
     ui.saveBtn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
   }
 
-  function renderSocialLinks(team) {
-    if (!ui.social) return;
-    const links = [];
-    if (team.website) links.push({ href: team.website, icon: 'fas fa-globe', label: 'Website' });
-    if (team.facebook) links.push({ href: team.facebook, icon: 'fab fa-facebook', label: 'Facebook' });
-    if (team.twitter) links.push({ href: team.twitter, icon: 'fab fa-twitter', label: 'Twitter' });
-    if (team.instagram) links.push({ href: team.instagram, icon: 'fab fa-instagram', label: 'Instagram' });
+  function setFallbackInitial(initial) {
+    if (ui.posterFrame) {
+      ui.posterFrame.style.setProperty('--dt-fallback-initial', JSON.stringify(String(initial || 'T').toUpperCase()));
+    }
+  }
 
-    if (!links.length) {
-      ui.social.innerHTML = '<span class="team-social-empty">No social links available.</span>';
-      return;
+  function applyBackdrop(url) {
+    if (!url) return;
+    const safeUrl = String(url).replace(/"/g, '\\"');
+    const style = `url("${safeUrl}") center 20% / cover no-repeat`;
+    if (ui.backdrop) {
+      ui.backdrop.style.background = style;
+    }
+    if (ui.backdropBlur) {
+      ui.backdropBlur.style.background = style;
+    }
+    if (ui.hero) {
+      ui.hero.classList.remove('is-no-backdrop');
+      ui.hero.classList.add('is-loaded');
+    }
+  }
+
+  function applySportFallbackBackground(sport) {
+    const bg = SPORT_BACKGROUNDS[getSportKey(sport)] || SPORT_BACKGROUNDS.default;
+    const safeUrl = String(bg).replace(/"/g, '\\"');
+    const style = `url("${safeUrl}") center / cover no-repeat`;
+    if (ui.backdrop) {
+      ui.backdrop.style.background = style;
+      ui.backdrop.style.opacity = '0.7';
+    }
+    if (ui.backdropBlur) {
+      ui.backdropBlur.style.background = style;
+    }
+    if (ui.hero) {
+      ui.hero.classList.remove('is-no-backdrop');
+      ui.hero.classList.add('is-loaded');
+    }
+  }
+
+  function getSportKey(sport) {
+    const norm = String(sport || '').toLowerCase().trim();
+    if (norm.includes('football') || norm.includes('soccer')) return 'football';
+    if (norm.includes('motor') || norm.includes('f1') || norm.includes('racing')) return 'motorsport';
+    if (norm.includes('basket')) return 'basketball';
+    if (norm.includes('american') || norm.includes('nfl')) return 'american football';
+    if (norm.includes('base')) return 'baseball';
+    if (norm.includes('hockey') || norm.includes('ice')) return 'ice hockey';
+    if (norm.includes('mma') || norm.includes('ufc')) return 'mma';
+    if (norm.includes('boxing') || norm.includes('kick')) return 'boxing';
+    return 'default';
+  }
+
+  function getSportIcon(sport) {
+    const norm = String(sport || '').toLowerCase().trim();
+    if (norm.includes('football') || norm.includes('soccer')) return 'fa-futbol';
+    if (norm.includes('motor') || norm.includes('f1') || norm.includes('racing')) return 'fa-flag-checkered';
+    if (norm.includes('basket')) return 'fa-basketball';
+    if (norm.includes('american') || norm.includes('nfl')) return 'fa-football';
+    if (norm.includes('base')) return 'fa-baseball';
+    if (norm.includes('hockey') || norm.includes('ice')) return 'fa-hockey-puck';
+    if (norm.includes('mma') || norm.includes('ufc')) return 'fa-user-ninja';
+    if (norm.includes('boxing') || norm.includes('kick')) return 'fa-mitten';
+    return 'fa-trophy';
+  }
+
+  function bindClampedDescription(pEl, wrapEl, toggleEl) {
+    if (!pEl || !wrapEl) return;
+    const labelEl = toggleEl ? toggleEl.querySelector('.elevated-readmore-label') : null;
+    const apply = () => {
+      const overflows = pEl.scrollHeight - pEl.clientHeight > 4;
+      if (overflows) {
+        pEl.classList.add('is-clamped');
+        wrapEl.classList.add('is-clamped');
+        if (toggleEl) {
+          toggleEl.style.display = '';
+          toggleEl.setAttribute('aria-expanded', 'false');
+        }
+        if (labelEl) labelEl.textContent = 'read more';
+      } else {
+        pEl.classList.remove('is-clamped');
+        wrapEl.classList.remove('is-clamped');
+        if (toggleEl) toggleEl.style.display = 'none';
+      }
+    };
+    requestAnimationFrame(apply);
+    window.addEventListener('resize', apply);
+    if (toggleEl) {
+      toggleEl.addEventListener('click', () => {
+        const expanded = toggleEl.getAttribute('aria-expanded') === 'true';
+        const next = !expanded;
+        toggleEl.setAttribute('aria-expanded', next ? 'true' : 'false');
+        pEl.classList.toggle('is-clamped', !next);
+        wrapEl.classList.toggle('is-clamped', !next);
+        if (labelEl) labelEl.textContent = next ? 'read less' : 'read more';
+      });
+    }
+  }
+
+  function renderInfoGrid(team) {
+    if (!ui.infoGrid) return;
+    const cards = [];
+    if (team.league) {
+      cards.push({ icon: 'fa-trophy', label: 'League', value: escapeHtml(team.league) });
+    }
+    if (team.sport) {
+      cards.push({ icon: getSportIcon(team.sport), label: 'Sport', value: escapeHtml(team.sport) });
+    }
+    if (team.country) {
+      cards.push({ icon: 'fa-flag', label: 'Country', value: escapeHtml(team.country) });
+    }
+    if (team.formedYear) {
+      cards.push({ icon: 'fa-calendar', label: 'Founded', value: escapeHtml(team.formedYear) });
+    }
+    if (team.stadium) {
+      cards.push({ icon: 'fa-building', label: 'Stadium', value: escapeHtml(team.stadium) });
+    }
+    if (team.stadiumLocation) {
+      cards.push({ icon: 'fa-location-dot', label: 'Stadium location', value: escapeHtml(team.stadiumLocation) });
+    }
+    if (team.stadiumCapacity) {
+      cards.push({ icon: 'fa-people-group', label: 'Capacity', value: formatNumber(team.stadiumCapacity) });
+    }
+    if (team.manager) {
+      cards.push({ icon: 'fa-whistle', label: 'Manager', value: escapeHtml(team.manager) });
+    }
+    if (team.website) {
+      cards.push({ icon: 'fa-globe', label: 'Website', value: `<a href="${escapeHtml(team.website)}" target="_blank" rel="noopener">${escapeHtml(team.website.replace(/^https?:\/\//, ''))}</a>` });
     }
 
+    if (!cards.length) {
+      ui.infoGrid.innerHTML = `
+        <div class="elevated-detail-card">
+          <span class="elevated-detail-title"><i class="fa-solid fa-circle-info"></i> Status</span>
+          <span class="elevated-detail-value">No additional details available yet.</span>
+        </div>
+      `;
+      return;
+    }
+    ui.infoGrid.innerHTML = cards.map((c) => `
+      <div class="elevated-detail-card">
+        <span class="elevated-detail-title"><i class="fa-solid ${c.icon}"></i> ${escapeHtml(c.label)}</span>
+        <span class="elevated-detail-value">${c.value}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderTags(team) {
+    if (!ui.tags) return;
+    const list = [];
+    if (team.league) list.push(team.league);
+    if (team.sport) list.push(team.sport);
+    if (team.country) list.push(team.country);
+    if (!list.length) {
+      ui.tags.innerHTML = '';
+      return;
+    }
+    ui.tags.innerHTML = list.map((t) => `<span class="elevated-tag">${escapeHtml(t)}</span>`).join('');
+  }
+
+  function renderSocialLinks(team) {
+    if (!ui.social || !ui.socialSection) return;
+    const links = [];
+    if (team.website) links.push({ href: team.website, icon: 'fa-globe', label: 'Website' });
+    if (team.facebook) links.push({ href: team.facebook, icon: 'fa-facebook', label: 'Facebook' });
+    if (team.twitter) links.push({ href: team.twitter, icon: 'fa-twitter', label: 'Twitter' });
+    if (team.instagram) links.push({ href: team.instagram, icon: 'fa-instagram', label: 'Instagram' });
+    if (team.youtube) links.push({ href: team.youtube, icon: 'fa-youtube', label: 'YouTube' });
+
+    if (!links.length) {
+      ui.socialSection.hidden = true;
+      return;
+    }
+    ui.socialSection.hidden = false;
     ui.social.innerHTML = links.map((link) => `
       <a href="${escapeHtml(link.href)}" target="_blank" rel="noopener">
-        <i class="${escapeHtml(link.icon)}"></i>
+        <i class="fa-brands ${escapeHtml(link.icon)}"></i>
         <span>${escapeHtml(link.label)}</span>
       </a>
     `).join('');
@@ -209,78 +397,187 @@
 
   function renderMedia(team) {
     if (!ui.mediaGrid || !ui.mediaEmpty) return;
-    const mediaItems = [];
+    const items = [];
     const seen = new Set();
-    const addMedia = (url, contain = false) => {
+    const addMedia = (url, contain = false, label = '') => {
       const safeUrl = String(url || '').trim();
       if (!safeUrl || seen.has(safeUrl)) return;
       seen.add(safeUrl);
-      mediaItems.push({ url: safeUrl, contain });
+      items.push({ url: safeUrl, contain, label });
     };
 
-    addMedia(team.fanart, false);
-    (team.fanarts || []).forEach((url) => addMedia(url, false));
-    addMedia(team.stadiumThumb, false);
-    addMedia(team.banner, true);
-    addMedia(team.jersey, true);
-    addMedia(team.badge, true);
+    addMedia(team.fanart, false, 'Fanart');
+    (team.fanarts || []).slice(1).forEach((url) => addMedia(url, false, 'Fanart'));
+    addMedia(team.stadiumThumb, false, 'Stadium');
+    addMedia(team.banner, true, 'Banner');
+    addMedia(team.jersey, true, 'Kit');
+    addMedia(team.badge, true, 'Badge');
 
     ui.mediaGrid.innerHTML = '';
-    if (!mediaItems.length) {
-      ui.mediaEmpty.classList.add('visible');
+    if (!items.length) {
+      ui.mediaEmpty.hidden = false;
       return;
     }
-
-    ui.mediaEmpty.classList.remove('visible');
+    ui.mediaEmpty.hidden = true;
     const fragment = document.createDocumentFragment();
-    mediaItems.forEach((item) => {
+    items.forEach((item) => {
       const card = document.createElement('div');
-      card.className = `team-media-item${item.contain ? ' contain' : ''}`;
-      card.innerHTML = `<img src="${escapeHtml(item.url)}" alt="Team media" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />`;
+      card.className = `elevated-media-item${item.contain ? ' contain' : ''}`;
+      card.innerHTML = `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || 'Team media')}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />${item.label ? `<span class="elevated-media-label">${escapeHtml(item.label)}</span>` : ''}`;
       fragment.appendChild(card);
     });
     ui.mediaGrid.appendChild(fragment);
   }
 
-  function getSportBackground(sport) {
-    const norm = String(sport || '').toLowerCase().trim();
-    if (norm.includes('football') || norm.includes('soccer')) return SPORT_BACKGROUNDS['football'];
-    if (norm.includes('motor') || norm.includes('f1') || norm.includes('racing')) return SPORT_BACKGROUNDS['motorsport'];
-    if (norm.includes('basket')) return SPORT_BACKGROUNDS['basketball'];
-    if (norm.includes('american') || norm.includes('nfl')) return SPORT_BACKGROUNDS['american football'];
-    if (norm.includes('base')) return SPORT_BACKGROUNDS['baseball'];
-    if (norm.includes('hockey') || norm.includes('ice')) return SPORT_BACKGROUNDS['ice hockey'];
-    if (norm.includes('mma') || norm.includes('ufc')) return SPORT_BACKGROUNDS['mma'];
-    if (norm.includes('boxing') || norm.includes('kick')) return SPORT_BACKGROUNDS['boxing'];
-    return SPORT_BACKGROUNDS['default'];
+  function extractRoster(raw) {
+    if (!raw || typeof raw !== 'object') return [];
+    const players = [];
+    for (let i = 1; i <= 11; i += 1) {
+      const nameKey = `strPlayer${i}`;
+      const posKey = `strPosition${i}`;
+      const numKey = `strNumber${i}`;
+      const name = String(raw[nameKey] || '').trim();
+      if (!name) continue;
+      const position = String(raw[posKey] || '').trim();
+      const number = String(raw[numKey] || '').trim();
+      const thumb = String(raw[`strThumb${i}`] || '').trim() || String(raw.strThumb || '').trim();
+      const id = String(raw[`idPlayer${i}`] || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
+      players.push({
+        id,
+        name,
+        position: position || 'Player',
+        number: number || '',
+        thumb
+      });
+    }
+    return players;
+  }
+
+  function renderRoster() {
+    if (!ui.roster || !ui.rosterSection) return;
+    if (!state.roster.length) {
+      ui.rosterSection.hidden = true;
+      return;
+    }
+    ui.rosterSection.hidden = false;
+    if (ui.rosterSub) {
+      ui.rosterSub.textContent = `${state.roster.length} player${state.roster.length === 1 ? '' : 's'} on the roster`;
+    }
+    ui.roster.innerHTML = state.roster.slice(0, 16).map((p) => {
+      const initials = (p.name || 'P').split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
+      const sub = [p.number && `#${p.number}`, p.position].filter(Boolean).join(' · ');
+      const thumb = p.thumb;
+      return `
+        <div class="elevated-person-card" title="${escapeHtml(p.name)}">
+          <span class="elevated-person-avatar">
+            ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.remove();">` : escapeHtml(initials)}
+          </span>
+          <span class="elevated-person-body">
+            <span class="elevated-person-name">${escapeHtml(p.name)}</span>
+            <span class="elevated-person-role">${escapeHtml(sub)}</span>
+          </span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderRelated() {
+    if (!ui.related || !ui.relatedSection) return;
+    if (!state.related.length) {
+      ui.relatedSection.hidden = true;
+      return;
+    }
+    ui.relatedSection.hidden = false;
+    ui.related.innerHTML = state.related.slice(0, 6).map((team) => {
+      const sub = [team.league, team.sport].filter(Boolean).join(' · ') || 'Team';
+      const hrefParams = new URLSearchParams();
+      hrefParams.set('team', team.name);
+      if (team.league) hrefParams.set('league', team.league);
+      if (team.sport) hrefParams.set('sport', team.sport);
+      if (team.country) hrefParams.set('country', team.country);
+      return `
+        <a class="elevated-related-card" href="team.html?${hrefParams.toString()}">
+          <span class="elevated-related-thumb">
+            ${team.badge ? `<img src="${escapeHtml(team.badge)}" alt="${escapeHtml(team.name)}" loading="lazy" onerror="this.remove();">` : `<i class="fa-solid ${getSportIcon(team.sport)}" style="color:var(--dt-text-3);font-size:1rem"></i>`}
+          </span>
+          <span class="elevated-related-body">
+            <span class="elevated-related-name">${escapeHtml(team.name)}</span>
+            <span class="elevated-related-meta">${escapeHtml(sub)}</span>
+          </span>
+        </a>
+      `;
+    }).join('');
+  }
+
+  async function fetchRelatedTeams(team) {
+    if (!team?.sport) {
+      state.related = [];
+      return;
+    }
+    const supabase = state.supabase;
+    if (!supabase) return;
+    try {
+      const { data, error } = await supabase
+        .from('teams')
+        .select('id,name,sport,league,logo_url')
+        .or(`sport.ilike.${team.sport},league.ilike.${team.league || '__none__'}`)
+        .neq('id', team.id)
+        .limit(8);
+      if (error || !data || !data.length) {
+        state.related = [];
+        return;
+      }
+      state.related = data.map((row) => ({
+        id: row.id,
+        name: row.name,
+        sport: row.sport || team.sport,
+        league: row.league || '',
+        badge: row.logo_url || ''
+      }));
+    } catch (_err) {
+      state.related = [];
+    }
   }
 
   function setHero(team) {
-    const bg = getSportBackground(team.sport);
-    if (ui.heroMedia) {
-      ui.heroMedia.style.setProperty('--hero-bg', `url("${bg}")`);
-      ui.heroMedia.style.setProperty('--hero-bg-size', 'cover');
-      ui.heroMedia.style.setProperty('--hero-bg-position', 'center');
-    }
+    if (ui.body) ui.body.dataset.elevatedCategory = 'team';
+    document.body.dataset.navPage = 'sports';
+    document.title = `Zo2y - ${team.name}`;
+
+    const initials = (team.name || 'T').split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
+    setFallbackInitial(initials);
+    if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = team.name;
 
     if (ui.badge) {
       ui.badge.src = team.badge || FALLBACK_BADGE;
-      ui.badge.alt = `${team.name} logo`;
+      ui.badge.alt = `${team.name} badge`;
+      ui.badge.onerror = () => {
+        ui.badge.onerror = null;
+        ui.badge.src = FALLBACK_BADGE;
+        ui.posterFrame?.classList.add('is-missing');
+      };
+      if (team.badge) {
+        ui.posterFrame?.classList.remove('is-missing');
+      }
     }
 
     if (ui.name) ui.name.textContent = team.name;
-    if (ui.meta) {
-      ui.meta.textContent = [team.league, team.sport].filter(Boolean).join(' | ') || 'Team';
-    }
 
-    if (ui.kicker) ui.kicker.textContent = team.league ? `${team.league} team` : 'Team spotlight';
-    if (ui.league) ui.league.textContent = team.league || '-';
-    if (ui.sport) ui.sport.textContent = team.sport || '-';
-    if (ui.country) ui.country.textContent = team.country || '-';
-    if (ui.formed) ui.formed.textContent = team.formedYear || '-';
-    if (ui.stadium) ui.stadium.textContent = team.stadium || '-';
-    if (ui.stadiumLocation) ui.stadiumLocation.textContent = team.stadiumLocation || '-';
-    if (ui.capacity) ui.capacity.textContent = formatNumber(team.stadiumCapacity);
+    const metaItems = [];
+    if (team.league) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-trophy"></i> ${escapeHtml(team.league)}</span>`);
+    if (team.sport) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid ${getSportIcon(team.sport)}"></i> ${escapeHtml(team.sport)}</span>`);
+    if (team.country) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-flag"></i> ${escapeHtml(team.country)}</span>`);
+    if (team.formedYear) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-calendar"></i> founded ${escapeHtml(team.formedYear)}</span>`);
+    if (ui.meta) ui.meta.innerHTML = metaItems.join('');
+
+    renderTags(team);
+
+    if (ui.kicker) ui.kicker.textContent = team.league ? `${team.league} team` : 'team spotlight';
+
+    if (ui.description) {
+      ui.description.textContent = team.description || 'No description available yet.';
+      bindClampedDescription(ui.description, ui.description?.parentElement, ui.descriptionToggle);
+    }
 
     if (ui.website) {
       if (team.website) {
@@ -291,14 +588,19 @@
       }
     }
 
-    if (ui.description) {
-      ui.description.textContent = team.description || 'No description available yet.';
+    // Backdrop: prefer fanart, then banner, then sport fallback
+    const backdrop = team.fanart || (team.fanarts && team.fanarts[0]) || team.banner;
+    if (backdrop) {
+      applyBackdrop(backdrop);
+    } else {
+      applySportFallbackBackground(team.sport);
     }
 
+    renderInfoGrid(team);
     renderSocialLinks(team);
     renderMedia(team);
-
-    document.title = `Zo2y - ${team.name}`;
+    renderRoster();
+    renderRelated();
   }
 
   async function ensureSupabase() {
@@ -416,7 +718,7 @@
       const ok = await removeTeam(state.team.id);
       if (ok) {
         state.favorites.delete(state.team.id);
-        showToast('Removed from favorites.');
+        showToast('Removed from favorites.', 'success');
       } else {
         showToast('Unable to remove team.', 'error');
       }
@@ -424,7 +726,7 @@
       const ok = await saveTeam(state.team);
       if (ok) {
         state.favorites.add(state.team.id);
-        showToast('Team saved to your profile.');
+        showToast('Team saved to your profile.', 'success');
       } else {
         showToast('Unable to save team.', 'error');
       }
@@ -519,10 +821,8 @@
     let localTeam = null;
     let remoteTeam = null;
 
-    // Get local badge from manifest
     const localBadge = getLocalBadge(teamName);
 
-    // Try to get from Supabase first
     if (state.supabase && teamName) {
       try {
         const { data } = await state.supabase
@@ -553,7 +853,9 @@
             website: '',
             facebook: '',
             twitter: '',
-            instagram: ''
+            instagram: '',
+            youtube: '',
+            manager: ''
           };
         }
       } catch (_err) {
@@ -561,7 +863,6 @@
       }
     }
 
-    // Fallback if no Supabase data
     if (!localTeam && teamName) {
       let fallbackId = teamName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
       let fallbackSport = teamSport || 'Football';
@@ -601,28 +902,27 @@
         website: '',
         facebook: '',
         twitter: '',
-        instagram: ''
+        instagram: '',
+        youtube: '',
+        manager: ''
       };
     }
 
-    // Try TheSportsDB for TEXT data only (country, formed, stadium, capacity, description, social)
-    // NEVER use images from TheSportsDB - they are often wrong
+    // TheSportsDB — fetch full data including images
+    let sportsdbRaw = null;
     if (teamName) {
       let payload = null;
-
       if (teamId) {
         payload = await fetchSportsDB('lookupteam.php', { id: teamId });
       }
-
       if (!payload?.teams?.length) {
         payload = await fetchSportsDB('searchteams.php', { t: teamName });
       }
-
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
         const mapped = mapTeam(best || teams[0]);
-        // Only use remote TEXT data, NEVER images
+        sportsdbRaw = best || teams[0];
         remoteTeam = {
           id: localTeam?.id || mapped.id,
           name: localTeam?.name || mapped.name,
@@ -634,43 +934,59 @@
           stadiumLocation: mapped.stadiumLocation || '',
           stadiumCapacity: mapped.stadiumCapacity || '',
           description: mapped.description || '',
-          badge: localTeam?.badge || '',
-          banner: '',
-          fanart: '',
-          fanarts: [],
-          stadiumThumb: '',
-          jersey: '',
+          manager: mapped.manager || '',
+          badge: localTeam?.badge || mapped.badge,
+          banner: mapped.banner,
+          fanart: mapped.fanart,
+          fanarts: mapped.fanarts,
+          stadiumThumb: mapped.stadiumThumb,
+          jersey: mapped.jersey,
           website: mapped.website || '',
           facebook: mapped.facebook || '',
           twitter: mapped.twitter || '',
-          instagram: mapped.instagram || ''
+          instagram: mapped.instagram || '',
+          youtube: mapped.youtube || ''
         };
       }
     }
 
-    // Try Wikipedia for description only (NOT for images)
-    if (!remoteTeam?.description && teamName) {
+    // Wikipedia for description
+    if ((!remoteTeam?.description || remoteTeam.description.length < 80) && teamName) {
       const wikiData = await fetchWikipedia(teamName);
       if (wikiData) {
         remoteTeam = remoteTeam || { ...localTeam };
-        remoteTeam.description = wikiData.description || remoteTeam.description;
+        if (wikiData.description) {
+          remoteTeam.description = remoteTeam.description
+            ? `${remoteTeam.description}\n\n${wikiData.description}`
+            : wikiData.description;
+        }
         if (!remoteTeam.website && wikiData.url) remoteTeam.website = wikiData.url;
+        if (wikiData.thumbnail && !remoteTeam.fanart) {
+          remoteTeam.fanart = wikiData.thumbnail;
+          remoteTeam.fanarts = [wikiData.thumbnail];
+        }
       }
     }
 
-    // Use remote data if available, otherwise local
     const team = remoteTeam || localTeam;
 
     if (!team) {
       if (ui.name) ui.name.textContent = 'Team not found';
-      if (ui.meta) ui.meta.textContent = 'Try searching again.';
-      if (ui.description) ui.description.textContent = 'No team data was found for this request.';
+      if (ui.meta) ui.meta.innerHTML = '';
+      if (ui.description) ui.description.textContent = 'Try searching again.';
       if (ui.saveBtn) ui.saveBtn.disabled = true;
       return;
     }
 
     state.team = team;
     setHero(team);
+
+    // Extract roster from the raw TheSportsDB payload
+    state.roster = extractRoster(sportsdbRaw);
+    renderRoster();
+
+    // Related teams (non-blocking)
+    fetchRelatedTeams(team).then(() => renderRelated()).catch(() => {});
 
     // Save enriched data back to Supabase
     if (state.supabase && remoteTeam) {
@@ -707,6 +1023,7 @@
   }
 
   async function init() {
+    if (ui.body) ui.body.dataset.elevatedCategory = 'team';
     await ensureSupabase();
     await initAuth();
     if (ui.saveBtn) {

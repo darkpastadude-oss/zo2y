@@ -17,11 +17,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/team.css?v=20260601b" />
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260601b">
   <meta name="theme-color" content="#0b1633" />
-  <meta name="theme-color" content="#0b1633" />
-  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest?v=20260601b" />
@@ -36,7 +35,7 @@
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
 
   </head>
-<body>
+<body class="elevated-detail-page" data-elevated-category="team">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -67,85 +66,109 @@
   </div>
 </header>
 
-  <main class="team-main">
-    <section class="team-hero" id="teamHero">
-      <div class="team-hero-media" id="teamHeroMedia"></div>
-      <div class="team-hero-content">
-        <div class="team-badge-wrap">
-          <img id="teamBadge" src="/file.svg" alt="Team logo" />
-        </div>
-        <div class="team-hero-text">
-          <div class="team-kicker" id="teamKicker">Team spotlight</div>
-          <h1 id="teamName">Loading team...</h1>
-          <p id="teamMeta">League | Sport</p>
-          <div class="team-actions">
-            <button class="team-btn primary" id="teamSaveBtn" type="button">
-              <i class="fas fa-heart"></i><span>Save team</span>
-            </button>
-            <a class="team-btn ghost" id="teamWebsite" href="#" target="_blank" rel="noopener">Official site</a>
-          </div>
+  <section class="elevated-hero is-no-backdrop" id="teamHero" aria-label="Team header">
+    <div class="elevated-hero-backdrop" id="teamBackdrop" aria-hidden="true"></div>
+    <div class="elevated-hero-blur" id="teamBackdropBlur" aria-hidden="true"></div>
+    <div class="elevated-hero-grain" aria-hidden="true"></div>
+    <div class="elevated-hero-watermark" aria-hidden="true">team</div>
+    <div class="elevated-hero-foreground">
+      <div class="elevated-poster-frame is-missing" id="teamPosterFrame" aria-label="Team badge">
+        <img id="teamBadge" class="elevated-poster" src="/file.svg" alt="Team logo" loading="lazy" decoding="async">
+        <div class="elevated-poster-fallback" aria-hidden="true">
+          <i class="elevated-poster-fallback-icon fa-solid fa-shield-halved"></i>
+          <span class="elevated-poster-fallback-title" id="teamPosterFallbackTitle">Team</span>
         </div>
       </div>
-    </section>
-
-    <section class="team-grid">
-      <div class="team-card">
-        <h2>Team info</h2>
-        <div class="team-info-list">
-          <div><span>League</span><strong id="teamLeague">-</strong></div>
-          <div><span>Sport</span><strong id="teamSport">-</strong></div>
-          <div><span>Country</span><strong id="teamCountry">-</strong></div>
-          <div><span>Formed</span><strong id="teamFormed">-</strong></div>
-          <div><span>Stadium</span><strong id="teamStadium">-</strong></div>
-          <div><span>Location</span><strong id="teamStadiumLocation">-</strong></div>
-          <div><span>Capacity</span><strong id="teamCapacity">-</strong></div>
+      <div class="elevated-info">
+        <span class="elevated-kicker">
+          <span class="elevated-kicker-dot"></span>
+          <i class="fa-solid fa-trophy"></i> <span id="teamKicker">team spotlight</span>
+        </span>
+        <div class="elevated-title-row">
+          <h1 class="elevated-title" id="teamName">Loading team…</h1>
+        </div>
+        <div id="teamMeta" class="elevated-meta" aria-label="Team metadata"></div>
+        <div id="teamTags" class="elevated-tags" aria-label="Team tags"></div>
+        <div class="elevated-description-wrap">
+          <p id="teamDescription" class="elevated-description is-clamped">Loading description…</p>
+          <button class="elevated-readmore" id="teamDescriptionToggle" type="button" aria-expanded="false" aria-controls="teamDescription">
+            <span class="elevated-readmore-label">read more</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+        </div>
+        <div class="elevated-actions">
+          <button class="elevated-btn elevated-btn-primary" id="teamSaveBtn" type="button">
+            <i class="fa-solid fa-heart"></i> <span>save team</span>
+          </button>
+          <a class="elevated-btn elevated-btn-secondary" id="teamWebsite" href="#" target="_blank" rel="noopener" style="display:none;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> official site
+          </a>
         </div>
       </div>
-      <div class="team-card">
-        <h2>Social</h2>
-        <div class="team-social" id="teamSocial">
-          <span class="team-social-empty">No social links available.</span>
-        </div>
+    </div>
+  </section>
+
+  <div class="elevated-content">
+    <section class="elevated-section">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-circle-info"></i> quick facts
+        </h2>
+        <span class="elevated-section-sub">Key details at a glance</span>
       </div>
+      <div id="teamInfoGrid" class="elevated-details"></div>
     </section>
 
-    <section class="team-about" id="teamAbout">
-      <h2>About</h2>
-      <p id="teamDescription">Loading description...</p>
+    <section class="elevated-section" id="teamRosterSection" hidden>
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-users"></i> squad
+        </h2>
+        <span class="elevated-section-sub" id="teamRosterSub">Players on the roster</span>
+      </div>
+      <div id="teamRoster" class="elevated-people-list"></div>
     </section>
 
-    <section class="team-media" id="teamMedia">
-      <h2>Media</h2>
-      <div class="team-media-grid" id="teamMediaGrid"></div>
-      <p class="team-media-empty" id="teamMediaEmpty">No extra media yet.</p>
+    <section class="elevated-section" id="teamSocialSection" hidden>
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-share-nodes"></i> social &amp; official links
+        </h2>
+        <span class="elevated-section-sub">Where to follow this team</span>
+      </div>
+      <div id="teamSocial" class="elevated-social"></div>
     </section>
-  </main>
 
-  <div class="team-toast" id="teamToast" role="status" aria-live="polite"></div>
+    <section class="elevated-section" id="teamMediaSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-image"></i> media
+        </h2>
+        <span class="elevated-section-sub">Stadium, kit, fanart</span>
+      </div>
+      <div id="teamMediaGrid" class="elevated-media-grid"></div>
+      <p class="elevated-media-empty" id="teamMediaEmpty" hidden>No extra media yet.</p>
+    </section>
+
+    <section class="elevated-section" id="teamRelatedSection" hidden>
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-layer-group"></i> related teams
+        </h2>
+        <span class="elevated-section-sub" id="teamRelatedSub">More in the same league or sport</span>
+      </div>
+      <div id="teamRelated" class="elevated-related"></div>
+    </section>
+  </div>
+
+  <p class="elevated-footnote">
+    <span><i class="fa-solid fa-circle-info"></i> sources: TheSportsDB · Wikipedia · local team manifest. <a href="credits.html">all credits</a></span>
+  </p>
+
+  <div class="elevated-toast" id="teamToast" role="status" aria-live="polite"></div>
 
   <script src="js/sportsdb-client.js?v=20260601b" defer></script>
   <script src="js/pages/team.js?v=20260601b" defer></script>
   <script src="js/production-runtime.js?v=20260601b" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
