@@ -46,10 +46,13 @@
 }
 
 /* ============================================================
-   PER-CATEGORY ACCENT SWATCH
-   data-elevated-category on <body>
+   PER-CATEGORY ACCENT SWATCH — all categories share orange
+   so the brand/team pages look consistent (movies.html theme)
    ============================================================ */
-.elevated-detail-page[data-elevated-category="food"] {
+.elevated-detail-page[data-elevated-category="food"],
+.elevated-detail-page[data-elevated-category="fashion"],
+.elevated-detail-page[data-elevated-category="car"],
+.elevated-detail-page[data-elevated-category="team"] {
   --dt-accent: #f59e0b;
   --dt-accent-2: #fbbf24;
   --dt-accent-soft: rgba(245, 158, 11, 0.16);
@@ -59,43 +62,6 @@
   --dt-fallback-c1: #1a0f04;
   --dt-fallback-c2: #2a1606;
   --dt-fallback-c3: #07091a;
-  --dt-fallback-icon: "\f0f4f";
-}
-.elevated-detail-page[data-elevated-category="fashion"] {
-  --dt-accent: #ec4899;
-  --dt-accent-2: #f472b6;
-  --dt-accent-soft: rgba(236, 72, 153, 0.18);
-  --dt-accent-line: rgba(236, 72, 153, 0.42);
-  --dt-glow-a: rgba(236, 72, 153, 0.28);
-  --dt-glow-b: rgba(168, 85, 247, 0.22);
-  --dt-fallback-c1: #1a0a18;
-  --dt-fallback-c2: #2a0e25;
-  --dt-fallback-c3: #07091a;
-  --dt-fallback-icon: "\f553";
-}
-.elevated-detail-page[data-elevated-category="car"] {
-  --dt-accent: #3b82f6;
-  --dt-accent-2: #60a5fa;
-  --dt-accent-soft: rgba(59, 130, 246, 0.18);
-  --dt-accent-line: rgba(59, 130, 246, 0.42);
-  --dt-glow-a: rgba(59, 130, 246, 0.28);
-  --dt-glow-b: rgba(14, 165, 233, 0.22);
-  --dt-fallback-c1: #06121f;
-  --dt-fallback-c2: #0c1a2c;
-  --dt-fallback-c3: #07091a;
-  --dt-fallback-icon: "\f1b9";
-}
-.elevated-detail-page[data-elevated-category="team"] {
-  --dt-accent: #10b981;
-  --dt-accent-2: #34d399;
-  --dt-accent-soft: rgba(16, 185, 129, 0.18);
-  --dt-accent-line: rgba(16, 185, 129, 0.42);
-  --dt-glow-a: rgba(16, 185, 129, 0.28);
-  --dt-glow-b: rgba(59, 130, 246, 0.22);
-  --dt-fallback-c1: #04141a;
-  --dt-fallback-c2: #08262c;
-  --dt-fallback-c3: #07091a;
-  --dt-fallback-icon: "\f44b";
 }
 
 /* ============================================================
@@ -290,56 +256,77 @@
 /* ============================================================
    CENTERED HERO  —  like movies.html, logo centered with white card
    ============================================================ */
+.elevated-detail-page .elevated-hero.elevated-hero-centered {
+  min-height: clamp(560px, 86vh, 820px);
+}
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-hero-foreground {
   grid-template-columns: 1fr;
   justify-items: center;
   text-align: center;
   align-items: center;
-  padding: clamp(64px, 12vh, 120px) 0 clamp(40px, 6vh, 72px);
-  gap: 18px;
+  padding: clamp(80px, 14vh, 130px) 0 clamp(56px, 8vh, 96px);
+  gap: 22px;
 }
 
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame {
-  max-width: 200px;
+  max-width: 220px;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
+  transform: translateZ(0);
+  transition: transform 0.4s var(--dt-ease), box-shadow 0.4s var(--dt-ease);
+}
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame:hover {
+  transform: translateY(-4px) scale(1.02);
 }
 
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-info {
   width: min(720px, 100%);
   align-items: center;
   text-align: center;
+  gap: 14px;
 }
 
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-kicker { margin: 0 auto; }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-title-row { text-align: center; }
-.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-title { font-size: clamp(1.9rem, 5vw, 3rem); }
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-title { font-size: clamp(2rem, 5.5vw, 3.4rem); }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-meta { justify-content: center; }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-tags { justify-content: center; }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-description { text-align: center; max-width: 100%; }
-.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-actions { justify-content: center; width: 100%; }
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-actions { justify-content: center; width: 100%; flex-wrap: wrap; }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-description-wrap { max-width: 100%; }
 
 /* White logo card — like food.html brand grid */
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card {
-  background: linear-gradient(180deg, #f7f9fd 0%, #e6ecf5 100%);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
+  border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 18px 40px -16px rgba(0, 0, 0, 0.55),
-    0 4px 12px -4px rgba(0, 0, 0, 0.35);
-  padding: 18px;
+    0 24px 60px -22px rgba(0, 0, 0, 0.65),
+    0 6px 18px -6px rgba(0, 0, 0, 0.45);
+  padding: 22px;
 }
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card .elevated-poster {
   object-fit: contain;
-  padding: 8px;
-  border-radius: 6px;
-  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.08));
+  padding: 6px;
+  border-radius: 8px;
+  filter: drop-shadow(0 10px 22px rgba(15, 23, 42, 0.12));
   background: transparent;
 }
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card .elevated-poster-fallback {
   color: #1a2447;
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 100%);
 }
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card .elevated-poster-fallback-title { color: #1a2447; }
+
+/* Cover-image backdrop — used in centered hero */
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-hero-backdrop {
+  opacity: 0.4 !important;
+  filter: saturate(1.1) contrast(1.05) brightness(0.6);
+}
+.elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-hero-blur {
+  opacity: 0.65 !important;
+  background: rgba(7, 9, 26, 0.55) !important;
+}
 
 /* ============================================================
    TRAILER  —  YouTube-style embed frame
@@ -2407,6 +2394,12 @@
   .elevated-detail-page .elevated-poster-frame {
     max-width: 200px;
   }
+  /* keep centered hero centered at 1024px */
+  .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-hero-foreground {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
 }
 
 @media (max-width: 760px) {
@@ -2423,6 +2416,9 @@
   .elevated-detail-page .elevated-poster-frame {
     max-width: 160px;
     margin: 0 auto;
+  }
+  .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame {
+    max-width: 160px;
   }
   .elevated-detail-page .elevated-info {
     align-items: center;

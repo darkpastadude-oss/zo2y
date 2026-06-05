@@ -637,15 +637,25 @@
     if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = team.name;
 
     if (ui.badge) {
-      ui.badge.src = team.badge || FALLBACK_BADGE;
-      ui.badge.alt = `${team.name} badge`;
-      ui.badge.onerror = () => {
-        ui.badge.onerror = null;
+      const badgeSources = [team.badge, team.logo_url].filter(Boolean);
+      if (badgeSources.length) {
+        ui.badge.src = badgeSources[0];
+        ui.badge.alt = `${team.name} badge`;
+        ui.badge.onerror = () => {
+          // try next source, else show fallback
+          const currentIdx = badgeSources.indexOf(ui.badge.src);
+          if (currentIdx >= 0 && currentIdx < badgeSources.length - 1) {
+            ui.badge.src = badgeSources[currentIdx + 1];
+            return;
+          }
+          ui.badge.onerror = null;
+          ui.badge.src = FALLBACK_BADGE;
+          ui.posterFrame?.classList.add('is-missing');
+        };
+        ui.posterFrame?.classList.remove('is-missing');
+      } else {
         ui.badge.src = FALLBACK_BADGE;
         ui.posterFrame?.classList.add('is-missing');
-      };
-      if (team.badge) {
-        ui.posterFrame?.classList.remove('is-missing');
       }
     }
 
@@ -676,8 +686,8 @@
       }
     }
 
-    // Backdrop: prefer fanart, then banner, then sport fallback
-    const backdrop = team.fanart || (team.fanarts && team.fanarts[0]) || team.banner;
+    // Backdrop: prefer fanart, then banner, then stadium image, then sport fallback
+    const backdrop = team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb || team.badge;
     if (backdrop) {
       applyBackdrop(backdrop);
     } else {
@@ -860,11 +870,28 @@
       const summaryRes = await fetch(summaryUrl);
       const summaryData = await summaryRes.json();
 
+      // Try to find a "logo" image from Wikipedia page images
+      let logoImage = '';
+      try {
+        const pageImagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=original|thumbnail&pithumbsize=400&format=json&origin=*`;
+        const piRes = await fetch(pageImagesUrl);
+        if (piRes.ok) {
+          const piData = await piRes.json();
+          const pages = piData?.query?.pages ? Object.values(piData.query.pages) : [];
+          pages.forEach((p) => {
+            if (!logoImage && p.original && p.original.source) logoImage = p.original.source;
+          });
+        }
+      } catch (_e) {}
+
       return {
         title: summaryData.title || title,
         description: summaryData.extract || '',
         thumbnail: summaryData.thumbnail?.source || '',
-        url: summaryData.content_urls?.desktop?.page || ''
+        heroImage: summaryData.originalimage?.source || summaryData.thumbnail?.source || '',
+        logoImage,
+        url: summaryData.content_urls?.desktop?.page || '',
+        wikiSource: title
       };
     } catch (_err) {
       return null;
@@ -1038,7 +1065,7 @@
       }
     }
 
-    // Wikipedia for description
+    // Wikipedia for description + logo + cover
     if ((!remoteTeam?.description || remoteTeam.description.length < 80) && teamName) {
       const wikiData = await fetchWikipedia(teamName);
       if (wikiData) {
@@ -1055,6 +1082,8 @@
         }
         if (wikiData.wikiSource) remoteTeam.wikiTitle = wikiData.wikiSource;
         if (wikiData.heroImage && !remoteTeam.fanart) remoteTeam.fanart = wikiData.heroImage;
+        // Wikipedia logo image (or thumbnail) can serve as a fallback badge
+        if (!remoteTeam.badge) remoteTeam.badge = wikiData.logoImage || wikiData.thumbnail;
       }
     }
 
