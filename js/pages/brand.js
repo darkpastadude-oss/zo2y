@@ -560,7 +560,7 @@
         const name = String(row.name || 'Brand');
         const id = String(row.id || row.slug || row.name || '');
         const logo = resolveLogo(row.logo_url || row.logo, row.domain, row.name);
-        const sub = [row.category, row.country].filter(Boolean).join(' Â· ') || 'Brand';
+        const sub = [row.category, row.country].filter(Boolean).join(' \u00B7 ') || 'Brand';
         const href = `brand.html?type=${encodeURIComponent(brandType)}&id=${encodeURIComponent(id)}`;
         return `
           <a class="elevated-related-card" href="${escapeHtml(href)}">
@@ -675,7 +675,7 @@
   function updateHero(brand) {
     setCategoryAccent();
     document.body.dataset.navPage = brandType;
-    document.title = `${brand.name} Â· ${CATEGORY_LABEL} Â· Zo2y`;
+    document.title = `${brand.name} \u00B7 ${CATEGORY_LABEL} \u00B7 Zo2y`;
 
     const initials = setBrandNameInitials(brand.name);
     setFallbackInitial(initials);
@@ -752,7 +752,7 @@
     const client = ensureSupabase();
     if (!client) return null;
     try {
-      let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,headquarters,ceo,employees,tags').limit(1);
+      let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,tags').limit(1);
       if (isUuid(brandIdParam)) {
         query = query.eq('id', brandIdParam);
       } else {
@@ -837,7 +837,7 @@
       <div class="elevated-review-big">
         <div class="elevated-review-big-value">${average.toFixed(1)}<span class="elevated-review-big-denom">/5</span></div>
         ${renderStarRating(average)}
-        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} Â· ${fivePct}% 5â˜…</div>
+        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} \u00B7 ${fivePct}% 5\u2605</div>
       </div>
       <div class="elevated-review-bars">
         ${[5, 4, 3, 2, 1].map((stars) => `
@@ -852,7 +852,7 @@
       </div>
     `;
     if (dom.reviewsCount) {
-      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} Â· ${average.toFixed(1)}/5 average`;
+      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} \u00B7 ${average.toFixed(1)}/5 average`;
     }
   }
 

@@ -471,7 +471,7 @@
     }
     ui.roster.innerHTML = state.roster.slice(0, 16).map((p) => {
       const initials = (p.name || 'P').split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
-      const sub = [p.number && `#${p.number}`, p.position].filter(Boolean).join(' Â· ');
+      const sub = [p.number && `#${p.number}`, p.position].filter(Boolean).join(' \u00B7 ');
       const thumb = p.thumb;
       return `
         <div class="elevated-person-card" title="${escapeHtml(p.name)}">
@@ -495,7 +495,7 @@
     }
     ui.relatedSection.hidden = false;
     ui.related.innerHTML = state.related.slice(0, 6).map((team) => {
-      const sub = [team.league, team.sport].filter(Boolean).join(' Â· ') || 'Team';
+      const sub = [team.league, team.sport].filter(Boolean).join(' \u00B7 ') || 'Team';
       const hrefParams = new URLSearchParams();
       hrefParams.set('team', team.name);
       if (team.league) hrefParams.set('league', team.league);
@@ -523,12 +523,15 @@
     const supabase = state.supabase;
     if (!supabase) return;
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
         .select('id,name,sport,league,logo_url')
-        .or(`sport.ilike.${team.sport},league.ilike.${team.league || '__none__'}`)
-        .neq('id', team.id)
-        .limit(8);
+        .ilike('sport', team.sport)
+        .neq('id', team.id);
+      if (team.league) {
+        query = query.ilike('league', team.league);
+      }
+      const { data, error } = await query.limit(8);
       if (error || !data || !data.length) {
         state.related = [];
         return;
