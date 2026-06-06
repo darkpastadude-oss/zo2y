@@ -5,6 +5,7 @@ import {
   sendWelcomeEmail,
 } from "../backend/lib/email/service.js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
+import { timingSafeStringCompare, redactQuery, hashValue, getClientIp, writeAuditLog } from "../backend/lib/guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -71,7 +72,18 @@ function requireEmailApiKey(req) {
   const expected = normalizeText(process.env.EMAIL_API_KEY, 200);
   if (!expected) return false;
   const provided = normalizeText(getHeader(req, "x-email-api-key"), 200);
-  return !!provided && provided === expected;
+  if (!provided) return false;
+  return timingSafeStringCompare(provided, expected);
+}
+
+async function logAudit(eventName, eventStatus, req, details = {}) {
+  await writeAuditLog(eventName, eventStatus, {
+    actorUserId: details.actorUserId || null,
+    actorIpHash: hashValue(getClientIp(req)),
+    targetUserId: details.targetUserId || null,
+    metadata: details.metadata || {},
+    requestId: req?.requestId || null
+  });
 }
 
 function resolveWelcomeName(user) {
@@ -306,9 +318,15 @@ export default async function handler(req, res) {
 
     return json(res, 404, { message: "Not found" });
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("[emails-handler] unhandled", {
+      message: String(error?.message || error),
+      path: redactQuery(req?.url || ""),
+      method: req?.method
+    });
     return json(res, 500, {
       success: false,
-      message: error?.message || "Failed to handle email request"
+      message: "Internal server error"
     });
   }
 }

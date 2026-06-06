@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://*.supabase.co; frame-ancestors 'none'; report-uri /api/csp-report; report-to csp-endpoint">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/js/auth-gate.js?v=20260606a" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
@@ -33,7 +34,7 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <script src="js/shared-header.js?v=20260601b" defer></script>
@@ -170,5 +171,20 @@
       </div>
     </div>
   </div>
-</body>
-</html>
+<script src="js/legal-consent.js?v=20260606a" defer></script>
+
+  <footer class="zo2y-footer">
+    <div class="zo2y-footer-inner">
+      <span class="zo2y-footer-brand">© 2026 Zo2y</span>
+      <nav class="zo2y-footer-links" aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="data.html">Your data</a>
+        <a href="dmca.html">DMCA</a>
+        <a href="support.html">Support</a>
+        <a href="credits.html">Credits</a>
+        <a href="#" data-open-cookie-prefs>Cookie preferences</a>
+      </nav>
+    </div>
+  </footer>

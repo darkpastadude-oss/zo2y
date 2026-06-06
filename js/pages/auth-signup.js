@@ -16,12 +16,29 @@
   var form = document.getElementById('signupForm');
   var emailInput = document.getElementById('email');
   var passwordInput = document.getElementById('password');
+  var consentInput = document.getElementById('signupConsent');
   var googleButton = document.getElementById('googleSignup');
   var submitButton = document.getElementById('submitBtn');
   var inviteBanner = document.getElementById('authInviteBanner');
   var loginLink = document.getElementById('altLoginLink');
 
   if (!form || !emailInput || !passwordInput || !submitButton || !googleButton) return;
+  if (consentInput) {
+    var updateSubmitEnabled = function () {
+      if (!consentInput.checked) {
+        submitButton.disabled = true;
+        submitButton.setAttribute('aria-disabled', 'true');
+        submitButton.title = 'Please agree to the Terms of Service and Privacy Policy';
+      } else {
+        submitButton.disabled = false;
+        submitButton.removeAttribute('aria-disabled');
+        submitButton.title = '';
+      }
+    };
+    consentInput.addEventListener('change', updateSubmitEnabled);
+    consentInput.addEventListener('input', updateSubmitEnabled);
+    updateSubmitEnabled();
+  }
 
   var submitDefaultHtml = submitButton.innerHTML;
   var googleDefaultHtml = googleButton.innerHTML;
@@ -152,7 +169,13 @@
     if (inviteBanner) {
       if (activeReferral) {
         inviteBanner.hidden = false;
-        inviteBanner.innerHTML = '<i class="fas fa-user-group"></i><span>You are joining Zo2y through @' + activeReferral + '\'s invite link.</span>';
+        while (inviteBanner.firstChild) inviteBanner.removeChild(inviteBanner.firstChild);
+        var icon = document.createElement('i');
+        icon.className = 'fas fa-user-group';
+        var span = document.createElement('span');
+        span.textContent = 'You are joining Zo2y through @' + activeReferral + "'s invite link.";
+        inviteBanner.appendChild(icon);
+        inviteBanner.appendChild(span);
       } else {
         inviteBanner.hidden = true;
       }
@@ -226,6 +249,12 @@
       return;
     }
 
+    if (consentInput && !consentInput.checked) {
+      showError('Please agree to the Terms of Service and Privacy Policy to create your account.');
+      track('signup_validation_error', { reason: 'consent_missing', path: window.location.pathname });
+      return;
+    }
+
     setSubmitLoading(true);
 
     try {
@@ -236,7 +265,11 @@
         },
         body: JSON.stringify({
           email: email,
-          password: password
+          password: password,
+          // Record the current Terms of Service version the user just
+          // accepted. Bump CONSENT_VERSION in legal-consent.js to
+          // re-prompt existing users.
+          tos_version: (window.ZO2Y_CONSENT && window.ZO2Y_CONSENT.TOS_VERSION) || '20260606a'
         })
       }), 15000, 'Signup request timed out');
 

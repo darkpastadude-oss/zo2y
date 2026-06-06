@@ -1,6 +1,7 @@
 import analyticsHandler from "../../api/analytics-handler.js";
 import authHandler from "../../api/auth-handler.js";
 import booksHandler from "../../api/books-handler.js";
+import cspReportHandler from "../../api/csp-report.js";
 import emailsHandler from "../../api/emails-handler.js";
 import healthHandler from "../../api/health.js";
 import homeFeedHandler from "../../api/home-feed.js";
@@ -22,7 +23,12 @@ const COMMON_HEADERS = {
   "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
   "Cross-Origin-Resource-Policy": "same-site",
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-  "Content-Security-Policy": "default-src 'self'; base-uri 'self'; form-action 'self' https:; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; media-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; font-src 'self' data: https:; connect-src 'self' https: wss:; frame-src https:; worker-src 'self' blob:; upgrade-insecure-requests",
+  // API responses don't render scripts; the CSP here is mostly
+  // defensive (in case an attacker is tricked into rendering a JSON
+  // response as HTML). It also tells the browser where to send
+  // violations.
+  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; report-uri /api/csp-report",
+  "Reporting-Endpoints": 'csp-endpoint="/api/csp-report"',
   "Origin-Agent-Cluster": "?1"
 };
 
@@ -30,6 +36,7 @@ const ROUTE_HANDLERS = new Map([
   ["analytics", analyticsHandler],
   ["auth", authHandler],
   ["books", booksHandler],
+  ["csp-report", cspReportHandler],
   ["emails", emailsHandler],
   ["health", healthHandler],
   ["home-feed", homeFeedHandler],

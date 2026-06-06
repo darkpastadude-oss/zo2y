@@ -7,7 +7,7 @@ import {
 } from "./guardrails.js";
 
 export function applyApiGuardrails(app, options = {}) {
-  const keyPrefix = String(options.keyPrefix || "vercel-api");
+  const keyPrefix = String(options.keyPrefix || "api-edge");
   const windowMs = Number(options.windowMs || process.env.API_RATE_LIMIT_WINDOW_MS || 60_000);
   const max = Number(options.max || process.env.API_RATE_LIMIT_MAX || 180);
 

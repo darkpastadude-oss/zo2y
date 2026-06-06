@@ -1,6 +1,12 @@
 import dotenv from "dotenv";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
-import { getClientIp, hashValue } from "../backend/lib/guardrails.js";
+import {
+  getClientIp,
+  hashValue,
+  timingSafeStringCompare,
+  redactQuery,
+  writeAuditLog
+} from "../backend/lib/guardrails.js";
 
 dotenv.config();
 dotenv.config({ path: "backend/.env" });
@@ -79,7 +85,18 @@ function supportAdminAuthed(req) {
   const expected = normalizeText(process.env.SUPPORT_ADMIN_API_KEY, 200);
   if (!expected) return false;
   const provided = normalizeText(getHeader(req, "x-support-api-key"), 200);
-  return !!provided && provided === expected;
+  if (!provided) return false;
+  return timingSafeStringCompare(provided, expected);
+}
+
+async function logAudit(eventName, eventStatus, req, details = {}) {
+  await writeAuditLog(eventName, eventStatus, {
+    actorUserId: details.actorUserId || null,
+    actorIpHash: hashValue(getClientIp(req)),
+    targetUserId: details.targetUserId || null,
+    metadata: details.metadata || {},
+    requestId: req?.requestId || null
+  });
 }
 
 function inferPriority(category) {
@@ -119,6 +136,9 @@ export default async function handler(req, res) {
       const body = await readJsonBody(req);
       const honeypot = normalizeText(body.website, 120);
       if (honeypot) {
+        // Bots that fill the hidden honeypot get a 202 with no
+        // ticket created. Real users never see this field.
+        await logAudit("support_honeypot_blocked", "denied", req);
         return json(res, 202, { ok: true });
       }
 
@@ -135,13 +155,38 @@ export default async function handler(req, res) {
       if (!message || message.length < 12) {
         return json(res, 400, { message: "Please provide more detail (min 12 chars)." });
       }
+      if (message.length > 4000) {
+        return json(res, 400, { message: "Message is too long (max 4000 chars)." });
+      }
       if (email && !isValidEmail(email)) {
         return json(res, 400, { message: "Please provide a valid email address." });
+      }
+      if (name && name.length > 120) {
+        return json(res, 400, { message: "Name is too long." });
+      }
+      if (pageUrl && pageUrl.length > 400) {
+        return json(res, 400, { message: "Page URL is too long." });
       }
 
       const client = supportStorage();
       if (!client) {
         return json(res, 503, { message: "Support storage is not configured." });
+      }
+
+      // Bound metadata to a tiny JSON shape so callers cannot dump
+      // arbitrary structures into our support_tickets.metadata column.
+      const safeMetadata = {};
+      for (const key of Object.keys(metadata || {})) {
+        if (!/^[a-zA-Z0-9_]{1,40}$/.test(key)) continue;
+        const value = metadata[key];
+        if (value == null) continue;
+        if (typeof value === "string" && value.length <= 200) {
+          safeMetadata[key] = value;
+        } else if (typeof value === "number" && Number.isFinite(value)) {
+          safeMetadata[key] = value;
+        } else if (typeof value === "boolean") {
+          safeMetadata[key] = value;
+        }
       }
 
       const row = {
@@ -155,7 +200,7 @@ export default async function handler(req, res) {
         user_agent: userAgent || null,
         user_id: userId,
         ip_hash: hashValue(getClientIp(req)) || null,
-        metadata,
+        metadata: safeMetadata,
         source: "web"
       };
 
@@ -166,11 +211,16 @@ export default async function handler(req, res) {
         .single();
       if (error) throw error;
 
+      await logAudit("support_ticket_created", "ok", req, {
+        targetUserId: userId,
+        metadata: { ticket_id: data?.id, category }
+      });
       return json(res, 201, { ok: true, ticket: data });
     }
 
     if (section === "tickets" && method === "GET" && !maybeId) {
       if (!supportAdminAuthed(req)) {
+        await logAudit("support_ticket_list_unauthorized", "denied", req);
         return json(res, 401, { message: "Unauthorized" });
       }
 
@@ -199,6 +249,7 @@ export default async function handler(req, res) {
 
     if (section === "tickets" && method === "PATCH" && maybeId) {
       if (!supportAdminAuthed(req)) {
+        await logAudit("support_ticket_patch_unauthorized", "denied", req);
         return json(res, 401, { message: "Unauthorized" });
       }
 
@@ -218,7 +269,7 @@ export default async function handler(req, res) {
 
       const update = {};
       if (status && SUPPORT_STATUSES.has(status)) update.status = status;
-      if (adminNote) update.admin_note = adminNote;
+      if (adminNote) update.admin_note = adminNote.slice(0, 1200);
       if (!Object.keys(update).length) {
         return json(res, 400, { message: "No supported fields to update." });
       }
@@ -231,14 +282,22 @@ export default async function handler(req, res) {
         .single();
       if (error) throw error;
 
+      await logAudit("support_ticket_patched", "ok", req, {
+        metadata: { ticket_id: id, fields: Object.keys(update) }
+      });
       return json(res, 200, { ok: true, ticket: data });
     }
 
     return json(res, 404, { message: "Not found" });
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("[support-handler] unhandled", {
+      message: String(error?.message || error),
+      path: redactQuery(req?.url || ""),
+      method: req?.method
+    });
     return json(res, 500, {
-      message: "Could not handle support request",
-      error: String(error?.message || error)
+      message: "Internal server error"
     });
   }
 }

@@ -169,6 +169,12 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-btn-primary" href="sign-up.html" id="mobileSignupBtn">Sign Up</a>
   </div>
 
+  <div class="zo2y-mobile-drawer-secondary">
+    <button type="button" class="zo2y-mobile-drawer-link zo2y-mobile-drawer-link-btn" data-open-cookie-prefs id="mobileCookiePrefsBtn" aria-label="Cookie preferences">
+      <i class="fa-solid fa-cookie-bite"></i><span>Cookie preferences</span>
+    </button>
+  </div>
+
   <div class="zo2y-mobile-drawer-search">
     <div class="nav-search zo2y-mobile-drawer-search-wrap">
       <input id="mobileMenuSearch" class="nav-search-input zo2y-mobile-drawer-search-input" type="search" placeholder="Search all media..." aria-label="Search all media in menu" />
