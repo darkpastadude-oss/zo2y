@@ -54,7 +54,9 @@
     'privacy',
     'terms',
     'support',
-    'credits'
+    'credits',
+    'country',
+    'travel'
   ]);
 
   var RESERVED_PROFILE_USERNAMES = new Set([
@@ -1606,13 +1608,14 @@
       throw new Error('Google sign-in is not available right now.');
     }
     setPostAuthIntent(flow, nextPath);
-    var callbackUrl = new URL(nextPath || 'index.html', window.location.origin);
+    var callbackUrl = new URL('auth-callback.html', window.location.origin);
     callbackUrl.searchParams.set('flow', flow);
     callbackUrl.searchParams.set('next', nextPath);
     var oauthResult = await client.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: callbackUrl.toString(),
+        skipBrowserRedirect: false,
         queryParams: {
           prompt: 'select_account'
         }

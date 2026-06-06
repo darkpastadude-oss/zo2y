@@ -501,7 +501,7 @@
       return `
         <div class="elevated-person-card" title="${escapeHtml(p.name)}">
           <span class="elevated-person-avatar">
-            ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.remove();">` : escapeHtml(initials)}
+            ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.outerHTML='<i class=\'fa-solid fa-user\' style=\'color:var(--dt-text-3);font-size:1.1rem\'></i>';">` : escapeHtml(initials)}
           </span>
           <span class="elevated-person-body">
             <span class="elevated-person-name">${escapeHtml(p.name)}</span>
@@ -529,7 +529,7 @@
       return `
         <a class="elevated-related-card" href="team.html?${hrefParams.toString()}">
           <span class="elevated-related-thumb">
-            ${team.badge ? `<img src="${escapeHtml(team.badge)}" alt="${escapeHtml(team.name)}" loading="lazy" onerror="this.remove();">` : `<i class="fa-solid ${getSportIcon(team.sport)}" style="color:var(--dt-text-3);font-size:1rem"></i>`}
+            ${team.badge ? `<img src="${escapeHtml(team.badge)}" alt="${escapeHtml(team.name)}" loading="lazy" onerror="this.outerHTML='<i class=\\'fa-solid fa-shield-halved\\' style=\\'color:var(--dt-text-3);font-size:1.2rem\\'></i>';">` : `<i class="fa-solid ${getSportIcon(team.sport)}" style="color:var(--dt-text-3);font-size:1rem"></i>`}
           </span>
           <span class="elevated-related-body">
             <span class="elevated-related-name">${escapeHtml(team.name)}</span>
@@ -758,9 +758,35 @@
       if (img && team.badge) img.src = team.badge;
     }
 
-    // Backdrop: prefer real photo, then fanart, then banner, then stadium image.
+    // Backdrop: prefer real photo (stadium/players/kit), then fanart, then stadium image.
     // Never fall back to the badge/crest — that's the logo tile, not a backdrop.
-    const backdrop = team.wikiPhoto || team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb;
+    const isLogoUrl = (url) => {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      return /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(u)
+        || /\.(svg)$/i.test(u);
+    };
+    const pickFirstNonLogo = (...candidates) => {
+      for (const c of candidates) {
+        if (!c) continue;
+        if (Array.isArray(c)) {
+          const found = c.find((x) => x && !isLogoUrl(x));
+          if (found) return found;
+        } else if (!isLogoUrl(c)) {
+          return c;
+        }
+      }
+      return null;
+    };
+    const backdrop = pickFirstNonLogo(
+      team.wikiPhoto,
+      team.wikiHero,
+      team.fanart,
+      team.fanarts,
+      team.banner,
+      team.stadiumThumb,
+      team.jersey
+    );
     if (backdrop) {
       applyBackdrop(backdrop);
     } else {
@@ -1024,7 +1050,7 @@
         }
       } catch (_e) { /* photo lookup is best-effort */ }
 
-      return {
+      const result = {
         title: summaryData.title || title,
         description: summaryData.extract || '',
         thumbnail: summaryData.thumbnail?.source || '',

@@ -1606,9 +1606,37 @@
       });
     }
 
+    function showMissingCodeView() {
+      const titleEl = document.getElementById('title');
+      if (titleEl) titleEl.textContent = 'Choose a country';
+      const metaEl = document.querySelector('.meta');
+      if (metaEl) metaEl.textContent = '';
+      const descEl = document.getElementById('description');
+      if (descEl) descEl.textContent = 'Pick a destination from the travel page to see details, photos, and reviews here.';
+      const photoWrap = document.querySelector('.photo-wrap');
+      if (photoWrap) photoWrap.classList.add('no-photo');
+      const flagWrap = document.querySelector('.flag-wrap');
+      if (flagWrap) flagWrap.classList.add('is-empty');
+      const ctaBtn = document.getElementById('ctaPrimary');
+      if (ctaBtn) {
+        ctaBtn.innerHTML = '<i class="fas fa-compass"></i> Browse travel';
+        ctaBtn.setAttribute('href', 'travel.html');
+      }
+      const sections = document.querySelectorAll('.gallery, .guide, .planner, .reviews');
+      sections.forEach((s) => { s.hidden = true; });
+      const topLinks = document.querySelector('.top-links');
+      if (topLinks) {
+        const pill = document.createElement('a');
+        pill.className = 'pill active';
+        pill.textContent = 'pick a country';
+        pill.href = 'travel.html';
+        topLinks.appendChild(pill);
+      }
+    }
+
     async function loadCountry() {
       if (!state.code) {
-        window.location.href = 'travel.html';
+        showMissingCodeView();
         return;
       }
       const canonicalCode = canonicalCountryCode(state.code);
