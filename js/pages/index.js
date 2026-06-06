@@ -7008,6 +7008,54 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       });
     }
 
+    if (window.initIndexStyleListMenu && !window.__ZO2Y_HOME_LIST_BRIDGE) {
+      window.__ZO2Y_HOME_LIST_BRIDGE = true;
+      window.initIndexStyleListMenu({
+        mediaType: 'movie',
+        itemIdAttr: 'data-item-id',
+        getItemFromCard: (card) => {
+          if (!card) return null;
+          const mediaType = String(card.getAttribute('data-media-type') || '').trim().toLowerCase();
+          const rawId = card.getAttribute('data-item-id') || '';
+          if (!mediaType || !rawId) return null;
+          return {
+            mediaType: mediaType,
+            itemId: rawId,
+            title: card.getAttribute('data-title') || card.querySelector('.card-title, .card-name')?.textContent || '',
+            subtitle: card.getAttribute('data-subtitle') || card.querySelector('.card-meta, .card-sub')?.textContent || '',
+            image: card.getAttribute('data-image') || '',
+            listImage: card.getAttribute('data-list-image') || ''
+          };
+        },
+        getVisibleItemIds: () =>
+          Array.from(document.querySelectorAll('.card[data-item-id]'))
+            .map((card) => card.getAttribute('data-item-id'))
+            .filter(Boolean),
+        getQuickStatusForItem: () => null,
+        ensureClient: async () => {
+          if (typeof window.ensureHomeSupabase === 'function') {
+            return await window.ensureHomeSupabase();
+          }
+          return window.__ZO2Y_SUPABASE_CLIENT || null;
+        },
+        getCurrentUser: () => homeCurrentUser || null,
+        notify: (message, isError) => showHomeToast(message, !!isError),
+        toggleDefaultList: async ({ itemId, listType, card, nextSaved }) => {
+          const mediaType = String(card?.getAttribute('data-media-type') || '').trim().toLowerCase();
+          const result = await saveToListFromHome({
+            mediaType: mediaType,
+            itemId: itemId,
+            listType: listType,
+            nextSaved: typeof nextSaved === 'boolean' ? nextSaved : null,
+            title: card?.getAttribute('data-title') || '',
+            subtitle: card?.getAttribute('data-subtitle') || '',
+            image: card?.getAttribute('data-image') || ''
+          });
+          return { ok: !!result?.ok, saved: result?.saved };
+        }
+      });
+    }
+
     function ensureRailMenuBackdrop() {
       let backdrop = document.getElementById('railMenuBackdrop');
       if (!backdrop) {

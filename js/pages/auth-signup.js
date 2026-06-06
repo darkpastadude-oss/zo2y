@@ -250,7 +250,7 @@
           method: 'password',
           message: message.slice(0, 180)
         }, true);
-        if (/already registered/i.test(message)) {
+        if (/already registered/i.test(message) || signupPayload && signupPayload.code === 'email_already_registered') {
           showError('This email is already registered. Please log in instead.');
         } else {
           showError(message);

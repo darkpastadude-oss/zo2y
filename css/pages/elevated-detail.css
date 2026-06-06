@@ -26,9 +26,9 @@
   --dt-text-2: #b6c0d8;
   --dt-text-3: #7d8aa6;
   --dt-accent: #f59e0b;
-  --dt-accent-2: #fbbf24;
-  --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
-  --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
+  --dt-accent-2: #ffb84d;
+  --dt-accent-soft: rgba(245, 158, 11, 0.16);
+  --dt-accent-line: rgba(245, 158, 11, 0.42);
   --dt-success: #34d399;
   --dt-radius-poster: 16px;
   --dt-radius-card: 14px;
@@ -54,10 +54,10 @@
 .elevated-detail-page[data-elevated-category="car"],
 .elevated-detail-page[data-elevated-category="team"] {
   --dt-accent: #f59e0b;
-  --dt-accent-2: #fbbf24;
-  --dt-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
-  --dt-accent-line: color-mix(in srgb, var(--color-accent) 42%, transparent);
-  --dt-glow-a: color-mix(in srgb, var(--color-accent) 26%, transparent);
+  --dt-accent-2: #ffb84d;
+  --dt-accent-soft: rgba(245, 158, 11, 0.16);
+  --dt-accent-line: rgba(245, 158, 11, 0.42);
+  --dt-glow-a: rgba(245, 158, 11, 0.26);
   --dt-glow-b: rgba(239, 68, 68, 0.20);
   --dt-fallback-c1: #1a0f04;
   --dt-fallback-c2: #2a1606;
@@ -865,29 +865,30 @@
 .elevated-detail-page .elevated-btn i { font-size: 0.9em; }
 
 .elevated-detail-page .elevated-btn-primary {
-  background: linear-gradient(135deg, var(--dt-accent) 0%, var(--dt-accent-2) 100%);
+  background: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
   color: #0b1633;
   border-color: transparent;
-  box-shadow: 0 6px 18px -6px var(--dt-accent-line);
+  box-shadow: 0 6px 18px -6px rgba(245, 158, 11, 0.55);
 }
 
 .elevated-detail-page .elevated-btn-primary:hover {
   transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 10px 24px -8px var(--dt-accent-line);
+  box-shadow: 0 10px 24px -8px rgba(245, 158, 11, 0.7);
 }
 
 .elevated-detail-page .elevated-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--dt-text);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(245, 158, 11, 0.5);
   backdrop-filter: blur(8px);
 }
 
 .elevated-detail-page .elevated-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.32);
-  color: var(--dt-text);
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #f59e0b;
+  color: #ffffff;
 }
 
 .elevated-detail-page .elevated-btn:focus-visible {

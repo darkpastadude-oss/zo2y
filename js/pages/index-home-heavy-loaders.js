@@ -2148,14 +2148,28 @@ async function loadBooks(signal) {
       async function fetchSeededTopBooks(limit = BOOKS_PER_PAGE) {
         const pool = shuffleArray(CURRENT_TOP_BOOK_SEEDS).slice(0, Math.min(CURRENT_TOP_BOOK_SEEDS.length, Math.max(limit * 3, 24)));
         const results = await Promise.allSettled(pool.map(async (seed) => {
-          const payload = await booksFetch('/search', Object.assign({
-            title: seed.title,
-            author: seed.author,
-            limit: 5,
-            page: 1
-          }, seed?.year ? { first_publish_year: seed.year } : {}));
-          const docs = Array.isArray(payload?.books) ? payload.books : [];
-          if (!docs.length) return null;
+          let docs = [];
+          try {
+            const payload = await booksFetch('/search', Object.assign({
+              title: seed.title,
+              author: seed.author,
+              limit: 5,
+              page: 1
+            }, seed?.year ? { first_publish_year: seed.year } : {}));
+            docs = Array.isArray(payload?.books) ? payload.books : [];
+          } catch (_err) {
+            docs = [];
+          }
+          if (!docs.length) {
+            return {
+              id: `seed-${normalizeBookSeedText(seed.title)}-${normalizeBookSeedText(seed.author)}`,
+              title: seed.title,
+              author: seed.author,
+              year: seed.year || null,
+              cover: '',
+              source: 'seed-fallback'
+            };
+          }
           return docs.slice().sort((a, b) => scoreCuratedTopBookDoc(b, seed) - scoreCuratedTopBookDoc(a, seed))[0] || null;
         }));
         const seen = new Set();

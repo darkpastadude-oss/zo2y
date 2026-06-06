@@ -110,6 +110,21 @@ export default async function handler(req, res) {
       const baseUrl = String(process.env.APP_BASE_URL || "https://zo2y.com").replace(/\/+$/, "");
       const redirectTo = `${baseUrl}/auth-callback.html?flow=signup`;
 
+      try {
+        const { data: existingData } = await admin.auth.admin.listUsers({ email, page: 1, perPage: 1 });
+        const existingUsers = Array.isArray(existingData?.users) ? existingData.users : [];
+        const existingMatch = existingUsers.find((u) => String(u?.email || '').toLowerCase() === email);
+        if (existingMatch) {
+          return res.status(409).json({
+            success: false,
+            message: "An account with this email already exists. Please log in instead.",
+            code: "email_already_registered"
+          });
+        }
+      } catch (lookupErr) {
+        console.warn("Could not pre-check existing user (continuing):", lookupErr?.message || lookupErr);
+      }
+
       const { data, error } = await admin.auth.admin.generateLink({
         type: "signup",
         email,
