@@ -1,0 +1,458 @@
+/* Zo2y country detail page — elevated shell + planner/reviews/guide */
+
+.elevated-detail-page[data-elevated-category="travel"] {
+  --dt-accent: #f59e0b;
+  --dt-accent-soft: color-mix(in srgb, var(--dt-accent) 12%, transparent);
+  --dt-accent-strong: #ffb84d;
+}
+
+/* Flag card styling: keep the white center, but flags tend to be wider than tall */
+.elevated-detail-page[data-elevated-category="travel"] .elevated-poster-frame.elevated-logo-card .elevated-poster {
+  object-fit: contain;
+  background: #f4f5f7;
+  padding: 8px;
+}
+
+/* Quick facts grid */
+.elevated-detail-page[data-elevated-category="travel"] .elevated-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .country-fact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  border-radius: 14px;
+  min-height: 64px;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .country-fact i {
+  font-size: 1.1rem;
+  color: var(--dt-accent);
+  width: 24px;
+  text-align: center;
+  flex: 0 0 24px;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .country-fact-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .country-fact-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .country-fact-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Travel guide grid */
+.country-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.country-guide-card {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: 16px;
+  padding: 18px 20px;
+}
+
+.country-guide-card h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+}
+
+.country-guide-card h3 i {
+  color: var(--dt-accent);
+}
+
+.country-guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.country-guide-list li {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: color-mix(in srgb, #ffffff 82%, transparent);
+  position: relative;
+  padding-left: 14px;
+}
+
+.country-guide-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dt-accent);
+  opacity: 0.7;
+}
+
+.country-guide-list li.country-guide-empty {
+  color: color-mix(in srgb, #ffffff 50%, transparent);
+  font-style: italic;
+  padding-left: 0;
+}
+
+.country-guide-list li.country-guide-empty::before { display: none; }
+
+/* Travel planner */
+.country-planner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.country-planner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.country-planner-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+.country-planner-field input,
+.country-planner-field select,
+.country-planner-field textarea {
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.country-planner-field input::placeholder,
+.country-planner-field textarea::placeholder {
+  color: color-mix(in srgb, #ffffff 40%, transparent);
+}
+
+.country-planner-field input:focus,
+.country-planner-field select:focus,
+.country-planner-field textarea:focus {
+  outline: 2px solid var(--dt-accent);
+  outline-offset: 1px;
+}
+
+.country-planner-field-wide {
+  grid-column: 1 / -1;
+}
+
+.country-planner-field textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.country-planner-hint {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+  color: color-mix(in srgb, #ffffff 50%, transparent);
+}
+
+.country-planner-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.country-planner-summary {
+  margin-top: 18px;
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.country-planner-summary-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-planner-summary-title i {
+  color: var(--dt-accent);
+}
+
+.country-planner-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.country-planner-summary-list li {
+  font-size: 0.88rem;
+  color: color-mix(in srgb, #ffffff 82%, transparent);
+}
+
+.country-planner-auth-note {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px dashed color-mix(in srgb, #ffffff 18%, transparent);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: color-mix(in srgb, #ffffff 75%, transparent);
+}
+
+.country-planner-auth-note a {
+  color: var(--dt-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.country-planner-auth-note a:hover {
+  text-decoration: underline;
+}
+
+/* Reviews */
+.country-reviews-stats {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.country-reviews-stat {
+  flex: 1 1 140px;
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: 14px;
+  padding: 16px 18px;
+  text-align: center;
+}
+
+.country-reviews-stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--dt-accent);
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+.country-reviews-stat-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+.country-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.country-review {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.country-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.country-review-user {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.country-review-date {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, #ffffff 55%, transparent);
+  margin-top: 2px;
+}
+
+.country-review-stars-display {
+  color: var(--dt-accent);
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+}
+
+.country-review-comment {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, #ffffff 86%, transparent);
+  white-space: pre-wrap;
+}
+
+.country-review-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.country-review-actions button {
+  background: color-mix(in srgb, #ffffff 8%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.country-review-actions button:hover {
+  background: color-mix(in srgb, var(--dt-accent) 25%, transparent);
+}
+
+.country-review-empty {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px dashed color-mix(in srgb, #ffffff 18%, transparent);
+  border-radius: 12px;
+  padding: 18px;
+  text-align: center;
+  color: color-mix(in srgb, #ffffff 60%, transparent);
+  font-size: 0.9rem;
+}
+
+.country-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.country-review-form-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.country-review-form-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, #ffffff 70%, transparent);
+}
+
+.country-review-stars {
+  display: flex;
+  gap: 4px;
+  font-size: 1.4rem;
+  color: color-mix(in srgb, #ffffff 25%, transparent);
+  cursor: pointer;
+  user-select: none;
+}
+
+.country-review-stars .star {
+  transition: transform 0.1s ease, color 0.1s ease;
+}
+
+.country-review-stars .star.on {
+  color: var(--dt-accent);
+}
+
+.country-review-stars .star:hover {
+  transform: scale(1.1);
+}
+
+.country-review-form textarea {
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+  color: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  min-height: 90px;
+  resize: vertical;
+}
+
+.country-review-form textarea::placeholder {
+  color: color-mix(in srgb, #ffffff 40%, transparent);
+}
+
+.country-review-form textarea:focus {
+  outline: 2px solid var(--dt-accent);
+  outline-offset: 1px;
+}
+
+.country-review-form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .country-planner-grid {
+    grid-template-columns: 1fr;
+  }
+  .country-review-form-actions {
+    flex-direction: column;
+  }
+  .country-review-form-actions .elevated-btn {
+    width: 100%;
+  }
+  .country-planner-actions {
+    flex-direction: column;
+  }
+  .country-planner-actions .elevated-btn {
+    width: 100%;
+  }
+}

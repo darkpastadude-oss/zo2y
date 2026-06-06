@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Clearing auth data - Zo2y</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b1633;
+      color: #fff;
+      font-family: -apple-system, system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      max-width: 360px;
+      text-align: center;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: #f59e0b;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { font-size: 20px; margin-bottom: 10px; }
+    p { color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.5; }
+    .done { color: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Clearing auth data</h1>
+    <p id="msg">This will only take a second.</p>
+  </div>
+  <script>
+    (function() {
+      var titleEl = document.getElementById('title');
+      var msgEl = document.getElementById('msg');
+      var spinnerEl = document.getElementById('spinner');
+
+      function clearStorage(storage, name) {
+        try {
+          var keys = Object.keys(storage);
+          keys.forEach(function(k) {
+            if (k.indexOf('zo2y') !== -1 || k.indexOf('sb-') !== -1 || k.indexOf('supabase') !== -1) {
+              storage.removeItem(k);
+            }
+          });
+        } catch (_e) {}
+      }
+
+      function clearCookies() {
+        try {
+          var domains = [location.hostname, '.' + location.hostname, 'zo2y.com', '.zo2y.com'];
+          var paths = ['/', ''];
+          var names = [];
+          try { names = document.cookie.split(';').map(function(c) {
+            return c.split('=')[0].trim();
+          }).filter(function(n) {
+            return n && (n.indexOf('sb-') !== -1 || n.indexOf('supabase') !== -1);
+          }); } catch (_e) {}
+          domains.forEach(function(d) {
+            paths.forEach(function(p) {
+              names.forEach(function(n) {
+                document.cookie = n + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=' + p + ';domain=' + d;
+                document.cookie = n + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=' + p;
+              });
+            });
+          });
+        } catch (_e) {}
+      }
+
+      function unregisterSW() {
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+          }).catch(function() {});
+        }
+      }
+
+      function clearCaches() {
+        if (window.caches) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+          }).catch(function() {});
+        }
+      }
+
+      try {
+        clearStorage(localStorage, 'localStorage');
+        clearStorage(sessionStorage, 'sessionStorage');
+        clearCookies();
+        unregisterSW();
+        clearCaches();
+
+        titleEl.textContent = 'All cleared';
+        msgEl.textContent = 'Redirecting to login…';
+        msgEl.className = 'done';
+        if (spinnerEl) spinnerEl.style.display = 'none';
+
+        setTimeout(function() {
+          window.location.replace('login.html');
+        }, 1200);
+      } catch (err) {
+        titleEl.textContent = 'Something went wrong';
+        msgEl.textContent = 'Try clearing site data from your browser settings.';
+      }
+    })();
+  </script>
+</body>
+</html>

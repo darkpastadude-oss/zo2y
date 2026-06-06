@@ -4,6 +4,7 @@
   var DEFAULT_PROJECT_REF = 'gfkhjbztayjyojsgdpgk';
   var DEFAULT_SUPABASE_URL = 'https://gfkhjbztayjyojsgdpgk.supabase.co';
   var DEFAULT_SUPABASE_KEY = 'sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd';
+  var BUILD_TAG = '20260606b';
 
   function resolveInjectedConfigValue(value, fallback) {
     var normalized = String(value || '').trim();
@@ -2139,45 +2140,6 @@
   });
 
   bindLifecycleListeners();
-
-  var cameFromAuth = false;
-  try {
-    var authReturnParams = new URLSearchParams(window.location.search || '');
-    cameFromAuth = authReturnParams.get('auth_return') === '1';
-  } catch (_eAuth) {}
-
-  if (cameFromAuth && hasStoredSupabaseSession() && !hasRecentExplicitSignout()) {
-    void (async function postAuthRestore() {
-      try {
-        var ok = await waitForSupabase(10000);
-        if (!ok) return;
-        var client = ensureSharedSupabaseClient();
-        if (!client || !client.auth || typeof client.auth.setSession !== 'function') return;
-        var stored = getStoredSessionSnapshot();
-        if (!stored || !stored.access_token || !stored.refresh_token) return;
-        try {
-          var setResult = await client.auth.setSession({
-            access_token: stored.access_token,
-            refresh_token: stored.refresh_token
-          });
-          var newSession = setResult && setResult.data ? setResult.data.data : null;
-          if (!newSession && setResult && setResult.data && setResult.data.session) {
-            newSession = setResult.data.session;
-          }
-          if (newSession && newSession.access_token) {
-            persistSessionSnapshot(newSession);
-            pushAuthDebugEvent('postauth:restore:success', {
-              userId: String(newSession.user && newSession.user.id || '').trim() || null
-            });
-          }
-        } catch (setErr) {
-          pushAuthDebugEvent('postauth:restore:error', {
-            message: String(setErr && setErr.message || setErr || '').slice(0, 180)
-          });
-        }
-      } catch (_restoreErr) {}
-    })();
-  }
 
   if (shouldVerifyCurrentPage()) {
     void verifyAndApplySession(false);

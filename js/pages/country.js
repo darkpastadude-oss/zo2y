@@ -1,0 +1,1347 @@
+(() => {
+  const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+  const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
+  const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+
+  const FALLBACK_FLAG = '/file.svg';
+
+  const REST_COUNTRIES_BASE = 'https://restcountries.com/v3.1/alpha';
+  const WIKIMEDIA_GALLERY_FALLBACK = 'https://commons.wikimedia.org/w/api.php';
+  const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
+  const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+  const COUNTRY_GALLERY_CACHE_KEY = 'zo2y_country_gallery_cache_v4';
+  const COUNTRY_GALLERY_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+  const TRAVEL_BUCKET_NAME = 'travel-photos';
+  const TRAVEL_BUCKET_MANIFEST_CACHE_KEY = 'zo2y_travel_bucket_manifest_v1';
+  const TRAVEL_BUCKET_MANIFEST_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+  const TRAVEL_BUCKET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/manifest/travel-photo-manifest.json`;
+
+  const params = new URLSearchParams(window.location.search);
+  const routeCode = String(params.get('code') || '').trim().toUpperCase();
+
+  const state = {
+    supabase: null,
+    currentUser: null,
+    code: '',
+    name: '',
+    capital: '',
+    region: '',
+    subregion: '',
+    languages: [],
+    currencies: [],
+    flag: '',
+    mapsUrl: '',
+    reviews: [],
+    users: new Map(),
+    rating: 0,
+    editId: null,
+    planner: null
+  };
+
+  const sharedTravelPhotoCache = new Map();
+  const countryGalleryCache = new Map();
+  let travelBucketManifestPromise = null;
+
+  const ui = {
+    body: document.body,
+    hero: document.getElementById('countryHero'),
+    backdrop: document.getElementById('countryBackdrop'),
+    backdropBlur: document.getElementById('countryBackdropBlur'),
+    posterFrame: document.getElementById('countryPosterFrame'),
+    posterFallbackTitle: document.getElementById('countryPosterFallbackTitle'),
+    flag: document.getElementById('countryFlag'),
+    name: document.getElementById('countryName'),
+    kicker: document.getElementById('countryKicker'),
+    meta: document.getElementById('countryMeta'),
+    tags: document.getElementById('countryTags'),
+    description: document.getElementById('countryDescription'),
+    descriptionToggle: document.getElementById('countryDescriptionToggle'),
+    saveBtn: document.getElementById('countrySaveBtn'),
+    mapBtn: document.getElementById('countryMapBtn'),
+    infoGrid: document.getElementById('countryInfoGrid'),
+    guideSection: document.getElementById('countryGuideSection'),
+    guideGrid: document.getElementById('countryGuideGrid'),
+    gallery: document.getElementById('countryGallery'),
+    gallerySection: document.getElementById('countryGallerySection'),
+    gallerySub: document.getElementById('countryGallerySub'),
+    related: document.getElementById('countryRelated'),
+    relatedSection: document.getElementById('countryRelatedSection'),
+    relatedSub: document.getElementById('countryRelatedSub'),
+    plannerSection: document.getElementById('countryPlannerSection'),
+    plannerForm: document.getElementById('countryPlannerForm'),
+    plannerAuthNote: document.getElementById('countryPlannerAuthNote'),
+    plannerSummary: document.getElementById('countryPlannerSummary'),
+    plannerSummaryList: document.getElementById('plannerSummaryList'),
+    plannerSaveBtn: document.getElementById('plannerSaveBtn'),
+    plannerClearBtn: document.getElementById('plannerClearBtn'),
+    reviewsSection: document.getElementById('countryReviewsSection'),
+    reviewsSub: document.getElementById('countryReviewsSub'),
+    reviewsAvg: document.getElementById('countryReviewsAvg'),
+    reviewsCount: document.getElementById('countryReviewsCount'),
+    reviewList: document.getElementById('countryReviewList'),
+    reviewForm: document.getElementById('countryReviewForm'),
+    reviewAuth: document.getElementById('countryReviewAuth'),
+    reviewStars: document.getElementById('countryReviewStars'),
+    reviewComment: document.getElementById('countryReviewComment'),
+    reviewSaveBtn: document.getElementById('countryReviewSaveBtn'),
+    reviewCancelBtn: document.getElementById('countryReviewCancelBtn'),
+    toast: document.getElementById('countryToast'),
+    actionCard: document.getElementById('countryActionCard')
+  };
+
+  const COUNTRY_CITY_GUIDE = {
+    US: ['New York City', 'San Francisco', 'Chicago', 'New Orleans'],
+    JP: ['Tokyo', 'Kyoto', 'Osaka', 'Sapporo'],
+    FR: ['Paris', 'Lyon', 'Nice', 'Bordeaux'],
+    IT: ['Rome', 'Florence', 'Milan', 'Naples'],
+    ES: ['Barcelona', 'Madrid', 'Seville', 'Valencia'],
+    GB: ['London', 'Edinburgh', 'Manchester', 'Bath'],
+    DE: ['Berlin', 'Munich', 'Hamburg', 'Cologne'],
+    EG: ['Cairo', 'Alexandria', 'Luxor', 'Aswan'],
+    TR: ['Istanbul', 'Ankara', 'Izmir', 'Antalya'],
+    BR: ['Rio de Janeiro', 'Sao Paulo', 'Salvador', 'Florianopolis'],
+    MX: ['Mexico City', 'Guadalajara', 'Merida', 'Oaxaca'],
+    AU: ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
+    CA: ['Toronto', 'Vancouver', 'Montreal', 'Quebec City'],
+    TH: ['Bangkok', 'Chiang Mai', 'Phuket', 'Krabi'],
+    ID: ['Bali', 'Jakarta', 'Yogyakarta', 'Lombok'],
+    IN: ['Delhi', 'Mumbai', 'Jaipur', 'Goa'],
+    ZA: ['Cape Town', 'Johannesburg', 'Durban', 'Stellenbosch'],
+    AE: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ras Al Khaimah']
+  };
+
+  const REGION_ACTIVITY_GUIDE = {
+    Europe: [
+      'Explore old town districts and historic landmarks',
+      'Take a local market and street food walk',
+      'Book one museum or gallery in advance to skip lines',
+      'Plan one slow afternoon in a neighborhood cafe'
+    ],
+    Asia: [
+      'Visit a temple, shrine, or cultural heritage site',
+      'Try regional dishes at local food streets',
+      'Use train networks for efficient city-to-city travel',
+      'Explore one night market or evening district'
+    ],
+    Africa: [
+      'Mix city highlights with a nature or desert day trip',
+      'Book guided history tours in major heritage areas',
+      'Start early for outdoor sites to avoid peak heat',
+      'Support local artisans in certified craft markets'
+    ],
+    Americas: [
+      'Pair city neighborhoods with one scenic viewpoint',
+      'Plan a food-focused day around local specialties',
+      'Use public transit apps for safer navigation',
+      'Reserve popular attractions before weekends'
+    ],
+    Oceania: [
+      'Combine city days with coastal or nature escapes',
+      'Check weather and UV index before outdoor plans',
+      'Try local seafood and regional produce markets',
+      'Book national park activities ahead of time'
+    ],
+    default: [
+      'Start with central landmarks and local neighborhoods',
+      'Keep one day flexible for spontaneous discoveries',
+      'Plan meals around top-rated local specialties',
+      'Balance busy attractions with one relaxed evening'
+    ]
+  };
+
+  const REGION_SEASON_GUIDE = {
+    Europe: ['Best windows: April to June and September to October.', 'Winter is quieter but colder; pack layers.'],
+    Asia: ['Best windows vary by monsoon zone; spring and autumn are usually safest bets.', 'Check humidity and rain forecasts weekly.'],
+    Africa: ['Dry seasons are typically best for sightseeing and road travel.', 'Desert areas have large day/night temperature swings.'],
+    Americas: ['Spring and fall usually offer milder weather and lower crowds.', 'Hurricane/typhoon regions require seasonal checks.'],
+    Oceania: ['Shoulder seasons can offer strong weather and lighter crowds.', 'Summer can be hot; plan outdoor activities early.'],
+    default: ['Shoulder seasons usually balance weather and crowd levels.', 'Confirm local holidays before booking popular attractions.']
+  };
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function safeHttps(url) {
+    const text = String(url || '').trim();
+    if (!text) return '';
+    if (text.startsWith('//')) return `https:${text}`;
+    if (text.startsWith('http://')) return text.replace(/^http:\/\//i, 'https://');
+    return text;
+  }
+
+  function canonicalCountryCode(value) {
+    const raw = String(value || '').trim().toUpperCase();
+    if (raw === 'IL') return 'PS';
+    return raw;
+  }
+
+  function showToast(message, type = 'info') {
+    if (!ui.toast) return;
+    ui.toast.textContent = message;
+    ui.toast.classList.toggle('is-error', type === 'error');
+    ui.toast.classList.toggle('is-success', type === 'success');
+    ui.toast.classList.add('show');
+    window.clearTimeout(showToast._timer);
+    showToast._timer = window.setTimeout(() => {
+      ui.toast.classList.remove('show');
+    }, 2400);
+  }
+
+  function applyBackdrop(url) {
+    if (!url || !ui.backdrop) return;
+    const safeUrl = String(url).replace(/"/g, '\\"');
+    const style = `url("${safeUrl}") center 20% / cover no-repeat`;
+    ui.backdrop.style.background = style;
+    if (ui.backdropBlur) ui.backdropBlur.style.background = style;
+    if (ui.hero) {
+      ui.hero.classList.remove('is-no-backdrop');
+      ui.hero.classList.add('is-loaded');
+    }
+  }
+
+  function applyRegionFallbackBackground() {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+      <defs>
+        <radialGradient id="g" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#1e3a5f"/>
+          <stop offset="100%" stop-color="#0b1633"/>
+        </radialGradient>
+        <pattern id="p" width="60" height="60" patternUnits="userSpaceOnUse">
+          <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
+          <circle cx="30" cy="30" r="10" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
+        </pattern>
+      </defs>
+      <rect width="800" height="400" fill="url(#g)"/>
+      <rect width="800" height="400" fill="url(#p)"/>
+    </svg>`;
+    const bg = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+    if (ui.backdrop) {
+      ui.backdrop.style.background = `url("${bg}") center / cover no-repeat`;
+      ui.backdrop.style.opacity = '0.7';
+    }
+    if (ui.backdropBlur) ui.backdropBlur.style.background = `url("${bg}") center / cover no-repeat`;
+    if (ui.hero) {
+      ui.hero.classList.remove('is-no-backdrop');
+      ui.hero.classList.add('is-loaded');
+    }
+  }
+
+  async function ensureSupabase() {
+    if (state.supabase) return state.supabase;
+    const authRuntime = window.ZO2Y_AUTH || null;
+    if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+      await authRuntime.waitForSupabase(8000);
+    } else {
+      const startedAt = Date.now();
+      while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+    }
+    if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+      state.supabase = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+      if (state.supabase) return state.supabase;
+    }
+    if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+      state.supabase = window.supabase.createClient(
+        window.__ZO2Y_SUPABASE_CONFIG.url,
+        window.__ZO2Y_SUPABASE_CONFIG.key,
+        { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+      );
+      window.__ZO2Y_SUPABASE_CLIENT = state.supabase;
+      return state.supabase;
+    }
+    return null;
+  }
+
+  async function initAuth() {
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    try {
+      const { data } = await sb.auth.getUser();
+      state.currentUser = data && data.user ? data.user : null;
+    } catch (_e) {
+      state.currentUser = null;
+    }
+    sb.auth.onAuthStateChange((_event, session) => {
+      state.currentUser = session && session.user ? session.user : null;
+      syncReviewFormVisibility();
+      syncPlannerVisibility();
+    });
+  }
+
+  /* ---------- Description toggle (read more) ---------- */
+  function wireDescriptionToggle() {
+    if (!ui.descriptionToggle || !ui.description) return;
+    ui.descriptionToggle.addEventListener('click', () => {
+      const expanded = ui.descriptionToggle.getAttribute('aria-expanded') === 'true';
+      const next = !expanded;
+      ui.descriptionToggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+      ui.description.classList.toggle('is-clamped', !next);
+      const label = ui.descriptionToggle.querySelector('.elevated-readmore-label');
+      if (label) label.textContent = next ? 'show less' : 'read more';
+      const icon = ui.descriptionToggle.querySelector('i');
+      if (icon) icon.style.transform = next ? 'rotate(180deg)' : 'rotate(0)';
+    });
+  }
+
+  /* ---------- Guide ---------- */
+  function uniqueStrings(values) {
+    return [...new Set((Array.isArray(values) ? values : []).map((value) => String(value || '').trim()).filter(Boolean))];
+  }
+
+  function buildCountryGuide() {
+    const code = state.code;
+    const name = state.name;
+    const capital = state.capital;
+    const region = state.region;
+    const subregion = state.subregion;
+    const languages = state.languages;
+    const currencies = state.currencies;
+
+    const citySeed = COUNTRY_CITY_GUIDE[code] || [];
+    const fallbackCities = [
+      capital,
+      subregion ? `${subregion} highlights` : '',
+      `${name} old town`,
+      `${name} cultural district`
+    ];
+    const cities = uniqueStrings([...citySeed, ...fallbackCities]).slice(0, 4);
+
+    const activities = [
+      ...(REGION_ACTIVITY_GUIDE[region] || REGION_ACTIVITY_GUIDE.default),
+      capital ? `Spend half a day exploring ${capital}'s central district.` : ''
+    ];
+
+    const season = [
+      ...((REGION_SEASON_GUIDE[region] || REGION_SEASON_GUIDE.default)),
+      subregion ? `Regional weather note: ${subregion} can differ from national averages.` : ''
+    ];
+
+    const languageNote = languages.length ? `Learn a few phrases in ${languages[0]}.` : 'Learn a few local greetings before arrival.';
+    const currencyNote = currencies.length ? `Carry a backup payment option for ${currencies[0]} transactions.` : 'Carry a backup payment option for local transactions.';
+    const tips = [
+      languageNote,
+      currencyNote,
+      'Download offline maps and key addresses before long day trips.',
+      'Book airport transfer or first-night transport in advance.'
+    ];
+
+    return { cities, activities, season, tips };
+  }
+
+  function renderGuideList(targetId, values) {
+    const host = document.getElementById(targetId);
+    if (!host) return;
+    const items = uniqueStrings(values).slice(0, 5);
+    host.innerHTML = items.length
+      ? items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')
+      : '<li class="country-guide-empty">No guide details available yet.</li>';
+  }
+
+  function renderGuide() {
+    if (!ui.guideGrid) return;
+    const guide = buildCountryGuide();
+    const cards = [
+      { title: 'Top cities', icon: 'fa-city', id: 'gCities', values: guide.cities },
+      { title: 'What to do', icon: 'fa-compass', id: 'gActivities', values: guide.activities },
+      { title: 'Best time to visit', icon: 'fa-calendar-days', id: 'gSeason', values: guide.season },
+      { title: 'Local tips', icon: 'fa-lightbulb', id: 'gTips', values: guide.tips }
+    ];
+    ui.guideGrid.innerHTML = cards.map((card) => `
+      <article class="country-guide-card">
+        <h3><i class="fa-solid ${card.icon}"></i> ${escapeHtml(card.title)}</h3>
+        <ul class="country-guide-list" id="${card.id}"></ul>
+      </article>
+    `).join('');
+    renderGuideList('gCities', guide.cities);
+    renderGuideList('gActivities', guide.activities);
+    renderGuideList('gSeason', guide.season);
+    renderGuideList('gTips', guide.tips);
+  }
+
+  /* ---------- Quick facts ---------- */
+  function renderInfoGrid() {
+    if (!ui.infoGrid) return;
+    const items = [];
+    if (state.capital) items.push({ icon: 'fa-landmark', label: 'Capital', value: state.capital });
+    if (state.region || state.subregion) items.push({ icon: 'fa-globe', label: 'Region', value: [state.region, state.subregion].filter(Boolean).join(' · ') });
+    if (state.languages.length) items.push({ icon: 'fa-language', label: 'Languages', value: state.languages.join(', ') });
+    if (state.currencies.length) items.push({ icon: 'fa-coins', label: 'Currencies', value: state.currencies.join(', ') });
+    if (state.code) items.push({ icon: 'fa-hashtag', label: 'Code', value: state.code });
+    items.push({ icon: 'fa-map-location-dot', label: 'Maps', value: state.mapsUrl ? 'Open in Google Maps' : 'Not available' });
+
+    if (!items.length) {
+      ui.infoGrid.innerHTML = '<div class="country-review-empty">No facts available.</div>';
+      return;
+    }
+
+    ui.infoGrid.innerHTML = items.map((item) => `
+      <div class="country-fact">
+        <i class="fa-solid ${item.icon}"></i>
+        <div class="country-fact-body">
+          <span class="country-fact-label">${escapeHtml(item.label)}</span>
+          <span class="country-fact-value">${escapeHtml(item.value)}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  /* ---------- Gallery (Wikimedia Commons) ---------- */
+  function isBadScenicUrl(url) {
+    const raw = String(url || '').trim().toLowerCase();
+    if (!raw) return true;
+    if (raw.includes('flagcdn.com')) return true;
+    if (raw.includes('/flags/')) return true;
+    if (raw.includes('flag_of_') || raw.includes('flag-of-')) return true;
+    if (raw.includes('coat_of_arms') || raw.includes('coat-of-arms')) return true;
+    if (raw.includes('map_of_') || raw.includes('map-of-')) return true;
+    if (raw.includes('emblem') || raw.includes('seal')) return true;
+    const blocked = ['painting', 'artwork', 'illustration', 'drawing', 'poster', 'logo', 'cartoon', 'sketch', 'render', 'vector', 'banknote', 'stamp', 'crest'];
+    return blocked.some((token) => raw.includes(token));
+  }
+
+  function normalizeGalleryItem(entry) {
+    if (!entry) return null;
+    if (typeof entry === 'string') {
+      const url = safeHttps(entry);
+      if (!url || isBadScenicUrl(url)) return null;
+      return { url, kind: 'scenic' };
+    }
+    if (typeof entry === 'object') {
+      const url = safeHttps(entry.url || entry.src || entry.image || entry.thumbnail || '');
+      if (!url || isBadScenicUrl(url)) return null;
+      const rawKind = String(entry.kind || entry.label || '').trim().toLowerCase();
+      const kind = rawKind === 'city' ? 'city' : rawKind === 'nature' ? 'nature' : 'scenic';
+      return { url, kind };
+    }
+    return null;
+  }
+
+  function normalizeCountryName(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+\(country\)\s*$/i, '')
+      .replace(/[^a-z0-9 ]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function isPhotoMime(mime) {
+    const value = String(mime || '').toLowerCase().trim();
+    return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
+  }
+
+  function getCommonsCategoryText(page) {
+    const categories = Array.isArray(page?.categories) ? page.categories : [];
+    return categories
+      .map((entry) => String(entry?.title || '').replace(/^Category:/i, '').trim().toLowerCase())
+      .filter(Boolean)
+      .join(' | ');
+  }
+
+  function isBadScenicTitle(title, countryName, capital, cityHints = [], categoryText = '') {
+    const raw = `${String(title || '')} ${String(categoryText || '')}`.toLowerCase();
+    if (!raw) return true;
+    const blocked = [
+      'flag', 'coat of arms', 'emblem', 'seal', 'map of', 'locator map', 'location map',
+      'orthographic', 'equirectangular', 'blank map', 'administrative map', 'province map',
+      'political map', 'banner', 'painting', 'artwork', 'illustration', 'drawing', 'poster',
+      'cartoon', 'sketch', 'render', 'vector', 'banknote', 'stamp', 'mural', 'logo'
+    ];
+    if (blocked.some((token) => raw.includes(token))) return true;
+    const countryNeedle = normalizeCountryName(countryName);
+    const capitalNeedle = normalizeCountryName(capital);
+    const cityNeedles = (Array.isArray(cityHints) ? cityHints : []).map((value) => normalizeCountryName(value)).filter(Boolean);
+    if (!countryNeedle && !capitalNeedle && !cityNeedles.length) return false;
+    const normalizedTitle = normalizeCountryName(title);
+    const hasCountry = countryNeedle && normalizedTitle.includes(countryNeedle);
+    const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
+    const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
+    return !(hasCountry || hasCapital || hasCity);
+  }
+
+  function scoreCountryPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
+    const title = String(page?.title || '');
+    const mime = String(page?.imageinfo?.[0]?.mime || '').toLowerCase();
+    if (!isPhotoMime(mime)) return -1;
+    const categoryText = getCommonsCategoryText(page);
+    if (isBadScenicTitle(title, countryName, capital, cityHints, categoryText)) return -1;
+    const raw = `${title} ${categoryText}`.toLowerCase();
+    let score = 0;
+    if (raw.includes('photographs')) score += 5;
+    if (kind === 'city') {
+      if (raw.includes('skyline') || raw.includes('cityscape')) score += 6;
+      if (raw.includes('downtown') || raw.includes('street') || raw.includes('urban') || raw.includes('capital')) score += 4;
+    } else if (kind === 'nature') {
+      if (raw.includes('landscape') || raw.includes('mountain') || raw.includes('coast') || raw.includes('beach') || raw.includes('forest') || raw.includes('lake') || raw.includes('national park')) score += 6;
+    } else {
+      if (raw.includes('landscape') || raw.includes('panorama') || raw.includes('view') || raw.includes('scenery')) score += 5;
+      if (raw.includes('skyline') || raw.includes('cityscape')) score += 2;
+    }
+    return score;
+  }
+
+  function loadSharedTravelPhotoCache() {
+    try {
+      const raw = localStorage.getItem(TRAVEL_PHOTO_CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed && parsed.savedAt || 0);
+      const entries = parsed && parsed.entries && typeof parsed.entries === 'object' ? parsed.entries : null;
+      if (!savedAt || !entries) return;
+      if ((Date.now() - savedAt) > TRAVEL_PHOTO_CACHE_TTL_MS) return;
+      Object.entries(entries).forEach(([code, entry]) => {
+        const safeCountryCode = canonicalCountryCode(code);
+        if (!safeCountryCode) return;
+        const scenic = safeHttps(entry && entry.scenic || '');
+        const city = safeHttps(entry && entry.city || '');
+        const nature = safeHttps(entry && entry.nature || '');
+        const normalized = {
+          scenic: scenic && !isBadScenicUrl(scenic) ? scenic : '',
+          city: city && !isBadScenicUrl(city) ? city : '',
+          nature: nature && !isBadScenicUrl(nature) ? nature : ''
+        };
+        if (!normalized.scenic && !normalized.city && !normalized.nature) return;
+        sharedTravelPhotoCache.set(safeCountryCode, normalized);
+      });
+    } catch (_e) {}
+  }
+
+  function loadCountryGalleryCache() {
+    try {
+      const raw = localStorage.getItem(COUNTRY_GALLERY_CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed && parsed.savedAt || 0);
+      const entries = parsed && parsed.entries && typeof parsed.entries === 'object' ? parsed.entries : null;
+      if (!savedAt || !entries) return;
+      if ((Date.now() - savedAt) > COUNTRY_GALLERY_CACHE_TTL_MS) return;
+      Object.entries(entries).forEach(([code, urls]) => {
+        const safeCountryCode = canonicalCountryCode(code);
+        const list = Array.isArray(urls) ? urls.map((value) => normalizeGalleryItem(value)).filter(Boolean).slice(0, 12) : [];
+        if (!safeCountryCode || !list.length) return;
+        countryGalleryCache.set(safeCountryCode, list);
+      });
+    } catch (_e) {}
+  }
+
+  function saveSharedTravelPhoto(code, url, kind = 'scenic') {
+    const safeCountryCode = canonicalCountryCode(code);
+    const safeUrl = safeHttps(url);
+    if (!safeCountryCode || !safeUrl || isBadScenicUrl(safeUrl)) return;
+    const targetKind = ['scenic', 'city', 'nature'].includes(kind) ? kind : 'scenic';
+    const current = sharedTravelPhotoCache.get(safeCountryCode) || { scenic: '', city: '', nature: '' };
+    if (current[targetKind] === safeUrl) return;
+    current[targetKind] = safeUrl;
+    sharedTravelPhotoCache.set(safeCountryCode, current);
+    try {
+      const entries = {};
+      sharedTravelPhotoCache.forEach((value, key) => {
+        const safeKey = canonicalCountryCode(key);
+        if (!safeKey) return;
+        const v = value || {};
+        if (!v.scenic && !v.city && !v.nature) return;
+        entries[safeKey] = v;
+      });
+      localStorage.setItem(TRAVEL_PHOTO_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), entries }));
+    } catch (_e) {}
+  }
+
+  function saveCountryGalleryCache() {
+    try {
+      const entries = {};
+      countryGalleryCache.forEach((urls, code) => {
+        const safeCountryCode = canonicalCountryCode(code);
+        const list = (Array.isArray(urls) ? urls : []).map((value) => normalizeGalleryItem(value)).filter(Boolean).slice(0, 12);
+        if (!safeCountryCode || !list.length) return;
+        entries[safeCountryCode] = list;
+      });
+      localStorage.setItem(COUNTRY_GALLERY_CACHE_KEY, JSON.stringify({ savedAt: Date.now(), entries }));
+    } catch (_e) {}
+  }
+
+  function buildCountryPhotoUrl(name, code) {
+    const safeCountryCode = canonicalCountryCode(code);
+    const shared = sharedTravelPhotoCache.get(safeCountryCode);
+    if (shared) {
+      if (shared.scenic && !isBadScenicUrl(shared.scenic)) return shared.scenic;
+      if (shared.city && !isBadScenicUrl(shared.city)) return shared.city;
+      if (shared.nature && !isBadScenicUrl(shared.nature)) return shared.nature;
+    }
+    const gallery = countryGalleryCache.get(safeCountryCode);
+    if (Array.isArray(gallery) && gallery.length) {
+      const first = normalizeGalleryItem(gallery[0]);
+      if (first && first.url && !isBadScenicUrl(first.url)) return first.url;
+    }
+    return '';
+  }
+
+  function renderGallery(images = [], countryName = '') {
+    const grid = ui.gallery;
+    if (!grid) return;
+    const list = (Array.isArray(images) ? images : []).map((value) => normalizeGalleryItem(value)).filter(Boolean).slice(0, 12);
+    if (!list.length) {
+      grid.innerHTML = '<div class="elevated-gallery-empty"><i class="fa-solid fa-image"></i> No photos available right now.</div>';
+      if (ui.gallerySection) ui.gallerySection.hidden = true;
+      return;
+    }
+    const labelForKind = (kind) => {
+      if (kind === 'city') return 'city life';
+      if (kind === 'nature') return 'nature';
+      return 'scenic';
+    };
+    grid.innerHTML = list.map((entry) => `
+      <div class="elevated-gallery-item" data-kind="${escapeHtml(entry.kind)}">
+        <img src="${escapeHtml(entry.url)}" alt="${escapeHtml(countryName)} ${escapeHtml(labelForKind(entry.kind))}" loading="lazy" onerror="this.onerror=null;this.closest('.elevated-gallery-item')?.remove();">
+        <div class="elevated-gallery-item-caption">${escapeHtml(labelForKind(entry.kind))}</div>
+      </div>
+    `).join('');
+    if (ui.gallerySection) ui.gallerySection.hidden = false;
+  }
+
+  async function fetchCommonsCountryGallery(name, code, capital) {
+    const safeCountryCode = canonicalCountryCode(code);
+    if (!safeCountryCode) return [];
+    const cached = countryGalleryCache.get(safeCountryCode);
+    if (Array.isArray(cached) && cached.length) return cached;
+
+    const cityHints = capital ? [capital] : [];
+    const queryGroups = [
+      {
+        kind: 'city', limit: 4,
+        queries: [
+          capital ? `${capital} skyline` : '',
+          capital ? `${capital} downtown` : '',
+          capital ? `${capital} cityscape` : '',
+          `${name} city skyline`, `${name} city center`, `${name} street scene`
+        ]
+      },
+      {
+        kind: 'nature', limit: 4,
+        queries: [
+          `${name} landscape`, `${name} nature`, `${name} national park`,
+          `${name} mountains`, `${name} coast`, `${name} lake`
+        ]
+      },
+      {
+        kind: 'scenic', limit: 4,
+        queries: [
+          `${name} travel photography`, `${name} scenery`, `${name} landmarks`, `${name} panorama`
+        ]
+      }
+    ];
+
+    const out = [];
+    const seen = new Set();
+    const counts = { city: 0, nature: 0, scenic: 0 };
+
+    for (const group of queryGroups) {
+      const queries = group.queries.map((value) => String(value || '').trim()).filter(Boolean);
+      for (const query of queries) {
+        if (out.length >= 12 || counts[group.kind] >= group.limit) break;
+        const endpoint = `${WIKIMEDIA_GALLERY_FALLBACK}?action=query&format=json&formatversion=2&origin=*&generator=search&gsrnamespace=6&gsrlimit=20&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo|categories&iiprop=url|mime&iiurlwidth=1600&cllimit=max`;
+        try {
+          const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+          if (!response.ok) continue;
+          const payload = await response.json();
+          const pages = Array.isArray(payload && payload.query && payload.query.pages) ? payload.query.pages : [];
+          pages
+            .map((page) => ({ page, score: scoreCountryPhotoCandidate(page, group.kind, name, capital, cityHints) }))
+            .filter((entry) => entry.score >= 0)
+            .sort((left, right) => right.score - left.score)
+            .forEach(({ page }) => {
+              if (out.length >= 12 || counts[group.kind] >= group.limit) return;
+              const title = String(page && page.title || '');
+              const mime = String(page && page.imageinfo && page.imageinfo[0] && page.imageinfo[0].mime || '').toLowerCase();
+              if (!isPhotoMime(mime)) return;
+              const image = safeHttps(page && page.imageinfo && page.imageinfo[0] && (page.imageinfo[0].thumburl || page.imageinfo[0].url));
+              if (!image || isBadScenicUrl(image) || seen.has(image)) return;
+              seen.add(image);
+              out.push({ url: image, kind: group.kind });
+              counts[group.kind] += 1;
+            });
+        } catch (_e) {}
+      }
+    }
+
+    if (out.length) {
+      countryGalleryCache.set(safeCountryCode, out);
+      saveCountryGalleryCache();
+      const scenicFirst = out.find((entry) => entry.kind === 'scenic') || out[0];
+      if (scenicFirst && scenicFirst.url) {
+        saveSharedTravelPhoto(safeCountryCode, scenicFirst.url, 'scenic');
+      }
+    }
+    return out;
+  }
+
+  /* ---------- Reviews ---------- */
+  function renderStars(ratingValue) {
+    const safe = Math.max(1, Math.min(5, Number(ratingValue || 0)));
+    return '★'.repeat(safe) + '☆'.repeat(5 - safe);
+  }
+
+  function drawRatingStars() {
+    if (!ui.reviewStars) return;
+    ui.reviewStars.innerHTML = '';
+    for (let i = 1; i <= 5; i += 1) {
+      const star = document.createElement('span');
+      star.className = `star${i <= state.rating ? ' on' : ''}`;
+      star.innerHTML = '★';
+      star.dataset.v = String(i);
+      ui.reviewStars.appendChild(star);
+    }
+  }
+
+  function resetReviewForm() {
+    state.editId = null;
+    state.rating = 0;
+    drawRatingStars();
+    if (ui.reviewComment) ui.reviewComment.value = '';
+    if (ui.reviewSaveBtn) {
+      ui.reviewSaveBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> submit review';
+    }
+    if (ui.reviewCancelBtn) ui.reviewCancelBtn.hidden = true;
+  }
+
+  function syncReviewFormVisibility() {
+    if (ui.reviewForm) ui.reviewForm.hidden = !state.currentUser;
+    if (ui.reviewAuth) ui.reviewAuth.hidden = !!state.currentUser;
+  }
+
+  async function loadUsers(userIds) {
+    const sb = await ensureSupabase();
+    if (!sb || !Array.isArray(userIds) || !userIds.length) return;
+    try {
+      const { data, error } = await sb.from('user_profiles').select('id,username,full_name').in('id', userIds);
+      if (error || !Array.isArray(data)) return;
+      data.forEach((row) => {
+        const id = String(row && row.id || '').trim();
+        if (!id) return;
+        state.users.set(id, {
+          username: String(row && row.username || '').trim(),
+          fullName: String(row && row.full_name || '').trim()
+        });
+      });
+    } catch (_e) {}
+  }
+
+  function resolveUsername(userId) {
+    const record = state.users.get(String(userId || '').trim());
+    if (!record) return 'User';
+    if (record.username) return `@${record.username}`;
+    return record.fullName || 'User';
+  }
+
+  async function loadReviews() {
+    if (!ui.reviewList) return;
+    ui.reviewList.innerHTML = '<div class="country-review-empty">Loading reviews…</div>';
+    const sb = await ensureSupabase();
+    if (!sb) {
+      ui.reviewList.innerHTML = '<div class="country-review-empty">Review service unavailable.</div>';
+      return;
+    }
+    try {
+      const { data, error } = await sb
+        .from('travel_reviews')
+        .select('id,user_id,rating,comment,created_at')
+        .eq('country_code', state.code)
+        .order('created_at', { ascending: false });
+      if (error) {
+        ui.reviewList.innerHTML = '<div class="country-review-empty">Could not load reviews.</div>';
+        return;
+      }
+      state.reviews = Array.isArray(data) ? data : [];
+      const userIds = [...new Set(state.reviews.map((row) => String(row && row.user_id || '').trim()).filter(Boolean))];
+      await loadUsers(userIds);
+
+      const count = state.reviews.length;
+      const avg = count ? state.reviews.reduce((acc, row) => acc + Number(row && row.rating || 0), 0) / count : 0;
+      if (ui.reviewsCount) ui.reviewsCount.textContent = String(count);
+      if (ui.reviewsAvg) ui.reviewsAvg.textContent = count ? avg.toFixed(1) : '-';
+
+      if (!count) {
+        ui.reviewList.innerHTML = '<div class="country-review-empty">No reviews yet. Be the first to share your experience.</div>';
+        return;
+      }
+
+      ui.reviewList.innerHTML = state.reviews.map((review) => {
+        const mine = state.currentUser && String(state.currentUser.id) === String(review && review.user_id);
+        const createdAt = new Date(review && review.created_at || '');
+        const dateText = Number.isFinite(createdAt.getTime())
+          ? createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+          : 'Unknown date';
+
+        return `
+          <article class="country-review" data-review-id="${escapeHtml(review.id)}">
+            <div class="country-review-head">
+              <div>
+                <div class="country-review-user">${escapeHtml(resolveUsername(review.user_id))}</div>
+                <div class="country-review-date">${escapeHtml(dateText)}</div>
+              </div>
+              <div class="country-review-stars-display">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</div>
+            </div>
+            <div class="country-review-comment">${escapeHtml(review.comment || 'No comment.')}</div>
+            ${mine ? `
+              <div class="country-review-actions">
+                <button type="button" data-act="edit" data-id="${escapeHtml(review.id)}">Edit</button>
+                <button type="button" data-act="del" data-id="${escapeHtml(review.id)}">Delete</button>
+              </div>
+            ` : ''}
+          </article>
+        `;
+      }).join('');
+    } catch (_e) {
+      ui.reviewList.innerHTML = '<div class="country-review-empty">Could not load reviews.</div>';
+    }
+  }
+
+  async function saveReview(event) {
+    event.preventDefault();
+    if (!state.currentUser || !state.currentUser.id) {
+      showToast('Please sign in', 'error');
+      return;
+    }
+    if (!state.rating) {
+      showToast('Select rating', 'error');
+      return;
+    }
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    const comment = ui.reviewComment ? ui.reviewComment.value.trim() : '';
+
+    let error = null;
+    try {
+      if (state.editId) {
+        const result = await sb.from('travel_reviews')
+          .update({ rating: state.rating, comment, updated_at: new Date().toISOString() })
+          .eq('id', state.editId);
+        error = result.error;
+      } else {
+        const result = await sb.from('travel_reviews')
+          .upsert({
+            country_code: state.code,
+            user_id: state.currentUser.id,
+            rating: state.rating,
+            comment,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,country_code' });
+        error = result.error;
+      }
+    } catch (e) {
+      error = e;
+    }
+
+    if (error) {
+      showToast('Could not save review', 'error');
+      return;
+    }
+    resetReviewForm();
+    await loadReviews();
+    showToast('Review saved', 'success');
+  }
+
+  function editReview(id) {
+    const review = state.reviews.find((row) => String(row && row.id) === String(id));
+    if (!review) return;
+    state.editId = id;
+    state.rating = Math.max(1, Math.min(5, Number(review.rating || 0)));
+    drawRatingStars();
+    if (ui.reviewComment) ui.reviewComment.value = String(review.comment || '');
+    if (ui.reviewSaveBtn) ui.reviewSaveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> update review';
+    if (ui.reviewCancelBtn) ui.reviewCancelBtn.hidden = false;
+    if (ui.reviewComment) ui.reviewComment.focus();
+  }
+
+  async function deleteReview(id) {
+    if (!state.currentUser || !state.currentUser.id) return;
+    if (!window.confirm('Delete this review?')) return;
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    const { error } = await sb.from('travel_reviews').delete().eq('id', id).eq('user_id', state.currentUser.id);
+    if (error) {
+      showToast('Could not delete review', 'error');
+      return;
+    }
+    await loadReviews();
+    showToast('Review deleted', 'success');
+  }
+
+  function wireReviewEvents() {
+    if (ui.reviewForm) ui.reviewForm.addEventListener('submit', (event) => { void saveReview(event); });
+    if (ui.reviewCancelBtn) ui.reviewCancelBtn.addEventListener('click', resetReviewForm);
+    if (ui.reviewStars) {
+      ui.reviewStars.addEventListener('click', (event) => {
+        const star = event.target && event.target.closest && event.target.closest('.star');
+        if (!star) return;
+        state.rating = Number(star.dataset.v || 0) || 0;
+        drawRatingStars();
+      });
+    }
+    if (ui.reviewList) {
+      ui.reviewList.addEventListener('click', (event) => {
+        const button = event.target && event.target.closest && event.target.closest('button[data-act]');
+        if (!button) return;
+        const id = button.getAttribute('data-id');
+        const action = button.getAttribute('data-act');
+        if (action === 'edit') editReview(id);
+        if (action === 'del') void deleteReview(id);
+      });
+    }
+  }
+
+  /* ---------- Planner ---------- */
+  function splitPlannerList(value, limit = 14) {
+    const out = [];
+    String(value || '').split(',').map((entry) => String(entry || '').trim()).filter(Boolean).forEach((entry) => {
+      if (out.length >= limit) return;
+      if (out.some((existing) => existing.toLowerCase() === entry.toLowerCase())) return;
+      out.push(entry);
+    });
+    return out;
+  }
+
+  function budgetLabel(value) {
+    const key = String(value || '').trim().toLowerCase();
+    if (key === 'budget') return 'Budget';
+    if (key === 'midrange') return 'Mid-range';
+    if (key === 'luxury') return 'Luxury';
+    return 'Not set';
+  }
+
+  function syncPlannerVisibility() {
+    if (ui.plannerForm) ui.plannerForm.hidden = !state.currentUser;
+    if (ui.plannerAuthNote) ui.plannerAuthNote.hidden = !!state.currentUser;
+  }
+
+  function setPlannerFormValues(plan) {
+    const citiesEl = document.getElementById('plannerCitiesInput');
+    const bestMonthsEl = document.getElementById('plannerBestMonthsInput');
+    const budgetEl = document.getElementById('plannerBudgetSelect');
+    const activitiesEl = document.getElementById('plannerActivitiesInput');
+    const notesEl = document.getElementById('plannerNotesInput');
+    if (citiesEl) citiesEl.value = Array.isArray(plan && plan.cities) ? plan.cities.join(', ') : '';
+    if (bestMonthsEl) bestMonthsEl.value = Array.isArray(plan && plan.best_months) ? plan.best_months.join(', ') : '';
+    if (budgetEl) budgetEl.value = String(plan && plan.budget_tier || '');
+    if (activitiesEl) activitiesEl.value = Array.isArray(plan && plan.activities) ? plan.activities.join(', ') : '';
+    if (notesEl) notesEl.value = String(plan && plan.notes || '');
+  }
+
+  function renderPlannerSummary(plan) {
+    if (!ui.plannerSummary || !ui.plannerSummaryList) return;
+    if (!plan) {
+      ui.plannerSummary.hidden = true;
+      ui.plannerSummaryList.innerHTML = '';
+      return;
+    }
+    const cities = Array.isArray(plan.cities) ? plan.cities : [];
+    const activities = Array.isArray(plan.activities) ? plan.activities : [];
+    const bestMonths = Array.isArray(plan.best_months) ? plan.best_months : [];
+    const notes = String(plan.notes || '').trim();
+    const budget = budgetLabel(plan.budget_tier);
+    const items = [
+      `Cities: ${cities.length ? cities.join(', ') : 'Not set'}`,
+      `Activities: ${activities.length ? activities.join(', ') : 'Not set'}`,
+      `Budget: ${budget}`,
+      `Best months: ${bestMonths.length ? bestMonths.join(', ') : 'Not set'}`,
+      `Notes: ${notes || 'Not set'}`
+    ];
+    ui.plannerSummaryList.innerHTML = items.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('');
+    ui.plannerSummary.hidden = false;
+  }
+
+  async function loadPlanner() {
+    if (!state.currentUser || !state.currentUser.id || !state.code) {
+      state.planner = null;
+      setPlannerFormValues(null);
+      renderPlannerSummary(null);
+      return;
+    }
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    try {
+      const { data, error } = await sb
+        .from('travel_plans')
+        .select('id,user_id,country_code,cities,activities,budget_tier,best_months,notes,updated_at')
+        .eq('user_id', state.currentUser.id)
+        .eq('country_code', state.code)
+        .maybeSingle();
+      if (error) {
+        state.planner = null;
+        setPlannerFormValues(null);
+        renderPlannerSummary(null);
+        return;
+      }
+      state.planner = data || null;
+      setPlannerFormValues(state.planner);
+      renderPlannerSummary(state.planner);
+    } catch (_e) {
+      state.planner = null;
+      setPlannerFormValues(null);
+      renderPlannerSummary(null);
+    }
+  }
+
+  function getPlannerPayloadFromForm() {
+    const citiesEl = document.getElementById('plannerCitiesInput');
+    const bestMonthsEl = document.getElementById('plannerBestMonthsInput');
+    const budgetEl = document.getElementById('plannerBudgetSelect');
+    const activitiesEl = document.getElementById('plannerActivitiesInput');
+    const notesEl = document.getElementById('plannerNotesInput');
+    const cities = splitPlannerList(citiesEl ? citiesEl.value : '', 18);
+    const bestMonths = splitPlannerList(bestMonthsEl ? bestMonthsEl.value : '', 12);
+    const activities = splitPlannerList(activitiesEl ? activitiesEl.value : '', 18);
+    const budgetTier = String(budgetEl ? budgetEl.value : '').trim().toLowerCase();
+    const notes = String(notesEl ? notesEl.value : '').trim();
+    return {
+      country_code: state.code,
+      user_id: state.currentUser && state.currentUser.id ? state.currentUser.id : null,
+      cities, activities,
+      budget_tier: budgetTier || null,
+      best_months: bestMonths,
+      notes: notes || null
+    };
+  }
+
+  async function savePlanner(event) {
+    event.preventDefault();
+    if (!state.currentUser || !state.currentUser.id) {
+      showToast('Please sign in', 'error');
+      return;
+    }
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    const payload = getPlannerPayloadFromForm();
+    const hasContent = payload.cities.length || payload.activities.length || payload.best_months.length || payload.budget_tier || payload.notes;
+    if (!hasContent) {
+      showToast('Add at least one planner field', 'error');
+      return;
+    }
+    if (ui.plannerSaveBtn) ui.plannerSaveBtn.disabled = true;
+    const { error } = await sb.from('travel_plans').upsert(payload, { onConflict: 'user_id,country_code' });
+    if (ui.plannerSaveBtn) ui.plannerSaveBtn.disabled = false;
+    if (error) {
+      showToast('Could not save plan', 'error');
+      return;
+    }
+    await loadPlanner();
+    showToast('Travel plan saved', 'success');
+  }
+
+  async function clearPlanner() {
+    if (!state.currentUser || !state.currentUser.id) return;
+    if (!window.confirm('Clear saved travel plan for this country?')) return;
+    const sb = await ensureSupabase();
+    if (!sb) return;
+    const { error } = await sb.from('travel_plans').delete().eq('user_id', state.currentUser.id).eq('country_code', state.code);
+    if (error) {
+      showToast('Could not clear plan', 'error');
+      return;
+    }
+    state.planner = null;
+    setPlannerFormValues(null);
+    renderPlannerSummary(null);
+    showToast('Travel plan cleared', 'info');
+  }
+
+  function wirePlannerEvents() {
+    if (ui.plannerForm) ui.plannerForm.addEventListener('submit', (event) => { void savePlanner(event); });
+    if (ui.plannerClearBtn) ui.plannerClearBtn.addEventListener('click', () => { void clearPlanner(); });
+  }
+
+  /* ---------- Related (other countries in same region) ---------- */
+  function renderRelated(otherCountries) {
+    if (!ui.related) return;
+    const list = Array.isArray(otherCountries) ? otherCountries : [];
+    if (!list.length) {
+      if (ui.relatedSection) ui.relatedSection.hidden = true;
+      return;
+    }
+    ui.related.innerHTML = list.map((c) => `
+      <a class="elevated-related-card" href="country.html?code=${encodeURIComponent(c.code)}" data-code="${escapeHtml(c.code)}">
+        <span class="elevated-related-thumb">
+          ${c.flag ? `<img src="${escapeHtml(c.flag)}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.onerror=null;this.outerHTML='<i class=&quot;fa-solid fa-earth-americas&quot;></i>';">` : '<i class="fa-solid fa-earth-americas"></i>'}
+        </span>
+        <span class="elevated-related-body">
+          <span class="elevated-related-name">${escapeHtml(c.name)}</span>
+          <span class="elevated-related-meta">${escapeHtml(c.region || '')}</span>
+        </span>
+      </a>
+    `).join('');
+    if (ui.relatedSection) ui.relatedSection.hidden = false;
+  }
+
+  async function fetchRelatedCountries() {
+    if (!state.region) {
+      renderRelated([]);
+      return [];
+    }
+    try {
+      const url = `https://restcountries.com/v3.1/region/${encodeURIComponent(state.region)}?fields=name,cca2,flags,region`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        renderRelated([]);
+        return [];
+      }
+      const data = await response.json();
+      const list = (Array.isArray(data) ? data : [])
+        .map((row) => ({
+          code: canonicalCountryCode(row && (row.cca2 || '')),
+          name: String(row && row.name && (row.name.common || row.name.official) || '').trim(),
+          flag: safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || ''),
+          region: String(row && row.region || '').trim()
+        }))
+        .filter((c) => c.code && c.name && c.code !== state.code)
+        .slice(0, 12);
+      renderRelated(list);
+      return list;
+    } catch (_e) {
+      renderRelated([]);
+      return [];
+    }
+  }
+
+  /* ---------- Action card & list menu ---------- */
+  function updateSaveButton(isSaved) {
+    if (!ui.saveBtn) return;
+    ui.saveBtn.disabled = !state.code;
+    ui.saveBtn.classList.toggle('elevated-btn-saved', !!isSaved);
+    ui.saveBtn.classList.toggle('elevated-btn-primary', !isSaved);
+    const icon = isSaved ? 'fa-solid fa-check' : 'fa-solid fa-bookmark';
+    const text = isSaved ? 'saved' : 'add to list';
+    ui.saveBtn.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
+    ui.saveBtn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+  }
+
+  function openListMenuFromCard() {
+    if (ui.actionCard && window.openIndexStyleListMenu) {
+      window.openIndexStyleListMenu(ui.actionCard);
+    }
+  }
+
+  function ensureActionCard() {
+    if (!ui.actionCard) return;
+    ui.actionCard.setAttribute('data-item-id', state.code || '');
+    ui.actionCard.setAttribute('data-media-type', 'travel');
+    const titleEl = ui.actionCard.querySelector('.card-title');
+    if (titleEl) titleEl.textContent = state.name || 'Country';
+    const metaEl = ui.actionCard.querySelector('.card-meta');
+    if (metaEl) metaEl.textContent = [state.region, state.subregion].filter(Boolean).join(' · ');
+    const imgEl = ui.actionCard.querySelector('img');
+    if (imgEl && state.flag) imgEl.src = state.flag;
+  }
+
+  function initMenuBridge() {
+    if (typeof window.initIndexStyleListMenu !== 'function') return;
+    window.initIndexStyleListMenu({
+      mediaType: 'travel',
+      getCurrentUser: () => state.currentUser,
+      ensureClient: ensureSupabase,
+      notify: (message, isError) => showToast(message, isError ? 'error' : 'success')
+    });
+    if (window.ListUtils && typeof window.ListUtils.bindGlobalListUx === 'function') {
+      window.ListUtils.bindGlobalListUx();
+    }
+  }
+
+  /* ---------- Country loading ---------- */
+  function showMissingCodeView() {
+    if (ui.name) ui.name.textContent = 'Choose a country';
+    if (ui.kicker) ui.kicker.textContent = 'travel spotlight';
+    if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = 'Country';
+    if (ui.meta) ui.meta.innerHTML = '';
+    if (ui.tags) ui.tags.innerHTML = '';
+    if (ui.description) {
+      ui.description.textContent = 'Pick a destination from the travel page to see details, photos, and reviews here.';
+    }
+    if (ui.flag) {
+      ui.flag.removeAttribute('src');
+      ui.flag.alt = 'No country selected';
+    }
+    if (ui.posterFrame) ui.posterFrame.classList.add('is-missing');
+    if (ui.saveBtn) ui.saveBtn.disabled = true;
+    if (ui.mapBtn) {
+      ui.mapBtn.setAttribute('href', 'travel.html');
+      ui.mapBtn.removeAttribute('target');
+      ui.mapBtn.removeAttribute('rel');
+    }
+    [ui.guideSection, ui.gallerySection, ui.relatedSection, ui.reviewsSection].forEach((s) => { if (s) s.hidden = true; });
+    if (ui.infoGrid) ui.infoGrid.innerHTML = '<div class="country-fact"><i class="fa-solid fa-earth-americas"></i><div class="country-fact-body"><span class="country-fact-label">Browse</span><span class="country-fact-value">Open the travel page to pick a country</span></div></div>';
+    applyRegionFallbackBackground();
+  }
+
+  async function loadCountry() {
+    if (!state.code) {
+      showMissingCodeView();
+      return;
+    }
+    try {
+      const response = await fetch(`${REST_COUNTRIES_BASE}/${encodeURIComponent(state.code)}?fields=name,cca2,cca3,capital,region,subregion,flags,languages,currencies,maps`);
+      if (!response.ok) {
+        if (ui.name) ui.name.textContent = 'Country unavailable';
+        if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
+        return;
+      }
+      const payload = await response.json();
+      const row = Array.isArray(payload) ? payload[0] : payload;
+      const code = canonicalCountryCode(row && (row.cca2 || row.cca3 || state.code));
+      state.code = code;
+
+      const name = String(row && row.name && (row.name.common || row.name.official) || code).trim() || (code === 'PS' ? 'Palestine' : code);
+      const capital = Array.isArray(row && row.capital) ? String(row.capital[0] || '').trim() : String(row && row.capital || '').trim();
+      const region = String(row && row.region || '').trim();
+      const subregion = String(row && row.subregion || '').trim();
+      const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+      const mapsUrl = safeHttps(row && row.maps && row.maps.googleMaps || '');
+
+      const languagesList = row && row.languages && typeof row.languages === 'object'
+        ? Object.values(row.languages).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 4)
+        : [];
+      const currenciesList = row && row.currencies && typeof row.currencies === 'object'
+        ? Object.keys(row.currencies).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+        : [];
+
+      state.name = name;
+      state.capital = capital;
+      state.region = region;
+      state.subregion = subregion;
+      state.languages = languagesList;
+      state.currencies = currenciesList;
+      state.flag = flag;
+      state.mapsUrl = mapsUrl;
+
+      if (ui.name) ui.name.textContent = name;
+      if (ui.kicker) ui.kicker.textContent = `${region || 'travel'} spotlight`;
+      if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = name;
+      if (ui.meta) {
+        const metaBits = [];
+        if (capital) metaBits.push(`<i class="fa-solid fa-landmark"></i> <strong>${escapeHtml(capital)}</strong>`);
+        if (region) metaBits.push(`<i class="fa-solid fa-globe"></i> <strong>${escapeHtml(region)}</strong>`);
+        if (subregion) metaBits.push(`<i class="fa-solid fa-location-dot"></i> <strong>${escapeHtml(subregion)}</strong>`);
+        ui.meta.innerHTML = metaBits.join('');
+      }
+      if (ui.tags) {
+        const tagBits = [];
+        if (languagesList.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-language"></i> ${escapeHtml(languagesList.join(', '))}</span>`);
+        if (currenciesList.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-coins"></i> ${escapeHtml(currenciesList.join(', '))}</span>`);
+        tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-hashtag"></i> ${escapeHtml(code)}</span>`);
+        ui.tags.innerHTML = tagBits.join('');
+      }
+      if (ui.description) {
+        const parts = [];
+        parts.push(`${name}${capital ? `, with ${capital} as its capital,` : ''} sits in the ${region || '—'}${subregion ? ` (${subregion})` : ''}.`);
+        if (languagesList.length) parts.push(`Locals speak ${languagesList.slice(0, 2).join(' and ')}.`);
+        if (currenciesList.length) parts.push(`The currency${currenciesList.length > 1 ? 'ies' : ''} in use include ${currenciesList.join(', ')}.`);
+        parts.push(`Browse the travel guide below for city ideas, activity picks, and practical tips. Save your plan and share a review once you've been.`);
+        ui.description.textContent = parts.join(' ');
+      }
+
+      if (ui.flag) {
+        ui.flag.src = flag;
+        ui.flag.alt = `${name} flag`;
+        ui.flag.onerror = function onFlagError() {
+          this.onerror = null;
+          this.removeAttribute('src');
+          if (ui.posterFrame) ui.posterFrame.classList.add('is-missing');
+        };
+      }
+      if (ui.posterFrame) ui.posterFrame.classList.remove('is-missing');
+
+      if (ui.mapBtn) {
+        if (mapsUrl) {
+          ui.mapBtn.setAttribute('href', mapsUrl);
+          ui.mapBtn.setAttribute('target', '_blank');
+          ui.mapBtn.setAttribute('rel', 'noopener');
+        } else {
+          ui.mapBtn.setAttribute('href', 'travel.html');
+          ui.mapBtn.removeAttribute('target');
+          ui.mapBtn.removeAttribute('rel');
+        }
+      }
+
+      renderInfoGrid();
+      renderGuide();
+      ensureActionCard();
+      updateSaveButton(false);
+
+      const fallbackPhoto = buildCountryPhotoUrl(name, code);
+      if (fallbackPhoto) {
+        applyBackdrop(fallbackPhoto);
+      } else {
+        applyRegionFallbackBackground();
+      }
+      renderGallery(countryGalleryCache.get(code) || [], name);
+
+      void fetchCommonsCountryGallery(name, code, capital)
+        .then((images) => {
+          const list = Array.isArray(images) ? images : [];
+          renderGallery(list, name);
+          const heroEntry = list.map((value) => normalizeGalleryItem(value)).filter(Boolean)[0];
+          if (heroEntry && heroEntry.url) applyBackdrop(heroEntry.url);
+        })
+        .catch(() => {});
+
+      void fetchRelatedCountries();
+    } catch (e) {
+      console.warn('Failed to load country:', e);
+      if (ui.name) ui.name.textContent = 'Country unavailable';
+      if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
+    }
+  }
+
+  /* ---------- Init ---------- */
+  function wireSaveButton() {
+    if (!ui.saveBtn) return;
+    ui.saveBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (!state.code) {
+        showToast('Pick a country first', 'error');
+        return;
+      }
+      openListMenuFromCard();
+    });
+  }
+
+  async function init() {
+    if (ui.body) ui.body.dataset.elevatedCategory = 'travel';
+    state.code = canonicalCountryCode(routeCode);
+
+    loadSharedTravelPhotoCache();
+    loadCountryGalleryCache();
+
+    if (routeCode === 'IL' && state.code === 'PS') {
+      try {
+        const next = new URLSearchParams(window.location.search);
+        next.set('code', 'PS');
+        const query = next.toString();
+        window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+      } catch (_e) {}
+    }
+
+    wireDescriptionToggle();
+    wireReviewEvents();
+    wirePlannerEvents();
+    wireSaveButton();
+    drawRatingStars();
+
+    await loadCountry();
+    await initAuth();
+    initMenuBridge();
+    syncReviewFormVisibility();
+    syncPlannerVisibility();
+    void loadReviews();
+    void loadPlanner();
+  }
+
+  init().catch((err) => {
+    console.error('Country page init failed:', err);
+    showToast('Unable to load country details.', 'error');
+  });
+})();
