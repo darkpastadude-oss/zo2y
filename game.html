@@ -743,16 +743,6 @@
       <div class="elevated-info">
         <div class="elevated-title-row">
           <h1 id="title" class="elevated-title">Loading...</h1>
-          <div class="menu-wrapper">
-            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists" title="Save to list"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu" id="movieListMenu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Played</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Backlog</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-            </div>
-          </div>
         </div>
         <p id="tagline" class="elevated-tagline" hidden></p>
         <div id="meta" class="elevated-meta" aria-label="Game metadata"></div>
@@ -766,7 +756,7 @@
         </div>
         <div class="elevated-actions">
           <button class="elevated-btn elevated-btn-primary" id="watchTrailerBtn" type="button"><i class="fas fa-play"></i> Watch Clip</button>
-          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to Backlog</button>
+          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to list</button>
         </div>
       </div>
     </div>
@@ -1037,7 +1027,7 @@
         return String(num);
       }
 
-      // Get a usable backdrop URL — sized large enough to be sharp on
+      // Get a usable backdrop URL ï¿½ sized large enough to be sharp on
       // high-DPR mobile. IGDB images come from images.igdb.com, and we
       // can swap the size segment in the path.
       function getGameBackdropUrl(url) {
@@ -1195,7 +1185,7 @@
               openTrailerLightbox(key);
               return;
             }
-            // No clip in our catalog — fall back to a YouTube search.
+            // No clip in our catalog ï¿½ fall back to a YouTube search.
             const searchUrl = trailerBtn.dataset.searchUrl;
             if (searchUrl) {
               window.open(searchUrl, '_blank', 'noopener');
@@ -1236,7 +1226,7 @@
         return '';
       }
 
-      // Deterministic 32-bit hash of a string — used to derive a consistent
+      // Deterministic 32-bit hash of a string ï¿½ used to derive a consistent
       // color palette per game title for the procedural art fallback.
       function hashString(str) {
         let hash = 0;
@@ -1351,7 +1341,7 @@
           });
         }
 
-        // Hide the other sections — they don't have data.
+        // Hide the other sections ï¿½ they don't have data.
         const trailerSection = document.getElementById('trailer');
         if (trailerSection) trailerSection.closest('.elevated-section').style.display = 'none';
         ['directors', 'writers', 'cast', 'details'].forEach((id) => {
@@ -1516,7 +1506,7 @@
         if (!Number.isFinite(gameId)) return;
         const data = await fetchCatalogGameById();
         if (!data) {
-          // Game isn't in the local catalog — render a graceful fallback
+          // Game isn't in the local catalog ï¿½ render a graceful fallback
           // instead of throwing. The user can search for the game or jump
           // to external sources.
           renderGameNotFound();
@@ -1547,7 +1537,7 @@
         const taglineEl = document.getElementById('tagline');
         if (taglineEl) taglineEl.hidden = true;
 
-        // Metadata row (year, playtime, rating) — only render items we actually have
+        // Metadata row (year, playtime, rating) ï¿½ only render items we actually have
         const metaEl = document.getElementById('meta');
         if (metaEl) {
           const metaItems = [];
@@ -1567,9 +1557,9 @@
         }
 
         // Pick a backdrop that is visually distinct from the cover.
-        // 1. data.hero_url (preferred — IGDB screenshot, wider aspect)
+        // 1. data.hero_url (preferred ï¿½ IGDB screenshot, wider aspect)
         // 2. data.background_image or first screenshot
-        // 3. nothing — render a strong gradient with the cover only
+        // 3. nothing ï¿½ render a strong gradient with the cover only
         const heroEl = document.getElementById('heroBackground');
         const coverUrl = resolveGameImageSource(data);
         const extractUrl = (entry) => {
@@ -1632,7 +1622,7 @@
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` · ${formatCount(ratingCount)} votes` : ''}` });
+          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` ï¿½ ${formatCount(ratingCount)} votes` : ''}` });
           if (releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Released', value: releaseDate });
           if (playtime > 0) items.push({ icon: 'fas fa-clock', title: 'Avg. Playtime', value: `${playtime} hrs` });
           if (platforms.length) items.push({ icon: 'fas fa-gamepad', title: 'Platforms', value: platforms.slice(0, 4).join(', ') });
@@ -1649,7 +1639,7 @@
           metaGrid.className = 'elevated-details';
         }
 
-        // Trailer / clip — find a YouTube key, fall back to a YouTube search link
+        // Trailer / clip ï¿½ find a YouTube key, fall back to a YouTube search link
         const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
         const youtubeId = extractYouTubeKey(trailerUrl);
         const trailerEl = document.getElementById('trailer');

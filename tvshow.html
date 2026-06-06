@@ -730,16 +730,6 @@
       <div class="elevated-info">
         <div class="elevated-title-row">
           <h1 id="title" class="elevated-title">Loading...</h1>
-          <div class="menu-wrapper">
-            <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists" title="Save to list"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu" id="movieListMenu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watched"><span><i class="fas fa-eye"></i> Watched</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="watchlist"><span><i class="fas fa-bookmark"></i> Watchlist</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-            </div>
-          </div>
         </div>
         <p id="tagline" class="elevated-tagline" hidden></p>
         <div id="meta" class="elevated-meta" aria-label="Media metadata"></div>
@@ -753,7 +743,7 @@
         </div>
         <div class="elevated-actions">
           <button class="elevated-btn elevated-btn-primary" id="watchTrailerBtn" type="button"><i class="fas fa-play"></i> Watch Trailer</button>
-          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to Watchlist</button>
+          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to list</button>
         </div>
       </div>
     </div>
@@ -958,7 +948,7 @@
         const blur = document.getElementById('heroBackdropBlur');
         const hero = document.getElementById('heroBackground');
         if (!backdrop || !hero) return;
-        // Mobile displays are usually high-DPR (2x–3x), so a w1280 image
+        // Mobile displays are usually high-DPR (2xï¿½3x), so a w1280 image
         // renders blurry on a 414px-wide phone. We always use `original`
         // for the visible backdrop so the hero stays crisp; the blurred
         // glow copy uses w780 because it's blurred 48px and lower-res
@@ -1125,17 +1115,11 @@
         }
         const watchlistBtn = document.getElementById('addWatchlistBtn');
         if (watchlistBtn) {
-          watchlistBtn.addEventListener('click', async () => {
-            const result = await toggleList('watchlist');
-            if (result && typeof result.saved === 'boolean') {
-              const icon = watchlistBtn.querySelector('i');
-              const text = watchlistBtn.childNodes[watchlistBtn.childNodes.length - 1];
-              if (icon) {
-                icon.className = result.saved ? 'fas fa-check' : 'fas fa-bookmark';
-              }
-              if (text && text.nodeType === 3) {
-                text.textContent = result.saved ? ' in watchlist' : ' add to watchlist';
-              }
+          watchlistBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.openIndexStyleListMenu === 'function') {
+              window.openIndexStyleListMenu(watchlistBtn);
             }
           });
         }
@@ -1367,7 +1351,7 @@
         //   1. data.backdrop_path (the media's "primary" backdrop)
         //   2. any other backdrop from images.backdrops (skip the one that
         //      matches the primary; if all are the same pick the next one)
-        //   3. nothing — render a stronger hero gradient with the poster only.
+        //   3. nothing ï¿½ render a stronger hero gradient with the poster only.
         const hero = document.getElementById('heroBackground');
         const posterPath = data.poster_path || '';
         const isSameAsPoster = (p) => !!p && !!posterPath && p === posterPath;
@@ -1771,7 +1755,7 @@
       }
 
       function bindUnifiedListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
+        const menuBtn = document.getElementById('addWatchlistBtn');
         if (!menuBtn || !tvId || !window.initIndexStyleListMenu) return;
 
         window.initIndexStyleListMenu({
@@ -1797,13 +1781,6 @@
           getCurrentUser: () => currentUser,
           notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
           toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
-        });
-
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(menuBtn);
-          }
         });
       }
 
