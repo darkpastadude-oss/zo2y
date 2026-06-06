@@ -5,9 +5,9 @@
 */
 
 :root {
-  --brand-bg: #07091a;
-  --brand-card: #0e1430;
-  --brand-card-soft: rgba(14, 20, 44, 0.78);
+  --brand-bg: #0b1633;
+  --brand-card: #132347;
+  --brand-card-soft: rgba(19, 35, 71, 0.78);
   --brand-border: rgba(255, 255, 255, 0.08);
   --brand-border-strong: rgba(255, 255, 255, 0.14);
   --brand-accent: var(--color-accent);
@@ -89,7 +89,7 @@ main.container {
   gap: 8px;
   padding: 14px 12px 12px;
   border-radius: 14px;
-  background: linear-gradient(160deg, rgba(20, 28, 56, 0.7) 0%, rgba(8, 12, 30, 0.85) 100%);
+  background: linear-gradient(160deg, rgba(19, 35, 71, 0.7) 0%, rgba(11, 22, 51, 0.85) 100%);
   border: 1px solid var(--brand-border);
   cursor: pointer;
   transition: transform 0.2s var(--brand-ease), border-color 0.2s var(--brand-ease);
@@ -145,7 +145,7 @@ main.container {
   gap: 10px;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(160deg, rgba(20, 28, 56, 0.85) 0%, rgba(8, 12, 30, 0.92) 100%);
+  background: linear-gradient(160deg, rgba(19, 35, 71, 0.85) 0%, rgba(11, 22, 51, 0.92) 100%);
   border: 1px solid var(--brand-border);
   text-decoration: none;
   color: inherit;

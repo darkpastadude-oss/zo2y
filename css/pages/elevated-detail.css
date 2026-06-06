@@ -16,8 +16,8 @@
  */
 
 :root {
-  --dt-bg: #07091a;
-  --dt-bg-2: #0b0f24;
+  --dt-bg: #0b1633;
+  --dt-bg-2: #132347;
   --dt-surface: rgba(14, 20, 44, 0.78);
   --dt-surface-2: rgba(20, 28, 56, 0.62);
   --dt-line: rgba(255, 255, 255, 0.08);
@@ -38,9 +38,9 @@
   /* Per-page accent swatch — overridden per category */
   --dt-glow-a: color-mix(in srgb, var(--color-accent) 22%, transparent);
   --dt-glow-b: rgba(99, 102, 241, 0.20);
-  --dt-fallback-c1: #0a0f24;
-  --dt-fallback-c2: #0e1530;
-  --dt-fallback-c3: #07091a;
+  --dt-fallback-c1: #0b1633;
+  --dt-fallback-c2: #132347;
+  --dt-fallback-c3: #0b1633;
   --dt-fallback-initial: "?";
   --dt-fallback-icon: "\f005";
 }
@@ -269,7 +269,7 @@
 }
 
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-poster-frame {
-  max-width: 220px;
+  max-width: 160px;
   margin: 0 auto;
   aspect-ratio: 1 / 1;
   transform: translateZ(0);
@@ -303,11 +303,16 @@
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 24px 60px -22px rgba(0, 0, 0, 0.65),
     0 6px 18px -6px rgba(0, 0, 0, 0.45);
-  padding: 22px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card .elevated-poster {
   object-fit: contain;
-  padding: 6px;
+  padding: 0;
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
   filter: drop-shadow(0 10px 22px rgba(15, 23, 42, 0.12));
   background: transparent;

@@ -53,7 +53,6 @@
     gallerySection: document.getElementById('brandGallerySection'),
     gallerySub: document.getElementById('brandGallerySub'),
     saveBtn: document.getElementById('brandSaveBtn'),
-    menuBtn: document.getElementById('brandMenuBtn'),
     website: document.getElementById('brandWebsite'),
     reviewsList: document.getElementById('reviewsList'),
     reviewsStats: document.getElementById('reviewsStats'),
@@ -1259,12 +1258,6 @@
   }
 
   function wireActions() {
-    if (dom.menuBtn) {
-      dom.menuBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        openListMenuFromCard();
-      });
-    }
     if (dom.saveBtn) {
       dom.saveBtn.addEventListener('click', (event) => {
         event.stopPropagation();

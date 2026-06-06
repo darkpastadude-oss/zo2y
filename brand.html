@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605k">
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605l">
   <link rel="stylesheet" href="css/shared-header.css?v=20260605i" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605i"></noscript>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
@@ -34,13 +34,13 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605h" defer></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605l" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <script src="js/review-interactions.js?v=20260601b" defer></script>
 <script src="js/wiki-cache.js?v=20260605d" defer></script>
 <script src="js/shared-header.js?v=20260601b" defer></script>
-  <script src="js/pages/brand.js?v=20260605k" defer></script>
+  <script src="js/pages/brand.js?v=20260605l" defer></script>
 
   </head>
 <body class="elevated-detail-page" data-elevated-category="food">
@@ -83,13 +83,13 @@
     <div class="elevated-hero-grain" aria-hidden="true"></div>
     <div class="elevated-hero-watermark" aria-hidden="true">brand</div>
     <div class="elevated-hero-foreground">
-      <a class="elevated-poster-frame elevated-logo-card" id="brandPosterFrame" href="#" target="_blank" rel="noopener" aria-label="Brand website">
+      <div class="elevated-poster-frame elevated-logo-card" id="brandPosterFrame" aria-label="Brand logo">
         <img id="brandLogo" class="elevated-poster" src="/newlogo.webp" alt="Brand logo" loading="lazy" decoding="async">
         <div class="elevated-poster-fallback" aria-hidden="true">
           <i class="elevated-poster-fallback-icon fa-solid fa-tag"></i>
           <span class="elevated-poster-fallback-title" id="brandPosterFallbackTitle">Brand</span>
         </div>
-      </a>
+      </div>
       <div class="elevated-info">
         <span class="elevated-kicker" id="brandKicker">
           <span class="elevated-kicker-dot"></span>
@@ -109,14 +109,11 @@
         </div>
         <div class="elevated-actions">
           <button class="elevated-btn elevated-btn-primary" id="brandSaveBtn" type="button">
-            <i class="fa-solid fa-bookmark"></i> <span>save brand</span>
+            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
           </button>
           <a class="elevated-btn elevated-btn-secondary" id="brandWebsite" href="#" target="_blank" rel="noopener" style="display:none;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> official site
           </a>
-          <button class="elevated-btn elevated-btn-ghost" id="brandMenuBtn" type="button" aria-label="Add to list">
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
         </div>
       </div>
     </div>

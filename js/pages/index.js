@@ -6956,7 +6956,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const card = btn.closest('.card');
-          if (card) openItemMenu(card, btn);
+          if (card && window.openIndexStyleListMenu) {
+            window.openIndexStyleListMenu(card);
+          } else if (card) {
+            openItemMenu(card, btn);
+          }
         });
       });
 

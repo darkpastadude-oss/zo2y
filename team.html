@@ -15,13 +15,13 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605l" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605k">
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605l">
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -103,7 +103,7 @@
         </div>
         <div class="elevated-actions">
           <button class="elevated-btn elevated-btn-primary" id="teamSaveBtn" type="button">
-            <i class="fa-solid fa-heart"></i> <span>save team</span>
+            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
           </button>
           <a class="elevated-btn elevated-btn-secondary" id="teamWebsite" href="#" target="_blank" rel="noopener" style="display:none;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> official site
@@ -192,8 +192,64 @@
 
   <div class="elevated-toast" id="teamToast" role="status" aria-live="polite"></div>
 
+  <div id="teamActionCard" class="card hidden" data-item-id="">
+    <div class="card-title"></div>
+    <div class="card-meta"></div>
+    <img src="" alt="" loading="lazy" />
+  </div>
+
+  <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content">
+      <div class="menu-modal-header">
+        <h3 id="menuModalTitle">Add to List</h3>
+        <button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body" id="menuModalBody">
+        <div class="menu-quick-lists" id="menuQuickLists"></div>
+        <div class="menu-custom-section">
+          <div class="menu-custom-header">
+            <span>Your Custom Lists</span>
+            <button class="menu-create-list-btn" id="menuCreateListBtn">
+              <i class="fas fa-plus"></i> New
+            </button>
+          </div>
+          <div class="menu-custom-lists" id="menuCustomLists"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div class="menu-modal-content max-w-320">
+      <div class="menu-modal-header">
+        <h3>Create New List</h3>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
+      </div>
+      <div class="menu-modal-body">
+        <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+        <div class="menu-icon-grid">
+          <button class="menu-icon-option selected" data-icon="fas fa-shield-halved"><i class="fas fa-shield-halved"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-trophy"><i class="fas fa-trophy"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-medal"><i class="fas fa-medal"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-futbol"><i class="fas fa-futbol"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-basketball"><i class="fas fa-basketball"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-baseball"><i class="fas fa-baseball"></i></button>
+          <button class="menu-icon-option" data-icon="fas fa-volleyball"><i class="fas fa-volleyball"></i></button>
+        </div>
+        <div class="menu-modal-actions">
+          <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
+          <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="js/sportsdb-client.js?v=20260601b" defer></script>
-  <script src="js/pages/team.js?v=20260605e" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
+  <script src="js/pages/team.js?v=20260605l" defer></script>
   <script src="js/production-runtime.js?v=20260601b" defer></script>
 </body>
 </html>

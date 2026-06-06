@@ -17,8 +17,8 @@
  */
 
 :root {
-  --md-bg: #07091a;
-  --md-bg-2: #0b0f24;
+  --md-bg: #0b1633;
+  --md-bg-2: #132347;
   --md-surface: rgba(14, 20, 44, 0.78);
   --md-surface-2: rgba(20, 28, 56, 0.62);
   --md-line: rgba(255, 255, 255, 0.08);
@@ -103,7 +103,7 @@
       var(--md-fallback-glow-b-soft, rgba(99, 102, 241, 0.05)) 45%,
       transparent 75%
     ),
-    linear-gradient(135deg, var(--md-fallback-c1, #0a0f24) 0%, var(--md-fallback-c2, #0e1530) 50%, var(--md-fallback-c3, #07091a) 100%);
+    linear-gradient(135deg, var(--md-fallback-c1, #0b1633) 0%, var(--md-fallback-c2, #132347) 50%, var(--md-fallback-c3, #0b1633) 100%);
   position: relative;
 }
 
@@ -326,7 +326,7 @@
   background:
     radial-gradient(circle at 30% 20%, var(--md-fallback-glow-a, color-mix(in srgb, var(--color-accent) 35%, transparent)) 0%, transparent 55%),
     radial-gradient(circle at 70% 80%, var(--md-fallback-glow-b, rgba(99, 102, 241, 0.35)) 0%, transparent 55%),
-    linear-gradient(135deg, var(--md-fallback-c1, #1a2447) 0%, var(--md-fallback-c2, #0a0f24) 100%);
+    linear-gradient(135deg, var(--md-fallback-c1, #132347) 0%, var(--md-fallback-c2, #0b1633) 100%);
   text-align: center;
   padding: 0 18px;
   overflow: hidden;

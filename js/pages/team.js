@@ -59,7 +59,8 @@
     gallery: document.getElementById('teamGallery'),
     gallerySection: document.getElementById('teamGallerySection'),
     gallerySub: document.getElementById('teamGallerySub'),
-    toast: document.getElementById('teamToast')
+    toast: document.getElementById('teamToast'),
+    actionCard: document.getElementById('teamActionCard')
   };
 
   const SPORT_BACKGROUNDS = {
@@ -214,10 +215,30 @@
     if (!ui.saveBtn) return;
     ui.saveBtn.classList.toggle('elevated-btn-saved', !!isSaved);
     ui.saveBtn.classList.toggle('elevated-btn-primary', !isSaved);
-    const icon = isSaved ? 'fa-solid fa-check' : 'fa-solid fa-heart';
-    const text = isSaved ? 'saved' : 'save team';
+    const icon = isSaved ? 'fa-solid fa-check' : 'fa-solid fa-bookmark';
+    const text = isSaved ? 'saved' : 'add to list';
     ui.saveBtn.innerHTML = `<i class="${icon}"></i><span>${text}</span>`;
     ui.saveBtn.setAttribute('aria-pressed', isSaved ? 'true' : 'false');
+  }
+
+  function openListMenuFromCard() {
+    if (ui.actionCard && window.openIndexStyleListMenu) {
+      window.openIndexStyleListMenu(ui.actionCard);
+    }
+  }
+
+  function initMenuBridge() {
+    if (typeof window.initIndexStyleListMenu !== 'function') return;
+    window.initIndexStyleListMenu({
+      mediaType: 'team',
+      getCurrentUser: () => state.currentUser,
+      ensureClient: ensureSupabase,
+      toggleDefaultList,
+      notify: (message, isError) => showToast(message, isError ? 'error' : 'success')
+    });
+    if (window.ListUtils && typeof window.ListUtils.bindGlobalListUx === 'function') {
+      window.ListUtils.bindGlobalListUx();
+    }
   }
 
   function setFallbackInitial(initial) {
@@ -723,8 +744,23 @@
       }
     }
 
-    // Backdrop: prefer real photo, then fanart, then banner, then stadium image, then badge
-    const backdrop = team.wikiPhoto || team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb || team.badge;
+    // Populate hidden action card so the list-menu modal can read team data
+    if (ui.actionCard) {
+      ui.actionCard.setAttribute('data-item-id', team.id || '');
+      ui.actionCard.setAttribute('data-title', team.name || '');
+      ui.actionCard.setAttribute('data-subtitle', team.league || team.sport || '');
+      if (team.badge) ui.actionCard.setAttribute('data-list-image', team.badge);
+      const titleEl = ui.actionCard.querySelector('.card-title');
+      if (titleEl) titleEl.textContent = team.name || '';
+      const metaEl = ui.actionCard.querySelector('.card-meta');
+      if (metaEl) metaEl.textContent = team.league || team.sport || '';
+      const img = ui.actionCard.querySelector('img');
+      if (img && team.badge) img.src = team.badge;
+    }
+
+    // Backdrop: prefer real photo, then fanart, then banner, then stadium image.
+    // Never fall back to the badge/crest — that's the logo tile, not a backdrop.
+    const backdrop = team.wikiPhoto || team.fanart || (team.fanarts && team.fanarts[0]) || team.banner || team.stadiumThumb;
     if (backdrop) {
       applyBackdrop(backdrop);
     } else {
@@ -842,6 +878,26 @@
     return true;
   }
 
+  async function toggleDefaultList({ itemId, listType, nextSaved }) {
+    const client = await ensureSupabase();
+    if (!client) return false;
+    if (!state.currentUser?.id) return false;
+    if (!itemId || !listType) return false;
+    const isFavorite = String(listType).toLowerCase() === 'favorites';
+    if (nextSaved) {
+      if (isFavorite) {
+        state.favorites.add(itemId);
+        return await saveTeam({ id: itemId });
+      }
+      return true;
+    }
+    if (isFavorite) {
+      state.favorites.delete(itemId);
+      return await removeTeam(itemId);
+    }
+    return true;
+  }
+
   async function toggleFavorite() {
     if (!state.team?.id) return;
     if (!state.currentUser) {
@@ -930,16 +986,25 @@
       let photoImage = '';
       try {
         const imagesRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=30&format=json&origin=*`
+          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=40&format=json&origin=*`
         );
         if (imagesRes.ok) {
           const imagesData = await imagesRes.json();
           const pages = imagesData?.query?.pages ? Object.values(imagesData.query.pages) : [];
           const titles = [];
           pages.forEach((p) => (p.images || []).forEach((img) => titles.push(img.title || '')));
-          const SKIP = /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem/i;
+          // Filter out logos, icons, wordmarks, and also buildings/people/executives
+          // so we prefer stadium shots, team photos, kits, and action shots.
+          const SKIP = /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem|building|headquarters|factory|office|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|chart|graph|diagram/i;
           const candidates = titles.filter((t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t));
-          const slice = candidates.slice(0, 6);
+          // Boost stadium/team/kit/player photos to the top
+          const PRODUCT_BOOST = /stadium|arena|ground|pitch|field|court|kit|jersey|shirt|uniform|players?|team|lineup|squad|training|match|game|action|celebration|trophy|\b\d{4}\b/i;
+          const ranked = candidates.slice().sort((a, b) => {
+            const aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
+            const bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
+            return aScore - bScore;
+          });
+          const slice = ranked.slice(0, 8);
           if (slice.length) {
             const urlsRes = await fetch(
               `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join('|')}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`
@@ -1230,9 +1295,11 @@
     if (ui.body) ui.body.dataset.elevatedCategory = 'team';
     await ensureSupabase();
     await initAuth();
+    initMenuBridge();
     if (ui.saveBtn) {
-      ui.saveBtn.addEventListener('click', () => {
-        toggleFavorite().catch(() => {});
+      ui.saveBtn.addEventListener('click', (event) => {
+        event.preventDefault();
+        openListMenuFromCard();
       });
     }
     await loadTeam();
