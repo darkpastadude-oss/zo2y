@@ -212,22 +212,6 @@ export async function checkPasswordBreached(password, opts = {}) {
     return { checked: false, breached: false, error: String(err?.message || err) };
   }
 }
-      if (val && typeof val === "object") {
-        if (seen.has(val)) return "[Circular]";
-        seen.add(val);
-      }
-      if (typeof key === "string") {
-        const lower = key.toLowerCase();
-        if (REDACTED_QUERY_KEYS.has(lower)) return "[redacted]";
-        if (REDACTED_HEADERS.has(lower)) return "[redacted]";
-      }
-      return val;
-    });
-    return json;
-  } catch (_err) {
-    return "[unserializable]";
-  }
-}
 
 /**
  * Serverless-safe (Supabase-backed) rate limit. Falls back to in-memory
