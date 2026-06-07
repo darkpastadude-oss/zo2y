@@ -13838,6 +13838,7 @@
                 hideMobileFoodDetail: hideFoodDetail,
                 hideCarDetail,
                 hideMobileCarDetail: hideCarDetail,
+                hideListDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,

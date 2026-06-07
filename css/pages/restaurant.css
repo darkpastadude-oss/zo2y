@@ -11,26 +11,26 @@ body {
 
 :root {
   /* Design System Variables (aligned with design-system.css) */
-  --color-bg-primary: #1e2a4a;
+  --color-bg-primary: #0b1633;
   --color-text-primary: #fff;
   --color-text-secondary: #cbd5e1;
-  --color-bg-secondary: #2d3748;
-  --color-accent: #ff944d;
-  --color-accent-hover: #d97706;
+  --color-bg-secondary: #111827;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #ffb84d;
   --color-success: #22c55e;
   --color-error: #ef4444;
   --color-warning: var(--color-accent);
   --color-info: #3b82f6;
   
   /* Custom Variables (page-specific) */
-  --nav-bg: #2d3748;
+  --nav-bg: #111827;
   --nav-shadow: rgba(255, 255, 255, 0.1);
-  --btn-bg: #ff944d;
+  --btn-bg: #f59e0b;
   --btn-text: #111;
-  --input-bg: #2d3748;
+  --input-bg: #111827;
   --input-text: #fff;
-  --fab-color: var(--color-accent);
-  --fab-hover: #d97706;
+  --fab-color: #f59e0b;
+  --fab-hover: #ffb84d;
   
   /* Legacy Aliases (for backward compatibility during migration) */
   --bg: var(--color-bg-primary);

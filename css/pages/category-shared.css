@@ -5,7 +5,7 @@
   --muted: #8ca3c7;
   --accent: var(--color-accent);
   --white: #fff;
-  --border: rgba(255,255,255,0.12);
+  --border: var(--color-border);
   --surface: rgba(12, 26, 57, 0.84);
   --gradient: linear-gradient(135deg, var(--color-accent) 0%, #ffb84d 100%);
   --category-hero-image: none;

@@ -361,6 +361,7 @@ const TasteIdentity = (function() {
         let rarityPercentile = Math.round((1 - similarity) * 100);
         
         // Adjust based on intent ratio (high intent = more rare)
+        const intentRatio = favoriteCount / Math.max(totalItems, 1);
         if (intentRatio > 0.5) rarityPercentile -= 10;
         if (intentRatio > 0.7) rarityPercentile -= 15;
         if (intentRatio < 0.2) rarityPercentile += 10;

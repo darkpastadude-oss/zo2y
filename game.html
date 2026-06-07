@@ -1197,17 +1197,11 @@
         }
         const watchlistBtn = document.getElementById('addWatchlistBtn');
         if (watchlistBtn) {
-          watchlistBtn.addEventListener('click', async () => {
-            const result = await toggleList('watchlist');
-            if (result && typeof result.saved === 'boolean') {
-              const icon = watchlistBtn.querySelector('i');
-              const text = watchlistBtn.childNodes[watchlistBtn.childNodes.length - 1];
-              if (icon) {
-                icon.className = result.saved ? 'fas fa-check' : 'fas fa-bookmark';
-              }
-              if (text && text.nodeType === 3) {
-                text.textContent = result.saved ? ' in backlog' : ' add to backlog';
-              }
+          watchlistBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.openIndexStyleListMenu === 'function') {
+              window.openIndexStyleListMenu(watchlistBtn);
             }
           });
         }
@@ -1998,7 +1992,7 @@
       }
 
       function bindUnifiedListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
+        const menuBtn = document.getElementById('addWatchlistBtn');
         if (!menuBtn || !gameId || !window.initIndexStyleListMenu) return;
 
         window.initIndexStyleListMenu({
@@ -2024,13 +2018,6 @@
           getCurrentUser: () => currentUser,
           notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
           toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
-        });
-
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(menuBtn);
-          }
         });
       }
 
@@ -2477,8 +2464,6 @@
       })();
     })();
   </script>
-  
-<script src="js/legal-consent.js?v=20260606a" defer></script>
   <footer class="zo2y-footer">
     <div class="zo2y-footer-inner">
       <span class="zo2y-footer-brand">© 2026 Zo2y</span>

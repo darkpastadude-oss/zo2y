@@ -1796,16 +1796,19 @@
 
     var params = new URLSearchParams(window.location.search || '');
     var hashParams = getHashParams();
-    var hasPayload =
-      params.has('code') ||
-      params.has('error') ||
-      params.has('error_description') ||
+
+    var hasOAuthIndicators =
       hashParams.has('access_token') ||
       hashParams.has('refresh_token') ||
       hashParams.has('error') ||
       hashParams.has('error_description');
 
-    if (!hasPayload) return false;
+    var hasCodeParam = params.has('code') || params.has('error') || params.has('error_description');
+
+    if (!hasOAuthIndicators && !hasCodeParam) return false;
+
+    var storedFlow = safeGetAnyLocalStorage([OAUTH_FLOW_KEY, OLD_OAUTH_FLOW_KEY]);
+    if (!hasOAuthIndicators && hasCodeParam && !params.has('flow') && !storedFlow) return false;
 
     var recoveryType = String(params.get('type') || hashParams.get('type') || '').trim().toLowerCase();
     if (recoveryType === 'recovery') return false;
