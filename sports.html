@@ -44,13 +44,22 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: clamp(20px, 4vw, 34px);
-      background:
-        linear-gradient(120deg, rgba(10, 31, 56, 0.78), rgba(15, 44, 80, 0.55)),
-        url("/assets/home-spotlights/sports-multi.jpg") center/cover;
+      position: relative;
+      overflow: hidden;
       box-shadow: 0 14px 36px rgba(0,0,0,0.26);
       margin-bottom: 20px;
-      overflow: hidden;
     }
+    .brand-hero.sports-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.78), rgba(15, 44, 80, 0.55)),
+        url("/assets/home-spotlights/sports-multi.jpg") no-repeat center;
+      background-size: cover;
+      z-index: 0;
+    }
+    .brand-hero.sports-hero > * { position: relative; z-index: 1; }
     .brand-hero.sports-hero h1 {
       font-size: clamp(30px, 5vw, 52px);
       line-height: 1.04;

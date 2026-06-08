@@ -56,13 +56,13 @@
     'terms',
     'support',
     'credits',
-    'country',
+    'travelino',
     'travel'
   ]);
 
   var RESERVED_PROFILE_USERNAMES = new Set([
     'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
-    'country', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
+    'travelino', 'edit', 'explore', 'game', 'games', 'help', 'home', 'index',
     'login', 'movie', 'movies', 'music', 'new', 'privacy', 'profile',
     'resetpassword', 'reviews', 'search', 'settings', 'signup', 'support',
     'terms', 'travel', 'tv', 'tvshow', 'tvshows', 'updatepassword', 'user',

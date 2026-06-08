@@ -1,13 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://*.supabase.co; frame-ancestors 'none'; report-uri /api/csp-report; report-to csp-endpoint">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/js/auth-gate.js?v=20260606b" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
   <meta name="robots" content="index,follow" />
-  <title>Country - Zo2y</title>
+  <title>Travel - Zo2y</title>
   <meta name="description" content="Explore a country on Zo2y: flag, photos, travel guide, planner, and reviews." />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -18,21 +18,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
-  <script src="js/list-utils.js?v=20260601b" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
-  <script src="js/review-interactions.js?v=20260601b" defer></script>
-  <script src="js/wiki-cache.js?v=20260605d" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605m">
-  <link rel="stylesheet" href="css/pages/country.css?v=20260606c">
-  <link rel="stylesheet" href="css/shared-header.css?v=20260605i" media="print" onload="this.media='all'">
-  <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605i"></noscript>
-  <script src="js/shared-header.js?v=20260601b" defer></script>
+  <link rel="stylesheet" href="css/pages/brands.css?v=20260605k" />
+  <link rel="stylesheet" href="css/shared-header.css?v=20260601b" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260601b"></noscript>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <meta name="theme-color" content="#0b1633" />
@@ -40,13 +33,161 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest?v=20260605g" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/list-utils.js?v=20260601b" defer></script>
+  <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
+  <script src="js/review-interactions.js?v=20260601b" defer></script>
+  <script src="js/wiki-cache.js?v=20260605d" defer></script>
+  <script src="js/shared-header.js?v=20260601b" defer></script>
+  <style>
+    .brand-hero {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+      margin-bottom: 20px;
+    }
+    .brand-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.78), rgba(15, 44, 80, 0.55)),
+        url("https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=80") no-repeat center;
+      background-size: cover;
+      z-index: 0;
+    }
+    .brand-hero > * { position: relative; z-index: 1; }
+    .brand-hero h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.04;
+      margin: 0 0 10px 0;
+    }
+    .brand-hero p {
+      color: #d3e5ff;
+      margin: 0;
+      max-width: 650px;
+      line-height: 1.45;
+    }
+    .brand-hero .hero-grid {
+      display: flex;
+      gap: clamp(16px, 3vw, 28px);
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .brand-hero .hero-card {
+      flex: 0 0 auto;
+    }
+    .brand-hero .hero-copy {
+      flex: 1 1 300px;
+    }
+    .brand-hero .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #f59e0b;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .brand-hero .hero-meta,
+    .brand-hero .hero-tags {
+      margin-top: 8px;
+    }
+    .brand-hero .hero-meta {
+      font-size: 0.85rem;
+      color: #c3d5f0;
+    }
+    .brand-hero .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .brand-hero .hero-tags span {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      color: #e0eaff;
+    }
+    .brand-hero .hero-desc {
+      margin-top: 12px;
+      max-width: 620px;
+      line-height: 1.5;
+      color: #c8dcf8;
+      font-size: 0.95rem;
+    }
+    .brand-hero .hero-desc.is-clamped {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .brand-hero .hero-readmore {
+      background: none;
+      border: none;
+      color: #f59e0b;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 4px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .brand-hero .hero-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-hero .hero-actions button,
+    .brand-hero .hero-actions a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .brand-hero .hero-actions .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #ffb84d);
+      color: #0b1633;
+      border: none;
+    }
+    .brand-hero .hero-actions .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+    .brand-hero .hero-actions .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .brand-hero .hero-actions .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #e0eaff;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .brand-hero .hero-actions .btn-secondary:hover {
+      background: rgba(255,255,255,0.18);
+    }
+  </style>
 </head>
-<body class="elevated-detail-page" data-elevated-category="travel">
+<body data-brand-type="travel" data-nav-page="travel">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
     <div class="zo2y-shared-header-inner">
       <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -80,48 +221,46 @@
     </div>
   </header>
 
-  <section class="country-spotlight elevated-hero is-no-backdrop" id="countryHero" aria-label="Country header">
-    <div class="country-spotlight-bg" id="countryBackdrop" aria-hidden="true"></div>
-    <div class="country-spotlight-grain" aria-hidden="true"></div>
-    <div class="country-spotlight-blur" id="countryBackdropBlur" aria-hidden="true"></div>
-    <div class="country-spotlight-watermark" aria-hidden="true">travel</div>
-    <div class="country-spotlight-foreground">
-      <div class="country-spotlight-logo">
-        <div class="elevated-poster-frame elevated-logo-card" id="countryPosterFrame" aria-label="Country flag">
-          <img id="countryFlag" class="elevated-poster" src="/file.svg" alt="Country flag" loading="lazy" decoding="async">
-          <div class="elevated-poster-fallback" aria-hidden="true">
-            <i class="elevated-poster-fallback-icon fa-solid fa-earth-americas"></i>
-            <span class="elevated-poster-fallback-title" id="countryPosterFallbackTitle">Country</span>
+  <main class="container">
+    <section class="brand-hero" id="countryHero" aria-label="Country header">
+      <div class="country-spotlight-bg" id="countryBackdrop" aria-hidden="true"></div>
+      <div class="country-spotlight-blur" id="countryBackdropBlur" aria-hidden="true"></div>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="elevated-poster-frame elevated-logo-card" id="countryPosterFrame" aria-label="Country flag">
+            <img id="countryFlag" class="elevated-poster" src="/file.svg" alt="Country flag" loading="lazy" decoding="async">
+            <div class="elevated-poster-fallback" aria-hidden="true">
+              <i class="elevated-poster-fallback-icon fa-solid fa-earth-americas"></i>
+              <span class="elevated-poster-fallback-title" id="countryPosterFallbackTitle">Country</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-copy">
+          <span class="hero-kicker" id="countryKicker">
+            <i class="fa-solid fa-earth-americas"></i> <span id="countryKickerLabel">travel spotlight</span>
+          </span>
+          <h1 id="countryName">Loading country…</h1>
+          <div id="countryMeta" class="hero-meta" aria-label="Country metadata"></div>
+          <div id="countryTags" class="hero-tags" aria-label="Country tags"></div>
+          <div class="hero-desc-wrap">
+            <p id="countryDescription" class="hero-desc is-clamped">Loading description…</p>
+            <button class="hero-readmore" id="countryDescriptionToggle" type="button" aria-expanded="false" aria-controls="countryDescription">
+              <span>read more</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+          </div>
+          <div class="hero-actions">
+            <button class="btn-primary" id="countrySaveBtn" type="button" disabled>
+              <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
+            </button>
+            <a class="btn-secondary" id="countryMapBtn" href="travel.html" rel="noopener">
+              <i class="fa-solid fa-map-location-dot"></i> open in maps
+            </a>
           </div>
         </div>
       </div>
-      <div class="country-spotlight-copy">
-        <span class="country-spotlight-kicker" id="countryKicker">
-          <i class="fa-solid fa-earth-americas"></i> <span id="countryKickerLabel">travel spotlight</span>
-        </span>
-        <h1 class="country-spotlight-title" id="countryName">Loading country…</h1>
-        <div id="countryMeta" class="country-spotlight-meta" aria-label="Country metadata"></div>
-        <div id="countryTags" class="country-spotlight-tags" aria-label="Country tags"></div>
-        <div class="elevated-description-wrap">
-          <p id="countryDescription" class="elevated-description is-clamped">Loading description…</p>
-          <button class="elevated-readmore" id="countryDescriptionToggle" type="button" aria-expanded="false" aria-controls="countryDescription">
-            <span class="elevated-readmore-label">read more</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-        </div>
-        <div class="country-spotlight-actions">
-          <button class="elevated-btn elevated-btn-primary" id="countrySaveBtn" type="button" disabled>
-            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
-          </button>
-          <a class="elevated-btn elevated-btn-secondary" id="countryMapBtn" href="travel.html" rel="noopener">
-            <i class="fa-solid fa-map-location-dot"></i> open in maps
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <div class="elevated-content">
     <section class="elevated-section">
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
@@ -230,7 +369,7 @@
       </div>
     </section>
 
-    <section id="reviews-section" class="elevated-section">
+    <section id="countryReviewsSection" class="elevated-section">
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
           <i class="fa-solid fa-star"></i> reviews
@@ -274,7 +413,7 @@
         </div>
       </form>
     </section>
-  </div>
+  </main>
 
   <p class="elevated-footnote">
     <span><i class="fa-solid fa-circle-info"></i> sources: REST Countries · Wikimedia Commons · local travel manifest · <a href="credits.html">all credits</a></span>
@@ -310,7 +449,7 @@
   </div>
 
   <div id="createListModal" class="menu-modal authenticated-only" aria-hidden="true">
-    <div class="menu-modal-content max-w-320">
+    <div class="menu-modal-content" style="max-width: 320px;">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
         <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
@@ -338,7 +477,7 @@
 
   <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <script src="js/pages/country.js?v=20260606c" defer></script>
-    <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+  <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
   <footer class="zo2y-footer">

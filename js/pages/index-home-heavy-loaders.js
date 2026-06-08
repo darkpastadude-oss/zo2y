@@ -1020,7 +1020,7 @@ async function loadBooks(signal) {
         },
         travelNeedsScenicHydration: false,
         fallbackImage: safeFallback || heroImage,
-        href: `country.html?code=${encodeURIComponent(code)}`
+        href: `travelino.html?code=${encodeURIComponent(code)}`
       };
     }
 
@@ -1080,7 +1080,7 @@ async function loadBooks(signal) {
         },
         travelNeedsScenicHydration: false,
         fallbackImage: safeFallback || heroImage,
-        href: `country.html?code=${encodeURIComponent(code)}`
+        href: `travelino.html?code=${encodeURIComponent(code)}`
       };
     }
 

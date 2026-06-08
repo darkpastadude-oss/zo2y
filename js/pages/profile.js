@@ -11399,7 +11399,7 @@
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => {
-                        window.location.href = `country.html?code=${encodeURIComponent(code)}`;
+                        window.location.href = `travelino.html?code=${encodeURIComponent(code)}`;
                     };
 
                     itemCard.innerHTML = `

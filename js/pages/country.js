@@ -1065,7 +1065,7 @@
       return;
     }
     ui.related.innerHTML = list.map((c) => `
-      <a class="elevated-related-card" href="country.html?code=${encodeURIComponent(c.code)}" data-code="${escapeHtml(c.code)}">
+      <a class="elevated-related-card" href="travelino.html?code=${encodeURIComponent(c.code)}" data-code="${escapeHtml(c.code)}">
         <span class="elevated-related-thumb">
           ${c.flag ? `<img src="${escapeHtml(c.flag)}" alt="${escapeHtml(c.name)}" loading="lazy" onerror="this.onerror=null;this.outerHTML='<i class=&quot;fa-solid fa-earth-americas&quot;></i>';">` : '<i class="fa-solid fa-earth-americas"></i>'}
         </span>

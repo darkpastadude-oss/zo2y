@@ -235,7 +235,7 @@
         title: `🇺🇳 ${title}`,
         sub: String(row?.region || '').trim() || 'Country',
         image: toHttpsUrl(row?.flags?.png || row?.flags?.svg || ''),
-        href: `country.html?code=${encodeURIComponent(code)}`
+        href: `travelino.html?code=${encodeURIComponent(code)}`
       };
     }).filter(Boolean);
   }
