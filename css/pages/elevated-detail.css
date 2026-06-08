@@ -2410,11 +2410,18 @@
   .elevated-detail-page .elevated-hero {
     min-height: auto;
   }
-  .elevated-detail-page .elevated-hero-backdrop,
+  .elevated-detail-page .elevated-hero-backdrop {
+    transform: none;
+    background-position: center 20%;
+    min-height: 100%;
+    max-height: none;
+  }
   .elevated-detail-page .elevated-hero-blur {
     transform: none;
-    background-attachment: scroll;
-    background-position: center center;
+    background-position: center;
+    inset: 0;
+    min-height: 100%;
+    max-height: none;
   }
   .elevated-detail-page .elevated-hero-foreground {
     grid-template-columns: 1fr;

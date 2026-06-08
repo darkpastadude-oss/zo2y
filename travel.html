@@ -2184,7 +2184,7 @@
 
         node.addEventListener('click', (event) => {
           if (event.target && event.target.closest('.card-menu-btn')) return;
-          window.location.href = `travelino.html?country=${encodeURIComponent(item.code)}`;
+          window.location.href = `country.html?country=${encodeURIComponent(item.code)}`;
         });
 
         const menuBtn = node.querySelector('.card-menu-btn');

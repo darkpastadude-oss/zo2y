@@ -534,7 +534,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
             : type === 'music'
               ? `song.html?id=${encodeURIComponent(id)}`
               : type === 'travel'
-                ? `travelino.html?country=${encodeURIComponent(String(id || '').toUpperCase())}`
+                ? `country.html?country=${encodeURIComponent(String(id || '').toUpperCase())}`
                 : '#';
 
     return {
@@ -703,7 +703,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
                 subtitle,
                 image: image || '/newlogo.webp',
                 background: '',
-                href: `travelino.html?country=${encodeURIComponent(code)}`
+                href: `country.html?country=${encodeURIComponent(code)}`
               });
             });
           });

@@ -983,13 +983,27 @@
       if (cached) return cached;
     }
     try {
-      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName + ' football club')}&format=json&origin=*`;
+      let title = '';
+      // Try just the team name first (works for all sports)
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName)}&format=json&origin=*&srlimit=3`;
       const searchRes = await fetch(searchUrl);
       const searchData = await searchRes.json();
       const results = searchData?.query?.search || [];
-      if (!results.length) return null;
-
-      const title = results[0].title;
+      // Pick the best result — prefer exact or close title match
+      if (results.length) {
+        const normalized = teamName.toLowerCase();
+        const exact = results.find((r) => String(r.title || '').toLowerCase() === normalized);
+        title = exact ? exact.title : results[0].title;
+      }
+      // Fallback: try with " football club" if first search found nothing relevant
+      if (!title) {
+        const fbUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName + ' football club')}&format=json&origin=*&srlimit=1`;
+        const fbRes = await fetch(fbUrl);
+        const fbData = await fbRes.json();
+        const fbResults = fbData?.query?.search || [];
+        if (fbResults.length) title = fbResults[0].title;
+      }
+      if (!title) return null;
       const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
       const summaryRes = await fetch(summaryUrl);
       const summaryData = await summaryRes.json();

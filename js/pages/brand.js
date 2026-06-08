@@ -598,11 +598,25 @@
     }
 
     try {
-      const search = await fetch(
-        `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' ' + CATEGORY_LABEL + ' company')}&format=json&origin=*&srlimit=1`
-      );
+      let title = '';
+      // Try just the brand name first (works best for well-known brands)
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&format=json&origin=*&srlimit=3`;
+      const search = await fetch(searchUrl);
       const searchData = await search.json();
-      const title = searchData?.query?.search?.[0]?.title;
+      const results = searchData?.query?.search || [];
+      if (results.length) {
+        const normalized = name.toLowerCase();
+        const exact = results.find((r) => String(r.title || '').toLowerCase() === normalized);
+        title = exact ? exact.title : results[0].title;
+      }
+      // Fallback: try with category + "company" if first search found nothing relevant
+      if (!title) {
+        const fbUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' ' + CATEGORY_LABEL + ' company')}&format=json&origin=*&srlimit=1`;
+        const fbRes = await fetch(fbUrl);
+        const fbData = await fbRes.json();
+        const fbResults = fbData?.query?.search || [];
+        if (fbResults.length) title = fbResults[0].title;
+      }
       if (!title) {
         wikipediaCache.set(name, null);
         if (wc) wc.setWiki(name, null);
