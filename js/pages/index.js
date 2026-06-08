@@ -6946,6 +6946,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function wireHomeCardMenus(scope) {
       scope.querySelectorAll('.card').forEach((card) => {
         const href = card.getAttribute('data-href');
+        const mediaType = card.getAttribute('data-media-type');
         card.onclick = (e) => {
           if (e.target.closest('.card-menu-btn') || e.target.closest('.card-open-link') || e.target.closest('.card-preview-btn')) return;
           if (href) window.location.href = href;
