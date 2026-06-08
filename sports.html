@@ -1,10 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="/js/auth-gate.js?v=20260606b" defer></script>
+  <script src="/js/auth-gate.js?v=20260606a" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Sports - Zo2y</title>
@@ -34,7 +33,7 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <script src="js/shared-header.js?v=20260601b" defer></script>
@@ -44,22 +43,13 @@
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: clamp(20px, 4vw, 34px);
-      position: relative;
-      overflow: hidden;
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("/assets/home-spotlights/sports-multi.jpg") center/cover;
       box-shadow: 0 14px 36px rgba(0,0,0,0.26);
       margin-bottom: 20px;
+      overflow: hidden;
     }
-    .brand-hero.sports-hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(120deg, rgba(10, 31, 56, 0.78), rgba(15, 44, 80, 0.55)),
-        url("/assets/home-spotlights/sports-multi.jpg") no-repeat center;
-      background-size: cover;
-      z-index: 0;
-    }
-    .brand-hero.sports-hero > * { position: relative; z-index: 1; }
     .brand-hero.sports-hero h1 {
       font-size: clamp(30px, 5vw, 52px);
       line-height: 1.04;
@@ -180,21 +170,5 @@
       </div>
     </div>
   </div>
-  <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
-<script src="js/legal-consent.js?v=20260606a" defer></script>
-
-  <footer class="zo2y-footer">
-    <div class="zo2y-footer-inner">
-      <span class="zo2y-footer-brand">© 2026 Zo2y</span>
-      <nav class="zo2y-footer-links" aria-label="Legal">
-        <a href="privacy.html">Privacy</a>
-        <a href="terms.html">Terms</a>
-        <a href="cookies.html">Cookies</a>
-        <a href="data.html">Your data</a>
-        <a href="dmca.html">DMCA</a>
-        <a href="support.html">Support</a>
-        <a href="credits.html">Credits</a>
-        <a href="#" data-open-cookie-prefs>Cookie preferences</a>
-      </nav>
-    </div>
-  </footer>
+</body>
+</html>
