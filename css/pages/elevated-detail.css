@@ -154,7 +154,8 @@
 }
 
 .elevated-detail-page .elevated-hero.is-no-backdrop .elevated-hero-backdrop,
-.elevated-detail-page .elevated-hero.is-no-backdrop .elevated-hero-blur {
+.elevated-detail-page .elevated-hero.is-no-backdrop .elevated-hero-blur,
+.elevated-detail-page .elevated-hero.is-no-backdrop .elevated-hero-collage {
   display: none;
 }
 
@@ -2463,7 +2464,8 @@
     overflow: visible;
   }
   .elevated-detail-page .elevated-hero-backdrop,
-  .elevated-detail-page .elevated-hero-blur {
+  .elevated-detail-page .elevated-hero-blur,
+  .elevated-detail-page .elevated-hero-collage {
     position: fixed;
     inset: 0;
     z-index: 0;
@@ -2481,6 +2483,12 @@
   .elevated-detail-page .elevated-hero::after {
     position: fixed;
     inset: 0;
+  }
+  .elevated-detail-page .elevated-hero-collage-track {
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
   }
   .elevated-detail-page .elevated-hero-foreground {
     position: relative;

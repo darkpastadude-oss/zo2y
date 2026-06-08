@@ -310,6 +310,31 @@
     return 'fa-trophy';
   }
 
+  function applyCollageFallback(team) {
+    if (!ui.hero) return;
+    ui.hero.classList.add('is-collage');
+    let collage = ui.hero.querySelector('.elevated-hero-collage');
+    if (!collage) {
+      collage = document.createElement('div');
+      collage.className = 'elevated-hero-collage';
+      ui.hero.insertBefore(collage, ui.hero.firstChild);
+    }
+    let track = collage.querySelector('.elevated-hero-collage-track');
+    if (!track) {
+      track = document.createElement('div');
+      track.className = 'elevated-hero-collage-track';
+      collage.appendChild(track);
+    }
+    const logoUrl = team.badge || FALLBACK_BADGE;
+    track.innerHTML = '';
+    for (let i = 0; i < 36; i++) {
+      const item = document.createElement('div');
+      item.className = 'elevated-hero-collage-item';
+      item.style.backgroundImage = `url("${logoUrl}")`;
+      track.appendChild(item);
+    }
+  }
+
   function bindClampedDescription(pEl, wrapEl, toggleEl) {
     if (!pEl || !wrapEl) return;
     const labelEl = toggleEl ? toggleEl.querySelector('.elevated-readmore-label') : null;
@@ -790,7 +815,7 @@
     if (backdrop) {
       applyBackdrop(backdrop);
     } else {
-      applySportFallbackBackground(team.sport);
+      applyCollageFallback(team);
     }
 
     renderInfoGrid(team);
