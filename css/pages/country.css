@@ -1,407 +1,216 @@
-/* Zo2y country detail page — brands-style spotlight + elevated shell + planner/reviews/guide */
+/* === Country detail page ===
+   Thin override layer for country.html.
+   Reuses elevated-detail.css for the main shell.
+*/
 
-/* ---------- Country spotlight hero (brands.css style) ---------- */
+:root {
+  --country-bg: #0b1633;
+  --country-card: #132347;
+  --country-card-soft: rgba(19, 35, 71, 0.78);
+  --country-border: rgba(255, 255, 255, 0.08);
+  --country-border-strong: rgba(255, 255, 255, 0.14);
+  --country-accent: #10b981;
+  --country-accent-2: #34d399;
+  --country-muted: rgba(180, 192, 216, 0.78);
+  --country-text: #f4f7ff;
+  --country-radius-card: 14px;
+  --country-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
 
+/* === Travel category accent — green === */
 .elevated-detail-page[data-elevated-category="travel"] {
-  --dt-accent: #f59e0b;
-  --dt-accent-soft: color-mix(in srgb, var(--dt-accent) 12%, transparent);
-  --dt-accent-strong: #ffb84d;
+  --dt-accent: #10b981;
+  --dt-accent-2: #34d399;
+  --dt-accent-soft: rgba(16, 185, 129, 0.16);
+  --dt-accent-line: rgba(16, 185, 129, 0.42);
+  --dt-glow-a: rgba(16, 185, 129, 0.22);
+  --dt-glow-b: rgba(6, 182, 212, 0.18);
+  --dt-fallback-c1: #041f1a;
+  --dt-fallback-c2: #0b2e25;
+  --dt-fallback-c3: #07091a;
 }
 
-.country-spotlight {
-  position: relative;
-  margin: 92px auto 0;
-  width: min(1200px, calc(100% - 32px));
-  min-height: 360px;
-  border-radius: 22px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: linear-gradient(135deg, rgba(17, 34, 70, 0.96), rgba(9, 19, 41, 0.92));
-  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.28);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.country-spotlight-bg {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(8, 14, 31, 0.72), rgba(11, 23, 49, 0.4));
-  background-size: cover;
-  background-position: center center;
-  transform: scale(1.04);
-  z-index: 0;
-  transition: opacity 320ms ease, transform 600ms ease;
-}
-
-.country-spotlight-blur {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(180deg, rgba(11, 22, 51, 0.32) 0%, rgba(11, 22, 51, 0.78) 100%);
-  pointer-events: none;
-}
-
-.country-spotlight-grain {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.18;
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 3px 3px;
-  mix-blend-mode: overlay;
-}
-
-.country-spotlight-watermark {
-  position: absolute;
-  z-index: 1;
-  right: 28px;
-  bottom: 16px;
-  font-family: 'Sora', 'Inter', system-ui, sans-serif;
-  font-size: clamp(48px, 9vw, 110px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  text-transform: lowercase;
-  color: rgba(255, 255, 255, 0.05);
-  pointer-events: none;
-  user-select: none;
-  line-height: 1;
-}
-
-.country-spotlight-foreground {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 22px;
-  padding: 36px 32px 30px;
-  min-height: 360px;
-}
-
-.country-spotlight-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin-top: 6px;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-spotlight-logo .elevated-poster-frame.elevated-logo-card {
-  width: min(100%, 220px);
-  aspect-ratio: 4 / 3;
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
-  box-shadow: 0 18px 30px rgba(2, 8, 22, 0.24);
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.country-spotlight-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 14px;
-  width: 100%;
-  max-width: 820px;
-  min-width: 0;
-}
-
-.country-spotlight-meta,
-.country-spotlight-actions {
-  justify-content: center;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-spotlight-logo .elevated-poster {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 18px rgba(15, 23, 42, 0.12));
-}
-
-.country-spotlight-kicker {
-  display: inline-flex;
-  width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(19, 35, 71, 0.55);
-  color: #dbe7ff;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  align-items: center;
-  gap: 6px;
-}
-
-.country-spotlight-kicker i {
-  color: var(--dt-accent);
-}
-
-.country-spotlight-title {
-  margin: 0;
-  font-size: clamp(28px, 4vw, 46px);
-  line-height: 0.98;
-  font-family: 'Sora', 'Inter', system-ui, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #ffffff;
-}
-
-.country-spotlight-meta,
-.country-spotlight-summary {
-  margin: 0;
-  color: rgba(233, 241, 255, 0.82);
-  line-height: 1.5;
-  font-size: 0.95rem;
-}
-
-.country-spotlight-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.country-spotlight-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.country-spotlight-actions {
-  margin-top: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-@media (max-width: 900px) {
-  .country-spotlight {
-    min-height: auto;
-  }
-  .country-spotlight-foreground {
-    padding: 26px 20px 22px;
-    gap: 16px;
-    min-height: auto;
-  }
-  .country-spotlight-title {
-    font-size: clamp(22px, 5vw, 32px);
-  }
-  .elevated-detail-page[data-elevated-category="travel"] .country-spotlight-logo .elevated-poster-frame.elevated-logo-card {
-    width: min(100%, 180px);
-  }
-}
-
-@media (max-width: 768px) {
-  .country-spotlight {
-    margin-top: 80px;
-    width: calc(100% - 16px);
-    border-radius: 18px;
-  }
-  .country-spotlight-foreground {
-    padding: 18px 14px;
-    gap: 14px;
-  }
-  .elevated-detail-page[data-elevated-category="travel"] .country-spotlight-logo .elevated-poster-frame.elevated-logo-card {
-    width: min(100%, 150px);
-  }
-  .country-spotlight-title {
-    font-size: clamp(20px, 6vw, 28px);
-  }
-}
-
-/* Flag card styling: keep the white center, but flags tend to be wider than tall */
-.elevated-detail-page[data-elevated-category="travel"] .elevated-poster-frame.elevated-logo-card .elevated-poster {
-  object-fit: contain;
-  background: #f4f5f7;
-  padding: 8px;
-}
-
-/* Quick facts grid */
-.elevated-detail-page[data-elevated-category="travel"] .elevated-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-fact {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  background: color-mix(in srgb, #ffffff 6%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
-  border-radius: 14px;
-  min-height: 64px;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-fact i {
-  font-size: 1.1rem;
-  color: var(--dt-accent);
-  width: 24px;
-  text-align: center;
-  flex: 0 0 24px;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-fact-body {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-fact-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #ffffff 70%, transparent);
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .country-fact-value {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #ffffff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Travel guide grid */
+/* === Travel guide grid === */
 .country-guide-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px;
 }
 
 .country-guide-card {
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-  border-radius: 16px;
-  padding: 18px 20px;
+  padding: 18px;
+  border-radius: var(--country-radius-card);
+  background: linear-gradient(160deg, rgba(19, 35, 71, 0.7) 0%, rgba(11, 22, 51, 0.85) 100%);
+  border: 1px solid var(--country-border);
+  transition: transform 0.2s var(--country-ease), border-color 0.2s var(--country-ease);
+}
+
+.country-guide-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--country-accent);
 }
 
 .country-guide-card h3 {
-  margin: 0 0 10px;
-  font-size: 1rem;
+  margin: 0 0 12px;
+  font-size: 0.92rem;
   font-weight: 700;
-  display: flex;
+  color: var(--country-text);
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #ffffff;
 }
 
 .country-guide-card h3 i {
-  color: var(--dt-accent);
+  color: var(--country-accent);
+  font-size: 0.9em;
 }
 
 .country-guide-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 8px;
 }
 
 .country-guide-list li {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  color: color-mix(in srgb, #ffffff 82%, transparent);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--country-muted);
+  padding-left: 16px;
   position: relative;
-  padding-left: 14px;
 }
 
 .country-guide-list li::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.6em;
-  width: 6px;
-  height: 6px;
+  top: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--dt-accent);
-  opacity: 0.7;
+  background: var(--country-accent);
+  opacity: 0.6;
 }
 
-.country-guide-list li.country-guide-empty {
-  color: color-mix(in srgb, #ffffff 50%, transparent);
+.country-guide-empty {
+  color: var(--country-muted);
   font-style: italic;
-  padding-left: 0;
+  font-size: 0.85rem;
 }
 
-.country-guide-list li.country-guide-empty::before { display: none; }
-
-/* Travel planner */
-.country-planner-form {
+/* === Quick facts === */
+.country-fact {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.country-planner-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: flex-start;
   gap: 12px;
+  padding: 14px 16px;
+  background: rgba(14, 20, 44, 0.55);
+  border-bottom: 1px solid var(--country-border);
+  transition: background 0.2s var(--country-ease);
 }
 
-.country-planner-field {
+.country-fact:last-child {
+  border-bottom: 0;
+}
+
+.country-fact:hover {
+  background: rgba(20, 28, 56, 0.75);
+}
+
+.country-fact > i {
+  color: var(--country-accent);
+  font-size: 1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.country-fact-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, #ffffff 70%, transparent);
+  gap: 2px;
+  min-width: 0;
 }
 
-.country-planner-field input,
-.country-planner-field select,
-.country-planner-field textarea {
-  background: color-mix(in srgb, #ffffff 6%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
-  color: #ffffff;
+.country-fact-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.country-fact-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--country-text);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+/* === Travel planner === */
+.country-planner-form {
+  display: grid;
+  gap: 16px;
+  padding: 22px 24px;
+  border-radius: var(--country-radius-card);
+  background: linear-gradient(135deg, rgba(20, 28, 56, 0.7), rgba(7, 9, 26, 0.55));
+  border: 1px solid var(--country-border);
+}
+
+.country-planner-row {
+  display: grid;
+  gap: 6px;
+}
+
+.country-planner-row label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--country-muted);
+  letter-spacing: 0.02em;
+}
+
+.country-planner-row input,
+.country-planner-row select,
+.country-planner-row textarea {
+  width: 100%;
+  padding: 10px 14px;
   border-radius: 10px;
-  padding: 10px 12px;
+  border: 1px solid var(--country-border);
+  background: rgba(7, 9, 26, 0.6);
+  color: var(--country-text);
   font-size: 0.92rem;
   font-family: inherit;
-  text-transform: none;
-  letter-spacing: normal;
+  transition: border-color 0.2s var(--country-ease), background 0.2s var(--country-ease);
 }
 
-.country-planner-field input::placeholder,
-.country-planner-field textarea::placeholder {
-  color: color-mix(in srgb, #ffffff 40%, transparent);
+.country-planner-row input:focus,
+.country-planner-row select:focus,
+.country-planner-row textarea:focus {
+  outline: none;
+  border-color: var(--country-accent);
+  background: rgba(7, 9, 26, 0.8);
+  box-shadow: 0 0 0 3px var(--dt-accent-soft);
 }
 
-.country-planner-field input:focus,
-.country-planner-field select:focus,
-.country-planner-field textarea:focus {
-  outline: 2px solid var(--dt-accent);
-  outline-offset: 1px;
+.country-planner-row input::placeholder,
+.country-planner-row textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.country-planner-field-wide {
-  grid-column: 1 / -1;
-}
-
-.country-planner-field textarea {
-  min-height: 90px;
+.country-planner-row textarea {
+  min-height: 80px;
   resize: vertical;
 }
 
-.country-planner-hint {
-  font-size: 0.72rem;
-  font-weight: 500;
-  text-transform: none;
-  letter-spacing: normal;
-  color: color-mix(in srgb, #ffffff 50%, transparent);
+.country-planner-row select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237d8aa6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
 }
 
 .country-planner-actions {
@@ -410,137 +219,102 @@
   flex-wrap: wrap;
 }
 
+/* === Planner summary === */
 .country-planner-summary {
-  margin-top: 18px;
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-  border-radius: 14px;
-  padding: 16px 18px;
+  margin-top: 16px;
+  padding: 18px 22px;
+  border-radius: var(--country-radius-card);
+  background: linear-gradient(135deg, rgba(20, 28, 56, 0.7), rgba(7, 9, 26, 0.55));
+  border: 1px solid var(--country-border);
 }
 
-.country-planner-summary-title {
-  margin: 0 0 10px;
+.country-planner-summary h3 {
+  margin: 0 0 12px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #ffffff;
-  display: flex;
+  color: var(--country-text);
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.country-planner-summary-title i {
-  color: var(--dt-accent);
+.country-planner-summary h3 i {
+  color: var(--country-accent);
 }
 
-.country-planner-summary-list {
+.country-planner-summary ul {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  gap: 8px;
 }
 
-.country-planner-summary-list li {
-  font-size: 0.88rem;
-  color: color-mix(in srgb, #ffffff 82%, transparent);
-}
-
-.country-planner-auth-note {
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px dashed color-mix(in srgb, #ffffff 18%, transparent);
-  border-radius: 12px;
-  padding: 14px 16px;
+.country-planner-summary li {
   font-size: 0.9rem;
-  color: color-mix(in srgb, #ffffff 75%, transparent);
+  line-height: 1.5;
+  color: var(--country-muted);
+  padding-left: 16px;
+  position: relative;
 }
 
-.country-planner-auth-note a {
-  color: var(--dt-accent);
-  text-decoration: none;
-  font-weight: 600;
+.country-planner-summary li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--country-accent);
+  opacity: 0.6;
 }
 
-.country-planner-auth-note a:hover {
-  text-decoration: underline;
-}
-
-/* Reviews */
-.country-reviews-stats {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-}
-
-.country-reviews-stat {
-  flex: 1 1 140px;
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-  border-radius: 14px;
-  padding: 16px 18px;
-  text-align: center;
-}
-
-.country-reviews-stat-value {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--dt-accent);
-  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
-}
-
-.country-reviews-stat-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, #ffffff 70%, transparent);
-}
-
-.country-review-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+/* === Review styles (country-specific overrides) === */
 .country-review {
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-  border-radius: 14px;
-  padding: 14px 16px;
+  padding: 16px 18px;
+  border-radius: var(--country-radius-card);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--country-border);
+  transition: all 0.2s var(--country-ease);
+}
+
+.country-review:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--country-border-strong);
 }
 
 .country-review-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
 }
 
 .country-review-user {
   font-size: 0.92rem;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 600;
+  color: var(--country-text);
 }
 
 .country-review-date {
-  font-size: 0.75rem;
-  color: color-mix(in srgb, #ffffff 55%, transparent);
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
 .country-review-stars-display {
-  color: var(--dt-accent);
-  font-size: 0.95rem;
-  letter-spacing: 2px;
+  color: var(--country-accent);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  letter-spacing: 1px;
 }
 
 .country-review-comment {
+  margin-top: 10px;
   font-size: 0.9rem;
-  line-height: 1.45;
-  color: color-mix(in srgb, #ffffff 86%, transparent);
-  white-space: pre-wrap;
+  line-height: 1.55;
+  color: var(--country-muted);
 }
 
 .country-review-actions {
@@ -550,119 +324,81 @@
 }
 
 .country-review-actions button {
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
-  color: #ffffff;
-  border-radius: 8px;
-  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--country-border);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 0.78rem;
   font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 8px;
   cursor: pointer;
+  text-transform: lowercase;
+  transition: all 0.2s var(--country-ease);
+  font-family: inherit;
 }
 
 .country-review-actions button:hover {
-  background: color-mix(in srgb, var(--dt-accent) 25%, transparent);
+  background: var(--dt-accent-soft);
+  border-color: var(--dt-accent-line);
+  color: var(--country-accent-2);
 }
 
 .country-review-empty {
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px dashed color-mix(in srgb, #ffffff 18%, transparent);
-  border-radius: 12px;
-  padding: 18px;
+  padding: 24px 18px;
   text-align: center;
-  color: color-mix(in srgb, #ffffff 60%, transparent);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 0.9rem;
+  font-style: italic;
+  border: 1px dashed var(--country-border-strong);
+  border-radius: var(--country-radius-card);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.country-review-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 18px;
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 9%, transparent);
-  border-radius: 14px;
-  padding: 16px 18px;
-}
-
-.country-review-form-row {
-  display: flex;
+/* === Star rating (country review form) === */
+.country-review .elevated-stars .star,
+#countryReviewStars .star {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--country-border);
+  color: rgba(255, 255, 255, 0.35);
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.country-review-form-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: color-mix(in srgb, #ffffff 70%, transparent);
-}
-
-.country-review-stars {
-  display: flex;
-  gap: 4px;
-  font-size: 1.4rem;
-  color: color-mix(in srgb, #ffffff 25%, transparent);
+  justify-content: center;
   cursor: pointer;
-  user-select: none;
+  font-size: 0.95rem;
+  transition: all 0.2s var(--country-ease);
 }
 
-.country-review-stars .star {
-  transition: transform 0.1s ease, color 0.1s ease;
+.country-review .elevated-stars .star.on,
+#countryReviewStars .star.on {
+  background: var(--dt-accent-soft);
+  border-color: var(--dt-accent-line);
+  color: var(--country-accent);
+  transform: scale(1.05);
 }
 
-.country-review-stars .star.on {
-  color: var(--dt-accent);
+.country-review .elevated-stars .star:hover,
+#countryReviewStars .star:hover {
+  background: var(--dt-accent-soft);
+  border-color: var(--dt-accent-line);
+  color: var(--country-accent);
 }
 
-.country-review-stars .star:hover {
-  transform: scale(1.1);
-}
-
-.country-review-form textarea {
-  background: color-mix(in srgb, #ffffff 6%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
-  color: #ffffff;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.92rem;
-  font-family: inherit;
-  min-height: 90px;
-  resize: vertical;
-}
-
-.country-review-form textarea::placeholder {
-  color: color-mix(in srgb, #ffffff 40%, transparent);
-}
-
-.country-review-form textarea:focus {
-  outline: 2px solid var(--dt-accent);
-  outline-offset: 1px;
-}
-
-.country-review-form-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* Responsive tweaks */
+/* === Mobile === */
 @media (max-width: 768px) {
-  .country-planner-grid {
+  .country-guide-grid {
     grid-template-columns: 1fr;
   }
-  .country-review-form-actions {
-    flex-direction: column;
-  }
-  .country-review-form-actions .elevated-btn {
-    width: 100%;
+  .country-planner-form {
+    padding: 18px 16px;
   }
   .country-planner-actions {
     flex-direction: column;
   }
   .country-planner-actions .elevated-btn {
     width: 100%;
+    justify-content: center;
   }
 }

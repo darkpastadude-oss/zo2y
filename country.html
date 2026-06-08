@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://*.supabase.co">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="/js/auth-gate.js?v=20260606b" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
+  <meta name="robots" content="index,follow" />
+  <title>Country Details - Zo2y</title>
+  <meta name="description" content="Explore country info, flags, travel guides, and reviews on Zo2y.">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260601b">
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260605m">
+  <link rel="stylesheet" href="css/pages/country.css?v=20260608a">
+  <link rel="stylesheet" href="css/shared-header.css?v=20260605i" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260605i"></noscript>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260605g" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/list-utils.js?v=20260601b" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
+  <script src="js/review-interactions.js?v=20260601b" defer></script>
+<script src="js/wiki-cache.js?v=20260605d" defer></script>
+<script src="js/shared-header.js?v=20260601b" defer></script>
+  <script src="js/pages/country.js?v=20260608a" defer></script>
+</head>
+<body class="elevated-detail-page" data-elevated-category="travel">
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill active" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="fashion" href="fashion.html">Fashion</a>
+      <a class="zo2y-shared-pill" data-nav-page="food" href="food.html">Food</a>
+      <a class="zo2y-shared-pill" data-nav-page="cars" href="cars.html">Cars</a>
+      <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+</div>
+  </div>
+</header>
+
+  <section class="elevated-hero is-no-backdrop" id="countryHero" aria-label="Country header">
+    <div class="elevated-hero-backdrop" id="countryBackdrop" aria-hidden="true"></div>
+    <div class="elevated-hero-blur" id="countryBackdropBlur" aria-hidden="true"></div>
+    <div class="elevated-hero-grain" aria-hidden="true"></div>
+    <div class="elevated-hero-watermark" aria-hidden="true">travel</div>
+    <div class="elevated-hero-foreground">
+      <div class="elevated-poster-frame elevated-logo-card" id="countryPosterFrame" aria-label="Country flag">
+        <img id="countryFlag" class="elevated-poster" src="/file.svg" alt="Country flag" loading="lazy" decoding="async">
+        <div class="elevated-poster-fallback" aria-hidden="true">
+          <i class="elevated-poster-fallback-icon fa-solid fa-earth-americas"></i>
+          <span class="elevated-poster-fallback-title" id="countryPosterFallbackTitle">Country</span>
+        </div>
+      </div>
+      <div class="elevated-info">
+        <span class="elevated-kicker" id="countryKicker">
+          <span class="elevated-kicker-dot"></span>
+          <i class="fa-solid fa-earth-americas"></i> <span id="countryKickerLabel">travel spotlight</span>
+        </span>
+        <div class="elevated-title-row">
+          <h1 class="elevated-title" id="countryName">Loading country.</h1>
+        </div>
+        <div id="countryMeta" class="elevated-meta" aria-label="Country metadata"></div>
+        <div id="countryTags" class="elevated-tags" aria-label="Country tags"></div>
+        <div class="elevated-description-wrap">
+          <p id="countryDescription" class="elevated-description is-clamped">Loading country details.</p>
+          <button class="elevated-readmore" id="countryDescriptionToggle" type="button" aria-expanded="false" aria-controls="countryDescription">
+            <span class="elevated-readmore-label">read more</span>
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+        </div>
+        <div class="elevated-actions">
+          <button class="elevated-btn elevated-btn-primary" id="countrySaveBtn" type="button">
+            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
+          </button>
+          <a class="elevated-btn elevated-btn-secondary" id="countryMapBtn" href="#" target="_blank" rel="noopener">
+            <i class="fa-solid fa-map-location-dot"></i> open in maps
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="elevated-content">
+    <section class="elevated-section">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-circle-info"></i> quick facts
+        </h2>
+        <span class="elevated-section-sub">Key details at a glance</span>
+      </div>
+      <div id="countryInfoGrid" class="elevated-details"></div>
+    </section>
+
+    <section class="elevated-section" id="countryGuideSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-compass"></i> travel guide
+        </h2>
+        <span class="elevated-section-sub">Plan your visit</span>
+      </div>
+      <div id="countryGuideGrid" class="country-guide-grid"></div>
+    </section>
+
+    <section class="elevated-section" id="countryGallerySection" hidden>
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-images"></i> gallery
+        </h2>
+        <span class="elevated-section-sub" id="countryGallerySub">Photos from this country</span>
+      </div>
+      <div id="countryGallery" class="elevated-gallery"></div>
+    </section>
+
+    <section class="elevated-section elevated-section-rail" id="countryRelatedSection" hidden>
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-layer-group"></i> nearby countries
+        </h2>
+        <span class="elevated-section-sub" id="countryRelatedSub">Explore the same region</span>
+      </div>
+      <div id="countryRelated" class="elevated-related"></div>
+    </section>
+
+    <section class="elevated-section" id="countryPlannerSection">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-plane"></i> travel planner
+        </h2>
+        <span class="elevated-section-sub">Organize your trip</span>
+      </div>
+      <form id="countryPlannerForm" class="country-planner-form">
+        <div class="country-planner-row">
+          <label for="plannerCitiesInput">Cities to visit</label>
+          <input type="text" id="plannerCitiesInput" placeholder="e.g. Tokyo, Kyoto, Osaka" maxlength="500">
+        </div>
+        <div class="country-planner-row">
+          <label for="plannerActivitiesInput">Activities</label>
+          <input type="text" id="plannerActivitiesInput" placeholder="e.g. Temple visits, food tours" maxlength="500">
+        </div>
+        <div class="country-planner-row">
+          <label for="plannerBestMonthsInput">Best months to visit</label>
+          <input type="text" id="plannerBestMonthsInput" placeholder="e.g. March, April, October" maxlength="300">
+        </div>
+        <div class="country-planner-row">
+          <label for="plannerBudgetSelect">Budget tier</label>
+          <select id="plannerBudgetSelect">
+            <option value="">Select budget...</option>
+            <option value="budget">Budget</option>
+            <option value="midrange">Mid-range</option>
+            <option value="luxury">Luxury</option>
+          </select>
+        </div>
+        <div class="country-planner-row">
+          <label for="plannerNotesInput">Notes</label>
+          <textarea id="plannerNotesInput" placeholder="Any extra notes for your trip..." maxlength="800"></textarea>
+        </div>
+        <div class="country-planner-actions">
+          <button type="submit" class="elevated-btn elevated-btn-primary" id="plannerSaveBtn">
+            <i class="fa-solid fa-floppy-disk"></i> save plan
+          </button>
+          <button type="button" class="elevated-btn elevated-btn-secondary" id="plannerClearBtn">
+            <i class="fa-solid fa-trash"></i> clear plan
+          </button>
+        </div>
+      </form>
+      <div id="countryPlannerAuthNote" class="elevated-auth-prompt" hidden>
+        <i class="fa-solid fa-lock"></i>
+        <span>please <a href="login.html">sign in</a> to use the travel planner</span>
+      </div>
+      <div id="countryPlannerSummary" class="country-planner-summary" hidden>
+        <h3><i class="fa-solid fa-clipboard-list"></i> saved plan</h3>
+        <ul id="plannerSummaryList"></ul>
+      </div>
+    </section>
+
+    <section id="countryReviewsSection" class="elevated-section">
+      <div class="elevated-section-head">
+        <h2 class="elevated-section-title">
+          <i class="fa-solid fa-star"></i> reviews
+        </h2>
+        <span class="elevated-section-sub" id="countryReviewsSub">
+          <span id="countryReviewsCount">0</span> reviews &middot; avg <span id="countryReviewsAvg">-</span>/5
+        </span>
+      </div>
+      <div id="countryReviewList" class="elevated-review-list"></div>
+
+      <form id="countryReviewForm" class="elevated-review-form">
+        <div class="elevated-review-form-head">
+          <h3 class="elevated-review-form-title"><i class="fa-solid fa-pen-to-square"></i> share your experience</h3>
+        </div>
+        <div>
+          <div class="elevated-stars" id="countryReviewStars" role="radiogroup" aria-label="Your rating">
+            <button type="button" class="elevated-star" data-rating="1" aria-label="1 star"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="elevated-star" data-rating="2" aria-label="2 stars"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="elevated-star" data-rating="3" aria-label="3 stars"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="elevated-star" data-rating="4" aria-label="4 stars"><i class="fa-solid fa-star"></i></button>
+            <button type="button" class="elevated-star" data-rating="5" aria-label="5 stars"><i class="fa-solid fa-star"></i></button>
+            <span class="elevated-rating-label" id="countryRatingText">select your rating</span>
+          </div>
+        </div>
+        <div>
+          <textarea id="countryReviewComment" class="elevated-comment" placeholder="What did you think of this country?" maxlength="500"></textarea>
+        </div>
+        <div class="elevated-form-actions">
+          <button type="submit" class="elevated-btn elevated-btn-primary" id="countryReviewSaveBtn"><i class="fa-solid fa-paper-plane"></i> <span class="btn-text">submit review</span></button>
+          <button type="button" class="elevated-cancel" id="countryReviewCancelBtn" hidden>cancel edit</button>
+        </div>
+      </form>
+      <div id="countryReviewAuth" class="elevated-auth-prompt">
+        <i class="fa-solid fa-lock"></i>
+        <span>please <a href="login.html">sign in</a> to review this country</span>
+      </div>
+    </section>
+  </div>
+
+  <p class="elevated-footnote">
+    <span><i class="fa-solid fa-circle-info"></i> sources: REST Countries API &middot; Wikimedia Commons &middot; <a href="credits.html">all credits</a></span>
+  </p>
+
+  <div id="countryActionCard" class="card hidden" data-item-id="">
+    <div class="card-title"></div>
+    <div class="card-meta"></div>
+    <img src="" alt="" loading="lazy" />
+  </div>
+
+  <div class="elevated-toast" id="countryToast" role="status" aria-live="polite"></div>
+  <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+<script src="js/legal-consent.js?v=20260606a" defer></script>
+
+  <footer class="zo2y-footer">
+    <div class="zo2y-footer-inner">
+      <span class="zo2y-footer-brand">&copy; 2026 Zo2y</span>
+      <nav class="zo2y-footer-links" aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="data.html">Your data</a>
+        <a href="dmca.html">DMCA</a>
+        <a href="support.html">Support</a>
+        <a href="credits.html">Credits</a>
+        <a href="#" data-open-cookie-prefs>Cookie preferences</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
