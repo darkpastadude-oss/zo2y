@@ -53,7 +53,7 @@ main.container {
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.14);
-  background: linear-gradient(135deg, rgba(17, 34, 70, 0.78), rgba(9, 19, 41, 0.72));
+  background: linear-gradient(135deg, rgba(17, 34, 70, 0.90), rgba(9, 19, 41, 0.86));
   box-shadow: 0 24px 44px rgba(0,0,0,0.28);
   display: grid;
   grid-template-columns: 1.3fr 0.9fr;
@@ -64,7 +64,7 @@ main.container {
 .brand-spotlight-bg {
   position: absolute;
   inset: -2%;
-  background: linear-gradient(120deg, rgba(8, 14, 31, 0.45), rgba(11, 23, 49, 0.2));
+  background: linear-gradient(120deg, rgba(8, 14, 31, 0.60), rgba(11, 23, 49, 0.32));
   background-size: cover;
   background-position: center center;
 }

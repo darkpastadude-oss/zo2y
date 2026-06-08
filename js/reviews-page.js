@@ -75,7 +75,7 @@
               : media === "music"
                 ? `song.html?id=${encodeURIComponent(id)}`
                 : media === "travel"
-                  ? `travelino.html?code=${encodeURIComponent(String(id || "").toUpperCase())}`
+                  ? `travelino.html?country=${encodeURIComponent(String(id || "").toUpperCase())}`
                   : "reviews.html";
     return {
       title: `${label} ${id}`.trim(),
@@ -345,7 +345,7 @@
             title,
             subtitle: [capital ? `Capital: ${capital}` : "", String(rowData?.region || "").trim()].filter(Boolean).join(" | ") || "Country",
             image: safeHttps(rowData?.flags?.png || rowData?.flags?.svg || "") || FALLBACK_IMAGE,
-            href: `travelino.html?code=${encodeURIComponent(code)}`
+            href: `travelino.html?country=${encodeURIComponent(code)}`
           });
         })());
       }

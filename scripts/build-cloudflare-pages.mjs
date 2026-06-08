@@ -21,6 +21,7 @@ const ALLOWED_ROOT_FILE_EXTENSIONS = new Set([
 
 const ALLOWED_ROOT_FILES = new Set([
   "_headers",
+  "_redirects",
   "favicon.ico",
   "manifest.webmanifest",
   "robots.txt",

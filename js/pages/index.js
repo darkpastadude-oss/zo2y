@@ -1483,7 +1483,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           travelPhotoSet: { scenic: background, city: '', nature: '' },
           travelNeedsScenicHydration: false,
           fallbackImage: background,
-          href: `travelino.html?code=${encodeURIComponent(code)}`
+          href: `travelino.html?country=${encodeURIComponent(code)}`
         };
       }).filter(Boolean);
       return items.slice(0, maxCount);
@@ -1735,7 +1735,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         },
         travelNeedsScenicHydration: false,
         fallbackImage: safeFallback || heroImage,
-        href: `travelino.html?code=${encodeURIComponent(code)}`
+        href: `travelino.html?country=${encodeURIComponent(code)}`
       };
     }
 
@@ -11382,7 +11382,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         else if (mediaType === 'game') href = `game.html?id=${encodeURIComponent(itemId)}`;
         else if (mediaType === 'book') href = `book.html?id=${encodeURIComponent(itemId)}`;
         else if (mediaType === 'music') href = `song.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'travel') href = `travelino.html?code=${encodeURIComponent(itemId.toUpperCase())}`;
+        else if (mediaType === 'travel') href = `travelino.html?country=${encodeURIComponent(itemId.toUpperCase())}`;
       }
       return {
         title: media.label,
@@ -11578,7 +11578,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             title: String(country?.name?.common || code).trim(),
             subtitle: [capital, String(country?.region || '').trim()].filter(Boolean).join(' | ') || 'Travel',
             image: normalizeLandingImageUrl(country?.flags?.png || country?.flags?.svg || '') || '/newlogo.webp',
-            href: `travelino.html?code=${encodeURIComponent(code)}`
+            href: `travelino.html?country=${encodeURIComponent(code)}`
           });
         }
       });
