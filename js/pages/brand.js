@@ -617,6 +617,97 @@
         const fbResults = fbData?.query?.search || [];
         if (fbResults.length) title = fbResults[0].title;
       }
+      // Fallback: try REST summary directly with title variations
+      if (!title) {
+        const variations = [name, `${name} (company)`, `${name} (${CATEGORY_LABEL})`];
+        for (const variation of variations) {
+          try {
+            const summaryRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(variation)}`);
+            if (summaryRes.ok) {
+              const summary = await summaryRes.json();
+              if (summary.thumbnail?.source || summary.originalimage?.source) {
+                title = variation;
+                break;
+              }
+            }
+          } catch (_e) { /* continue */ }
+        }
+      }
+      // Fallback: try Wikidata P18 image search via SPARQL
+      if (!title) {
+        try {
+          const sparql = `
+            SELECT ?item ?itemLabel ?image WHERE {
+              ?item rdfs:label "${name}"@en .
+              ?item wdt:P18 ?image .
+              SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
+            } LIMIT 1
+          `;
+          const sparqlUrl = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`;
+          const sparqlRes = await fetch(sparqlUrl, {
+            headers: { 'User-Agent': 'Zo2yBrandBackdrop/1.0' }
+          });
+          if (sparqlRes.ok) {
+            const sparqlData = await sparqlRes.json();
+            const bindings = sparqlData?.results?.bindings || [];
+            if (bindings.length) {
+              const imageUrl = bindings[0].image?.value;
+              if (imageUrl) {
+                // Convert Wikimedia Commons URL to direct image URL
+                const commonsMatch = imageUrl.match(/\/wiki\/File:(.+)/);
+                if (commonsMatch) {
+                  const fileName = decodeURIComponent(commonsMatch[1]);
+                  const directUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=1600`;
+                  const result = {
+                    title: name,
+                    description: '',
+                    thumbnail: directUrl,
+                    heroImage: directUrl,
+                    photoImage: directUrl,
+                    url: imageUrl,
+                    wikiSource: name
+                  };
+                  wikipediaCache.set(name, result);
+                  if (wc) wc.setWiki(name, result);
+                  return result;
+                }
+              }
+            }
+          }
+        } catch (_e) { /* Wikidata fallback is best-effort */ }
+      }
+      // Fallback: try Wikipedia commons category search
+      if (!title) {
+        try {
+          // Search for commons category with brand name
+          const categorySearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + ' logo')}&srnamespace=6&format=json&origin=*&srlimit=5`;
+          const categoryRes = await fetch(categorySearchUrl);
+          if (categoryRes.ok) {
+            const categoryData = await categoryRes.json();
+            const categoryResults = categoryData?.query?.search || [];
+            // Find first jpg/jpeg/webp image
+            for (const result of categoryResults) {
+              const pageTitle = result.title || '';
+              if (/\.(jpg|jpeg|webp)$/i.test(pageTitle)) {
+                const fileName = pageTitle.replace(/^File:/, '');
+                const directUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=1600`;
+                const wikiResult = {
+                  title: name,
+                  description: '',
+                  thumbnail: directUrl,
+                  heroImage: directUrl,
+                  photoImage: directUrl,
+                  url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(pageTitle)}`,
+                  wikiSource: name
+                };
+                wikipediaCache.set(name, wikiResult);
+                if (wc) wc.setWiki(name, wikiResult);
+                return wikiResult;
+              }
+            }
+          }
+        } catch (_e) { /* commons fallback is best-effort */ }
+      }
       if (!title) {
         wikipediaCache.set(name, null);
         if (wc) wc.setWiki(name, null);
