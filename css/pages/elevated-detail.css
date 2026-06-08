@@ -2409,21 +2409,41 @@
 @media (max-width: 768px) {
   .elevated-detail-page .elevated-hero {
     min-height: auto;
+    overflow: visible;
   }
-  /* Backdrop: keep position absolute + cover — same as movies mobile.
-     No min-height / max-height overrides (those cause stretching). */
-  .elevated-detail-page .elevated-hero-backdrop {
+  .elevated-detail-page .elevated-hero-backdrop,
+  .elevated-detail-page .elevated-hero-blur {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
     transform: none;
+    background-attachment: fixed;
+    background-size: cover;
+  }
+  .elevated-detail-page .elevated-hero-backdrop {
+    background-position: center 20%;
   }
   .elevated-detail-page .elevated-hero-blur {
-    transform: none;
+    background-position: center;
+  }
+  .elevated-detail-page .elevated-hero::before,
+  .elevated-detail-page .elevated-hero::after {
+    position: fixed;
+    inset: 0;
   }
   .elevated-detail-page .elevated-hero-foreground {
+    position: relative;
+    z-index: 5;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto;
     gap: 22px;
     padding: 96px 0 36px;
     min-height: auto;
+  }
+  .elevated-detail-page .elevated-content {
+    position: relative;
+    z-index: 10;
+    background: var(--dt-bg);
   }
   .elevated-detail-page .elevated-poster-frame {
     max-width: 160px;

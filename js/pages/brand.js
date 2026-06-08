@@ -1318,6 +1318,11 @@
       renderSocial(brand, wiki);
     }
 
+    // Fallback: if no Wikipedia backdrop was found, use the brand logo
+    if (!dom.hero?.classList.contains('is-loaded') && brand.logo) {
+      applyBackdrop(brand.logo);
+    }
+
     // Related brands — non-blocking
     fetchRelatedBrands(brand).catch(() => {});
 
