@@ -1371,6 +1371,40 @@
     }
   }
 
+  function applyCollageFallback(brand) {
+    if (!dom.hero) return;
+    
+    dom.hero.classList.add('is-collage');
+    
+    // Create collage container
+    let collage = dom.hero.querySelector('.elevated-hero-collage');
+    if (!collage) {
+      collage = document.createElement('div');
+      collage.className = 'elevated-hero-collage';
+      dom.hero.insertBefore(collage, dom.hero.firstChild);
+    }
+    
+    // Create track for scrolling logos
+    let track = collage.querySelector('.elevated-hero-collage-track');
+    if (!track) {
+      track = document.createElement('div');
+      track.className = 'elevated-hero-collage-track';
+      collage.appendChild(track);
+    }
+    
+    // Get logo URL - use brand logo or fallback placeholder
+    const logoUrl = brand.logo || '/logo-placeholder.svg';
+    
+    // Create collage items (36 tiles for a 6x6 grid)
+    track.innerHTML = '';
+    for (let i = 0; i < 36; i++) {
+      const item = document.createElement('div');
+      item.className = 'elevated-hero-collage-item';
+      item.style.backgroundImage = `url("${logoUrl}")`;
+      track.appendChild(item);
+    }
+  }
+
   async function boot() {
     setCategoryAccent();
     await loadSession();
@@ -1412,6 +1446,11 @@
     // Fallback: if no Wikipedia backdrop was found, use the brand logo
     if (!dom.hero?.classList.contains('is-loaded') && brand.logo) {
       applyBackdrop(brand.logo);
+    }
+
+    // Final fallback: animated collage if no backdrop at all
+    if (!dom.hero?.classList.contains('is-loaded')) {
+      applyCollageFallback(brand);
     }
 
     // Related brands — non-blocking

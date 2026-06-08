@@ -158,6 +158,57 @@
   display: none;
 }
 
+/* Animated collage fallback for brands with no image */
+.elevated-detail-page .elevated-hero.is-collage .elevated-hero-backdrop {
+  display: none;
+}
+
+.elevated-detail-page .elevated-hero.is-collage .elevated-hero-blur {
+  display: none;
+}
+
+.elevated-hero-collage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--dt-bg);
+}
+
+.elevated-hero-collage-track {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 20px;
+  transform: rotate(-25deg);
+  animation: collage-scroll 25s linear infinite;
+  filter: blur(40px) saturate(0.8);
+  opacity: 0.35;
+}
+
+.elevated-hero-collage-item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: center / contain no-repeat;
+  transform: scale(1.2);
+}
+
+@keyframes collage-scroll {
+  0% {
+    transform: rotate(-25deg) translate(0, 0);
+  }
+  100% {
+    transform: rotate(-25deg) translate(-15%, 15%);
+  }
+}
+
 /* Top fade — matches elevated-media.css (movies) exactly */
 .elevated-detail-page .elevated-hero::before {
   content: "";
