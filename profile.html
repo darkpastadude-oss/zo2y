@@ -1463,73 +1463,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
                 <div id="mobileBookItems"></div>
             </div>
-            </section>
-
-            <section class="mobile-primary-panel" data-panel="activity">
-            <!-- Community Section -->
-            <div class="mobile-section" id="mobileCommunitySection">
-                <div class="mobile-section-title">
-                    <span id="mobileCommunityTitle">Community</span>
-                    <div class="community-switcher mobile-community-switcher">
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
-                            Followers
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
-                            Following
-                        </button>
-                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('activity')" id="mobileActivityTabBtn">
-                            Activity <span id="mobileActivityCountBadge" class="nav-tab-badge">0</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Follow collectors, see what they save, and keep up with new lists.</div>
-                <div class="mobile-community-intro">
-                    <div class="mobile-community-intro-copy">
-                        <span class="community-intro-kicker">Network</span>
-                        <strong>Find people worth following</strong>
-                        <p>Build a sharper feed by following profiles with good taste across media and lifestyle.</p>
-                    </div>
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.showModal('communitySearchModal')">
-                        <i class="fas fa-user-plus"></i> Find Users
-                    </button>
-                </div>
-                
-                <!-- Followers Tab -->
-                <div class="mobile-community-tab active" id="mobileFollowersTab">
-                    <div id="mobileFollowersList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">No followers yet</div>
-                                <div class="mobile-empty-description">Share a few standout lists and your audience will build over time.</div>
-                            </div>
-                        </div>
-                    </div>
-                
-                <!-- Following Tab -->
-                <div class="mobile-community-tab" id="mobileFollowingTab">
-                    <div id="mobileFollowingList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">Not following anyone</div>
-                                <div class="mobile-empty-description">Follow a few strong profiles to make this tab useful.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                <!-- Activity Tab -->
-                <div class="mobile-community-tab" id="mobileActivityTab">
-                    <div id="mobileActivityList">
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                                <div class="mobile-empty-title">No activity yet</div>
-                                <div class="mobile-empty-description">Follow more people or publish new lists to populate this feed.</div>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-            </section>
-
-            <section class="mobile-primary-panel" data-panel="lists">
             <!-- Music Section -->
             <div class="mobile-section" id="mobileMusicSection">
                 <div class="mobile-section-title">
@@ -1595,7 +1528,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
                 <div class="collection-grid" id="mobileSportsGrid">
                     <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-futbol"></i></div>
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
                         <div class="mobile-empty-title">No Teams Yet</div>
                         <div class="mobile-empty-description">Save teams to see them here.</div>
                         <button class="mobile-action-btn" onclick="window.location.href='sports.html'">
@@ -1683,133 +1616,131 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-        </section>
-
-        <!-- Fashion Detail View -->
-        <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
-            <div class="mobile-section-title">
-                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-                <span id="mobileFashionDetailTitle">Collection</span>
-            </div>
-            <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
-            <div class="collection-view-toggle mb-10" data-media="fashion">
-                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
-                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
-            </div>
-            <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
-                    <i class="fas fa-pen"></i> Edit
-                </button>
-                <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-            <div id="mobileFashionItems"></div>
-        </div>
-
-        <!-- Cars Section -->
-        <div class="mobile-section" id="mobileCarsSection">
-            <div class="mobile-section-title">
-                <span id="mobileCarsTitle">My Cars</span>
-                <div class="d-flex gap-sm">
-                    <button class="mobile-action-btn btn-base mb-0" id="mobileCreateCarsListBtn" onclick="ProfileManager.createCarList()">
-                        <i class="fas fa-plus"></i>
+            <!-- Fashion Detail View -->
+            <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
                     </button>
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='cars.html'">
-                        <i class="fas fa-car"></i> Browse
+                    <span id="mobileFashionDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="fashion">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
+                <div id="mobileFashionItems"></div>
             </div>
-            <div class="mobile-section-subtitle" id="mobileCarsSubtitle">Track your favorite car brands</div>
 
-            <div class="collection-grid" id="mobileCarsGrid">
-                <div class="mobile-empty-state">
-                    <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                    <h3 class="mobile-empty-title">No Car Lists Yet</h3>
-                    <p class="mobile-empty-description">Save brands to see them here.</p>
-                    <button class="mobile-action-btn" onclick="window.location.href='cars.html'">
-                        <i class="fas fa-car"></i> Explore Cars
-                    </button>
+            <!-- Cars Section -->
+            <div class="mobile-section" id="mobileCarsSection">
+                <div class="mobile-section-title">
+                    <span id="mobileCarsTitle">My Cars</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateCarsListBtn" onclick="ProfileManager.createCarList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='cars.html'">
+                            <i class="fas fa-car"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCarsSubtitle">Track your favorite car brands</div>
+
+                <div class="collection-grid" id="mobileCarsGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Car Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='cars.html'">
+                            <i class="fas fa-car"></i> Explore Cars
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Cars Detail View -->
-        <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
-            <div class="mobile-section-title">
-                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-                <span id="mobileCarsDetailTitle">Collection</span>
-            </div>
-            <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
-            <div class="collection-view-toggle mb-10" data-media="car">
-                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
-                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
-            </div>
-            <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
-                    <i class="fas fa-pen"></i> Edit
-                </button>
-                <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-            <div id="mobileCarsItems"></div>
-        </div>
-
-        <!-- Food Section -->
-        <div class="mobile-section" id="mobileFoodSection">
-            <div class="mobile-section-title">
-                <span id="mobileFoodTitle">My Food</span>
-                <div class="d-flex gap-sm">
-                    <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
-                        <i class="fas fa-plus"></i>
+            <!-- Cars Detail View -->
+            <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
                     </button>
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
-                        <i class="fas fa-burger"></i> Browse
+                    <span id="mobileCarsDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="car">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
+                <div id="mobileCarsItems"></div>
             </div>
-            <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
 
-            <div class="collection-grid" id="mobileFoodGrid">
-                <div class="mobile-empty-state">
-                    <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                    <h3 class="mobile-empty-title">No Food Lists Yet</h3>
-                    <p class="mobile-empty-description">Save brands to see them here.</p>
-                    <button class="mobile-action-btn" onclick="window.location.href='food.html'">
-                        <i class="fas fa-burger"></i> Explore Food
-                    </button>
+            <!-- Food Section -->
+            <div class="mobile-section" id="mobileFoodSection">
+                <div class="mobile-section-title">
+                    <span id="mobileFoodTitle">My Food</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
+
+                <div class="collection-grid" id="mobileFoodGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Food Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Explore Food
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Food Detail View -->
-        <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
-            <div class="mobile-section-title">
-                <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
-                    <i class="fas fa-arrow-left"></i> Back
-                </button>
-                <span id="mobileFoodDetailTitle">Collection</span>
+            <!-- Food Detail View -->
+            <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileFoodDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="food">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileFoodItems"></div>
             </div>
-            <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
-            <div class="collection-view-toggle mb-10" data-media="food">
-                <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
-                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
-            </div>
-            <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
-                    <i class="fas fa-pen"></i> Edit
-                </button>
-                <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-            </div>
-            <div id="mobileFoodItems"></div>
-        </div>
 
             <!-- Mobile List Detail Section -->
             <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
@@ -1825,8 +1756,72 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="mobile-section-subtitle" id="mobileListDetailDescription"></div>
                 <div id="mobileListRestaurants"></div>
             </div>
-
             </section>
+
+            <section class="mobile-primary-panel" data-panel="activity">
+            <!-- Community Section -->
+            <div class="mobile-section" id="mobileCommunitySection">
+                <div class="mobile-section-title">
+                    <span id="mobileCommunityTitle">Community</span>
+                    <div class="community-switcher mobile-community-switcher">
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
+                            Followers
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
+                            Following
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('activity')" id="mobileActivityTabBtn">
+                            Activity <span id="mobileActivityCountBadge" class="nav-tab-badge">0</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Follow collectors, see what they save, and keep up with new lists.</div>
+                <div class="mobile-community-intro">
+                    <div class="mobile-community-intro-copy">
+                        <span class="community-intro-kicker">Network</span>
+                        <strong>Find people worth following</strong>
+                        <p>Build a sharper feed by following profiles with good taste across media and lifestyle.</p>
+                    </div>
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.showModal('communitySearchModal')">
+                        <i class="fas fa-user-plus"></i> Find Users
+                    </button>
+                </div>
+                
+                <!-- Followers Tab -->
+                <div class="mobile-community-tab active" id="mobileFollowersTab">
+                    <div id="mobileFollowersList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No followers yet</div>
+                                <div class="mobile-empty-description">Share a few standout lists and your audience will build over time.</div>
+                            </div>
+                        </div>
+                    </div>
+                
+                <!-- Following Tab -->
+                <div class="mobile-community-tab" id="mobileFollowingTab">
+                    <div id="mobileFollowingList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">Not following anyone</div>
+                                <div class="mobile-empty-description">Follow a few strong profiles to make this tab useful.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Activity Tab -->
+                <div class="mobile-community-tab" id="mobileActivityTab">
+                    <div id="mobileActivityList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No activity yet</div>
+                                <div class="mobile-empty-description">Follow more people or publish new lists to populate this feed.</div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            </section>
+
         </div>
 
         <!-- Mobile Bottom Navigation -->

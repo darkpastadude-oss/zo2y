@@ -272,19 +272,15 @@
                     // 5. FIX: Optimized initialization to load faster
                     await loadProfile();
 
-                    // Load restaurants in background
-                    if (ENABLE_RESTAURANTS) {
-                        loadRestaurants().catch(err => console.error('Restaurant load error:', err));
-                    }
+                    // Load data in background
+                    loadRestaurants().catch(err => console.error('Restaurant load error:', err));
                     
                     // Initialize systems
                     communitySystem = createCommunitySystem();
                     
                     // Initialize list manager and community in background
                     const initTasks = [communitySystem.init()];
-                    if (ENABLE_RESTAURANTS) {
-                        initTasks.unshift(listManager.init());
-                    }
+                    initTasks.unshift(listManager.init());
                     Promise.all(initTasks).catch(err => console.error('Initialization error:', err));
                     
                     // 2. FIX: Update setupEventListeners to prevent multiple bindings
