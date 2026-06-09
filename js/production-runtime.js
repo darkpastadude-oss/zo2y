@@ -415,124 +415,7 @@
     });
   }
 
-  function ensureGlobalLegalFooterStyles() {
-    if (document.getElementById("zo2yGlobalLegalFooterStyle")) return;
-    const style = document.createElement("style");
-    style.id = "zo2yGlobalLegalFooterStyle";
-    style.textContent = `
-      .legal-strip.global-legal-footer {
-        width: min(1240px, calc(100% - 28px));
-        margin: 14px auto 26px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 14px;
-        color: #8ca3c7;
-        font-size: 12px;
-        flex-wrap: wrap;
-      }
-      .legal-strip.global-legal-footer a {
-        color: #f59e0b;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .legal-strip.global-legal-footer .legal-sep {
-        color: rgba(255,255,255,0.28);
-      }
-      @media (max-width: 760px) {
-        .legal-strip.global-legal-footer {
-          width: calc(100% - 18px);
-          margin: 12px auto 96px;
-          gap: 12px;
-          font-size: 12px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
 
-  function buildMailtoContactHref() {
-    return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(CONTACT_SUBJECT)}`;
-  }
-
-  function buildGmailComposeHref() {
-    const params = new URLSearchParams({
-      view: "cm",
-      fs: "1",
-      to: CONTACT_EMAIL,
-      su: CONTACT_SUBJECT
-    });
-    return `https://mail.google.com/mail/?${params.toString()}`;
-  }
-
-  function isContactLikeLink(link) {
-    if (!(link instanceof HTMLAnchorElement)) return false;
-    const href = String(link.getAttribute("href") || "").trim();
-    const text = String(link.textContent || "").trim().toLowerCase();
-    if (/(^|\/)support\.html(\?|#|$)/i.test(href)) return true;
-    if (/^mailto:/i.test(href) && /(zo2hyq|zo2yhq)@gmail\.com/i.test(href)) return true;
-    if (text === "support" || text === "contact") return true;
-    return false;
-  }
-
-  function rewriteSupportLinksToEmail() {
-    const links = Array.from(document.querySelectorAll("a[href]"));
-    const mailtoHref = buildMailtoContactHref();
-    links.forEach((link) => {
-      if (!(link instanceof HTMLAnchorElement)) return;
-      if (!isContactLikeLink(link)) return;
-      link.setAttribute("href", mailtoHref);
-      link.setAttribute("target", "_blank");
-      link.setAttribute("rel", "noopener");
-      link.setAttribute("data-contact-link", "1");
-      if (String(link.textContent || "").trim().toLowerCase() === "support") {
-        link.textContent = "Contact";
-      }
-    });
-  }
-
-  function setupContactLinkPopup() {
-    if (window.__ZO2Y_CONTACT_POPUP_WIRED__) return;
-    window.__ZO2Y_CONTACT_POPUP_WIRED__ = true;
-
-    document.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const link = target.closest("a[data-contact-link='1']");
-      if (!(link instanceof HTMLAnchorElement)) return;
-
-      event.preventDefault();
-      const shouldOpenGmail = window.confirm(`Contact us at ${CONTACT_EMAIL}.\nOpen Gmail compose now?`);
-      if (!shouldOpenGmail) return;
-
-      const gmailHref = buildGmailComposeHref();
-      const popup = window.open(gmailHref, "_blank", "noopener,noreferrer");
-      if (!popup) {
-        window.location.href = buildMailtoContactHref();
-      }
-    });
-  }
-
-  function mountGlobalLegalFooter() {
-    rewriteSupportLinksToEmail();
-    setupContactLinkPopup();
-    const existing = document.querySelector(".legal-strip");
-    if (existing) return;
-    const body = document.body;
-    if (!body || document.querySelector("[data-global-legal-footer='1']")) return;
-    ensureGlobalLegalFooterStyles();
-    const footer = document.createElement("div");
-    footer.className = "legal-strip global-legal-footer";
-    footer.setAttribute("data-global-legal-footer", "1");
-    footer.innerHTML = `
-      <a href="privacy.html">Privacy</a>
-      <span class="legal-sep">|</span>
-      <a href="terms.html">Terms</a>
-      <span class="legal-sep">|</span>
-      <a href="${buildMailtoContactHref()}" data-contact-link="1" target="_blank" rel="noopener">Contact</a>
-    `;
-    body.appendChild(footer);
-  }
 
   function normalizeDedupeText(value) {
     return String(value || "")
@@ -729,7 +612,6 @@
     setupFunnelTracking();
     const runDeferredUiWork = () => {
       renderConsentBanner();
-      mountGlobalLegalFooter();
       setupDuplicateCardCleanup();
     };
     if (typeof window.requestIdleCallback === "function") {

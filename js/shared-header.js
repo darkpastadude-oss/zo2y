@@ -29,12 +29,12 @@
     <span class="zo2y-logo-pop">
       <span class="zo2y-logo-sprite">
         <span class="zo2y-logo-face zo2y-logo-face-top">
-          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="Zo2y logo" />
-          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" aria-hidden="true" />
+          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="Zo2y logo" decoding="async" />
+          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" aria-hidden="true" decoding="async" />
         </span>
         <span class="zo2y-logo-face zo2y-logo-face-bottom" aria-hidden="true">
-          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="" />
-          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" />
+          <img class="zo2y-logo-img normal" src="/newlogo.webp" alt="" decoding="async" />
+          <img class="zo2y-logo-img scared" src="/scared.webp" alt="" decoding="async" />
         </span>
         <span class="zo2y-logo-eye-white eye-left" aria-hidden="true"></span>
         <span class="zo2y-logo-eye-white eye-right" aria-hidden="true"></span>
@@ -170,9 +170,6 @@ const HEADER_HTML = `
   </div>
 
   <div class="zo2y-mobile-drawer-secondary">
-    <button type="button" class="zo2y-mobile-drawer-link zo2y-mobile-drawer-link-btn" data-open-cookie-prefs id="mobileCookiePrefsBtn" aria-label="Cookie preferences">
-      <i class="fa-solid fa-cookie-bite"></i><span>Cookie preferences</span>
-    </button>
   </div>
 
   <div class="zo2y-mobile-drawer-search">
