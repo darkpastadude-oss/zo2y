@@ -65,12 +65,14 @@
   }
 
   function showError(message) {
+    if (!errorEl || !successEl) return;
     errorEl.textContent = message;
     errorEl.classList.add('show');
     successEl.classList.remove('show');
   }
 
   function showSuccess(message) {
+    if (!errorEl || !successEl) return;
     successEl.textContent = message;
     successEl.classList.add('show');
     errorEl.classList.remove('show');
@@ -243,8 +245,8 @@
       return;
     }
 
-    if (password.length < 8) {
-      showError('Password must be at least 8 characters.');
+    if (password.length < 12) {
+      showError('Password must be at least 12 characters.');
       track('signup_validation_error', { reason: 'password_short', path: window.location.pathname });
       return;
     }

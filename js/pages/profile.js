@@ -13388,8 +13388,8 @@
                 e.preventDefault();
                 const password = String(document.getElementById('settingsNewPassword')?.value || '');
                 const confirm = String(document.getElementById('settingsConfirmPassword')?.value || '');
-                if (password.length < 8) {
-                    showToast('Password must be at least 8 characters', 'error');
+                if (password.length < 12) {
+                    showToast('Password must be at least 12 characters', 'error');
                     return;
                 }
                 if (password !== confirm) {

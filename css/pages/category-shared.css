@@ -3,6 +3,9 @@
   --card: #132347;
   --card-2: #172b58;
   --muted: #8ca3c7;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #ffb84d;
+  --color-border: rgba(255,255,255,0.12);
   --accent: var(--color-accent);
   --white: #fff;
   --border: var(--color-border);
@@ -193,7 +196,7 @@ a { color: inherit; text-decoration: none; }
 .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .page-info { color: var(--muted); font-size: 13px; }
 
-.modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(6, 12, 28, 0.72); backdrop-filter: blur(4px); z-index: 240; padding: 16px; }
+.modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(6, 12, 28, 0.72); backdrop-filter: blur(4px); z-index: 2000; padding: 16px; }
 .modal.active { display: flex; }
 .modal-content { width: min(420px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }

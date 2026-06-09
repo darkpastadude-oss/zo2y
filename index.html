@@ -402,15 +402,6 @@
       const referralUtils = window.ZO2Y_REFERRALS || null;
       if (!referralUtils) return;
       const referral = referralUtils.captureReferralFromLocation(window.location.search);
-      const banner = document.getElementById('landingReferralBanner');
-      if (banner) {
-        if (referral) {
-          banner.hidden = false;
-          banner.innerHTML = `<i class="fa-solid fa-user-group"></i><span>You are viewing @${referral}'s invite link. Create an account to start building your own Zo2y profile.</span>`;
-        } else {
-          banner.hidden = true;
-        }
-      }
       document.querySelectorAll('[data-auth-entry]').forEach((link) => {
         const href = link.getAttribute('href');
         if (!href) return;

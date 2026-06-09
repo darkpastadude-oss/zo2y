@@ -80,8 +80,8 @@
 
     var password = String(passwordInput.value || '');
     var confirm = String(confirmInput.value || '');
-    if (password.length < 8) {
-      showError('Password must be at least 8 characters.');
+    if (password.length < 12) {
+      showError('Password must be at least 12 characters.');
       return;
     }
     if (password !== confirm) {
@@ -99,7 +99,6 @@
       if (result && result.error) throw result.error;
       track('password_reset_completed', { path: window.location.pathname });
       showSuccess('Password updated. Redirecting to login...');
-      await auth.signOut(recoveryClient);
       window.setTimeout(function () {
         window.location.replace('login.html');
       }, 1200);

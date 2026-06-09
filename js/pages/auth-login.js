@@ -23,7 +23,7 @@
   var inviteBanner = document.getElementById('authInviteBanner');
   var signupLink = document.getElementById('altSignupLink');
 
-  if (!form || !emailInput || !passwordInput || !submitButton || !googleButton) return;
+  if (!form || !emailInput || !passwordInput || !submitButton || !googleButton || !forgotPassword) return;
 
   var submitDefaultHtml = submitButton.innerHTML;
   var googleDefaultHtml = googleButton.innerHTML;
@@ -50,18 +50,21 @@
   }
 
   function showError(message) {
+    if (!errorEl || !successEl) return;
     errorEl.textContent = message;
     errorEl.classList.add('show');
     successEl.classList.remove('show');
   }
 
   function showSuccess(message) {
+    if (!errorEl || !successEl) return;
     successEl.textContent = message;
     successEl.classList.add('show');
     errorEl.classList.remove('show');
   }
 
   function clearMessages() {
+    if (!errorEl || !successEl) return;
     errorEl.classList.remove('show');
     successEl.classList.remove('show');
   }

@@ -1,6 +1,1 @@
-/* Global lowercase UI text - all text */
-
-html body,
-html body * {
-  text-transform: lowercase;
-}
+/* Global lowercase UI text - component-level lowercase handled in component CSS */

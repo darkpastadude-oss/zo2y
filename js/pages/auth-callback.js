@@ -17,7 +17,7 @@
   if (referralUtils) referralUtils.captureReferralFromLocation(window.location.search);
 
   var params = new URLSearchParams(window.location.search || '');
-  var flow = String(params.get('flow') || (window.localStorage ? window.localStorage.getItem('oauthFlow') : '') || 'login').trim().toLowerCase();
+  var flow = String(params.get('flow') || (window.localStorage ? (window.localStorage.getItem('zo2y-auth-oauth-flow-v2') || window.localStorage.getItem('oauthFlow')) : '') || 'login').trim().toLowerCase();
   if (flow !== 'signup') flow = 'login';
   var debugEnabled = params.get('debug') === 'true';
 
