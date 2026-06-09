@@ -38,9 +38,8 @@
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
-            const ENABLE_RESTAURANTS = false;
             const GAMES_DISABLED = false;
-            const DEFAULT_PROFILE_TAB = ENABLE_RESTAURANTS ? 'restaurants' : 'movies';
+            const DEFAULT_PROFILE_TAB = 'movies';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
             let currentPrimaryTab = 'lists';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
@@ -168,12 +167,9 @@
             let hasBoundStatsRealtimeLifecycle = false;
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
-                ENABLE_RESTAURANTS
-                    ? ['restaurants', 'movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
-                    : ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
-                ...(ENABLE_RESTAURANTS ? ['restaurant'] : []),
                 'movie',
                 'tv',
                 'anime',
@@ -186,7 +182,6 @@
                 'car'
             ]);
             const COLLECTION_TO_TAB = {
-                ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants' } : {}),
                 movie: 'movies',
                 tv: 'tv',
                 anime: 'anime',
@@ -668,7 +663,7 @@
             }
 
             function ensureProfileGroupRowVisible(tabName) {
-                const mediaTabs = new Set(['movies', 'tv', 'anime', 'books', 'music']);
+                const mediaTabs = new Set(['movies', 'tv', 'anime', 'games', 'books', 'music']);
                 const lifestyleTabs = new Set(['sports', 'travel', 'fashion', 'food', 'cars']);
                 let group = '';
                 if (mediaTabs.has(tabName)) group = 'media';
@@ -5564,7 +5559,7 @@
                 const normalizedType = String(contentType || '').toLowerCase();
                 if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
                 const tabName = getTabForCollectionType(normalizedType);
-                const resolvedListType = listType || (normalizedType === 'restaurant' ? 'custom' : 'default');
+                const resolvedListType = listType || 'default';
                 const view = getCollectionViewMode(normalizedType);
                 const url = buildProfileUrl({
                     tab: tabName,
@@ -5620,7 +5615,7 @@
                 }
 
                 try {
-                    const fallbackListType = routeListType || (routeCollection === 'restaurant' ? 'custom' : 'default');
+                    const fallbackListType = routeListType || 'default';
                     await showCollectionDetail(routeListId, routeCollection, fallbackListType);
                 } catch (error) {
                     console.error('Unable to open collection route:', error);
@@ -5653,9 +5648,7 @@
                 const isMobile = window.innerWidth <= 768;
                 const listId = currentMediaDetail.listId;
                 const listType = currentMediaDetail.listType;
-                if (mediaType === 'restaurant') {
-                    await showRestaurantDetail(listId, isMobile);
-                } else if (mediaType === 'movie') {
+                if (mediaType === 'movie') {
                     await showMovieDetail(listId, listType, isMobile);
                 } else if (mediaType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
@@ -7916,7 +7909,6 @@
 
             function resetDetailPanels() {
                 const desktopPairs = [
-                    ['restaurants-tab', 'restaurant-detail-view'],
                     ['movies-tab', 'movie-detail-view'],
                     ['tv-tab', 'tv-detail-view'],
                     ['anime-tab', 'anime-detail-view'],
@@ -7939,7 +7931,6 @@
                 });
 
                 const mobileConfigs = [
-                    { main: 'mobileRestaurantsSection', detail: 'mobileRestaurantDetailSection', grid: 'mobileRestaurantsGrid' },
                     { main: 'mobileMoviesSection', detail: 'mobileMovieDetailSection', grid: 'mobileMoviesGrid' },
                     { main: 'mobileTvSection', detail: 'mobileTvDetailSection', grid: 'mobileTvGrid' },
                     { main: 'mobileAnimeSection', detail: 'mobileAnimeDetailSection', grid: 'mobileAnimeGrid' },
@@ -7976,7 +7967,6 @@
                     return Promise.resolve();
                 }
                 const handlers = {
-                    ...(ENABLE_RESTAURANTS ? { restaurants: () => renderRestaurants() } : {}),
                     movies: () => renderMovies(),
                     ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
                     tv: () => renderTvShows(),
@@ -9855,11 +9845,7 @@
             async function showCollectionDetail(listId, contentType, listType) {
                 const isMobile = window.innerWidth <= 768;
 
-                if (contentType === 'restaurant') {
-                    await showRestaurantDetail(listId, isMobile);
-                } else if (contentType === 'movie') {
-                    await showMovieDetail(listId, listType, isMobile);
-                } else if (contentType === 'game') {
+                if (contentType === 'game') {
                     await showGameDetail(listId, listType, isMobile);
                 } else if (contentType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
@@ -10052,19 +10038,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMoviesSection');
                     const detailSection = document.getElementById('mobileMovieDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMoviesGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('movies-tab');
@@ -10072,7 +10049,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -10247,19 +10224,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTvSection');
                     const detailSection = document.getElementById('mobileTvDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTvGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('tv-tab');
@@ -10267,7 +10235,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -10444,19 +10412,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileAnimeSection');
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileAnimeGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('anime-tab');
@@ -10464,7 +10423,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -10641,19 +10600,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileGamesSection');
                     const detailSection = document.getElementById('mobileGameDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileGamesGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('games-tab');
@@ -10661,7 +10611,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -10849,19 +10799,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileBooksSection');
                     const detailSection = document.getElementById('mobileBookDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileBooksGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('books-tab');
@@ -10869,7 +10810,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -11047,19 +10988,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileMusicSection');
                     const detailSection = document.getElementById('mobileMusicDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMusicGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('music-tab');
@@ -11067,7 +10999,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -11238,19 +11170,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileTravelSection');
                     const detailSection = document.getElementById('mobileTravelDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTravelGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('travel-tab');
@@ -11258,7 +11181,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -11437,19 +11360,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFashionSection');
                     const detailSection = document.getElementById('mobileFashionDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFashionGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('fashion-tab');
@@ -11457,7 +11371,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -11626,19 +11540,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileCarsSection');
                     const detailSection = document.getElementById('mobileCarsDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileCarsGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('cars-tab');
@@ -11646,7 +11551,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -11802,19 +11707,10 @@
                 if (isMobile) {
                     const mainSection = document.getElementById('mobileFoodSection');
                     const detailSection = document.getElementById('mobileFoodDetailSection');
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFoodGrid');
-                        if (titleEl) titleEl.style.display = 'none';
-                        if (subtitleEl) subtitleEl.style.display = 'none';
-                        if (gridEl) gridEl.style.display = 'none';
-                    }
+                    if (mainSection) mainSection.style.display = 'none';
                     if (detailSection) {
                         detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
+                        detailSection.classList.add('active', 'rendered');
                     }
                 } else {
                     const mainTab = document.getElementById('food-tab');
@@ -11822,7 +11718,7 @@
                     if (mainTab) mainTab.style.display = 'none';
                     if (detailView) {
                         detailView.style.display = 'block';
-                        detailView.classList.add('active');
+                        detailView.classList.add('active', 'rendered');
                     }
                 }
 
@@ -12004,21 +11900,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileBookDetailSection');
                     const mainSection = document.getElementById('mobileBooksSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileBooksGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('book-detail-view');
                     const mainTab = document.getElementById('books-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12302,21 +12198,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMovieDetailSection');
                     const mainSection = document.getElementById('mobileMoviesSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMoviesGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('movie-detail-view');
                     const mainTab = document.getElementById('movies-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12331,21 +12227,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileMusicDetailSection');
                     const mainSection = document.getElementById('mobileMusicSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileMusicGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('music-detail-view');
                     const mainTab = document.getElementById('music-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12360,21 +12256,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileTravelDetailSection');
                     const mainSection = document.getElementById('mobileTravelSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTravelGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('travel-detail-view');
                     const mainTab = document.getElementById('travel-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12389,21 +12285,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileFashionDetailSection');
                     const mainSection = document.getElementById('mobileFashionSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFashionGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('fashion-detail-view');
                     const mainTab = document.getElementById('fashion-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12418,21 +12314,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileCarsDetailSection');
                     const mainSection = document.getElementById('mobileCarsSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileCarsGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('cars-detail-view');
                     const mainTab = document.getElementById('cars-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12447,21 +12343,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileFoodDetailSection');
                     const mainSection = document.getElementById('mobileFoodSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileFoodGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('food-detail-view');
                     const mainTab = document.getElementById('food-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12476,21 +12372,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileTvDetailSection');
                     const mainSection = document.getElementById('mobileTvSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileTvGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('tv-detail-view');
                     const mainTab = document.getElementById('tv-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12505,21 +12401,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileAnimeDetailSection');
                     const mainSection = document.getElementById('mobileAnimeSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileAnimeGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('anime-detail-view');
                     const mainTab = document.getElementById('anime-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');
@@ -12534,21 +12430,21 @@
                 if (isMobile) {
                     const detailSection = document.getElementById('mobileGameDetailSection');
                     const mainSection = document.getElementById('mobileGamesSection');
-                    if (detailSection) detailSection.style.display = 'none';
+                    if (detailSection) {
+                        detailSection.style.display = 'none';
+                        detailSection.classList.remove('active', 'rendered');
+                    }
                     if (mainSection) {
                         mainSection.style.display = 'block';
                         mainSection.classList.add('active');
-                        const titleEl = mainSection.querySelector('.mobile-section-title');
-                        const subtitleEl = mainSection.querySelector('.mobile-section-subtitle');
-                        const gridEl = document.getElementById('mobileGamesGrid');
-                        if (titleEl) titleEl.style.display = '';
-                        if (subtitleEl) subtitleEl.style.display = '';
-                        if (gridEl) gridEl.style.display = '';
                     }
                 } else {
                     const detailView = document.getElementById('game-detail-view');
                     const mainTab = document.getElementById('games-tab');
-                    if (detailView) detailView.style.display = 'none';
+                    if (detailView) {
+                        detailView.style.display = 'none';
+                        detailView.classList.remove('active', 'rendered');
+                    }
                     if (mainTab) {
                         mainTab.style.display = 'block';
                         mainTab.classList.add('active');

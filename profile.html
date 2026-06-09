@@ -186,9 +186,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <h2 class="profile-section-heading">Collections and lists</h2>
                 </div>
             <div class="nav-tabs">
-                <div class="nav-tab active profile-tab-collections" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                    <i class="fas fa-clapperboard"></i> <span id="restaurantsTabText">Collections</span>
-                </div>
                 <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span> <i class="fas fa-chevron-down"></i>
                 </button>
@@ -214,68 +211,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
 
             <div id="lists-tab">
-            <!-- Restaurants Tab Content -->
-            <div class="tab-content active" id="restaurants-tab">
-                <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <h2 class="section-title" id="restaurantsTitle">My Collections</h2>
-                            <p class="section-subtitle" id="restaurantsSubtitle">Organize your custom collections</p>
-                        </div>
-                        <div class="section-actions">
-                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.showCreateListModal()" id="createRestaurantListBtn">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Restaurants Grid -->
-                    <div class="collection-grid" id="restaurantsGrid">
-                        <!-- Collections will be populated here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Restaurant Detail View -->
-            <div class="tab-content" id="restaurant-detail-view">
-                <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideRestaurantDetail()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="restaurantDetailTitle">
-                                <span id="restaurantDetailIcon"></span>
-                                <span id="restaurantDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="restaurantDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="restaurant">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions" id="restaurantDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="editRestaurantListBtn">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn btn-primary btn-sm" onclick="window.location.href='index.html'" id="addToRestaurantListBtn">
-                                <i class="fas fa-search"></i> Browse Home
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="restaurantItemsContainer">
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="fas fa-list"></i></div>
-                            <h3 class="empty-title">No Collections Yet</h3>
-                            <p class="empty-description">Start adding items to this collection!</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Movies Tab Content -->
             <div class="tab-content" id="movies-tab">
                 <div class="section">
@@ -1127,10 +1062,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <section class="mobile-primary-panel" data-panel="lists">
             <!-- Mobile Tabs Navigation -->
             <div class="mobile-tabs">
-                <div class="mobile-tab active" data-tab="restaurants" onclick="ProfileManager.showTab('restaurants')">
-                    <i class="fas fa-clapperboard"></i>
-                    <span id="mobileTabRestaurants">Collections</span>
-                </div>
                 <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
                     <span>Media</span>
                     <i class="fas fa-chevron-down"></i>
@@ -1160,57 +1091,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <span>Swipe tabs</span>
             </div>
 
-            <!-- Mobile Restaurants Section -->
-            <div class="mobile-section active" id="mobileRestaurantsSection">
-                <div class="mobile-section-title">
-                    <span id="mobileRestaurantsTitle">My Collections</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateRestaurantListBtn" onclick="ProfileManager.showCreateListModal()">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileRestaurantsSubtitle">Organize your custom collections</div>
-                
-                <div class="collection-grid" id="mobileRestaurantsGrid">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Collections Yet</div>
-                        <div class="mobile-empty-description">Create your first collection from the + button below.</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Mobile Restaurant Detail Section -->
-            <div class="mobile-section" id="mobileRestaurantDetailSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMobileRestaurantDetail()">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </button>
-                    <div class="flex-1 text-center">
-                        <span id="mobileRestaurantDetailTitle">Collection</span>
-                    </div>
-                    <button class="mobile-action-btn secondary btn-base mb-0 hidden" id="mobileAddToRestaurantListBtn" onclick="window.location.href='index.html'">
-                        <i class="fas fa-search"></i> Browse
-                    </button>
-                </div>
-                <div class="mobile-section-subtitle" id="mobileRestaurantDetailDescription">Collection description</div>
-                <div class="collection-view-toggle mb-10" data-media="restaurant">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('restaurant', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('restaurant', 'list', true)"><i class="fas fa-list"></i></button>
-                </div>
-                
-                <div id="mobileRestaurantItems">
-                    <div class="mobile-empty-state">
-                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
-                        <div class="mobile-empty-title">No Collections Yet</div>
-                        <div class="mobile-empty-description">Start adding items!</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Movies Section -->
-            <div class="mobile-section" id="mobileMoviesSection">
+            <div class="mobile-section active" id="mobileMoviesSection">
                 <div class="mobile-section-title">
                     <span id="mobileMoviesTitle">My Movies</span>
                     <div class="d-flex gap-sm">
