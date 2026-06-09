@@ -5580,9 +5580,6 @@
                     console.error('Unable to open collection:', error);
                     showToast('Unable to open this collection', 'error');
                 }
-                if (currentTab !== tabName) {
-                    showTab(tabName, { skipUrlSync: true, skipRender: true, skipDetailReset: isMobile });
-                }
             }
 
             async function hydrateInitialRoute() {

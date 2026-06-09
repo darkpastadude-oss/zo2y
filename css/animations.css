@@ -265,8 +265,6 @@ body {
 }
 
 /* === TAB CONTENT SWITCHING === */
-/* Tab starts display:none; active makes it block+opacity:0 for layout;
-   rendered class triggers the fade-in after content is loaded */
 .tab-content {
     display: none;
     position: relative;
@@ -274,37 +272,6 @@ body {
 
 .tab-content.active {
     display: block;
-    opacity: 0;
-    min-height: 120px;
-    transition: opacity 0.2s var(--ease-smooth);
-    will-change: transform, opacity;
-    content-visibility: auto;
-    contain-intrinsic-size: 120px;
-}
-
-.tab-content.active.rendered {
-    opacity: 1;
-}
-
-/* Tab loading spinner — visible only while data loads */
-.tab-content.active:not(.rendered)::after,
-.mobile-section.active:not(.rendered)::after {
-    content: '';
-    position: absolute;
-    top: 60px;
-    left: 50%;
-    width: 28px;
-    height: 28px;
-    margin-left: -14px;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    border-top-color: var(--accent, var(--color-accent));
-    border-radius: 50%;
-    animation: tabLoadingSpin 0.5s linear infinite;
-    pointer-events: none;
-}
-
-@keyframes tabLoadingSpin {
-    to { transform: rotate(360deg); }
 }
 
 /* Mobile sections */
@@ -315,16 +282,6 @@ body {
 
 .mobile-section.active {
     display: block;
-    opacity: 0;
-    min-height: 120px;
-    transition: opacity 0.2s var(--ease-smooth);
-    will-change: transform, opacity;
-    content-visibility: auto;
-    contain-intrinsic-size: 120px;
-}
-
-.mobile-section.active.rendered {
-    opacity: 1;
 }
 
 /* === REDUCED MOTION SUPPORT === */
@@ -336,19 +293,8 @@ body {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
-    
-    .tab-content.active,
-    .tab-content.active.rendered,
-    .mobile-section.active,
-    .mobile-section.active.rendered {
-        opacity: 1;
-    }
     body {
         animation: none;
         opacity: 1;
-    }
-    .tab-content.active:not(.rendered)::after,
-    .mobile-section.active:not(.rendered)::after {
-        display: none;
     }
 }
