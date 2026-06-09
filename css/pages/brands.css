@@ -13,7 +13,7 @@
 
 body {
   margin: 0;
-  background: radial-gradient(circle at top, rgba(24, 39, 78, 0.65), transparent 55%), var(--brand-bg);
+  background: var(--brand-bg);
   color: #fff;
   font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;

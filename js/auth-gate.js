@@ -477,12 +477,12 @@
     if (!details.message && !details.code && !details.status) return false;
     if (details.message.indexOf('refresh token already used') !== -1) return false;
     if (details.message.indexOf('already been used') !== -1) return false;
+    if (details.message.indexOf('session missing') !== -1) return false;
+    if (details.message.indexOf('session not found') !== -1) return false;
     return (
       details.message.indexOf('invalid refresh token') !== -1 ||
       details.message.indexOf('refresh token not found') !== -1 ||
       details.message.indexOf('invalid grant') !== -1 ||
-      details.message.indexOf('session missing') !== -1 ||
-      details.message.indexOf('session not found') !== -1 ||
       details.message.indexOf('user from sub claim in jwt does not exist') !== -1 ||
       details.message.indexOf('invalid api key') !== -1 ||
       (details.message.indexOf('apikey') !== -1 && details.message.indexOf('invalid') !== -1) ||
@@ -1272,10 +1272,26 @@
             });
             return refreshed;
           }
-          if (refreshResult && refreshResult.error && shouldClearPersistedSessionForError(refreshResult.error)) {
-            clearPersistedSessionSnapshots();
+          if (refreshResult && refreshResult.error) {
+            if (isRecoverableSessionRaceError(refreshResult.error)) {
+              var snapshotSession = getStoredSessionSnapshot();
+              if (snapshotSession && snapshotSession.access_token) {
+                pushAuthDebugEvent('session:get:race-recovered', { ms: Date.now() - startedAt });
+                return snapshotSession;
+              }
+            }
+            if (shouldClearPersistedSessionForError(refreshResult.error)) {
+              clearPersistedSessionSnapshots();
+            }
           }
         } catch (error) {
+          if (isRecoverableSessionRaceError(error)) {
+            var snapshotSession = getStoredSessionSnapshot();
+            if (snapshotSession && snapshotSession.access_token) {
+              pushAuthDebugEvent('session:get:race-recovered', { ms: Date.now() - startedAt });
+              return snapshotSession;
+            }
+          }
           if (shouldClearPersistedSessionForError(error)) {
             clearPersistedSessionSnapshots();
           }
@@ -1945,10 +1961,6 @@
           shell: pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app'
         });
         dispatchGateVerified(authenticated);
-        if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey) && !AUTH_ENTRY_PAGES.has(pageKey)) {
-          redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
-          return false;
-        }
         pushAuthDebugEvent('verify:done', {
           authenticated: authenticated,
           source: 'error-fallback',
@@ -2003,12 +2015,6 @@
           clearPersistedSessionSnapshots();
           clearExplicitSignoutMarker();
         }
-        if (!hasStoredSupabaseSession()) {
-          var cachedClient = window.__ZO2Y_SUPABASE_CLIENT;
-          if (cachedClient && cachedClient.auth && typeof cachedClient.auth.signOut === 'function') {
-            try { cachedClient.auth.signOut({ scope: 'local' }); } catch (_err) {}
-          }
-        }
       }
       if (!shouldThrottleResumeVerification()) {
         void verifyAndApplySession(false);
@@ -2025,14 +2031,23 @@
 
     window.addEventListener('storage', function (event) {
       var key = String(event && event.key || '').trim();
+      if (key === EXPLICIT_SIGNOUT_KEY) {
+        if (event.newValue) {
+          clearPersistedSessionSnapshots();
+          window.location.reload();
+        }
+        return;
+      }
       if (
         key === STORAGE_KEY ||
         key === LEGACY_STORAGE_KEY ||
         key === PERSIST_STORAGE_KEY ||
-        key === DURABLE_STORAGE_KEY ||
-        key === EXPLICIT_SIGNOUT_KEY
+        key === DURABLE_STORAGE_KEY
       ) {
-        void verifyAndApplySession(true);
+        if (!event.newValue && hasStoredSupabaseSession()) {
+          return;
+        }
+        void verifyAndApplySession(false);
       }
     });
   }

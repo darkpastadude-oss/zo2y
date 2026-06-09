@@ -750,62 +750,43 @@ const HEADER_HTML = `
      }
 
      // Check if user intentionally logged out - if so, don't restore session
-     try {
-       if (sessionStorage.getItem('zo2y-intentional-logout') === 'true') {
-         // Clear the intentional logout flag and return logged out state
-         sessionStorage.removeItem('zo2y-intentional-logout');
-         const loggedIn = false;
-         const user = null;
-         const hiddenDisplay = 'none';
-         
-         // Update UI to logged out state
-         if (loginBtn) loginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
-         if (signupBtn) signupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
-         if (mobileLoginBtn) mobileLoginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
-         if (mobileSignupBtn) mobileSignupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
-         if (profileBtn) {
-           profileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
-         }
-         if (mobileProfileBtn) {
-           mobileProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
-         }
-         if (desktopRailProfileBtn) {
-           desktopRailProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
-         }
-         
-         // Update profile labels
-         if (profileBtn) {
-           profileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
-           profileBtn.title = 'Profile';
-         }
-         if (mobileProfileBtn) {
-           mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
-           mobileProfileBtn.title = 'Profile';
-         }
-         if (desktopRailProfileBtn) {
-           desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
-           desktopRailProfileBtn.title = 'Profile';
-         }
-         
-         // Clear stored session data to prevent automatic restoration
-         try {
-           window.localStorage.removeItem('zo2y-auth-v2');
-           window.localStorage.removeItem('zo2y-auth-v1');
-           window.localStorage.removeItem('zo2y-auth-persist-v2');
-           window.localStorage.removeItem('zo2y-auth-persist-v1');
-           window.localStorage.removeItem('zo2y-auth-durable-v2');
-           window.localStorage.removeItem('zo2y-auth-durable-v1');
-           window.sessionStorage.removeItem('zo2y-auth-v2');
-           window.sessionStorage.removeItem('zo2y-auth-v1');
-           window.sessionStorage.removeItem('zo2y-auth-persist-v2');
-           window.sessionStorage.removeItem('zo2y-auth-persist-v1');
-           window.sessionStorage.removeItem('zo2y-auth-durable-v2');
-           window.sessionStorage.removeItem('zo2y-auth-durable-v1');
-         } catch (_e) {}
-         
-         return;
-       }
-     } catch (_e) {}
+      try {
+        if (sessionStorage.getItem('zo2y-intentional-logout') === 'true') {
+          sessionStorage.removeItem('zo2y-intentional-logout');
+          const loggedIn = false;
+          const user = null;
+          const hiddenDisplay = 'none';
+          
+          if (loginBtn) loginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+          if (signupBtn) signupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+          if (mobileLoginBtn) mobileLoginBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+          if (mobileSignupBtn) mobileSignupBtn.style.display = loggedIn ? hiddenDisplay : 'inline-flex';
+          if (profileBtn) {
+            profileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+          }
+          if (mobileProfileBtn) {
+            mobileProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+          }
+          if (desktopRailProfileBtn) {
+            desktopRailProfileBtn.style.display = loggedIn ? 'inline-flex' : hiddenDisplay;
+          }
+          
+          if (profileBtn) {
+            profileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+            profileBtn.title = 'Profile';
+          }
+          if (mobileProfileBtn) {
+            mobileProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+            mobileProfileBtn.title = 'Profile';
+          }
+          if (desktopRailProfileBtn) {
+            desktopRailProfileBtn.innerHTML = `<i class="fas fa-user"></i><span>Profile</span>`;
+            desktopRailProfileBtn.title = 'Profile';
+          }
+          
+          return;
+        }
+      } catch (_e) {}
 
      try {
        const authRuntime = window.ZO2Y_AUTH || null;
