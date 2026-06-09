@@ -47,7 +47,75 @@
     'audi': '/assets/logos/f1/audirevolutf1team.png',
     'audi revolut f1 team': '/assets/logos/f1/audirevolutf1team.png',
     'cadillac': '/assets/logos/f1/cadillacformula1team.png',
-    'cadillac formula 1 team': '/assets/logos/f1/cadillacformula1team.png'
+    'cadillac formula 1 team': '/assets/logos/f1/cadillacformula1team.png',
+
+    'argentina': '/assets/logos/football/national-teams/ar.png',
+    'brazil': '/assets/logos/football/national-teams/br.png',
+    'france': '/assets/logos/football/national-teams/fr.png',
+    'germany': '/assets/logos/football/national-teams/de.png',
+    'spain': '/assets/logos/football/national-teams/es.png',
+    'england': '/assets/logos/football/national-teams/gb-eng.png',
+    'portugal': '/assets/logos/football/national-teams/pt.png',
+    'netherlands': '/assets/logos/football/national-teams/nl.png',
+    'italy': '/assets/logos/football/national-teams/it.png',
+    'belgium': '/assets/logos/football/national-teams/be.png',
+    'croatia': '/assets/logos/football/national-teams/hr.png',
+    'morocco': '/assets/logos/football/national-teams/ma.png',
+    'japan': '/assets/logos/football/national-teams/jp.png',
+    'south korea': '/assets/logos/football/national-teams/kr.png',
+    'australia': '/assets/logos/football/national-teams/au.png',
+    'usa': '/assets/logos/football/national-teams/us.png',
+    'united states': '/assets/logos/football/national-teams/us.png',
+    'mexico': '/assets/logos/football/national-teams/mx.png',
+    'canada': '/assets/logos/football/national-teams/ca.png',
+    'colombia': '/assets/logos/football/national-teams/co.png',
+    'uruguay': '/assets/logos/football/national-teams/uy.png',
+    'ecuador': '/assets/logos/football/national-teams/ec.png',
+    'senegal': '/assets/logos/football/national-teams/sn.png',
+    'ghana': '/assets/logos/football/national-teams/gh.png',
+    'cameroon': '/assets/logos/football/national-teams/cm.png',
+    'nigeria': '/assets/logos/football/national-teams/ng.png',
+    'tunisia': '/assets/logos/football/national-teams/tn.png',
+    'egypt': '/assets/logos/football/national-teams/eg.png',
+    'algeria': '/assets/logos/football/national-teams/dz.png',
+    'iran': '/assets/logos/football/national-teams/ir.png',
+    'saudi arabia': '/assets/logos/football/national-teams/sa.png',
+    'qatar': '/assets/logos/football/national-teams/qa.png',
+    'uae': '/assets/logos/football/national-teams/ae.png',
+    'jamaica': '/assets/logos/football/national-teams/jm.png',
+    'costa rica': '/assets/logos/football/national-teams/cr.png',
+    'panama': '/assets/logos/football/national-teams/pa.png',
+    'honduras': '/assets/logos/football/national-teams/hn.png',
+    'paraguay': '/assets/logos/football/national-teams/py.png',
+    'peru': '/assets/logos/football/national-teams/pe.png',
+    'bolivia': '/assets/logos/football/national-teams/bo.png',
+    'venezuela': '/assets/logos/football/national-teams/ve.png',
+    'serbia': '/assets/logos/football/national-teams/rs.png',
+    'poland': '/assets/logos/football/national-teams/pl.png',
+    'switzerland': '/assets/logos/football/national-teams/ch.png',
+    'austria': '/assets/logos/football/national-teams/at.png',
+    'czech republic': '/assets/logos/football/national-teams/cz.png',
+    'scotland': '/assets/logos/football/national-teams/gb-sct.png',
+    'wales': '/assets/logos/football/national-teams/gb-wls.png',
+    'northern ireland': '/assets/logos/football/national-teams/gb-nir.png',
+    'ireland': '/assets/logos/football/national-teams/ie.png',
+    'ukraine': '/assets/logos/football/national-teams/ua.png',
+    'denmark': '/assets/logos/football/national-teams/dk.png',
+    'sweden': '/assets/logos/football/national-teams/se.png',
+    'norway': '/assets/logos/football/national-teams/no.png',
+    'finland': '/assets/logos/football/national-teams/fi.png',
+    'iceland': '/assets/logos/football/national-teams/is.png',
+    'turkey': '/assets/logos/football/national-teams/tr.png',
+    'greece': '/assets/logos/football/national-teams/gr.png',
+    'romania': '/assets/logos/football/national-teams/ro.png',
+    'hungary': '/assets/logos/football/national-teams/hu.png',
+    'china': '/assets/logos/football/national-teams/cn.png',
+    'india': '/assets/logos/football/national-teams/in.png',
+    'indonesia': '/assets/logos/football/national-teams/id.png',
+    'thailand': '/assets/logos/football/national-teams/th.png',
+    'vietnam': '/assets/logos/football/national-teams/vn.png',
+    'new zealand': '/assets/logos/football/national-teams/nz.png',
+    'south africa': '/assets/logos/football/national-teams/za.png'
   };
 
   const POPULAR_TEAMS = new Set([
@@ -93,7 +161,15 @@
     'ottawa senators', 'philadelphia flyers', 'columbus blue jackets',
     'nashville predators', 'minnesota wild', 'st louis blues', 'buffalo sabres',
     'washington capitals', 'chicago blackhawks', 'utah hockey club',
-    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr'
+    'ufc', 'flamengo', 'boca juniors', 'river plate', 'al ahly', 'al hilal', 'al nassr',
+    'argentina', 'brazil', 'france', 'germany', 'spain', 'england', 'portugal',
+    'netherlands', 'italy', 'belgium', 'croatia', 'morocco', 'japan', 'south korea',
+    'usa', 'mexico', 'canada', 'colombia', 'uruguay', 'ecuador', 'senegal', 'ghana',
+    'cameroon', 'nigeria', 'tunisia', 'egypt', 'algeria', 'iran', 'saudi arabia',
+    'qatar', 'jamaica', 'costa rica', 'panama', 'serbia', 'poland', 'switzerland',
+    'austria', 'denmark', 'sweden', 'norway', 'turkey', 'greece', 'romania', 'hungary',
+    'australia', 'new zealand', 'south africa', 'scotland', 'wales', 'ukraine',
+    'paraguay', 'peru', 'bolivia', 'venezuela', 'honduras', 'iceland', 'finland'
   ]);
 
   const SPORT_PRIORITY = {
@@ -123,7 +199,15 @@
     'mlb': 'mlb',
     'nhl': 'nhl',
     'formula 1': 'formula 1',
-    'f1': 'formula 1'
+    'f1': 'formula 1',
+    'world cup': 'fifa world cup',
+    'fifa world cup': 'fifa world cup',
+    'fifa': 'fifa world cup',
+    'world cup 2026': 'fifa world cup',
+    'wc': 'fifa world cup',
+    'national team': 'national team',
+    'national football team': 'national team',
+    'international': 'national team'
   };
 
   const COUNTRY_ALIASES = {
@@ -142,10 +226,55 @@
     'mexico': 'mexico',
     'panama': 'panama',
     'puerto rico': 'puerto rico',
-    'netherlands': 'netherlands',
+    'netherlands': 'netherlands', 'holland': 'netherlands',
     'portugal': 'portugal',
     'japan': 'japan',
-    'singapore': 'singapore'
+    'singapore': 'singapore',
+    'belgium': 'belgium',
+    'croatia': 'croatia',
+    'morocco': 'morocco',
+    'south korea': 'south korea', 'korea': 'south korea',
+    'colombia': 'colombia',
+    'uruguay': 'uruguay',
+    'ecuador': 'ecuador',
+    'senegal': 'senegal',
+    'ghana': 'ghana',
+    'cameroon': 'cameroon',
+    'nigeria': 'nigeria',
+    'tunisia': 'tunisia',
+    'algeria': 'algeria',
+    'iran': 'iran',
+    'qatar': 'qatar',
+    'uae': 'uae', 'united arab emirates': 'uae',
+    'jamaica': 'jamaica',
+    'costa rica': 'costa rica',
+    'honduras': 'honduras',
+    'paraguay': 'paraguay',
+    'peru': 'peru',
+    'bolivia': 'bolivia',
+    'venezuela': 'venezuela',
+    'serbia': 'serbia',
+    'poland': 'poland',
+    'switzerland': 'switzerland',
+    'denmark': 'denmark',
+    'sweden': 'sweden',
+    'norway': 'norway',
+    'finland': 'finland',
+    'iceland': 'iceland',
+    'turkey': 'turkey', 'türkiye': 'turkey',
+    'greece': 'greece',
+    'romania': 'romania',
+    'hungary': 'hungary',
+    'china': 'china',
+    'india': 'india',
+    'indonesia': 'indonesia',
+    'thailand': 'thailand',
+    'vietnam': 'vietnam',
+    'new zealand': 'new zealand',
+    'south africa': 'south africa',
+    'scotland': 'scotland',
+    'wales': 'wales',
+    'ukraine': 'ukraine'
   };
 
   const grid = document.getElementById('sportsGrid');
@@ -303,7 +432,7 @@
          league: String(row.league || '').trim(),
          stadium: String(row.stadium || '').trim(),
          logo_url: String(row.logo_url || '').trim()
-        })).filter(t => t.name && normalize(t.league) !== 'national team');
+        })).filter(t => t.name);
         const nameMap = new Map();
         teams.forEach(t => {
           const key = normalize(t.name) + '|' + normalize(t.league);
@@ -689,10 +818,98 @@
     });
   }
 
+  const NATIONAL_TEAMS = [
+    { id: 'nat-ar', name: 'Argentina', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Monumental', logo_url: '/assets/logos/football/national-teams/ar.png' },
+    { id: 'nat-br', name: 'Brazil', sport: 'Football', league: 'FIFA World Cup', stadium: 'Maracanã', logo_url: '/assets/logos/football/national-teams/br.png' },
+    { id: 'nat-fr', name: 'France', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade de France', logo_url: '/assets/logos/football/national-teams/fr.png' },
+    { id: 'nat-de', name: 'Germany', sport: 'Football', league: 'FIFA World Cup', stadium: 'Signal Iduna Park', logo_url: '/assets/logos/football/national-teams/de.png' },
+    { id: 'nat-es', name: 'Spain', sport: 'Football', league: 'FIFA World Cup', stadium: 'Santiago Bernabéu', logo_url: '/assets/logos/football/national-teams/es.png' },
+    { id: 'nat-gb-eng', name: 'England', sport: 'Football', league: 'FIFA World Cup', stadium: 'Wembley Stadium', logo_url: '/assets/logos/football/national-teams/gb-eng.png' },
+    { id: 'nat-pt', name: 'Portugal', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estádio da Luz', logo_url: '/assets/logos/football/national-teams/pt.png' },
+    { id: 'nat-nl', name: 'Netherlands', sport: 'Football', league: 'FIFA World Cup', stadium: 'Johan Cruyff Arena', logo_url: '/assets/logos/football/national-teams/nl.png' },
+    { id: 'nat-it', name: 'Italy', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadio Olimpico', logo_url: '/assets/logos/football/national-teams/it.png' },
+    { id: 'nat-be', name: 'Belgium', sport: 'Football', league: 'FIFA World Cup', stadium: 'King Baudouin Stadium', logo_url: '/assets/logos/football/national-teams/be.png' },
+    { id: 'nat-hr', name: 'Croatia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadion Maksimir', logo_url: '/assets/logos/football/national-teams/hr.png' },
+    { id: 'nat-ma', name: 'Morocco', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade Mohammed V', logo_url: '/assets/logos/football/national-teams/ma.png' },
+    { id: 'nat-jp', name: 'Japan', sport: 'Football', league: 'FIFA World Cup', stadium: 'Japan National Stadium', logo_url: '/assets/logos/football/national-teams/jp.png' },
+    { id: 'nat-kr', name: 'South Korea', sport: 'Football', league: 'FIFA World Cup', stadium: 'Seoul World Cup Stadium', logo_url: '/assets/logos/football/national-teams/kr.png' },
+    { id: 'nat-au', name: 'Australia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadium Australia', logo_url: '/assets/logos/football/national-teams/au.png' },
+    { id: 'nat-us', name: 'USA', sport: 'Football', league: 'FIFA World Cup', stadium: 'MetLife Stadium', logo_url: '/assets/logos/football/national-teams/us.png' },
+    { id: 'nat-mx', name: 'Mexico', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Azteca', logo_url: '/assets/logos/football/national-teams/mx.png' },
+    { id: 'nat-ca', name: 'Canada', sport: 'Football', league: 'FIFA World Cup', stadium: 'BMO Field', logo_url: '/assets/logos/football/national-teams/ca.png' },
+    { id: 'nat-co', name: 'Colombia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Metropolitano', logo_url: '/assets/logos/football/national-teams/co.png' },
+    { id: 'nat-uy', name: 'Uruguay', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Centenario', logo_url: '/assets/logos/football/national-teams/uy.png' },
+    { id: 'nat-ec', name: 'Ecuador', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Rodrigo Paz Delgado', logo_url: '/assets/logos/football/national-teams/ec.png' },
+    { id: 'nat-sn', name: 'Senegal', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade Léopold Sédar Senghor', logo_url: '/assets/logos/football/national-teams/sn.png' },
+    { id: 'nat-gh', name: 'Ghana', sport: 'Football', league: 'FIFA World Cup', stadium: 'Accra Sports Stadium', logo_url: '/assets/logos/football/national-teams/gh.png' },
+    { id: 'nat-cm', name: 'Cameroon', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade Olembe', logo_url: '/assets/logos/football/national-teams/cm.png' },
+    { id: 'nat-ng', name: 'Nigeria', sport: 'Football', league: 'FIFA World Cup', stadium: 'Moshood Abiola National Stadium', logo_url: '/assets/logos/football/national-teams/ng.png' },
+    { id: 'nat-tn', name: 'Tunisia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade Olympique de Radès', logo_url: '/assets/logos/football/national-teams/tn.png' },
+    { id: 'nat-eg', name: 'Egypt', sport: 'Football', league: 'FIFA World Cup', stadium: 'Cairo International Stadium', logo_url: '/assets/logos/football/national-teams/eg.png' },
+    { id: 'nat-dz', name: 'Algeria', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade 5 Juillet 1962', logo_url: '/assets/logos/football/national-teams/dz.png' },
+    { id: 'nat-ir', name: 'Iran', sport: 'Football', league: 'FIFA World Cup', stadium: 'Azadi Stadium', logo_url: '/assets/logos/football/national-teams/ir.png' },
+    { id: 'nat-sa', name: 'Saudi Arabia', sport: 'Football', league: 'FIFA World Cup', stadium: 'King Fahd International Stadium', logo_url: '/assets/logos/football/national-teams/sa.png' },
+    { id: 'nat-qa', name: 'Qatar', sport: 'Football', league: 'FIFA World Cup', stadium: 'Lusail Stadium', logo_url: '/assets/logos/football/national-teams/qa.png' },
+    { id: 'nat-ae', name: 'UAE', sport: 'Football', league: 'FIFA World Cup', stadium: 'Zayed Sports City', logo_url: '/assets/logos/football/national-teams/ae.png' },
+    { id: 'nat-jm', name: 'Jamaica', sport: 'Football', league: 'FIFA World Cup', stadium: 'Independence Park', logo_url: '/assets/logos/football/national-teams/jm.png' },
+    { id: 'nat-cr', name: 'Costa Rica', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Nacional', logo_url: '/assets/logos/football/national-teams/cr.png' },
+    { id: 'nat-pa', name: 'Panama', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Rommel Fernández', logo_url: '/assets/logos/football/national-teams/pa.png' },
+    { id: 'nat-hn', name: 'Honduras', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Nacional Chelato Uclés', logo_url: '/assets/logos/football/national-teams/hn.png' },
+    { id: 'nat-py', name: 'Paraguay', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Defensores del Chaco', logo_url: '/assets/logos/football/national-teams/py.png' },
+    { id: 'nat-pe', name: 'Peru', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Nacional', logo_url: '/assets/logos/football/national-teams/pe.png' },
+    { id: 'nat-bo', name: 'Bolivia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Hernando Siles', logo_url: '/assets/logos/football/national-teams/bo.png' },
+    { id: 'nat-ve', name: 'Venezuela', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Monumental', logo_url: '/assets/logos/football/national-teams/ve.png' },
+    { id: 'nat-rs', name: 'Serbia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadion Rajko Mitić', logo_url: '/assets/logos/football/national-teams/rs.png' },
+    { id: 'nat-pl', name: 'Poland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadion Narodowy', logo_url: '/assets/logos/football/national-teams/pl.png' },
+    { id: 'nat-ch', name: 'Switzerland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade de Suisse', logo_url: '/assets/logos/football/national-teams/ch.png' },
+    { id: 'nat-at', name: 'Austria', sport: 'Football', league: 'FIFA World Cup', stadium: 'Ernst-Happel-Stadion', logo_url: '/assets/logos/football/national-teams/at.png' },
+    { id: 'nat-cz', name: 'Czech Republic', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stadion Letná', logo_url: '/assets/logos/football/national-teams/cz.png' },
+    { id: 'nat-dk', name: 'Denmark', sport: 'Football', league: 'FIFA World Cup', stadium: 'Parken Stadium', logo_url: '/assets/logos/football/national-teams/dk.png' },
+    { id: 'nat-se', name: 'Sweden', sport: 'Football', league: 'FIFA World Cup', stadium: 'Friends Arena', logo_url: '/assets/logos/football/national-teams/se.png' },
+    { id: 'nat-no', name: 'Norway', sport: 'Football', league: 'FIFA World Cup', stadium: 'Ullevaal Stadion', logo_url: '/assets/logos/football/national-teams/no.png' },
+    { id: 'nat-tr', name: 'Turkey', sport: 'Football', league: 'FIFA World Cup', stadium: 'Atatürk Olympic Stadium', logo_url: '/assets/logos/football/national-teams/tr.png' },
+    { id: 'nat-gr', name: 'Greece', sport: 'Football', league: 'FIFA World Cup', stadium: 'Olympic Stadium', logo_url: '/assets/logos/football/national-teams/gr.png' },
+    { id: 'nat-ro', name: 'Romania', sport: 'Football', league: 'FIFA World Cup', stadium: 'Arena Națională', logo_url: '/assets/logos/football/national-teams/ro.png' },
+    { id: 'nat-hu', name: 'Hungary', sport: 'Football', league: 'FIFA World Cup', stadium: 'Puskás Aréna', logo_url: '/assets/logos/football/national-teams/hu.png' },
+    { id: 'nat-fi', name: 'Finland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Olympiastadion', logo_url: '/assets/logos/football/national-teams/fi.png' },
+    { id: 'nat-is', name: 'Iceland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Laugardalsvöllur', logo_url: '/assets/logos/football/national-teams/is.png' },
+    { id: 'nat-gb-sct', name: 'Scotland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Hampden Park', logo_url: '/assets/logos/football/national-teams/gb-sct.png' },
+    { id: 'nat-gb-wls', name: 'Wales', sport: 'Football', league: 'FIFA World Cup', stadium: 'Cardiff City Stadium', logo_url: '/assets/logos/football/national-teams/gb-wls.png' },
+    { id: 'nat-ua', name: 'Ukraine', sport: 'Football', league: 'FIFA World Cup', stadium: 'NSK Olimpiyskiy', logo_url: '/assets/logos/football/national-teams/ua.png' },
+    { id: 'nat-ie', name: 'Ireland', sport: 'Football', league: 'FIFA World Cup', stadium: 'Aviva Stadium', logo_url: '/assets/logos/football/national-teams/ie.png' },
+    { id: 'nat-cn', name: 'China', sport: 'Football', league: 'FIFA World Cup', stadium: 'Beijing National Stadium', logo_url: '/assets/logos/football/national-teams/cn.png' },
+    { id: 'nat-in', name: 'India', sport: 'Football', league: 'FIFA World Cup', stadium: 'Salt Lake Stadium', logo_url: '/assets/logos/football/national-teams/in.png' },
+    { id: 'nat-id', name: 'Indonesia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Gelora Bung Karno Stadium', logo_url: '/assets/logos/football/national-teams/id.png' },
+    { id: 'nat-th', name: 'Thailand', sport: 'Football', league: 'FIFA World Cup', stadium: 'Rajamangala Stadium', logo_url: '/assets/logos/football/national-teams/th.png' },
+    { id: 'nat-vn', name: 'Vietnam', sport: 'Football', league: 'FIFA World Cup', stadium: 'Hàng Đẫy Stadium', logo_url: '/assets/logos/football/national-teams/vn.png' },
+    { id: 'nat-nz', name: 'New Zealand', sport: 'Football', league: 'FIFA World Cup', stadium: 'Sky Stadium', logo_url: '/assets/logos/football/national-teams/nz.png' },
+    { id: 'nat-za', name: 'South Africa', sport: 'Football', league: 'FIFA World Cup', stadium: 'FNB Stadium', logo_url: '/assets/logos/football/national-teams/za.png' }
+  ];
+
+  async function seedNationalTeams(client) {
+    if (!client) return;
+    try {
+      const existing = await client.from('teams').select('id').eq('league', 'FIFA World Cup').limit(1);
+      if (existing.data && existing.data.length > 0) return;
+      const rows = NATIONAL_TEAMS.map(t => ({
+        id: t.id, name: t.name, sport: t.sport, league: t.league,
+        stadium: t.stadium, logo_url: t.logo_url
+      }));
+      for (let i = 0; i < rows.length; i += 50) {
+        const chunk = rows.slice(i, i + 50);
+        await client.from('teams').upsert(chunk, { onConflict: 'id' });
+      }
+      console.log(`[Sports Page] Seeded ${rows.length} national teams`);
+    } catch (err) {
+      console.warn('[Sports Page] Could not seed national teams:', err.message);
+    }
+  }
+
   async function boot() {
     wireEvents();
     await loadLocalManifest();
     const client = await ensureSupabase();
+    await seedNationalTeams(client);
     await loadSession();
     initMenuBridge();
     await loadFavorites();

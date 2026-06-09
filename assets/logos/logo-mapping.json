@@ -1,4 +1,4 @@
-{
+﻿{
     "Audi Revolut F1 Team":  "/assets/logos/f1/audirevolutf1team.png",
     "Cadillac Formula 1 Team":  "/assets/logos/f1/cadillacformula1team.png",
     "Brentford":  "/assets/logos/football/english-premier-league/brentford.png",
@@ -64,7 +64,7 @@
     "Benfica":  "/assets/logos/football/uefa-champions-league/benfica.png",
     "Pharco FC":  "/assets/logos/football/egyptian-premier-league/pharcofc.png",
     "Celtic":  "/assets/logos/football/uefa-champions-league/celtic.png",
-    "Fenerbahçe": "/assets/logos/football/uefa-champions-league/fenerbahce.png",
+    "FenerbahÃ§e":  "/assets/logos/football/uefa-champions-league/fenerbahce.png",
     "Al Ittihad Alexandria":  "/assets/logos/football/egyptian-premier-league/alittihadalexandria.png",
     "Charlotte Hornets":  "/assets/logos/nba/charlottehornets.png",
     "Girona":  "/assets/logos/football/spanish-la-liga/girona.png",
@@ -353,5 +353,8 @@
     "San Diego Padres":  "/assets/logos/mlb/sandiegopadres.png",
     "San Francisco Giants":  "/assets/logos/mlb/sanfranciscogiants.png",
     "Toronto Blue Jays":  "/assets/logos/mlb/torontobluejays.png",
-    "Arizona Coyotes":  "/assets/logos/nhl/arizonacoyotes.svg"
+    "Arizona Coyotes":  "/assets/logos/nhl/arizonacoyotes.svg",
+    "football":  {
+
+                 }
 }
