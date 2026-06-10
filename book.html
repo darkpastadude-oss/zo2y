@@ -1362,28 +1362,18 @@
           }
         }
 
-        // categories/tags: subjects
-        const tags = document.getElementById('tags');
-        if (tags && Array.isArray(info.subjects)) {
-          tags.innerHTML = info.subjects.slice(0,12).map(c => `<span class="tag">${c}</span>`).join('');
-        }
-
-        // meta grid (authors/publisher/page info may require fetching an edition)
-        const metaGrid = document.getElementById('metaGrid');
-        if (metaGrid) {
-          const items = [];
-          if (Array.isArray(info.authors) && info.authors.length) {
-            // authors array contains objects with author key, need to fetch or show placeholder
-            items.push(`Author: ${info.authors.map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || 'Author'))).join(', ')}`);
-          }
-          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
-        }
-
+        // categories/tags: subjects or categories
         const tagsEl = document.getElementById('tags');
-        if (tagsEl && Array.isArray(info.categories)) {
-          tagsEl.innerHTML = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
+        if (tagsEl) {
+          const tagSource = Array.isArray(info.categories) && info.categories.length
+            ? info.categories
+            : (Array.isArray(info.subjects) ? info.subjects : []);
+          if (tagSource.length) {
+            tagsEl.innerHTML = tagSource.slice(0, 12).map(c => `<span class="tag">${c}</span>`).join('');
+          }
         }
 
+        // meta grid (authors/publisher/page info)
         const metaGridEl = document.getElementById('metaGrid');
         if (metaGridEl) {
           const items = [];
