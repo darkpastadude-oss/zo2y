@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -673,8 +673,8 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260610d" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610d"></noscript>
 <script src="js/shared-header.js?v=20260610c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
@@ -948,7 +948,7 @@
         const blur = document.getElementById('heroBackdropBlur');
         const hero = document.getElementById('heroBackground');
         if (!backdrop || !hero) return;
-        // Mobile displays are usually high-DPR (2x�3x), so a w1280 image
+        // Mobile displays are usually high-DPR (2xï¿½3x), so a w1280 image
         // renders blurry on a 414px-wide phone. We always use `original`
         // for the visible backdrop so the hero stays crisp; the blurred
         // glow copy uses w780 because it's blurred 48px and lower-res
@@ -1351,7 +1351,7 @@
         //   1. data.backdrop_path (the media's "primary" backdrop)
         //   2. any other backdrop from images.backdrops (skip the one that
         //      matches the primary; if all are the same pick the next one)
-        //   3. nothing � render a stronger hero gradient with the poster only.
+        //   3. nothing ï¿½ render a stronger hero gradient with the poster only.
         const hero = document.getElementById('heroBackground');
         const posterPath = data.poster_path || '';
         const isSameAsPoster = (p) => !!p && !!posterPath && p === posterPath;
@@ -2231,7 +2231,7 @@
   </script>
   <footer class="zo2y-footer">
     <div class="zo2y-footer-inner">
-      <span class="zo2y-footer-brand">© 2026 Zo2y</span>
+      <span class="zo2y-footer-brand">Â© 2026 Zo2y</span>
       <nav class="zo2y-footer-links" aria-label="Legal">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>

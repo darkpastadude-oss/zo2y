@@ -838,6 +838,14 @@ body.zo2y-mobile-menu-open {
   overflow: hidden;
 }
 
+body.zo2y-mobile-menu-open > main,
+body.zo2y-mobile-menu-open > .desktop-main-panel,
+body.zo2y-mobile-menu-open > .landing-main,
+body.zo2y-mobile-menu-open > .sports-main,
+body.zo2y-mobile-menu-open > .brand-grid {
+  contain: layout paint style;
+}
+
 .zo2y-desktop-rail {
   display: none;
 }
