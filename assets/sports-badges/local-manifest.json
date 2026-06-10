@@ -1130,7 +1130,7 @@
     "North Korea":  "/assets/sports-badges/north-korea.svg",
     "North Macedonia":  "/assets/sports-badges/north-macedonia.svg",
     "NorthEast United":  "/assets/sports-badges/northeast-united.png",
-    "Northern Ireland":  "/assets/sports-badges/northern-ireland.svg",
+    "Northern Ireland":  "/assets/sports-badges/northern-ireland.png",
     "Norwich City":  "/assets/sports-badges/norwich-city.png",
     "Nottingham Forest":  "/assets/sports-badges/nottingham-forest.png",
     "Nouadhibou":  "/assets/sports-badges/nouadhibou.png",
@@ -1494,6 +1494,17 @@
     "serbia":  "/assets/logos/football/national-teams/rs.png",
     "japan":  "/assets/logos/football/national-teams/jp.png",
     "cameroon":  "/assets/logos/football/national-teams/cm.png",
+    "ivory coast":  "/assets/logos/football/national-teams/ci.png",
+    "mali":  "/assets/logos/football/national-teams/ml.png",
+    "burkina faso":  "/assets/logos/football/national-teams/bf.png",
+    "dr congo":  "/assets/logos/football/national-teams/cd.png",
+    "uzbekistan":  "/assets/logos/football/national-teams/uz.png",
+    "north korea":  "/assets/logos/football/national-teams/kp.png",
+    "georgia":  "/assets/logos/football/national-teams/ge.png",
+    "albania":  "/assets/logos/football/national-teams/al.png",
+    "tanzania":  "/assets/logos/football/national-teams/tz.png",
+    "jordan":  "/assets/logos/football/national-teams/jo.png",
+    "iraq":  "/assets/logos/football/national-teams/iq.svg",
     "IsReadOnly":  false,
     "IsFixedSize":  false,
     "IsSynchronized":  false,
@@ -1562,8 +1573,19 @@
                  "China",
                  "Serbia",
                  "Japan",
-                 "Cameroon"
-             ],
+                  "Cameroon",
+                  "Ivory Coast",
+                  "Mali",
+                  "Burkina Faso",
+                  "DR Congo",
+                  "Uzbekistan",
+                  "North Korea",
+                  "Georgia",
+                  "Albania",
+                  "Tanzania",
+                  "Jordan",
+                  "Iraq"
+              ],
     "Values":  [
                    "/assets/logos/football/national-teams/id.png",
                    "/assets/logos/football/national-teams/co.png",
@@ -1629,10 +1651,21 @@
                    "/assets/logos/football/national-teams/cn.png",
                    "/assets/logos/football/national-teams/rs.png",
                    "/assets/logos/football/national-teams/jp.png",
-                   "/assets/logos/football/national-teams/cm.png"
-               ],
+                    "/assets/logos/football/national-teams/cm.png",
+                    "/assets/logos/football/national-teams/ci.png",
+                    "/assets/logos/football/national-teams/ml.png",
+                    "/assets/logos/football/national-teams/bf.png",
+                    "/assets/logos/football/national-teams/cd.png",
+                    "/assets/logos/football/national-teams/uz.png",
+                    "/assets/logos/football/national-teams/kp.png",
+                    "/assets/logos/football/national-teams/ge.png",
+                    "/assets/logos/football/national-teams/al.png",
+                    "/assets/logos/football/national-teams/tz.png",
+                    "/assets/logos/football/national-teams/jo.png",
+                    "/assets/logos/football/national-teams/iq.svg"
+                ],
     "SyncRoot":  {
 
                  },
-    "Count":  65
+    "Count":  77
 }

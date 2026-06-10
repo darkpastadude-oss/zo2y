@@ -97,7 +97,6 @@
     'czech republic': '/assets/logos/football/national-teams/cz.png',
     'scotland': '/assets/logos/football/national-teams/gb-sct.png',
     'wales': '/assets/logos/football/national-teams/gb-wls.png',
-    'northern ireland': '/assets/logos/football/national-teams/gb-nir.png',
     'ireland': '/assets/logos/football/national-teams/ie.png',
     'ukraine': '/assets/logos/football/national-teams/ua.png',
     'denmark': '/assets/logos/football/national-teams/dk.png',
@@ -115,7 +114,20 @@
     'thailand': '/assets/logos/football/national-teams/th.png',
     'vietnam': '/assets/logos/football/national-teams/vn.png',
     'new zealand': '/assets/logos/football/national-teams/nz.svg',
-    'south africa': '/assets/logos/football/national-teams/za.png'
+    'south africa': '/assets/logos/football/national-teams/za.png',
+    'ivory coast': '/assets/logos/football/national-teams/ci.png',
+    'cote d\'ivoire': '/assets/logos/football/national-teams/ci.png',
+    'mali': '/assets/logos/football/national-teams/ml.png',
+    'burkina faso': '/assets/logos/football/national-teams/bf.png',
+    'dr congo': '/assets/logos/football/national-teams/cd.png',
+    'congo dr': '/assets/logos/football/national-teams/cd.png',
+    'uzbekistan': '/assets/logos/football/national-teams/uz.png',
+    'north korea': '/assets/logos/football/national-teams/kp.png',
+    'georgia': '/assets/logos/football/national-teams/ge.png',
+    'albania': '/assets/logos/football/national-teams/al.png',
+    'tanzania': '/assets/logos/football/national-teams/tz.png',
+    'jordan': '/assets/logos/football/national-teams/jo.png',
+    'iraq': '/assets/logos/football/national-teams/iq.svg'
   };
 
   const POPULAR_TEAMS = new Set([
@@ -883,7 +895,18 @@
     { id: 'nat-th', name: 'Thailand', sport: 'Football', league: 'FIFA World Cup', stadium: 'Rajamangala Stadium', logo_url: '/assets/logos/football/national-teams/th.png' },
     { id: 'nat-vn', name: 'Vietnam', sport: 'Football', league: 'FIFA World Cup', stadium: 'Hàng Đẫy Stadium', logo_url: '/assets/logos/football/national-teams/vn.png' },
     { id: 'nat-nz', name: 'New Zealand', sport: 'Football', league: 'FIFA World Cup', stadium: 'Sky Stadium', logo_url: '/assets/logos/football/national-teams/nz.svg' },
-    { id: 'nat-za', name: 'South Africa', sport: 'Football', league: 'FIFA World Cup', stadium: 'FNB Stadium', logo_url: '/assets/logos/football/national-teams/za.png' }
+    { id: 'nat-za', name: 'South Africa', sport: 'Football', league: 'FIFA World Cup', stadium: 'FNB Stadium', logo_url: '/assets/logos/football/national-teams/za.png' },
+    { id: 'nat-ci', name: 'Ivory Coast', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade Félix Houphouët-Boigny', logo_url: '/assets/logos/football/national-teams/ci.png' },
+    { id: 'nat-ml', name: 'Mali', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade du 26 Mars', logo_url: '/assets/logos/football/national-teams/ml.png' },
+    { id: 'nat-bf', name: 'Burkina Faso', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade du 4 Août', logo_url: '/assets/logos/football/national-teams/bf.png' },
+    { id: 'nat-cd', name: 'DR Congo', sport: 'Football', league: 'FIFA World Cup', stadium: 'Stade des Martyrs', logo_url: '/assets/logos/football/national-teams/cd.png' },
+    { id: 'nat-uz', name: 'Uzbekistan', sport: 'Football', league: 'FIFA World Cup', stadium: 'Bunyodkor Stadium', logo_url: '/assets/logos/football/national-teams/uz.png' },
+    { id: 'nat-kp', name: 'North Korea', sport: 'Football', league: 'FIFA World Cup', stadium: 'Rungrado 1st of May Stadium', logo_url: '/assets/logos/football/national-teams/kp.png' },
+    { id: 'nat-ge', name: 'Georgia', sport: 'Football', league: 'FIFA World Cup', stadium: 'Boris Paichadze Dinamo Arena', logo_url: '/assets/logos/football/national-teams/ge.png' },
+    { id: 'nat-al', name: 'Albania', sport: 'Football', league: 'FIFA World Cup', stadium: 'Air Albania Stadium', logo_url: '/assets/logos/football/national-teams/al.png' },
+    { id: 'nat-tz', name: 'Tanzania', sport: 'Football', league: 'FIFA World Cup', stadium: 'Benjamin Mkapa Stadium', logo_url: '/assets/logos/football/national-teams/tz.png' },
+    { id: 'nat-jo', name: 'Jordan', sport: 'Football', league: 'FIFA World Cup', stadium: 'Amman International Stadium', logo_url: '/assets/logos/football/national-teams/jo.png' },
+    { id: 'nat-iq', name: 'Iraq', sport: 'Football', league: 'FIFA World Cup', stadium: 'Basra International Stadium', logo_url: '/assets/logos/football/national-teams/iq.svg' }
   ];
 
   async function seedNationalTeams(client) {
