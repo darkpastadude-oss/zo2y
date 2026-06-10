@@ -893,6 +893,7 @@ const HEADER_HTML = `
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
     let lockedScrollY = 0;
+    let drawerTransitioning = false;
 
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
@@ -924,19 +925,9 @@ const HEADER_HTML = `
       window.scrollTo(0, lockedScrollY);
     };
 
-    const resetDrawerScrollTop = () => {
-      if (!drawer) return;
-      drawer.scrollTop = 0;
-      // Mobile Safari can restore scroll after paint; force again.
-      requestAnimationFrame(() => {
-        drawer.scrollTop = 0;
-      });
-      setTimeout(() => {
-        drawer.scrollTop = 0;
-      }, 60);
-    };
-
     const setDrawerState = (isOpen) => {
+      if (drawerTransitioning) return;
+      drawerTransitioning = true;
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -944,10 +935,14 @@ const HEADER_HTML = `
       menuBtn.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
       backdrop.hidden = !isOpen;
       document.body.classList.toggle('zo2y-mobile-menu-open', isOpen);
-      if (isOpen) lockBodyScrollForMenu();
-      else unlockBodyScrollForMenu();
-      resetDrawerScrollTop();
-      if (isOpen) requestAnimationFrame(resetDrawerScrollTop);
+      if (isOpen) {
+        lockBodyScrollForMenu();
+        drawer.scrollTop = 0;
+      }
+      setTimeout(() => {
+        drawerTransitioning = false;
+        if (!isOpen) unlockBodyScrollForMenu();
+      }, 260);
     };
 
     const closeDrawer = () => setDrawerState(false);

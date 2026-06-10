@@ -368,6 +368,8 @@
   border-radius: 8px;
   filter: drop-shadow(0 10px 22px rgba(15, 23, 42, 0.12));
   background: transparent;
+  display: block;
+  margin: auto;
 }
 .elevated-detail-page .elevated-poster-frame.elevated-logo-card .elevated-poster-fallback {
   color: #1a2447;
@@ -991,6 +993,8 @@
   width: min(1280px, 100% - 48px);
   margin: 0 auto;
   padding: 0;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .elevated-detail-page .elevated-section {

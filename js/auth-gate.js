@@ -42,7 +42,7 @@
   var LEGACY_WWW_DOMAIN = 'www.zo2y.com';
 
   var PUBLIC_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 8;
-  var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60;
+  var PROTECTED_PAGE_RESUME_VERIFY_THROTTLE_MS = 1000 * 60 * 3;
   var EXPLICIT_SIGNOUT_TTL_MS = 1000 * 60 * 10;
 
   var PUBLIC_PAGE_KEYS = new Set([
@@ -495,7 +495,9 @@
     var details = getAuthErrorDetails(error);
     return (
       details.message.indexOf('refresh token already used') !== -1 ||
-      details.message.indexOf('already been used') !== -1
+      details.message.indexOf('already been used') !== -1 ||
+      details.message.indexOf('session missing') !== -1 ||
+      details.message.indexOf('session not found') !== -1
     );
   }
 
@@ -1960,6 +1962,11 @@
           verified: true,
           shell: pageKey === 'index' ? (authenticated ? 'app' : 'landing') : 'app'
         });
+        if (!authenticated && !PUBLIC_PAGE_KEYS.has(pageKey) && !AUTH_ENTRY_PAGES.has(pageKey)) {
+          pushAuthDebugEvent('verify:error:no-redirect', {
+            message: String(error && error.message || error || '')
+          });
+        }
         dispatchGateVerified(authenticated);
         pushAuthDebugEvent('verify:done', {
           authenticated: authenticated,
@@ -2034,7 +2041,6 @@
       if (key === EXPLICIT_SIGNOUT_KEY) {
         if (event.newValue) {
           clearPersistedSessionSnapshots();
-          window.location.reload();
         }
         return;
       }
@@ -2047,7 +2053,9 @@
         if (!event.newValue && hasStoredSupabaseSession()) {
           return;
         }
-        void verifyAndApplySession(false);
+        if (!shouldThrottleResumeVerification()) {
+          void verifyAndApplySession(false);
+        }
       }
     });
   }

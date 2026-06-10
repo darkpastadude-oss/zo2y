@@ -346,6 +346,12 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
+    const HOME_MOVIES_ITEMS_CACHE_KEY = 'zo2y_home_movies_items_v1';
+    const HOME_MOVIES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_TV_ITEMS_CACHE_KEY = 'zo2y_home_tv_items_v1';
+    const HOME_TV_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_ANIME_ITEMS_CACHE_KEY = 'zo2y_home_anime_items_v1';
+    const HOME_ANIME_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const HOME_TRAVEL_PHOTO_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_KEY = 'zo2y_travel_country_rows_v5';
@@ -354,6 +360,10 @@
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v1';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v1';
+    const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v1';
+    const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
     const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
@@ -430,7 +440,7 @@ const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
     const HOME_ONBOARDING_VERSION = 'v2';
     const HOME_POST_AUTH_BOOTSTRAP_KEY = 'zo2y_post_auth_bootstrap_v1';
     const PROFILE_USERNAME_MAX_LENGTH = 30;
-    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 15;
+    const HOME_RESUME_REFRESH_THROTTLE_MS = 1000 * 60 * 30;
     const HOME_PERSONALIZATION_THROTTLE_MS = 1000 * 60 * 5;
 
     const HOME_DEBUG_STORAGE_KEY = 'zo2y_home_debug_v1';
@@ -6059,9 +6069,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const list = Array.isArray(channels) ? channels.slice() : [];
       if (!list.length) return [];
 
-      // User request: load *everything* immediately (no viewport deferrals).
-      return list;
-
+      const budget = getHomeInitialChannelConcurrency();
       const domOrdered = list.sort((left, right) => {
         const leftWrap = getHomeRailWrap(left?.railId);
         const rightWrap = getHomeRailWrap(right?.railId);
@@ -9190,18 +9198,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
     async function loadMovies(signal) {
+      const cached = readHomeItemsCache(HOME_MOVIES_ITEMS_CACHE_KEY, HOME_MOVIES_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached;
       const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadMovies === 'function' ? loaders.loadMovies(signal) : [];
+      const items = typeof loaders.loadMovies === 'function' ? await loaders.loadMovies(signal) : [];
+      if (items.length) writeHomeItemsCache(HOME_MOVIES_ITEMS_CACHE_KEY, items);
+      return items;
     }
 
     async function loadTv(signal) {
+      const cached = readHomeItemsCache(HOME_TV_ITEMS_CACHE_KEY, HOME_TV_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached;
       const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadTv === 'function' ? loaders.loadTv(signal) : [];
+      const items = typeof loaders.loadTv === 'function' ? await loaders.loadTv(signal) : [];
+      if (items.length) writeHomeItemsCache(HOME_TV_ITEMS_CACHE_KEY, items);
+      return items;
     }
 
     async function loadAnime(signal) {
+      const cached = readHomeItemsCache(HOME_ANIME_ITEMS_CACHE_KEY, HOME_ANIME_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached;
       const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadAnime === 'function' ? loaders.loadAnime(signal) : [];
+      const items = typeof loaders.loadAnime === 'function' ? await loaders.loadAnime(signal) : [];
+      if (items.length) writeHomeItemsCache(HOME_ANIME_ITEMS_CACHE_KEY, items);
+      return items;
     }
 
     let homeGamesSharedScriptPromise = null;
@@ -10000,6 +10020,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadBooks(signal) {
+      const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached;
       const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       const minHealthy = Math.min(targetCount, 8);
       const loaders = await ensureHomeHeavyLoaders();
@@ -10045,12 +10067,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         });
       }
 
+      if (items.length) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, items);
       return items;
     }
 
     async function loadMusic(signal) {
+      const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached;
       const loaders = await ensureHomeHeavyLoaders();
-      return typeof loaders.loadMusic === 'function' ? loaders.loadMusic(signal) : [];
+      const items = typeof loaders.loadMusic === 'function' ? await loaders.loadMusic(signal) : [];
+      if (items.length) writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
+      return items;
     }
 
     async function loadTravel(signal) {

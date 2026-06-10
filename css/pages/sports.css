@@ -63,6 +63,7 @@ select {
   padding: 30px 0 72px;
   display: grid;
   gap: 24px;
+  isolation: isolate;
 }
 
 .sports-hero {
@@ -77,6 +78,8 @@ select {
   align-items: end;
   background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
   box-shadow: var(--shadow-lg);
+  z-index: 0;
+  isolation: isolate;
 }
 
 .sports-hero-media {
@@ -564,10 +567,12 @@ select {
   background: var(--card-2);
   min-height: 232px;
   position: relative;
+  z-index: 0;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  isolation: isolate;
 }
 
 .card:hover {
@@ -614,6 +619,7 @@ select {
   color: var(--muted);
   overflow: hidden;
   position: relative;
+  z-index: 0;
 }
 
 .card-media.is-loading-media {
@@ -664,7 +670,6 @@ select {
   object-fit: contain;
   border-radius: 8px;
   background: transparent;
-  padding: 10px;
   box-sizing: border-box;
   filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.08));
 }
