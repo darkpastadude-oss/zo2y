@@ -888,7 +888,6 @@
       border-radius: 8px;
       background: transparent;
       box-sizing: border-box;
-      filter: drop-shadow(0 8px 20px rgba(15, 23, 42, 0.08));
     }
 
     .card-media.landscape.game-poster img {
