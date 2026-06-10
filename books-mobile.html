@@ -123,30 +123,23 @@
     </div>
   </header>
 
-  <main class="container page-shell books-shell">
+  <main class="container page-shell">
     <section class="hero">
       <h1>books</h1>
       <p>Discover trending books across all genres and save them to your book lists.</p>
-      <div class="mt-2 text-xs text-muted opacity-86">source: Google Books. <a href="credits.html" class="text-accent">all credits</a></div>
+      <div class="mt-2 text-xs text-muted opacity-86">sources: Google Books + Open Library. <a href="credits.html" class="text-accent">all credits</a></div>
       <div class="hero-actions">
-        <div class="books-mode-tabs" id="booksModeTabs" role="tablist" aria-label="Books view mode">
-          <button class="books-mode-tab active" type="button" role="tab" data-mode="discover">Discover</button>
-          <button class="books-mode-tab" type="button" role="tab" data-mode="browse">Browse</button>
-        </div>
+        <!-- Refresh removed -->
       </div>
     </section>
-
     <section class="controls">
-      <div class="search-input-wrap">
-        <input id="q" class="search-input" placeholder="Search books, authors, series..." autocomplete="off" inputmode="search" type="search">
-        <button id="booksClearBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button>
+      <div class="books-search-wrap">
+        <input id="q" class="search-input" placeholder="Search books, authors, genres...">
+        <button id="booksClearSearchBtn" class="books-clear-btn" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
     </section>
-
-    <div class="books-genre-chips" id="booksGenreChips" role="tablist" aria-label="Genre filter" hidden></div>
-
     <div class="control-modal" id="booksFilterModal" aria-hidden="true">
       <div class="control-modal-card">
         <div class="control-modal-head">
@@ -154,29 +147,23 @@
           <button class="control-modal-close" id="booksFilterCloseBtn" type="button" aria-label="Close book filters">&times;</button>
         </div>
         <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
           <select id="sort">
-            <option value="relevance">Most relevant</option>
-            <option value="newest">Newest first</option>
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
           </select>
-          <div class="filter-year-group">
-            <input type="number" id="yearFrom" placeholder="From year" min="1500" max="2099">
-            <input type="number" id="yearTo" placeholder="To year" min="1500" max="2099">
-          </div>
-          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Apply</button>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
         </div>
       </div>
     </div>
 
-    <div id="booksDiscover" class="books-discover-wrap"></div>
-
-    <section id="booksFlatSection" class="section book-section" hidden>
+    <section class="section">
       <div class="section-head">
-        <div class="section-head-text">
-          <h2 id="flatSectionTitle">popular books</h2>
-          <p id="flatSectionDesc">All-time reader favorites.</p>
-        </div>
+        <h2>popular books right now</h2>
+        <p>Trending books across all genres.</p>
       </div>
-      <div class="grid book-grid" id="booksGrid"></div>
+      <div class="grid" id="booksGrid"><div class="book-loader"><div class="spinner"></div><span>Loading books...</span></div></div>
       <div class="pagination">
         <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
         <div class="page-info" id="pageInfo">Page 1 of 1</div>
@@ -210,7 +197,7 @@
     <div class="menu-modal-content max-w-320">
       <div class="menu-modal-header">
         <h3>Create New List</h3>
-        <button class="menu-modal-close" id="closeCreateListBtn" aria-label="Close">&times;</button>
+        <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
       </div>
       <div class="menu-modal-body">
         <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
@@ -237,653 +224,599 @@
   </div>
 
   <script>
-  /*
-   * Zo2y Books Page (Mobile) - thin orchestrator over window.Zo2yBooks engine.
-   * Reuses the same engine as the desktop page; only the chrome differs.
-   */
-  (function () {
-    function ready(fn) {
-      if (document.readyState === 'complete' || document.readyState === 'interactive') {
-        setTimeout(fn, 0);
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+      const FALLBACK_BOOK_IMAGE = '/images/fallback/book.svg';
+      let BOOKS_PAGE_SIZE = 18;
+
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      books: [],
+      search: '',
+      genre: '',
+      sort: 'popular',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return 18;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const gridTop = grid.getBoundingClientRect().top;
+      const footerSpace = 160;
+      const availH = Math.max(220, window.innerHeight - gridTop - footerSpace);
+      const approxCardH = 330;
+      const rows = Math.max(2, Math.min(6, Math.floor(availH / approxCardH)));
+      const visible = Math.max(cols * rows, cols * 2);
+      const desired = Math.max(30, visible);
+      const snapped = Math.ceil(desired / cols) * cols;
+      return Math.min(54, Math.max(cols * 2, snapped));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function normalizeBookSeedText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const CURRENT_TOP_BOOK_SEEDS = [
+      { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
+      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
+      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
+      { title: '25 Alive', author: 'James Patterson', year: 2025 },
+      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
+      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
+      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
+      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
+      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
+      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+      { title: 'James', author: 'Percival Everett', year: 2024 },
+      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
+      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
+      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
+      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
+      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
+      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
+      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
+      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
+      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
+    ];
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '12px';
+      el.style.right = '12px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '8px 12px';
+      el.style.borderRadius = '8px';
+      el.style.fontSize = '12px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    }
+
+    let searchDebounceTimer = null;
+    let booksFetchAbort = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    async function loadBooksWithFallback(queryOverride = '') {
+      BOOKS_PAGE_SIZE = computeGridPageSize();
+      const query = String(queryOverride || state.search || '').trim();
+      let books = [];
+      let apiTotalPages = 1;
+      const apiLimit = 40;
+
+      if (booksFetchAbort) booksFetchAbort.abort();
+      booksFetchAbort = new AbortController();
+      const signal = booksFetchAbort.signal;
+
+      if (!query) {
+        try {
+          const seen = new Set();
+
+          const addBooks = (batch) => {
+            const arr = Array.isArray(batch) ? batch : [];
+            for (const book of arr) {
+              const id = book.id || book._googleVolumeId || '';
+              if (!id || seen.has(id)) continue;
+              seen.add(id);
+              books.push(book);
+              apiTotalPages = Math.max(apiTotalPages || 1, 100);
+            }
+          };
+
+          const fetchAndParse = async (url) => {
+            const res = await fetch(url, { signal });
+            if (!res.ok) return null;
+            const json = await res.json();
+            const batch = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []);
+            addBooks(batch);
+            return json;
+          };
+
+          // 1. Open Library trending — real popular books based on actual usage
+          for (const period of ['weekly', 'monthly', 'daily']) {
+            if (books.length >= apiLimit) break;
+            await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=${apiLimit}`);
+          }
+
+          // 2. Supplement with popular subjects if still short
+          if (books.length < 15) {
+            const subjects = ['fiction', 'fantasy', 'romance', 'mystery', 'science fiction'];
+            for (const subject of subjects) {
+              if (books.length >= apiLimit) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(subject)}&limit=${Math.ceil(apiLimit / 2)}&page=1&language=en`);
+            }
+          }
+
+          // 3. Ultimate fallback — Google Books search
+          if (books.length < 15) {
+            const fallbackQueries = ['bestsellers 2025 fiction', 'popular books 2025', '2025 bestseller'];
+            for (const q of fallbackQueries) {
+              if (books.length >= apiLimit) break;
+              await fetchAndParse(`${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(q)}&limit=${Math.ceil(apiLimit / 3)}&page=1&language=en&orderBy=relevance`);
+            }
+          }
+        } catch (_err) {
+          console.error('Failed to load popular books', _err);
+        }
       } else {
-        document.addEventListener('DOMContentLoaded', fn);
+        // Try search with variations
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(variation)}&limit=${apiLimit}`;
+            const res = await fetch(url, { signal });
+            if (res.ok) {
+              const json = await res.json();
+              console.log('Search API response:', json);
+              const results = Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : (Array.isArray(json?.results) ? json.results : (Array.isArray(json) ? json : [])));
+              if (results.length > 0) {
+                books = results;
+                apiTotalPages = json?.totalPages || json?.total || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load books with variation:', variation, _err);
+          }
+        }
+      }
+
+      state.books = books.map((book) => ({
+        id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
+        title: book.title || book.name || 'Unknown Book',
+        authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
+        description: book.description || '',
+        coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
+        publishedDate: book.publishedDate || book.published_date || '',
+        pageCount: book.pageCount || book.page_count || 0
+      })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
+
+      // Boost popular/seed books to the front
+      if (!query) {
+        const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
+        const boosted = [];
+        const rest = [];
+        for (const book of state.books) {
+          if (seedTitles.has(normalizeBookSeedText(book.title))) {
+            boosted.push(book);
+          } else {
+            rest.push(book);
+          }
+        }
+        state.books = [...boosted, ...rest];
       }
     }
 
-    function waitForEngine(maxMs) {
-      return new Promise(function (resolve, reject) {
-        var start = Date.now();
-        (function tick() {
-          if (window.Zo2yBooks && typeof window.Zo2yBooks.fetchDiscovery === 'function') return resolve(window.Zo2yBooks);
-          if (Date.now() - start > (maxMs || 5000)) return reject(new Error('Books engine timeout'));
-          setTimeout(tick, 30);
-        })();
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 220);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i>';
+        }
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    async function loadBooks(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      
+      // Use API directly (popular first for initial pages)
+      await loadBooksWithFallback(query);
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.books.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.books.map((book) => book.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('book_list_items')
+        .select('book_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('book_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.book_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
       });
     }
 
-    ready(function () {
-      waitForEngine(6000).then(function (Engine) { init(Engine); }).catch(function (err) {
-        var discover = document.getElementById('booksDiscover');
-        if (discover) discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Books feed unavailable</h3><p>'+ (err && err.message ? err.message : 'Please retry shortly.') +'</p></div>';
+    function getBookListStatus(bookId) {
+      const id = String(bookId || '').trim();
+      const empty = { favorites: false, read: false, toread: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getBookCardExtra(book) {
+      return '';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return;
+      if (!state.books.length) {
+        grid.innerHTML = '<div class="empty">No books found.</div>';
+        updatePagination();
+        return;
+      }
+      const start = (state.page - 1) * BOOKS_PAGE_SIZE;
+      const visibleItems = state.books.slice(start, start + BOOKS_PAGE_SIZE);
+      grid.innerHTML = visibleItems.map((book) => {
+        const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
+        return `
+        <article class="card" data-id="${escapeHtml(book.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
+          </div>
+          <div class="card-meta">
+            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(book.title)}</p>
+            </div>
+            <p class="card-sub">${escapeHtml(book.authors)}</p>
+            <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      state.totalPages = Math.max(1, Math.ceil(state.books.length / BOOKS_PAGE_SIZE));
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function upsertBookRecord(client, book) {
+      if (!client || !book?.id) return false;
+      const payload = {
+        id: String(book.id),
+        title: book.title || '',
+        authors: book.authors || '',
+        cover_url: book.coverUrl || '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await client.from('books').upsert(payload, { onConflict: 'id' });
+      if (error) {
+        console.error('Book upsert failed', error);
+        return false;
+      }
+      return true;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const bookId = String(itemId || '').trim();
+      if (!bookId) return { ok: false, saved: false };
+      const book = state.books.find((row) => String(row.id || '').trim() === bookId);
+      if (!book) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getBookListStatus(bookId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${bookId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const ok = await upsertBookRecord(client, book);
+          if (!ok) throw new Error('Book upsert failed');
+          const { error } = await client.from('book_list_items').insert({
+            user_id: currentUser.id,
+            book_id: bookId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('book_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('book_id', bookId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
+        }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Book list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
       });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `book.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadBooks();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('booksGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
+      }
+    }
+
+    // Refresh removed.
+    document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.add('show');
+    });
+    document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      renderGrid();
     });
 
-    function init(Engine) {
-      var state = {
-        mode: 'discover',
-        section: 'popular',
-        search: '',
-        subject: '',
-        sort: 'relevance',
-        yearFrom: '',
-        yearTo: '',
-        page: 1,
-        pageSize: 12,
-        totalPages: 1,
-        booksByPage: new Map(),
-        accumulated: [],
-        seenIds: new Set(),
-        currentRequestId: 0,
-        listStatusMap: new Map(),
-        pendingQuickOps: new Set()
-      };
-
-      var supabaseClient = null;
-      var currentUser = null;
-      var searchDebounceTimer = null;
-      var lastSearchRendered = '';
-
-      var dom = {
-        discover: document.getElementById('booksDiscover'),
-        flatSection: document.getElementById('booksFlatSection'),
-        flatTitle: document.getElementById('flatSectionTitle'),
-        flatDesc: document.getElementById('flatSectionDesc'),
-        grid: document.getElementById('booksGrid'),
-        prevBtn: document.getElementById('prevPageBtn'),
-        nextBtn: document.getElementById('nextPageBtn'),
-        pageInfo: document.getElementById('pageInfo'),
-        searchInput: document.getElementById('q'),
-        searchBtn: document.getElementById('booksSearchBtn'),
-        clearBtn: document.getElementById('booksClearBtn'),
-        filterBtn: document.getElementById('booksFilterBtn'),
-        filterModal: document.getElementById('booksFilterModal'),
-        filterClose: document.getElementById('booksFilterCloseBtn'),
-        sortSelect: document.getElementById('sort'),
-        yearFrom: document.getElementById('yearFrom'),
-        yearTo: document.getElementById('yearTo'),
-        refresh: document.getElementById('refresh'),
-        modeTabs: document.getElementById('booksModeTabs'),
-        genreChips: document.getElementById('booksGenreChips')
-      };
-
-      function ensureSupabase() {
-        if (supabaseClient) return Promise.resolve(supabaseClient);
-        var runtime = window.ZO2Y_AUTH || null;
-        var ready = runtime && typeof runtime.waitForSupabase === 'function'
-          ? runtime.waitForSupabase(8000)
-          : new Promise(function (resolve) {
-              var start = Date.now();
-              (function tick() {
-                if (window.supabase && typeof window.supabase.createClient === 'function') return resolve();
-                if (Date.now() - start > 8000) return resolve();
-                setTimeout(tick, 40);
-              })();
-            });
-        return ready.then(function () {
-          if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
-            return window.__ZO2Y_ENSURE_SUPABASE_CLIENT().then(function (c) {
-              if (c) supabaseClient = c; return supabaseClient;
-            });
-          }
-          if (window.supabase && window.__ZO2Y_SUPABASE_CONFIG) {
-            supabaseClient = window.supabase.createClient(
-              window.__ZO2Y_SUPABASE_CONFIG.url,
-              window.__ZO2Y_SUPABASE_CONFIG.key,
-              { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-            );
-            window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-          }
-          return supabaseClient;
-        });
-      }
-
-      function initAuthUi() {
-        return ensureSupabase().then(function (client) {
-          if (!client) return;
-          return client.auth.getUser().then(function (r) {
-            currentUser = r && r.data && r.data.user || null;
-            var loginBtn = document.getElementById('loginBtn');
-            var signupBtn = document.getElementById('signupBtn');
-            var profileBtn = document.getElementById('profileBtn');
-            if (currentUser) {
-              if (loginBtn) loginBtn.style.display = 'none';
-              if (signupBtn) signupBtn.style.display = 'none';
-              if (profileBtn) {
-                profileBtn.style.display = 'inline-flex';
-                profileBtn.innerHTML = '<i class="fas fa-user"></i>';
-              }
-            } else {
-              if (loginBtn) loginBtn.style.display = 'inline-flex';
-              if (signupBtn) signupBtn.style.display = 'inline-flex';
-              if (profileBtn) profileBtn.style.display = 'none';
-            }
-          });
-        }).catch(function () { /* offline / not configured */ });
-      }
-
-      function showToast(message, isError) {
-        var el = document.createElement('div');
-        el.style.position = 'fixed'; el.style.top = '12px'; el.style.right = '12px';
-        el.style.zIndex = '9999'; el.style.background = isError ? '#dc2626' : '#f59e0b';
-        el.style.color = '#fff'; el.style.padding = '8px 12px';
-        el.style.borderRadius = '8px'; el.style.fontSize = '12px';
-        el.textContent = message;
-        document.body.appendChild(el);
-        setTimeout(function () { el.remove(); }, 2000);
-      }
-
-      function loadListStatusForVisible() {
-        state.listStatusMap = new Map();
-        if (!currentUser || !currentUser.id) return Promise.resolve();
-        var ids = collectVisibleBookIds();
-        if (!ids.length) return Promise.resolve();
-        return ensureSupabase().then(function (client) {
-          if (!client) return;
-          return client.from('book_list_items')
-            .select('book_id, list_type')
-            .eq('user_id', currentUser.id)
-            .in('book_id', ids)
-            .then(function (res) {
-              (res && res.data || []).forEach(function (row) {
-                var id = String(row.book_id || '');
-                if (!id) return;
-                if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
-                var bucket = state.listStatusMap.get(id);
-                if (row.list_type in bucket) bucket[row.list_type] = true;
-              });
-            });
-        }).catch(function () { /* silent */ });
-      }
-
-      function collectVisibleBookIds() {
-        var nodes = document.querySelectorAll('.card[data-id]');
-        var ids = [];
-        for (var i = 0; i < nodes.length; i++) {
-          var id = String(nodes[i].getAttribute('data-id') || '').trim();
-          if (id) ids.push(id);
-        }
-        return ids;
-      }
-
-      function getBookListStatus(bookId) {
-        var id = String(bookId || '').trim();
-        var empty = { favorites: false, read: false, toread: false };
-        if (!id) return empty;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, Object.assign({}, empty));
-        return state.listStatusMap.get(id);
-      }
-
-      function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-        var bookId = String(itemId || '').trim();
-        if (!bookId) return Promise.resolve({ ok: false, saved: false });
-        return ensureSupabase().then(function (client) {
-          if (!client || !currentUser || !currentUser.id) { window.location.href = 'login.html'; return { ok: false, saved: false }; }
-          var status = getBookListStatus(bookId);
-          if (!(listType in status)) return { ok: false, saved: false };
-          var previousSaved = !!status[listType];
-          var nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-          var opKey = bookId + ':' + listType;
-          if (state.pendingQuickOps.has(opKey)) return { ok: false, saved: previousSaved };
-          state.pendingQuickOps.add(opKey);
-          status[listType] = nextSaved;
-          var op;
-          if (nextSaved) {
-            op = client.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
-          } else {
-            op = client.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
-          }
-          return Promise.resolve(op).then(function (res) {
-            if (res && res.error && String(res.error.code || '') !== '23505') {
-              status[listType] = previousSaved;
-              showToast('Could not update list', true);
-              return { ok: false, saved: previousSaved };
-            }
-            showToast(nextSaved ? 'Added to list' : 'Removed from list');
-            return { ok: true, saved: nextSaved };
-          }).catch(function () {
-            status[listType] = previousSaved;
-            showToast('Could not update list', true);
-            return { ok: false, saved: previousSaved };
-          }).then(function (result) {
-            state.pendingQuickOps.delete(opKey);
-            return result;
-          });
-        });
-      }
-
-      function recomputePageSize() {
-        // On mobile we want enough cards to cover the screen + a bit of buffer.
-        state.pageSize = Engine.computeGridPageSize(dom.grid, 4) || 12;
-      }
-
-      function showFlatSection() {
-        if (dom.discover) dom.discover.hidden = true;
-        if (dom.flatSection) dom.flatSection.hidden = false;
-      }
-      function showDiscoverSections() {
-        if (dom.discover) dom.discover.hidden = false;
-        if (dom.flatSection) dom.flatSection.hidden = true;
-      }
-      function showSkeleton(target, sectionsCount) {
-        if (!target) return;
-        target.innerHTML = Engine.skeletonSectionsHtml(sectionsCount || 3);
-      }
-      function showGridSkeleton() {
-        if (!dom.grid) return;
-        var n = state.pageSize || 12;
-        var cards = '';
-        for (var i = 0; i < n; i++) {
-          cards += '<article class="card book-skeleton-card"><div class="card-media skeleton-shimmer"></div>'
-                +  '<div class="card-meta">'
-                +  '<span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>'
-                +  '<span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>'
-                +  '<span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>'
-                +  '</div></article>';
-        }
-        dom.grid.innerHTML = cards;
-      }
-      function showGridEmpty(message) {
-        if (!dom.grid) return;
-        dom.grid.innerHTML = '<div class="book-empty-state"><i class="fas fa-book-open"></i><h3>No books found</h3><p>'+ Engine.escapeHtml(message || 'Try a different search or filter.') +'</p></div>';
-      }
-      function updatePagination(totalCount) {
-        if (!dom.pageInfo) return;
-        state.totalPages = Math.max(1, Math.ceil((totalCount || 0) / Math.max(1, state.pageSize)));
-        if (state.page > state.totalPages) state.page = state.totalPages;
-        if (state.page < 1) state.page = 1;
-        if (dom.prevBtn) dom.prevBtn.disabled = state.page <= 1;
-        if (dom.nextBtn) dom.nextBtn.disabled = state.page >= state.totalPages;
-        dom.pageInfo.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
-      }
-      function buildGenreChips() {
-        if (!dom.genreChips) return;
-        if (dom.genreChips.children.length) return;
-        var chips = (Engine.GENRE_CHIPS || []).map(function (chip, idx) {
-          var active = (idx === 0) ? ' active' : '';
-          return '<button type="button" class="books-genre-chip'+ active +'" role="tab" data-genre="'+ Engine.escapeHtml(chip.value) +'" data-id="'+ Engine.escapeHtml(chip.id) +'">'+ Engine.escapeHtml(chip.label) +'</button>';
-        }).join('');
-        dom.genreChips.innerHTML = chips;
-        dom.genreChips.addEventListener('click', function (e) {
-          var btn = e.target && e.target.closest('.books-genre-chip');
-          if (!btn) return;
-          var chips = dom.genreChips.querySelectorAll('.books-genre-chip');
-          for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
-          btn.classList.add('active');
-          state.subject = btn.getAttribute('data-genre') || '';
-          state.page = 1;
-          state.accumulated = [];
-          state.seenIds.clear();
-          state.booksByPage.clear();
-          state.section = state.subject ? state.subject.replace(/\s+/g, '-') : 'popular';
-          updateFlatHeading();
-          fetchAndRenderFlat();
-        });
-      }
-      function updateFlatHeading() {
-        if (!dom.flatTitle || !dom.flatDesc) return;
-        if (state.mode === 'search') {
-          dom.flatTitle.textContent = 'search results';
-          dom.flatDesc.innerHTML = 'for &ldquo;'+ Engine.escapeHtml(state.search) +'&rdquo;';
-        } else if (state.subject) {
-          dom.flatTitle.textContent = 'browse '+ state.subject;
-          dom.flatDesc.textContent = 'Top '+ state.subject +' titles in English.';
-        } else {
-          var section = (Engine.DISCOVERY_SECTIONS || []).find(function (s) { return s.id === state.section; });
-          dom.flatTitle.textContent = section ? section.label : 'browse books';
-          dom.flatDesc.textContent = section ? section.desc : 'Popular books across all genres.';
-        }
-      }
-
-      function loadAndRenderDiscover() {
-        showDiscoverSections();
-        showSkeleton(dom.discover, 3);
-        return Engine.fetchDiscovery().then(function (data) {
-          renderDiscover(data && data.sections || []);
-          loadListStatusForVisible();
-        }).catch(function (err) {
-          if (dom.discover) {
-            dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-triangle-exclamation"></i><h3>Could not load discovery</h3><p>'+ Engine.escapeHtml(err && err.message || 'Try again shortly.') +'</p><button id="discoverRetryBtn" type="button"><i class="fas fa-rotate"></i> Retry</button></div>';
-            var retry = document.getElementById('discoverRetryBtn');
-            if (retry) retry.addEventListener('click', loadAndRenderDiscover);
-          }
-        });
-      }
-      function renderDiscover(sections) {
-        if (!dom.discover) return;
-        if (!sections || !sections.length) {
-          dom.discover.innerHTML = '<div class="book-empty-state"><i class="fas fa-book"></i><h3>No books yet</h3><p>Curated rails will appear shortly.</p></div>';
-          return;
-        }
-        // On mobile, show fewer cards per rail to keep things snappy.
-        var html = sections.map(function (s) {
-          return Engine.renderSection(s, { limit: 12, showMore: true });
-        }).join('');
-        dom.discover.innerHTML = html;
-        wireDiscoverActions();
-      }
-      function wireDiscoverActions() {
-        var moreBtns = dom.discover.querySelectorAll('.section-more-btn');
-        for (var i = 0; i < moreBtns.length; i++) {
-          moreBtns[i].addEventListener('click', function (e) {
-            var sid = e.currentTarget.getAttribute('data-more-section') || 'popular';
-            state.mode = 'browse';
-            state.section = sid;
-            state.subject = '';
-            state.page = 1;
-            state.accumulated = [];
-            state.seenIds.clear();
-            state.booksByPage.clear();
-            syncModeUi();
-            updateFlatHeading();
-            fetchAndRenderFlat().then(function () {
-              if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-          });
-        }
-        wireCardActions(dom.discover);
-      }
-
-      function fetchAndRenderFlat() {
-        showFlatSection();
-        recomputePageSize();
-        var reqId = ++state.currentRequestId;
-        var sliceStart = (state.page - 1) * state.pageSize;
-        var sliceEnd = sliceStart + state.pageSize;
-        if (state.accumulated.length >= sliceEnd || state.accumulated._exhausted) {
-          renderFlatSlice();
-          return Promise.resolve();
-        }
-        showGridSkeleton();
-        var fetcher;
-        if (state.mode === 'search' && state.search) {
-          fetcher = Engine.search(state.search, {
-            page: Math.max(1, Math.ceil(sliceEnd / 24)),
-            limit: 40,
-            subject: state.subject || '',
-            orderBy: state.sort === 'newest' ? 'newest' : 'relevance',
-            year_from: state.yearFrom || '',
-            year_to: state.yearTo || ''
-          });
-        } else {
-          var sectionId = state.section || 'popular';
-          var matchingSection = (Engine.DISCOVERY_SECTIONS || []).find(function (s) { return s.id === sectionId; })
-                              || (Engine.DISCOVERY_SECTIONS || [])[0];
-          fetcher = Engine.fetchFlat({
-            section: matchingSection ? matchingSection.id : 'popular',
-            subject: state.subject || '',
-            page: Math.max(1, Math.ceil(sliceEnd / 24)),
-            orderBy: state.sort === 'newest' ? 'newest' : 'relevance'
-          }).then(function (res) { return { books: res.books || [] }; });
-        }
-        return fetcher.then(function (data) {
-          if (reqId !== state.currentRequestId) return;
-          var books = data && data.books || [];
-          var added = 0;
-          for (var i = 0; i < books.length; i++) {
-            var b = books[i];
-            if (!b || !b.id || state.seenIds.has(b.id)) continue;
-            state.seenIds.add(b.id);
-            state.accumulated.push(b);
-            added++;
-          }
-          if (!added && state.accumulated.length) state.accumulated._exhausted = true;
-          if (!state.accumulated.length && (!data || !data.books || !data.books.length)) {
-            showGridEmpty(state.mode === 'search' ? 'No matches for that search.' : 'No books available right now.');
-            updatePagination(0);
-            return;
-          }
-          renderFlatSlice();
-        }).catch(function () {
-          if (reqId !== state.currentRequestId) return;
-          showGridEmpty('Could not load books.');
-          updatePagination(0);
-        });
-      }
-      function renderFlatSlice() {
-        var sliceStart = (state.page - 1) * state.pageSize;
-        var sliceEnd = sliceStart + state.pageSize;
-        var slice = state.accumulated.slice(sliceStart, sliceEnd);
-        Engine.renderGrid(dom.grid, slice);
-        var estimatedTotal = state.accumulated._exhausted
-          ? state.accumulated.length
-          : Math.max(state.accumulated.length, sliceEnd + 1);
-        updatePagination(estimatedTotal);
-        wireCardActions(dom.grid);
-        loadListStatusForVisible();
-      }
-
-      function wireCardActions(scope) {
-        if (!scope) return;
-        var cards = scope.querySelectorAll('.card[data-id]');
-        for (var i = 0; i < cards.length; i++) {
-          (function (card) {
-            card.addEventListener('click', function (e) {
-              if (e.target && e.target.closest('.menu-btn')) return;
-              var id = String(card.getAttribute('data-id') || '').trim();
-              if (!id) return;
-              var title = encodeURIComponent(card.getAttribute('data-title') || '');
-              var author = encodeURIComponent(card.getAttribute('data-author') || '');
-              window.location.href = 'book.html?id=' + encodeURIComponent(id) + '&title=' + title + '&author=' + author;
-            });
-            var menuBtn = card.querySelector('.menu-btn');
-            if (menuBtn) {
-              menuBtn.addEventListener('click', function (e) {
-                e.stopPropagation();
-                if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(card);
-              });
-            }
-          })(cards[i]);
-        }
-      }
-
-      function executeSearch(query) {
-        var q = String(query || '').trim();
-        if (q === lastSearchRendered && state.mode === 'search') return;
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        if (!q) {
-          state.search = '';
-          lastSearchRendered = '';
-          if (dom.clearBtn) dom.clearBtn.classList.remove('show');
-          if (state.mode === 'search') {
-            state.mode = 'discover';
-            syncModeUi();
-            loadAndRenderDiscover();
-          }
-          return;
-        }
-        state.search = q;
-        lastSearchRendered = q;
-        state.mode = 'search';
-        state.page = 1;
-        state.accumulated = [];
-        state.seenIds.clear();
-        state.booksByPage.clear();
-        syncModeUi();
-        updateFlatHeading();
-        fetchAndRenderFlat();
-      }
-      function debounceSearch(query) {
-        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(function () { executeSearch(query); }, Engine.SEARCH_DEBOUNCE_MS || 220);
-      }
-
-      function syncModeUi() {
-        var tabs = dom.modeTabs ? dom.modeTabs.querySelectorAll('.books-mode-tab') : [];
-        for (var i = 0; i < tabs.length; i++) {
-          var tab = tabs[i];
-          tab.classList.toggle('active', tab.getAttribute('data-mode') === (state.mode === 'search' ? 'browse' : state.mode));
-        }
-        if (dom.genreChips) dom.genreChips.hidden = !(state.mode === 'browse' || state.mode === 'search');
-        if (state.mode === 'discover') {
-          showDiscoverSections();
-        } else {
-          showFlatSection();
-        }
-      }
-      function switchMode(mode) {
-        if (mode === state.mode) return;
-        state.mode = mode;
-        state.search = '';
-        if (dom.searchInput) dom.searchInput.value = '';
-        if (dom.clearBtn) dom.clearBtn.classList.remove('show');
-        lastSearchRendered = '';
-        state.page = 1;
-        state.accumulated = [];
-        state.seenIds.clear();
-        state.booksByPage.clear();
-        syncModeUi();
-        if (mode === 'discover') {
-          loadAndRenderDiscover();
-        } else {
-          buildGenreChips();
-          updateFlatHeading();
-          fetchAndRenderFlat();
-        }
-      }
-
-      if (dom.searchInput) {
-        dom.searchInput.addEventListener('input', function (e) {
-          var v = String(e.target.value || '').trim();
-          if (dom.clearBtn) dom.clearBtn.classList.toggle('show', !!v);
-          debounceSearch(v);
-        });
-        dom.searchInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            executeSearch(String(dom.searchInput.value || '').trim());
-          }
-        });
-      }
-      if (dom.searchBtn) dom.searchBtn.addEventListener('click', function () {
-        executeSearch(String((dom.searchInput && dom.searchInput.value) || '').trim());
-      });
-      if (dom.clearBtn) dom.clearBtn.addEventListener('click', function () {
-        if (dom.searchInput) dom.searchInput.value = '';
-        executeSearch('');
-        if (dom.searchInput) dom.searchInput.focus();
-      });
-      if (dom.filterBtn) dom.filterBtn.addEventListener('click', function () {
-        if (dom.filterModal) dom.filterModal.classList.add('show');
-      });
-      if (dom.filterClose) dom.filterClose.addEventListener('click', function () {
-        if (dom.filterModal) dom.filterModal.classList.remove('show');
-      });
-      if (dom.refresh) dom.refresh.addEventListener('click', function () {
-        if (dom.filterModal) dom.filterModal.classList.remove('show');
-        state.sort = (dom.sortSelect && dom.sortSelect.value) || 'relevance';
-        state.yearFrom = (dom.yearFrom && dom.yearFrom.value) || '';
-        state.yearTo = (dom.yearTo && dom.yearTo.value) || '';
-        state.page = 1;
-        state.accumulated = [];
-        state.seenIds.clear();
-        state.booksByPage.clear();
-        if (state.mode === 'discover') {
-          state.mode = 'browse';
-          syncModeUi();
-          buildGenreChips();
-          updateFlatHeading();
-          fetchAndRenderFlat();
-        } else {
-          fetchAndRenderFlat();
-        }
-      });
-      if (dom.modeTabs) {
-        dom.modeTabs.addEventListener('click', function (e) {
-          var tab = e.target && e.target.closest('.books-mode-tab');
-          if (!tab) return;
-          var mode = tab.getAttribute('data-mode');
-          if (!mode) return;
-          if (mode === 'browse') {
-            switchMode('browse');
-          } else {
-            switchMode('discover');
-          }
-        });
-      }
-      if (dom.prevBtn) dom.prevBtn.addEventListener('click', function () {
-        if (state.page <= 1) return;
-        state.page -= 1;
-        fetchAndRenderFlat();
-        if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-      if (dom.nextBtn) dom.nextBtn.addEventListener('click', function () {
-        if (state.page >= state.totalPages && state.accumulated._exhausted) return;
-        state.page += 1;
-        fetchAndRenderFlat();
-        if (dom.flatSection) dom.flatSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
-
+    document.addEventListener('DOMContentLoaded', () => {
       if (window.initUniversalSearch) {
-        var initSearch = function () {
-          window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'books-mobile.html' });
-        };
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'books-mobile.html'
+        });
         if (typeof window.requestIdleCallback === 'function') {
           window.requestIdleCallback(initSearch, { timeout: 1500 });
         } else {
           window.setTimeout(initSearch, 0);
         }
       }
-
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
-          mediaType: 'book',
+          mediaType: 'books',
           itemIdAttr: 'data-id',
-          getVisibleItemIds: collectVisibleBookIds,
-          getQuickStatusForItem: function (itemId) {
-            var key = String(itemId || '').trim();
-            var status = state.listStatusMap.get(key);
-            return status ? Object.assign({}, status) : null;
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
           },
-          ensureClient: function () { return ensureSupabase(); },
-          getCurrentUser: function () { return currentUser; },
-          notify: function (message, isError) { showToast(message, !!isError); },
-          toggleDefaultList: function (opts) {
-            return toggleDefaultList(opts.itemId, opts.listType, opts.card, opts.nextSaved);
-          }
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
-
-      buildGenreChips();
-      initAuthUi();
-      loadAndRenderDiscover();
-
-      var resizeTimer = null;
-      window.addEventListener('resize', function () {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          var oldSize = state.pageSize;
-          recomputePageSize();
-          if (state.mode !== 'discover' && oldSize !== state.pageSize) renderFlatSlice();
-        }, 180);
-      });
-    }
-  })();
+      loadPage();
+    });
   </script>
-  <footer class="zo2y-footer">
-    <div class="zo2y-footer-inner">
-      <span class="zo2y-footer-brand">Â© 2026 Zo2y</span>
-      <nav class="zo2y-footer-links" aria-label="Legal">
-        <a href="privacy.html">Privacy</a>
-        <a href="terms.html">Terms</a>
-        <a href="cookies.html">Cookies</a>
-        <a href="data.html">Your data</a>
-        <a href="dmca.html">DMCA</a>
-        <a href="support.html">Support</a>
-        <a href="credits.html">Credits</a>
-      </nav>
-    </div>
-  </footer>
-    <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
-  <script src="js/legal-consent.js?v=20260606a" defer></script>
-
+  <script src="js/production-runtime.js?v=20260601b" defer></script>
+</body>
 </html>
