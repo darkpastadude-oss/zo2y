@@ -7148,7 +7148,7 @@
                 const selected = normalizeIconKey(iconKey, editingMediaList?.fallback || 'list');
                 const hiddenInput = document.getElementById('editMediaListSelectedIcon');
                 if (hiddenInput) hiddenInput.value = selected;
-                document.querySelectorAll('.edit-list-icon-option').forEach(option => {
+                document.querySelectorAll('.edit-list-icon-option, .menu-icon-option').forEach(option => {
                     option.classList.toggle('selected', option.getAttribute('data-icon') === selected);
                 });
             }
@@ -12969,7 +12969,7 @@
                     
                     if (modalId === 'createListModal') {
                         const selectedValue = String(document.getElementById('selectedIcon')?.value || getDefaultListIconForContext('restaurant'));
-                        document.querySelectorAll('.list-icon-option').forEach(icon => {
+                        document.querySelectorAll('.list-icon-option, #createListIconGrid .menu-icon-option').forEach(icon => {
                             const isSelected = icon.getAttribute('data-icon') === selectedValue;
                             icon.classList.toggle('selected', isSelected);
                         });
@@ -13424,9 +13424,9 @@
                 });
                 
                 // List icon selection
-                document.querySelectorAll('.list-icon-option').forEach(icon => {
+                document.querySelectorAll('.list-icon-option, #createListIconGrid .menu-icon-option').forEach(icon => {
                     icon.addEventListener('click', function() {
-                        document.querySelectorAll('.list-icon-option').forEach(i => {
+                        document.querySelectorAll('.list-icon-option, #createListIconGrid .menu-icon-option').forEach(i => {
                             i.classList.remove('selected');
                         });
                         this.classList.add('selected');
@@ -13440,7 +13440,7 @@
                     editMediaListForm.addEventListener('submit', handleEditMediaListSubmit);
                 }
 
-                document.querySelectorAll('.edit-list-icon-option').forEach(icon => {
+                document.querySelectorAll('.edit-list-icon-option, #editMediaIconGrid .menu-icon-option').forEach(icon => {
                     icon.addEventListener('click', function() {
                         setEditMediaListIcon(this.getAttribute('data-icon'));
                     });

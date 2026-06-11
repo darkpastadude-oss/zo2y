@@ -1639,10 +1639,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (code) setHomeTravelPhotoCache(code, heroImage, 'scenic');
       const cachedSet = getHomeTravelPhotoSet(code);
       const travelPhotos = [cachedSet.city, cachedSet.nature].filter(Boolean);
+      const resolvedCode = code || 'XX';
+      const href = `country.html?country=${encodeURIComponent(resolvedCode)}`;
       return {
-        ...item,
         mediaType: 'travel',
-        itemId: code || String(item.itemId || '').trim(),
+        itemId: resolvedCode,
+        title,
+        subtitle: item.subtitle || '',
+        extra: item.extra || '',
+        cities: item.cities || [],
         flagImage,
         listImage: heroImage,
         image: heroImage,
@@ -1659,7 +1664,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           nature: cachedSet.nature || ''
         },
         travelNeedsScenicHydration: false,
-        fallbackImage: safeFallback || heroImage
+        fallbackImage: safeFallback || heroImage,
+        href
       };
     }
 

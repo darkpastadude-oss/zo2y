@@ -791,7 +791,11 @@ function ensurePaginationStability(docs, opts = {}) {
 
 async function enrichMissingCovers(docs) {
   const list = Array.isArray(docs) ? docs : [];
-  const missing = list.filter((d) => d && !d.coverImage);
+  const missing = list.filter((d) => {
+    if (!d) return false;
+    const img = String(d.coverImage || d._googleThumbnail || '').trim();
+    return !img || img === DEFAULT_BOOK_COVER;
+  });
   if (!missing.length) return list;
   
   list.forEach((doc) => {
@@ -935,6 +939,7 @@ function normalizeBook(input) {
   
   const authorNames = authors.map((a) => String(a || '').trim()).filter(Boolean);
   
+  const coverSrc = String(input?.coverImage || input?.image || '').trim() || DEFAULT_BOOK_COVER;
   return {
     id,
     title: String(input?.title || '').trim(),
@@ -944,7 +949,8 @@ function normalizeBook(input) {
     isbn: Array.isArray(input?.isbn) ? input.isbn : [],
     subject: Array.isArray(input?.subject) ? input.subject : [],
     publisher: Array.isArray(input?.publisher) ? input.publisher : [],
-    coverImage: String(input?.coverImage || input?.image || DEFAULT_BOOK_COVER).trim(),
+    coverImage: coverSrc,
+    cover: coverSrc,
     description: String(input?.description || '').trim(),
     language: String(input?.language || '').trim(),
     rating: Number(input?.rating || 0) || 0,

@@ -2095,9 +2095,9 @@ async function loadBooks(signal) {
           .map((entry) => ({
             id: String(entry?.id || '').trim(),
             title: String(entry?.title || '').trim(),
-            author: String(entry?.author || '').trim(),
-            year: Number(entry?.year || 0) || null,
-            cover: toHttpsUrl(entry?.cover || ''),
+            author: String(entry?.author || (Array.isArray(entry?.author_name) ? entry.author_name[0] : '') || '').trim(),
+            year: Number(entry?.year || entry?.first_publish_year || 0) || null,
+            cover: toHttpsUrl(entry?.cover || entry?.coverImage || ''),
             source: String(entry?.source || '').trim()
           }))
           .filter((entry) => entry.title);

@@ -42,7 +42,7 @@
     background: var(--bg); 
     color: var(--white); 
     line-height: 1.6; 
-    overflow-x: hidden; 
+    overflow-x: clip; 
   } 
   
   a {

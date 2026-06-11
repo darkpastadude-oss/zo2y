@@ -89,6 +89,7 @@ body.mobile-webapp {
   .mobile-bottom-nav,
   .mobile-bottom-nav-item,
   .mobile-nav-item {
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
     backdrop-filter: blur(14px) saturate(170%);
   }
 
@@ -273,6 +274,7 @@ body.app-ready #appLoadLine {
   body[data-zo2y-page="profile"] .mobile-profile-header {
     padding: 18px 14px 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
     backdrop-filter: blur(12px) saturate(160%);
     display: flex;
     flex-direction: column;
@@ -357,6 +359,7 @@ body.zo2y-popup-open {
   inset: 0;
   display: none;
   background: rgba(6, 12, 28, 0.72);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 4490;
 }
@@ -368,6 +371,7 @@ body.zo2y-popup-open {
 .list-menu-backdrop.active,
 .rail-menu-backdrop.active {
   background: rgba(6, 12, 28, 0.72) !important;
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 4490 !important;
 }

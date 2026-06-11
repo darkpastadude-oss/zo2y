@@ -68,8 +68,8 @@
       <div class="cookie-banner-title"><i class="fas fa-cookie-bite"></i> Cookies on Zo2y</div>
       <p>We use strictly necessary cookies to keep you signed in and secure. With your consent we also use functional and analytics cookies. We don't use advertising trackers. <a href="cookies.html">Learn more</a> · <a href="privacy.html">Privacy</a></p>
       <div class="cookie-banner-actions">
-        <button type="button" class="cookie-banner-btn cookie-banner-btn-primary" data-cookie-action="accept">Accept all cookies</button>
-        <button type="button" class="cookie-banner-btn" data-cookie-action="reject">Reject all</button>
+        <button type="button" class="cookie-banner-btn cookie-banner-btn-primary" data-cookie-action="accept">Accept all</button>
+        <button type="button" class="cookie-banner-btn" data-cookie-action="manage">Customize</button>
       </div>
     `;
     return banner;
@@ -122,7 +122,6 @@
 
         <div class="cookie-prefs-actions">
           <button type="button" class="cookie-banner-btn cookie-banner-btn-primary" data-cookie-save="all">Accept all</button>
-          <button type="button" class="cookie-banner-btn" data-cookie-save="necessary">Reject all</button>
           <button type="button" class="cookie-banner-btn" data-cookie-save="custom">Save my choices</button>
           <button type="button" class="cookie-banner-btn" data-cookie-save="close" style="margin-left:auto;">Close</button>
         </div>

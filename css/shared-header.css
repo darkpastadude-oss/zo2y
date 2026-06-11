@@ -48,6 +48,7 @@
   z-index: var(--z-header);
   background: var(--zo2y-header-bg);
   border-bottom: 1px solid var(--zo2y-header-border);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
@@ -516,6 +517,7 @@
   width: 100vw;
   height: 100dvh;
   background: rgba(1, 7, 18, 0.58);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: var(--z-drawer-backdrop);
   opacity: 0;

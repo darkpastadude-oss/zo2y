@@ -17,7 +17,7 @@
     <style>
 :root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: hidden; min-height: 100vh; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: clip; min-height: 100vh; }
 @keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes zo2y-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -40,7 +40,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
 
   </head>
-<body>
+<body data-nav-page="profile">
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -1847,7 +1847,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="modal-body menu-modal-body">
                     <div class="form-group">
                         <label class="form-label">List Name</label>
-                        <input type="text" class="form-input menu-input" id="listName" required placeholder="e.g., Date Night Spots">
+                        <input type="text" class="form-input menu-input" id="listName" required placeholder="List name..." maxlength="50">
                     </div>
 
                     <div class="form-group">
@@ -1855,10 +1855,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <textarea class="form-textarea menu-input" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
                     </div>
                     <input type="hidden" id="selectedIcon" value="restaurant">
+                    <div class="menu-icon-grid" id="createListIconGrid">
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+                        <button type="button" class="menu-icon-option selected" data-icon="fas fa-utensils"><i class="fas fa-utensils"></i></button>
+                    </div>
 
-                    <div class="form-actions menu-modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Create List</button>
+                    <div class="menu-modal-actions">
+                        <button type="button" class="menu-btn menu-btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="menu-btn menu-btn-primary">Create List</button>
                     </div>
                 </div>
             </form>
@@ -1888,20 +1902,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- Edit Media List Modal -->
-    <div class="modal" id="editMediaListModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title" id="editMediaListModalTitle">Edit List</h3>
-                <button class="modal-close" onclick="ProfileManager.closeModal('editMediaListModal')">&times;</button>
+    <div class="modal menu-modal" id="editMediaListModal">
+        <div class="modal-content menu-modal-content">
+            <div class="modal-header menu-modal-header">
+                <h3 class="modal-title menu-modal-title" id="editMediaListModalTitle">Edit List</h3>
+                <button class="modal-close menu-modal-close" onclick="ProfileManager.closeModal('editMediaListModal')">&times;</button>
             </div>
 
             <form id="editMediaListForm">
-                <div class="modal-body">
+                <div class="modal-body menu-modal-body">
                     <div class="form-group">
                         <label class="form-label">List Name</label>
-                        <input type="text" class="form-input" id="editMediaListName" required placeholder="Enter list name">
+                        <input type="text" class="form-input menu-input" id="editMediaListName" required placeholder="List name..." maxlength="50">
                     </div>
                     <input type="hidden" id="editMediaListSelectedIcon" value="list">
+                    <div class="menu-icon-grid" id="editMediaIconGrid">
+                        <button type="button" class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+                    </div>
 
                     <div class="form-group d-none" id="editMediaCollaboratorsGroup">
                         <label class="form-label">Collaborators</label>
@@ -1915,9 +1943,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <small class="text-muted d-block mt-6">Only the list owner can manage collaborators.</small>
                     </div>
 
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editMediaListModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <div class="menu-modal-actions">
+                        <button type="button" class="menu-btn menu-btn-secondary" onclick="ProfileManager.closeModal('editMediaListModal')">Cancel</button>
+                        <button type="submit" class="menu-btn menu-btn-primary">Save Changes</button>
                     </div>
                 </div>
             </form>

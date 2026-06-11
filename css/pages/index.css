@@ -41,7 +41,7 @@
       background: var(--bg);
       color: var(--white);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      overflow-x: hidden;
+      overflow-x: clip;
     }
 
     body {
