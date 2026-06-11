@@ -608,6 +608,9 @@
   }
 
   function getMediaType() {
+    if (STATE.currentItem && STATE.currentItem.mediaType) {
+      return String(STATE.currentItem.mediaType).toLowerCase();
+    }
     return String(bridge?.mediaType || '').toLowerCase();
   }
 
