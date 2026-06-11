@@ -617,12 +617,14 @@
   function customListsEnabled() {
     const mediaType = getMediaType();
     if (!mediaType) return false;
-    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return true;
+    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return false;
     const cfg = ListUtils.getListConfig(mediaType);
     if (!cfg) return false;
     if (cfg.disableCustomLists) return false;
     if (!cfg.listTable || !cfg.itemsTable) return false;
-    return true;
+    
+    const isProfilePage = window.location.pathname.includes('/profile.html');
+    return isProfilePage;
   }
 
   function getQuickRowsForMenu() {
@@ -861,6 +863,13 @@
 
   function redirectToLogin() {
     if (showSignInPrompt()) return;
+    
+    const isProfilePage = window.location.pathname.includes('/profile.html');
+    if (!isProfilePage && !customListsEnabled()) {
+      window.location.href = 'profile.html';
+      return;
+    }
+    
     try {
       const next = `${window.location.pathname || ''}${window.location.search || ''}${window.location.hash || ''}` || 'index.html';
       localStorage.setItem('postAuthRedirect', next);
