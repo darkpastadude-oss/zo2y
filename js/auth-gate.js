@@ -617,7 +617,12 @@
   function buildLoginRedirectTarget(rawNext) {
     var next = sanitizeNextPath(rawNext || (window.location.pathname + window.location.search + window.location.hash));
     safeSetLocalStorage(POST_AUTH_REDIRECT_KEY, next);
-    return 'login.html?next=' + encodeURIComponent(next);
+    var baseUrl = 'login.html?next=' + encodeURIComponent(next);
+    if (next === 'index.html') {
+      return baseUrl;
+    }
+    baseUrl += '&auth_return=1&authv=' + AUTH_RETURN_VERSION;
+    return baseUrl;
   }
 
   function readRequestedNextPath(rawSearch) {

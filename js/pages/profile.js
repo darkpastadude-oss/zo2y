@@ -223,6 +223,10 @@
 
             // ===== INITIALIZATION =====
             async function initialize() {
+                const INIT_TIMEOUT_MS = 15000;
+                let timeoutHandle = null;
+                let initCompleted = false;
+                
                 try {
                     clearLegacyProfileBookCaches();
                     if (!window.supabase) {
@@ -264,21 +268,27 @@
                     disableRestaurantFeatures();
                     disableGameFeatures();
                     
-                    // 5. FIX: Optimized initialization to load faster
-                    await loadProfile();
+                    const loadProfilePromise = loadProfile();
+                    const loadRestaurantsPromise = loadRestaurants().catch(err => console.error('Restaurant load error:', err));
+                    const communityInitPromise = (async () => {
+                        communitySystem = createCommunitySystem();
+                        return communitySystem.init();
+                    })();
+                    const listManagerInitPromise = listManager.init();
+                    
+                    if (timeoutHandle) clearTimeout(timeoutHandle);
+                    timeoutHandle = setTimeout(() => {
+                        if (!initCompleted) {
+                            console.warn('Profile initialization timed out, proceeding with available data');
+                        }
+                    }, INIT_TIMEOUT_MS);
 
-                    // Load data in background
-                    loadRestaurants().catch(err => console.error('Restaurant load error:', err));
-                    
-                    // Initialize systems
-                    communitySystem = createCommunitySystem();
-                    
-                    // Initialize list manager and community in background
-                    const initTasks = [communitySystem.init()];
-                    initTasks.unshift(listManager.init());
-                    Promise.all(initTasks).catch(err => console.error('Initialization error:', err));
-                    
-                    // 2. FIX: Update setupEventListeners to prevent multiple bindings
+                    await loadProfile();
+                    await Promise.race([
+                        Promise.all([loadRestaurantsPromise, communityInitPromise, listManagerInitPromise]),
+                        new Promise(resolve => setTimeout(resolve, 3000))
+                    ]);
+
                     setupEventListeners();
                     showPrimaryTab('lists', { force: true, skipTabSync: true });
                     bindRouteListeners();
@@ -295,7 +305,6 @@
                         renderMovies().catch(() => {});
                     }
                     
-                    // Handle click outside dropdown
                     document.addEventListener('click', (e) => {
                         if (!e.target.closest('.list-card-actions')) {
                             document.querySelectorAll('.kebab-dropdown').forEach(d => d.classList.remove('show'));
@@ -305,8 +314,13 @@
                         }
                     });
                     
+                    initCompleted = true;
+                    if (timeoutHandle) clearTimeout(timeoutHandle);
+                    
                 } catch (error) {
                     console.error('Error initializing profile page:', error);
+                    initCompleted = true;
+                    if (timeoutHandle) clearTimeout(timeoutHandle);
                     showToast('Error loading profile', 'error');
                 }
             }
