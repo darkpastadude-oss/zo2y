@@ -556,9 +556,6 @@
             <div class="menu-custom-section">
               <div class="menu-custom-header">
                 <span>Your Custom Lists</span>
-                <button class="menu-create-list-btn" id="menuCreateListBtn">
-                  <i class="fas fa-plus"></i> New
-                </button>
               </div>
               <div class="menu-custom-lists" id="menuCustomLists"></div>
             </div>
@@ -566,44 +563,6 @@
         </div>
       `;
       document.body.appendChild(itemModal);
-    }
-
-    let createModal = document.getElementById('createListModal');
-    if (!createModal) {
-      createModal = document.createElement('div');
-      createModal.id = 'createListModal';
-      createModal.className = 'menu-modal authenticated-only';
-      createModal.setAttribute('aria-hidden', 'true');
-      createModal.innerHTML = `
-        <div class="menu-modal-content max-w-320">
-          <div class="menu-modal-header">
-            <h3>Create New List</h3>
-            <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
-          </div>
-          <div class="menu-modal-body">
-            <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
-            <div class="menu-icon-grid">
-              <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
-              <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
-            </div>
-            <div class="menu-modal-actions">
-              <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
-              <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
-            </div>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(createModal);
     }
   }
 
@@ -1271,13 +1230,11 @@
 
   function syncActiveMenuModalViewports() {
     syncMenuModalViewport(document.getElementById('itemMenuModal'));
-    syncMenuModalViewport(document.getElementById('createListModal'));
   }
 
   function syncMenuModalBodyLock() {
     const itemModal = document.getElementById('itemMenuModal');
-    const createModal = document.getElementById('createListModal');
-    const anyActive = !!(itemModal?.classList.contains('active') || createModal?.classList.contains('active'));
+    const anyActive = !!(itemModal?.classList.contains('active'));
     if (anyActive) {
       syncActiveMenuModalViewports();
       document.body.style.overflow = 'hidden';
@@ -1319,18 +1276,6 @@
   }
 
   function closeCreateListModal() {
-    const createModal = document.getElementById('createListModal');
-    const activeElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    if (createModal && activeElement && createModal.contains(activeElement)) {
-      try {
-        activeElement.blur();
-      } catch (_error) {}
-    }
-    if (createModal) {
-      createModal.classList.remove('active');
-      createModal.setAttribute('aria-hidden', 'true');
-    }
-    syncMenuModalBodyLock();
   }
 
   function closeAllItemMenuModals() {
@@ -1649,96 +1594,13 @@
     })();
   }
 
-  async function openCreateListModalFromMenu() {
-    const user = await resolveAuthenticatedUser();
-    if (!STATE.currentItem || !user?.id) {
-      redirectToLogin();
-      return;
-    }
-    const createModal = document.getElementById('createListModal');
-    const itemModal = document.getElementById('itemMenuModal');
-    const nameInput = document.getElementById('newListNameInput');
-    if (nameInput) nameInput.value = '';
-    if (itemModal) itemModal.classList.remove('active');
-    if (createModal) {
-      createModal.classList.add('active');
-      createModal.setAttribute('aria-hidden', 'false');
-      if (window.ListUtils) ListUtils.resetTierCreateState(createModal);
-      syncMenuModalViewport(createModal);
-      const content = createModal.querySelector('.menu-modal-content');
-      if (content) {
-        content.classList.remove('menu-modal-fly-up');
-        void content.offsetWidth;
-        content.classList.add('menu-modal-fly-up');
-      }
-    }
-    syncMenuModalBodyLock();
-  }
-
-  async function saveNewCustomListFromMenu() {
-    const item = STATE.currentItem;
-    const user = await resolveAuthenticatedUser();
-    if (!item || !window.ListUtils || !user?.id) {
-      redirectToLogin();
-      return;
-    }
-    const nameInput = document.getElementById('newListNameInput');
-    const title = String(nameInput?.value || '').trim();
-    if (!title) {
-      notify('Please enter a list name', true);
-      return;
-    }
-    const createModal = document.getElementById('createListModal');
-    const tierState = window.ListUtils && createModal
-      ? ListUtils.readTierCreateState(createModal)
-      : { listKind: 'standard', maxRank: null };
-    const client = await ensureClient();
-    if (!client) return;
-    const created = await ListUtils.createCustomList(client, user.id, getMediaType(), {
-      title,
-      listKind: tierState.listKind,
-      maxRank: tierState.maxRank
-    });
-    if (!created?.id) {
-      notify('Could not create list', true);
-      return;
-    }
-    if (window.ListUtils && createModal) ListUtils.resetTierCreateState(createModal);
-    STATE.customLists = [created, ...STATE.customLists.filter((list) => String(list.id) !== String(created.id))];
-    STATE.selectedCustomLists.add(created.id);
-    writeCachedCustomLists(STATE.customLists);
-    writeCachedMembership(item.itemId, STATE.selectedCustomLists);
-    closeCreateListModal();
-    const itemModal = document.getElementById('itemMenuModal');
-    if (itemModal) {
-      itemModal.classList.add('active');
-      itemModal.setAttribute('aria-hidden', 'false');
-      syncMenuModalViewport(itemModal);
-      const content = itemModal.querySelector('.menu-modal-content');
-      if (content) {
-        content.classList.remove('menu-modal-fly-up');
-        void content.offsetWidth;
-        content.classList.add('menu-modal-fly-up');
-      }
-    }
-    syncMenuModalBodyLock();
-    await loadItemMenuData();
-    notify('List created');
-  }
-
   function bindListeners() {
     if (listenersBound) return;
     listenersBound = true;
 
     document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
-    document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
-    document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
-    document.getElementById('menuCreateListBtn')?.addEventListener('click', openCreateListModalFromMenu);
-    document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
-      void saveNewCustomListFromMenu();
-    });
 
-    [document.getElementById('itemMenuModal'), document.getElementById('createListModal')].forEach((modal) => {
+    [document.getElementById('itemMenuModal')].forEach((modal) => {
       if (!modal) return;
       modal.addEventListener('click', (e) => {
         if (e.target === modal) closeAllItemMenuModals();
@@ -1749,28 +1611,6 @@
     if (itemMenuModal) {
       itemMenuModal.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeItemMenuModal();
-      });
-    }
-
-    const newListNameInput = document.getElementById('newListNameInput');
-    if (newListNameInput) {
-      const keepCreateModalInputVisible = () => {
-        const createModal = document.getElementById('createListModal');
-        const content = createModal?.querySelector('.menu-modal-content');
-        window.setTimeout(() => {
-          syncMenuModalViewport(createModal);
-          if (content && typeof content.scrollTo === 'function') {
-            content.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }, 40);
-      };
-      newListNameInput.addEventListener('focus', keepCreateModalInputVisible);
-      newListNameInput.addEventListener('input', keepCreateModalInputVisible);
-      newListNameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          void saveNewCustomListFromMenu();
-        }
       });
     }
 

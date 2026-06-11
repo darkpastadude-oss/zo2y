@@ -7163,7 +7163,8 @@
                 const hiddenInput = document.getElementById('editMediaListSelectedIcon');
                 if (hiddenInput) hiddenInput.value = selected;
                 document.querySelectorAll('.edit-list-icon-option, .menu-icon-option').forEach(option => {
-                    option.classList.toggle('selected', option.getAttribute('data-icon') === selected);
+                    const optionKey = normalizeIconKey(option.getAttribute('data-icon'), 'list');
+                    option.classList.toggle('selected', optionKey === selected);
                 });
             }
 

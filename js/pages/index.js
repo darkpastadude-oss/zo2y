@@ -4681,13 +4681,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function syncActiveMenuModalViewports() {
       syncMenuModalViewport(document.getElementById('itemMenuModal'));
-      syncMenuModalViewport(document.getElementById('createListModal'));
     }
 
     function syncMenuModalBodyLock() {
       const itemModal = document.getElementById('itemMenuModal');
-      const createModal = document.getElementById('createListModal');
-      const anyActive = !!(itemModal?.classList.contains('active') || createModal?.classList.contains('active'));
+      const anyActive = !!(itemModal?.classList.contains('active'));
       const onboardingActive = !!document.getElementById('homeOnboardingOverlay')?.classList.contains('active');
       if (anyActive) {
         syncActiveMenuModalViewports();
@@ -4730,13 +4728,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function closeCreateListModal() {
-      const createModal = document.getElementById('createListModal');
-      if (createModal) {
-        moveFocusOutsideModal(createModal);
-        createModal.classList.remove('active');
-        createModal.setAttribute('aria-hidden', 'true');
-      }
-      syncMenuModalBodyLock();
     }
 
     function closeAllItemMenuModals() {
@@ -4854,19 +4845,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (homeItemMenuState.hasStartedSaving) {
           customContainer.innerHTML = '';
           return;
-        }
-        customContainer.innerHTML = `
-          <div class="menu-empty menu-empty-rich">
-            <div class="menu-empty-title">Create your first custom list</div>
-            <div class="menu-empty-copy">Make something like “Weekend movies”, “Games to finish”, or “2026 favorites” and reuse it everywhere.</div>
-            <button class="menu-empty-cta" type="button">Create first list</button>
-          </div>
-        `;
-        const createBtn = customContainer.querySelector('.menu-empty-cta');
-        if (createBtn) {
-          createBtn.addEventListener('click', () => {
-            openCreateListModalFromMenu();
-          });
         }
         return;
       }
@@ -5098,121 +5076,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    async function openCreateListModalFromMenu() {
-      const item = homeItemMenuState.currentItem;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!item || !activeUser?.id) {
-        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
-          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
-        } else {
-          window.location.href = 'login.html';
-        }
-        return;
-      }
-      homeCurrentUser = activeUser;
-      const createModal = document.getElementById('createListModal');
-      const itemModal = document.getElementById('itemMenuModal');
-      const nameInput = document.getElementById('newListNameInput');
-      if (nameInput) nameInput.value = '';
-      const options = document.querySelectorAll('.menu-icon-option');
-      homeItemMenuState.selectedIcon = 'fas fa-list';
-      options.forEach((btn) => {
-        const icon = btn.getAttribute('data-icon') || '';
-        btn.classList.toggle('selected', icon === homeItemMenuState.selectedIcon);
-      });
-      if (itemModal) {
-        itemModal.classList.remove('active');
-        itemModal.setAttribute('aria-hidden', 'true');
-      }
-      if (createModal) {
-        createModal.classList.add('active');
-        createModal.setAttribute('aria-hidden', 'false');
-        if (window.ListUtils) ListUtils.resetTierCreateState(createModal);
-        syncMenuModalViewport(createModal);
-        playHomeMenuModalFlyUp(createModal);
-      }
-      syncMenuModalBodyLock();
-    }
-
-    async function saveNewCustomListFromMenu() {
-      const item = homeItemMenuState.currentItem;
-      const activeUser = await ensureHomeActiveUser(null, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!item || !window.ListUtils || !activeUser?.id) {
-        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
-          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
-        } else {
-          window.location.href = 'login.html';
-        }
-        return;
-      }
-      homeCurrentUser = activeUser;
-      const nameInput = document.getElementById('newListNameInput');
-      const title = String(nameInput?.value || '').trim();
-      if (!title) {
-        showHomeToast('Please enter a list name', true);
-        return;
-      }
-      const createModal = document.getElementById('createListModal');
-      const tierState = window.ListUtils && createModal
-        ? ListUtils.readTierCreateState(createModal)
-        : { listKind: 'standard', maxRank: null };
-      const client = await ensureHomeSupabase();
-      if (!client) return;
-      const created = await ListUtils.createCustomList(client, activeUser.id, item.mediaType, {
-        title,
-        icon: homeItemMenuState.selectedIcon || 'fas fa-list',
-        listKind: tierState.listKind,
-        maxRank: tierState.maxRank
-      });
-      if (!created?.id) {
-        showHomeToast('Could not create list', true);
-        return;
-      }
-      if (window.ListUtils && createModal) ListUtils.resetTierCreateState(createModal);
-      homeItemMenuState.customLists = [
-        created,
-        ...homeItemMenuState.customLists.filter((list) => String(list.id) !== String(created.id))
-      ];
-      homeItemMenuState.selectedCustomLists.add(created.id);
-      homeItemMenuState.hasStartedSaving = true;
-      markStartedHomeListFlow(activeUser.id);
-      writeHomeMenuCustomListsCache(item.mediaType, homeItemMenuState.customLists);
-      writeHomeMenuMembershipCache(item.mediaType, item.itemId, homeItemMenuState.selectedCustomLists);
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
-        window.ZO2Y_ANALYTICS.track('custom_list_created', {
-          media_type: item.mediaType,
-          source: 'home_menu'
-        }, { essential: true });
-      }
-      if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
-        window.ZO2Y_ANALYTICS.markFirstAction('first_custom_list_created', {
-          media_type: item.mediaType,
-          user_id: homeCurrentUser?.id || ''
-        }, { essential: true });
-      }
-      closeCreateListModal();
-      const itemModal = document.getElementById('itemMenuModal');
-      if (itemModal) {
-        itemModal.classList.add('active');
-        itemModal.setAttribute('aria-hidden', 'false');
-        syncMenuModalViewport(itemModal);
-        playHomeMenuModalFlyUp(itemModal);
-      }
-      syncMenuModalBodyLock();
-      await loadItemMenuData();
-      showHomeToast('List created');
-    }
-
     function renderHomeListsModal() {
       const container = document.getElementById('homeListsContainer');
       if (!container) return;
@@ -5390,53 +5253,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       showHomeToast('Lists updated');
       closeHomeListsModal();
-    }
-
-    async function createHomeList() {
-      const input = document.getElementById('newHomeListName');
-      const client = await ensureHomeSupabase();
-      const activeUser = await ensureHomeActiveUser(client, {
-        preferCached: false,
-        useCachedOnFail: false,
-        allowRemoteUser: true,
-        allowRefresh: true
-      });
-      if (!input || !client || !activeUser?.id) return;
-      homeCurrentUser = activeUser;
-      const title = input.value.trim();
-      if (!title) return;
-      const exists = homeCustomListState.customLists.some(
-        list => String(list.title || '').trim().toLowerCase() === title.toLowerCase()
-      );
-      if (exists) {
-        showHomeToast('List already exists', true);
-        return;
-      }
-      const homeListsModal = document.getElementById('homeListsModal');
-      const tierState = window.ListUtils && homeListsModal
-        ? ListUtils.readTierCreateState(homeListsModal)
-        : { listKind: 'standard', maxRank: null };
-      const data = window.ListUtils
-        ? await ListUtils.createCustomList(
-          client,
-          activeUser.id,
-          homeCustomListState.mediaType,
-          {
-            title,
-            icon: homeCustomListState.selectedIcon,
-            listKind: tierState.listKind,
-            maxRank: tierState.maxRank
-          }
-        )
-        : null;
-      if (!data) {
-        showHomeToast('Could not create list', true);
-        return;
-      }
-      input.value = '';
-      if (window.ListUtils && homeListsModal) ListUtils.resetTierCreateState(homeListsModal);
-      homeCustomListState.customLists.unshift(data);
-      renderHomeListsModal();
     }
 
     async function renameHomeList(listId, currentTitle) {
@@ -12034,28 +11850,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }, 1800);
 
       const itemMenuModal = document.getElementById('itemMenuModal');
-      const createListModal = document.getElementById('createListModal');
       const nextSpotlightBtn = document.getElementById('spotlightNextBtn');
       const spotlightSection = document.getElementById('spotlightSection');
       const popularGamesRefreshBtn = document.getElementById('popularGamesRefreshBtn');
 
-      document.querySelectorAll('.menu-icon-option').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.menu-icon-option').forEach((b) => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          homeItemMenuState.selectedIcon = btn.getAttribute('data-icon') || 'fas fa-list';
-        });
-      });
-
       document.getElementById('closeMenuModalBtn')?.addEventListener('click', closeItemMenuModal);
-      document.getElementById('closeCreateModalBtn')?.addEventListener('click', closeAllItemMenuModals);
-      document.getElementById('cancelCreateBtn')?.addEventListener('click', closeAllItemMenuModals);
-      document.getElementById('menuCreateListBtn')?.addEventListener('click', () => {
-        void openCreateListModalFromMenu();
-      });
-      document.getElementById('saveNewListBtn')?.addEventListener('click', () => {
-        void saveNewCustomListFromMenu();
-      });
 
       if (popularGamesRefreshBtn) {
         popularGamesRefreshBtn.addEventListener('click', () => {
@@ -12090,29 +11889,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         });
       }
 
-      [itemMenuModal, createListModal].forEach((modal) => {
-        if (modal) {
-          modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-              closeAllItemMenuModals();
-            }
-          });
-        }
-      });
+      if (itemMenuModal) {
+        itemMenuModal.addEventListener('click', (e) => {
+          if (e.target === itemMenuModal) {
+            closeAllItemMenuModals();
+          }
+        });
+      }
 
       if (itemMenuModal) {
         itemMenuModal.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeItemMenuModal();
-        });
-      }
-
-      const newListNameInput = document.getElementById('newListNameInput');
-      if (newListNameInput) {
-        newListNameInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            void saveNewCustomListFromMenu();
-          }
         });
       }
 

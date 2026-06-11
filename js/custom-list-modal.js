@@ -176,81 +176,8 @@
     document.body.style.overflow = '';
   }
 
-  function ensureItemMenuModal() {
-    if (typeof document === 'undefined') return null;
-    var existing = document.getElementById('itemMenuModal');
-    if (existing) return existing;
-    var el = document.createElement('div');
-    el.id = 'itemMenuModal';
-    el.className = 'menu-modal authenticated-only';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML =
-      '<div class="menu-modal-content">'
-      + '<div class="menu-modal-header">'
-      + '<h3 id="menuModalTitle">Add to List</h3>'
-      + '<button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button>'
-      + '</div>'
-      + '<div class="menu-modal-body" id="menuModalBody">'
-      + '<div class="menu-quick-lists" id="menuQuickLists"></div>'
-      + '<div class="menu-custom-section">'
-      + '<div class="menu-custom-header">'
-      + '<span>Your Custom Lists</span>'
-      + '<button class="menu-create-list-btn" id="menuCreateListBtn">'
-      + '<i class="fas fa-plus"></i> New'
-      + '</button>'
-      + '</div>'
-      + '<div class="menu-custom-lists" id="menuCustomLists"></div>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
-    document.body.appendChild(el);
-    return el;
-  }
-
-  function ensureCreateListModal() {
-    if (typeof document === 'undefined') return null;
-    var existing = document.getElementById('createListModal');
-    if (existing) return existing;
-    var el = document.createElement('div');
-    el.id = 'createListModal';
-    el.className = 'menu-modal authenticated-only';
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML =
-      '<div class="menu-modal-content max-w-320">'
-      + '<div class="menu-modal-header">'
-      + '<h3>Create New List</h3>'
-      + '<button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>'
-      + '</div>'
-      + '<div class="menu-modal-body">'
-      + '<input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">'
-      + '<div class="menu-icon-grid">'
-      + '<button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>'
-      + '<button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>'
-      + '</div>'
-      + '<div class="menu-modal-actions">'
-      + '<button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>'
-      + '<button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
-    document.body.appendChild(el);
-    return el;
-  }
-
   function ensureModals() {
     ensureSignInPromptModal();
-    ensureItemMenuModal();
-    ensureCreateListModal();
   }
 
   ensureStyles();
