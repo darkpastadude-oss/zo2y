@@ -535,11 +535,15 @@
   }
 
   function ensureMarkup() {
+    if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals === 'function') {
+      window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals();
+      return;
+    }
     let itemModal = document.getElementById('itemMenuModal');
     if (!itemModal) {
       itemModal = document.createElement('div');
       itemModal.id = 'itemMenuModal';
-      itemModal.className = 'menu-modal';
+      itemModal.className = 'menu-modal authenticated-only';
       itemModal.setAttribute('aria-hidden', 'true');
       itemModal.innerHTML = `
         <div class="menu-modal-content">
@@ -568,16 +572,30 @@
     if (!createModal) {
       createModal = document.createElement('div');
       createModal.id = 'createListModal';
-      createModal.className = 'menu-modal';
+      createModal.className = 'menu-modal authenticated-only';
       createModal.setAttribute('aria-hidden', 'true');
       createModal.innerHTML = `
-        <div class="menu-modal-content">
+        <div class="menu-modal-content max-w-320">
           <div class="menu-modal-header">
             <h3>Create New List</h3>
             <button class="menu-modal-close" id="closeCreateModalBtn" aria-label="Close">&times;</button>
           </div>
           <div class="menu-modal-body">
             <input type="text" id="newListNameInput" class="menu-input" placeholder="List name..." maxlength="50">
+            <div class="menu-icon-grid">
+              <button class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+              <button class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+            </div>
             <div class="menu-modal-actions">
               <button class="menu-btn menu-btn-secondary" id="cancelCreateBtn">Cancel</button>
               <button class="menu-btn menu-btn-primary" id="saveNewListBtn">Create List</button>
@@ -826,11 +844,20 @@
         }
       } catch (_error) {}
     }
-    
+
     return authClient;
   }
 
+  function showSignInPrompt() {
+    if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+      window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+      return true;
+    }
+    return false;
+  }
+
   function redirectToLogin() {
+    if (showSignInPrompt()) return;
     try {
       const next = `${window.location.pathname || ''}${window.location.search || ''}${window.location.hash || ''}` || 'index.html';
       localStorage.setItem('postAuthRedirect', next);

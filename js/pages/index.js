@@ -4026,7 +4026,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       });
       if (!activeUser?.id) {
         queueHomeAuthUiSync({ refreshPersonalization: true });
-        window.location.href = 'login.html';
+        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+        } else {
+          window.location.href = 'login.html';
+        }
         return result;
       }
       homeCurrentUser = activeUser;
@@ -5047,7 +5051,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         allowRefresh: true
       });
       if (!item || !activeUser?.id || !window.ListUtils) {
-        window.location.href = 'login.html';
+        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+        } else {
+          window.location.href = 'login.html';
+        }
         return;
       }
       homeCurrentUser = activeUser;
@@ -5099,7 +5107,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         allowRefresh: true
       });
       if (!item || !activeUser?.id) {
-        window.location.href = 'login.html';
+        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+        } else {
+          window.location.href = 'login.html';
+        }
         return;
       }
       homeCurrentUser = activeUser;
@@ -5136,7 +5148,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         allowRefresh: true
       });
       if (!item || !window.ListUtils || !activeUser?.id) {
-        window.location.href = 'login.html';
+        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+        } else {
+          window.location.href = 'login.html';
+        }
         return;
       }
       homeCurrentUser = activeUser;
@@ -5279,7 +5295,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         allowRefresh: true
       });
       if (!activeUser?.id) {
-        window.location.href = 'login.html';
+        if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt === 'function') {
+          window.ZO2Y_CUSTOM_LIST_MODAL.showSignInPrompt();
+        } else {
+          window.location.href = 'login.html';
+        }
         return;
       }
       homeCurrentUser = activeUser;
