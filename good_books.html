@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
   <script src="/js/auth-gate.js?v=20260610c" defer></script>
@@ -16,7 +16,6 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/custom-list-modal.js?v=20260611a" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
@@ -38,8 +37,8 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260610d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610d"></noscript>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
 <script src="js/shared-header.js?v=20260610c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
@@ -134,11 +133,684 @@
         <div class="menu-custom-section">
           <div class="menu-custom-header">
             <span>Your Custom Lists</span>
-                      </div>
+          </div>
           <div class="menu-custom-lists" id="menuCustomLists"></div>
         </div>
       </div>
     </div>
   </div>
 
-  
+  <script>
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
+      const FALLBACK_BOOK_IMAGE = '/images/fallback/book.svg';
+      const API_PAGE_SIZE = 40;
+      let BOOKS_PAGE_SIZE = 30;
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return 18;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const rows = 3;
+      return cols * rows;
+    }
+
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      books: [],
+      search: '',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
+
+    function fetchWithTimeout(url, ms = 8000) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+    }
+
+    function isEnglishText(text) {
+      if (!text) return true;
+      return !/[\u0400-\u04FF\u0500-\u052F\u0370-\u03FF\u0600-\u06FF\u0590-\u05FF\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uAC00-\uD7AF\u0E00-\u0E7F\u0E80-\u0EFF\u10A0-\u10FF\u0400-\u04FF]/.test(text);
+    }
+
+    function isEnglishBook(book) {
+      const title = String(book.title || book.name || '');
+      const authors = String(Array.isArray(book.authors) ? book.authors.join(' ') : (Array.isArray(book.author_name) ? book.author_name.join(' ') : (book.authors || book.author || '')));
+      if (!title && !authors) return true;
+      return isEnglishText(title) && isEnglishText(authors);
+    }
+
+    function hasGoodCover(book) {
+      const cover = String(book.thumbnail || book.cover || book.image || book.coverImage || '');
+      return cover && !cover.includes('fallback') && cover.indexOf('http') === 0;
+    }
+
+    function scoreBookQuality(book, query) {
+      let score = 0;
+
+      const q = String(query || '').trim().toLowerCase();
+      const title = String(book.title || '').trim().toLowerCase();
+
+      // English
+      if (isEnglishBook(book)) score += 120;
+
+      // Good cover
+      if (hasGoodCover(book)) score += 100;
+
+      // Title relevance to query
+      if (q && title) {
+        if (title === q) score += 110;
+        else if (title.startsWith(q)) score += 80;
+        else if (title.includes(q)) score += 45;
+        else {
+          const qWords = q.split(/\s+/).filter(Boolean);
+          const tWords = title.split(/\s+/).filter(Boolean);
+          const matchCount = qWords.filter(w => title.includes(w)).length;
+          if (matchCount === qWords.length && qWords.length > 1) score += 50;
+          else if (matchCount >= 2) score += 30;
+          else if (matchCount === 1) score += 12;
+        }
+      }
+
+      // Recency
+      if (book.publishedDate) {
+        const year = new Date(book.publishedDate).getFullYear();
+        if (!isNaN(year)) {
+          const age = new Date().getFullYear() - year;
+          if (age <= 1) score += 70;
+          else if (age <= 3) score += 55;
+          else if (age <= 5) score += 40;
+          else if (age <= 10) score += 25;
+          else if (age <= 20) score += 10;
+        }
+      }
+
+      // Known author
+      const author = String(book.authors || '');
+      if (author && author !== 'Unknown Author') score += 18;
+
+      // Has description
+      if (book.description && book.description.length > 50) score += 8;
+
+      // Title length sanity
+      const titleLen = String(book.title || '').length;
+      if (titleLen >= 3 && titleLen <= 120) score += 4;
+
+      return score;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '16px';
+      el.style.right = '16px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '10px 14px';
+      el.style.borderRadius = '10px';
+      el.style.fontSize = '13px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+
+    let searchDebounceTimer = null;
+
+    const CURRENT_TOP_BOOK_SEEDS = [
+      { title: 'Onyx Storm', author: 'Rebecca Yarros', year: 2025 },
+      { title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023 },
+      { title: 'Great Big Beautiful Life', author: 'Emily Henry', year: 2025 },
+      { title: 'Dear Debbie', author: 'Freida McFadden', year: 2026 },
+      { title: 'The Tenant', author: 'Freida McFadden', year: 2025 },
+      { title: '25 Alive', author: 'James Patterson', year: 2025 },
+      { title: 'Say You Will Remember Me', author: 'Abby Jimenez', year: 2025 },
+      { title: 'Enchantra', author: 'Kaylie Smith', year: 2025 },
+      { title: 'The Perfect Divorce', author: 'Jeneva Rose', year: 2025 },
+      { title: 'Yesteryear', author: 'Caro Claire Burke', year: 2026 },
+      { title: 'Buckeye', author: 'Patrick Ryan', year: 2025 },
+      { title: 'Wild Dark Shore', author: 'Charlotte McConaghy', year: 2025 },
+      { title: 'James', author: 'Percival Everett', year: 2024 },
+      { title: 'My Husband Wife', author: 'Alice Feeney', year: 2026 },
+      { title: 'Battle Mountain', author: 'C.J. Box', year: 2025 },
+      { title: 'Lethal Prey', author: 'John Sandford', year: 2025 },
+      { title: 'The Housemaid', author: 'Freida McFadden', year: 2022 },
+      { title: 'Project Hail Mary', author: 'Andy Weir', year: 2021 },
+      { title: 'The Wedding People', author: 'Kirsten Chen', year: 2025 },
+      { title: 'Never Flinch', author: 'Stephen King', year: 2025 },
+      { title: 'Atmosphere', author: 'Taylor Jenkins Reid', year: 2025 },
+      { title: 'Nightshade', author: 'Michael Connelly', year: 2025 },
+      { title: 'A Curse Carved in Bone', author: 'Danielle L. Jensen', year: 2025 },
+      { title: 'The Correspondent', author: 'Virginia Evans', year: 2025 },
+      { title: 'Theo of Golden', author: 'Allen Levi', year: 2025 }
+    ];
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function normalizeBookSeedText(value) {
+      return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      const minYear = 1990;
+      return date >= new Date(minYear, 0, 1) && date <= twoYearsFromNow;
+    }
+
+    function scoreBookQuality(book) {
+      let score = 0;
+      const cover = String(book.coverUrl || '');
+      const hasCover = cover && !cover.includes('fallback') && cover !== FALLBACK_BOOK_IMAGE;
+      if (hasCover && cover.startsWith('http')) score += 40;
+      if (book.publishedDate) {
+        const year = new Date(book.publishedDate).getFullYear();
+        if (!isNaN(year)) {
+          const age = new Date().getFullYear() - year;
+          if (age <= 2) score += 30;
+          else if (age <= 5) score += 25;
+          else if (age <= 10) score += 15;
+          else if (age <= 20) score += 5;
+        }
+      }
+      const author = String(book.authors || '');
+      if (author && author !== 'Unknown Author') score += 15;
+      if (book.description && book.description.length > 50) score += 10;
+      return score;
+    }
+
+    async function fetchBooksFromApi(url) {
+      try {
+        const res = await fetchWithTimeout(url, 10000);
+        if (!res.ok) return { books: [], numFound: 0 };
+        const json = await res.json();
+        return {
+          books: Array.isArray(json?.books) ? json.books : (Array.isArray(json?.docs) ? json.docs : []),
+          numFound: Number(json?.meta?.numFound || json?.numFound || json?.total || 0)
+        };
+      } catch (_) { return { books: [], numFound: 0 }; }
+    }
+
+    async function loadBooksWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      let books = [];
+      let apiTotalResults = null;
+
+      BOOKS_PAGE_SIZE = computeGridPageSize();
+      const startIndex = (state.page - 1) * BOOKS_PAGE_SIZE;
+      const apiPageStart = Math.floor(startIndex / API_PAGE_SIZE) + 1;
+      const withinOffset = startIndex % API_PAGE_SIZE;
+
+      if (!query) {
+        // Fetch trending in parallel, take first successful
+        const trending = await Promise.all(
+          ['weekly', 'monthly', 'daily'].map((period) =>
+            fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/trending?period=${period}&limit=40`)
+          )
+        );
+        for (const result of trending) {
+          books = result.books;
+          apiTotalResults = result.numFound || result.books.length;
+          if (books.length >= BOOKS_PAGE_SIZE) break;
+        }
+
+        // If still short, try a few popular subjects
+        if (books.length < BOOKS_PAGE_SIZE) {
+          const subjects = ['fiction', 'fantasy', 'romance'];
+          const popular = await Promise.all(
+            subjects.map((s) =>
+              fetchBooksFromApi(`${GOOGLE_BOOKS_PROXY_BASE}/popular?subject=${encodeURIComponent(s)}&limit=20&page=1&language=en`)
+            )
+          );
+          const seenIds = new Set(books.map(b => b.id || b._googleVolumeId || ''));
+          for (const result of popular) {
+            for (const book of result.books) {
+              const id = book.id || book._googleVolumeId || '';
+              if (id && !seenIds.has(id)) {
+                seenIds.add(id);
+                books.push(book);
+                apiTotalResults = (apiTotalResults || 0) + 1;
+              }
+            }
+          }
+        }
+
+        apiTotalResults = Math.max(apiTotalResults || books.length, books.length);
+
+        // Slice current page
+        books = books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
+      } else {
+        const result = await fetchBooksFromApi(
+          `${GOOGLE_BOOKS_PROXY_BASE}/search?q=${encodeURIComponent(query)}&limit=${API_PAGE_SIZE}&page=${apiPageStart}&language=en&orderBy=relevance`
+        );
+        books = result.books;
+        apiTotalResults = result.numFound;
+      }
+
+      state.books = books.map((book) => ({
+        id: book.id || String(book.googleBooksId || book._googleVolumeId || ''),
+        title: book.title || book.name || 'Unknown Book',
+        authors: Array.isArray(book.authors) ? book.authors.join(', ') : (Array.isArray(book.author_name) ? book.author_name.join(', ') : (book.authors || book.author || 'Unknown Author')),
+        description: book.description || '',
+        coverUrl: book.thumbnail || book.cover || book.image || book.coverImage || '',
+        publishedDate: book.publishedDate || book.published_date || '',
+        pageCount: book.pageCount || book.page_count || 0
+      })).filter((b) => b.id && isDateWithinAcceptableRange(b.publishedDate));
+
+      const seen = new Set();
+      state.books = state.books.filter(book => {
+        if (seen.has(book.id)) return false;
+        seen.add(book.id);
+        return true;
+      });
+
+      // Filter & sort: English, good covers, title match, recency
+      state.books = state.books
+        .filter(b => {
+          const coverOk = hasGoodCover(b);
+          const authorOk = String(b.authors || '') !== '' && String(b.authors || '') !== 'Unknown Author';
+          const titleOk = String(b.title || '').length >= 3;
+          const yearOk = b.publishedDate ? new Date(b.publishedDate).getFullYear() >= 1990 : true;
+          if (query) return coverOk && titleOk && yearOk;
+          return (coverOk || authorOk) && titleOk && yearOk;
+        })
+        .sort((a, b) => scoreBookQuality(b, query) - scoreBookQuality(a, query));
+
+      // Boost popular/seed books to the front of page 1
+      if (!query && state.page === 1) {
+        const seedTitles = new Set(CURRENT_TOP_BOOK_SEEDS.map(s => normalizeBookSeedText(s.title)));
+        const boosted = [];
+        const rest = [];
+        for (const book of state.books) {
+          if (seedTitles.has(normalizeBookSeedText(book.title))) {
+            boosted.push(book);
+          } else {
+            rest.push(book);
+          }
+        }
+        state.books = [...boosted, ...rest];
+      }
+
+      if (state.books.length > BOOKS_PAGE_SIZE) {
+        state.books = state.books.slice(withinOffset, withinOffset + BOOKS_PAGE_SIZE);
+      }
+
+      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / BOOKS_PAGE_SIZE));
+      } else {
+        state.totalPages = 1;
+      }
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      if (!query) return;
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 300);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+        }
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.books.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.books.map((book) => book.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('book_list_items')
+        .select('book_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('book_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.book_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, read: false, toread: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
+
+    function getBookListStatus(bookId) {
+      const id = String(bookId || '').trim();
+      const empty = { favorites: false, read: false, toread: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getBookCardExtra(book) {
+      return '';
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('booksGrid');
+      if (!grid) return;
+      if (!state.books.length) {
+        grid.innerHTML = '<div class="empty">No books found.</div>';
+        updatePagination();
+        return;
+      }
+      grid.innerHTML = state.books.map((book) => {
+        const coverUrl = book.coverUrl || FALLBACK_BOOK_IMAGE;
+        return `
+        <article class="card" data-id="${escapeHtml(book.id)}">
+          <div class="card-media">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_BOOK_IMAGE)}'">
+          </div>
+          <div class="card-meta">
+            <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
+            <div class="card-meta-top">
+              <p class="card-title">${escapeHtml(book.title)}</p>
+            </div>
+            <p class="card-sub">${escapeHtml(book.authors)}</p>
+            <p class="card-extra">${escapeHtml(getBookCardExtra(book))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const bookId = String(itemId || '').trim();
+      if (!bookId) return { ok: false, saved: false };
+      const book = state.books.find((row) => String(row.id || '').trim() === bookId);
+      if (!book) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getBookListStatus(bookId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${bookId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const { error } = await client.from('book_list_items').insert({
+            user_id: currentUser.id,
+            book_id: bookId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('book_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('book_id', bookId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
+        }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('Book list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `book.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadBooksWithFallback();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('booksGrid');
+        if (grid) grid.innerHTML = '<div class="empty">Books feed unavailable right now.</div>';
+      }
+    }
+
+    async function executeSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      state.search = query;
+      state.page = 1;
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
+    }
+
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      if (!query) {
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        await executeSearch('');
+        return;
+      }
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+        const query = String(e.target.value || '').trim();
+        executeSearch(query);
+      }
+    });
+    document.getElementById('booksSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      await executeSearch(query);
+    });
+    document.getElementById('booksFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.add('show');
+    });
+    document.getElementById('booksFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('booksFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      await loadBooksWithFallback();
+      await loadListStatus();
+      renderGrid();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'books.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      loadPage();
+    });
+  </script>
+  <footer class="zo2y-footer">
+    <div class="zo2y-footer-inner">
+      <span class="zo2y-footer-brand">-¬ 2026 Zo2y</span>
+      <nav class="zo2y-footer-links" aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="data.html">Your data</a>
+        <a href="dmca.html">DMCA</a>
+        <a href="support.html">Support</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+    </div>
+  </footer>
+    <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+  <script src="js/legal-consent.js?v=20260606a" defer></script>
+
+</html>

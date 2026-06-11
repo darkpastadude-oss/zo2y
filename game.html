@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="/js/auth-gate.js?v=20260610c" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
@@ -49,7 +49,7 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--white);
-      overflow-x: clip;
+      overflow-x: hidden;
       position: relative;
     }
     body::before {
@@ -684,8 +684,8 @@
   <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
 <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260610d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610d"></noscript>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
 <script src="js/shared-header.js?v=20260610c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
@@ -890,7 +890,6 @@
   </div>
 
     <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/custom-list-modal.js?v=20260611a" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
     <script src="js/review-interactions.js?v=20260601b" defer></script>
     <script>
@@ -1028,7 +1027,7 @@
         return String(num);
       }
 
-      // Get a usable backdrop URL ï¿½ sized large enough to be sharp on
+      // Get a usable backdrop URL n++ sized large enough to be sharp on
       // high-DPR mobile. IGDB images come from images.igdb.com, and we
       // can swap the size segment in the path.
       function getGameBackdropUrl(url) {
@@ -1186,7 +1185,7 @@
               openTrailerLightbox(key);
               return;
             }
-            // No clip in our catalog ï¿½ fall back to a YouTube search.
+            // No clip in our catalog n++ fall back to a YouTube search.
             const searchUrl = trailerBtn.dataset.searchUrl;
             if (searchUrl) {
               window.open(searchUrl, '_blank', 'noopener');
@@ -1221,7 +1220,7 @@
         return '';
       }
 
-      // Deterministic 32-bit hash of a string ï¿½ used to derive a consistent
+      // Deterministic 32-bit hash of a string n++ used to derive a consistent
       // color palette per game title for the procedural art fallback.
       function hashString(str) {
         let hash = 0;
@@ -1336,7 +1335,7 @@
           });
         }
 
-        // Hide the other sections ï¿½ they don't have data.
+        // Hide the other sections n++ they don't have data.
         const trailerSection = document.getElementById('trailer');
         if (trailerSection) trailerSection.closest('.elevated-section').style.display = 'none';
         ['directors', 'writers', 'cast', 'details'].forEach((id) => {
@@ -1501,7 +1500,7 @@
         if (!Number.isFinite(gameId)) return;
         const data = await fetchCatalogGameById();
         if (!data) {
-          // Game isn't in the local catalog ï¿½ render a graceful fallback
+          // Game isn't in the local catalog n++ render a graceful fallback
           // instead of throwing. The user can search for the game or jump
           // to external sources.
           renderGameNotFound();
@@ -1532,7 +1531,7 @@
         const taglineEl = document.getElementById('tagline');
         if (taglineEl) taglineEl.hidden = true;
 
-        // Metadata row (year, playtime, rating) ï¿½ only render items we actually have
+        // Metadata row (year, playtime, rating) n++ only render items we actually have
         const metaEl = document.getElementById('meta');
         if (metaEl) {
           const metaItems = [];
@@ -1552,9 +1551,9 @@
         }
 
         // Pick a backdrop that is visually distinct from the cover.
-        // 1. data.hero_url (preferred ï¿½ IGDB screenshot, wider aspect)
+        // 1. data.hero_url (preferred n++ IGDB screenshot, wider aspect)
         // 2. data.background_image or first screenshot
-        // 3. nothing ï¿½ render a strong gradient with the cover only
+        // 3. nothing n++ render a strong gradient with the cover only
         const heroEl = document.getElementById('heroBackground');
         const coverUrl = resolveGameImageSource(data);
         const extractUrl = (entry) => {
@@ -1617,7 +1616,7 @@
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` ï¿½ ${formatCount(ratingCount)} votes` : ''}` });
+          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` n++ ${formatCount(ratingCount)} votes` : ''}` });
           if (releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Released', value: releaseDate });
           if (playtime > 0) items.push({ icon: 'fas fa-clock', title: 'Avg. Playtime', value: `${playtime} hrs` });
           if (platforms.length) items.push({ icon: 'fas fa-gamepad', title: 'Platforms', value: platforms.slice(0, 4).join(', ') });
@@ -1634,7 +1633,7 @@
           metaGrid.className = 'elevated-details';
         }
 
-        // Trailer / clip ï¿½ find a YouTube key, fall back to a YouTube search link
+        // Trailer / clip n++ find a YouTube key, fall back to a YouTube search link
         const trailerUrl = String(extra.clip || extra.video_url || extra.youtube_url || '').trim();
         const youtubeId = extractYouTubeKey(trailerUrl);
         const trailerEl = document.getElementById('trailer');
@@ -2467,7 +2466,7 @@
   </script>
   <footer class="zo2y-footer">
     <div class="zo2y-footer-inner">
-      <span class="zo2y-footer-brand">Â© 2026 Zo2y</span>
+      <span class="zo2y-footer-brand">-¬ 2026 Zo2y</span>
       <nav class="zo2y-footer-links" aria-label="Legal">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
@@ -2483,7 +2482,6 @@
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
 </html>
-
 
 
 

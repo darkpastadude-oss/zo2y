@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
 <script src="/js/auth-gate.js?v=20260610c" defer></script>
@@ -47,7 +47,7 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--white);
-      overflow-x: clip;
+      overflow-x: hidden;
       position: relative;
     }
     body::before {
@@ -674,8 +674,8 @@
 <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
   <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
   <script src="/js/lib/img-fallback.js?v=20260601b" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260610d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610d"></noscript>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
 <script src="js/shared-header.js?v=20260610c" defer></script>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
@@ -819,7 +819,6 @@
   </div>
 
     <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/custom-list-modal.js?v=20260611a" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
     <script src="js/review-interactions.js?v=20260601b" defer></script>
     <script>
@@ -1363,18 +1362,28 @@
           }
         }
 
-        // categories/tags: subjects or categories
-        const tagsEl = document.getElementById('tags');
-        if (tagsEl) {
-          const tagSource = Array.isArray(info.categories) && info.categories.length
-            ? info.categories
-            : (Array.isArray(info.subjects) ? info.subjects : []);
-          if (tagSource.length) {
-            tagsEl.innerHTML = tagSource.slice(0, 12).map(c => `<span class="tag">${c}</span>`).join('');
-          }
+        // categories/tags: subjects
+        const tags = document.getElementById('tags');
+        if (tags && Array.isArray(info.subjects)) {
+          tags.innerHTML = info.subjects.slice(0,12).map(c => `<span class="tag">${c}</span>`).join('');
         }
 
-        // meta grid (authors/publisher/page info)
+        // meta grid (authors/publisher/page info may require fetching an edition)
+        const metaGrid = document.getElementById('metaGrid');
+        if (metaGrid) {
+          const items = [];
+          if (Array.isArray(info.authors) && info.authors.length) {
+            // authors array contains objects with author key, need to fetch or show placeholder
+            items.push(`Author: ${info.authors.map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || 'Author'))).join(', ')}`);
+          }
+          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
+        }
+
+        const tagsEl = document.getElementById('tags');
+        if (tagsEl && Array.isArray(info.categories)) {
+          tagsEl.innerHTML = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
+        }
+
         const metaGridEl = document.getElementById('metaGrid');
         if (metaGridEl) {
           const items = [];
@@ -2193,7 +2202,7 @@
   </script>
   <footer class="zo2y-footer">
     <div class="zo2y-footer-inner">
-      <span class="zo2y-footer-brand">Â© 2026 Zo2y</span>
+      <span class="zo2y-footer-brand">-¬ 2026 Zo2y</span>
       <nav class="zo2y-footer-links" aria-label="Legal">
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
@@ -2209,7 +2218,6 @@
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
 </html>
-
 
 
 

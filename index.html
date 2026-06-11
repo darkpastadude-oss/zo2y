@@ -2,7 +2,7 @@
 <html lang="en" data-auth-shell="landing">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
   <script src="/js/auth-gate.js?v=20260610c" defer></script>
@@ -363,4 +363,88 @@
     </div>
   </div>
 
-  
+  <script src="js/igdb-client.js?v=20260601b" defer></script>
+  <script>
+    (function () {
+      const referralUtils = window.ZO2Y_REFERRALS || null;
+      if (!referralUtils) return;
+      const referral = referralUtils.captureReferralFromLocation(window.location.search);
+      document.querySelectorAll('[data-auth-entry]').forEach((link) => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+        link.setAttribute('href', referralUtils.appendReferralToHref(href, { referral, next: 'index.html' }));
+      });
+    })();
+  </script>
+     <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
+     <script src="js/pages/index.js?v=20260610c" defer></script>
+    <script src="js/production-runtime.js?v=20260610b" defer></script>
+    <script src="js/home-desktop-rebrand.js?v=20260601b" defer></script>
+    <script>
+      (function() {
+        var TEAMS = [
+          { title: 'Paris Saint-Germain', image: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg' },
+          { title: 'Arsenal', image: 'https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg' },
+          { title: 'New York Knicks', image: 'https://upload.wikimedia.org/wikipedia/en/2/25/New_York_Knicks_logo.svg' },
+          { title: 'Oklahoma City Thunder', image: 'https://upload.wikimedia.org/wikipedia/en/5/5d/Oklahoma_City_Thunder_logo.svg' },
+          { title: 'San Antonio Spurs', image: 'https://upload.wikimedia.org/wikipedia/en/a/a2/San_Antonio_Spurs.svg' },
+          { title: 'Royal Challengers Bengaluru', image: 'https://upload.wikimedia.org/wikipedia/en/4/4c/Royal_Challengers_Bengaluru_Logo.svg' },
+          { title: 'Gujarat Titans', image: 'https://upload.wikimedia.org/wikipedia/en/0/09/Gujarat_Titans_Logo.svg' },
+          { title: 'Vegas Golden Knights', image: 'https://upload.wikimedia.org/wikipedia/en/8/85/Vegas_Golden_Knights_logo.svg' },
+          { title: 'Carolina Hurricanes', image: 'https://upload.wikimedia.org/wikipedia/en/3/32/Carolina_Hurricanes_logo.svg' },
+          { title: 'Real Madrid', image: 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg' },
+          { title: 'Ferrari', image: 'https://upload.wikimedia.org/wikipedia/en/e/e8/Scuderia_Ferrari_logo.svg' },
+          { title: 'Red Bull Racing', image: 'https://upload.wikimedia.org/wikipedia/en/1/18/Red_Bull_Racing_logo.svg' }
+        ];
+
+        function render() {
+          var row = document.getElementById('sportsWallRow');
+          if (!row) return;
+          var shuffled = TEAMS.slice().sort(function() { return Math.random() - 0.5; });
+          var count = Math.min(8, shuffled.length);
+          row.innerHTML = '';
+          for (var i = 0; i < count; i++) {
+            var team = shuffled[i];
+            var fig = document.createElement('figure');
+            fig.className = 'landing-v4-tile landing-v4-tile--logo landing-v4-tile--light';
+            fig.setAttribute('data-wall-slot', 'sports-' + (i + 1));
+            fig.style.cursor = 'pointer';
+            fig.onclick = function() { window.location.href = 'sports.html'; };
+            var img = document.createElement('img');
+            img.src = team.image || '/images/fallback/sports.svg';
+            img.alt = team.title || 'Sports';
+            img.onerror = function() { this.src = '/images/fallback/sports.svg'; };
+            var cap = document.createElement('figcaption');
+            cap.textContent = 'sports';
+            fig.appendChild(img);
+            fig.appendChild(cap);
+            row.appendChild(fig);
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', render);
+        } else {
+          render();
+        }
+      })();
+    </script>
+ </div>
+  <footer class="zo2y-footer">
+    <div class="zo2y-footer-inner">
+      <span class="zo2y-footer-brand">&copy; 2026 Zo2y</span>
+      <nav class="zo2y-footer-links" aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="data.html">Your data</a>
+        <a href="dmca.html">DMCA</a>
+        <a href="support.html">Support</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+    </div>
+  </footer>
+    <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+  <script src="js/legal-consent.js?v=20260606a" defer></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="/js/auth-gate.js?v=20260610c" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
@@ -11,7 +11,6 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
-  <script src="js/custom-list-modal.js?v=20260611a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260601b" defer></script>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
@@ -360,8 +359,6 @@
 
   </style>
   <meta name="theme-color" content="#0b1633" />
-  <link rel="stylesheet" href="css/shared-header.css?v=20260610d" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610d"></noscript>
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
   <script src="js/shared-header.js?v=20260610c" defer></script>
@@ -437,11 +434,209 @@
         <div class="menu-custom-section">
           <div class="menu-custom-header">
             <span>Your Custom Lists</span>
-                      </div>
+          </div>
           <div class="menu-custom-lists" id="menuCustomLists"></div>
         </div>
       </div>
     </div>
   </div>
 
-  
+  <script>
+    const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+    const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+    const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+    const TMDB_PROXY_BASE = '/api/tmdb';
+    const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+    let TVSHOWS_PAGE_SIZE = 18;
+    let supabaseClient = null, currentUser = null;
+    const state = { tvshows: [], search: '', genre: '', year: '', sort: 'popular', page: 1, totalPages: 1, listStatusMap: new Map(), pendingQuickOps: new Set() };
+    function computeGridPageSize() { const grid=document.getElementById('tvshowsGrid'); if(!grid) return 18; const cols=getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length||1; const top=grid.getBoundingClientRect().top; const avail=Math.max(220, window.innerHeight - top - 160); const rows=Math.max(2, Math.min(7, Math.floor(avail / 330))); const visible=Math.max(cols*rows, cols*2); const desired=Math.max(30, visible); const snapped=Math.ceil(desired/cols)*cols; return Math.min(54, Math.max(cols*2, snapped)); }
+    function escapeHtml(v) { return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    function showToast(m, isError) { const el=document.createElement('div');el.style.position='fixed';el.style.top='12px';el.style.right='12px';el.style.zIndex='9999';el.style.background=isError?'#dc2626':'#f59e0b';el.style.color='#fff';el.style.padding='8px 12px';el.style.borderRadius='8px';el.style.fontSize='12px';el.textContent=m;document.body.appendChild(el);setTimeout(()=>el.remove(),2000); }
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') await authRuntime.waitForSupabase(8000);
+      else { const s=Date.now(); while (!(window.supabase && typeof window.supabase.createClient === 'function') && Date.now()-s<8000) await new Promise(r=>setTimeout(r,40)); }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') { supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT(); if (supabaseClient) return supabaseClient; }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(window.__ZO2Y_SUPABASE_CONFIG.url, window.__ZO2Y_SUPABASE_CONFIG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+      }
+      return supabaseClient;
+    }
+    async function initAuthUi() {
+      const client = await ensureSupabase(); if (!client) return;
+      const loginBtn=document.getElementById('loginBtn'), signupBtn=document.getElementById('signupBtn'), profileBtn=document.getElementById('profileBtn');
+      const {data}=await client.auth.getUser(); currentUser=data?.user||null;
+      if (currentUser) { if(loginBtn)loginBtn.style.display='none'; if(signupBtn)signupBtn.style.display='none'; if(profileBtn){profileBtn.style.display='inline-flex';profileBtn.innerHTML='<i class="fas fa-user"></i>'; } }
+      else { if(loginBtn)loginBtn.style.display='inline-flex'; if(signupBtn)signupBtn.style.display='inline-flex'; if(profileBtn)profileBtn.style.display='none'; }
+    }
+    function filterNonAnime(tvResults) {
+      return (Array.isArray(tvResults)?tvResults:[]).filter(tv=>{
+        const genreIds=Array.isArray(tv.genre_ids)?tv.genre_ids:[], originCountry=Array.isArray(tv.origin_country)?tv.origin_country:[];
+        const isJapaneseAnime=originCountry.includes('JP')||genreIds.includes(16);
+        const n=String(tv.name||'').toLowerCase(), o=String(tv.overview||'').toLowerCase();
+        return !(isJapaneseAnime||/anime|manga|japanese/.test(n+' '+o));
+      });
+    }
+    async function loadTvshows(qOverride='') {
+      TVSHOWS_PAGE_SIZE = computeGridPageSize();
+      const q=String(qOverride||state.currentQuery||'').trim();
+      let tvshows=[];
+      try {
+        if (q) {
+          const url=`${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(q)}&page=1`;
+          const res=await fetch(url);
+          if (res.ok) { const json=await res.json(); const tvResults=Array.isArray(json?.results)?json.results:[]; tvshows=filterNonAnime(tvResults); }
+        } else {
+          const pool = [];
+          for (let p = 1; p <= 3; p += 1) {
+            const res = await fetch(`${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`);
+            if (!res.ok) break;
+            const json = await res.json();
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...filterNonAnime(tvResults));
+            if (!tvResults.length) break;
+          }
+
+          if (!pool.length) {
+            const res = await fetch(`${TMDB_PROXY_BASE}/trending/tv/week?page=1`);
+            if (res.ok) {
+              const json = await res.json();
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              pool.push(...filterNonAnime(tvResults));
+            }
+          }
+
+          tvshows = shuffleArray(pool);
+        }
+      } catch(e) { console.error('Failed to load tvshows',e); }
+      state.tvshows=tvshows.map(t=>({id:String(t.id||''),name:t.name||t.title||'Unknown TV Show',posterPath:t.poster_path||'',firstAirDate:t.first_air_date||'',voteAverage:t.vote_average||0})).filter(t=>t.id && isDateWithinAcceptableRange(t.firstAirDate));
+      if (!q && state.page === 1) {
+        state.tvshows = shuffleArray(state.tvshows);
+      }
+      state.page=1; state.totalPages=Math.max(1,Math.ceil(state.tvshows.length/TVSHOWS_PAGE_SIZE));
+    }
+    async function loadListStatus() {
+      state.listStatusMap=new Map(); if (!currentUser?.id||!state.tvshows.length) return;
+      const client=await ensureSupabase(); if (!client) return;
+      const ids=state.tvshows.map(t=>t.id); if (!ids.length) return;
+      const {data}=await client.from('tvshow_list_items').select('tvshow_id,list_type').eq('user_id',currentUser.id).in('tvshow_id',ids);
+      (data||[]).forEach(r=>{ const id=String(r.tvshow_id||''); if (!id)return; if (!state.listStatusMap.has(id))state.listStatusMap.set(id,{favorites:false,watched:false,watchlist:false}); const b=state.listStatusMap.get(id); if (r.list_type in b)b[r.list_type]=true; });
+    }
+    function getTvshowListStatus(id) { const i=String(id||'').trim(), e={favorites:false,watched:false,watchlist:false}; if (!i)return e; if (!state.listStatusMap.has(i))state.listStatusMap.set(i,{...e}); return state.listStatusMap.get(i); }
+    function getTvshowCardExtra(t) { return ''; }
+    function renderTvshowSpotlight(tvshow) {
+      const section = document.getElementById('tvshowsSpotlight');
+      if (!section || !tvshow) return;
+      const bg = document.getElementById('tvshowsSpotlightBg');
+      const titleEl = document.getElementById('tvshowsSpotlightTitle');
+      const metaEl = document.getElementById('tvshowsSpotlightMeta');
+      const summaryEl = document.getElementById('tvshowsSpotlightSummary');
+      const imgEl = document.getElementById('tvshowsSpotlightImage');
+      const openEl = document.getElementById('tvshowsSpotlightOpen');
+      
+      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/images/fallback/tv.svg';
+      const backdropUrl = tvshow.backdropPath ? `${BACKDROP_BASE}${tvshow.backdropPath}` : posterUrl;
+      const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
+      const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = tvshow.name || 'TV Show Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'TV Show details';
+      if (summaryEl) summaryEl.textContent = tvshow.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${tvshow.name || 'TV Show'} poster`;
+      }
+      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(tvshow.id)}`;
+    }
+    function renderGrid() {
+      const grid=document.getElementById('tvshowsGrid'); const spotlight=document.getElementById('tvshowsSpotlight'); if (!grid)return;
+      // Spotlight disabled (always show grid).
+      if (spotlight) spotlight.hidden = true;
+      if (!state.tvshows.length) { grid.innerHTML='<div class="empty">No TV shows found.</div>'; updatePagination(); return; }
+      const start=(state.page-1)*TVSHOWS_PAGE_SIZE, visible=state.tvshows.slice(start,start+TVSHOWS_PAGE_SIZE);
+      grid.innerHTML=visible.map(t=>{ const p=t.posterPath?`${POSTER_BASE}${t.posterPath}`:'/images/fallback/tv.svg'; return `<article class="card" data-id="${escapeHtml(t.id)}"><div class="card-media"><img src="${escapeHtml(p)}" alt="${escapeHtml(t.name)}" loading="lazy" onerror="this.src='/images/fallback/tv.svg'"></div><div class="card-meta"><span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span><div class="card-meta-top"><p class="card-title">${escapeHtml(t.name)}</p></div><p class="card-sub">${escapeHtml(t.firstAirDate?new Date(t.firstAirDate).getFullYear():'TBD')}</p><p class="card-extra">${escapeHtml(getTvshowCardExtra(t))}</p><div class="card-actions"><button class="icon-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button></div></div></article>`; }).join('');
+      document.querySelectorAll('.menu-btn').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation(); const c=b.closest('.card'); if(c&&typeof window.openIndexStyleListMenu==='function')window.openIndexStyleListMenu(c); }));
+      document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',e=>{if(e.target.closest('.menu-btn'))return; const i=String(c.getAttribute('data-id')||'').trim(); if(i)window.location.href=`tvshow.html?id=${encodeURIComponent(i)}`; }));
+      updatePagination();
+    }
+    function updatePagination() {
+      const prev=document.getElementById('prevPageBtn'), next=document.getElementById('nextPageBtn'), info=document.getElementById('pageInfo');
+      state.totalPages=Math.max(1,Math.ceil(state.tvshows.length/TVSHOWS_PAGE_SIZE));
+      if (state.page>state.totalPages)state.page=state.totalPages; if (state.page<1)state.page=1;
+      if (prev)prev.disabled=state.page<=1; if (next)next.disabled=state.page>=state.totalPages;
+      if (info)info.textContent=`Page ${state.page} of ${state.totalPages}`;
+    }
+    async function upsertTvshowRecord(client,t) { if (!client||!t?.id)return false; const {error}=await client.from('tvshows').upsert({id:String(t.id),name:t.name||'',poster_url:t.posterPath?`${POSTER_BASE}${t.posterPath}`:'',updated_at:new Date().toISOString()},{onConflict:'id'}); if (error){console.error('TV show upsert failed',error);return false; }return true; }
+    async function toggleDefaultList(itemId,listType) {
+      const tid=String(itemId||'').trim(); if (!tid)return{ok:false,saved:false};
+      const tvshow=state.tvshows.find(r=>String(r.id||'').trim()===tid); if (!tvshow)return{ok:false,saved:false};
+      const client=await ensureSupabase(); if (!client||!currentUser?.id){window.location.href='login.html';return{ok:false,saved:false};}
+      const status=getTvshowListStatus(tid); if (!(listType in status))return{ok:false,saved:false};
+      const prev=!!status[listType], next=!prev, opKey=`${tid}:${listType}`;
+      if (state.pendingQuickOps.has(opKey))return{ok:false,saved:prev};
+      state.pendingQuickOps.add(opKey); status[listType]=next;
+      try {
+        if (next) { const ok=await upsertTvshowRecord(client,tvshow); if (!ok)throw new Error('TV show upsert failed'); const {error}=await client.from('tvshow_list_items').insert({user_id:currentUser.id,tvshow_id:tid,list_type:listType}); if (error&&String(error.code||'')!=='23505')throw error; showToast('Added to list'); }
+        else { const {error}=await client.from('tvshow_list_items').delete().eq('user_id',currentUser.id).eq('tvshow_id',tid).eq('list_type',listType); if (error)throw error; showToast('Removed from list'); }
+        return{ok:true,saved:next};
+      } catch(e) { console.error('TV show list toggle failed',e); status[listType]=prev; showToast('Could not update list',true);return{ok:false,saved:prev}; }finally{state.pendingQuickOps.delete(opKey);}
+    }
+    async function loadPage() { try{await initAuthUi();await loadTvshows();await loadListStatus();renderGrid();}catch(e){const g=document.getElementById('tvshowsGrid');if(g)g.innerHTML='<div class="empty">TV shows feed unavailable.</div>';}}
+    // Refresh removed.
+    document.getElementById('tvshowsSearchBtn')?.addEventListener('click',async()=>{state.search=String(document.getElementById('q')?.value||'').trim();await loadPage();});
+    document.getElementById('q')?.addEventListener('keydown',async e=>{if(e.key!=='Enter')return;e.preventDefault();state.search=String(e.target.value||'').trim();await loadPage();});
+    document.getElementById('tvshowsFilterBtn')?.addEventListener('click',()=>{document.getElementById('tvshowsFilterModal')?.classList.add('show');});
+    document.getElementById('tvshowsFilterCloseBtn')?.addEventListener('click',()=>{document.getElementById('tvshowsFilterModal')?.classList.remove('show');});
+    document.getElementById('genre')?.addEventListener('change',e=>{state.genre=String(e.target.value||'').trim();});
+    document.getElementById('year')?.addEventListener('change',e=>{state.year=String(e.target.value||'').trim();});
+    document.getElementById('sort')?.addEventListener('change',e=>{state.sort=String(e.target.value||'popular').trim();});
+    document.getElementById('refresh')?.addEventListener('click',async()=>{document.getElementById('tvshowsFilterModal')?.classList.remove('show');await loadPage();});
+    document.getElementById('prevPageBtn')?.addEventListener('click',()=>{if(state.page<=1)return;state.page-=1;renderGrid();});
+    document.getElementById('nextPageBtn')?.addEventListener('click',()=>{if(state.page>=state.totalPages)return;state.page+=1;renderGrid();});
+    document.addEventListener('DOMContentLoaded',()=>{
+      if (window.initIndexStyleListMenu)window.initIndexStyleListMenu({mediaType:'tvshows',itemIdAttr:'data-id',getVisibleItemIds:()=>Array.from(document.querySelectorAll('.card[data-id]')).map(c=>c.getAttribute('data-id')).filter(Boolean),getQuickStatusForItem:i=>{const k=String(i||'').trim();const s=state.listStatusMap.get(k);return s?{...s}:null;},ensureClient:async()=>{if(supabaseClient)return supabaseClient;await ensureSupabase();return supabaseClient;},getCurrentUser:()=>currentUser,notify:(m,is)=>showToast(m,!!is),toggleDefaultList:async({itemId,listType})=>toggleDefaultList(itemId,listType)});
+      loadPage();
+    });
+  </script>
+  <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+<script src="js/legal-consent.js?v=20260606a" defer></script>
+
+  <footer class="zo2y-footer">
+    <div class="zo2y-footer-inner">
+      <span class="zo2y-footer-brand">-¬ 2026 Zo2y</span>
+      <nav class="zo2y-footer-links" aria-label="Legal">
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+        <a href="cookies.html">Cookies</a>
+        <a href="data.html">Your data</a>
+        <a href="dmca.html">DMCA</a>
+        <a href="support.html">Support</a>
+        <a href="credits.html">Credits</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="js/legal-consent.js?v=20260606a" defer></script>
