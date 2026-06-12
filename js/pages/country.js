@@ -1182,31 +1182,29 @@
       showMissingCodeView();
       return;
     }
-    let lastError = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
         let timer = null;
         if (controller) timer = setTimeout(() => controller.abort(), 10000);
-        try {
-          const response = await fetch(`${REST_COUNTRIES_BASE}/${encodeURIComponent(state.code)}?fields=name,cca2,cca3,capital,region,subregion,flags,languages,currencies,maps`, controller ? { signal: controller.signal } : undefined);
-          if (timer) clearTimeout(timer);
-          if (!response.ok) {
-            if (response.status >= 500 && attempt === 0) {
-              await new Promise((r) => setTimeout(r, 1000));
-              continue;
-            }
-            if (ui.name) ui.name.textContent = 'Country unavailable';
-            if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
-            return;
+        const response = await fetch(`${REST_COUNTRIES_BASE}/${encodeURIComponent(state.code)}?fields=name,cca2,cca3,capital,region,subregion,flags,languages,currencies,maps`, controller ? { signal: controller.signal } : undefined);
+        if (timer) clearTimeout(timer);
+        if (!response.ok) {
+          if (response.status >= 500 && attempt === 0) {
+            await new Promise((r) => setTimeout(r, 1000));
+            continue;
           }
-          const payload = await response.json();
-          if (Array.isArray(payload) && !payload.length) {
-            if (ui.name) ui.name.textContent = 'Country not found';
-            if (ui.description) ui.description.textContent = `No data found for country code "${state.code}".`;
-            return;
-          }
-          const row = Array.isArray(payload) ? payload[0] : payload;
+          if (ui.name) ui.name.textContent = 'Country unavailable';
+          if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
+          return;
+        }
+        const payload = await response.json();
+        if (Array.isArray(payload) && !payload.length) {
+          if (ui.name) ui.name.textContent = 'Country not found';
+          if (ui.description) ui.description.textContent = `No data found for country code "${state.code}".`;
+          return;
+        }
+        const row = Array.isArray(payload) ? payload[0] : payload;
       const code = canonicalCountryCode(row && (row.cca2 || row.cca3 || state.code));
       state.code = code;
 
@@ -1307,14 +1305,12 @@
       void fetchRelatedCountries();
       return;
       } catch (e) {
-        lastError = e;
         if (attempt === 0) {
           await new Promise((r) => setTimeout(r, 1000));
           continue;
         }
       }
     }
-    console.warn('Failed to load country:', lastError);
     if (ui.name) ui.name.textContent = 'Country unavailable';
     if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
   }
