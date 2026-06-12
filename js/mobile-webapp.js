@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260612a';
+const APP_RUNTIME_VERSION = '20260612b';
   const isLocalhostRuntime = (() => {
     const hostname = String(window.location.hostname || '').trim().toLowerCase();
     return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';

@@ -576,14 +576,12 @@
   function customListsEnabled() {
     const mediaType = getMediaType();
     if (!mediaType) return false;
-    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return false;
+    if (!window.ListUtils || typeof ListUtils.getListConfig !== 'function') return true;
     const cfg = ListUtils.getListConfig(mediaType);
     if (!cfg) return false;
     if (cfg.disableCustomLists) return false;
     if (!cfg.listTable || !cfg.itemsTable) return false;
-    
-    const isProfilePage = window.location.pathname.includes('/profile.html');
-    return isProfilePage;
+    return true;
   }
 
   function getQuickRowsForMenu() {
@@ -1043,7 +1041,7 @@
     if (bridge && typeof bridge.getItemFromCard === 'function') {
       return bridge.getItemFromCard(card);
     }
-    const mediaType = getMediaType();
+    const mediaType = String(card.getAttribute('data-media-type') || getMediaType()).toLowerCase();
     const idAttr = bridge?.itemIdAttr || 'data-item-id';
     const rawId = card.getAttribute(idAttr);
     if (!rawId) return null;

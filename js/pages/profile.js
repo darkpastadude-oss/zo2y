@@ -296,7 +296,7 @@
                         }
                     }, INIT_TIMEOUT_MS);
 
-                    await loadProfile();
+                    await loadProfilePromise;
                     await Promise.race([
                         communityInitPromise,
                         new Promise(resolve => setTimeout(resolve, 3000))
