@@ -9,6 +9,7 @@ import igdbHandler from "../../api/igdb-handler.js";
 import logoHandler from "../../api/logo.js";
 import musicHandler from "../../api/music-handler.js";
 import openlibraryHandler from "../../api/openlibrary-handler.js";
+import restcountriesHandler from "../../api/restcountries-handler.js";
 import sportsdbHandler from "../../api/sportsdb-handler.js";
 import supportHandler from "../../api/support-handler.js";
 import tmdbHandler from "../../api/tmdb-handler.js";
@@ -44,6 +45,7 @@ const ROUTE_HANDLERS = new Map([
   ["logo", logoHandler],
   ["music", musicHandler],
   ["openlibrary", openlibraryHandler],
+  ["restcountries", restcountriesHandler],
   ["sportsdb", sportsdbHandler],
   ["support", supportHandler],
   ["tmdb", tmdbHandler]

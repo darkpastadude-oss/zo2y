@@ -5,7 +5,7 @@
 
   const FALLBACK_FLAG = '/file.svg';
 
-  const REST_COUNTRIES_BASE = 'https://restcountries.com/v3.1/alpha';
+  const REST_COUNTRIES_BASE = '/api/restcountries/alpha';
   const WIKIMEDIA_GALLERY_FALLBACK = 'https://commons.wikimedia.org/w/api.php';
   const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
   const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
@@ -1084,7 +1084,7 @@
       return [];
     }
     try {
-      const url = `https://restcountries.com/v3.1/region/${encodeURIComponent(state.region)}?fields=name,cca2,flags,region`;
+      const url = `/api/restcountries/region/${encodeURIComponent(state.region)}?fields=name,cca2,flags,region`;
       const response = await fetch(url);
       if (!response.ok) {
         renderRelated([]);

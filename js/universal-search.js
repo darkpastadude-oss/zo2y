@@ -3,7 +3,7 @@
   const TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
   const BOOKS_PROXY_BASE = '/api/books';
   const MUSIC_PROXY_BASE = '/api/music';
-  const TRAVEL_API_BASE = 'https://restcountries.com/v3.1';
+  const TRAVEL_API_BASE = '/api/restcountries';
   const IGDB_PROXY_BASE = '/api/igdb';
   const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
 

@@ -334,7 +334,7 @@
         tasks.push((async () => {
           const code = String(id || "").trim().toUpperCase();
           const json = await fetchJson(
-            `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(code)}&fields=name,cca2,cca3,capital,region,flags`,
+            `/api/restcountries/alpha?codes=${encodeURIComponent(code)}&fields=name,cca2,cca3,capital,region,flags`,
             9000
           );
           const rowData = Array.isArray(json) ? json[0] : null;

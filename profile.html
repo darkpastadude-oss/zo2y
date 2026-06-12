@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://restcountries.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
 <script src="/js/auth-gate.js?v=20260610c" defer></script>
@@ -810,7 +810,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="section-header">
                         <div>
                             <h2 class="section-title" id="foodTitle">My Food</h2>
-                            <p class="section-subtitle" id="foodSubtitle">Track fast food, restaurants, and chains you love</p>
+                            <p class="section-subtitle" id="foodSubtitle">Track fast food and chains you love</p>
                         </div>
                         <div class="section-actions">
                             <button class="btn btn-primary btn-sm" id="createFoodListBtn" onclick="ProfileManager.createFoodList()">
@@ -890,7 +890,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             </button>
                         </div>
                     </div>
-                    <div class="collection-grid" id="listRestaurantsGrid"></div>
+                    </div>
                 </div>
             </div>
             </section>
@@ -1636,7 +1636,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     </button>
                 </div>
                 <div class="mobile-section-subtitle" id="mobileListDetailDescription"></div>
-                <div id="mobileListRestaurants"></div>
             </div>
             </section>
 
@@ -1716,7 +1715,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <i class="fas fa-plus-circle"></i>
                 <span>New List</span>
             </div>
-            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('restaurants')">
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('profile')">
                 <i class="fas fa-user"></i>
                 <span>Profile</span>
             </div>
@@ -1731,59 +1730,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
-
-    <!-- Add Entry Modal -->
-    <div class="modal" id="addEntryModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Add Journal Entry</h3>
-                <button class="modal-close" onclick="ProfileManager.closeModal('addEntryModal')">&times;</button>
-            </div>
-            
-            <form id="journalEntryForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Restaurant</label>
-                        <select class="form-select" id="restaurantSelect" required>
-                            <option value="">Select a restaurant</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Visit Date</label>
-                        <input type="date" class="form-input" id="visitDate" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Rating</label>
-                        <div class="rating-stars" id="ratingStars">
-                            <span class="rating-star" data-rating="1" onclick="ProfileManager.setRating(1)"></span>
-                            <span class="rating-star" data-rating="2" onclick="ProfileManager.setRating(2)"></span>
-                            <span class="rating-star" data-rating="3" onclick="ProfileManager.setRating(3)"></span>
-                            <span class="rating-star" data-rating="4" onclick="ProfileManager.setRating(4)"></span>
-                            <span class="rating-star" data-rating="5" onclick="ProfileManager.setRating(5)"></span>
-                        </div>
-                        <input type="hidden" id="selectedRating" value="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Notes</label>
-                        <textarea class="form-textarea" id="visitNotes" placeholder="What did you order? How was the experience?"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Tags</label>
-                        <input type="text" class="form-input" id="visitTags" placeholder="Add tags (e.g., date night, business, casual)">
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('addEntryModal')">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Entry</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Edit Profile Modal -->
     <div class="modal" id="editProfileModal">
@@ -1854,7 +1800,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <label class="form-label">Description</label>
                         <textarea class="form-textarea menu-input" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
                     </div>
-                    <input type="hidden" id="selectedIcon" value="restaurant">
+                    <input type="hidden" id="selectedIcon" value="list">
                     <div class="menu-icon-grid" id="createListIconGrid">
                         <button type="button" class="menu-icon-option" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
                         <button type="button" class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
@@ -2142,7 +2088,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <script src="js/taste_identity.js?v=20260601b" defer></script>
     <script src="js/cover-cache.js?v=20260601b" defer></script>
     <script src="js/pages/games-shared.js?v=20260601b" defer></script>
-    <script src="js/pages/profile.js?v=20260601b" defer></script>
+    <script src="js/pages/profile.js?v=20260612a" defer></script>
 
   <footer class="zo2y-footer">
     <div class="zo2y-footer-inner">

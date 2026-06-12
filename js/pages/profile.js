@@ -39,11 +39,11 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const GAMES_DISABLED = false;
+            const ENABLE_RESTAURANTS = false;
             const DEFAULT_PROFILE_TAB = 'movies';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
             let currentPrimaryTab = 'lists';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
-            let restaurants = [];
             let customLists = [];
             let currentTab = DEFAULT_PROFILE_TAB;
             let journalFilter = 'all';
@@ -265,11 +265,9 @@
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
                     }
 
-                    disableRestaurantFeatures();
                     disableGameFeatures();
                     
                     const loadProfilePromise = loadProfile();
-                    const loadRestaurantsPromise = loadRestaurants().catch(err => console.error('Restaurant load error:', err));
                     const communityInitPromise = (async () => {
                         communitySystem = createCommunitySystem();
                         return communitySystem.init();
@@ -285,7 +283,7 @@
 
                     await loadProfile();
                     await Promise.race([
-                        Promise.all([loadRestaurantsPromise, communityInitPromise, listManagerInitPromise]),
+                        Promise.all([communityInitPromise, listManagerInitPromise]),
                         new Promise(resolve => setTimeout(resolve, 3000))
                     ]);
 
@@ -6071,7 +6069,7 @@
                         chunks.push(missing.slice(i, i + 30));
                     }
                     for (const chunk of chunks) {
-                        const endpoint = `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(chunk.join(','))}&fields=name,cca2,cca3,capital,region,subregion,flags`;
+                        const endpoint = `/api/restcountries/alpha?codes=${encodeURIComponent(chunk.join(','))}&fields=name,cca2,cca3,capital,region,subregion,flags`;
                         try {
                             const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
                             if (!response.ok) continue;

@@ -28,7 +28,7 @@
     const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';
     const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
     const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
-    const REST_COUNTRIES_ALL_URL = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags';
+    const REST_COUNTRIES_ALL_URL = '/api/restcountries/all?fields=name,cca2,cca3,capital,region,subregion,flags';
     const FALLBACK_RESTAURANTS = [
       { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
       { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
@@ -11440,7 +11440,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         if (mediaType === 'travel') {
           const code = itemId.toUpperCase();
-          const json = await fetchLandingReviewJson(`https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(code)}&fields=name,capital,region,flags`, 9000);
+          const json = await fetchLandingReviewJson(`/api/restcountries/alpha?codes=${encodeURIComponent(code)}&fields=name,capital,region,flags`, 9000);
           const country = Array.isArray(json) ? json[0] : null;
           if (!country) return;
           const capital = Array.isArray(country?.capital) ? String(country.capital[0] || '').trim() : String(country?.capital || '').trim();

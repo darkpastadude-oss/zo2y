@@ -683,7 +683,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
           .slice(0, 90);
         if (codes.length) {
           const json = await fetchJson(
-            `https://restcountries.com/v3.1/alpha?codes=${encodeURIComponent(codes.join(','))}&fields=name,cca2,cca3,capital,region,flags`,
+            `/api/restcountries/alpha?codes=${encodeURIComponent(codes.join(','))}&fields=name,cca2,cca3,capital,region,flags`,
             9000
           );
           (Array.isArray(json) ? json : []).forEach((row) => {
