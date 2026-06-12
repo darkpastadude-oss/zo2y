@@ -16,19 +16,9 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.zo2y.com/movies-mobile.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://www.zo2y.com/tvshows.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.zo2y.com/tvshows-mobile.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zo2y.com/games.html</loc>
@@ -36,19 +26,9 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.zo2y.com/games-mobile.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://www.zo2y.com/books.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.zo2y.com/books-mobile.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.zo2y.com/music.html</loc>
@@ -66,9 +46,9 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.zo2y.com/sports-mobile.html</loc>
+    <loc>https://www.zo2y.com/travel.html</loc>
     <changefreq>daily</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.zo2y.com/reviews.html</loc>
@@ -79,11 +59,6 @@
     <loc>https://www.zo2y.com/profile.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.zo2y.com/restraunts.html</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.zo2y.com/login.html</loc>
@@ -111,4 +86,3 @@
     <priority>0.4</priority>
   </url>
 </urlset>
-

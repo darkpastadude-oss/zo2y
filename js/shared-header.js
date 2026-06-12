@@ -8,7 +8,7 @@
   const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
   const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260421a';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
-  const MOVIES_MOBILE_ROUTE = 'movies-mobile.html?v=20260322m';
+  const MOVIES_MOBILE_ROUTE = 'movies.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';
   let universalSearchLoaderPromise = null;
   let supabaseClient = null;

@@ -50,8 +50,7 @@ const STATIC_ASSETS = [
   '/file-blank.svg',
   '/file.svg',
   '/sports.html',
-  '/sports-mobile.html',
-  '/css/pages/sports.css?v=20260601b',
+  '/css/pages/sports-page.css?v=20260601b',
   '/js/pages/sports.js?v=20260601b',
   '/fashion.html',
   '/food.html',
@@ -379,15 +378,14 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   const isMoviesHtml = url.origin === self.location.origin && url.pathname === '/movies.html';
-  const isMoviesMobileHtml = url.origin === self.location.origin && url.pathname === '/movies-mobile.html';
-  if (request.mode === 'navigate' && (isMoviesHtml || isMoviesMobileHtml) && !url.searchParams.has('v')) {
+  if (request.mode === 'navigate' && isMoviesHtml && !url.searchParams.has('v')) {
     url.searchParams.set('v', MOVIES_PAGE_VERSION);
     event.respondWith(fetch(url.toString(), { cache: 'no-store' }));
     return;
   }
   const isLatestGamesPage =
     url.origin === self.location.origin &&
-    (url.pathname === '/games.html' || url.pathname === '/games-mobile.html' || url.pathname === '/game.html');
+    (url.pathname === '/games.html' || url.pathname === '/game.html');
   if (url.origin === self.location.origin && url.pathname === '/sw.js') return;
   // OAuth callbacks must always load the real callback page. A timeout fallback to `/index.html`
   // can silently break sign-in (it looks like "landing refreshed" with no error).
