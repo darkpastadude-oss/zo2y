@@ -1,6 +1,6 @@
 ﻿// Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v251';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v252';
 const PAGE_CACHE = 'zo2y-pages-v206';
 const IMAGE_CACHE = 'zo2y-images-v51';
 const API_CACHE = 'zo2y-api-v31';
@@ -22,9 +22,9 @@ const STATIC_ASSETS = [
   '/index.html',
   '/credits.html',
   '/manifest.webmanifest',
-  '/css/pages/index.css?v=20260601b',
+  '/css/pages/index.css?v=20260605j',
   '/css/pages/index-landing.css?v=20260601b',
-  '/css/shared-header.css?v=20260601b',
+  '/css/shared-header.css?v=20260610c',
   '/css/global-lowercase.css?v=20260601b',
   '/js/pages/index.js?v=20260601b',
   '/js/pages/index-home-heavy-loaders.js?v=20260601b',
@@ -57,11 +57,11 @@ const STATIC_ASSETS = [
   '/cars.html',
   '/brand.html',
   '/css/pages/brands.css?v=20260605k',
-  '/css/pages/brand.css?v=20260601b',
+
   '/js/pages/brands.js?v=20260601b',
   '/js/pages/brand.js?v=20260601b',
   '/team.html',
-  '/css/pages/team.css?v=20260601b',
+
   '/js/pages/team.js?v=20260601b',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',

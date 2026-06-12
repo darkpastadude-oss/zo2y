@@ -1511,13 +1511,13 @@
   async function openItemMenuFromCard(card) {
     if (!bridge || !card) return;
     lastFocusedTrigger = card.querySelector('.menu-btn') || card;
-    const mediaType = getMediaType();
-    if (!mediaType) return;
     const item = getCardItem(card);
     if (!item || item.itemId === undefined || item.itemId === null || item.itemId === '') return;
 
     STATE.currentCard = card;
     STATE.currentItem = item;
+    const mediaType = getMediaType();
+    if (!mediaType) return;
     STATE.quickRows = getQuickRowsForMenu();
     const listKeys = STATE.quickRows.map((row) => row.key).filter(Boolean);
     STATE.quickStatus = readCachedQuickStatus(item.itemId, listKeys);

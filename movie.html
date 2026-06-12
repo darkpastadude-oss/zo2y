@@ -2091,7 +2091,7 @@
         let debounceTimer = null;
         const go = () => {
           const query = input.value.trim();
-const url = new URL('movies.html?v=20260601b', window.location.href);
+const url = new URL('movies.html', window.location.href);
           if (query) url.searchParams.set('search', query);
           window.location.href = `${url.pathname}${url.search}`;
         };
@@ -2229,6 +2229,8 @@ const url = new URL('movies.html?v=20260601b', window.location.href);
 <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
+  <script src="/js/shared-components.js?v=20260612b" defer></script>
+</body>
 </html>
 
 

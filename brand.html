@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -73,7 +73,7 @@
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
       <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
-      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
 </div>
   </div>
 </header>
@@ -139,7 +139,7 @@
         <span class="elevated-section-sub" id="brandAboutSource">From the brand's official record</span>
       </div>
       <div class="elevated-description-wrap">
-        <p id="brandAboutBody" class="elevated-description">Loading brand detailsn++</p>
+        <p id="brandAboutBody" class="elevated-description">Loading brand details...</p>
         <button class="elevated-readmore" id="brandAboutToggle" type="button" aria-expanded="false" aria-controls="brandAboutBody">
           <span class="elevated-readmore-label">read more</span>
           <i class="fa-solid fa-chevron-down"></i>
@@ -196,7 +196,7 @@
       </div>
       <div id="reviewsStats" class="elevated-review-summary">
         <div class="elevated-review-big">
-          <div class="elevated-review-big-value">n++<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
           <div class="elevated-review-big-stars" aria-hidden="true">
             <i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
           </div>
@@ -251,7 +251,7 @@
   </div>
 
   <p class="elevated-footnote">
-    <span><i class="fa-solid fa-circle-info"></i> sources: curated brand dataset n++ Wikipedia n++ <a href="credits.html">all credits</a></span>
+    <span><i class="fa-solid fa-circle-info"></i> sources: curated brand dataset — Wikipedia — <a href="credits.html">all credits</a></span>
   </p>
 
   <div id="brandActionCard" class="card hidden" data-item-id="">
@@ -259,10 +259,10 @@
     <div class="card-meta"></div>
     <img src="" alt="" loading="lazy" />
   </div>
-</div>
-  </div>
 
   <div class="elevated-toast" id="brandToast" role="status" aria-live="polite"></div>
   <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
 <script src="js/legal-consent.js?v=20260606a" defer></script>
-<script src="js/legal-consent.js?v=20260606a" defer></script>
+  <script src="/js/shared-components.js?v=20260612b" defer></script>
+</body>
+</html>

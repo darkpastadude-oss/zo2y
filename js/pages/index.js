@@ -3962,6 +3962,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function ensureRestaurantList(userId, listType) {
+      if (!ENABLE_RESTAURANTS) return null;
       const client = await ensureHomeSupabase();
       if (!client) return null;
       const conf = HOME_RESTAURANT_LIST_META[listType] || HOME_RESTAURANT_LIST_META.favorites;
@@ -4007,6 +4008,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function normalizeHomeRestaurantId(itemId) {
+      if (!ENABLE_RESTAURANTS) return null;
       const numericId = Number(itemId);
       return Number.isFinite(numericId) ? numericId : null;
     }
@@ -4236,7 +4238,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return result;
         }
 
-        if (mediaType === 'restaurant') {
+        if (ENABLE_RESTAURANTS && mediaType === 'restaurant') {
           const restaurantId = normalizeHomeRestaurantId(payload.itemId);
           if (restaurantId === null) {
             showHomeToast('Could not update list', true);
@@ -4368,7 +4370,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return status;
         }
 
-        if (mediaType === 'restaurant') {
+        if (ENABLE_RESTAURANTS && mediaType === 'restaurant') {
           const restaurantId = normalizeHomeRestaurantId(itemId);
           if (restaurantId === null) return status;
           const titleByKey = {};
@@ -8892,6 +8894,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
       async function loadRestaurants() {
+        if (!ENABLE_RESTAURANTS) return [];
         const client = await ensureHomeSupabase();
         if (!client) {
           return FALLBACK_RESTAURANTS.map((r) => ({

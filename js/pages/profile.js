@@ -3048,21 +3048,32 @@
 
             async function deleteList(listId) {
                 try {
-                    const { data: listOwner } = await supabase
-                        .from('lists')
-                        .select('user_id')
-                        .eq('id', listId)
-                        .maybeSingle();
-                    if (!listOwner || listOwner.user_id !== currentUser?.id) {
-                        showToast('Only the list owner can delete this list', 'warning');
+                    let deleted = false;
+                    const tables = Object.values(CUSTOM_LIST_TABLES);
+                    for (const table of tables) {
+                        const { data: listOwner } = await supabase
+                            .from(table)
+                            .select('user_id')
+                            .eq('id', listId)
+                            .maybeSingle();
+                        if (listOwner) {
+                            if (listOwner.user_id !== currentUser?.id) {
+                                showToast('Only the list owner can delete this list', 'warning');
+                                return;
+                            }
+                            const { error } = await supabase
+                                .from(table)
+                                .delete()
+                                .eq('id', listId);
+                            if (error) throw error;
+                            deleted = true;
+                            break;
+                        }
+                    }
+                    if (!deleted) {
+                        showToast('List not found', 'error');
                         return;
                     }
-                    await supabase.from('lists_restraunts').delete().eq('list_id', listId);
-                    
-                    const { error } = await supabase
-                        .from('lists')
-                        .delete()
-                        .eq('id', listId);
 
                     if (error) throw error;
                     

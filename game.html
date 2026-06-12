@@ -961,7 +961,7 @@
             url.searchParams.set(key, String(value));
           });
           const res = await fetch(url.toString());
-          if (!json) return null;
+          if (!res.ok) return null;
           return await res.json();
         } catch (_err) {
           return null;
@@ -1616,7 +1616,7 @@
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
           const items = [];
-          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` n++ ${formatCount(ratingCount)} votes` : ''}` });
+          if (rating !== null) items.push({ icon: 'fas fa-star', title: 'Rating', value: `${rating.toFixed(1)}${ratingCount ? ` — ${formatCount(ratingCount)} votes` : ''}` });
           if (releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Released', value: releaseDate });
           if (playtime > 0) items.push({ icon: 'fas fa-clock', title: 'Avg. Playtime', value: `${playtime} hrs` });
           if (platforms.length) items.push({ icon: 'fas fa-gamepad', title: 'Platforms', value: platforms.slice(0, 4).join(', ') });
@@ -2467,6 +2467,8 @@
 <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
+  <script src="/js/shared-components.js?v=20260612b" defer></script>
+</body>
 </html>
 
 

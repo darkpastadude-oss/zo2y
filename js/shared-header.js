@@ -303,8 +303,7 @@ const HEADER_HTML = `
   }
 
   function isMobileContentPage(pathname) {
-    const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
-    return file.endsWith('-mobile.html');
+    return false;
   }
 
   function isHeaderSuppressedPage(pathname) {

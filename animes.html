@@ -910,8 +910,6 @@
       </div>
     </section>
   </main>
-</div>
-  </div>
 
   <script>
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -1589,7 +1587,7 @@
         imgEl.src = posterUrl;
         imgEl.alt = `${anime.name || 'Anime'} poster`;
       }
-      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(anime.id)}`;
+      if (openEl) openEl.href = `anime.html?id=${encodeURIComponent(anime.id)}`;
     }
 
     function renderGrid() {
@@ -1718,7 +1716,7 @@
           if (e.target.closest('.menu-btn')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
-          window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
+          window.location.href = `anime.html?id=${encodeURIComponent(id)}`;
         });
       });
     }
@@ -1820,4 +1818,6 @@
 <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
+  <script src="/js/shared-components.js?v=20260612b" defer></script>
+</body>
 </html>
