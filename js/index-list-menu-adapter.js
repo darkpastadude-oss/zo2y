@@ -424,6 +424,7 @@
   }
 
   async function openItemMenuFromCard(card) {
+    ensureStyles(); ensureMarkup();
     if (!_bridge || !card) return;
     _lastFocusedTrigger = card.querySelector('.menu-btn') || card;
     const item = getCardItem(card);
