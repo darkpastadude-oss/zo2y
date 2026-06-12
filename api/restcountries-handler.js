@@ -40,32 +40,45 @@ export default async function handler(req, res) {
     return res.json({ ok: true, service: "restcountries-proxy" });
   }
 
-  try {
-    const url = new URL(`${REST_COUNTRIES_BASE}/${relativePath}`);
-    Object.entries(query || {}).forEach(([key, value]) => {
-      if (key === "path") return;
-      pushQueryParam(url.searchParams, key, value);
-    });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const url = new URL(`${REST_COUNTRIES_BASE}/${relativePath}`);
+      Object.entries(query || {}).forEach(([key, value]) => {
+        if (key === "path") return;
+        pushQueryParam(url.searchParams, key, value);
+      });
 
-    const upstream = await fetch(url.toString(), {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(9000)
-    });
+      const upstream = await fetch(url.toString(), {
+        headers: { Accept: "application/json" },
+        signal: AbortSignal.timeout(9000)
+      });
 
-    const text = await upstream.text();
+      const text = await upstream.text();
 
-    // Cache country list for 1 hour, alpha lookups for 24h
-    const isAll = relativePath.startsWith("all");
-    const maxAge = isAll ? 3600 : 86400;
-    res.setHeader("Cache-Control", `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge * 3}`);
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.status(upstream.status);
-    return res.send(text);
-  } catch (error) {
-    res.setHeader("Cache-Control", "no-store");
-    return res.status(502).json({
-      ok: false,
-      message: error?.name === "TimeoutError" ? "Upstream timeout" : "Proxy error"
-    });
+      if (!upstream.ok && upstream.status >= 500 && attempt === 0) {
+        await new Promise((r) => setTimeout(r, 800));
+        continue;
+      }
+
+      const isAll = relativePath.startsWith("all");
+      const maxAge = isAll ? 3600 : 86400;
+      res.setHeader("Cache-Control", `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge * 3}`);
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.status(upstream.status);
+      return res.send(text);
+    } catch (error) {
+      if (attempt === 0) {
+        await new Promise((r) => setTimeout(r, 800));
+        continue;
+      }
+      res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+      return res.status(502).json({
+        ok: false,
+        message: error?.name === "TimeoutError" ? "Upstream timeout" : "Proxy error"
+      });
+    }
   }
+
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
+  return res.status(502).json({ ok: false, message: "Upstream unavailable" });
 }

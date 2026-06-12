@@ -250,7 +250,7 @@
   function ensureStyles() {
     if(typeof document==='undefined'||document.getElementById(STYLE_ID)) return;
     const s=document.createElement('style'); s.id=STYLE_ID; s.textContent=`
-      .menu-modal{display:none;position:absolute;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0;align-items:center;justify-content:center}
+      .menu-modal{display:none;position:fixed;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0;align-items:center;justify-content:center}
       .menu-modal.active{display:flex}
       .menu-modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card,#132347);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.28)}
       @keyframes menuModalFlyUp{from{opacity:0;transform:translate(-50%,calc(-50% + 24px)) scale(.98)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
@@ -413,7 +413,7 @@
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
       if(dt&&lk.length&&vs.length){const{data}=await c.from(dt.table).select(`${dt.itemField},list_type`).eq('user_id',u.id).in(dt.itemField,vs).in('list_type',lk);
-        const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'');const cur=sb.get(ik);if(!cur||!(lt in cur))cur[lt]=true});
+        const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'');const cur=sb.get(ik);if(cur&&!(lt in cur))cur[lt]=true});
         sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));}
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const cfg=ListUtils.getListConfig(mt);const lids=cl.map(l=>l.id).filter(Boolean);if(!cfg||!lids.length||!vs.length)return;
