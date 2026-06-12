@@ -991,7 +991,6 @@
                 if (createGameListBtn) createGameListBtn.style.display = 'inline-flex';
                 if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
                 if (createMusicListBtn) createMusicListBtn.style.display = 'inline-flex';
-                if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'inline-flex';
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'inline-flex';
                 if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'inline-flex';
@@ -1045,7 +1044,7 @@
                 if (createGameListBtn) createGameListBtn.style.display = 'none';
                 if (createBookListBtn) createBookListBtn.style.display = 'none';
                 if (createMusicListBtn) createMusicListBtn.style.display = 'none';
-                if (mobileCreateRestaurantListBtn) mobileCreateRestaurantListBtn.style.display = 'none';
+
                 if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
                 if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'none';
                 if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'none';
