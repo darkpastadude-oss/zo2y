@@ -78,7 +78,6 @@
             let renderFoodToken = 0;
             let renderCarsToken = 0;
             let renderSportsToken = 0;
-            let renderRestaurantsToken = 0;
             let editingMediaList = null;
             let currentMediaDetail = null;
             let hasPreloadedTabs = false;
@@ -193,6 +192,23 @@
                 food: 'food',
                 car: 'cars'
             };
+            const HIDE_DETAIL_CONFIG = {
+                movie: { route: 'movies', mobileDetail: 'mobileMovieDetailSection', mobileMain: 'mobileMoviesSection', desktopDetail: 'movie-detail-view', desktopTab: 'movies-tab' },
+                tv: { route: 'tv', mobileDetail: 'mobileTvDetailSection', mobileMain: 'mobileTvSection', desktopDetail: 'tv-detail-view', desktopTab: 'tv-tab' },
+                anime: { route: 'anime', mobileDetail: 'mobileAnimeDetailSection', mobileMain: 'mobileAnimeSection', desktopDetail: 'anime-detail-view', desktopTab: 'anime-tab' },
+                game: { route: 'games', mobileDetail: 'mobileGameDetailSection', mobileMain: 'mobileGamesSection', desktopDetail: 'game-detail-view', desktopTab: 'games-tab' },
+                book: { route: 'books', mobileDetail: 'mobileBookDetailSection', mobileMain: 'mobileBooksSection', desktopDetail: 'book-detail-view', desktopTab: 'books-tab' },
+                music: { route: 'music', mobileDetail: 'mobileMusicDetailSection', mobileMain: 'mobileMusicSection', desktopDetail: 'music-detail-view', desktopTab: 'music-tab' },
+                travel: { route: 'travel', mobileDetail: 'mobileTravelDetailSection', mobileMain: 'mobileTravelSection', desktopDetail: 'travel-detail-view', desktopTab: 'travel-tab' },
+                fashion: { route: 'fashion', mobileDetail: 'mobileFashionDetailSection', mobileMain: 'mobileFashionSection', desktopDetail: 'fashion-detail-view', desktopTab: 'fashion-tab' },
+                food: { route: 'food', mobileDetail: 'mobileFoodDetailSection', mobileMain: 'mobileFoodSection', desktopDetail: 'food-detail-view', desktopTab: 'food-tab' },
+                car: { route: 'cars', mobileDetail: 'mobileCarsDetailSection', mobileMain: 'mobileCarsSection', desktopDetail: 'cars-detail-view', desktopTab: 'cars-tab' }
+            };
+            const MEDIA_TYPE_RENDERERS = {
+                movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames,
+                book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion,
+                food: renderFood, car: renderCars
+            };
             const COLLECTION_VIEW_STORAGE_KEY = 'zo2y_profile_collection_view_modes_v2';
             let collectionViewModes = loadCollectionViewModes();
 
@@ -272,7 +288,6 @@
                         communitySystem = createCommunitySystem();
                         return communitySystem.init();
                     })();
-                    const listManagerInitPromise = listManager.init();
                     
                     if (timeoutHandle) clearTimeout(timeoutHandle);
                     timeoutHandle = setTimeout(() => {
@@ -283,7 +298,7 @@
 
                     await loadProfile();
                     await Promise.race([
-                        Promise.all([communityInitPromise, listManagerInitPromise]),
+                        communityInitPromise,
                         new Promise(resolve => setTimeout(resolve, 3000))
                     ]);
 
@@ -327,40 +342,6 @@
             function initializeMobile() {
                 updateMobileStats();
                 setupMobileTabsHint();
-            }
-
-            function disableRestaurantFeatures() {
-                if (ENABLE_RESTAURANTS) return;
-
-                const removeSelectors = [
-                    '.nav-tab[data-tab="restaurants"]',
-                    '#restaurants-tab',
-                    '#restaurant-detail-view',
-                    '#createRestaurantListBtn',
-                    '.mobile-tab[data-tab="restaurants"]',
-                    '#mobileRestaurantsSection',
-                    '#mobileRestaurantDetailSection',
-                    '#mobileCreateRestaurantListBtn',
-                    'button[onclick*="createListForType(\'restaurants\')"]',
-                    '.mobile-nav-item[href="restraunts.html"]',
-                    '.list-icon-option[data-icon="restaurant"]',
-                    '.edit-list-icon-option[data-icon="restaurant"]'
-                ];
-                removeSelectors.forEach((selector) => {
-                    document.querySelectorAll(selector).forEach((el) => el.remove());
-                });
-
-                const mobileProfileItem = document.querySelector('.mobile-bottom-nav-item[onclick*="showTab(\'restaurants\')"]');
-                if (mobileProfileItem) {
-                    mobileProfileItem.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
-                }
-
-                const desktopVisitedLabel = document.querySelector('.stats-grid .stat-card:first-child .stat-label');
-                if (desktopVisitedLabel) desktopVisitedLabel.textContent = 'Items Saved';
-                const mobileVisitedLabel = document.querySelector('.mobile-stats .mobile-stat:first-child .mobile-stat-label');
-                if (mobileVisitedLabel) mobileVisitedLabel.textContent = 'Saved';
-                const visitedMeta = document.getElementById('visitedCountMeta');
-                if (visitedMeta) visitedMeta.textContent = '0 saved items';
             }
 
             function disableGameFeatures() {
@@ -985,14 +966,12 @@
                 const logoutBtn = document.getElementById('logoutBtn');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
-                const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const createTvListBtn = document.getElementById('createTvListBtn');
                 const createAnimeListBtn = document.getElementById('createAnimeListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
                 const createMusicListBtn = document.getElementById('createMusicListBtn');
-                const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
                 const mobileCreateAnimeListBtn = document.getElementById('mobileCreateAnimeListBtn');
@@ -1006,7 +985,6 @@
                 if (logoutBtn) logoutBtn.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'none';
                 if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
-                if (createListBtn) createListBtn.style.display = 'flex';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
                 if (createTvListBtn) createTvListBtn.style.display = 'inline-flex';
                 if (createAnimeListBtn) createAnimeListBtn.style.display = 'inline-flex';
@@ -1042,14 +1020,12 @@
                 const followButton = document.getElementById('followButton');
                 const viewingIndicator = document.getElementById('viewingOtherProfile');
                 const mobileViewingIndicator = document.getElementById('mobileViewingIndicator');
-                const createListBtn = document.getElementById('createRestaurantListBtn');
                 const createMovieListBtn = document.getElementById('createMovieListBtn');
                 const createTvListBtn = document.getElementById('createTvListBtn');
                 const createAnimeListBtn = document.getElementById('createAnimeListBtn');
                 const createGameListBtn = document.getElementById('createGameListBtn');
                 const createBookListBtn = document.getElementById('createBookListBtn');
                 const createMusicListBtn = document.getElementById('createMusicListBtn');
-                const mobileCreateRestaurantListBtn = document.getElementById('mobileCreateRestaurantListBtn');
                 const mobileCreateMovieListBtn = document.getElementById('mobileCreateMovieListBtn');
                 const mobileCreateTvListBtn = document.getElementById('mobileCreateTvListBtn');
                 const mobileCreateAnimeListBtn = document.getElementById('mobileCreateAnimeListBtn');
@@ -1063,7 +1039,6 @@
                 if (followButton) followButton.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'flex';
                 if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'flex';
-                if (createListBtn) createListBtn.style.display = 'none';
                 if (createMovieListBtn) createMovieListBtn.style.display = 'none';
                 if (createTvListBtn) createTvListBtn.style.display = 'none';
                 if (createAnimeListBtn) createAnimeListBtn.style.display = 'none';
@@ -1600,39 +1575,6 @@
                 }
             }
 
-            // ===== RESTAURANTS =====
-            async function loadRestaurants() {
-                try {
-                    const { data, error } = await supabase
-                        .from('restraunts')
-                        .select('*')
-                        .order('name');
-                    
-                    if (error) throw error;
-                    
-                    restaurants = data || [];
-                    populateRestaurantSelect();
-                    
-                } catch (error) {
-                    console.error('Error loading restaurants:', error);
-                    restaurants = [];
-                }
-            }
-
-            function populateRestaurantSelect() {
-                const restaurantSelect = document.getElementById('restaurantSelect');
-                if (!restaurantSelect) return;
-                
-                restaurantSelect.innerHTML = '<option value="">Select a restaurant</option>';
-                
-                restaurants.forEach(restaurant => {
-                    const option = document.createElement('option');
-                    option.value = restaurant.id;
-                    option.textContent = `${restaurant.name} (${restaurant.category})`;
-                    restaurantSelect.appendChild(option);
-                });
-            }
-
             // ===== STATS =====
             function clearStatsRealtimeRefreshTimer() {
                 if (!statsRealtimeRefreshTimer) return;
@@ -1694,9 +1636,6 @@
                     { table: 'book_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'music_reviews', filter: `user_id=eq.${safeId}` }
                 ];
-                if (ENABLE_RESTAURANTS) {
-                    defs.push({ table: 'lists', filter: `user_id=eq.${safeId}` });
-                }
                 return defs;
             }
 
@@ -1781,64 +1720,6 @@
                 }
             }
 
-            async function countRestaurantSavedItems(userId) {
-                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
-                try {
-                    const { data: ownedLists, error: ownedListsError } = await supabase
-                        .from('lists')
-                        .select('id')
-                        .eq('user_id', userId);
-                    if (ownedListsError) {
-                        if (isIgnorableStatsError(ownedListsError)) return 0;
-                        throw ownedListsError;
-                    }
-                    const listIds = (ownedLists || []).map((row) => row?.id).filter(Boolean);
-                    if (!listIds.length) return 0;
-
-                    const { count, error } = await supabase
-                        .from('lists_restraunts')
-                        .select('*', { count: 'exact', head: true })
-                        .in('list_id', listIds);
-                    if (error) {
-                        if (isIgnorableStatsError(error)) return 0;
-                        throw error;
-                    }
-                    return Number(count || 0);
-                } catch (error) {
-                    if (isIgnorableStatsError(error)) return 0;
-                    console.warn('Stats count failed for lists_restraunts:', error);
-                    return 0;
-                }
-            }
-
-            async function countRestaurantListsCreated(userId) {
-                if (!ENABLE_RESTAURANTS || !supabase || !userId) return 0;
-                try {
-                    let result = await supabase
-                        .from('lists')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('user_id', userId)
-                        .eq('is_default', false);
-
-                    if (result.error && String(result.error?.code || '').trim() === '42703') {
-                        result = await supabase
-                            .from('lists')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('user_id', userId);
-                    }
-
-                    if (result.error) {
-                        if (isIgnorableStatsError(result.error)) return 0;
-                        throw result.error;
-                    }
-                    return Number(result.count || 0);
-                } catch (error) {
-                    if (isIgnorableStatsError(error)) return 0;
-                    console.warn('Stats count failed for lists:', error);
-                    return 0;
-                }
-            }
-
             async function getUserStats(userId) {
                 const targetId = userId;
                 
@@ -1850,14 +1731,12 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
-                        restaurantSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
                         gameListsCount,
                         bookListsCount,
-                        musicListsCount,
-                        restaurantListsCount
+                        musicListsCount
                     ] = await Promise.all([
                         safeCountByUser('movie_list_items', targetId),
                         safeCountByUser('tv_list_items', targetId),
@@ -1865,14 +1744,12 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('music_list_items', targetId),
-                        countRestaurantSavedItems(targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
-                        safeCountByUser('music_lists', targetId),
-                        countRestaurantListsCreated(targetId)
+                        safeCountByUser('music_lists', targetId)
                     ]);
 
                     const savedItemsCount = Number(movieSavedCount || 0)
@@ -1880,15 +1757,13 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(restaurantSavedCount || 0);
+                        + Number(musicSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
                         + Number(gameListsCount || 0)
                         + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0)
-                        + Number(restaurantListsCount || 0);
+                        + Number(musicListsCount || 0);
 
                     return { savedItemsCount, listsCount };
                 } catch (error) {
@@ -1910,14 +1785,12 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
-                        restaurantSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
                         gameListsCount,
                         bookListsCount,
                         musicListsCount,
-                        restaurantListsCount,
                         journalReviewsCount,
                         movieReviewsCount,
                         tvReviewsCount,
@@ -1940,14 +1813,12 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('music_list_items', targetId),
-                        countRestaurantSavedItems(targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
                         safeCountByUser('music_lists', targetId),
-                        countRestaurantListsCreated(targetId),
                         safeCountByUser('journal_entries', targetId),
                         safeCountByUser('movie_reviews', targetId),
                         safeCountByUser('tv_reviews', targetId),
@@ -1971,15 +1842,13 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0)
-                        + Number(restaurantSavedCount || 0);
+                        + Number(musicSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
                         + Number(gameListsCount || 0)
                         + Number(bookListsCount || 0)
-                        + Number(musicListsCount || 0)
-                        + Number(restaurantListsCount || 0);
+                        + Number(musicListsCount || 0);
                     const reviewsCount = Number(journalReviewsCount || 0)
                         + Number(movieReviewsCount || 0)
                         + Number(tvReviewsCount || 0)
@@ -2115,1367 +1984,6 @@
                     if (mobileMeta) mobileMeta.textContent = summaryText;
                 }
             }
-
-            // ===== LIST MANAGER =====
-            const listManager = {
-                userLists: [],
-                currentLists: {
-                    favorites: null,
-                    visited: null,
-                    wantToGo: null
-                },
-                
-                async init() { 
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    if (!targetId) return;
-                    
-                    await this.loadUserLists(targetId);
-                    await this.loadListRestaurants();
-                    await this.loadCustomLists(targetId);
-                    this.renderLists();
-                },
-                
-                async loadUserLists(userId) {
-                    try {
-                        const { data: lists, error } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', userId);
-                        
-                        if (error) throw error;
-                        
-                        this.userLists = lists || [];
-                        await this.setupDefaultLists(userId);
-                        
-                    } catch (error) {
-                        console.error('Error loading lists:', error);
-                    }
-                },
-                
-                async setupDefaultLists(userId) {
-                    this.currentLists.favorites = this.userLists.find(list => list.title === 'Favorites');
-                    this.currentLists.visited = this.userLists.find(list => list.title === 'Visited'); 
-                    this.currentLists.wantToGo = this.userLists.find(list => list.title === 'Want to Go');
-                    
-                    if (isViewingOwnProfile) {
-                        if (!this.currentLists.favorites) {
-                            this.currentLists.favorites = await this.createList('Favorites', 'My favorite picks', userId, 'heart');
-                        }
-                        if (!this.currentLists.visited) {
-                            this.currentLists.visited = await this.createList('Visited', 'Places I have visited', userId, 'check');
-                        }
-                        if (!this.currentLists.wantToGo) {
-                            this.currentLists.wantToGo = await this.createList('Want to Go', 'Places I want to try', userId, 'bookmark');
-                        }
-                    }
-                },
-                
-                async createList(title, description, userId = currentUser.id, icon = 'list') {
-                    const { data: newList, error } = await supabase
-                        .from('lists')
-                        .insert([{ 
-                            user_id: userId, 
-                            title: title, 
-                            description: description,
-                            icon: icon,
-                            is_default: true,
-                            created_at: new Date().toISOString()
-                        }])
-                        .select()
-                        .single();
-                    
-                    if (error) {
-                        console.error('Error creating list:', error);
-                        return null;
-                    }
-                    
-                    this.userLists.push(newList);
-                    return newList;
-                },
-                
-                async loadListRestaurants() {
-                    for (const listType in this.currentLists) {
-                        const list = this.currentLists[listType];
-                        if (list) {
-                            const { data: listRestraunts, error } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            if (!error && listRestraunts) {
-                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
-                            } else {
-                                list.restaurants = [];
-                            }
-                        }
-                    }
-                },
-                
-                async loadCustomLists(userId) {
-                    if (!userId) return;
-                    
-                    try {
-                        const { data: lists, error } = await supabase
-                            .from('lists')
-                            .select('*')
-                            .eq('user_id', userId)
-                            .neq('title', 'Favorites')
-                            .neq('title', 'Visited')
-                            .neq('title', 'Want to Go');
-                        
-                        if (error) throw error;
-                        
-                        customLists = lists || [];
-                        
-                        for (const list of customLists) {
-                            const { data: listRestraunts, error } = await supabase
-                                .from('lists_restraunts')
-                                .select('restraunt_id')
-                                .eq('list_id', list.id);
-                            
-                            if (!error && listRestraunts) {
-                                list.restaurants = listRestraunts.map(item => item.restraunt_id);
-                            } else {
-                                list.restaurants = [];
-                            }
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading custom lists:', error);
-                    }
-                },
-
-                async toggleInList(listId, restaurantId) {
-                    let list;
-                    
-                    if (typeof listId === 'string') {
-                        if (listId === 'favorites') list = this.currentLists.favorites;
-                        else if (listId === 'visited') list = this.currentLists.visited;
-                        else if (listId === 'wantToGo') list = this.currentLists.wantToGo;
-                    } else {
-                        list = customLists.find(l => l.id === listId) || 
-                            this.userLists.find(l => l.id === listId);
-                    }
-                    
-                    if (!list) return false;
-                    
-                    const isInList = list.restaurants?.includes(restaurantId);
-                    
-                    try {
-                        if (isInList) {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({ 
-                                    list_id: list.id, 
-                                    restraunt_id: restaurantId
-                                });
-                            
-                            if (error) throw error;
-                            
-                            if (list.restaurants) {
-                                list.restaurants = list.restaurants.filter(id => id !== restaurantId);
-                            }
-                            
-                            showToast(`Removed from ${list.title}`, "info");
-                            return false;
-                        } else {
-                            const { error } = await supabase
-                                .from('lists_restraunts')
-                                .insert([{ 
-                                    list_id: list.id, 
-                                    restraunt_id: restaurantId,
-                                    added_at: new Date().toISOString()
-                                }]);
-                            
-                            if (error) throw error;
-                            
-                            if (!list.restaurants) list.restaurants = [];
-                            list.restaurants.push(restaurantId);
-                            showToast(`Added to ${list.title}`, "success");
-                            return true;
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error updating list:', error);
-                        showToast('Error saving changes', 'error');
-                        return isInList;
-                    }
-                },
-
-                isInList(listType, restaurantId) {
-                    let list;
-                    
-                    if (typeof listType === 'string') {
-                        list = this.currentLists[listType];
-                    } else {
-                        list = customLists.find(l => l.id === listType);
-                    }
-                    
-                    return list?.restaurants?.includes(restaurantId) || false;
-                },
-
-                renderLists() {
-                    const isMobile = window.innerWidth <= 768;
-                    
-                    if (isMobile) {
-                        this.renderMobileLists();
-                    } else {
-                        this.renderDesktopLists();
-                    }
-                },
-
-                renderDesktopLists() {
-                    const listsGrid = document.getElementById('listsGrid');
-                    if (!listsGrid) return;
-                    
-                    listsGrid.innerHTML = '';
-                    
-                    const defaultLists = [
-                        {
-                            id: 'favorites',
-                            title: 'Favorites',
-                            description: 'Your top picks.',
-                            icon: 'heart',
-                            color: 'var(--error)',
-                            restaurants: this.currentLists.favorites?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'visited',
-                            title: 'Visited',
-                            description: 'Places you have checked out.',
-                            icon: 'check',
-                            color: 'var(--success)',
-                            restaurants: this.currentLists.visited?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'wantToGo',
-                            title: 'Want To Go',
-                            description: 'Saved for later.',
-                            icon: 'bookmark',
-                            color: 'var(--accent)',
-                            restaurants: this.currentLists.wantToGo?.restaurants || [],
-                            isDefault: true
-                        }
-                    ];
-                    
-                    let allLists = [...defaultLists, ...customLists.map(list => ({
-                        id: list.id,
-                        title: list.title,
-                        description: list.description || 'Your custom-made collection.',
-                        icon: normalizeIconKey(list.icon, 'list'),
-                        color: 'var(--accent)',
-                        restaurants: list.restaurants || [],
-                        isDefault: false
-                    }))];
-                    allLists = applyPinnedListSorting('restaurant', allLists);
-                    
-                    if (allLists.length === 0) {
-                        listsGrid.innerHTML = `
-                            <div class="empty-state">
-                                <div class="empty-icon">${iconGlyph('list')}</div>
-                                <h3 class="empty-title">No Lists Yet</h3>
-                                <p class="empty-description">Create your first list to organize restaurants by occasion, cuisine, or mood!</p>
-                                <button class="btn btn-primary mt-md" onclick="ProfileManager.showCreateListModal()">
-                                    <i class="fas fa-plus"></i> Create Your First List
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    allLists.forEach(list => {
-                        const listCard = document.createElement('div');
-                        listCard.className = 'list-card';
-                        
-                        const previewItems = [];
-                        const restaurantIds = list.restaurants || [];
-                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
-                        
-                        for (let i = 0; i < 4; i++) {
-                            if (shuffledIds[i]) {
-                                const restaurantId = shuffledIds[i];
-                                const restaurant = restaurants.find(r => r.id === restaurantId);
-                                if (restaurant) {
-                                    previewItems.push(`
-                                        <div class="list-preview-item is-landscape">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                                        </div>
-                                    `);
-                                } else {
-                                    previewItems.push(`
-                                        <div class="list-preview-item is-landscape">
-                                            <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                                ${iconGlyph('restaurant')}
-                                            </div>
-                                        </div>
-                                    `);
-                                }
-                            } else {
-                                previewItems.push(`
-                                    <div class="list-preview-item is-landscape">
-                                        <div style="width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                            ${iconGlyph('restaurant')}
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                        }
-                        
-                        const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
-                            <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
-                                </div>
-                            </div>` : '';
-                        
-                        listCard.innerHTML = `
-                            ${kebabHtml}
-                            <div class="list-card-header">
-                                <div class="list-card-title">
-                                    <span style="font-size: 24px;">${escapeHtml(list.icon)}</span>
-                                    ${escapeHtml(list.title)}
-                                </div>
-                            </div>
-                            <p class="list-card-description">${escapeHtml(list.description)}</p>
-                            <div class="list-preview-grid">
-                                ${previewItems.join('')}
-                            </div>
-                            <div class="list-card-footer">
-                                <span class="list-card-count">${restaurantIds.length} places</span>
-                                <button class="list-card-button" onclick="event.stopPropagation(); ProfileManager.showList('${escapeHtml(list.id)}')">View List</button>
-                            </div>
-                        `;
-                        
-                        listCard.onclick = () => ProfileManager.showList(list.id);
-                        listsGrid.appendChild(listCard);
-                    });
-                },
-
-                renderMobileLists() {
-                    const mobileListsContainer = document.getElementById('mobileLists');
-                    if (!mobileListsContainer) return;
-                    
-                    mobileListsContainer.innerHTML = '';
-                    
-                    const defaultLists = [
-                        {
-                            id: 'favorites',
-                            title: 'Favorites',
-                            description: 'Your top picks.',
-                            icon: 'heart',
-                            color: 'var(--error)',
-                            restaurants: this.currentLists.favorites?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'visited',
-                            title: 'Visited',
-                            description: 'Places you have checked out.',
-                            icon: 'check',
-                            color: 'var(--success)',
-                            restaurants: this.currentLists.visited?.restaurants || [],
-                            isDefault: true
-                        },
-                        {
-                            id: 'wantToGo',
-                            title: 'Want To Go',
-                            description: 'Saved for later.',
-                            icon: 'bookmark',
-                            color: 'var(--accent)',
-                            restaurants: this.currentLists.wantToGo?.restaurants || [],
-                            isDefault: true
-                        }
-                    ];
-                    
-                    let allLists = [...defaultLists, ...customLists.map(list => ({
-                        id: list.id,
-                        title: list.title,
-                        description: list.description || 'Your custom-made collection.',
-                        icon: normalizeIconKey(list.icon, 'list'),
-                        color: 'var(--accent)',
-                        restaurants: list.restaurants || [],
-                        isDefault: false
-                    }))];
-                    allLists = applyPinnedListSorting('restaurant', allLists);
-                    
-                    if (allLists.length === 0) {
-                        mobileListsContainer.innerHTML = `
-                            <div class="mobile-empty-state">
-                                <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                <div class="mobile-empty-title">No Lists Yet</div>
-                                <div class="mobile-empty-description">Create your first list to organize restaurants!</div>
-                                <button class="mobile-action-btn" onclick="ProfileManager.showCreateListModal()">
-                                    <i class="fas fa-plus"></i> Create List
-                                </button>
-                            </div>
-                        `;
-                        return;
-                    }
-                    
-                    allLists.forEach(list => {
-                        const listCard = document.createElement('div');
-                        listCard.className = 'mobile-list-card';
-                        
-                        const previewItems = [];
-                        const restaurantIds = list.restaurants || [];
-                        const shuffledIds = [...restaurantIds].sort(() => 0.5 - Math.random());
-                        
-                        for (let i = 0; i < 4; i++) {
-                            if (shuffledIds[i]) {
-                                const restaurantId = shuffledIds[i];
-                                const restaurant = restaurants.find(r => r.id === restaurantId);
-                                if (restaurant) {
-                                    previewItems.push(`
-                                        <div class="mobile-preview-item is-landscape">
-                                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                                        </div>
-                                    `);
-                                } else {
-                                    previewItems.push(`
-                                        <div class="mobile-preview-item is-landscape">
-                                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                                ${iconGlyph('restaurant')}
-                                            </div>
-                                        </div>
-                                    `);
-                                }
-                            } else {
-                                previewItems.push(`
-                                    <div class="mobile-preview-item is-landscape">
-                                        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; color: var(--muted);">
-                                            ${iconGlyph('restaurant')}
-                                        </div>
-                                    </div>
-                                `);
-                            }
-                        }
-                        
-                        const kebabHtml = (isViewingOwnProfile && !list.isDefault) ? `
-                            <div class="list-card-actions">
-                                <button class="kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleListMenu('${list.id}')"><i class="fas fa-ellipsis-v"></i></button>
-                                <div class="kebab-dropdown" id="kebab-${list.id}">
-                                    <div class="kebab-item" onclick="event.stopPropagation(); ProfileManager.prepareEditList('${list.id}')"><i class="fas fa-edit"></i> Edit</div>
-                                    <div class="kebab-item delete" onclick="event.stopPropagation(); ProfileManager.confirmDeleteList('${list.id}')"><i class="fas fa-trash"></i> Delete</div>
-                                </div>
-                            </div>` : '';
-                        
-                        listCard.innerHTML = `
-                            ${kebabHtml}
-                            <div class="mobile-list-header">
-                                <div class="mobile-list-icon">
-                                    ${iconGlyph(list.icon, 'list')}
-                                </div>
-                                <div class="mobile-list-info">
-                                    <div class="mobile-list-title">${escapeHtml(list.title)}</div>
-                                    <div class="mobile-list-count">${restaurantIds.length} places</div>
-                                </div>
-                            </div>
-                            ${list.description ? `<div class="mobile-list-description">${escapeHtml(list.description)}</div>` : ''}
-                            <div class="mobile-list-preview">
-                                ${previewItems.join('')}
-                            </div>
-                            <button class="mobile-action-btn secondary" onclick="event.stopPropagation(); ProfileManager.showMobileList('${escapeHtml(list.id)}')" style="width: 100%;">
-                                <i class="fas fa-eye"></i> View List
-                            </button>
-                        `;
-                        
-                        listCard.onclick = () => ProfileManager.showMobileList(list.id);
-                        mobileListsContainer.appendChild(listCard);
-                    });
-                }
-            };
-
-            // ===== LIST SUBMIT FUNCTION =====
-            async function handleListSubmit(e) {
-                e.preventDefault();
-                
-                const title = document.getElementById('listName').value.trim();
-                const description = document.getElementById('listDescription').value.trim();
-                const icon = getDefaultListIconForContext('restaurant');
-                const createListModal = document.getElementById('createListModal');
-                const tierState = window.ListUtils && createListModal
-                    ? ListUtils.readTierCreateState(createListModal)
-                    : { listKind: 'standard', maxRank: null };
-                const normalizedListKind = window.ListUtils
-                    ? ListUtils.normalizeListKindValue(tierState.listKind, 'standard')
-                    : (String(tierState.listKind || '').toLowerCase() === 'tier' ? 'tier' : 'standard');
-                const normalizedMaxRank = window.ListUtils
-                    ? ListUtils.normalizeTierMaxRank(tierState.maxRank)
-                    : null;
-                const dbListKind = normalizedListKind === 'tier' ? 'tier' : 'restaurant';
-                
-                if (!title) {
-                    showToast('Please enter a list name', 'error');
-                    return;
-                }
-                
-                // Check if already submitting
-                if (isSubmittingList) {
-                    console.log('Already submitting, ignoring duplicate request');
-                    return;
-                }
-                
-                isSubmittingList = true;
-                
-                // Disable form
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                const form = document.getElementById('createListForm');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<div class="loading-spinner"></div>';
-                }
-                if (form) {
-                    form.style.pointerEvents = 'none';
-                }
-                
-                try {
-                    if (isEditingList && editingListId) {
-                        // UPDATE existing list
-                        console.log('Updating list:', editingListId);
-
-                        const updatePayload = {
-                            title: title,
-                            description: description,
-                            icon: icon,
-                            list_kind: dbListKind,
-                            updated_at: new Date().toISOString()
-                        };
-                        const hasListKindColumnError = (error) => {
-                            const message = String(error?.message || '').toLowerCase();
-                            const details = String(error?.details || '').toLowerCase();
-                            return !!error && (
-                                error.code === '42703' ||
-                                message.includes('list_kind') ||
-                                details.includes('list_kind')
-                            );
-                        };
-
-                        let { error } = await supabase
-                            .from('lists')
-                            .update(updatePayload)
-                            .eq('id', editingListId);
-
-                        if (hasListKindColumnError(error)) {
-                            ({ error } = await supabase
-                                .from('lists')
-                                .update({
-                                    title: title,
-                                    description: description,
-                                    icon: icon,
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', editingListId));
-                        }
-
-                        if (error) throw error;
-
-                        if (window.ListUtils && typeof ListUtils.setListMeta === 'function') {
-                            ListUtils.setListMeta('restaurant', editingListId, {
-                                listKind: normalizedListKind,
-                                maxRank: normalizedMaxRank
-                            }, {
-                                client: supabase,
-                                userId: currentUser?.id
-                            });
-                        }
-                        
-                        // Update in local arrays
-                        const listIndex = customLists.findIndex(l => l.id === editingListId);
-                        if (listIndex > -1) {
-                            customLists[listIndex] = { 
-                                ...customLists[listIndex], 
-                                title, 
-                                description, 
-                                icon,
-                                list_kind: dbListKind
-                            };
-                        }
-                        
-                        const userListIndex = listManager.userLists.findIndex(l => l.id === editingListId);
-                        if (userListIndex > -1) {
-                            listManager.userLists[userListIndex] = { 
-                                ...listManager.userLists[userListIndex], 
-                                title, 
-                                description, 
-                                icon,
-                                list_kind: dbListKind
-                            };
-                        }
-                        
-                        showToast('List updated successfully', 'success');
-                        
-                    } else {
-                        // CREATE new list
-                        console.log('Creating new list:', title);
-
-                        let { data: newList, error } = await supabase
-                            .from('lists')
-                            .insert([{
-                                user_id: currentUser.id,
-                                title: title,
-                                description: description,
-                                is_default: false,
-                                icon: icon,
-                                list_kind: dbListKind,
-                                created_at: new Date().toISOString()
-                            }])
-                            .select()
-                            .single();
-
-                        const hasListKindColumnError = (err) => {
-                            const message = String(err?.message || '').toLowerCase();
-                            const details = String(err?.details || '').toLowerCase();
-                            return !!err && (
-                                err.code === '42703' ||
-                                message.includes('list_kind') ||
-                                details.includes('list_kind')
-                            );
-                        };
-                        if (hasListKindColumnError(error)) {
-                            ({ data: newList, error } = await supabase
-                                .from('lists')
-                                .insert([{
-                                    user_id: currentUser.id,
-                                    title: title,
-                                    description: description,
-                                    is_default: false,
-                                    icon: icon,
-                                    created_at: new Date().toISOString()
-                                }])
-                                .select()
-                                .single());
-                        }
-                        
-                        if (error) throw error;
-
-                        if (window.ListUtils && newList?.id && typeof ListUtils.setListMeta === 'function') {
-                            ListUtils.setListMeta('restaurant', newList.id, {
-                                listKind: normalizedListKind,
-                                maxRank: normalizedMaxRank
-                            }, {
-                                client: supabase,
-                                userId: currentUser?.id
-                            });
-                            if (typeof ListUtils.applyListMeta === 'function') {
-                                newList = ListUtils.applyListMeta('restaurant', newList);
-                            }
-                        }
-                        
-                        console.log('List created:', newList);
-                        
-                        // Add to local arrays
-                        customLists.push(newList);
-                        listManager.userLists.push(newList);
-                        
-                        showToast(`Created list "${title}"`, 'success');
-                        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
-                            window.ZO2Y_ANALYTICS.track('custom_list_created', {
-                                media_type: 'restaurant',
-                                source: 'profile_modal'
-                            }, { essential: true });
-                        }
-                        if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
-                            window.ZO2Y_ANALYTICS.markFirstAction('first_custom_list_created', {
-                                media_type: 'restaurant',
-                                user_id: currentUser?.id || ''
-                            }, { essential: true });
-                        }
-                    }
-                    
-                    // Close modal and reset form
-                    closeModal('createListModal');
-                    
-                    if (form) form.reset();
-                    document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
-                    if (window.ListUtils && createListModal) {
-                        ListUtils.resetTierCreateState(createListModal);
-                    }
-                    
-                    // Reset editing state
-                    isEditingList = false;
-                    editingListId = null;
-                    
-                    const modalTitle = document.querySelector('#createListModal .modal-title');
-                    if (modalTitle) modalTitle.textContent = "Create New List";
-                    
-                    // Re-render lists
-                    renderRestaurants();
-                    
-                    // Update stats
-                    await updateStats();
-                    
-                } catch (error) {
-                    console.error('Error saving list:', error);
-                    showToast('Error saving list: ' + error.message, 'error');
-                } finally {
-                    // Re-enable form
-                    isSubmittingList = false;
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = isEditingList ? 'Update List' : 'Create List';
-                    }
-                    if (form) {
-                        form.style.pointerEvents = '';
-                    }
-                }
-            }
-
-            // ===== LIST DISPLAY FUNCTIONS =====
-            function removeFromList(restaurantId) {
-                showConfirmModal(
-                    'Remove restaurant from list?',
-                    'This will remove the restaurant from your list.',
-                    async () => {
-                        if (!currentActiveList || !currentActiveList.id) {
-                            showToast('Could not find list', 'error');
-                            return;
-                        }
-                        
-                        try {
-                            // Remove from database
-                            await supabase
-                                .from('lists_restraunts')
-                                .delete()
-                                .match({ 
-                                    list_id: currentActiveList.id, 
-                                    restraunt_id: restaurantId 
-                                });
-                            
-                            showToast('Removed from list', 'success');
-                            
-                            // Update the local list data
-                            if (currentActiveList.restaurants) {
-                                const index = currentActiveList.restaurants.indexOf(restaurantId);
-                                if (index > -1) {
-                                    currentActiveList.restaurants.splice(index, 1);
-                                }
-                            }
-                            
-                            // Refresh the view
-                            if (window.innerWidth <= 768) {
-                                await renderMobileListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            } else {
-                                await renderListRestaurants(currentActiveList.restaurants || [], currentActiveList);
-                            }
-                            
-                        } catch (error) {
-                            console.error('Error removing restaurant:', error);
-                            showToast('Error removing restaurant', 'error');
-                        }
-                    }
-                );
-            }
-
-            async function showList(listId) {
-                let list;
-                
-                if (listId === 'favorites') {
-                    list = listManager.currentLists.favorites;
-                } else if (listId === 'visited') {
-                    list = listManager.currentLists.visited;
-                } else if (listId === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
-                } else {
-                    list = customLists.find(l => l.id == listId) || 
-                        listManager.userLists.find(l => l.id == listId);
-                }
-                
-                if (!list) {
-                    showToast('List not found', 'error');
-                    return;
-                }
-                
-                currentActiveList = list;
-                
-                const isMobile = window.innerWidth <= 768;
-                
-                if (isMobile) {
-                    showMobileList(listId);
-                    return;
-                }
-                
-                const listsTab = document.getElementById('lists-tab');
-                const listDetailView = document.getElementById('list-detail-view');
-                
-                if (listsTab) listsTab.style.display = 'none';
-                if (listDetailView) {
-                    listDetailView.style.display = 'block';
-                    listDetailView.classList.add('active');
-                }
-                
-                document.getElementById('listDetailTitle').textContent = list.title;
-                document.getElementById('listDetailDescription').textContent = list.description || '';
-                
-                const editListBtn = document.getElementById('editListBtn');
-                const addToListBtn = document.getElementById('addToListBtn');
-                
-                if (editListBtn) {
-                    editListBtn.style.display = isViewingOwnProfile && !['favorites', 'visited', 'wantToGo'].includes(listId) ? 'flex' : 'none';
-                }
-                if (addToListBtn) addToListBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                
-                await renderListRestaurants(list.restaurants || [], list);
-            }
-
-            async function renderListRestaurants(listRestaurants, list) {
-                const grid = document.getElementById('listRestaurantsGrid');
-                if (!grid) return;
-
-                grid.innerHTML = '';
-
-                if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ?
-                        'Start adding items to your list!' :
-                        'This list is currently empty.';
-
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">${iconGlyph('list')}</div>
-                            <h3 class="empty-title">No Collections Yet</h3>
-                            <p class="empty-description">${emptyStateText}</p>
-                            ${isViewingOwnProfile ? `
-                                <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Places
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Get restaurant details
-                const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
-                
-                const listDetailTitle = document.getElementById('listDetailTitle');
-                if (listDetailTitle) {
-                    listDetailTitle.textContent = `${list.title} (${restaurantsData.length} ${restaurantsData.length === 1 ? 'place' : 'places'})`;
-                }
-
-                restaurantsData.forEach(restaurant => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.style.position = 'relative';
-                    
-                    const clickableContent = document.createElement('a');
-                    clickableContent.href = `restaurant.html?slug=${restaurant.slug}`;
-                    clickableContent.style.textDecoration = 'none';
-                    clickableContent.style.color = 'inherit';
-                    clickableContent.style.display = 'block';
-                    clickableContent.style.height = '100%';
-                    
-                    clickableContent.innerHTML = `
-                        <div class="card-body">
-                            <div class="d-flex align-center gap-md">
-                                <div class="restaurant-image" style="width: 60px; height: 60px;">
-                                    <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
-                                </div>
-                                <div style="flex: 1;">
-                                    <h3 style="margin-bottom: 4px;">${restaurant.name}</h3>
-                                    <div class="text-sm text-muted">${restaurant.category}</div>
-                                    <div class="text-sm" style="margin-top: 4px;">* ${restaurant.rating}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    card.appendChild(clickableContent);
-                    
-                    if (isViewingOwnProfile) {
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.onclick = (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeFromList(restaurant.id);
-                        };
-                        card.appendChild(removeBtn);
-                    }
-                    
-                    grid.appendChild(card);
-                });
-            }
-
-            async function showMobileList(listId) {
-                let list;
-                
-                if (listId === 'favorites') {
-                    list = listManager.currentLists.favorites;
-                } else if (listId === 'visited') {
-                    list = listManager.currentLists.visited;
-                } else if (listId === 'wantToGo') {
-                    list = listManager.currentLists.wantToGo;
-                } else {
-                    list = customLists.find(l => l.id == listId) || 
-                        listManager.userLists.find(l => l.id == listId);
-                }
-                
-                if (!list) {
-                    showToast('List not found', 'error');
-                    return;
-                }
-                
-                currentActiveList = list;
-                
-                // Hide all mobile sections
-                document.querySelectorAll('.mobile-section').forEach(section => {
-                    section.style.display = 'none';
-                    section.classList.remove('active');
-                });
-                
-                // Show list detail section
-                const listDetailSection = document.getElementById('mobileListDetailSection');
-                if (listDetailSection) {
-                    listDetailSection.style.display = 'block';
-                    listDetailSection.classList.add('active');
-                    
-                    // Update title and description
-                    const titleEl = document.getElementById('mobileListDetailTitle');
-                    const descEl = document.getElementById('mobileListDetailDescription');
-                    const addBtn = document.getElementById('mobileAddToListBtn');
-                    
-                    if (titleEl) titleEl.textContent = list.title;
-                    if (descEl) descEl.textContent = list.description || '';
-                    if (addBtn) {
-                        addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                    }
-                    
-                    await renderMobileListRestaurants(list.restaurants || [], list);
-                }
-            }
-
-            async function renderMobileListRestaurants(listRestaurants, list) {
-                const container = document.getElementById('mobileListRestaurants');
-                if (!container) return;
-
-                container.innerHTML = '';
-
-                if (!listRestaurants || listRestaurants.length === 0) {
-                    const emptyStateText = isViewingOwnProfile ?
-                        'Start adding items to your list!' :
-                        'This list is currently empty.';
-
-                    container.innerHTML = `
-                        <div class="mobile-empty-state">
-                            <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                            <div class="mobile-empty-title">No Collections Yet</div>
-                            <div class="mobile-empty-description">${emptyStateText}</div>
-                            ${isViewingOwnProfile ? `
-                                <button class="mobile-action-btn" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Places
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Get restaurant details
-                const numericIds = listRestaurants.map(id => Number(id));
-                const restaurantsData = restaurants.filter(r => numericIds.includes(r.id));
-
-                restaurantsData.forEach(restaurant => {
-                    const restaurantCard = document.createElement('div');
-                    restaurantCard.className = 'mobile-list-restaurant-card';
-                    restaurantCard.style.position = 'relative';
-
-                    const restaurantInfo = document.createElement('div');
-                    restaurantInfo.className = 'mobile-list-restaurant-info';
-                    restaurantInfo.style.cursor = 'pointer';
-                    restaurantInfo.onclick = () => {
-                        window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    };
-
-                    restaurantInfo.innerHTML = `
-                        <div class="mobile-list-restaurant-image">
-                            <img src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                        </div>
-                        <div>
-                            <div style="font-weight: 600; margin-bottom: 2px;">${restaurant.name}</div>
-                            <div style="font-size: 12px; color: var(--muted);">${restaurant.category}</div>
-                            <div style="font-size: 12px; color: var(--accent); margin-top: 2px;">* ${restaurant.rating}</div>
-                        </div>
-                    `;
-
-                    restaurantCard.appendChild(restaurantInfo);
-
-                    if (isViewingOwnProfile) {
-                        const removeBtn = document.createElement('button');
-                        removeBtn.className = 'remove-btn';
-                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                        removeBtn.style.opacity = '1';
-                        removeBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            removeFromList(restaurant.id);
-                        };
-                        restaurantCard.appendChild(removeBtn);
-                    }
-
-                    container.appendChild(restaurantCard);
-                });
-            }
-
-            function hideListDetail() {
-                const isMobile = window.innerWidth <= 768;
-                
-                if (isMobile) {
-                    hideMobileListDetail();
-                    return;
-                }
-                
-                const listsTab = document.getElementById('lists-tab');
-                const listDetailView = document.getElementById('list-detail-view');
-                
-                if (listsTab) listsTab.style.display = 'block';
-                if (listDetailView) {
-                    listDetailView.style.display = 'none';
-                    listDetailView.classList.remove('active');
-                }
-                
-                currentActiveList = null;
-            }
-
-            function hideMobileListDetail() {
-                const listDetailSection = document.getElementById('mobileListDetailSection');
-                if (listDetailSection) {
-                    listDetailSection.style.display = 'none';
-                    listDetailSection.classList.remove('active');
-                }
-                
-                // Show the current tab section
-                const currentTabSection = document.getElementById(`mobile${currentTab.charAt(0).toUpperCase() + currentTab.slice(1)}Section`);
-                if (currentTabSection) {
-                    currentTabSection.style.display = 'block';
-                    currentTabSection.classList.add('active');
-                }
-                
-                currentActiveList = null;
-            }
-
-            // ===== FOOD JOURNAL =====
-            const foodJournal = {
-                async init() {
-                    await this.loadJournalEntries();
-                },
-                
-                async loadJournalEntries() {
-                    const isMobile = window.innerWidth <= 768;
-                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
-                    if (!journalEntries) return;
-                    
-                    const targetId = isViewingOwnProfile ? currentUser.id : targetUserId;
-                    if (!targetId) return;
-                    
-                    try {
-                        const { data: entries, error } = await supabase
-                            .from('journal_entries')
-                            .select('*, restraunts(name, image, category, slug)')
-                            .eq('user_id', targetId)
-                            .order('created_at', { ascending: false });
-
-                        if (error) throw error;
-                        
-                        if (!entries || entries.length === 0) {
-                            const emptyText = isViewingOwnProfile ? 
-                                'Start reviewing places to build your journey!' :
-                                'This user hasn\'t reviewed any restaurants yet.';
-                            
-                            if (isMobile) {
-                                journalEntries.innerHTML = `
-                                    <div class="mobile-empty-state">
-                                        <div class="mobile-empty-icon">${iconGlyph('restaurant')}</div>
-                                        <div class="mobile-empty-title">No Reviews Yet</div>
-                                        <div class="mobile-empty-description">${emptyText}</div>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="mobile-action-btn" onclick="window.location.href='index.html'">
-                                                <i class="fas fa-search"></i> Browse Places
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            } else {
-                                journalEntries.innerHTML = `
-                                    <div class="empty-state">
-                                        <div class="empty-icon">${iconGlyph('restaurant')}</div>
-                                        <h3 class="empty-title">No Reviews Yet</h3>
-                                        <p class="empty-description">${emptyText}</p>
-                                        ${isViewingOwnProfile ? `
-                                            <button class="btn btn-primary mt-md" onclick="window.location.href='index.html'">
-                                                <i class="fas fa-clapperboard"></i> Browse Places
-                                            </button>
-                                        ` : ''}
-                                    </div>
-                                `;
-                            }
-                            return;
-                        }
-                        
-                        journalEntries.innerHTML = '';
-                        
-                        let entriesToShow = entries;
-                        if (!isMobile && journalFilter === 'recent') {
-                            entriesToShow = entries.slice(0, 5);
-                        } else if (!isMobile && journalFilter === 'favorites') {
-                            entriesToShow = entries.filter(entry => entry.rating >= 4);
-                        }
-                        
-                        for (const entry of entriesToShow) {
-                            const restaurant = entry.restraunts;
-                            
-                            if (!restaurant) continue;
-                            
-                            this.renderJournalEntry(entry, restaurant, isMobile);
-                        }
-                        
-                    } catch (error) {
-                        console.error('Error loading journal entries:', error);
-                        if (isMobile) {
-                            journalEntries.innerHTML = `
-                                <div class="mobile-empty-state">
-                                    <div class="mobile-empty-icon">${iconGlyph('list')}</div>
-                                    <div class="mobile-empty-title">Unable to Load Reviews</div>
-                                    <div class="mobile-empty-description">There was an error loading your reviews.</div>
-                                </div>
-                            `;
-                        } else {
-                            journalEntries.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-icon">${iconGlyph('list')}</div>
-                                    <h3 class="empty-title">Unable to Load Reviews</h3>
-                                    <p class="empty-description">There was an error loading your reviews.</p>
-                                </div>
-                            `;
-                        }
-                    }
-                },
-                
-                renderJournalEntry(entry, restaurant, isMobile) {
-                    const journalEntries = isMobile ? document.getElementById('mobileJournalEntries') : document.getElementById('journalEntries');
-                    const entryElement = document.createElement('div');
-                    
-                    if (isMobile) {
-                        entryElement.className = 'mobile-journal-entry';
-                        entryElement.style.cursor = 'pointer';
-                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
-                        
-                        const restaurantImage = restaurant.image ? 
-                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 50px; height: 50px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-                        
-                        entryElement.innerHTML = `
-                            <div class="mobile-entry-header">
-                                <div class="mobile-restaurant-info">
-                                    <div class="mobile-restaurant-image">
-                                        <a href="restaurant.html?slug=${restaurant.slug || ''}" style="text-decoration: none; color: inherit;">
-                                            ${restaurantImage}
-                                        </a>
-                                    </div>
-                                    <div class="mobile-restaurant-details">
-                                        <div class="mobile-restaurant-name">${restaurant.name}</div>
-                                        <div class="mobile-restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="mobile-entry-rating">${'*'.repeat(Math.floor(entry.rating))} ${entry.rating}/5</div>
-                            </div>
-                            <div class="mobile-entry-meta">
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
-                                </div>
-                                <div class="mobile-meta-badge">
-                                    <i class="fas fa-clapperboard"></i>
-                                    ${restaurant.category}
-                                </div>
-                            </div>
-                            ${entry.notes ? `
-                                <div class="mobile-entry-notes">${entry.notes}</div>
-                            ` : ''}
-                            ${entry.tags ? `
-                                <div class="mobile-entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="mobile-tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${isViewingOwnProfile ? `
-                                <div class="mobile-entry-actions">
-                                    <button class="mobile-action-btn secondary" style="padding: 8px 12px; font-size: 14px; flex: 1;" onclick="event.stopPropagation(); window.location.href='restaurant.html?slug=${restaurant.slug || ''}'">
-                                        <i class="fas fa-external-link-alt"></i> View Restaurant
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                    } else {
-                        entryElement.className = 'journal-entry';
-                        entryElement.style.cursor = 'pointer';
-                        entryElement.onclick = () => this.editJournalEntry(entry, restaurant);
-                        
-                        const restaurantLink = restaurant.slug ? `restaurant.html?slug=${restaurant.slug}` : 'javascript:void(0)';
-                        const restaurantImage = restaurant.image ? 
-                            `<img src="images/${restaurant.image}" alt="${restaurant.name}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">` : 
-                            `<div style="width: 60px; height: 60px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #0b1633; font-weight: bold;">${restaurant.name.charAt(0)}</div>`;
-                        
-                        entryElement.innerHTML = `
-                            <div class="entry-header">
-                                <div class="restaurant-info">
-                                    <div class="restaurant-image">
-                                        <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                            ${restaurantImage}
-                                        </a>
-                                    </div>
-                                    <div class="restaurant-details">
-                                        <h3>
-                                            <a href="${restaurantLink}" style="text-decoration: none; color: inherit;">
-                                                ${restaurant.name}
-                                            </a>
-                                        </h3>
-                                        <div class="restaurant-category">${restaurant.category}</div>
-                                    </div>
-                                </div>
-                                <div class="entry-rating">
-                                    ${'*'.repeat(Math.floor(entry.rating))}
-                                    <span>${entry.rating}/5</span>
-                                </div>
-                            </div>
-                            <div class="entry-meta">
-                                <div class="meta-badge">
-                                    <i class="fas fa-calendar"></i>
-                                    ${new Date(entry.visit_date || entry.created_at).toLocaleDateString()}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-clapperboard"></i>
-                                    ${restaurant.category}
-                                </div>
-                                <div class="meta-badge">
-                                    <i class="fas fa-star"></i>
-                                    ${entry.rating}/5
-                                </div>
-                            </div>
-                            <div class="entry-notes">${entry.notes || 'No review text provided'}</div>
-                            ${entry.tags ? `
-                                <div class="entry-tags">
-                                    ${entry.tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            ${isViewingOwnProfile ? `
-                                <div class="entry-actions">
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); foodJournal.editJournalEntry(${JSON.stringify(entry).replace(/"/g, '&quot;')}, ${JSON.stringify(restaurant).replace(/"/g, '&quot;')})">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); listManager.toggleInList('favorites', ${restaurant.id})">
-                                        <i class="fas fa-heart"></i> Favorite
-                                    </button>
-                                </div>
-                            ` : ''}
-                        `;
-                    }
-                    journalEntries.appendChild(entryElement);
-                },
-                
-                async editJournalEntry(entry, restaurant) {
-                    if (!isViewingOwnProfile) {
-                        return;
-                    }
-
-                    const restaurantSelect = document.getElementById('restaurantSelect');
-                    const visitDate = document.getElementById('visitDate');
-                    const visitNotes = document.getElementById('visitNotes');
-                    const visitTags = document.getElementById('visitTags');
-                    
-                    if (restaurantSelect) restaurantSelect.value = entry.restaurant_id;
-                    if (visitDate) visitDate.value = entry.visit_date || entry.created_at.split('T')[0];
-                    if (visitNotes) visitNotes.value = entry.notes || '';
-                    if (visitTags) visitTags.value = entry.tags || '';
-                    
-                    ProfileManager.setRating(entry.rating);
-                    currentEditingJournalEntry = entry.id;
-                    
-                    const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                    const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                    
-                    if (modalTitle) modalTitle.textContent = 'Edit Journal Entry';
-                    if (submitButton) submitButton.textContent = 'Update Entry';
-                    
-                    ProfileManager.showModal('addEntryModal');
-                },
-
-                async saveJournalEntry() {
-                    const restaurantId = parseInt(document.getElementById('restaurantSelect')?.value);
-                    const visitDate = document.getElementById('visitDate')?.value;
-                    const rating = parseInt(document.getElementById('selectedRating')?.value || '0');
-                    const notes = document.getElementById('visitNotes')?.value || '';
-                    const tags = (document.getElementById('visitTags')?.value || '').split(',').map(tag => tag.trim()).filter(tag => tag);
-                    
-                    if (!restaurantId || !visitDate || rating === 0) {
-                        showToast('Please fill in all required fields', 'error');
-                        return;
-                    }
-
-                    try {
-                        if (currentEditingJournalEntry) {
-                            const { error } = await supabase
-                                .from('journal_entries')
-                                .update({
-                                    restaurant_id: restaurantId,
-                                    visit_date: visitDate,
-                                    rating: rating,
-                                    notes: notes,
-                                    tags: tags.join(','),
-                                    updated_at: new Date().toISOString()
-                                })
-                                .eq('id', currentEditingJournalEntry);
-                            
-                            if (error) throw error;
-                            
-                            showToast('Journal entry updated successfully!', 'success');
-                            currentEditingJournalEntry = null;
-                            
-                        } else {
-                            const { error } = await supabase
-                                .from('journal_entries')
-                                .insert({
-                                    user_id: currentUser.id,
-                                    restaurant_id: restaurantId,
-                                    visit_date: visitDate,
-                                    rating: rating,
-                                    notes: notes,
-                                    tags: tags.join(','),
-                                    created_at: new Date().toISOString()
-                                });
-                            
-                            if (error) throw error;
-                            
-                            await listManager.toggleInList('visited', restaurantId);
-                            const restaurant = restaurants.find(r => r.id === restaurantId);
-                            showToast(`Added ${restaurant?.name || 'restaurant'} to your journal!`, 'success');
-                        }
-                        
-                        ProfileManager.closeModal('addEntryModal');
-                        
-                        const form = document.getElementById('journalEntryForm');
-                        if (form) form.reset();
-                        ProfileManager.setRating(0);
-                        
-                        const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                        const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                        
-                        if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
-                        if (submitButton) submitButton.textContent = 'Save Entry';
-                        
-                        await this.loadJournalEntries();
-                        await updateStats();
-                        
-                    } catch (error) {
-                        console.error('Error saving journal entry:', error);
-                        showToast('Error saving journal entry', 'error');
-                    }
-                }
-            };
 
             // ===== CREATE COMMUNITY SYSTEM =====
             function createCommunitySystem() {
@@ -3799,7 +2307,6 @@
                     getActivityCustomListTable(mediaType) {
                         const normalized = String(mediaType || '').trim().toLowerCase();
                         if (!normalized) return '';
-                        if (normalized === 'restaurant' && ENABLE_RESTAURANTS) return 'lists';
                         return CUSTOM_LIST_TABLES[normalized] || '';
                     },
 
@@ -3863,14 +2370,7 @@
                             } : null;
                         }
                         if (safeType === 'restaurant') {
-                            if (!restaurants.length) {
-                                await loadRestaurants().catch(() => {});
-                            }
-                            const restaurant = restaurants.find((entry) => String(entry?.id || '') === safeId);
-                            return restaurant ? {
-                                title: String(restaurant.name || '').trim(),
-                                image: restaurant.image ? `images/${restaurant.image}` : ''
-                            } : null;
+                            return null;
                         }
                         return null;
                     },
@@ -4022,9 +2522,6 @@
                             { table: 'book_lists', mediaType: 'book' },
                             { table: 'music_lists', mediaType: 'music' }
                         ];
-                        if (ENABLE_RESTAURANTS) {
-                            customListSources.push({ table: 'lists', mediaType: 'restaurant' });
-                        }
                         const reviewSources = [
                             { table: 'movie_reviews', mediaType: 'movie', itemField: 'movie_id', textField: 'comment' },
                             { table: 'tv_reviews', mediaType: 'tv', itemField: 'tv_id', textField: 'comment' },
@@ -4033,9 +2530,6 @@
                             { table: 'book_reviews', mediaType: 'book', itemField: 'book_id', textField: 'comment' },
                             { table: 'music_reviews', mediaType: 'music', itemField: 'track_id', textField: 'comment' }
                         ];
-                        if (ENABLE_RESTAURANTS) {
-                            reviewSources.push({ table: 'journal_entries', mediaType: 'restaurant', itemField: 'restraunt_id', textField: 'notes' });
-                        }
 
                         const listAddTasks = listItemSources.map(async (source) => {
                             const rows = await this.fetchRowsWithCreatedAtFallback(
@@ -4573,9 +3067,6 @@
                     if (error) throw error;
                     
                     customLists = customLists.filter(l => l.id !== listId);
-                    listManager.userLists = listManager.userLists.filter(l => l.id !== listId);
-                    
-                    listManager.renderLists();
                     
                     showToast('List deleted successfully', 'success');
                     
@@ -4590,8 +3081,7 @@
             }
 
             function prepareEditList(listId) {
-                const list = customLists.find(l => l.id === listId) || 
-                        listManager.userLists.find(l => l.id === listId);
+                const list = customLists.find(l => l.id === listId);
                 
                 if (!list) return;
                 
@@ -4714,7 +3204,6 @@
                     const raw = localStorage.getItem(COLLECTION_VIEW_STORAGE_KEY);
                     const parsed = raw ? JSON.parse(raw) : {};
                     const base = {
-                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
                         anime: 'grid',
@@ -4733,7 +3222,6 @@
                     return base;
                 } catch (_error) {
                     return {
-                        ...(ENABLE_RESTAURANTS ? { restaurant: 'grid' } : {}),
                         movie: 'grid',
                         tv: 'grid',
                         anime: 'grid',
@@ -5433,10 +3921,6 @@
             }
 
             async function rerenderCollectionTabForType(contentType) {
-                if (contentType === 'restaurant') {
-                    await renderRestaurants();
-                    return;
-                }
                 if (contentType === 'movie') {
                     await renderMovies();
                     return;
@@ -7754,153 +6238,21 @@
                 }
             }
 
-            async function renameMovieList(listId) {
-                await openMediaListEditor('movie', listId);
-            }
+            async function createMovieList() { await createListByType('movie'); }
+            async function renameMovieList(listId) { await renameListByType('movie', listId); }
+            async function deleteMovieList(listId) { await deleteListByType('movie', listId); }
 
-            async function createMovieList() {
-                await openMediaListCreator('movie');
-            }
+            async function createTvList() { await createListByType('tv'); }
+            async function renameTvList(listId) { await renameListByType('tv', listId); }
+            async function deleteTvList(listId) { await deleteListByType('tv', listId); }
 
-            async function deleteMovieList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('movie', listId);
-                if (!accessRecord || !canDeleteCustomCollection('movie', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this movie list? This cannot be undone.', async function() {
-                const userId = currentUser.id;
-                await supabase
-                    .from('movie_list_items')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('list_id', listId);
-                const { error } = await supabase
-                    .from('movie_lists')
-                    .delete()
-                    .eq('id', listId)
-                    .eq('user_id', userId);
-                if (error) {
-                    showToast('Could not delete list', 'error');
-                    return;
-                }
-                hideMovieDetail();
-                await renderMovies();
-                showToast('List deleted', 'success');
-                });
-            }
+            async function createAnimeList() { await createListByType('anime'); }
+            async function renameAnimeList(listId) { await renameListByType('anime', listId); }
+            async function deleteAnimeList(listId) { await deleteListByType('anime', listId); }
 
-            async function renameTvList(listId) {
-                await openMediaListEditor('tv', listId);
-            }
-
-            async function createTvList() {
-                await openMediaListCreator('tv');
-            }
-
-            async function deleteTvList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('tv', listId);
-                if (!accessRecord || !canDeleteCustomCollection('tv', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this TV show list? This cannot be undone.', async function() {
-                const userId = currentUser.id;
-                await supabase
-                    .from('tv_list_items')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('list_id', listId);
-                const { error } = await supabase
-                    .from('tv_lists')
-                    .delete()
-                    .eq('id', listId)
-                    .eq('user_id', userId);
-                if (error) {
-                    showToast('Could not delete list', 'error');
-                    return;
-                }
-                hideTvDetail();
-                await renderTvShows();
-                showToast('List deleted', 'success');
-                });
-            }
-
-            async function renameAnimeList(listId) {
-                await openMediaListEditor('anime', listId);
-            }
-
-            async function createAnimeList() {
-                await openMediaListCreator('anime');
-            }
-
-            async function deleteAnimeList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('anime', listId);
-                if (!accessRecord || !canDeleteCustomCollection('anime', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this anime list? This cannot be undone.', async function() {
-                const userId = currentUser.id;
-                await supabase
-                    .from('anime_list_items')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('list_id', listId);
-                const { error } = await supabase
-                    .from('anime_lists')
-                    .delete()
-                    .eq('id', listId)
-                    .eq('user_id', userId);
-                if (error) {
-                    showToast('Could not delete list', 'error');
-                    return;
-                }
-                hideAnimeDetail();
-                await renderAnimeShows();
-                showToast('List deleted', 'success');
-                });
-            }
-
-            async function renameGameList(listId) {
-                await openMediaListEditor('game', listId);
-            }
-
-            async function createGameList() {
-                await openMediaListCreator('game');
-            }
-
-            async function deleteGameList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('game', listId);
-                if (!accessRecord || !canDeleteCustomCollection('game', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this game list? This cannot be undone.', async function() {
-                const userId = currentUser.id;
-                await supabase
-                    .from('game_list_items')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('list_id', listId);
-                const { error } = await supabase
-                    .from('game_lists')
-                    .delete()
-                    .eq('id', listId)
-                    .eq('user_id', userId);
-                if (error) {
-                    showToast('Could not delete list', 'error');
-                    return;
-                }
-                hideGameDetail();
-                await renderGames();
-                showToast('List deleted', 'success');
-                });
-            }
+            async function createGameList() { await createListByType('game'); }
+            async function renameGameList(listId) { await renameListByType('game', listId); }
+            async function deleteGameList(listId) { await deleteListByType('game', listId); }
 
             function scrollActiveMobileTabIntoView(tabName) {
                 const activeTab = document.querySelector(`.mobile-tab[data-tab="${tabName}"]`);
@@ -8158,117 +6510,6 @@
             }
 
             // ===== UNIFIED COLLECTION RENDERING =====
-            async function renderRestaurants() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileRestaurantsGrid') : document.getElementById('restaurantsGrid');
-                if (!grid) return;
-
-                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
-                if (!userId) return;
-                const renderToken = ++renderRestaurantsToken;
-
-                try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const { data: listsData, error } = await supabase
-                        .from('lists')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    if (renderToken !== renderRestaurantsToken) return;
-                    let lists = Array.isArray(listsData) ? listsData : [];
-                    if (window.ListUtils && lists.length && typeof ListUtils.hydrateListMetaForLists === 'function') {
-                        lists = await ListUtils.hydrateListMetaForLists('restaurant', lists, {
-                            client: supabase,
-                            userId: currentUser?.id,
-                            ownerUserId: userId
-                        });
-                    }
-                    if (renderToken !== renderRestaurantsToken) return;
-
-                    if (!lists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Collections Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Create your first collection!</p>
-                                ${isViewingOwnProfile ? `
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="ProfileManager.showCreateListModal()">
-                                        <i class="fas fa-plus"></i> Create Collection
-                                    </button>
-                                ` : ''}
-                            </div>
-                        `;
-                        markTabRendered('restaurants');
-                        return;
-                    }
-
-                    const priorityOrder = {
-                        'favorites': 0,
-                        'want to go': 1,
-                        'want to go to': 1,
-                        'visited': 2
-                    };
-                    const priorityIcons = {
-                        'favorites': 'heart',
-                        'want to go': 'bookmark',
-                        'want to go to': 'bookmark',
-                        'visited': 'check'
-                    };
-
-                    lists.forEach(list => {
-                        const key = (list.title || '').trim().toLowerCase();
-                        if (priorityIcons[key]) {
-                            list.icon = priorityIcons[key];
-                        }
-                    });
-
-                    lists.sort((a, b) => {
-                        const aKey = (a.title || '').trim().toLowerCase();
-                        const bKey = (b.title || '').trim().toLowerCase();
-                        const aRank = priorityOrder[aKey] ?? 99;
-                        const bRank = priorityOrder[bKey] ?? 99;
-                        if (aRank !== bRank) return aRank - bRank;
-                        return new Date(b.created_at) - new Date(a.created_at);
-                    });
-                    lists = applyPinnedListSorting('restaurant', lists);
-
-                    const listIds = lists.map(list => list.id).filter(Boolean);
-                    const { data: allListItems } = listIds.length
-                        ? await supabase
-                            .from('lists_restraunts')
-                            .select('list_id, restraunt_id')
-                            .in('list_id', listIds)
-                        : { data: [] };
-                    const itemsByListId = new Map();
-                    (allListItems || []).forEach(item => {
-                        if (!itemsByListId.has(item.list_id)) itemsByListId.set(item.list_id, []);
-                        itemsByListId.get(item.list_id).push(item.restraunt_id);
-                    });
-                    lists.forEach(list => {
-                        list.restaurantIds = itemsByListId.get(list.id) || [];
-                    });
-
-                    if (renderToken !== renderRestaurantsToken) return;
-                    const cards = await Promise.all(lists.map(list => createCollectionCard(list, 'restaurant', isMobile, userId)));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
-                    markTabRendered('restaurants');
-                } catch (error) {
-                    console.error('Error loading restaurants:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Collections</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your collections</p>
-                        </div>
-                    `;
-                }
-            }
-
             async function renderMovies() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileMoviesGrid') : document.getElementById('moviesGrid');
@@ -9757,13 +7998,7 @@
                 const missingIds = normalizedIds.filter((id, index) => !urls[index]);
 
                 if (missingIds.length) {
-                    if (contentType === 'restaurant') {
-                        missingIds.forEach((id) => {
-                            const restaurant = restaurants.find((r) => String(r.id || '') === String(id || ''));
-                            const imageUrl = restaurant?.image ? `images/${restaurant.image}` : null;
-                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
-                        });
-                    } else if (contentType === 'book') {
+                    if (contentType === 'book') {
                         const rows = await Promise.all(missingIds.map((id) => resolveProfileBookRecord(id)));
                         rows.forEach((row, index) => {
                             const id = String(row?.id || missingIds[index] || '').trim();
@@ -9855,7 +8090,11 @@
             async function showCollectionDetail(listId, contentType, listType) {
                 const isMobile = window.innerWidth <= 768;
 
-                if (contentType === 'game') {
+                if (contentType === 'movie') {
+                    await showMovieDetail(listId, listType, isMobile);
+                } else if (contentType === 'book') {
+                    await showBookDetail(listId, listType, isMobile);
+                } else if (contentType === 'game') {
                     await showGameDetail(listId, listType, isMobile);
                 } else if (contentType === 'tv') {
                     await showTvDetail(listId, listType, isMobile);
@@ -9874,174 +8113,6 @@
                 } else {
                     await showBookDetail(listId, listType, isMobile);
                 }
-            }
-
-            async function showRestaurantDetail(listId, isMobile) {
-                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
-                if (!restaurants.length) {
-                    await loadRestaurants().catch(() => {});
-                }
-                if (isMobile) {
-                    const mainSection = document.getElementById('mobileRestaurantsSection');
-                    const detailSection = document.getElementById('mobileRestaurantDetailSection');
-                    if (mainSection) mainSection.style.display = 'none';
-                    if (detailSection) {
-                        detailSection.style.display = 'block';
-                        detailSection.classList.add('active');
-                    }
-                } else {
-                    const mainTab = document.getElementById('restaurants-tab');
-                    const detailView = document.getElementById('restaurant-detail-view');
-                    if (mainTab) mainTab.style.display = 'none';
-                    if (detailView) {
-                        detailView.style.display = 'block';
-                        detailView.classList.add('active');
-                    }
-                }
-
-                let { data: list, error } = await supabase
-                    .from('lists')
-                    .select('*')
-                    .eq('id', listId)
-                    .single();
-
-                if (error || !list) {
-                    showToast('Collection not found', 'error');
-                    return;
-                }
-
-                if (window.ListUtils) {
-                    const [hydrated] = await ListUtils.hydrateListMetaForLists('restaurant', [list], {
-                        client: supabase,
-                        userId: currentUser?.id,
-                        ownerUserId: userId
-                    });
-                    if (hydrated) list = hydrated;
-                }
-
-                const { data: items } = await supabase
-                    .from('lists_restraunts')
-                    .select('restraunt_id')
-                    .eq('list_id', listId);
-
-                const restaurantIds = items ? items.map(i => i.restraunt_id) : [];
-                const listType = list.is_default ? 'default' : 'custom';
-                const tierMeta = getTierMetaForList('restaurant', list, restaurantIds.length);
-                const detailTitle = getCollectionTitleWithKind('restaurant', list, listType);
-                const detailDescription = tierMeta.isTier
-                    ? `${list.description || ''}${list.description ? ' | ' : ''}Ranked list.`
-                    : (list.description || '');
-
-                if (isMobile) {
-                    const titleEl = document.getElementById('mobileRestaurantDetailTitle');
-                    const descEl = document.getElementById('mobileRestaurantDetailDescription');
-                    const addBtn = document.getElementById('mobileAddToRestaurantListBtn');
-                    if (titleEl) titleEl.textContent = detailTitle;
-                    if (descEl) descEl.textContent = detailDescription;
-                    if (addBtn) addBtn.style.display = isViewingOwnProfile ? 'flex' : 'none';
-                } else {
-                    const iconEl = document.getElementById('restaurantDetailIcon');
-                    const nameEl = document.getElementById('restaurantDetailName');
-                    const descEl = document.getElementById('restaurantDetailDescription');
-                    const actions = document.getElementById('restaurantDetailActions');
-                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'restaurant');
-                    if (nameEl) nameEl.textContent = detailTitle;
-                    if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = isViewingOwnProfile && !list.is_default ? 'flex' : 'none';
-                }
-
-                await renderRestaurantItems(restaurantIds, listId, isMobile, list, listType, userId);
-
-                currentActiveList = { ...list, id: listId, restaurantIds, listType };
-                currentMediaDetail = { mediaType: 'restaurant', listId, listType, isMobile };
-                updateCollectionViewToggleButtons('restaurant');
-            }
-
-            async function renderRestaurantItems(restaurantIds, listId, isMobile, list = null, listType = 'custom', ownerUserId = null) {
-                const container = isMobile ? document.getElementById('mobileRestaurantItems') : document.getElementById('restaurantItemsContainer');
-                if (!container) return;
-                applyCollectionViewToContainer(container, 'restaurant');
-
-                if (!restaurantIds || restaurantIds.length === 0) {
-                    container.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('restaurant')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Collections Yet</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Start adding items!</p>
-                            ${isViewingOwnProfile ? `
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='index.html'">
-                                    <i class="fas fa-search"></i> Browse Places
-                                </button>
-                            ` : ''}
-                        </div>
-                    `;
-                    wireTierDragAndDrop(container, null, null, 'default');
-                    return;
-                }
-
-                container.innerHTML = '';
-
-                const { tierMeta, orderedIds: orderedRestaurantIds } = await resolveTierOrderedIds('restaurant', list, listId, restaurantIds, {
-                    listType,
-                    ownerUserId
-                });
-                const canReorderList = canReorderCollectionItems('restaurant', listId, listType, list);
-
-                const restaurantMap = new Map();
-                (restaurants || []).forEach((row) => {
-                    restaurantMap.set(String(row.id), row);
-                });
-
-                for (let index = 0; index < orderedRestaurantIds.length; index += 1) {
-                    const rankedRestaurantId = String(orderedRestaurantIds[index] || '').trim();
-                    const restaurant = restaurantMap.get(rankedRestaurantId);
-                    if (!restaurant) continue;
-                    const itemCard = document.createElement('div');
-                    itemCard.className = 'collection-item-card';
-                    itemCard.onclick = () => window.location.href = `restaurant.html?slug=${restaurant.slug}`;
-                    const canReorder = canReorderList;
-                    const rankMarkup = tierMeta.isTier
-                        ? buildTierRankControlMarkup(
-                            index + 1,
-                            orderedRestaurantIds.length,
-                            canReorder
-                        )
-                        : '';
-
-                    itemCard.innerHTML = `
-                        <img class="collection-item-image" src="images/${restaurant.image || 'placeholder.jpg'}" alt="${restaurant.name}" loading="lazy">
-                        <div class="collection-item-body">
-                            <h3 class="collection-item-title">${restaurant.name}</h3>
-                            ${isViewingOwnProfile ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${restaurant.id}, '${listId}', 'restaurant')">
-                                    <i class="fas fa-times"></i> Remove
-                                </button>
-                            ` : ''}
-                            <div class="collection-item-meta">
-                                <span><i class="fas fa-clapperboard"></i> ${restaurant.category}</span>
-                                <span><i class="fas fa-star"></i> ${restaurant.rating}</span>
-                            </div>
-                            ${rankMarkup}
-                        </div>
-                        ${isViewingOwnProfile ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${restaurant.id}, '${listId}', 'restaurant')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
-                    `;
-
-                    container.appendChild(itemCard);
-                    if (canReorder) {
-                        itemCard.dataset.tierItemId = rankedRestaurantId;
-                    }
-                }
-
-                wireTierDragAndDrop(
-                    container,
-                    canReorderList ? 'restaurant' : null,
-                    canReorderList ? listId : null,
-                    canReorderList ? listType : 'default'
-                );
             }
 
             async function showMovieDetail(listId, listType, isMobile) {
@@ -11903,564 +9974,81 @@
                     .replace(/'/g, '&#039;');
             }
 
-            function hideBookDetail() {
-                if (leaveCollectionRoute('books')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileBookDetailSection');
-                    const mainSection = document.getElementById('mobileBooksSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('book-detail-view');
-                    const mainTab = document.getElementById('books-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-            // ===== CREATE/RENAME/DELETE BOOK LIST (OVERRIDES) =====
-                        async function createBookList() {
-                await openMediaListCreator('book');
-            }
-
-            async function renameBookList(listId) {
-                await openMediaListEditor('book', listId);
-            }
-
-            async function deleteBookList(listId) {
+            function hideBookDetail() { hideDetailByType('book'); }
+            // ===== GENERIC LIST CRUD =====
+            async function createListByType(type) { await openMediaListCreator(type); }
+            async function renameListByType(type, listId) { await openMediaListEditor(type, listId); }
+            async function deleteListByType(type, listId) {
                 if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('book', listId);
-                if (!accessRecord || !canDeleteCustomCollection('book', listId, accessRecord)) {
+                const accessRecord = await fetchCustomListAccessRecord(type, listId);
+                if (!accessRecord || !canDeleteCustomCollection(type, listId, accessRecord)) {
                     showToast('Only the list owner can delete this list', 'warning');
                     return;
                 }
-
-                showConfirmModal('Delete List', 'Delete this book list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-
-                    // First delete all items in the list
-                    await supabase
-                        .from('book_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-
-                    // Then delete the list itself
-                    const { error } = await supabase
-                        .from('book_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-
-                    if (error) throw error;
-
-                    hideBookDetail();
-                    await renderBooks();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting book list:', error);
-                    showToast('Could not delete list', 'error');
-                }
+                const listTable = CUSTOM_LIST_TABLES[type];
+                const itemTable = MEDIA_ITEM_TABLES[type];
+                const renderFn = MEDIA_TYPE_RENDERERS[type];
+                showConfirmModal('Delete List', `Delete this ${type} list? This cannot be undone.`, async function() {
+                    try {
+                        const userId = currentUser.id;
+                        await supabase.from(itemTable).delete().eq('user_id', userId).eq('list_id', listId);
+                        const { error } = await supabase.from(listTable).delete().eq('id', listId).eq('user_id', userId);
+                        if (error) throw error;
+                        hideDetailByType(type);
+                        if (renderFn) await renderFn();
+                        showToast('List deleted', 'success');
+                    } catch (error) {
+                        console.error(`Error deleting ${type} list:`, error);
+                        showToast('Could not delete list', 'error');
+                    }
                 });
             }
+            async function createBookList() { await createListByType('book'); }
+            async function renameBookList(listId) { await renameListByType('book', listId); }
+            async function deleteBookList(listId) { await deleteListByType('book', listId); }
+            async function createMusicList() { await createListByType('music'); }
+            async function renameMusicList(listId) { await renameListByType('music', listId); }
+            async function deleteMusicList(listId) { await deleteListByType('music', listId); }
+            async function createTravelList() { await createListByType('travel'); }
+            async function renameTravelList(listId) { await renameListByType('travel', listId); }
+            async function deleteTravelList(listId) { await deleteListByType('travel', listId); }
+            async function createFashionList() { await createListByType('fashion'); }
+            async function renameFashionList(listId) { await renameListByType('fashion', listId); }
+            async function deleteFashionList(listId) { await deleteListByType('fashion', listId); }
+            async function createFoodList() { await createListByType('food'); }
+            async function renameFoodList(listId) { await renameListByType('food', listId); }
+            async function deleteFoodList(listId) { await deleteListByType('food', listId); }
+            async function createCarList() { await createListByType('car'); }
+            async function renameCarList(listId) { await renameListByType('car', listId); }
+            async function deleteCarList(listId) { await deleteListByType('car', listId); }
 
-            async function createMusicList() {
-                await openMediaListCreator('music');
-            }
-
-            async function renameMusicList(listId) {
-                await openMediaListEditor('music', listId);
-            }
-
-            async function deleteMusicList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('music', listId);
-                if (!accessRecord || !canDeleteCustomCollection('music', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this music list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-                    await supabase
-                        .from('music_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-                    const { error } = await supabase
-                        .from('music_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-                    if (error) throw error;
-
-                    hideMusicDetail();
-                    await renderMusic();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting music list:', error);
-                    showToast('Could not delete list', 'error');
-                }
-                });
-            }
-
-            async function createTravelList() {
-                await openMediaListCreator('travel');
-            }
-
-            async function renameTravelList(listId) {
-                await openMediaListEditor('travel', listId);
-            }
-
-            async function deleteTravelList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('travel', listId);
-                if (!accessRecord || !canDeleteCustomCollection('travel', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this travel list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-                    await supabase
-                        .from('travel_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-                    const { error } = await supabase
-                        .from('travel_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-                    if (error) throw error;
-
-                    hideTravelDetail();
-                    await renderTravel();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting travel list:', error);
-                    showToast('Could not delete list', 'error');
-                }
-                });
-            }
-
-            async function createFashionList() {
-                await openMediaListCreator('fashion');
-            }
-
-            async function renameFashionList(listId) {
-                await openMediaListEditor('fashion', listId);
-            }
-
-            async function deleteFashionList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('fashion', listId);
-                if (!accessRecord || !canDeleteCustomCollection('fashion', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this fashion list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-                    await supabase
-                        .from('fashion_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-                    const { error } = await supabase
-                        .from('fashion_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-                    if (error) throw error;
-
-                    hideFashionDetail();
-                    await renderFashion();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting fashion list:', error);
-                    showToast('Could not delete list', 'error');
-                }
-                });
-            }
-
-            async function createFoodList() {
-                await openMediaListCreator('food');
-            }
-
-            async function createCarList() {
-                await openMediaListCreator('car');
-            }
-
-            async function renameFoodList(listId) {
-                await openMediaListEditor('food', listId);
-            }
-
-            async function renameCarList(listId) {
-                await openMediaListEditor('car', listId);
-            }
-
-            async function deleteFoodList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('food', listId);
-                if (!accessRecord || !canDeleteCustomCollection('food', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this food list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-                    await supabase
-                        .from('food_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-                    const { error } = await supabase
-                        .from('food_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-                    if (error) throw error;
-
-                    hideFoodDetail();
-                    await renderFood();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting food list:', error);
-                    showToast('Could not delete list', 'error');
-                }
-                });
-            }
-
-            async function deleteCarList(listId) {
-                if (!supabase || !currentUser || !isViewingOwnProfile) return;
-                const accessRecord = await fetchCustomListAccessRecord('car', listId);
-                if (!accessRecord || !canDeleteCustomCollection('car', listId, accessRecord)) {
-                    showToast('Only the list owner can delete this list', 'warning');
-                    return;
-                }
-                showConfirmModal('Delete List', 'Delete this car list? This cannot be undone.', async function() {
-                try {
-                    const userId = currentUser.id;
-                    await supabase
-                        .from('car_list_items')
-                        .delete()
-                        .eq('user_id', userId)
-                        .eq('list_id', listId);
-                    const { error } = await supabase
-                        .from('car_lists')
-                        .delete()
-                        .eq('id', listId)
-                        .eq('user_id', userId);
-                    if (error) throw error;
-
-                    hideCarDetail();
-                    await renderCars();
-                    showToast('List deleted', 'success');
-                } catch (error) {
-                    console.error('Error deleting car list:', error);
-                    showToast('Could not delete list', 'error');
-                }
-                });
-            }
-
-            function hideRestaurantDetail() {
-                if (leaveCollectionRoute('restaurants')) return;
+            function hideDetailByType(type) {
+                const cfg = HIDE_DETAIL_CONFIG[type];
+                if (!cfg) return;
+                if (leaveCollectionRoute(cfg.route)) return;
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
-                    const detailSection = document.getElementById('mobileRestaurantDetailSection');
-                    const mainSection = document.getElementById('mobileRestaurantsSection');
-                    if (detailSection) detailSection.style.display = 'none';
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
+                    const detailSection = document.getElementById(cfg.mobileDetail);
+                    const mainSection = document.getElementById(cfg.mobileMain);
+                    if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active', 'rendered'); }
+                    if (mainSection) { mainSection.style.display = 'block'; mainSection.classList.add('active'); }
                 } else {
-                    const detailView = document.getElementById('restaurant-detail-view');
-                    const mainTab = document.getElementById('restaurants-tab');
-                    if (detailView) detailView.style.display = 'none';
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
+                    const detailView = document.getElementById(cfg.desktopDetail);
+                    const mainTab = document.getElementById(cfg.desktopTab);
+                    if (detailView) { detailView.style.display = 'none'; detailView.classList.remove('active', 'rendered'); }
+                    if (mainTab) { mainTab.style.display = 'block'; mainTab.classList.add('active'); }
                 }
             }
-
-            function hideMovieDetail() {
-                if (leaveCollectionRoute('movies')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileMovieDetailSection');
-                    const mainSection = document.getElementById('mobileMoviesSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('movie-detail-view');
-                    const mainTab = document.getElementById('movies-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideMusicDetail() {
-                if (leaveCollectionRoute('music')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileMusicDetailSection');
-                    const mainSection = document.getElementById('mobileMusicSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('music-detail-view');
-                    const mainTab = document.getElementById('music-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideTravelDetail() {
-                if (leaveCollectionRoute('travel')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileTravelDetailSection');
-                    const mainSection = document.getElementById('mobileTravelSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('travel-detail-view');
-                    const mainTab = document.getElementById('travel-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideFashionDetail() {
-                if (leaveCollectionRoute('fashion')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileFashionDetailSection');
-                    const mainSection = document.getElementById('mobileFashionSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('fashion-detail-view');
-                    const mainTab = document.getElementById('fashion-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideCarDetail() {
-                if (leaveCollectionRoute('car')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileCarsDetailSection');
-                    const mainSection = document.getElementById('mobileCarsSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('cars-detail-view');
-                    const mainTab = document.getElementById('cars-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideFoodDetail() {
-                if (leaveCollectionRoute('food')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileFoodDetailSection');
-                    const mainSection = document.getElementById('mobileFoodSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('food-detail-view');
-                    const mainTab = document.getElementById('food-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideTvDetail() {
-                if (leaveCollectionRoute('tv')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileTvDetailSection');
-                    const mainSection = document.getElementById('mobileTvSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('tv-detail-view');
-                    const mainTab = document.getElementById('tv-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideAnimeDetail() {
-                if (leaveCollectionRoute('anime')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileAnimeDetailSection');
-                    const mainSection = document.getElementById('mobileAnimeSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('anime-detail-view');
-                    const mainTab = document.getElementById('anime-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
-
-            function hideGameDetail() {
-                if (leaveCollectionRoute('games')) return;
-                currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                if (isMobile) {
-                    const detailSection = document.getElementById('mobileGameDetailSection');
-                    const mainSection = document.getElementById('mobileGamesSection');
-                    if (detailSection) {
-                        detailSection.style.display = 'none';
-                        detailSection.classList.remove('active', 'rendered');
-                    }
-                    if (mainSection) {
-                        mainSection.style.display = 'block';
-                        mainSection.classList.add('active');
-                    }
-                } else {
-                    const detailView = document.getElementById('game-detail-view');
-                    const mainTab = document.getElementById('games-tab');
-                    if (detailView) {
-                        detailView.style.display = 'none';
-                        detailView.classList.remove('active', 'rendered');
-                    }
-                    if (mainTab) {
-                        mainTab.style.display = 'block';
-                        mainTab.classList.add('active');
-                    }
-                }
-            }
+            function hideMovieDetail() { hideDetailByType('movie'); }
+            function hideMusicDetail() { hideDetailByType('music'); }
+            function hideTravelDetail() { hideDetailByType('travel'); }
+            function hideFashionDetail() { hideDetailByType('fashion'); }
+            function hideCarDetail() { hideDetailByType('car'); }
+            function hideFoodDetail() { hideDetailByType('food'); }
+            function hideTvDetail() { hideDetailByType('tv'); }
+            function hideAnimeDetail() { hideDetailByType('anime'); }
+            function hideGameDetail() { hideDetailByType('game'); }
 
             function toggleCollectionMenu(id, type) {
                 const dropdown = document.getElementById(`collection-${type}-${id}`);
@@ -12475,72 +10063,29 @@
 
             async function removeFromCollection(itemId, collectionId, type, listType = 'custom') {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
-                const trigger = window.event?.currentTarget instanceof HTMLElement
-                    ? window.event.currentTarget
-                    : null;
-                const removableNode = trigger
-                    ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-list-restaurant-card, .mobile-journal-entry')
-                    : null;
+                const trigger = window.event?.currentTarget instanceof HTMLElement ? window.event.currentTarget : null;
+                const removableNode = trigger ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-journal-entry') : null;
                 let restoreRemovedNode = null;
 
+                const showDetailFns = { movie: showMovieDetail, tv: showTvDetail, anime: showAnimeDetail, game: showGameDetail, book: showBookDetail, music: showMusicDetail, travel: showTravelDetail, fashion: showFashionDetail, food: showFoodDetail, car: showCarDetail };
+                const renderFns = { movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames, book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion, food: renderFood, car: renderCars };
+
                 const refreshCollectionViews = () => {
-                    if (type === 'restaurant') {
-                        void showRestaurantDetail(collectionId, window.innerWidth <= 768);
-                        void renderRestaurants();
-                    } else if (type === 'movie') {
-                        void showMovieDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderMovies();
-                    } else if (type === 'tv') {
-                        void showTvDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderTvShows();
-                    } else if (type === 'anime') {
-                        void showAnimeDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderAnimeShows();
-                    } else if (type === 'game') {
-                        void showGameDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderGames();
-                    } else if (type === 'music') {
-                        void showMusicDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderMusic();
-                    } else if (type === 'travel') {
-                        void showTravelDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderTravel();
-                    } else if (type === 'fashion') {
-                        void showFashionDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderFashion();
-                    } else if (type === 'food') {
-                        void showFoodDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderFood();
-                    } else if (type === 'car') {
-                        void showCarDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderCars();
-                    } else {
-                        void showBookDetail(collectionId, listType, window.innerWidth <= 768);
-                        void renderBooks();
-                    }
+                    const showFn = showDetailFns[type] || showBookDetail;
+                    const renderFn = renderFns[type] || renderBooks;
+                    void showFn(collectionId, listType, window.innerWidth <= 768);
+                    void renderFn();
                 };
 
                 try {
-                    if (type === 'restaurant') {
-                        const { data: listOwner } = await supabase
-                            .from('lists')
-                            .select('user_id')
-                            .eq('id', collectionId)
-                            .maybeSingle();
-                        if (!listOwner || listOwner.user_id !== currentUser?.id) {
-                            showToast('You do not have permission to edit this list', 'warning');
-                            return;
-                        }
-                    } else {
-                        let canEdit = canEditCollectionItems(type, collectionId, listType);
-                        if (!canEdit && String(listType || '').toLowerCase() === 'custom') {
-                            const accessRecord = await fetchCustomListAccessRecord(type, collectionId);
-                            canEdit = !!accessRecord && canEditCollectionItems(type, collectionId, listType, accessRecord);
-                        }
-                        if (!canEdit) {
-                            showToast('You do not have permission to edit this list', 'warning');
-                            return;
-                        }
+                    let canEdit = canEditCollectionItems(type, collectionId, listType);
+                    if (!canEdit && String(listType || '').toLowerCase() === 'custom') {
+                        const accessRecord = await fetchCustomListAccessRecord(type, collectionId);
+                        canEdit = !!accessRecord && canEditCollectionItems(type, collectionId, listType, accessRecord);
+                    }
+                    if (!canEdit) {
+                        showToast('You do not have permission to edit this list', 'warning');
+                        return;
                     }
 
                     if (removableNode instanceof HTMLElement) {
@@ -12551,9 +10096,7 @@
                         removableNode.style.pointerEvents = 'none';
                         removableNode.style.opacity = '0.22';
                         removableNode.style.transform = 'scale(0.98)';
-                        window.setTimeout(() => {
-                            removableNode.style.display = 'none';
-                        }, 60);
+                        window.setTimeout(() => { removableNode.style.display = 'none'; }, 60);
                         restoreRemovedNode = () => {
                             removableNode.style.display = previousDisplay;
                             removableNode.style.opacity = previousOpacity;
@@ -12562,81 +10105,20 @@
                         };
                     }
 
-                    if (type === 'restaurant') {
-                        const { error } = await supabase
-                            .from('lists_restraunts')
-                            .delete()
-                            .eq('list_id', collectionId)
-                            .eq('restraunt_id', itemId);
-                        if (error) throw error;
-                    } else if (type === 'movie') {
-                        const query = supabase.from('movie_list_items').delete();
+                    const itemTable = MEDIA_ITEM_TABLES[type];
+                    const itemField = MEDIA_ITEM_FIELDS[type];
+                    if (itemTable && itemField) {
+                        const query = supabase.from(itemTable).delete();
                         const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('movie_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('movie_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'tv') {
-                        const query = supabase.from('tv_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('tv_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('tv_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'anime') {
-                        const query = supabase.from('anime_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('anime_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('anime_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'game') {
-                        const query = supabase.from('game_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('game_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('game_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'music') {
-                        const query = supabase.from('music_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('track_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('track_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'travel') {
-                        const query = supabase.from('travel_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('country_code', itemId).eq('list_type', collectionId)
-                            : await query.eq('country_code', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'fashion') {
-                        const query = supabase.from('fashion_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'food') {
-                        const query = supabase.from('food_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else if (type === 'car') {
-                        const query = supabase.from('car_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('brand_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('brand_id', itemId).eq('list_id', collectionId);
-                        if (error) throw error;
-                    } else {
-                        const query = supabase.from('book_list_items').delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq('book_id', itemId).eq('list_type', collectionId)
-                            : await query.eq('book_id', itemId).eq('list_id', collectionId);
+                            ? await query.eq('user_id', userId).eq(itemField, itemId).eq('list_type', collectionId)
+                            : await query.eq(itemField, itemId).eq('list_id', collectionId);
                         if (error) throw error;
                     }
 
                     showToast('Removed from collection', 'success');
                     refreshCollectionViews();
                 } catch (error) {
-                    if (typeof restoreRemovedNode === 'function') {
-                        restoreRemovedNode();
-                    }
+                    if (typeof restoreRemovedNode === 'function') restoreRemovedNode();
                     console.error('Error removing item:', error);
                     showToast('Failed to remove item', 'error');
                     refreshCollectionViews();
@@ -12644,191 +10126,39 @@
             }
 
             async function editCollection(id, type) {
-                if (type === 'restaurant') {
-                    if (typeof ProfileManager.prepareEditList === 'function') {
-                        ProfileManager.prepareEditList(id);
-                    }
-                    return;
-                }
-
                 const accessRecord = await fetchCustomListAccessRecord(type, id);
                 if (!accessRecord || !canEditCustomCollection(type, id, accessRecord)) {
                     showToast('You do not have permission to edit this list', 'warning');
                     return;
                 }
-
                 await openMediaListEditor(type, id);
             }
 
             async function deleteCollection(id, type) {
-                if (type === 'restaurant') {
-                    const { data: listOwner } = await supabase
-                        .from('lists')
-                        .select('user_id')
-                        .eq('id', id)
-                        .maybeSingle();
-                    if (!listOwner || listOwner.user_id !== currentUser?.id) {
-                        showToast('Only the list owner can delete this list', 'warning');
-                        return;
-                    }
-                } else {
-                    const accessRecord = await fetchCustomListAccessRecord(type, id);
-                    if (!accessRecord || !canDeleteCustomCollection(type, id, accessRecord)) {
-                        showToast('Only the list owner can delete this list', 'warning');
-                        return;
-                    }
+                const accessRecord = await fetchCustomListAccessRecord(type, id);
+                if (!accessRecord || !canDeleteCustomCollection(type, id, accessRecord)) {
+                    showToast('Only the list owner can delete this list', 'warning');
+                    return;
                 }
-                showConfirmModal(
-                    'Delete Collection',
-                    'Are you sure? This cannot be undone.',
-                    async () => {
-                        try {
-                            if (type === 'restaurant') {
-                                await supabase.from('lists_restraunts').delete().eq('list_id', id);
-                                await supabase.from('lists').delete().eq('id', id);
-                            } else if (type === 'movie') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'movie')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for movie list:', collabCleanup.error);
-                                }
-                                await supabase.from('movie_list_items').delete().eq('list_id', id);
-                                await supabase.from('movie_lists').delete().eq('id', id);
-                            } else if (type === 'tv') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'tv')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for TV list:', collabCleanup.error);
-                                }
-                                await supabase.from('tv_list_items').delete().eq('list_id', id);
-                                await supabase.from('tv_lists').delete().eq('id', id);
-                            } else if (type === 'anime') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'anime')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for anime list:', collabCleanup.error);
-                                }
-                                await supabase.from('anime_list_items').delete().eq('list_id', id);
-                                await supabase.from('anime_lists').delete().eq('id', id);
-                            } else if (type === 'game') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'game')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for game list:', collabCleanup.error);
-                                }
-                                await supabase.from('game_list_items').delete().eq('list_id', id);
-                                await supabase.from('game_lists').delete().eq('id', id);
-                            } else if (type === 'music') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'music')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for music list:', collabCleanup.error);
-                                }
-                                await supabase.from('music_list_items').delete().eq('list_id', id);
-                                await supabase.from('music_lists').delete().eq('id', id);
-                            } else if (type === 'travel') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'travel')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for travel list:', collabCleanup.error);
-                                }
-                                await supabase.from('travel_list_items').delete().eq('list_id', id);
-                                await supabase.from('travel_lists').delete().eq('id', id);
-                            } else if (type === 'fashion') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'fashion')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for fashion list:', collabCleanup.error);
-                                }
-                                await supabase.from('fashion_list_items').delete().eq('list_id', id);
-                                await supabase.from('fashion_lists').delete().eq('id', id);
-                            } else if (type === 'food') {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'food')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for food list:', collabCleanup.error);
-                                }
-                                await supabase.from('food_list_items').delete().eq('list_id', id);
-                                await supabase.from('food_lists').delete().eq('id', id);
-                            } else {
-                                const collabCleanup = await supabase
-                                    .from(LIST_COLLAB_TABLE)
-                                    .delete()
-                                    .eq('media_type', 'book')
-                                    .eq('list_id', String(id));
-                                if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
-                                    console.warn('Could not remove collaborators for book list:', collabCleanup.error);
-                                }
-                                await supabase.from('book_list_items').delete().eq('list_id', id);
-                                await supabase.from('book_lists').delete().eq('id', id);
-                            }
-
-                            showToast('Collection deleted', 'success');
-
-                            if (type === 'restaurant') {
-                                hideRestaurantDetail();
-                                await renderRestaurants();
-                            } else if (type === 'movie') {
-                                hideMovieDetail();
-                                await renderMovies();
-                            } else if (type === 'tv') {
-                                hideTvDetail();
-                                await renderTvShows();
-                            } else if (type === 'anime') {
-                                hideAnimeDetail();
-                                await renderAnimeShows();
-                            } else if (type === 'game') {
-                                hideGameDetail();
-                                await renderGames();
-                            } else if (type === 'music') {
-                                hideMusicDetail();
-                                await renderMusic();
-                            } else if (type === 'travel') {
-                                hideTravelDetail();
-                                await renderTravel();
-                            } else if (type === 'fashion') {
-                                hideFashionDetail();
-                                await renderFashion();
-                            } else if (type === 'food') {
-                                hideFoodDetail();
-                                await renderFood();
-                            } else if (type === 'car') {
-                                hideCarDetail();
-                                await renderCars();
-                            } else {
-                                hideBookDetail();
-                                await renderBooks();
-                            }
-                        } catch (error) {
-                            console.error('Error deleting collection:', error);
-                            showToast('Failed to delete collection', 'error');
+                const listTable = CUSTOM_LIST_TABLES[type];
+                const itemTable = MEDIA_ITEM_TABLES[type];
+                const renderFn = MEDIA_TYPE_RENDERERS[type];
+                showConfirmModal('Delete Collection', 'Are you sure? This cannot be undone.', async () => {
+                    try {
+                        const collabCleanup = await supabase.from(LIST_COLLAB_TABLE).delete().eq('media_type', type).eq('list_id', String(id));
+                        if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
+                            console.warn(`Could not remove collaborators for ${type} list:`, collabCleanup.error);
                         }
+                        if (itemTable) await supabase.from(itemTable).delete().eq('list_id', id);
+                        if (listTable) await supabase.from(listTable).delete().eq('id', id);
+                        showToast('Collection deleted', 'success');
+                        hideDetailByType(type);
+                        if (renderFn) await renderFn();
+                    } catch (error) {
+                        console.error('Error deleting collection:', error);
+                        showToast('Failed to delete collection', 'error');
                     }
-                );
+                });
             }
 
             function setupCommunitySnapshotNavigation() {
@@ -12927,16 +10257,6 @@
                     playProfileModalFlyUp(modal);
                     syncProfileModalBodyLock();
                     
-                    if (modalId === 'addEntryModal') {
-                        const visitDate = document.getElementById('visitDate');
-                        if (visitDate) {
-                            const today = new Date().toISOString().split('T')[0];
-                            visitDate.value = today;
-                            visitDate.max = today;
-                        }
-                        setRating(0);
-                    }
-                    
                     if (modalId === 'editProfileModal' && userProfile) {
                         document.getElementById('editUsername').value = userProfile.username || '';
                         document.getElementById('editBio').value = userProfile.bio || '';
@@ -12981,7 +10301,7 @@
                     }
                     
                     if (modalId === 'createListModal') {
-                        const selectedValue = String(document.getElementById('selectedIcon')?.value || getDefaultListIconForContext('restaurant'));
+                        const selectedValue = String(document.getElementById('selectedIcon')?.value || 'list');
                         document.querySelectorAll('.list-icon-option, #createListIconGrid .menu-icon-option').forEach(icon => {
                             const isSelected = icon.getAttribute('data-icon') === selectedValue;
                             icon.classList.toggle('selected', isSelected);
@@ -12998,27 +10318,14 @@
                     modal.setAttribute('aria-hidden', 'true');
                     syncProfileModalBodyLock();
                     
-                    if (modalId === 'addEntryModal') {
-                        const form = document.getElementById('journalEntryForm');
-                        if (form) form.reset();
-                        setRating(0);
-                        currentEditingJournalEntry = null;
-                        
-                        const modalTitle = document.querySelector('#addEntryModal .modal-title');
-                        const submitButton = document.querySelector('#journalEntryForm button[type="submit"]');
-                        
-                        if (modalTitle) modalTitle.textContent = 'Add Journal Entry';
-                        if (submitButton) submitButton.textContent = 'Save Entry';
-                    }
-                    
                     if (modalId === 'createListModal') {
                         const form = document.getElementById('createListForm');
                         if (form) form.reset();
                         const selectedInput = document.getElementById('selectedIcon');
-                        if (selectedInput) selectedInput.value = getDefaultListIconForContext('restaurant');
+                        if (selectedInput) selectedInput.value = 'list';
 
                         document.querySelectorAll('.list-icon-option').forEach(icon => {
-                            const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
+                            const isSelected = icon.getAttribute('data-icon') === 'list';
                             icon.classList.toggle('selected', isSelected);
                         });
                         
@@ -13069,66 +10376,12 @@
 
             function createListForType(type) {
                 closeModal('createListTypeModal');
+                const tabMap = { movies: 'movies', tv: 'tv', anime: 'anime', games: 'games', books: 'books', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'cars' };
+                const typeMap = { movies: 'movie', tv: 'tv', anime: 'anime', games: 'game', books: 'book', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'car' };
                 const normalized = String(type || '').toLowerCase();
-                if (normalized === 'restaurants') {
-                    if (!ENABLE_RESTAURANTS) {
-                        showToast('Collections are temporarily unavailable', 'info');
-                        showTab(DEFAULT_PROFILE_TAB);
-                        return;
-                    }
-                    showTab('restaurants');
-                    showCreateListModal();
-                    return;
-                }
-                if (normalized === 'movies') {
-                    showTab('movies');
-                    createMovieList();
-                    return;
-                }
-                if (normalized === 'tv') {
-                    showTab('tv');
-                    createTvList();
-                    return;
-                }
-                if (normalized === 'anime') {
-                    showTab('anime');
-                    createAnimeList();
-                    return;
-                }
-                if (normalized === 'games') {
-                    showTab('games');
-                    createGameList();
-                    return;
-                }
-                if (normalized === 'books') {
-                    showTab('books');
-                    createBookList();
-                    return;
-                }
-                if (normalized === 'music') {
-                    showTab('music');
-                    createMusicList();
-                    return;
-                }
-                if (normalized === 'travel') {
-                    showTab('travel');
-                    createTravelList();
-                    return;
-                }
-                if (normalized === 'fashion') {
-                    showTab('fashion');
-                    createFashionList();
-                    return;
-                }
-                if (normalized === 'food') {
-                    showTab('food');
-                    createFoodList();
-                    return;
-                }
-                if (normalized === 'cars') {
-                    showTab('cars');
-                    createCarList();
-                }
+                const tab = tabMap[normalized];
+                const mediaType = typeMap[normalized];
+                if (tab && mediaType) { showTab(tab); createListByType(mediaType); }
             }
 
             // ===== MOBILE MENU FUNCTIONS =====
@@ -13365,9 +10618,6 @@
                     // Clone and replace to remove all listeners
                     const newForm = createListForm.cloneNode(true);
                     createListForm.parentNode.replaceChild(newForm, createListForm);
-                    
-                    // Add single listener
-                    newForm.addEventListener('submit', handleListSubmit);
                 }
                 
                 // Rest of your event listeners...
@@ -13377,62 +10627,6 @@
                         const tabName = this.getAttribute('data-tab');
                         if (!tabName) return;
                         showTab(tabName);
-                    });
-                });
-                
-                // Filter buttons
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        journalFilter = this.getAttribute('data-filter');
-                        foodJournal.loadJournalEntries();
-                    });
-                });
-                
-                // Journal entry form
-                const journalEntryForm = document.getElementById('journalEntryForm');
-                if (journalEntryForm) {
-                    journalEntryForm.addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        foodJournal.saveJournalEntry();
-                    });
-                }
-                
-                // Edit profile form
-                const editProfileForm = document.getElementById('editProfileForm');
-                if (editProfileForm) {
-                    editProfileForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await saveProfileChanges();
-                    });
-                }
-
-                const accountEmailForm = document.getElementById('accountEmailForm');
-                if (accountEmailForm) {
-                    accountEmailForm.addEventListener('submit', updateAccountEmail);
-                }
-
-                const accountPasswordForm = document.getElementById('accountPasswordForm');
-                if (accountPasswordForm) {
-                    accountPasswordForm.addEventListener('submit', updateAccountPassword);
-                }
-
-                const sendResetPasswordBtn = document.getElementById('sendResetPasswordBtn');
-                if (sendResetPasswordBtn) {
-                    sendResetPasswordBtn.addEventListener('click', sendPasswordResetEmail);
-                }
-
-                const sendMagicLinkBtn = document.getElementById('sendMagicLinkBtn');
-                if (sendMagicLinkBtn) {
-                    sendMagicLinkBtn.addEventListener('click', sendMagicLinkEmail);
-                }
-                
-                // Rating stars
-                document.querySelectorAll('.rating-star').forEach(star => {
-                    star.addEventListener('click', function() {
-                        const rating = parseInt(this.getAttribute('data-rating'));
-                        setRating(rating);
                     });
                 });
                 
@@ -13718,8 +10912,6 @@
                 showCollectionDetail,
                 openCollectionPage,
                 setCollectionViewMode,
-                hideRestaurantDetail,
-                hideMobileRestaurantDetail: hideRestaurantDetail,
                 hideMovieDetail,
                 hideMobileMovieDetail: hideMovieDetail,
                 hideTvDetail,
@@ -13740,7 +10932,6 @@
                 hideMobileFoodDetail: hideFoodDetail,
                 hideCarDetail,
                 hideMobileCarDetail: hideCarDetail,
-                hideListDetail,
                 toggleCollectionMenu,
                 createMovieList,
                 createTvList,
@@ -13778,7 +10969,6 @@
                 editCollection,
                 deleteCollection,
                 togglePinnedCollection,
-                handleListSubmit,
                 saveAvatar,
                 setRating,
                 toggleFollow,
@@ -13786,12 +10976,6 @@
                 showCreateListTypeModal,
                 createListForType,
                 logout,
-                // Restaurant lists (legacy lists section) uses these handlers via inline onclick.
-                // Desktop worked because those clicks tend to hit the "View all" button;
-                // on mobile the full card tap path depends on these being exported.
-                showList,
-                showMobileList,
-                removeFromList,
                 escapeHtml
             };
         })();

@@ -48,8 +48,6 @@ async function main() {
     path.join(rootDir, "travel.html"),
     path.join(rootDir, "js", "pages", "team.js"),
     path.join(rootDir, "js", "pages", "sports.js"),
-    path.join(rootDir, "js", "pages", "restraunts.js"),
-    path.join(rootDir, "js", "pages", "restaurant.js"),
     path.join(rootDir, "js", "pages", "profile.js"),
     path.join(rootDir, "js", "pages", "index.js")
   ];
