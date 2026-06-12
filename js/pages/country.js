@@ -1303,7 +1303,6 @@
         .catch(() => {});
 
       void fetchRelatedCountries();
-      return;
       } catch (e) {
         if (attempt === 0) {
           await new Promise((r) => setTimeout(r, 1000));
@@ -1329,38 +1328,42 @@
   }
 
   async function init() {
-    if (ui.body) ui.body.dataset.elevatedCategory = 'travel';
-    state.code = canonicalCountryCode(routeCode);
+    try {
+      if (ui.body) ui.body.dataset.elevatedCategory = 'travel';
+      state.code = canonicalCountryCode(routeCode);
 
-    loadSharedTravelPhotoCache();
-    loadCountryGalleryCache();
+      loadSharedTravelPhotoCache();
+      loadCountryGalleryCache();
 
-    if (routeCode === 'IL' && state.code === 'PS') {
-      try {
-        const next = new URLSearchParams(window.location.search);
-        next.set('code', 'PS');
-        const query = next.toString();
-        window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
-      } catch (_e) {}
+      if (routeCode === 'IL' && state.code === 'PS') {
+        try {
+          const next = new URLSearchParams(window.location.search);
+          next.set('code', 'PS');
+          const query = next.toString();
+          window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+        } catch (_e) {}
+      }
+
+      wireDescriptionToggle();
+      wireReviewEvents();
+      wirePlannerEvents();
+      wireSaveButton();
+      drawRatingStars();
+
+      await loadCountry();
+      await initAuth();
+      initMenuBridge();
+      syncReviewFormVisibility();
+      syncPlannerVisibility();
+      void loadReviews();
+      void loadPlanner();
+    } catch (err) {
+      console.error('Country page init failed:', err);
+      if (ui.name) ui.name.textContent = 'Error loading country';
+      if (ui.description) ui.description.textContent = 'An unexpected error occurred. Please try again.';
+      showToast('Unable to load country details.', 'error');
     }
-
-    wireDescriptionToggle();
-    wireReviewEvents();
-    wirePlannerEvents();
-    wireSaveButton();
-    drawRatingStars();
-
-    await loadCountry();
-    await initAuth();
-    initMenuBridge();
-    syncReviewFormVisibility();
-    syncPlannerVisibility();
-    void loadReviews();
-    void loadPlanner();
   }
 
-  init().catch((err) => {
-    console.error('Country page init failed:', err);
-    showToast('Unable to load country details.', 'error');
-  });
+  init();
 })();

@@ -9917,12 +9917,34 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadMusic(signal) {
+      const targetCount = Math.max(8, Number(getHomeChannelTargetItems() || 12));
       const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return cached;
-      const loaders = await ensureHomeHeavyLoaders();
-      const items = typeof loaders.loadMusic === 'function' ? await loaders.loadMusic(signal) : [];
-      if (items.length) writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
-      return items;
+      if (cached.length) return cached.slice(0, targetCount);
+      try {
+        const response = await fetch('/api/music/top-50?limit=24&market=US', { signal });
+        if (!response.ok) return [];
+        const data = await response.json();
+        const results = Array.isArray(data?.results) ? data.results : [];
+        const items = results.slice(0, targetCount).map((track) => ({
+          mediaType: 'music',
+          itemId: String(track?.id || ''),
+          title: String(track?.name || 'Track').trim(),
+          subtitle: Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist',
+          extra: `Song | Popularity: ${Number(track?.popularity || 0)}/100`,
+          image: String(track?.image || '').trim(),
+          backgroundImage: String(track?.image || '').trim(),
+          spotlightImage: String(track?.image || '').trim(),
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          previewUrl: String(track?.preview_url || '').trim(),
+          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+        })).filter((item) => item.itemId);
+        if (items.length) writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
+        return items;
+      } catch (err) {
+        console.error('Music load error:', err);
+        return [];
+      }
     }
 
     async function loadTravel(signal) {

@@ -250,10 +250,11 @@
   function ensureStyles() {
     if(typeof document==='undefined'||document.getElementById(STYLE_ID)) return;
     const s=document.createElement('style'); s.id=STYLE_ID; s.textContent=`
-      .menu-modal{display:none;position:fixed;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0;align-items:center;justify-content:center}
+      .menu-modal{display:none;position:fixed;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0}
       .menu-modal.active{display:flex}
-      .menu-modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card,#132347);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.28)}
-      @keyframes menuModalFlyUp{from{opacity:0;transform:translate(-50%,calc(-50% + 24px)) scale(.98)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+      .menu-modal-content{position:absolute;background:var(--card,#132347);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+      .menu-modal-content.centered{top:50%;left:50%;transform:translate(-50%,-50%)}
+      @keyframes menuModalFlyUp{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
       .menu-modal-content.menu-modal-fly-up{animation:menuModalFlyUp .28s cubic-bezier(.22,1,.36,1)}
       .menu-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.12))}
       .menu-modal-header h3{font-size:18px;font-weight:600;color:var(--white,#fff);margin:0}
@@ -439,8 +440,51 @@
     const te = document.getElementById('menuModalTitle'); if (te) te.textContent = item.title || 'Add to List';
     renderItemMenuQuickLists(); renderItemMenuCustomLists();
     const im = document.getElementById('itemMenuModal');
-    if (im) { im.classList.add('active'); im.setAttribute('aria-hidden','false'); syncMenuModalViewport(im); const c=im.querySelector('.menu-modal-content'); if(c){c.classList.remove('menu-modal-fly-up');void c.offsetWidth;c.classList.add('menu-modal-fly-up')} }
+    if (im) { 
+      im.classList.add('active'); 
+      im.setAttribute('aria-hidden','false');
+      positionMenuModalNearTrigger(card);
+      const c=im.querySelector('.menu-modal-content'); 
+      if(c){c.classList.remove('menu-modal-fly-up');void c.offsetWidth;c.classList.add('menu-modal-fly-up')} 
+    }
     syncMenuModalBodyLock(); void primeScopeCaches(); void loadItemMenuData();
+  }
+
+  function positionMenuModalNearTrigger(trigger) {
+    const im = document.getElementById('itemMenuModal');
+    const content = im?.querySelector('.menu-modal-content');
+    if (!im || !content || !trigger) {
+      content?.classList.add('centered');
+      return;
+    }
+    
+    const rect = trigger.getBoundingClientRect();
+    const modalWidth = 380;
+    const modalHeight = Math.min(content.offsetHeight || 400, window.innerHeight * 0.8);
+    const padding = 12;
+    
+    let left = rect.right + padding;
+    let top = rect.top;
+    
+    if (left + modalWidth > window.innerWidth - padding) {
+      left = rect.left - modalWidth - padding;
+    }
+    if (left < padding) {
+      left = padding;
+    }
+    
+    if (top + modalHeight > window.innerHeight - padding) {
+      top = window.innerHeight - modalHeight - padding;
+    }
+    if (top < padding) {
+      top = padding;
+    }
+    
+    content.style.position = 'absolute';
+    content.style.left = `${left}px`;
+    content.style.top = `${top}px`;
+    content.style.transform = 'none';
+    content.classList.remove('centered');
   }
 
   window.ListKit = {
