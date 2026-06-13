@@ -397,10 +397,27 @@ export default async function handler(req, res) {
 
   if (section === "health") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const diag = {};
+    try {
+      const testUrl = "https://itunes.apple.com/search?term=test&media=music&entity=song&country=US&limit=1";
+      const t0 = Date.now();
+      const ctrl = new AbortController();
+      const tmr = setTimeout(() => ctrl.abort(), 5000);
+      const resp = await fetch(testUrl, { signal: ctrl.signal, headers: { accept: "application/json" } });
+      clearTimeout(tmr);
+      diag.itunes_status = resp.status;
+      diag.itunes_ok = resp.ok;
+      const body = await resp.json();
+      diag.itunes_result_count = body?.resultCount ?? 0;
+      diag.fetch_ms = Date.now() - t0;
+    } catch (e) {
+      diag.itunes_error = String(e?.name || e?.message || e);
+    }
     return res.json({
       ok: true,
       service: "music-fallback",
-      source: "itunes-fallback"
+      source: "itunes-fallback",
+      diag
     });
   }
 
