@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260612c" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260612d" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -671,8 +671,12 @@
       const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
       const SUPABASE_KEY = String(supabaseConfig.key || '').trim() || '__SUPABASE_ANON_KEY__';
     const COUNTRIES_URL = '/api/restcountries/all?fields=name,cca2,cca3,capital,region,subregion,flags';
-    const CURATED_TRAVEL_DESTINATIONS = Array.isArray(window.ZO2Y_CURATED_TRAVEL_DESTINATIONS) ? window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.slice() : [];
-    const CURATED_TRAVEL_PRIORITY = new Map(CURATED_TRAVEL_DESTINATIONS.map((entry, index) => [String(entry?.code || '').trim().toUpperCase(), index + 1]).filter((entry) => entry[0]));
+    function _readCuratedTravelDestinations() {
+      return Array.isArray(window.ZO2Y_CURATED_TRAVEL_DESTINATIONS) ? window.ZO2Y_CURATED_TRAVEL_DESTINATIONS.slice() : [];
+    }
+    function _readCuratedTravelPriorityMap() {
+      return new Map(_readCuratedTravelDestinations().map((entry, index) => [String(entry?.code || '').trim().toUpperCase(), index + 1]).filter((entry) => entry[0]));
+    }
     const TRAVEL_RENDER_DEBOUNCE_MS = 180;
     const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
     const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
@@ -752,7 +756,7 @@
     function getCuratedTravelPriority(code) {
       const safeCountryCode = safeCode(code);
       if (!safeCountryCode) return 0;
-      return Number(CURATED_TRAVEL_PRIORITY.get(safeCountryCode) || 0) || 0;
+      return Number(_readCuratedTravelPriorityMap().get(safeCountryCode) || 0) || 0;
     }
 
     function sortTravelRowsByPriority(list) {
@@ -1580,6 +1584,11 @@
       const hasCapital = capitalNeedle && normalizedTitle.includes(capitalNeedle);
       const hasCity = cityNeedles.some((needle) => normalizedTitle.includes(needle));
       return !(hasCountry || hasCapital || hasCity);
+    }
+
+    function isPhotoMime(mime) {
+      const value = String(mime || '').toLowerCase().trim();
+      return value === 'image/jpeg' || value === 'image/jpg' || value === 'image/webp';
     }
 
     function scoreTravelPhotoCandidate(page, kind, countryName, capital, cityHints = []) {
@@ -2441,7 +2450,7 @@
 <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
-  <script src="/js/shared-components.js?v=20260612c" defer></script>
+  <script src="/js/shared-components.js?v=20260612d" defer></script>
 </body>
 </html>
 

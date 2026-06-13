@@ -9854,7 +9854,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260601b';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260612d';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9920,6 +9920,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const targetCount = Math.max(8, Number(getHomeChannelTargetItems() || 12));
       const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
       if (cached.length) return cached.slice(0, targetCount);
+      const loaders = await ensureHomeHeavyLoaders();
+      if (typeof loaders.loadMusic === 'function') {
+        try {
+          const items = await loaders.loadMusic(signal);
+          return Array.isArray(items) ? items.slice(0, targetCount) : [];
+        } catch (err) {
+          console.error('Music heavy loader error:', err);
+        }
+      }
       try {
         const response = await fetch('/api/music/top-50?limit=24&market=US', { signal });
         if (!response.ok) return [];
