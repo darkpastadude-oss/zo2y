@@ -1251,9 +1251,9 @@
       if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = state.name;
       if (ui.meta) {
         const metaBits = [];
-        if (state.capital) metaBits.push(`<i class="fa-solid fa-landmark"></i> <strong>${escapeHtml(state.capital)}</strong>`);
-        if (state.region) metaBits.push(`<i class="fa-solid fa-globe"></i> <strong>${escapeHtml(state.region)}</strong>`);
-        if (state.subregion) metaBits.push(`<i class="fa-solid fa-location-dot"></i> <strong>${escapeHtml(state.subregion)}</strong>`);
+        if (state.capital) metaBits.push(`<span class="elevated-meta-item"><i class="fa-solid fa-landmark"></i> <strong>${escapeHtml(state.capital)}</strong></span>`);
+        if (state.region) metaBits.push(`<span class="elevated-meta-item"><i class="fa-solid fa-globe"></i> <strong>${escapeHtml(state.region)}</strong></span>`);
+        if (state.subregion) metaBits.push(`<span class="elevated-meta-item"><i class="fa-solid fa-location-dot"></i> <strong>${escapeHtml(state.subregion)}</strong></span>`);
         ui.meta.innerHTML = metaBits.join('');
       }
       if (ui.tags) {

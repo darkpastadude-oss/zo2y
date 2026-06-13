@@ -938,7 +938,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const k = String(key || '').trim();
       if (!k) return false;
       // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car'].includes(k)) return false;
+      if (!['travel', 'sports', 'car', 'music'].includes(k)) return false;
       return Number(attempt || 0) < 4;
     }
 
@@ -9924,7 +9924,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (typeof loaders.loadMusic === 'function') {
         try {
           const items = await loaders.loadMusic(signal);
-          return Array.isArray(items) ? items.slice(0, targetCount) : [];
+          if (Array.isArray(items) && items.length) return items.slice(0, targetCount);
         } catch (err) {
           console.error('Music heavy loader error:', err);
         }
