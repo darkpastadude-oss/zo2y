@@ -1,4 +1,12 @@
-const REST_COUNTRIES_BASE = "https://restcountries.com/v3.1";
+import countriesData from "../data/countries-v3.js";
+
+const COUNTRIES = Array.isArray(countriesData) ? countriesData : [];
+const COUNTRY_BY_CCA2 = new Map();
+const COUNTRY_BY_CCA3 = new Map();
+COUNTRIES.forEach((c) => {
+  if (c.cca2) COUNTRY_BY_CCA2.set(c.cca2.toUpperCase(), c);
+  if (c.cca3) COUNTRY_BY_CCA3.set(c.cca3.toUpperCase(), c);
+});
 
 function readQuery(req) {
   if (req.query && typeof req.query === "object") return req.query;
@@ -18,67 +26,56 @@ function readPathParts(query) {
     .filter(Boolean);
 }
 
-function pushQueryParam(params, key, value) {
-  if (value === undefined || value === null) return;
-  if (Array.isArray(value)) {
-    value.forEach((entry) => {
-      if (entry === undefined || entry === null) return;
-      params.append(key, String(entry));
-    });
-    return;
+function pickFields(row, fields) {
+  if (!fields || !fields.length) return row;
+  const out = {};
+  for (const f of fields) {
+    if (f in row) out[f] = row[f];
   }
-  params.append(key, String(value));
+  return out;
+}
+
+function parseFields(query) {
+  const raw = String(query.fields || "").trim();
+  if (!raw) return null;
+  return raw.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
 export default async function handler(req, res) {
   const query = readQuery(req);
   const pathParts = readPathParts(query);
-  const relativePath = pathParts.join("/");
+  const section = String(pathParts[0] || "").toLowerCase();
+  const param = String(pathParts[1] || "").trim();
+  const fields = parseFields(query);
 
-  if (!relativePath) {
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return res.json({ ok: true, service: "restcountries-proxy" });
+  res.setHeader("Cache-Control", "public, s-maxage=86400, stale-while-revalidate=604800");
+
+  if (!section) {
+    return res.json({ ok: true, service: "restcountries-proxy", count: COUNTRIES.length });
   }
 
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const url = new URL(`${REST_COUNTRIES_BASE}/${relativePath}`);
-      Object.entries(query || {}).forEach(([key, value]) => {
-        if (key === "path") return;
-        pushQueryParam(url.searchParams, key, value);
-      });
+  if (section === "all") {
+    const filtered = COUNTRIES.map((c) => pickFields(c, fields));
+    return res.json(filtered);
+  }
 
-      const upstream = await fetch(url.toString(), {
-        headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(9000)
-      });
+  if (section === "region" && param) {
+    const region = param.toLowerCase();
+    const matched = COUNTRIES.filter((c) => {
+      return String(c.region || "").toLowerCase() === region ||
+        String(c.subregion || "").toLowerCase() === region;
+    }).map((c) => pickFields(c, fields));
+    return res.json(matched);
+  }
 
-      const text = await upstream.text();
-
-      if (!upstream.ok && upstream.status >= 500 && attempt === 0) {
-        await new Promise((r) => setTimeout(r, 800));
-        continue;
-      }
-
-      const isAll = relativePath.startsWith("all");
-      const maxAge = isAll ? 3600 : 86400;
-      res.setHeader("Cache-Control", `public, s-maxage=${maxAge}, stale-while-revalidate=${maxAge * 3}`);
-      res.setHeader("Content-Type", "application/json; charset=utf-8");
-      res.status(upstream.status);
-      return res.send(text);
-    } catch (error) {
-      if (attempt === 0) {
-        await new Promise((r) => setTimeout(r, 800));
-        continue;
-      }
-      res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-      return res.status(502).json({
-        ok: false,
-        message: error?.name === "TimeoutError" ? "Upstream timeout" : "Proxy error"
-      });
+  if (section === "alpha" && param) {
+    const code = param.toUpperCase();
+    const row = COUNTRY_BY_CCA2.get(code) || COUNTRY_BY_CCA3.get(code);
+    if (!row) {
+      return res.status(404).json([{ message: "Not Found" }]);
     }
+    return res.json([pickFields(row, fields)]);
   }
 
-  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120");
-  return res.status(502).json({ ok: false, message: "Upstream unavailable" });
+  return res.status(404).json([{ message: "Not Found" }]);
 }

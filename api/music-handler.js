@@ -1,8 +1,3 @@
-import dotenv from "dotenv";
-
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
-
 const ITUNES_SEARCH_URL = "https://itunes.apple.com/search";
 const ITUNES_LOOKUP_URL = "https://itunes.apple.com/lookup";
 const APPLE_MARKETING_API_BASE = "https://rss.applemarketingtools.com/api/v2";
