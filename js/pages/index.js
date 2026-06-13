@@ -9931,29 +9931,56 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       try {
         const response = await fetch('/api/music/top-50?limit=24&market=US', { signal });
-        if (!response.ok) return [];
-        const data = await response.json();
-        const results = Array.isArray(data?.results) ? data.results : [];
-        const items = results.slice(0, targetCount).map((track) => ({
-          mediaType: 'music',
-          itemId: String(track?.id || ''),
-          title: String(track?.name || 'Track').trim(),
-          subtitle: Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist',
-          extra: `Song | Popularity: ${Number(track?.popularity || 0)}/100`,
-          image: String(track?.image || '').trim(),
-          backgroundImage: String(track?.image || '').trim(),
-          spotlightImage: String(track?.image || '').trim(),
-          spotlightMediaFit: 'contain',
-          spotlightMediaShape: 'poster',
-          previewUrl: String(track?.preview_url || '').trim(),
-          href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
-        })).filter((item) => item.itemId);
-        if (items.length) writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
-        return items;
-      } catch (err) {
-        console.error('Music load error:', err);
-        return [];
-      }
+        if (response.ok) {
+          const data = await response.json();
+          const results = Array.isArray(data?.results) ? data.results : [];
+          const items = results.slice(0, targetCount).map((track) => ({
+            mediaType: 'music',
+            itemId: String(track?.id || ''),
+            title: String(track?.name || 'Track').trim(),
+            subtitle: Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist',
+            extra: `Song | Popularity: ${Number(track?.popularity || 0)}/100`,
+            image: String(track?.image || '').trim(),
+            backgroundImage: String(track?.image || '').trim(),
+            spotlightImage: String(track?.image || '').trim(),
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            previewUrl: String(track?.preview_url || '').trim(),
+            href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
+          })).filter((item) => item.itemId);
+          if (items.length) {
+            writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
+            return items;
+          }
+        }
+      } catch (_err) {}
+      try {
+        const itunesUrl = 'https://itunes.apple.com/search?term=top+hits&media=music&entity=song&limit=24&country=US';
+        const response = await fetch(itunesUrl, { signal });
+        if (response.ok) {
+          const data = await response.json();
+          const results = Array.isArray(data?.results) ? data.results : [];
+          const items = results.slice(0, targetCount).map((track) => ({
+            mediaType: 'music',
+            itemId: String(track?.trackId || ''),
+            title: String(track?.trackName || 'Track').trim(),
+            subtitle: String(track?.artistName || 'Artist').trim(),
+            extra: `Song | Album: ${String(track?.collectionName || '').trim()}`,
+            image: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
+            backgroundImage: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
+            spotlightImage: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            previewUrl: String(track?.previewUrl || '').trim(),
+            href: String(track?.trackId || '').trim() ? `song.html?id=${encodeURIComponent(track.trackId)}` : 'music.html'
+          })).filter((item) => item.itemId);
+          if (items.length) {
+            writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
+            return items;
+          }
+        }
+      } catch (_err) {}
+      return [];
     }
 
     async function loadTravel(signal) {
