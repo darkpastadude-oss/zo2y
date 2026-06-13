@@ -128,7 +128,7 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(120deg, rgba(9, 20, 44, 0.72), rgba(9, 20, 44, 0.88)),
+        linear-gradient(120deg, rgba(9, 20, 44, 0.36), rgba(9, 20, 44, 0.72)),
         var(--hero-bg-image, linear-gradient(160deg, rgba(23,43,88,0.9), rgba(19,35,71,0.95)));
       background-size: cover;
       background-position: center center;
@@ -400,7 +400,7 @@
     .card-photo-stage img {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       display: block;
       position: relative;
       z-index: 1;
@@ -1927,6 +1927,16 @@
         if (Array.isArray(cachedRows) && cachedRows.length) {
           state.rows = sortTravelRowsByPriority(cachedRows);
           hydrateRegionOptions();
+          const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+          if (needsTravelScenicHydration(initialRows)) {
+            void hydrateScenicCountryPhotos(initialRows)
+              .then(() => {
+                writeCountryRowsCache(state.rows);
+                scheduleTravelRender();
+              })
+              .catch(() => {});
+          }
+          startCountryPhotoBackfill();
           return true;
         }
       }
@@ -1955,9 +1965,19 @@
             continue;
           }
           state.rows = rows;
+          const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+          if (needsTravelScenicHydration(initialRows)) {
+            void hydrateScenicCountryPhotos(initialRows, controller.signal)
+              .then(() => {
+                writeCountryRowsCache(state.rows);
+                scheduleTravelRender();
+              })
+              .catch(() => {});
+          }
           state.rows = sortTravelRowsByPriority(state.rows);
           hydrateRegionOptions();
           writeCountryRowsCache(state.rows);
+          startCountryPhotoBackfill();
           return true;
         } catch (_error) {
           console.warn('Travel countries fetch error:', _error, fetchUrl);
@@ -2026,7 +2046,9 @@
       if (!hero || !spotlight) return;
       const featured = getHeroFeaturedDestinations();
       const primary = featured[0] || state.rows[0] || null;
-      const primaryPhoto = primary ? String(primary.flag || '').trim() : '';
+      const primaryPhoto = primary
+        ? (getStableTravelSpotlightVariant(primary)?.src || getOptimizedTravelBucketImage(primary.photo || primary.photoCity || primary.photoNature || '', 1600))
+        : '';
       hero.style.setProperty(
         '--hero-bg-image',
         primaryPhoto
@@ -2038,7 +2060,7 @@
         return;
       }
       spotlight.innerHTML = featured.map((item, index) => {
-        const thumb = String(item.flag || '').trim();
+        const thumb = getStableTravelSpotlightVariant(item)?.src || getOptimizedTravelBucketImage(item.photo || item.photoCity || item.photoNature || '', 320);
         const rankLabel = index === 0 ? 'Trending now' : `Featured pick ${index + 1}`;
         const subtitleBits = [
           item.capital ? `Capital: ${item.capital}` : '',
@@ -2109,15 +2131,16 @@
       empty.style.display = 'none';
 
       const buildPhotoShellMarkup = (item) => {
-        const flagUrl = String(item.flag || '').trim();
+        const initialVariant = getStableTravelCardVariant(item);
+        const hasPhoto = !!initialVariant?.src;
         return `
-          <div class="card-photo-wrap${flagUrl ? '' : ' no-photo'}">
+          <div class="card-photo-wrap${hasPhoto ? '' : ' no-photo'}">
             <div class="card-photo-fallback"></div>
-            ${flagUrl ? `
-              <div class="card-photo-stage is-loading" data-kind="flag">
-                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(flagUrl)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} flag`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
+            ${hasPhoto ? `
+              <div class="card-photo-stage is-loading" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">
+                <img src="${TRAVEL_IMAGE_PLACEHOLDER}" data-travel-src="${escapeHtml(initialVariant.src)}" data-travel-img="1" data-ready="0" alt="${escapeHtml(`${item.name || 'Country'} ${String(initialVariant.label || 'Scenic').toLowerCase()} view`)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">
                 <div class="card-photo-badges" aria-hidden="true">
-                  <span class="card-photo-label" data-kind="flag">Flag</span>
+                  <span class="card-photo-label" data-kind="${escapeHtml(initialVariant.kind || 'scenic')}">${escapeHtml(initialVariant.label || 'Scenic')}</span>
                 </div>
               </div>
             ` : ''}
@@ -2125,12 +2148,24 @@
         `;
       };
 
+      const updateCardPhotoMarkup = (item) => {
+        const card = grid.querySelector(`.card[data-country-code="${item.code}"]`);
+        const wrap = card && card.querySelector('.card-photo-wrap');
+        if (!card || !wrap) return;
+        const hero = item.photo || item.photoCity || item.photoNature || '';
+        card.setAttribute('data-image', hero);
+        wrap.outerHTML = buildPhotoShellMarkup(item);
+        wireTravelImages(card);
+        primeTravelImages(card);
+      };
+
       pageRows.forEach((item) => {
         const node = document.createElement('article');
         node.className = 'card';
         node.setAttribute('data-country-code', item.code);
         node.setAttribute('data-list-image', item.flag);
-        node.setAttribute('data-image', item.flag);
+        const heroImage = item.photo || item.photoCity || item.photoNature || '';
+        node.setAttribute('data-image', heroImage);
         node.innerHTML = `
           ${buildPhotoShellMarkup(item)}
           <div class="body">
@@ -2175,6 +2210,29 @@
       state.hasMore = end < count;
       syncPager();
       syncAllCardStatuses();
+      void hydrateScenicCountryPhotos(pageRows).then(() => {
+        pageRows.forEach((item) => {
+          const nextPhoto = String(item.photo || '').trim();
+          if (!nextPhoto && !item.photoCity && !item.photoNature) return;
+          updateCardPhotoMarkup(item);
+        });
+
+        const runLifestyleHydration = () => {
+          void hydrateLifestyleCountryPhotos(pageRows).then(() => {
+            pageRows.forEach((item) => {
+              if (!item.photoCity && !item.photoNature) return;
+              updateCardPhotoMarkup(item);
+            });
+          }).catch(() => {});
+        };
+
+        if (getTravelLifestyleHydrationLimit() <= 0) return;
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(runLifestyleHydration, { timeout: 2000 });
+        } else {
+          window.setTimeout(runLifestyleHydration, 500);
+        }
+      }).catch(() => {});
     }
 
     async function loadTravelListStatus() {
@@ -2355,6 +2413,7 @@
 
     async function init() {
       loadCountryPhotoCacheFromStorage();
+      loadTravelBucketManifestFromStorage();
       wireEvents();
       const params = new URLSearchParams(window.location.search);
       const initialSearch = String(params.get('search') || '').trim();
@@ -2371,6 +2430,12 @@
         empty.textContent = 'Could not load countries right now.';
       }
       render();
+      void hydrateTravelBucketManifest().then((changed) => {
+        if (!changed) return;
+        applyCachedTravelPhotosToRows();
+        writeCountryRowsCache(state.rows);
+        render();
+      }).catch(() => {});
       wireListMenuBridge();
       window.setTimeout(() => {
         void syncAuth();
