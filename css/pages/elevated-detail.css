@@ -468,7 +468,7 @@
   aspect-ratio: 4 / 3;
   border-radius: var(--dt-radius-card);
   overflow: hidden;
-  background: var(--dt-surface);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--dt-line);
   box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.5);
   transition: transform 0.35s var(--dt-ease), box-shadow 0.35s var(--dt-ease);
@@ -1357,7 +1357,7 @@
    ============================================================ */
 .elevated-detail-page .elevated-related {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -2577,7 +2577,7 @@
   .elevated-detail-page .elevated-list-row { grid-template-columns: 1fr; gap: 4px; }
   .elevated-detail-page .elevated-people-list { grid-template-columns: 1fr; }
   .elevated-detail-page .elevated-content { width: calc(100% - 24px); }
-  .elevated-detail-page .elevated-related { grid-template-columns: 1fr 1fr; }
+  .elevated-detail-page .elevated-related { grid-template-columns: 1fr; }
   .elevated-detail-page .elevated-toast { left: 16px; right: 16px; }
 }
 

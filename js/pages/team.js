@@ -1232,7 +1232,7 @@
       };
     }
 
-    // TheSportsDB â€” fetch full data including images
+    // TheSportsDB — fetch full data including images
     let sportsdbRaw = null;
     if (teamName) {
       let payload = null;

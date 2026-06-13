@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260601b">
-  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260612e">
+  <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260613a">
   <link rel="stylesheet" href="css/pages/country.css?v=20260612f">
   <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
@@ -40,10 +40,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260612e" defer></script>
-  <script src="js/review-interactions.js?v=20260601b" defer></script>
+  <script src="js/review-interactions.js?v=20260613a" defer></script>
 <script src="js/wiki-cache.js?v=20260605d" defer></script>
 <script src="js/shared-header.js?v=20260610c" defer></script>
-  <script src="js/pages/country.js?v=20260612f" defer></script>
+  <script src="js/pages/country.js?v=20260613a" defer></script>
 </head>
 <body class="elevated-detail-page" data-elevated-category="travel">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -162,58 +162,6 @@
       <div id="countryRelated" class="elevated-related"></div>
     </section>
 
-    <section class="elevated-section" id="countryPlannerSection">
-      <div class="elevated-section-head">
-        <h2 class="elevated-section-title">
-          <i class="fa-solid fa-plane"></i> travel planner
-        </h2>
-        <span class="elevated-section-sub">Organize your trip</span>
-      </div>
-      <form id="countryPlannerForm" class="country-planner-form">
-        <div class="country-planner-row">
-          <label for="plannerCitiesInput">Cities to visit</label>
-          <input type="text" id="plannerCitiesInput" placeholder="e.g. Tokyo, Kyoto, Osaka" maxlength="500">
-        </div>
-        <div class="country-planner-row">
-          <label for="plannerActivitiesInput">Activities</label>
-          <input type="text" id="plannerActivitiesInput" placeholder="e.g. Temple visits, food tours" maxlength="500">
-        </div>
-        <div class="country-planner-row">
-          <label for="plannerBestMonthsInput">Best months to visit</label>
-          <input type="text" id="plannerBestMonthsInput" placeholder="e.g. March, April, October" maxlength="300">
-        </div>
-        <div class="country-planner-row">
-          <label for="plannerBudgetSelect">Budget tier</label>
-          <select id="plannerBudgetSelect">
-            <option value="">Select budget...</option>
-            <option value="budget">Budget</option>
-            <option value="midrange">Mid-range</option>
-            <option value="luxury">Luxury</option>
-          </select>
-        </div>
-        <div class="country-planner-row">
-          <label for="plannerNotesInput">Notes</label>
-          <textarea id="plannerNotesInput" placeholder="Any extra notes for your trip..." maxlength="800"></textarea>
-        </div>
-        <div class="country-planner-actions">
-          <button type="submit" class="elevated-btn elevated-btn-primary" id="plannerSaveBtn">
-            <i class="fa-solid fa-floppy-disk"></i> save plan
-          </button>
-          <button type="button" class="elevated-btn elevated-btn-secondary" id="plannerClearBtn">
-            <i class="fa-solid fa-trash"></i> clear plan
-          </button>
-        </div>
-      </form>
-      <div id="countryPlannerAuthNote" class="elevated-auth-prompt" hidden>
-        <i class="fa-solid fa-lock"></i>
-        <span>please <a href="login.html">sign in</a> to use the travel planner</span>
-      </div>
-      <div id="countryPlannerSummary" class="country-planner-summary" hidden>
-        <h3><i class="fa-solid fa-clipboard-list"></i> saved plan</h3>
-        <ul id="plannerSummaryList"></ul>
-      </div>
-    </section>
-
     <section id="countryReviewsSection" class="elevated-section">
       <div class="elevated-section-head">
         <h2 class="elevated-section-title">
@@ -255,7 +203,7 @@
   </div>
 
   <p class="elevated-footnote">
-    <span><i class="fa-solid fa-circle-info"></i> sources: REST Countries API &middot; Wikimedia Commons &middot; <a href="credits.html">all credits</a></span>
+    <span><i class="fa-solid fa-circle-info"></i> sources: REST Countries &middot; Wikimedia Commons &middot; <a href="credits.html">all credits</a></span>
   </p>
 
   <div id="countryActionCard" class="card hidden" data-item-id="">

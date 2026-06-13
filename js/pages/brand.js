@@ -938,7 +938,7 @@
     if (!reviews.length) {
       dom.reviewsStats.innerHTML = `
         <div class="elevated-review-big">
-          <div class="elevated-review-big-value">â€”<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
           <div class="elevated-review-big-stars" aria-hidden="true">
             <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
           </div>
@@ -991,7 +991,7 @@
     if (!dom.reviewsList || !dom.reviewsStats || !brandData) return;
     const client = ensureSupabase();
     if (!client) return;
-    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviewsâ€¦</div>';
+    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviews…</div>';
     const { data, error } = await client
       .from(reviewTable)
       .select('*')
@@ -1021,7 +1021,7 @@
   async function displayReviews(reviewsToDisplay) {
     if (!dom.reviewsList) return;
     if (!reviewsToDisplay || !reviewsToDisplay.length) {
-      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet â€” be the first to share your thoughts!</div>';
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet — be the first to share your thoughts!</div>';
       return;
     }
 
@@ -1426,7 +1426,7 @@
     renderReviewForm();
     await initReviewSystem();
 
-    // Fetch Wikipedia in the background â€” populate about/info if it returns more
+    // Fetch Wikipedia in the background — populate about/info if it returns more
     const wiki = await fetchWikipedia(brand);
     if (wiki) {
       mergeWikiIntoBrand(brand, wiki);

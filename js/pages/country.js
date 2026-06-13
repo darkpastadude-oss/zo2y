@@ -34,8 +34,7 @@
     reviews: [],
     users: new Map(),
     rating: 0,
-    editId: null,
-    planner: null
+    editId: null
   };
 
   const sharedTravelPhotoCache = new Map();
@@ -67,13 +66,6 @@
     related: document.getElementById('countryRelated'),
     relatedSection: document.getElementById('countryRelatedSection'),
     relatedSub: document.getElementById('countryRelatedSub'),
-    plannerSection: document.getElementById('countryPlannerSection'),
-    plannerForm: document.getElementById('countryPlannerForm'),
-    plannerAuthNote: document.getElementById('countryPlannerAuthNote'),
-    plannerSummary: document.getElementById('countryPlannerSummary'),
-    plannerSummaryList: document.getElementById('plannerSummaryList'),
-    plannerSaveBtn: document.getElementById('plannerSaveBtn'),
-    plannerClearBtn: document.getElementById('plannerClearBtn'),
     reviewsSection: document.getElementById('countryReviewsSection'),
     reviewsSub: document.getElementById('countryReviewsSub'),
     reviewsAvg: document.getElementById('countryReviewsAvg'),
@@ -271,7 +263,6 @@
     sb.auth.onAuthStateChange((_event, session) => {
       state.currentUser = session && session.user ? session.user : null;
       syncReviewFormVisibility();
-      syncPlannerVisibility();
     });
   }
 
@@ -685,7 +676,14 @@
   /* ---------- Reviews ---------- */
   function renderStars(ratingValue) {
     const safe = Math.max(1, Math.min(5, Number(ratingValue || 0)));
-    return '★'.repeat(safe) + '☆'.repeat(5 - safe);
+    const fullStars = Math.floor(safe);
+    const hasHalf = safe % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+    let stars = '';
+    for (let i = 0; i < fullStars; i++) stars += '<i class="fa-solid fa-star"></i>';
+    if (hasHalf) stars += '<i class="fa-solid fa-star-half-stroke"></i>';
+    for (let i = 0; i < emptyStars; i++) stars += '<i class="fa-regular fa-star"></i>';
+    return stars;
   }
 
   function drawRatingStars() {
@@ -694,7 +692,7 @@
     for (let i = 1; i <= 5; i += 1) {
       const star = document.createElement('span');
       star.className = `star${i <= state.rating ? ' on' : ''}`;
-      star.innerHTML = '★';
+      star.innerHTML = '<i class="fa-solid fa-star"></i>';
       star.dataset.v = String(i);
       ui.reviewStars.appendChild(star);
     }
@@ -895,165 +893,6 @@
         if (action === 'del') void deleteReview(id);
       });
     }
-  }
-
-  /* ---------- Planner ---------- */
-  function splitPlannerList(value, limit = 14) {
-    const out = [];
-    String(value || '').split(',').map((entry) => String(entry || '').trim()).filter(Boolean).forEach((entry) => {
-      if (out.length >= limit) return;
-      if (out.some((existing) => existing.toLowerCase() === entry.toLowerCase())) return;
-      out.push(entry);
-    });
-    return out;
-  }
-
-  function budgetLabel(value) {
-    const key = String(value || '').trim().toLowerCase();
-    if (key === 'budget') return 'Budget';
-    if (key === 'midrange') return 'Mid-range';
-    if (key === 'luxury') return 'Luxury';
-    return 'Not set';
-  }
-
-  function syncPlannerVisibility() {
-    if (ui.plannerForm) ui.plannerForm.hidden = !state.currentUser;
-    if (ui.plannerAuthNote) ui.plannerAuthNote.hidden = !!state.currentUser;
-  }
-
-  function setPlannerFormValues(plan) {
-    const citiesEl = document.getElementById('plannerCitiesInput');
-    const bestMonthsEl = document.getElementById('plannerBestMonthsInput');
-    const budgetEl = document.getElementById('plannerBudgetSelect');
-    const activitiesEl = document.getElementById('plannerActivitiesInput');
-    const notesEl = document.getElementById('plannerNotesInput');
-    if (citiesEl) citiesEl.value = Array.isArray(plan && plan.cities) ? plan.cities.join(', ') : '';
-    if (bestMonthsEl) bestMonthsEl.value = Array.isArray(plan && plan.best_months) ? plan.best_months.join(', ') : '';
-    if (budgetEl) budgetEl.value = String(plan && plan.budget_tier || '');
-    if (activitiesEl) activitiesEl.value = Array.isArray(plan && plan.activities) ? plan.activities.join(', ') : '';
-    if (notesEl) notesEl.value = String(plan && plan.notes || '');
-  }
-
-  function renderPlannerSummary(plan) {
-    if (!ui.plannerSummary || !ui.plannerSummaryList) return;
-    if (!plan) {
-      ui.plannerSummary.hidden = true;
-      ui.plannerSummaryList.innerHTML = '';
-      return;
-    }
-    const cities = Array.isArray(plan.cities) ? plan.cities : [];
-    const activities = Array.isArray(plan.activities) ? plan.activities : [];
-    const bestMonths = Array.isArray(plan.best_months) ? plan.best_months : [];
-    const notes = String(plan.notes || '').trim();
-    const budget = budgetLabel(plan.budget_tier);
-    const items = [
-      `Cities: ${cities.length ? cities.join(', ') : 'Not set'}`,
-      `Activities: ${activities.length ? activities.join(', ') : 'Not set'}`,
-      `Budget: ${budget}`,
-      `Best months: ${bestMonths.length ? bestMonths.join(', ') : 'Not set'}`,
-      `Notes: ${notes || 'Not set'}`
-    ];
-    ui.plannerSummaryList.innerHTML = items.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('');
-    ui.plannerSummary.hidden = false;
-  }
-
-  async function loadPlanner() {
-    if (!state.currentUser || !state.currentUser.id || !state.code) {
-      state.planner = null;
-      setPlannerFormValues(null);
-      renderPlannerSummary(null);
-      return;
-    }
-    const sb = await ensureSupabase();
-    if (!sb) return;
-    try {
-      const { data, error } = await sb
-        .from('travel_plans')
-        .select('id,user_id,country_code,cities,activities,budget_tier,best_months,notes,updated_at')
-        .eq('user_id', state.currentUser.id)
-        .eq('country_code', state.code)
-        .maybeSingle();
-      if (error) {
-        state.planner = null;
-        setPlannerFormValues(null);
-        renderPlannerSummary(null);
-        return;
-      }
-      state.planner = data || null;
-      setPlannerFormValues(state.planner);
-      renderPlannerSummary(state.planner);
-    } catch (_e) {
-      state.planner = null;
-      setPlannerFormValues(null);
-      renderPlannerSummary(null);
-    }
-  }
-
-  function getPlannerPayloadFromForm() {
-    const citiesEl = document.getElementById('plannerCitiesInput');
-    const bestMonthsEl = document.getElementById('plannerBestMonthsInput');
-    const budgetEl = document.getElementById('plannerBudgetSelect');
-    const activitiesEl = document.getElementById('plannerActivitiesInput');
-    const notesEl = document.getElementById('plannerNotesInput');
-    const cities = splitPlannerList(citiesEl ? citiesEl.value : '', 18);
-    const bestMonths = splitPlannerList(bestMonthsEl ? bestMonthsEl.value : '', 12);
-    const activities = splitPlannerList(activitiesEl ? activitiesEl.value : '', 18);
-    const budgetTier = String(budgetEl ? budgetEl.value : '').trim().toLowerCase();
-    const notes = String(notesEl ? notesEl.value : '').trim();
-    return {
-      country_code: state.code,
-      user_id: state.currentUser && state.currentUser.id ? state.currentUser.id : null,
-      cities, activities,
-      budget_tier: budgetTier || null,
-      best_months: bestMonths,
-      notes: notes || null
-    };
-  }
-
-  async function savePlanner(event) {
-    event.preventDefault();
-    if (!state.currentUser || !state.currentUser.id) {
-      showToast('Please sign in', 'error');
-      return;
-    }
-    const sb = await ensureSupabase();
-    if (!sb) return;
-    const payload = getPlannerPayloadFromForm();
-    const hasContent = payload.cities.length || payload.activities.length || payload.best_months.length || payload.budget_tier || payload.notes;
-    if (!hasContent) {
-      showToast('Add at least one planner field', 'error');
-      return;
-    }
-    if (ui.plannerSaveBtn) ui.plannerSaveBtn.disabled = true;
-    const { error } = await sb.from('travel_plans').upsert(payload, { onConflict: 'user_id,country_code' });
-    if (ui.plannerSaveBtn) ui.plannerSaveBtn.disabled = false;
-    if (error) {
-      showToast('Could not save plan', 'error');
-      return;
-    }
-    await loadPlanner();
-    showToast('Travel plan saved', 'success');
-  }
-
-  async function clearPlanner() {
-    if (!state.currentUser || !state.currentUser.id) return;
-    if (!window.confirm('Clear saved travel plan for this country?')) return;
-    const sb = await ensureSupabase();
-    if (!sb) return;
-    const { error } = await sb.from('travel_plans').delete().eq('user_id', state.currentUser.id).eq('country_code', state.code);
-    if (error) {
-      showToast('Could not clear plan', 'error');
-      return;
-    }
-    state.planner = null;
-    setPlannerFormValues(null);
-    renderPlannerSummary(null);
-    showToast('Travel plan cleared', 'info');
-  }
-
-  function wirePlannerEvents() {
-    if (ui.plannerForm) ui.plannerForm.addEventListener('submit', (event) => { void savePlanner(event); });
-    if (ui.plannerClearBtn) ui.plannerClearBtn.addEventListener('click', () => { void clearPlanner(); });
   }
 
   /* ---------- Related (other countries in same region) ---------- */
@@ -1355,7 +1194,6 @@
 
       wireDescriptionToggle();
       wireReviewEvents();
-      wirePlannerEvents();
       wireSaveButton();
       drawRatingStars();
 
@@ -1363,9 +1201,7 @@
       await initAuth();
       initMenuBridge();
       syncReviewFormVisibility();
-      syncPlannerVisibility();
       void loadReviews();
-      void loadPlanner();
     } catch (err) {
       console.error('Country page init failed:', err);
       if (ui.name) ui.name.textContent = 'Error loading country';

@@ -37,6 +37,17 @@
       .replace(/'/g, "&#039;");
   }
 
+  function fixEncoding(value) {
+    return String(value ?? "")
+      .replace(/â€"/g, '—')
+      .replace(/â€˜/g, '‘')
+      .replace(/â€™/g, '’')
+      .replace(/â€œ/g, '“')
+      .replace(/â€/g, '”')
+      .replace(/â€¦/g, '…')
+      .replace(/â€“/g, '–');
+  }
+
   function safeHttps(url) {
     const text = String(url || "").trim();
     if (!text) return "";
@@ -452,7 +463,7 @@
             <div class="reviews-spotlight-card-rating">${escapeHtml("â˜…".repeat(Math.max(1, Math.round(item.rating))))}</div>
             <div class="reviews-spotlight-card-media">${escapeHtml(item.mediaLabel)}</div>
             <h3 class="reviews-spotlight-card-title">${escapeHtml(item.title)}</h3>
-            <p class="reviews-spotlight-card-quote">${escapeHtml(item.quote)}</p>
+            <p class="reviews-spotlight-card-quote">${escapeHtml(fixEncoding(item.quote))}</p>
             <div class="reviews-spotlight-card-signoff">-(${escapeHtml(String(item.reviewer || "").replace(/^@/, "") || "zo2y")})</div>
           </div>
           <div class="reviews-spotlight-card-thumb-wrap">
@@ -510,7 +521,7 @@
       const mediaIcon = escapeHtml(ICON_BY_MEDIA[media] || "fa-shapes");
       const href = escapeHtml(meta.href || "#");
       const image = escapeHtml(getSafeReviewImage(meta.image || ""));
-      const comment = escapeHtml(String(row.comment || "").trim()) || "No written comment provided.";
+      const comment = escapeHtml(fixEncoding(String(row.comment || "").trim())) || "No written comment provided.";
       const dateText = escapeHtml(formatDate(row.createdAt));
       return `
         <a class="card" href="${href}" data-media="${escapeHtml(media)}" data-item-id="${escapeHtml(row.itemId)}">

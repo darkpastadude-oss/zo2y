@@ -13,6 +13,17 @@
       .replace(/'/g, '&#039;');
   }
 
+  function fixEncoding(value) {
+    return String(value ?? '')
+      .replace(/â€"/g, '—')
+      .replace(/â€˜/g, '‘')
+      .replace(/â€™/g, '’')
+      .replace(/â€œ/g, '“')
+      .replace(/â€/g, '”')
+      .replace(/â€¦/g, '…')
+      .replace(/â€“/g, '–');
+  }
+
   function formatDate(raw) {
     const date = new Date(raw || '');
     if (!Number.isFinite(date.getTime())) return 'unknown date';
@@ -309,7 +320,7 @@
             <div class="zo2y-review-reply-user"><a href="${escapeHtml(profile.href)}">${escapeHtml(profile.displayName)}</a></div>
             <div class="zo2y-review-reply-date">${escapeHtml(formatDate(reply.created_at))}</div>
           </div>
-          <p class="zo2y-review-reply-body">${escapeHtml(reply.body || '')}</p>
+          <p class="zo2y-review-reply-body">${escapeHtml(fixEncoding(reply.body || ''))}</p>
           <div class="zo2y-review-reply-actions">
             ${renderActionButton({
               icon: 'fa-thumbs-up',

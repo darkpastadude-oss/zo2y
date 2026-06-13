@@ -430,7 +430,7 @@
                     .trim()
                     .replace(/^@+/, '')
                     .toLowerCase()
-                    .replace(/['â€™]/g, '')
+                    .replace(/['\u2019]/g, '')
                     .replace(/[^a-z0-9_]+/g, '_')
                     .replace(/_+/g, '_')
                     .replace(/^_+|_+$/g, '')
@@ -5139,7 +5139,7 @@
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
-                return `${baseTitle} â€¢ Tier List`;
+                return `${baseTitle} • Tier List`;
             }
 
             function canReorderCollectionItems(contentType, listId, listType = 'custom', list = null) {
