@@ -1182,6 +1182,7 @@
       showMissingCodeView();
       return;
     }
+    let fetchOk = false;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -1205,61 +1206,75 @@
           return;
         }
         const row = Array.isArray(payload) ? payload[0] : payload;
-      const code = canonicalCountryCode(row && (row.cca2 || row.cca3 || state.code));
-      state.code = code;
+        const code = canonicalCountryCode(row && (row.cca2 || row.cca3 || state.code));
+        state.code = code;
 
-      const name = String(row && row.name && (row.name.common || row.name.official) || code).trim() || (code === 'PS' ? 'Palestine' : code);
-      const capital = Array.isArray(row && row.capital) ? String(row.capital[0] || '').trim() : String(row && row.capital || '').trim();
-      const region = String(row && row.region || '').trim();
-      const subregion = String(row && row.subregion || '').trim();
-      const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
-      const mapsUrl = safeHttps(row && row.maps && row.maps.googleMaps || '');
+        const name = String(row && row.name && (row.name.common || row.name.official) || code).trim() || (code === 'PS' ? 'Palestine' : code);
+        const capital = Array.isArray(row && row.capital) ? String(row.capital[0] || '').trim() : String(row && row.capital || '').trim();
+        const region = String(row && row.region || '').trim();
+        const subregion = String(row && row.subregion || '').trim();
+        const flag = safeHttps(row && row.flags && (row.flags.png || row.flags.svg) || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`;
+        const mapsUrl = safeHttps(row && row.maps && row.maps.googleMaps || '');
 
-      const languagesList = row && row.languages && typeof row.languages === 'object'
-        ? Object.values(row.languages).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 4)
-        : [];
-      const currenciesList = row && row.currencies && typeof row.currencies === 'object'
-        ? Object.keys(row.currencies).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
-        : [];
+        const languagesList = row && row.languages && typeof row.languages === 'object'
+          ? Object.values(row.languages).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 4)
+          : [];
+        const currenciesList = row && row.currencies && typeof row.currencies === 'object'
+          ? Object.keys(row.currencies).map((value) => String(value || '').trim()).filter(Boolean).slice(0, 3)
+          : [];
 
-      state.name = name;
-      state.capital = capital;
-      state.region = region;
-      state.subregion = subregion;
-      state.languages = languagesList;
-      state.currencies = currenciesList;
-      state.flag = flag;
-      state.mapsUrl = mapsUrl;
-
-      if (ui.name) ui.name.textContent = name;
-      if (ui.kicker) ui.kicker.textContent = `${region || 'travel'} spotlight`;
-      if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = name;
+        state.name = name;
+        state.capital = capital;
+        state.region = region;
+        state.subregion = subregion;
+        state.languages = languagesList;
+        state.currencies = currenciesList;
+        state.flag = flag;
+        state.mapsUrl = mapsUrl;
+        fetchOk = true;
+        break;
+      } catch (e) {
+        if (attempt === 0) {
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+      }
+    }
+    if (!fetchOk) {
+      if (ui.name) ui.name.textContent = 'Country unavailable';
+      if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
+      return;
+    }
+    try {
+      if (ui.name) ui.name.textContent = state.name;
+      if (ui.kicker) ui.kicker.textContent = `${state.region || 'travel'} spotlight`;
+      if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = state.name;
       if (ui.meta) {
         const metaBits = [];
-        if (capital) metaBits.push(`<i class="fa-solid fa-landmark"></i> <strong>${escapeHtml(capital)}</strong>`);
-        if (region) metaBits.push(`<i class="fa-solid fa-globe"></i> <strong>${escapeHtml(region)}</strong>`);
-        if (subregion) metaBits.push(`<i class="fa-solid fa-location-dot"></i> <strong>${escapeHtml(subregion)}</strong>`);
+        if (state.capital) metaBits.push(`<i class="fa-solid fa-landmark"></i> <strong>${escapeHtml(state.capital)}</strong>`);
+        if (state.region) metaBits.push(`<i class="fa-solid fa-globe"></i> <strong>${escapeHtml(state.region)}</strong>`);
+        if (state.subregion) metaBits.push(`<i class="fa-solid fa-location-dot"></i> <strong>${escapeHtml(state.subregion)}</strong>`);
         ui.meta.innerHTML = metaBits.join('');
       }
       if (ui.tags) {
         const tagBits = [];
-        if (languagesList.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-language"></i> ${escapeHtml(languagesList.join(', '))}</span>`);
-        if (currenciesList.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-coins"></i> ${escapeHtml(currenciesList.join(', '))}</span>`);
-        tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-hashtag"></i> ${escapeHtml(code)}</span>`);
+        if (state.languages.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-language"></i> ${escapeHtml(state.languages.join(', '))}</span>`);
+        if (state.currencies.length) tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-coins"></i> ${escapeHtml(state.currencies.join(', '))}</span>`);
+        tagBits.push(`<span class="elevated-tag"><i class="fa-solid fa-hashtag"></i> ${escapeHtml(state.code)}</span>`);
         ui.tags.innerHTML = tagBits.join('');
       }
       if (ui.description) {
         const parts = [];
-        parts.push(`${name}${capital ? `, with ${capital} as its capital,` : ''} sits in the ${region || '—'}${subregion ? ` (${subregion})` : ''}.`);
-        if (languagesList.length) parts.push(`Locals speak ${languagesList.slice(0, 2).join(' and ')}.`);
-        if (currenciesList.length) parts.push(`The currency${currenciesList.length > 1 ? 'ies' : ''} in use include ${currenciesList.join(', ')}.`);
+        parts.push(`${state.name}${state.capital ? `, with ${state.capital} as its capital,` : ''} sits in the ${state.region || '—'}${state.subregion ? ` (${state.subregion})` : ''}.`);
+        if (state.languages.length) parts.push(`Locals speak ${state.languages.slice(0, 2).join(' and ')}.`);
+        if (state.currencies.length) parts.push(`The currency${state.currencies.length > 1 ? 'ies' : ''} in use include ${state.currencies.join(', ')}.`);
         parts.push(`Browse the travel guide below for city ideas, activity picks, and practical tips. Save your plan and share a review once you've been.`);
         ui.description.textContent = parts.join(' ');
       }
 
       if (ui.flag) {
-        ui.flag.src = flag;
-        ui.flag.alt = `${name} flag`;
+        ui.flag.src = state.flag;
+        ui.flag.alt = `${state.name} flag`;
         ui.flag.onerror = function onFlagError() {
           this.onerror = null;
           this.removeAttribute('src');
@@ -1269,8 +1284,8 @@
       if (ui.posterFrame) ui.posterFrame.classList.remove('is-missing');
 
       if (ui.mapBtn) {
-        if (mapsUrl) {
-          ui.mapBtn.setAttribute('href', mapsUrl);
+        if (state.mapsUrl) {
+          ui.mapBtn.setAttribute('href', state.mapsUrl);
           ui.mapBtn.setAttribute('target', '_blank');
           ui.mapBtn.setAttribute('rel', 'noopener');
         } else {
@@ -1285,33 +1300,27 @@
       ensureActionCard();
       updateSaveButton(false);
 
-      const fallbackPhoto = buildCountryPhotoUrl(name, code);
+      const fallbackPhoto = buildCountryPhotoUrl(state.name, state.code);
       if (fallbackPhoto) {
         applyBackdrop(fallbackPhoto);
       } else {
         applyRegionFallbackBackground();
       }
-      renderGallery(countryGalleryCache.get(code) || [], name);
+      renderGallery(countryGalleryCache.get(state.code) || [], state.name);
 
-      void fetchCommonsCountryGallery(name, code, capital)
+      void fetchCommonsCountryGallery(state.name, state.code, state.capital)
         .then((images) => {
           const list = Array.isArray(images) ? images : [];
-          renderGallery(list, name);
+          renderGallery(list, state.name);
           const heroEntry = list.map((value) => normalizeGalleryItem(value)).filter(Boolean)[0];
           if (heroEntry && heroEntry.url) applyBackdrop(heroEntry.url);
         })
         .catch(() => {});
 
       void fetchRelatedCountries();
-      } catch (e) {
-        if (attempt === 0) {
-          await new Promise((r) => setTimeout(r, 1000));
-          continue;
-        }
-      }
+    } catch (e) {
+      console.warn('Country render error:', e);
     }
-    if (ui.name) ui.name.textContent = 'Country unavailable';
-    if (ui.description) ui.description.textContent = 'We could not load this country right now. Please try again later.';
   }
 
   /* ---------- Init ---------- */

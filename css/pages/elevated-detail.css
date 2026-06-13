@@ -2465,7 +2465,7 @@
 @media (max-width: 768px) {
   .elevated-detail-page .elevated-hero {
     min-height: auto;
-    overflow: visible;
+    overflow: hidden;
   }
   .elevated-detail-page .elevated-hero-backdrop,
   .elevated-detail-page .elevated-hero-blur,

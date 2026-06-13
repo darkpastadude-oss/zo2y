@@ -250,11 +250,10 @@
   function ensureStyles() {
     if(typeof document==='undefined'||document.getElementById(STYLE_ID)) return;
     const s=document.createElement('style'); s.id=STYLE_ID; s.textContent=`
-      .menu-modal{display:none;position:fixed;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0}
+      .menu-modal{display:none;position:absolute;z-index:10000;top:0;left:0;width:100dvw;height:100dvh;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);padding:0;align-items:center;justify-content:center}
       .menu-modal.active{display:flex}
-      .menu-modal-content{position:absolute;background:var(--card,#132347);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.28)}
-      .menu-modal-content.centered{top:50%;left:50%;transform:translate(-50%,-50%)}
-      @keyframes menuModalFlyUp{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+      .menu-modal-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--card,#132347);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:20px;width:100%;max-width:380px;max-height:80vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+      @keyframes menuModalFlyUp{from{opacity:0;transform:translate(-50%,calc(-50% + 24px)) scale(.98)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
       .menu-modal-content.menu-modal-fly-up{animation:menuModalFlyUp .28s cubic-bezier(.22,1,.36,1)}
       .menu-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.12))}
       .menu-modal-header h3{font-size:18px;font-weight:600;color:var(--white,#fff);margin:0}
@@ -304,7 +303,7 @@
       .menu-modal-actions .menu-btn-secondary{background:transparent;color:var(--white,#fff)}
       .menu-modal-actions .menu-btn-secondary:hover{background:rgba(255,255,255,.1)}
       .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
-      @media(max-width:768px){.menu-modal{align-items:center;justify-content:center;background:rgba(3,10,28,.8);backdrop-filter:blur(8px)}.menu-modal-content{position:absolute;top:50%;left:50%;width:calc(100vw - 14px);max-width:100vw;max-height:min(80dvh,740px);border-radius:18px;transform:translate(-50%,-50%)}.menu-modal-header{padding:14px 16px}.menu-modal-header h3{font-size:17px}.menu-modal-close{width:40px;height:40px;font-size:26px}.menu-modal-body{padding:12px 14px 16px}.menu-quick-lists,.menu-custom-lists{gap:10px}.menu-custom-lists{max-height:min(38dvh,340px)}.menu-quick-item,.menu-custom-item{min-height:48px;padding:12px 14px;border-radius:13px}.menu-quick-left span,.menu-custom-left span{font-size:15px}.menu-input{min-height:46px;font-size:15px;padding:12px 14px}.menu-modal-actions{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(19,35,71,.92),rgba(19,35,71,1));margin:12px -14px -16px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--border,rgba(255,255,255,.12));flex-direction:column-reverse;gap:8px}.menu-modal-actions .menu-btn{width:100%;min-height:44px;font-size:15px;border-radius:12px}}
+      @media(max-width:768px){.menu-modal{align-items:center;justify-content:center;background:rgba(3,10,28,.8);backdrop-filter:blur(8px)}.menu-modal-content{position:absolute;top:50%;left:50%;width:calc(100vw - 14px);max-width:100vw;max-height:min(80dvh,740px);border-radius:18px;transform:translate(-50%,-50%)}.menu-modal-header{padding:14px 16px}.menu-modal-header h3{font-size:17px}.menu-modal-close{width:40px;height:40px;font-size:26px}.menu-modal-body{padding:12px 14px 16px}.menu-quick-lists,.menu-custom-lists{gap:10px}.menu-custom-lists{max-height:min(38dvh,340px)}.menu-quick-item,.menu-custom-item{min-height:48px;padding:12px 14px;border-radius:13px}.menu-quick-left span,.menu-custom-left span{font-size:15px}.menu-create-list-btn{min-height:40px;padding:8px 12px;font-size:13px;border-radius:999px}.menu-input{min-height:46px;font-size:15px;padding:12px 14px}.menu-modal-actions{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(19,35,71,.92),rgba(19,35,71,1));margin:12px -14px -16px;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0));border-top:1px solid var(--border,rgba(255,255,255,.12));flex-direction:column-reverse;gap:8px}.menu-modal-actions .menu-btn{width:100%;min-height:44px;font-size:15px;border-radius:12px}}
       @media(pointer:coarse){.menu-quick-item,.menu-custom-item{min-height:56px}.menu-modal-close{width:44px;height:44px}}
       @media(prefers-reduced-motion:reduce){.menu-quick-item,.menu-custom-item{transition:none!important;animation:none!important}.menu-quick-state,.menu-custom-state{transition:none!important;animation:none!important}}
     `; document.head.appendChild(s);
@@ -453,38 +452,13 @@
   function positionMenuModalNearTrigger(trigger) {
     const im = document.getElementById('itemMenuModal');
     const content = im?.querySelector('.menu-modal-content');
-    if (!im || !content || !trigger) {
-      content?.classList.add('centered');
-      return;
+    if (content) {
+      content.style.position = '';
+      content.style.left = '';
+      content.style.top = '';
+      content.style.transform = '';
     }
-    
-    const rect = trigger.getBoundingClientRect();
-    const modalWidth = 380;
-    const modalHeight = Math.min(content.offsetHeight || 400, window.innerHeight * 0.8);
-    const padding = 12;
-    
-    let left = rect.right + padding;
-    let top = rect.top;
-    
-    if (left + modalWidth > window.innerWidth - padding) {
-      left = rect.left - modalWidth - padding;
-    }
-    if (left < padding) {
-      left = padding;
-    }
-    
-    if (top + modalHeight > window.innerHeight - padding) {
-      top = window.innerHeight - modalHeight - padding;
-    }
-    if (top < padding) {
-      top = padding;
-    }
-    
-    content.style.position = 'absolute';
-    content.style.left = `${left}px`;
-    content.style.top = `${top}px`;
-    content.style.transform = 'none';
-    content.classList.remove('centered');
+    syncMenuModalViewport(im);
   }
 
   window.ListKit = {

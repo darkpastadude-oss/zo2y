@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260612d" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260612e" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -1947,47 +1947,62 @@
           return true;
         }
       }
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 9000);
-      try {
-        const response = await fetch(COUNTRIES_URL, {
-          signal: controller.signal,
-          headers: { Accept: 'application/json' }
-        });
-        if (!response.ok) return false;
-        const payload = await response.json();
-        state.rows = (Array.isArray(payload) ? payload : [])
-          .map(normalizeCountryRow)
-          .filter(Boolean)
-          .sort((a, b) => a.name.localeCompare(b.name));
-        const cachedPopularity = readTravelPopularityCache();
-        if (cachedPopularity?.scores) {
-          applyTravelPopularityScores(cachedPopularity.scores);
-        }
-        void hydrateTravelPopularity(force, controller.signal)
-          .then(() => {
-            scheduleTravelRender(0);
-          })
-          .catch(() => {});
-        const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
-        if (needsTravelScenicHydration(initialRows)) {
-          void hydrateScenicCountryPhotos(initialRows, controller.signal)
+      const urls = [
+        COUNTRIES_URL,
+        'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,flags'
+      ];
+      for (const fetchUrl of urls) {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 12000);
+        try {
+          const response = await fetch(fetchUrl, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' }
+          });
+          if (!response.ok) {
+            console.warn('Travel countries fetch failed:', response.status, fetchUrl);
+            continue;
+          }
+          const payload = await response.json();
+          const rows = (Array.isArray(payload) ? payload : [])
+            .map(normalizeCountryRow)
+            .filter(Boolean)
+            .sort((a, b) => a.name.localeCompare(b.name));
+          if (!rows.length) {
+            console.warn('Travel countries returned empty after normalization:', fetchUrl);
+            continue;
+          }
+          state.rows = rows;
+          const cachedPopularity = readTravelPopularityCache();
+          if (cachedPopularity?.scores) {
+            applyTravelPopularityScores(cachedPopularity.scores);
+          }
+          void hydrateTravelPopularity(force, controller.signal)
             .then(() => {
-              writeCountryRowsCache(state.rows);
-              scheduleTravelRender();
+              scheduleTravelRender(0);
             })
             .catch(() => {});
+          const initialRows = state.rows.slice(0, getTravelInitialHydrationLimit());
+          if (needsTravelScenicHydration(initialRows)) {
+            void hydrateScenicCountryPhotos(initialRows, controller.signal)
+              .then(() => {
+                writeCountryRowsCache(state.rows);
+                scheduleTravelRender();
+              })
+              .catch(() => {});
+          }
+          state.rows = sortTravelRowsByPriority(state.rows);
+          hydrateRegionOptions();
+          writeCountryRowsCache(state.rows);
+          startCountryPhotoBackfill();
+          return true;
+        } catch (_error) {
+          console.warn('Travel countries fetch error:', _error, fetchUrl);
+        } finally {
+          window.clearTimeout(timeout);
         }
-        state.rows = sortTravelRowsByPriority(state.rows);
-        hydrateRegionOptions();
-        writeCountryRowsCache(state.rows);
-        startCountryPhotoBackfill();
-        return true;
-      } catch (_error) {
-        return false;
-      } finally {
-        window.clearTimeout(timeout);
       }
+      return false;
     }
 
     function applyFilter() {
@@ -2450,7 +2465,7 @@
 <link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
   <script src="js/legal-consent.js?v=20260606a" defer></script>
 
-  <script src="/js/shared-components.js?v=20260612d" defer></script>
+  <script src="/js/shared-components.js?v=20260612e" defer></script>
 </body>
 </html>
 
