@@ -95,22 +95,23 @@
   }
 
   function normalizeCountry(item) {
-    if (!item || !item.code || !item.name) return null;
-    const code = safeCode(item.code);
-    const name = String(item.name || '').trim();
-    if (!code || !name || code === 'IL' || /\bisrael\b/i.test(name)) return null;
+    const rawCode = safeCode(item && (item.cca2 || item.cca3));
+    if (!rawCode || rawCode === 'IL') return null;
+    const code = canonicalCountryCode(rawCode);
+    const name = String(item && item.name && (item.name.common || item.name.official) || '').trim();
+    if (!code || !name || /\bisrael\b/i.test(name)) return null;
 
     return {
       code,
       name,
-      capital: String(item.capital || '').trim(),
-      region: String(item.region || '').trim(),
-      subregion: String(item.subregion || '').trim(),
-      flag: toHttps(item.flag || '') || `https://flagcdn.com/w640/${code.toLowerCase()}.png`,
+      capital: Array.isArray(item && item.capital) ? String(item.capital[0] || '').trim() : String(item && item.capital || '').trim(),
+      region: String(item && item.region || '').trim(),
+      subregion: String(item && item.subregion || '').trim(),
+      flag: toHttps(item && item.flags && (item.flags.png || item.flags.svg)) || `https://flagcdn.com/w640/${code.toLowerCase()}.png`,
       photo: '',
       photoCity: '',
       photoNature: '',
-      cities: Array.isArray(item.cities) ? item.cities.slice(0, 3) : []
+      cities: Array.isArray(item && item.cities) ? item.cities.slice(0, 3) : []
     };
   }
 
@@ -208,7 +209,7 @@
           <button class="travel-card-save-btn" data-code="${escapeHtml(item.code)}" type="button">
             <i class="fas fa-bookmark"></i> Save to List
           </button>
-          <a href="country.html?code=${encodeURIComponent(item.code)}" class="travel-card-view-btn">
+          <a href="country.html?country=${encodeURIComponent(item.code)}" class="travel-card-view-btn">
             View Details <i class="fas fa-chevron-right"></i>
           </a>
         </div>
@@ -368,7 +369,7 @@
         if (e.target.closest('.travel-card-save-btn') || e.target.closest('.travel-card-view-btn')) return;
         const code = card.getAttribute('data-code');
         if (code) {
-          window.location.href = `country.html?code=${encodeURIComponent(code)}`;
+          window.location.href = `country.html?country=${encodeURIComponent(code)}`;
         }
       });
     });
