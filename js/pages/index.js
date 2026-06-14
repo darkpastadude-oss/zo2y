@@ -9869,55 +9869,52 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadBooks(signal) {
-      const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return cached;
       const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      const minHealthy = Math.min(targetCount, 8);
-      const loaders = await ensureHomeHeavyLoaders();
-      if (typeof loaders.loadBooks !== 'function') return [];
+      const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS);
+      if (cached.length) return cached.slice(0, targetCount);
+
+      const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
+      const mapBook = (b) => {
+        if (!b || !b.title) return null;
+        const cover = String(b.coverImage || b.cover || '').trim();
+        return {
+          itemId: String(b.id || b._id || 'book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
+          title: b.title,
+          subtitle: '',
+          image: cover || '/images/fallback/book.svg',
+          images: cover ? [{ url: cover }] : [],
+          metadata: {
+            authors: Array.isArray(b.author_name) ? b.author_name : (b.authors || ['Unknown author']).split(', '),
+            year: b.first_publish_year || null
+          },
+          genres: Array.isArray(b.subject) ? b.subject.slice(0, 3) : [],
+          externalUrl: b.id ? `https://openlibrary.org/works/${b.id}` : '',
+          mediaType: 'book',
+          year: b.first_publish_year || null
+        };
+      };
 
       let items = [];
-      try {
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:start', at: Date.now() };
-        const loaded = await loaders.loadBooks(signal);
-        items = Array.isArray(loaded) ? loaded : [];
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:done', at: Date.now(), items: items.length };
-      } catch (error) {
-        window.__zo2yHomeBooksDebug = { stage: 'loadBooks:primary:error', at: Date.now(), message: String(error?.message || error || '') };
-        items = [];
+      const fetchJson = async (url, opts) => {
+        try {
+          const r = await fetch(url, { signal, ...opts });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch { return null; }
+      };
+
+      // Stage 1: Try server API
+      const data = await fetchJson(`/api/books/ol-popular?limit=${targetCount}`);
+      if (data && data.books && data.books.length) {
+        items = safeArr(data.books).map(mapBook).filter((i) => i && i.itemId);
       }
 
-      // If we got a short list, show it immediately but run a background hydration to fill the rail.
-      if (items.length > 0 && items.length < minHealthy && !homeBooksHydrationPromise) {
-        homeBooksHydrationPromise = (async () => {
-          const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-          let timer = null;
-          try {
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:start', at: Date.now(), prevItems: items.length };
-            if (controller) timer = setTimeout(() => controller.abort(), 14000);
-            const hydrated = await loaders.loadBooks(controller ? controller.signal : undefined);
-            const next = Array.isArray(hydrated) ? hydrated : [];
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:done', at: Date.now(), items: next.length };
-            if (!next.length || next.length <= items.length) return;
-            const rail = document.getElementById('booksRail');
-            if (!rail) return;
-            homeFeedState.book = next;
-            renderOrDeferHomeRail('booksRail', next, { mediaType: 'book' });
-          } catch (error) {
-            window.__zo2yHomeBooksDebug = { stage: 'loadBooks:hydrate:error', at: Date.now(), message: String(error?.message || error || '') };
-          } finally {
-            if (timer) clearTimeout(timer);
-            if (controller) {
-              try { controller.abort(); } catch (_err) {}
-            }
-          }
-        })().finally(() => {
-          homeBooksHydrationPromise = null;
-        });
+      if (items.length) {
+        writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, items);
+        return items;
       }
 
-      if (items.length) writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, items);
-      return items;
+      return [];
     }
 
     async function loadMusic(signal) {

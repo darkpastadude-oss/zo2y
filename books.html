@@ -5,8 +5,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
-  <script src="/js/auth-gate.js?v=20260610c" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
+  <script src="/js/auth-gate.js?v=20260614a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260614a" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Zo2y - Books</title>
   <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -28,7 +28,7 @@
   <script src="js/list-utils.js?v=20260605a" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260612e" defer></script>
   <script src="/js/lib/img-fallback.js?v=20260605a" defer></script>
-  <script src="js/books-discovery.js?v=20260613b" defer></script>
+  <script src="js/books-discovery.js?v=20260614a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
   <script src="js/shared-header.js?v=20260610c" defer></script>
@@ -105,19 +105,24 @@
         </div>
       </div>
       <div class="grid book-grid" id="booksGrid"></div>
+      <div id="booksPagination" class="pagination-wrap"></div>
     </section>
   </main>
 
   <script>
-    // Simple books page initialization - uses books-simple-loader.js
     (function () {
-      if (window.Zo2ySimpleBooks && typeof window.Zo2ySimpleBooks.init === 'function') {
-        window.Zo2ySimpleBooks.init();
-      }
+      var check = function () {
+        if (window.Zo2ySimpleBooks && typeof window.Zo2ySimpleBooks.init === 'function') {
+          window.Zo2ySimpleBooks.init();
+        } else {
+          setTimeout(check, 200);
+        }
+      };
+      check();
     })();
   </script>
-<link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
-  <script src="js/legal-consent.js?v=20260606a" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260614a">
+  <script src="js/legal-consent.js?v=20260614a" defer></script>
 
 </body>
 </html>

@@ -320,45 +320,46 @@ function normalizeText(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+const FRANCHISE_HINTS = [
+  { keys: ["harry potter"],          hint: 'intitle:"Harry Potter" J.K. Rowling' },
+  { keys: ["the boys"],              hint: 'intitle:"The Boys" Garth Ennis Dynamite' },
+  { keys: ["housemaid"],             hint: 'intitle:"The Housemaid" Freida McFadden' },
+  { keys: ["fourth wing"],           hint: '"Fourth Wing" Rebecca Yarros' },
+  { keys: ["iron flame"],            hint: '"Iron Flame" Rebecca Yarros' },
+  { keys: ["onyx storm"],            hint: '"Onyx Storm" Rebecca Yarros' },
+  { keys: ["hunger games"],          hint: 'intitle:"The Hunger Games" Suzanne Collins' },
+  { keys: ["percy jackson"],         hint: 'intitle:"Percy Jackson" Rick Riordan' },
+  { keys: ["mistborn"],              hint: 'intitle:"Mistborn" Brandon Sanderson' },
+  { keys: ["stormlight"],            hint: 'intitle:"Stormlight" Brandon Sanderson' },
+  { keys: ["wheel of time"],         hint: 'intitle:"Wheel of Time" Robert Jordan' },
+  { keys: ["lord of the rings"],     hint: 'intitle:"The Lord of the Rings" Tolkien' },
+  { keys: ["the hobbit"],            hint: 'intitle:"The Hobbit" Tolkien' },
+  { keys: ["game of thrones"],       hint: 'George R. R. Martin "A Song of Ice and Fire"' },
+  { keys: ["dune"],                  hint: 'Frank Herbert Dune novel' },
+  { keys: ["atomic habits"],         hint: 'James Clear "Atomic Habits"' },
+  { keys: ["it ends with us"],       hint: 'Colleen Hoover "It Ends with Us"' },
+  { keys: ["it starts with us"],     hint: 'Colleen Hoover "It Starts with Us"' },
+  { keys: ["project hail mary"],     hint: 'Andy Weir "Project Hail Mary"' },
+  { keys: ["the martian"],           hint: 'Andy Weir "The Martian"' },
+  { keys: ["1984"],                  hint: 'George Orwell 1984 novel' },
+  { keys: ["great gatsby"],          hint: 'F. Scott Fitzgerald "The Great Gatsby"' },
+  { keys: ["pride and prejudice"],   hint: 'Jane Austen "Pride and Prejudice"' },
+  { keys: ["brandon sanderson"],     hint: "Brandon Sanderson novel fantasy" },
+  { keys: ["stephen king"],          hint: "Stephen King novel" },
+  { keys: ["james patterson"],       hint: "James Patterson thriller novel" },
+  { keys: ["john grisham"],          hint: "John Grisham thriller novel" },
+  { keys: ["colleen hoover"],        hint: "Colleen Hoover romance novel" },
+  { keys: ["sarah j. maas"],         hint: "Sarah J. Maas fantasy novel" },
+  { keys: ["sarah j maas"],          hint: "Sarah J. Maas fantasy novel" },
+  { keys: ["rebecca yarros"],        hint: "Rebecca Yarros Empyrean fantasy" },
+  { keys: ["freida mcfadden"],       hint: "Freida McFadden thriller novel" },
+  { keys: ["emily henry"],           hint: "Emily Henry romance novel" }
+];
+
 function rewriteSearchQuery(raw) {
   const clean = String(raw || '').trim().replace(/\s+/g, ' ');
   if (!clean) return '';
   const lower = clean.toLowerCase();
-  const FRANCHISE_HINTS = [
-    { keys: ["harry potter"],          hint: 'intitle:"Harry Potter" J.K. Rowling' },
-    { keys: ["the boys"],              hint: 'intitle:"The Boys" Garth Ennis Dynamite' },
-    { keys: ["housemaid"],             hint: 'intitle:"The Housemaid" Freida McFadden' },
-    { keys: ["fourth wing"],           hint: '"Fourth Wing" Rebecca Yarros' },
-    { keys: ["iron flame"],            hint: '"Iron Flame" Rebecca Yarros' },
-    { keys: ["onyx storm"],            hint: '"Onyx Storm" Rebecca Yarros' },
-    { keys: ["hunger games"],          hint: 'intitle:"The Hunger Games" Suzanne Collins' },
-    { keys: ["percy jackson"],         hint: 'intitle:"Percy Jackson" Rick Riordan' },
-    { keys: ["mistborn"],              hint: 'intitle:"Mistborn" Brandon Sanderson' },
-    { keys: ["stormlight"],            hint: 'intitle:"Stormlight" Brandon Sanderson' },
-    { keys: ["wheel of time"],         hint: 'intitle:"Wheel of Time" Robert Jordan' },
-    { keys: ["lord of the rings"],     hint: 'intitle:"The Lord of the Rings" Tolkien' },
-    { keys: ["the hobbit"],            hint: 'intitle:"The Hobbit" Tolkien' },
-    { keys: ["game of thrones"],       hint: 'George R. R. Martin "A Song of Ice and Fire"' },
-    { keys: ["dune"],                  hint: 'Frank Herbert Dune novel' },
-    { keys: ["atomic habits"],         hint: 'James Clear "Atomic Habits"' },
-    { keys: ["it ends with us"],       hint: 'Colleen Hoover "It Ends with Us"' },
-    { keys: ["it starts with us"],     hint: 'Colleen Hoover "It Starts with Us"' },
-    { keys: ["project hail mary"],     hint: 'Andy Weir "Project Hail Mary"' },
-    { keys: ["the martian"],           hint: 'Andy Weir "The Martian"' },
-    { keys: ["1984"],                  hint: 'George Orwell 1984 novel' },
-    { keys: ["great gatsby"],          hint: 'F. Scott Fitzgerald "The Great Gatsby"' },
-    { keys: ["pride and prejudice"],   hint: 'Jane Austen "Pride and Prejudice"' },
-    { keys: ["brandon sanderson"],     hint: "Brandon Sanderson novel fantasy" },
-    { keys: ["stephen king"],          hint: "Stephen King novel" },
-    { keys: ["james patterson"],       hint: "James Patterson thriller novel" },
-    { keys: ["john grisham"],          hint: "John Grisham thriller novel" },
-    { keys: ["colleen hoover"],        hint: "Colleen Hoover romance novel" },
-    { keys: ["sarah j. maas"],         hint: "Sarah J. Maas fantasy novel" },
-    { keys: ["sarah j maas"],          hint: "Sarah J. Maas fantasy novel" },
-    { keys: ["rebecca yarros"],        hint: "Rebecca Yarros Empyrean fantasy" },
-    { keys: ["freida mcfadden"],       hint: "Freida McFadden thriller novel" },
-    { keys: ["emily henry"],           hint: "Emily Henry romance novel" }
-  ];
   for (const hint of FRANCHISE_HINTS) {
     for (const k of hint.keys) {
       if (lower === k || lower.startsWith(k) || lower.includes(k)) return hint.hint;
@@ -1327,6 +1328,46 @@ export default async function handler(req, res) {
       return res.json(payload);
     } catch (error) {
       return res.status(502).json({ ok: false, message: error?.message || "Discover request failed" });
+    }
+  }
+
+  // -------- OL-POPULAR (Open Library bypass — no pipeline, no Google Books key needed) --------
+  if (section === "ol-popular") {
+    try {
+      const limit = clampInt(query.limit, 1, 40, 24);
+      const q = "New York Times bestseller fiction";
+      const url = new URL("https://openlibrary.org/search.json");
+      url.searchParams.set("q", q);
+      url.searchParams.set("limit", String(limit));
+      url.searchParams.set("language", "eng");
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const res_ = await fetch(url.toString(), { signal: controller.signal, headers: { Accept: "application/json" } });
+      clearTimeout(timeout);
+      if (!res_.ok) throw new Error(`Open Library HTTP ${res_.status}`);
+      const json = await res_.json();
+      const docs = Array.isArray(json?.docs) ? json.docs : [];
+      const books = docs.map((doc) => {
+        const title = String(doc?.title || "").trim();
+        if (!title) return null;
+        const authors = Array.isArray(doc?.author_name) ? doc.author_name.map((n) => String(n).trim()).filter(Boolean) : [];
+        const coverId = Number(doc?.cover_i || 0) || 0;
+        const key = String(doc?.key || "").trim().replace(/^\/works\//, "");
+        return {
+          id: key,
+          title,
+          author_name: authors.length ? authors : ["Unknown author"],
+          first_publish_year: Number(doc?.first_publish_year || 0) || null,
+          isbn: Array.isArray(doc?.isbn) ? doc.isbn : [],
+          coverImage: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "",
+          cover: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "",
+          _source: "open-library"
+        };
+      }).filter(Boolean);
+      res.setHeader("Cache-Control", "public, max-age=600, s-maxage=1800, stale-while-revalidate=3600");
+      return res.json({ ok: true, books, count: books.length, source: "open-library" });
+    } catch (error) {
+      return res.status(502).json({ ok: false, message: error?.message || "Open Library popular fetch failed" });
     }
   }
 
