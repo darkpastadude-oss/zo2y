@@ -9925,44 +9925,44 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
       if (cached.length) return cached.slice(0, targetCount);
 
-      const mapTrack = (track) => ({
-        mediaType: 'music',
-        itemId: String(track?.id || track?.trackId || ''),
-        title: String(track?.name || track?.trackName || 'Track').trim(),
-        subtitle: Array.isArray(track?.artists)
-          ? track.artists.filter(Boolean).join(', ')
-          : String(track?.artistName || 'Artist').trim(),
-        extra: `Song${track?.collectionName ? ` | ${String(track.collectionName).trim()}` : ''}`,
-        image: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        backgroundImage: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        spotlightImage: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        previewUrl: String(track?.preview_url || track?.previewUrl || '').trim(),
-        href: `music.html`
-      });
+      const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
 
-      const mapAlbum = (album) => ({
-        mediaType: 'music',
-        itemId: `album:${String(album?.id || album?.collectionId || '')}`,
-        title: String(album?.name || album?.collectionName || 'Album').trim(),
-        subtitle: Array.isArray(album?.artists)
-          ? album.artists.filter(Boolean).join(', ')
-          : String(album?.artistName || 'Artist').trim(),
-        extra: `Album${album?.release_date ? ` | Released ${String(album.release_date).slice(0,10)}` : ''}`,
-        image: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        backgroundImage: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        spotlightImage: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
-        spotlightMediaFit: 'contain',
-        spotlightMediaShape: 'poster',
-        href: `music.html`,
-        isMusicAlbum: true
-      });
+      const upgradeArt = (url, size = 600) => {
+        const s = String(url || '').trim();
+        return s ? s.replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`).replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`) : '';
+      };
+
+      const mapTrack = (track) => {
+        const arts = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : String(track?.artistName || track?.subtitle || 'Artist').trim();
+        const img = upgradeArt(track?.image || track?.artworkUrl100 || '');
+        const id = String(track?.id || track?.trackId || track?.collectionId || '');
+        return {
+          mediaType: 'music', itemId: id, title: String(track?.name || track?.trackName || 'Track').trim(),
+          subtitle: arts, extra: `Song${track?.collectionName ? ` | ${String(track.collectionName).trim()}` : ''}`,
+          image: img, backgroundImage: img, spotlightImage: img,
+          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
+          previewUrl: String(track?.preview_url || track?.previewUrl || '').trim(),
+          href: id ? `song.html?id=${encodeURIComponent(id)}` : 'music.html'
+        };
+      };
+
+      const mapAlbum = (album) => {
+        const arts = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : String(album?.artistName || album?.subtitle || 'Artist').trim();
+        const img = upgradeArt(album?.image || album?.artworkUrl100 || '');
+        const id = String(album?.id || album?.collectionId || '');
+        const releaseDate = String(album?.release_date || '').slice(0, 10);
+        return {
+          mediaType: 'music', itemId: `album:${id}`, title: String(album?.name || album?.collectionName || 'Album').trim(),
+          subtitle: arts, extra: `Album${releaseDate ? ` | Released ${releaseDate}` : ''}`,
+          image: img, backgroundImage: img, spotlightImage: img,
+          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
+          href: id ? `song.html?album_id=${encodeURIComponent(id)}&source=itunes` : 'music.html',
+          isMusicAlbum: true
+        };
+      };
 
       const interleave = (tracks, albums, count) => {
-        const out = [];
-        const tq = [...tracks];
-        const aq = [...albums];
+        const out = [], tq = [...tracks], aq = [...albums];
         while (out.length < count && (tq.length || aq.length)) {
           if (aq.length) out.push(aq.shift());
           if (tq.length && out.length < count) out.push(tq.shift());
@@ -9973,54 +9973,70 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return out.slice(0, count);
       };
 
-      const filtered = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
+      const fetchItunesTracks = async (term, limit = 30) => {
+        try {
+          const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=song&limit=${limit}&country=US`, { signal });
+          if (!r.ok) return [];
+          const j = await r.json();
+          return safeArr(j?.results).map((t) => ({
+            id: String(t.trackId || ''), name: t.trackName || 'Track',
+            artists: [t.artistName || ''].filter(Boolean), image: t.artworkUrl100 || '',
+            collectionName: t.collectionName || '', preview_url: t.previewUrl || ''
+          }));
+        } catch (_err) { return []; }
+      };
+
+      const fetchItunesAlbums = async (term, limit = 20) => {
+        try {
+          const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=album&limit=${limit}&country=US`, { signal });
+          if (!r.ok) return [];
+          const j = await r.json();
+          return safeArr(j?.results).map((a) => ({
+            id: String(a.collectionId || ''), name: a.collectionName || 'Album',
+            artists: [a.artistName || ''].filter(Boolean), image: a.artworkUrl100 || '',
+            release_date: (a.releaseDate || '').slice(0, 10)
+          }));
+        } catch (_err) { return []; }
+      };
+
+      let trackRows = [], albumRows = [];
 
       try {
         const [tracksRes, albumsRes] = await Promise.allSettled([
           fetch('/api/music/popular?limit=50&market=US', { signal }),
           fetch('/api/music/popular-albums?limit=36&market=US&album_types=album', { signal })
         ]);
-
-        let trackRows = [];
-        let albumRows = [];
-
         if (tracksRes.status === 'fulfilled' && tracksRes.value.ok) {
-          const data = await tracksRes.value.json();
-          trackRows = filtered(data?.results);
+          const d = await tracksRes.value.json();
+          trackRows = safeArr(d?.results);
         }
         if (albumsRes.status === 'fulfilled' && albumsRes.value.ok) {
-          const data = await albumsRes.value.json();
-          albumRows = filtered(data?.results);
+          const d = await albumsRes.value.json();
+          albumRows = safeArr(d?.results);
         }
+      } catch (_err) {}
 
-        let items = [];
-        if (trackRows.length || albumRows.length) {
-          items = interleave(
-            trackRows.map(mapTrack).filter((i) => i.itemId),
-            albumRows.map(mapAlbum).filter((i) => i.itemId),
-            targetCount
-          );
-        }
+      if (!albumRows.length) {
+        albumRows = await fetchItunesAlbums('popular albums US');
+      }
+      if (!trackRows.length) {
+        trackRows = await fetchItunesTracks('popular songs US');
+      }
+      if (!trackRows.length) {
+        trackRows = await fetchItunesTracks('top hits');
+      }
 
+      if (trackRows.length || albumRows.length) {
+        const items = interleave(
+          trackRows.map(mapTrack).filter((i) => i.itemId),
+          albumRows.map(mapAlbum).filter((i) => i.itemId),
+          targetCount
+        );
         if (items.length) {
           writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
           return items;
         }
-      } catch (_err) {}
-
-      try {
-        const itunesUrl = 'https://itunes.apple.com/search?term=top+hits&media=music&entity=song&limit=30&country=US';
-        const resp = await fetch(itunesUrl, { signal });
-        if (resp.ok) {
-          const data = await resp.json();
-          const raw = filtered(data?.results);
-          const items = raw.map(mapTrack).filter((i) => i.itemId).slice(0, targetCount);
-          if (items.length) {
-            writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
-            return items;
-          }
-        }
-      } catch (_err) {}
+      }
 
       return [];
     }
