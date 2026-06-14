@@ -102,7 +102,7 @@ function normalizeOpenLibraryDoc(doc, idx = 0) {
     author_name: authorNames.length ? authorNames : ['Unknown author'],
     first_publish_year: year,
     isbn: isbnList,
-    coverImage: coverId > 0 ? `${OPEN_LIBRARY_COVER_URL}/b/id/${coverId}-L.jpg` : '',
+    coverImage: coverId > 0 ? `/api/books/cover?id=${coverId}` : '',
     cover_i: coverId,
     publisher: publisherList,
     subject: subjectList,
@@ -817,9 +817,9 @@ async function enrichMissingCovers(docs) {
         const clean = String(isbn || '').replace(/[^0-9Xx]/g, '');
         if (!clean) continue;
         
-        const isbnUrl = `https://covers.openlibrary.org/b/isbn/${clean}-L.jpg`;
+        const isbnUrl = `/api/books/cover?url=${encodeURIComponent(`https://covers.openlibrary.org/b/isbn/${clean}-L.jpg`)}`;
         try {
-          const checkRes = await fetch(isbnUrl, { method: 'HEAD' });
+          const checkRes = await fetch(`https://covers.openlibrary.org/b/isbn/${clean}-L.jpg`, { method: 'HEAD' });
           if (checkRes.ok) {
             doc.coverImage = isbnUrl;
             return;
@@ -840,7 +840,7 @@ async function enrichMissingCovers(docs) {
       for (const w of works) {
         const id = w?.cover_i;
         if (id) {
-          doc.coverImage = `https://covers.openlibrary.org/b/id/${id}-L.jpg`;
+          doc.coverImage = `/api/books/cover?id=${id}`;
           break;
         }
       }
@@ -1359,8 +1359,8 @@ export default async function handler(req, res) {
           author_name: authors.length ? authors : ["Unknown author"],
           first_publish_year: Number(doc?.first_publish_year || 0) || null,
           isbn: Array.isArray(doc?.isbn) ? doc.isbn : [],
-          coverImage: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "",
-          cover: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "",
+          coverImage: coverId > 0 ? `/api/books/cover?id=${coverId}` : "",
+          cover: coverId > 0 ? `/api/books/cover?id=${coverId}` : "",
           _source: "open-library"
         };
       }).filter(Boolean);
@@ -1368,6 +1368,44 @@ export default async function handler(req, res) {
       return res.json({ ok: true, books, count: books.length, source: "open-library" });
     } catch (error) {
       return res.status(502).json({ ok: false, message: error?.message || "Open Library popular fetch failed" });
+    }
+  }
+
+  // -------- COVER PROXY (fixes covers.openlibrary.org 503) --------
+  if (section === "cover") {
+    const coverUrl = String(query.url || "").trim();
+    const coverId = String(query.id || "").trim();
+    let targetUrl = "";
+    if (coverUrl && /^https?:\/\//.test(coverUrl)) {
+      targetUrl = coverUrl;
+    } else if (coverId && /^\d+$/.test(coverId)) {
+      targetUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+    }
+    if (!targetUrl) {
+      return res.status(400).json({ message: "Missing url or id parameter" });
+    }
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const upstream = await fetch(targetUrl, {
+        signal: controller.signal,
+        headers: { Accept: "image/*" },
+        redirect: "follow"
+      });
+      clearTimeout(timeout);
+      if (!upstream.ok) {
+        res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
+        return res.redirect(302, "/images/fallback/book.svg");
+      }
+      const contentType = upstream.headers.get("content-type") || "image/jpeg";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800, stale-while-revalidate=259200");
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      const body = await upstream.arrayBuffer();
+      return res.send(Buffer.from(body));
+    } catch (error) {
+      console.error("Cover proxy error:", error?.message);
+      return res.redirect(302, "/images/fallback/book.svg");
     }
   }
 

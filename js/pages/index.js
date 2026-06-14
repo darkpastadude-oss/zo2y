@@ -9874,9 +9874,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (cached.length) return cached.slice(0, targetCount);
 
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
+      const proxyBookCover = (url) => {
+        var s = String(url || '').trim();
+        if (!s || /\/images\/fallback\//i.test(s)) return '/images/fallback/book.svg';
+        if (/covers\.openlibrary\.org/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        return s;
+      };
       const mapBook = (b) => {
         if (!b || !b.title) return null;
-        const cover = String(b.coverImage || b.cover || '').trim();
+        const cover = proxyBookCover(String(b.coverImage || b.cover || '').trim());
         return {
           itemId: String(b.id || b._id || 'book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
           title: b.title,
@@ -9924,14 +9930,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
 
-      const upgradeArt = (url, size = 600) => {
-        const s = String(url || '').trim();
-        return s ? s.replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`).replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`) : '';
-      };
+      const safeArt = (url) => String(url || '').trim();
 
       const mapTrack = (track) => {
         const arts = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : String(track?.artistName || track?.subtitle || 'Artist').trim();
-        const img = upgradeArt(track?.image || track?.artworkUrl100 || '');
+        const img = safeArt(track?.image || track?.artworkUrl100 || '');
         const id = String(track?.id || track?.trackId || track?.collectionId || '');
         return {
           mediaType: 'music', itemId: id, title: String(track?.name || track?.trackName || 'Track').trim(),
@@ -9945,7 +9948,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const mapAlbum = (album) => {
         const arts = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : String(album?.artistName || album?.subtitle || 'Artist').trim();
-        const img = upgradeArt(album?.image || album?.artworkUrl100 || '');
+        const img = safeArt(album?.image || album?.artworkUrl100 || '');
         const id = String(album?.id || album?.collectionId || '');
         const releaseDate = String(album?.release_date || '').slice(0, 10);
         return {

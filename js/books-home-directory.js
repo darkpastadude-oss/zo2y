@@ -7,6 +7,16 @@
   'use strict';
 
   const FALLBACK_COVER = '/images/fallback/book.svg';
+
+  function proxyCover(url) {
+    var s = String(url || '').trim();
+    if (!s || s === FALLBACK_COVER) return FALLBACK_COVER;
+    if (/covers\.openlibrary\.org/i.test(s)) {
+      return '/api/books/cover?url=' + encodeURIComponent(s);
+    }
+    if (/\/images\/fallback\//i.test(s)) return FALLBACK_COVER;
+    return s;
+  }
   const HOME_BOOKS_LIMIT = 24;
   const HOME_SECTIONS = [
     {
@@ -73,7 +83,7 @@
     const title = String(book.title || '').trim();
     if (!title) return null;
     const authors = Array.isArray(book.author_name) ? book.author_name.join(', ') : 'Unknown Author';
-    const cover = String(book.coverImage || book.cover || '').trim() || FALLBACK_COVER;
+    const cover = proxyCover(String(book.coverImage || book.cover || '').trim()) || FALLBACK_COVER;
     const id = String(book.id || '').trim();
     return {
       title, authors,

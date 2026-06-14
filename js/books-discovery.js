@@ -40,8 +40,19 @@
     return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
+  function proxyCover(url) {
+    var s = String(url || '').trim();
+    if (!s || s === FALLBACK_COVER) return FALLBACK_COVER;
+    if (/covers\.openlibrary\.org/i.test(s)) {
+      return '/api/books/cover?url=' + encodeURIComponent(s);
+    }
+    if (/\/images\/fallback\//i.test(s)) return FALLBACK_COVER;
+    return s;
+  }
+
   function getCover(book) {
-    return String(book.coverImage || book.cover || '').trim() || FALLBACK_COVER;
+    var raw = String(book.coverImage || book.cover || '').trim();
+    return proxyCover(raw) || FALLBACK_COVER;
   }
 
   function renderBookCard(book) {
