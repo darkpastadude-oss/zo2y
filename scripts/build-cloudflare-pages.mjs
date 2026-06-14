@@ -39,6 +39,7 @@ const SKIP_ROOT_FILES = [
 const COPY_DIRS = new Set([
   "assets",
   "css",
+  "data",
   "images",
   "js"
 ]);
