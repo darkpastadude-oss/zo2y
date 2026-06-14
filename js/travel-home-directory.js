@@ -173,13 +173,14 @@
     const photoUrl = item.photo || FALLBACK_PHOTO;
 
     return `
-      <article class="travel-card" data-code="${escapeHtml(item.code)}">
+      <article class="travel-card" data-code="${escapeHtml(item.code)}" data-list-image="${escapeHtml(flagUrl)}" data-image="${escapeHtml(photoUrl)}">
         <div class="travel-card-media">
           <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(item.name)} card" loading="lazy" onerror="this.src='${FALLBACK_PHOTO}'">
         </div>
         <div class="travel-card-content">
           <div class="travel-card-header">
             <h3 class="travel-card-name">${escapeHtml(item.name)}</h3>
+            <button class="travel-card-menu-btn" data-code="${escapeHtml(item.code)}" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
             <span class="travel-card-code">${escapeHtml(item.code)}</span>
           </div>
           <div class="travel-card-details">
@@ -364,14 +365,45 @@
       });
     });
 
+    document.querySelectorAll('.travel-card-menu-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = btn.closest('.travel-card');
+        if (card && window.openIndexStyleListMenu) {
+          window.openIndexStyleListMenu(card);
+        }
+      });
+    });
+
     document.querySelectorAll('.travel-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.travel-card-save-btn') || e.target.closest('.travel-card-view-btn')) return;
+        if (e.target.closest('.travel-card-save-btn') || e.target.closest('.travel-card-view-btn') || e.target.closest('.travel-card-menu-btn')) return;
         const code = card.getAttribute('data-code');
         if (code) {
           window.location.href = `country.html?country=${encodeURIComponent(code)}`;
         }
       });
+    });
+  }
+
+  function wireListMenuBridge() {
+    if (typeof window.initIndexStyleListMenu !== 'function') return;
+    window.initIndexStyleListMenu({
+      mediaType: 'travel',
+      itemIdAttr: 'data-code',
+      getVisibleItemIds: () => Array.from(document.querySelectorAll('.travel-card[data-code]'))
+        .map((node) => node.getAttribute('data-code'))
+        .filter(Boolean),
+      getQuickStatusForItem: (id) => {
+        const status = state.listStatus.get(id);
+        return status ? { ...status } : null;
+      },
+      ensureClient: async () => ensureSupabase(),
+      getCurrentUser: () => state.currentUser,
+      notify: (message, errorLike) => showToast(message, !!errorLike),
+      toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+        toggleTravelItem(itemId, listType, card)
     });
   }
 
@@ -492,6 +524,7 @@
     });
 
     wireTravelActions();
+    wireListMenuBridge();
   }
 
   function init() {

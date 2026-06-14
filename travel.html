@@ -273,8 +273,16 @@
     }
 
     .travel-card-content { padding: 12px; display: grid; gap: 8px; flex: 1; }
-    .travel-card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .travel-card-name { font-size: 17px; font-weight: 700; line-height: 1.25; margin: 0; }
+    .travel-card-header { display: flex; align-items: center; gap: 8px; }
+    .travel-card-name { font-size: 17px; font-weight: 700; line-height: 1.25; margin: 0; flex: 1; min-width: 0; }
+    .travel-card-menu-btn {
+      width: 28px; height: 28px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04); color: #dce8ff;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0;
+    }
+    .travel-card-menu-btn:hover { border-color: var(--accent); color: var(--accent); }
     .travel-card-code { font-size: 11px; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
 
     .travel-card-details { display: grid; gap: 6px; }
