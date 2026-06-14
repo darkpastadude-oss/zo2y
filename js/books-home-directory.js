@@ -6,7 +6,6 @@
 (function () {
   'use strict';
 
-  const GOOGLE_BOOKS_API = 'https://www.googleapis.com/books/v1/volumes';
   const FALLBACK_COVER = '/images/fallback/book.svg';
   const HOME_BOOKS_LIMIT = 24;
   const HOME_SECTIONS = [
@@ -47,97 +46,51 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
 
-  function toHttps(url) {
-    if (!url) return '';
-    return String(url).replace(/^http:/i, 'https:');
-  }
-
-  function getCover(book) {
-    const imageLinks = book.volumeInfo?.imageLinks;
-    if (imageLinks?.thumbnail) return toHttps(imageLinks.thumbnail);
-    if (imageLinks?.smallThumbnail) return toHttps(imageLinks.smallThumbnail);
-    return FALLBACK_COVER;
-  }
-
-  function normalizeBook(book) {
-    const info = book.volumeInfo || {};
-    const title = String(info.title || 'Untitled').trim();
-    const authors = Array.isArray(info.authors) ? info.authors.join(', ') : 'Unknown Author';
-    const publisher = String(info.publisher || '').trim();
-    const publishedDate = String(info.publishedDate || '').trim();
-    const description = String(info.description || '').trim();
-    const pageCount = Number(info.pageCount || 0);
-    const categories = Array.isArray(info.categories) ? info.categories : [];
-    const language = String(info.language || 'en').toLowerCase();
-    const averageRating = Number(info.averageRating || 0);
-    const ratingsCount = Number(info.ratingsCount || 0);
-    const cover = getCover(book);
-    const id = String(book.id || '').trim();
-
-    if (language !== 'en' && language !== 'en-us' && language !== 'en-gb') return null;
-    if (!title) return null;
-
-    return {
-      id,
-      title,
-      authors,
-      publisher,
-      publishedDate,
-      description: description.substring(0, 300),
-      pageCount,
-      categories,
-      language,
-      averageRating,
-      ratingsCount,
-      cover
-    };
-  }
-
-  async function fetchGoogleBooks(params, timeout = 8000) {
-    const url = new URL(GOOGLE_BOOKS_API);
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        url.searchParams.append(key, params[key]);
-      }
-    });
-
+  async function fetchServerBooks(section, timeout = 8000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-
+    const params = new URLSearchParams({
+      q: section.query || `subject:${section.subject || 'fiction'}`,
+      limit: section.limit || 16,
+      language: 'en'
+    });
+    if (section.orderBy === 'newest') params.set('orderBy', 'newest');
     try {
-      const res = await fetch(url.toString(), { signal: controller.signal });
+      const res = await fetch('/api/books/search?' + params.toString(), { signal: controller.signal });
       clearTimeout(timeoutId);
-      if (!res.ok) throw new Error(`Google Books API ${res.status}`);
-      return res.json();
+      if (!res.ok) return [];
+      const json = await res.json();
+      return Array.isArray(json.books) ? json.books : [];
     } catch (err) {
       clearTimeout(timeoutId);
-      console.error('Google Books API error:', err);
-      return { items: [] };
+      console.error('Books server API error:', err);
+      return [];
     }
+  }
+
+  function serverBookToHomeItem(book) {
+    if (!book) return null;
+    const title = String(book.title || '').trim();
+    if (!title) return null;
+    const authors = Array.isArray(book.author_name) ? book.author_name.join(', ') : 'Unknown Author';
+    const cover = String(book.coverImage || book.cover || '').trim() || FALLBACK_COVER;
+    const id = String(book.id || '').trim();
+    return {
+      title, authors,
+      cover,
+      id: id || title.toLowerCase().replace(/\s+/g, '-'),
+      description: String(book.description || '').trim(),
+      pageCount: Number(book.pageCount || 0) || null,
+      categories: Array.isArray(book.subject) ? book.subject.slice(0, 3) : [],
+      averageRating: Number(book.rating || 0) || null,
+      ratingsCount: Number(book.ratingCount || 0) || null
+    };
   }
 
   async function fetchHomeBooksSection(section) {
-    const params = {
-      q: section.query || `subject:${section.subject || 'fiction'}`,
-      maxResults: section.limit || 16,
-      langRestrict: 'en',
-      printType: 'books'
-    };
-    if (section.orderBy === 'newest') {
-      params.orderBy = 'newest';
-    }
-
-    const data = await fetchGoogleBooks(params);
-    const books = (data.items || [])
-      .map(normalizeBook)
-      .filter(Boolean);
-
-    return {
-      id: section.id,
-      label: section.label,
-      desc: section.desc,
-      books
-    };
+    const books = await fetchServerBooks(section);
+    if (books.length) return books.map(serverBookToHomeItem).filter(Boolean);
+    return [];
   }
 
   function renderBookCard(book) {
