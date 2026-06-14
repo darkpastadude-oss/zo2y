@@ -7,8 +7,6 @@
   'use strict';
 
   const COUNTRIES_URL = '/data/countries-v3.json';
-  const FALLBACK_FLAG = '/images/fallback/flag.svg';
-  const FALLBACK_PHOTO = '/images/fallback/travel.svg';
   const TRAVEL_PAGE_SIZE = 12;
 
   let client = null;
@@ -168,14 +166,16 @@
   }
 
   function renderCountryCard(item) {
-    const flagUrl = item.flag && !item.flag.includes('flagcdn.com') ? toHttps(item.flag) : 
-                   (item.flag || FALLBACK_FLAG);
-    const photoUrl = item.photo || FALLBACK_PHOTO;
+    const photoUrl = item.photo || item.flag || '';
+    const flagUrl = item.flag || '';
 
     return `
       <article class="travel-card" data-code="${escapeHtml(item.code)}" data-list-image="${escapeHtml(flagUrl)}" data-image="${escapeHtml(photoUrl)}">
         <div class="travel-card-media">
-          <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(item.name)} card" loading="lazy" onerror="this.src='${FALLBACK_PHOTO}'">
+          ${photoUrl
+            ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;charset=UTF-8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' fill='#10224a'/><text x='12' y='16' text-anchor='middle' fill='#8ca3c7' font-size='12'>🌍</text></svg>")}';">`
+            : `<div class="travel-card-media-fallback"><i class="fas fa-earth-americas"></i></div>`
+          }
         </div>
         <div class="travel-card-content">
           <div class="travel-card-header">
@@ -239,19 +239,7 @@
 
     grid.innerHTML = visibleItems.map(renderCountryCard).join('');
     updatePagination();
-
-    // Prime images
-    setTimeout(() => {
-      visibleItems.forEach(item => {
-        const img = document.querySelector(`.travel-card[data-code="${item.code}"] img`);
-        if (img) {
-          const src = img.getAttribute('src');
-          if (src.includes('/images/fallback/travel.svg')) {
-            img.src = '/images/placeholder-travel.svg';
-          }
-        }
-      });
-    }, 100);
+    wireTravelActions();
   }
 
   function updatePagination() {
@@ -424,12 +412,12 @@
     const html = randomCountries.map((item, index) => `
       <div class="hero-spotlight-card ${index === 0 ? 'active' : ''}" data-index="${index}">
         <div class="hero-spotlight-thumb">
-          <img src="/images/placeholder-travel.svg" alt="${item.name}" loading="lazy">
+          <img src="${escapeHtml(item.flag || '')}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.style.display='none'">
         </div>
         <div class="hero-spotlight-info">
           <div class="hero-spotlight-kicker">Featured Destination</div>
-          <div class="hero-spotlight-title">${item.name}</div>
-          <div class="hero-spotlight-meta">${item.capital} • ${item.region}</div>
+          <div class="hero-spotlight-title">${escapeHtml(item.name)}</div>
+          <div class="hero-spotlight-meta">${escapeHtml(item.capital)} &bull; ${escapeHtml(item.region)}</div>
         </div>
       </div>
     `).join('');
