@@ -1330,6 +1330,34 @@
     }
   }
 
+  async function addItemToList(client, userId, type, itemId, listId, itemPayload) {
+    const cfg = getListConfig(type);
+    if (!cfg || !client || !userId) return false;
+    if (customListsDisabled(cfg)) return false;
+    
+    // Get current memberships
+    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, [listId]);
+    const currentIds = new Set(currentMemberships);
+    currentIds.add(listId);
+    
+    await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), itemPayload);
+    return true;
+  }
+
+  async function removeItemFromList(client, userId, type, itemId, listId) {
+    const cfg = getListConfig(type);
+    if (!cfg || !client || !userId) return false;
+    if (customListsDisabled(cfg)) return false;
+    
+    // Get current memberships
+    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, [listId]);
+    const currentIds = new Set(currentMemberships);
+    currentIds.delete(listId);
+    
+    await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), null);
+    return true;
+  }
+
   async function createCustomList(client, userId, type, payload) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return null;
@@ -1440,6 +1468,8 @@
     loadCustomLists,
     loadCustomListMembership,
     saveCustomListChanges,
+    addItemToList,
+    removeItemFromList,
     createCustomList,
     renameCustomList
   };
