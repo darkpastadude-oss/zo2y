@@ -5891,7 +5891,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 5000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -10035,7 +10035,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
       }
 
-      return [];
+      const fallback = [
+        { id: "1786885073", name: "Die With A Smile", artists: ["Lady Gaga", "Bruno Mars"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/18/93/6a/18936a7f-238a-383e-960c-d76be7187e90/24UMGIM62253.rgb.jpg/600x600bb.jpg" },
+        { id: "1776815963", name: "A Bar Song (Tipsy)", artists: ["Shaboozey"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/4e/62/00/4e6200e0-4a7b-cd5e-d1b7-9a36109c7c48/24UMGIM36640.rgb.jpg/600x600bb.jpg" },
+        { id: "1746018235", name: "I Had Some Help", artists: ["Post Malone", "Morgan Wallen"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/9d/35/98/9d35982a-6c9b-423d-b757-146e282d5863/24UMGIM02785.rgb.jpg/600x600bb.jpg" },
+        { id: "1738258033", name: "Lose Control", artists: ["Teddy Swims"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/2e/90/03/2e90035d-d588-ddf0-2e05-f83f0e8744af/23UM1IM45862.rgb.jpg/600x600bb.jpg" },
+        { id: "1731742554", name: "Taste", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/38/82/06/38820667-e2c5-35b6-9004-43ab4b61f6fa/24UMGIM39301.rgb.jpg/600x600bb.jpg" },
+        { id: "1727299764", name: "Espresso", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8d/38/54/8d38546f-e164-e34b-511b-a4b500bf4213/24UMGIM62688.rgb.jpg/600x600bb.jpg" },
+        { id: "1696313419", name: "Beautiful Things", artists: ["Benson Boone"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/65/82/90/65829058-f42c-3058-81e0-83a9c50616b0/24UMGIM54155.rgb.jpg/600x600bb.jpg" },
+        { id: "1741021439", name: "BIRDS OF A FEATHER", artists: ["Billie Eilish"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/50/84/a4/5084a45b-9029-43ec-b7e5-f8a8f2e1330e/24UMGIM63520.rgb.jpg/600x600bb.jpg" }
+      ];
+      const fallbackItems = fallback.map(function(t) {
+        const arts = String(t.artists || []).filter(Boolean).join(', ');
+        const img = upgradeArt(t.image || '');
+        return {
+          mediaType: 'music', itemId: String(t.id || ''),
+          title: String(t.name || 'Track').trim(),
+          subtitle: arts, extra: 'Song',
+          image: img, backgroundImage: img, spotlightImage: img,
+          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
+          previewUrl: '', href: 'music.html'
+        };
+      }).slice(0, targetCount);
+      writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, fallbackItems);
+      return fallbackItems;
     }
 
     async function loadTravel(signal) {

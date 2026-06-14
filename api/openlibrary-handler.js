@@ -56,7 +56,14 @@ async function fetchWithRetry(url, init = {}, attempts = 4) {
 export default async function handler(req, res) {
   try {
     const query = readQuery(req);
-    const pathParts = readPathParts(query);
+    let pathParts = readPathParts(query);
+    if (!pathParts.length) {
+      try {
+        const u = new URL(req.url || "", "http://localhost");
+        const subpath = u.pathname.replace(/^\/api\/openlibrary\//, "").replace(/^\/+/, "");
+        pathParts = subpath ? subpath.split("/").filter(Boolean) : [];
+      } catch (_e) {}
+    }
     const method = String(req.method || "GET").toUpperCase();
 
     if (method !== "GET") {

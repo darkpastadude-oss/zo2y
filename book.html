@@ -931,17 +931,50 @@
       async function fetchGoogleBooksDocs(paramsObj = {}) {
         const q = buildGoogleBooksQuery(paramsObj);
         if (!q) return [];
-        const googleUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes`, window.location.origin);
-        googleUrl.searchParams.set('q', q);
-        googleUrl.searchParams.set('printType', 'books');
-        googleUrl.searchParams.set('langRestrict', 'en');
-        googleUrl.searchParams.set('maxResults', String(Math.max(1, Number(paramsObj?.limit || 8))));
+        const limit = String(Math.max(1, Number(paramsObj?.limit || 8)));
         try {
-          const res = await fetch(googleUrl.toString(), { headers: { Accept: 'application/json' } });
+          const proxyUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/search`, window.location.origin);
+          proxyUrl.searchParams.set('q', q);
+          proxyUrl.searchParams.set('limit', limit);
+          const res = await fetch(proxyUrl.toString(), { headers: { Accept: 'application/json' } });
+          if (res.ok) {
+            const json = await res.json();
+            const items = Array.isArray(json?.items) ? json.items : [];
+            if (items.length) {
+              return items.map((entry, idx) => normalizeGoogleBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
+            }
+          }
+        } catch (_err) {
+        }
+        try {
+          const olUrl = new URL('https://openlibrary.org/search.json');
+          olUrl.searchParams.set('q', q);
+          olUrl.searchParams.set('limit', limit);
+          olUrl.searchParams.set('language', 'eng');
+          const res = await fetch(olUrl.toString(), { headers: { Accept: 'application/json' } });
           if (!res.ok) return [];
           const json = await res.json();
-          const items = Array.isArray(json?.items) ? json.items : [];
-          return items.map((entry, idx) => normalizeGoogleBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
+          const docs = Array.isArray(json?.docs) ? json.docs : [];
+          return docs.map((doc, idx) => {
+            const title = String(doc?.title || '').trim();
+            if (!title) return null;
+            const authorNames = Array.isArray(doc?.author_name) ? doc.author_name.filter(Boolean).map((n) => String(n).trim()) : [];
+            const coverId = Number(doc?.cover_i || 0) || 0;
+            const year = Number(doc?.first_publish_year || 0) || null;
+            return {
+              key: String(doc?.key || '').trim(),
+              title,
+              author_name: authorNames.length ? authorNames : ['Unknown author'],
+              first_publish_year: year,
+              isbn: Array.isArray(doc?.isbn) ? doc.isbn : [],
+              subject: Array.isArray(doc?.subject) ? doc.subject : [],
+              publisher: Array.isArray(doc?.publisher) ? doc.publisher : [],
+              cover_i: coverId || null,
+              _googleThumbnail: buildOpenLibraryCoverUrl(coverId, 'L'),
+              _googleVolumeId: '',
+              _googleRaw: null
+            };
+          }).filter(Boolean);
         } catch (_err) {
           return [];
         }

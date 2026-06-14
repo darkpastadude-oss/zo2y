@@ -51,14 +51,20 @@
     const year = book.first_publish_year || '';
     const cover = getCover(book);
     const id = String(book.id || '').trim();
-    return '<article class="card" data-id="' + escapeHtml(id) + '">' +
-      '<a href="book.html?id=' + encodeURIComponent(id) + '" class="card-media">' +
+    const href = 'book.html?id=' + encodeURIComponent(id);
+    return '<article class="card" data-href="' + href + '" data-media-type="book" data-item-id="' + escapeHtml(id) + '" data-title="' + escapeHtml(title) + '" data-subtitle="' + escapeHtml(authors) + '" data-image="' + escapeHtml(cover) + '">' +
+      '<div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>' +
+      '<a href="' + href + '" class="card-media">' +
       '<img src="' + escapeHtml(cover) + '" alt="' + escapeHtml(title) + '" loading="lazy" onerror="this.src=\'' + FALLBACK_COVER + '\'">' +
       '</a>' +
       '<div class="card-meta">' +
-      '<h3 class="card-title" title="' + escapeHtml(title) + '">' + escapeHtml(title) + '</h3>' +
-      '<div class="card-sub">' + escapeHtml(authors) + '</div>' +
-      (year ? '<div class="card-extra">' + escapeHtml(String(year)) + '</div>' : '') +
+      '<span class="card-type"><i class="fa-solid fa-book"></i> Book</span>' +
+      '<div class="card-meta-top">' +
+      '<p class="card-name" title="' + escapeHtml(title) + '">' + escapeHtml(title) + '</p>' +
+      '<div class="card-menu-wrap"><button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button></div>' +
+      '</div>' +
+      '<p class="card-sub">' + escapeHtml(authors) + '</p>' +
+      (year ? '<p class="card-extra">' + escapeHtml(String(year)) + '</p>' : '<p class="card-extra placeholder">&nbsp;</p>') +
       '</div>' +
       '</article>';
   }
@@ -82,10 +88,10 @@
         '<div class="skeleton-line skeleton-line-md skeleton-shimmer"></div>' +
         '</div></div><div class="grid book-grid">';
       for (let i = 0; i < 6; i++) {
-        html += '<article class="card book-skeleton-card">' +
-          '<div class="card-media skeleton-shimmer"></div>' +
+        html += '<article class="card"><div class="card-media skeleton-shimmer"></div>' +
           '<div class="card-meta">' +
-          '<span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>' +
+          '<div class="card-type skeleton-shimmer" style="height:12px;width:40px;margin-bottom:6px"></div>' +
+          '<div class="card-meta-top"><span class="skeleton-line skeleton-line-sm skeleton-shimmer" style="flex:1"></span></div>' +
           '<span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>' +
           '<span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>' +
           '</div></article>';
@@ -105,16 +111,6 @@
     return html;
   }
 
-  function buildOpenLibraryUrl(params) {
-    const url = new URL('https://openlibrary.org/search.json');
-    Object.keys(params).forEach(function (k) {
-      if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
-        url.searchParams.append(k, params[k]);
-      }
-    });
-    return url.toString();
-  }
-
   async function fetchOlPopular(limit) {
     try {
       const r = await fetch('/api/books/ol-popular?limit=' + limit);
@@ -126,25 +122,11 @@
 
   async function fetchOlSearch(q, page, limit) {
     try {
-      const url = buildOpenLibraryUrl({ q: q, limit: limit, page: page, language: 'eng' });
-      const r = await fetch(url);
+      const r = await fetch('/api/books/search?q=' + encodeURIComponent(q) + '&limit=' + limit + '&page=' + page + '&language=en');
       if (!r.ok) return { books: [], numFound: 0 };
       const j = await r.json();
-      const docs = Array.isArray(j.docs) ? j.docs : [];
-      const books = docs.map(function (d) {
-        const title = String(d.title || '').trim();
-        if (!title) return null;
-        return {
-          id: String(d.key || '').replace('/works/', ''),
-          title: title,
-          author_name: Array.isArray(d.author_name) ? d.author_name : [],
-          first_publish_year: Number(d.first_publish_year || 0) || null,
-          coverImage: Number(d.cover_i || 0) > 0 ? 'https://covers.openlibrary.org/b/id/' + d.cover_i + '-L.jpg' : '',
-          cover: Number(d.cover_i || 0) > 0 ? 'https://covers.openlibrary.org/b/id/' + d.cover_i + '-L.jpg' : '',
-          _source: 'open-library'
-        };
-      }).filter(Boolean);
-      return { books: books, numFound: Number(j.numFound || books.length) };
+      const books = Array.isArray(j.books) ? j.books : [];
+      return { books: books, numFound: Math.max(Number(j.meta?.numFound || 0), books.length) };
     } catch (_e) { return { books: [], numFound: 0 }; }
   }
 
