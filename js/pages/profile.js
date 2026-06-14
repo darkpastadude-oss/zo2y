@@ -8296,6 +8296,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
@@ -8306,6 +8309,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -8478,24 +8484,30 @@
 
                     itemCard.innerHTML = `
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
-                        <div class="collection-item-body">
-                            <h3 class="collection-item-title">${showTitle}</h3>
+                            <div class="collection-item-body">
+                                <h3 class="collection-item-title">${showTitle}</h3>
+                                ${canEditItems ? `
+                                    <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                    <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                ` : ''}
+                                <div class="collection-item-meta">
+                                    <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
+                                    <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                </div>
+                                ${rankMarkup}
+                            </div>
                             ${canEditItems ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                             ` : ''}
-                            <div class="collection-item-meta">
-                                <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
-                                <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
-                            </div>
-                            ${rankMarkup}
-                        </div>
-                        ${canEditItems ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
                     `;
 
                     if (canReorder) {
@@ -8666,24 +8678,30 @@
 
                     itemCard.innerHTML = `
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
-                        <div class="collection-item-body">
-                            <h3 class="collection-item-title">${showTitle}</h3>
+                            <div class="collection-item-body">
+                                <h3 class="collection-item-title">${showTitle}</h3>
+                                ${canEditItems ? `
+                                    <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                        <i class="fas fa-times"></i> Remove
+                                    </button>
+                                    <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                ` : ''}
+                                <div class="collection-item-meta">
+                                    <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
+                                    <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                </div>
+                                ${rankMarkup}
+                            </div>
                             ${canEditItems ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
+                                <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
+                                    <i class="fas fa-plus"></i>
                                 </button>
                             ` : ''}
-                            <div class="collection-item-meta">
-                                <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
-                                <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
-                            </div>
-                            ${rankMarkup}
-                        </div>
-                        ${canEditItems ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
                     `;
 
                     if (canReorder) {
@@ -8871,6 +8889,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${game.released ? new Date(game.released).getFullYear() : 'N/A'}</span>
@@ -8881,6 +8902,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${safeGameId}', '${listId}', 'game', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9061,6 +9085,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${id}', '${listId}', 'book', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>
@@ -9071,6 +9098,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${id}', '${listId}', 'book', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${id}', '${listId}', 'book', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9243,6 +9273,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${trackId}', '${listId}', 'music', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(artists)}</span>
@@ -9253,6 +9286,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${trackId}', '${listId}', 'music', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${trackId}', '${listId}', 'music', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9433,6 +9469,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-map-pin"></i> ${escapeHtml(capital ? `Capital: ${capital}` : 'Capital: N/A')}</span>
@@ -9443,6 +9482,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(code)}', '${listId}', 'travel', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9614,6 +9656,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
@@ -9623,6 +9668,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'fashion', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9781,6 +9829,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
@@ -9790,6 +9841,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'car', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -9961,6 +10015,9 @@
                                 <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
                                     <i class="fas fa-times"></i> Remove
                                 </button>
+                                <button class="collection-item-add-inline" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
                             ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-tag"></i> ${escapeHtml(meta || 'Brand details unavailable')}</span>
@@ -9970,6 +10027,9 @@
                         ${canEditItems ? `
                             <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
                                 <i class="fas fa-times"></i>
+                            </button>
+                            <button class="collection-item-add" onclick="event.stopPropagation(); ProfileManager.addToCollection('${escapeHtml(id)}', '${listId}', 'food', '${listType}')">
+                                <i class="fas fa-plus"></i>
                             </button>
                         ` : ''}
                     `;
@@ -10144,6 +10204,92 @@
                     if (typeof restoreRemovedNode === 'function') restoreRemovedNode();
                     console.error('Error removing item:', error);
                     showToast('Failed to remove item', 'error');
+                    refreshCollectionViews();
+                }
+            }
+
+            async function addToCollection(itemId, collectionId, type, listType = 'custom') {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                const trigger = window.event?.currentTarget instanceof HTMLElement ? window.event.currentTarget : null;
+                const removableNode = trigger ? trigger.closest('.collection-item-card, .movie-list-movie-card, .mobile-journal-entry') : null;
+                let restoreAddedNode = null;
+
+                const showDetailFns = { movie: showMovieDetail, tv: showTvDetail, anime: showAnimeDetail, game: showGameDetail, book: showBookDetail, music: showMusicDetail, travel: showTravelDetail, fashion: showFashionDetail, food: showFoodDetail, car: showCarDetail };
+                const renderFns = { movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames, book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion, food: renderFood, car: renderCars };
+
+                const refreshCollectionViews = () => {
+                    const showFn = showDetailFns[type] || showBookDetail;
+                    const renderFn = renderFns[type] || renderBooks;
+                    void showFn(collectionId, listType, window.innerWidth <= 768);
+                    void renderFn();
+                };
+
+                try {
+                    let canEdit = canEditCollectionItems(type, collectionId, listType);
+                    if (!canEdit && String(listType || '').toLowerCase() === 'custom') {
+                        const accessRecord = await fetchCustomListAccessRecord(type, collectionId);
+                        canEdit = !!accessRecord && canEditCollectionItems(type, collectionId, listType, accessRecord);
+                    }
+                    if (!canEdit) {
+                        showToast('You do not have permission to edit this list', 'warning');
+                        return;
+                    }
+
+                    const itemTable = MEDIA_ITEM_TABLES[type];
+                    const itemField = MEDIA_ITEM_FIELDS[type];
+                    const listTable = CUSTOM_LIST_TABLES[type];
+                    
+                    if (!itemTable || !itemField || !listTable) {
+                        showToast('Cannot add to this collection', 'error');
+                        return;
+                    }
+
+                    if (removableNode instanceof HTMLElement) {
+                        const previousDisplay = removableNode.style.display;
+                        const previousOpacity = removableNode.style.opacity;
+                        const previousTransform = removableNode.style.transform;
+                        const previousPointerEvents = removableNode.style.pointerEvents;
+                        removableNode.style.pointerEvents = 'none';
+                        removableNode.style.opacity = '0.22';
+                        removableNode.style.transform = 'scale(0.98)';
+                        window.setTimeout(() => { removableNode.style.display = 'none'; }, 60);
+                        restoreAddedNode = () => {
+                            removableNode.style.display = previousDisplay;
+                            removableNode.style.opacity = previousOpacity;
+                            removableNode.style.transform = previousTransform;
+                            removableNode.style.pointerEvents = previousPointerEvents;
+                        };
+                    }
+
+                    const { data: existing } = await supabase
+                        .from(itemTable)
+                        .select('id')
+                        .eq(itemField, itemId)
+                        .eq(listType === 'default' ? 'user_id' : 'list_id', collectionId)
+                        .maybeSingle();
+                    
+                    if (existing?.id) {
+                        showToast('Already in collection', 'info');
+                        if (typeof restoreAddedNode === 'function') restoreAddedNode();
+                        return;
+                    }
+
+                    const insertPayload = listType === 'default'
+                        ? { user_id: userId, [itemField]: itemId, list_type: collectionId }
+                        : { [itemField]: itemId, list_id: collectionId };
+
+                    const { error } = await supabase
+                        .from(itemTable)
+                        .insert(insertPayload);
+                    
+                    if (error) throw error;
+
+                    showToast('Added to collection', 'success');
+                    refreshCollectionViews();
+                } catch (error) {
+                    if (typeof restoreAddedNode === 'function') restoreAddedNode();
+                    console.error('Error adding item:', error);
+                    showToast('Failed to add item', 'error');
                     refreshCollectionViews();
                 }
             }
