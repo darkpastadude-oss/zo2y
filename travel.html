@@ -285,7 +285,8 @@
     }
 
     .travel-card-content { padding: 12px; display: grid; gap: 8px; flex: 1; }
-    .travel-card-header { display: flex; align-items: center; gap: 8px; }
+    .travel-card-header { display: flex; align-items: center; gap: 6px; }
+    .travel-card-flag-icon { width: 22px; height: 16px; border-radius: 3px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.15); }
     .travel-card-name { font-size: 17px; font-weight: 700; line-height: 1.25; margin: 0; flex: 1; min-width: 0; }
     .travel-card-menu-btn {
       width: 28px; height: 28px; border-radius: 8px;
@@ -388,7 +389,7 @@
     @media (max-width: 760px) {
       .controls { grid-template-columns: minmax(0, 1fr) 52px 52px; gap: 10px; }
       .controls input, .controls button { height: 52px; font-size: 16px; }
-      .travel-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+      .travel-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
       .travel-card-name { font-size: 15px; }
     }
   </style>
@@ -465,7 +466,7 @@
   </section>
 
   <script src="js/index-list-menu-adapter.js?v=20260614a" defer></script>
-  <script src="js/travel-home-directory.js?v=20260614a" defer></script>
+  <script src="js/travel-home-directory.js?v=20260614b" defer></script>
   <script>
     (function () {
       const referralUtils = window.ZO2Y_REFERRALS || null;
