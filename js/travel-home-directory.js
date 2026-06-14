@@ -8,9 +8,11 @@
 
   const COUNTRIES_URL = '/data/countries-v3.json';
   const TRAVEL_PAGE_SIZE = 12;
-  const PHOTO_CACHE_PREFIX = 'zo2y_scenic_';
-  const PHOTO_CACHE_TTL = 14 * 24 * 60 * 60 * 1000;
-  const WIKIMEDIA_API = 'https://commons.wikimedia.org/w/api.php';
+
+  const SUPABASE_URL = (window.__ZO2Y_SUPABASE_CONFIG && window.__ZO2Y_SUPABASE_CONFIG.url) || '';
+  const TRAVEL_BUCKET_NAME = 'travel-photos';
+  const TRAVEL_PHOTO_CACHE_KEY = 'zo2y_travel_photo_cache_v7';
+  const TRAVEL_PHOTO_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
 
   let client = null;
   const state = {
@@ -24,10 +26,12 @@
     listStatus: new Map(),
     pending: new Set(),
     currentUser: null,
-    isLoading: false,
-    photoCache: new Map()
+    isLoading: false
   };
 
+  const sharedTravelPhotoCache = new Map();
+
+  // ── Supabase / Auth ─────────────────────────────────────────────────────
   async function ensureSupabase() {
     if (client) return client;
     const authRuntime = window.ZO2Y_AUTH || null;
@@ -68,6 +72,7 @@
     }
   }
 
+  // ── Helpers ─────────────────────────────────────────────────────────────
   function escapeHtml(value) {
     return String(value || '')
       .replace(/&/g, '&amp;')
@@ -95,6 +100,48 @@
     return raw;
   }
 
+  // ── Travel photo cache (shared with index.html / country.html) ──────────
+  function loadSharedTravelPhotoCache() {
+    try {
+      const raw = localStorage.getItem(TRAVEL_PHOTO_CACHE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const savedAt = Number(parsed?.savedAt || 0);
+      const entries = parsed?.entries && typeof parsed.entries === 'object' ? parsed.entries : null;
+      if (!savedAt || !entries) return;
+      if ((Date.now() - savedAt) > TRAVEL_PHOTO_CACHE_TTL_MS) return;
+      Object.entries(entries).forEach(([codeRaw, entry]) => {
+        const code = canonicalCountryCode(codeRaw);
+        if (!code) return;
+        const scenic = toHttps(String(entry?.scenic || entry?.photo || entry?.image || '').trim());
+        const city = toHttps(String(entry?.city || '').trim());
+        const nature = toHttps(String(entry?.nature || '').trim());
+        if (!scenic && !city && !nature) return;
+        sharedTravelPhotoCache.set(code, { scenic, city, nature });
+      });
+    } catch (_e) {}
+  }
+
+  function getSharedPhoto(code) {
+    const entry = sharedTravelPhotoCache.get(canonicalCountryCode(code));
+    if (!entry) return '';
+    if (entry.scenic) return entry.scenic;
+    if (entry.city) return entry.city;
+    if (entry.nature) return entry.nature;
+    return '';
+  }
+
+  function getScenicPhotoUrl(code) {
+    const cached = getSharedPhoto(code);
+    if (cached) return cached;
+    if (SUPABASE_URL && code) {
+      const candidate = `${SUPABASE_URL}/storage/v1/object/public/${TRAVEL_BUCKET_NAME}/${code}/scenic.jpg`;
+      return candidate;
+    }
+    return '';
+  }
+
+  // ── Normalize ───────────────────────────────────────────────────────────
   function normalizeCountry(item) {
     const rawCode = safeCode(item && (item.cca2 || item.cca3));
     if (!rawCode || rawCode === 'IL') return null;
@@ -110,135 +157,8 @@
       subregion: String(item && item.subregion || '').trim(),
       flag: toHttps(item && item.flags && (item.flags.png || item.flags.svg)) || `https://flagcdn.com/w640/${code.toLowerCase()}.png`,
       photo: '',
-      photoCity: '',
-      photoNature: '',
       cities: Array.isArray(item && item.cities) ? item.cities.slice(0, 3) : []
     };
-  }
-
-  // ── Scenic photo from Wikimedia Commons ──────────────────────────────────
-  function getCachedPhoto(code) {
-    if (state.photoCache.has(code)) return state.photoCache.get(code);
-    try {
-      const raw = localStorage.getItem(PHOTO_CACHE_PREFIX + code);
-      if (!raw) return '';
-      const entry = JSON.parse(raw);
-      if (Date.now() - (entry.ts || 0) > PHOTO_CACHE_TTL) {
-        localStorage.removeItem(PHOTO_CACHE_PREFIX + code);
-        return '';
-      }
-      state.photoCache.set(code, entry.url);
-      return entry.url;
-    } catch { return ''; }
-  }
-
-  function setCachedPhoto(code, url) {
-    try {
-      localStorage.setItem(PHOTO_CACHE_PREFIX + code, JSON.stringify({ url, ts: Date.now() }));
-    } catch {}
-    if (url) state.photoCache.set(code, url);
-  }
-
-  const STOP_WORDS = new Set(['the','of','and','in','for','on','with','a','an','to','at','by','from','or','is','are']);
-
-  function scorePhotoTitle(title) {
-    const words = title.toLowerCase().replace(/[_]/g, ' ').split(/\s+/).filter(Boolean);
-    let score = 0;
-    for (const w of words) {
-      if (STOP_WORDS.has(w)) continue;
-      if (w.length < 2) continue;
-      score += w.length;
-    }
-    return score;
-  }
-
-  function isGoodScenicCategory(cats) {
-    if (!Array.isArray(cats)) return false;
-    const keywords = [
-      'landscapes of','panorama','cityscape','skyline','aerial',
-      'sunset','sunrise','coastline','beach','mountain','river','lake',
-      'village','town','square','cathedral','temple','mosque','bridge',
-      'harbor','port','market','park','garden','cave','waterfall',
-      'island','desert','forest','plain','valley','volcano','glacier'
-    ];
-    for (const cat of cats) {
-      const t = String(cat.title || '').toLowerCase();
-      for (const kw of keywords) {
-        if (t.includes(kw)) return true;
-      }
-    }
-    return false;
-  }
-
-  async function fetchScenicPhoto(query) {
-    const params = new URLSearchParams({
-      action: 'query',
-      format: 'json',
-      formatversion: '2',
-      origin: '*',
-      generator: 'search',
-      gsrnamespace: '6',
-      gsrlimit: '20',
-      gsrsearch: query,
-      prop: 'imageinfo|categories',
-      iiprop: 'url|mime',
-      iiurlwidth: '1400',
-      cllimit: 'max'
-    });
-    const res = await fetch(`${WIKIMEDIA_API}?${params}`);
-    if (!res.ok) return '';
-    const data = await res.json();
-    const pages = data?.query?.pages || [];
-    const candidates = [];
-    for (const page of pages) {
-      const ii = page.imageinfo?.[0];
-      if (!ii) continue;
-      if (!String(ii.mime || '').startsWith('image/')) continue;
-      const url = toHttps(ii.url);
-      if (!url) continue;
-      const cats = page.categories || [];
-      const title = page.title || '';
-      const mediaScore = scorePhotoTitle(title);
-      const catScore = isGoodScenicCategory(cats) ? 30 : 0;
-      candidates.push({ url, totalScore: mediaScore + catScore });
-    }
-    if (!candidates.length) return '';
-    candidates.sort((a, b) => b.totalScore - a.totalScore);
-    return candidates[0].url;
-  }
-
-  async function loadPhotoForCountry(country) {
-    if (!country || !country.code) return '';
-    const cached = getCachedPhoto(country.code);
-    if (cached) return cached;
-
-    const queries = [
-      `${country.name} landscape cityscape`,
-      `${country.name} travel scenery`,
-      `${country.name} aerial view`
-    ];
-
-    for (const q of queries) {
-      try {
-        const url = await fetchScenicPhoto(q);
-        if (url) {
-          setCachedPhoto(country.code, url);
-          return url;
-        }
-      } catch {}
-    }
-
-    const fallback = country.flag || '';
-    setCachedPhoto(country.code, fallback);
-    return fallback;
-  }
-
-  async function loadPhotosForVisible(visibleItems) {
-    const photoPromises = visibleItems.map(async (item) => {
-      const photo = await loadPhotoForCountry(item);
-      item.photo = photo;
-    });
-    await Promise.allSettled(photoPromises);
   }
 
   // ── Core ────────────────────────────────────────────────────────────────
@@ -294,6 +214,7 @@
     renderGrid();
   }
 
+  // ── Card rendering ──────────────────────────────────────────────────────
   function renderCountryCard(item) {
     const photoUrl = item.photo || '';
     const flagUrl = item.flag || '';
@@ -350,7 +271,7 @@
     `;
   }
 
-  async function renderGrid() {
+  function renderGrid() {
     const grid = document.getElementById('grid');
     if (!grid) return;
 
@@ -360,7 +281,7 @@
     if (!visibleItems.length) {
       grid.innerHTML = `
         <div class="travel-empty-state">
-          <div class="travel-empty-icon">🌍</div>
+          <div class="travel-empty-icon">&#x1F30D;</div>
           <h3>No countries found</h3>
           <p>Try adjusting your search or filters</p>
         </div>
@@ -369,21 +290,13 @@
       return;
     }
 
+    visibleItems.forEach(item => {
+      item.photo = getScenicPhotoUrl(item.code);
+    });
+
     grid.innerHTML = visibleItems.map(renderCountryCard).join('');
     updatePagination();
     wireTravelActions();
-
-    await loadPhotosForVisible(visibleItems);
-    const cards = grid.querySelectorAll('.travel-card');
-    visibleItems.forEach((item, i) => {
-      if (item.photo && cards[i]) {
-        const img = cards[i].querySelector('.travel-card-media img');
-        if (img && img.src !== item.photo) {
-          img.src = item.photo;
-          cards[i].setAttribute('data-image', item.photo);
-        }
-      }
-    });
   }
 
   function updatePagination() {
@@ -399,6 +312,7 @@
     if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
   }
 
+  // ── List status ─────────────────────────────────────────────────────────
   async function loadListStatus() {
     if (!state.currentUser?.id || !state.filtered.length) return;
     const supabase = await ensureSupabase();
@@ -553,18 +467,22 @@
     const randomCountries = countries.sort(() => 0.5 - Math.random()).slice(0, 3);
     if (!randomCountries.length) return;
 
-    const html = randomCountries.map((item, index) => `
-      <div class="hero-spotlight-card ${index === 0 ? 'active' : ''}" data-index="${index}">
-        <div class="hero-spotlight-thumb">
-          <img src="${escapeHtml(item.flag || '')}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.style.display='none'">
+    const html = randomCountries.map((item, index) => {
+      const heroPhoto = getScenicPhotoUrl(item.code);
+      const bgStyle = heroPhoto ? `background-image:url('${escapeHtml(heroPhoto)}');background-size:cover;background-position:center;` : '';
+      return `
+        <div class="hero-spotlight-card ${index === 0 ? 'active' : ''}" data-index="${index}">
+          <div class="hero-spotlight-thumb" ${bgStyle ? `style="${bgStyle}"` : ''}>
+            ${!bgStyle ? `<img src="${escapeHtml(item.flag || '')}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.style.display='none'">` : ''}
+          </div>
+          <div class="hero-spotlight-info">
+            <div class="hero-spotlight-kicker">Featured Destination</div>
+            <div class="hero-spotlight-title">${escapeHtml(item.name)}</div>
+            <div class="hero-spotlight-meta">${escapeHtml(item.capital)} &bull; ${escapeHtml(item.region)}</div>
+          </div>
         </div>
-        <div class="hero-spotlight-info">
-          <div class="hero-spotlight-kicker">Featured Destination</div>
-          <div class="hero-spotlight-title">${escapeHtml(item.name)}</div>
-          <div class="hero-spotlight-meta">${escapeHtml(item.capital)} &bull; ${escapeHtml(item.region)}</div>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
     section.innerHTML = html;
     let currentIndex = 0;
@@ -579,7 +497,9 @@
     }
   }
 
+  // ── Init ────────────────────────────────────────────────────────────────
   async function initTravelDirectory() {
+    loadSharedTravelPhotoCache();
     await initAuthUi();
     const countries = await loadCountries();
     state.countries = countries;
