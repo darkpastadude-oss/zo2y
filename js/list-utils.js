@@ -1334,12 +1334,16 @@
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
-    
-    // Get current memberships
-    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, [listId]);
+
+    // Load ALL custom lists for this user/media type to preserve other memberships
+    const allLists = await loadCustomLists(client, userId, type);
+    const allListIds = allLists.map(l => l.id).filter(Boolean);
+
+    // Get current memberships for ALL lists
+    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
     const currentIds = new Set(currentMemberships);
     currentIds.add(listId);
-    
+
     await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), itemPayload);
     return true;
   }
@@ -1348,12 +1352,16 @@
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
-    
-    // Get current memberships
-    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, [listId]);
+
+    // Load ALL custom lists for this user/media type to preserve other memberships
+    const allLists = await loadCustomLists(client, userId, type);
+    const allListIds = allLists.map(l => l.id).filter(Boolean);
+
+    // Get current memberships for ALL lists
+    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
     const currentIds = new Set(currentMemberships);
     currentIds.delete(listId);
-    
+
     await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), null);
     return true;
   }
