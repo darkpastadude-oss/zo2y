@@ -42,14 +42,6 @@ function toHttpsUrl(value) {
   return raw;
 }
 
-function upgradeItunesArtwork(url, size = 1200) {
-  const src = toHttpsUrl(url);
-  if (!src) return "";
-  return src
-    .replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`)
-    .replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`);
-}
-
 function normalizeMarket(value = "US") {
   return String(value || "US").trim().slice(0, 2).toUpperCase() || "US";
 }
@@ -74,7 +66,7 @@ function normalizeAlbumTypes(raw) {
 function normalizeItunesTrackRow(track) {
   const collectionType = String(track?.collectionType || "").trim().toLowerCase();
   const rawArtwork = String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim();
-  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "itunes",
     kind: "track",
@@ -104,7 +96,7 @@ function normalizeItunesTrackRow(track) {
 function normalizeItunesAlbumRow(album) {
   const artistName = String(album?.artistName || "").trim();
   const rawArtwork = String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim();
-  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "itunes",
     id: String(album?.collectionId || album?.id || ""),
@@ -131,7 +123,7 @@ function normalizeItunesAlbumRow(album) {
 
 function normalizeAppleChartTrackRow(track) {
   const rawArtwork = String(track?.artworkUrl100 || "").trim();
-  const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "apple",
     kind: "track",
