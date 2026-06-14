@@ -122,6 +122,18 @@
     return html;
   }
 
+  function wireGridMenus(scope) {
+    scope.querySelectorAll('.card-menu-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var card = btn.closest('.card');
+        if (card && window.openIndexStyleListMenu) {
+          window.openIndexStyleListMenu(card);
+        }
+      });
+    });
+  }
+
   async function fetchOlPopular(limit) {
     try {
       const r = await fetch('/api/books/ol-popular?limit=' + limit);
@@ -152,6 +164,63 @@
 
     if (!discoverContainer) return;
 
+    // Initialize list menu adapter bridge
+    if (window.initIndexStyleListMenu && !window.__ZO2Y_BOOKS_LIST_BRIDGE) {
+      window.__ZO2Y_BOOKS_LIST_BRIDGE = true;
+      window.initIndexStyleListMenu({
+        mediaType: 'book',
+        itemIdAttr: 'data-item-id',
+        getItemFromCard: function (card) {
+          if (!card) return null;
+          var mediaType = String(card.getAttribute('data-media-type') || '').trim().toLowerCase();
+          var rawId = card.getAttribute('data-item-id') || '';
+          if (!mediaType || !rawId) return null;
+          return {
+            mediaType: mediaType,
+            itemId: rawId,
+            title: card.getAttribute('data-title') || card.querySelector('.card-title, .card-name')?.textContent || '',
+            subtitle: card.getAttribute('data-subtitle') || card.querySelector('.card-meta, .card-sub')?.textContent || '',
+            image: card.getAttribute('data-image') || '',
+            listImage: card.getAttribute('data-list-image') || ''
+          };
+        },
+        getVisibleItemIds: function () {
+          return Array.from(document.querySelectorAll('.card[data-item-id]'))
+            .map(function (card) { return card.getAttribute('data-item-id'); })
+            .filter(Boolean);
+        },
+        getQuickStatusForItem: function () { return null; },
+        ensureClient: async function () {
+          if (typeof window.ensureHomeSupabase === 'function') {
+            return await window.ensureHomeSupabase();
+          }
+          return window.__ZO2Y_SUPABASE_CLIENT || null;
+        },
+        getCurrentUser: function () { return window.homeCurrentUser || null; },
+        notify: function (message, isError) { 
+          if (typeof window.showHomeToast === 'function') {
+            window.showHomeToast(message, !!isError);
+          } else {
+            console.log(message);
+          }
+        },
+        toggleDefaultList: async function (_ref) {
+          var itemId = _ref.itemId, listType = _ref.listType, card = _ref.card, nextSaved = _ref.nextSaved;
+          var mediaType = String(card?.getAttribute('data-media-type') || '').trim().toLowerCase();
+          var result = await window.saveToListFromHome ? window.saveToListFromHome({
+            mediaType: mediaType,
+            itemId: itemId,
+            listType: listType,
+            nextSaved: typeof nextSaved === 'boolean' ? nextSaved : null,
+            title: card?.getAttribute('data-title') || '',
+            subtitle: card?.getAttribute('data-subtitle') || '',
+            image: card?.getAttribute('data-image') || ''
+          }) : { ok: false };
+          return { ok: !!result?.ok, saved: result?.saved };
+        }
+      });
+    }
+
     var currentSearchQuery = '';
     var currentPage = 1;
     var totalPages = 1;
@@ -181,6 +250,7 @@
         var rendered = sections.filter(Boolean).map(renderSection).join('');
         if (rendered) {
           discoverContainer.innerHTML = rendered;
+          wireGridMenus(discoverContainer);
         } else {
           showError('No books available right now.');
         }
@@ -196,6 +266,7 @@
         return;
       }
       grid.innerHTML = books.map(renderBookCard).join('');
+      wireGridMenus(grid);
       if (paginationContainer) {
         paginationContainer.innerHTML = renderPagination(page, total);
         paginationContainer.querySelectorAll('.pag-btn').forEach(function (btn) {

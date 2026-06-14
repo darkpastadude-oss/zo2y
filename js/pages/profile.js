@@ -5640,10 +5640,23 @@
             function setEditMediaListModalMode(config, isCreate = false) {
                 const titleEl = document.getElementById('editMediaListModalTitle');
                 const submitBtn = document.querySelector('#editMediaListForm button[type="submit"]');
+                const iconMap = {
+                    movie: 'fas fa-film',
+                    tv: 'fas fa-tv',
+                    anime: 'fas fa-dragon',
+                    game: 'fas fa-gamepad',
+                    book: 'fas fa-book',
+                    music: 'fas fa-music',
+                    travel: 'fas fa-earth-americas',
+                    fashion: 'fas fa-shirt',
+                    food: 'fas fa-utensils',
+                    car: 'fas fa-car'
+                };
+                const iconClass = iconMap[config.fallback] || 'fas fa-list';
                 if (titleEl) {
-                    titleEl.textContent = isCreate
-                        ? `Create ${config.label} List`
-                        : `Edit ${config.label} List`;
+                    titleEl.innerHTML = isCreate
+                        ? `<i class="${iconClass}" style="margin-right:8px;color:var(--accent)"></i>Create ${config.label} List`
+                        : `<i class="${iconClass}" style="margin-right:8px;color:var(--accent)"></i>Edit ${config.label} List`;
                 }
                 if (submitBtn) {
                     submitBtn.textContent = isCreate ? 'Create List' : 'Save Changes';
