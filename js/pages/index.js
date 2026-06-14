@@ -9924,66 +9924,104 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const targetCount = Math.max(8, Number(getHomeChannelTargetItems() || 12));
       const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
       if (cached.length) return cached.slice(0, targetCount);
-      const loaders = await ensureHomeHeavyLoaders();
-      if (typeof loaders.loadMusic === 'function') {
-        try {
-          const items = await loaders.loadMusic(signal);
-          if (Array.isArray(items) && items.length) return items.slice(0, targetCount);
-        } catch (err) {
-          console.error('Music heavy loader error:', err);
+
+      const mapTrack = (track) => ({
+        mediaType: 'music',
+        itemId: String(track?.id || track?.trackId || ''),
+        title: String(track?.name || track?.trackName || 'Track').trim(),
+        subtitle: Array.isArray(track?.artists)
+          ? track.artists.filter(Boolean).join(', ')
+          : String(track?.artistName || 'Artist').trim(),
+        extra: `Song${track?.collectionName ? ` | ${String(track.collectionName).trim()}` : ''}`,
+        image: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        backgroundImage: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        spotlightImage: String(track?.image || track?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        previewUrl: String(track?.preview_url || track?.previewUrl || '').trim(),
+        href: `music.html`
+      });
+
+      const mapAlbum = (album) => ({
+        mediaType: 'music',
+        itemId: `album:${String(album?.id || album?.collectionId || '')}`,
+        title: String(album?.name || album?.collectionName || 'Album').trim(),
+        subtitle: Array.isArray(album?.artists)
+          ? album.artists.filter(Boolean).join(', ')
+          : String(album?.artistName || 'Artist').trim(),
+        extra: `Album${album?.release_date ? ` | Released ${String(album.release_date).slice(0,10)}` : ''}`,
+        image: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        backgroundImage: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        spotlightImage: String(album?.image || album?.artworkUrl100 || '').trim().replace(/\/[0-9]+x[0-9]+bb\./i, '/600x600bb.'),
+        spotlightMediaFit: 'contain',
+        spotlightMediaShape: 'poster',
+        href: `music.html`,
+        isMusicAlbum: true
+      });
+
+      const interleave = (tracks, albums, count) => {
+        const out = [];
+        const tq = [...tracks];
+        const aq = [...albums];
+        while (out.length < count && (tq.length || aq.length)) {
+          if (aq.length) out.push(aq.shift());
+          if (tq.length && out.length < count) out.push(tq.shift());
+          if (tq.length && out.length < count) out.push(tq.shift());
         }
-      }
+        while (out.length < count && tq.length) out.push(tq.shift());
+        while (out.length < count && aq.length) out.push(aq.shift());
+        return out.slice(0, count);
+      };
+
+      const filtered = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
+
       try {
-        const response = await fetch('/api/music/top-50?limit=24&market=US', { signal });
-        if (response.ok) {
-          const data = await response.json();
-          const results = Array.isArray(data?.results) ? data.results : [];
-          const items = results.slice(0, targetCount).map((track) => ({
-            mediaType: 'music',
-            itemId: String(track?.id || ''),
-            title: String(track?.name || 'Track').trim(),
-            subtitle: Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist',
-            extra: `Song | Popularity: ${Number(track?.popularity || 0)}/100`,
-            image: String(track?.image || '').trim(),
-            backgroundImage: String(track?.image || '').trim(),
-            spotlightImage: String(track?.image || '').trim(),
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            previewUrl: String(track?.preview_url || '').trim(),
-            href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
-          })).filter((item) => item.itemId);
+        const [tracksRes, albumsRes] = await Promise.allSettled([
+          fetch('/api/music/popular?limit=50&market=US', { signal }),
+          fetch('/api/music/popular-albums?limit=36&market=US&album_types=album', { signal })
+        ]);
+
+        let trackRows = [];
+        let albumRows = [];
+
+        if (tracksRes.status === 'fulfilled' && tracksRes.value.ok) {
+          const data = await tracksRes.value.json();
+          trackRows = filtered(data?.results);
+        }
+        if (albumsRes.status === 'fulfilled' && albumsRes.value.ok) {
+          const data = await albumsRes.value.json();
+          albumRows = filtered(data?.results);
+        }
+
+        let items = [];
+        if (trackRows.length || albumRows.length) {
+          items = interleave(
+            trackRows.map(mapTrack).filter((i) => i.itemId),
+            albumRows.map(mapAlbum).filter((i) => i.itemId),
+            targetCount
+          );
+        }
+
+        if (items.length) {
+          writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
+          return items;
+        }
+      } catch (_err) {}
+
+      try {
+        const itunesUrl = 'https://itunes.apple.com/search?term=top+hits&media=music&entity=song&limit=30&country=US';
+        const resp = await fetch(itunesUrl, { signal });
+        if (resp.ok) {
+          const data = await resp.json();
+          const raw = filtered(data?.results);
+          const items = raw.map(mapTrack).filter((i) => i.itemId).slice(0, targetCount);
           if (items.length) {
             writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
             return items;
           }
         }
       } catch (_err) {}
-      try {
-        const itunesUrl = 'https://itunes.apple.com/search?term=top+hits&media=music&entity=song&limit=24&country=US';
-        const response = await fetch(itunesUrl, { signal });
-        if (response.ok) {
-          const data = await response.json();
-          const results = Array.isArray(data?.results) ? data.results : [];
-          const items = results.slice(0, targetCount).map((track) => ({
-            mediaType: 'music',
-            itemId: String(track?.trackId || ''),
-            title: String(track?.trackName || 'Track').trim(),
-            subtitle: String(track?.artistName || 'Artist').trim(),
-            extra: `Song | Album: ${String(track?.collectionName || '').trim()}`,
-            image: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
-            backgroundImage: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
-            spotlightImage: String(track?.artworkUrl100 || '').trim().replace('100x100', '400x400'),
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            previewUrl: String(track?.previewUrl || '').trim(),
-            href: String(track?.trackId || '').trim() ? `song.html?id=${encodeURIComponent(track.trackId)}` : 'music.html'
-          })).filter((item) => item.itemId);
-          if (items.length) {
-            writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
-            return items;
-          }
-        }
-      } catch (_err) {}
+
       return [];
     }
 
