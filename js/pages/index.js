@@ -5901,6 +5901,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (window.ZO2Y_DISABLE_HOME_BOOKS) {
         return channels.filter(ch => ch.key !== 'book');
       }
+      if (window.ZO2Y_DISABLE_HOME_MUSIC) {
+        return channels.filter(ch => ch.key !== 'music');
+      }
       return channels;
     }
 
