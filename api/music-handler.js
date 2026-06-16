@@ -42,6 +42,15 @@ function toHttpsUrl(value) {
   return raw;
 }
 
+function sanitizeArtworkUrl(url) {
+  const safe = toHttpsUrl(url);
+  if (!safe) return safe;
+  if (safe.includes("mzstatic.com") && /\/600x600bb\.jpg$/i.test(safe)) {
+    return safe.replace(/\/600x600bb\.jpg$/i, "/300x300bb.jpg");
+  }
+  return safe;
+}
+
 function normalizeMarket(value = "US") {
   return String(value || "US").trim().slice(0, 2).toUpperCase() || "US";
 }
@@ -66,7 +75,7 @@ function normalizeAlbumTypes(raw) {
 function normalizeItunesTrackRow(track) {
   const collectionType = String(track?.collectionType || "").trim().toLowerCase();
   const rawArtwork = String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
+  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
   return {
     source: "itunes",
     kind: "track",
@@ -96,7 +105,7 @@ function normalizeItunesTrackRow(track) {
 function normalizeItunesAlbumRow(album) {
   const artistName = String(album?.artistName || "").trim();
   const rawArtwork = String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
+  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
   return {
     source: "itunes",
     id: String(album?.collectionId || album?.id || ""),
@@ -123,7 +132,7 @@ function normalizeItunesAlbumRow(album) {
 
 function normalizeAppleChartTrackRow(track) {
   const rawArtwork = String(track?.artworkUrl100 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
+  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
   return {
     source: "apple",
     kind: "track",

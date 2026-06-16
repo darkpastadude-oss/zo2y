@@ -5453,6 +5453,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       img.onerror = function () {
         if (this._fallbackSet) return;
         this._fallbackSet = true;
+        var src = String(this.src || '');
+        if (src.includes('mzstatic.com') && /\/300x300bb\.jpg$/i.test(src)) {
+          this.src = src.replace(/\/300x300bb\.jpg$/i, '/100x100bb.jpg');
+          this._fallbackSet = false;
+          return;
+        }
         this.removeAttribute('data-home-image-state');
         this.alt = this.alt || '';
         markHomeImageReady(this);
@@ -9044,14 +9050,18 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
         void ensureHomeBrandBackgroundManifest();
-        if (!client) return [];
+        const fallbackItems = stableShuffleHomeItems(
+          HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
+          'car:fallback'
+        ).slice(0, target);
+        if (!client) return fallbackItems;
 
         const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('car_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
-        if (error || !data || !data.length) return [];
+        if (error || !data || !data.length) return fallbackItems;
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
         return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
