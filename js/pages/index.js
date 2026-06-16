@@ -1917,20 +1917,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function resolveBrandLogo(row, mediaType) {
-      const logoValue = String(row?.logo_url || row?.logo || '').trim();
-      if (logoValue) {
-        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
-          return logoValue;
-        }
-      }
-      const domain = String(row?.domain || '').trim();
       const typeKey = String(mediaType || '').toLowerCase();
-      if (domain) {
-        const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
-        if (bucketType) {
-          const slug = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-          return `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}.svg`;
-        }
+      const domain = String(row?.domain || '').trim();
+      const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
+      if (bucketType && domain) {
+        const slug = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
+        return `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}.svg`;
+      }
+      const logoValue = String(row?.logo_url || row?.logo || '').trim();
+      if (logoValue && (logoValue.startsWith('/') || logoValue.startsWith('data:'))) {
+        return logoValue;
       }
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';

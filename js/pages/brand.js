@@ -129,24 +129,15 @@
   const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
 
   function resolveLogo(value, domain, name) {
-    const direct = String(value || '').trim();
-    if (direct) {
-      if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
-        return direct;
-      }
-    }
     const domainRaw = String(domain || '').trim();
     if (domainRaw) {
       const bucketType = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
       const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
       return `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}.svg`;
     }
-    const title = String(name || '').trim();
-    if (title) {
-      const params = new URLSearchParams();
-      params.set('title', title);
-      params.set('mode', 'logo');
-      return '/api/logo?' + params.toString();
+    const direct = String(value || '').trim();
+    if (direct && (direct.startsWith('/') || direct.startsWith('data:'))) {
+      return direct;
     }
     return '';
   }
