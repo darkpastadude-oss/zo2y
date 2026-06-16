@@ -1314,17 +1314,10 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      // Use upsert with onConflict to avoid 409 errors for duplicate entries
-      const conflictTarget = cfg.usesUserId ? `${cfg.itemIdField},list_id,user_id` : `${cfg.itemIdField},list_id`;
-      const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
-        onConflict: conflictTarget,
-        ignoreDuplicates: false
-      });
+      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
       if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
       } else if (insertError && isConflictError(insertError)) {
-        // Idempotency: if the row already exists (double-click/retry/race), treat as success.
-        // The UI already reflects the desired final state.
         return;
       }
     }

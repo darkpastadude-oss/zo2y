@@ -641,6 +641,23 @@ create table if not exists public.travel_plans (
 );
 
 -- Sports
+create table if not exists public.sports_lists (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  icon text,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.sports_list_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  team_id text not null,
+  list_type text,
+  list_id uuid null references public.sports_lists(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
 create table if not exists public.user_favorite_teams (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
@@ -827,6 +844,11 @@ create index if not exists idx_anime_reviews_created_at on public.anime_reviews(
 create unique index if not exists ux_anime_lists_user_title_lower on public.anime_lists(user_id, lower(title));
 create unique index if not exists ux_anime_list_items_unique on public.anime_list_items(user_id, anime_id, coalesce(list_type, ''), coalesce(list_id::text, ''));
 
+create index if not exists idx_sports_lists_user on public.sports_lists(user_id);
+create index if not exists idx_sports_list_items_user on public.sports_list_items(user_id);
+create index if not exists idx_sports_list_items_team on public.sports_list_items(team_id);
+create index if not exists idx_sports_list_items_list_id on public.sports_list_items(list_id);
+create unique index if not exists ux_sports_list_items_unique on public.sports_list_items (user_id, team_id, list_type, list_id);
 create index if not exists idx_teams_name on public.teams using gin (to_tsvector('english', coalesce(name, '')));
 create index if not exists idx_user_favorite_teams_user on public.user_favorite_teams(user_id);
 create index if not exists idx_user_favorite_teams_team on public.user_favorite_teams(team_id);
@@ -966,6 +988,8 @@ select public.apply_list_rls('travel_lists');
 select public.apply_list_rls('travel_list_items');
 select public.apply_list_rls('travel_reviews');
 select public.apply_list_rls('travel_plans');
+select public.apply_list_rls('sports_lists');
+select public.apply_list_rls('sports_list_items');
 select public.apply_list_rls('user_favorite_teams');
 select public.apply_list_rls('list_tier_meta');
 select public.apply_list_rls('list_tier_ranks');
@@ -1031,12 +1055,14 @@ begin
     when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'
     when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'
     when 'book_list_items' then 'book' when 'music_list_items' then 'music'
+    when 'sports_list_items' then 'sports'
     else null end;
   v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
   v_item_id := case tg_table_name
     when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')
     when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')
     when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')
+    when 'sports_list_items' then nullif(v_payload->>'team_id', '')
     else null end;
   v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
   v_list_type := nullif(v_payload->>'list_type', '');
@@ -1061,6 +1087,7 @@ begin
     when 'movie_lists' then 'movie' when 'tv_lists' then 'tv'
     when 'anime_lists' then 'anime' when 'game_lists' then 'game'
     when 'book_lists' then 'book' when 'music_lists' then 'music'
+    when 'sports_lists' then 'sports'
     else null end;
   v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
   v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
@@ -1131,6 +1158,8 @@ select ensure_activity_trigger('book_list_items', 'trg_book_list_add_activity', 
 select ensure_activity_trigger('book_list_items', 'trg_book_list_remove_activity', 'delete', 'public.log_list_activity_iud');
 select ensure_activity_trigger('music_list_items', 'trg_music_list_add_activity', 'insert', 'public.log_list_activity_iud');
 select ensure_activity_trigger('music_list_items', 'trg_music_list_remove_activity', 'delete', 'public.log_list_activity_iud');
+select ensure_activity_trigger('sports_list_items', 'trg_sports_list_add_activity', 'insert', 'public.log_list_activity_iud');
+select ensure_activity_trigger('sports_list_items', 'trg_sports_list_remove_activity', 'delete', 'public.log_list_activity_iud');
 
 -- Custom list triggers
 select ensure_activity_trigger('movie_lists', 'trg_movie_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
@@ -1145,6 +1174,8 @@ select ensure_activity_trigger('book_lists', 'trg_book_list_create_activity', 'i
 select ensure_activity_trigger('book_lists', 'trg_book_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 select ensure_activity_trigger('music_lists', 'trg_music_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
 select ensure_activity_trigger('music_lists', 'trg_music_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
+select ensure_activity_trigger('sports_lists', 'trg_sports_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
+select ensure_activity_trigger('sports_lists', 'trg_sports_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 
 -- Review triggers
 select ensure_activity_trigger('movie_reviews', 'trg_movie_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
@@ -1213,6 +1244,7 @@ begin
     when 'game' then list_table := 'game_lists';
     when 'book' then list_table := 'book_lists';
     when 'music' then list_table := 'music_lists';
+    when 'sports' then list_table := 'sports_lists';
     else return;
   end case;
   if to_regclass(format('public.%s', list_table)) is null then return; end if;

@@ -1108,7 +1108,11 @@
                 if (profile) return;
 
                 const idSuffix = String(currentUser?.id || '').replace(/-/g, '').slice(0, 6) || 'user';
-                const bootstrapUsername = profileUsernameWithSuffix('user', idSuffix);
+                const bootstrapUsername = (function(base, suffix) {
+                    const clean = v => (v||'user').toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'')||'user';
+                    const nb = clean(base), ns = clean(suffix).slice(0,8)||'user';
+                    return (nb.slice(0,Math.max(3,30-ns.length-1))+'_'+ns).slice(0,30);
+                })('user', idSuffix);
                 const bootstrapDisplayName = String(
                     currentUser?.user_metadata?.full_name ||
                     currentUser?.user_metadata?.name ||
