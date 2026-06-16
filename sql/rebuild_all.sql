@@ -383,7 +383,9 @@ create table if not exists public.tv_lists (
   user_id uuid not null,
   title text not null,
   icon text,
-  created_at timestamptz default now()
+  description text default '',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists public.tv_list_items (
@@ -604,7 +606,9 @@ create table if not exists public.travel_lists (
   user_id uuid not null references auth.users(id) on delete cascade,
   title text not null,
   icon text,
-  created_at timestamptz default now()
+  description text default '',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists public.travel_list_items (
@@ -875,6 +879,7 @@ returns trigger language plpgsql as $$ begin new.updated_at = now(); return new;
 
 create trigger anime_lists_touch_updated_at before update on public.anime_lists for each row execute function public.touch_updated_at();
 create trigger anime_reviews_touch_updated_at before update on public.anime_reviews for each row execute function public.touch_updated_at();
+create trigger tv_lists_touch_updated_at before update on public.tv_lists for each row execute function public.touch_updated_at();
 create trigger tracks_touch_updated_at before update on public.tracks for each row execute function public.touch_updated_at();
 create trigger music_reviews_touch_updated_at before update on public.music_reviews for each row execute function public.touch_updated_at();
 create trigger albums_touch_updated_at before update on public.albums for each row execute function public.touch_updated_at();
@@ -882,6 +887,7 @@ create trigger user_album_reviews_touch_updated_at before update on public.user_
 create trigger game_reviews_touch_updated_at before update on public.game_reviews for each row execute function public.touch_updated_at();
 create trigger tv_reviews_touch_updated_at before update on public.tv_reviews for each row execute function public.touch_updated_at();
 create trigger travel_reviews_touch_updated_at before update on public.travel_reviews for each row execute function public.touch_updated_at();
+create trigger travel_lists_touch_updated_at before update on public.travel_lists for each row execute function public.touch_updated_at();
 create trigger travel_plans_touch_updated_at before update on public.travel_plans for each row execute function public.touch_updated_at();
 create trigger car_reviews_touch_updated_at before update on public.car_reviews for each row execute function public.touch_updated_at();
 create trigger fashion_reviews_touch_updated_at before update on public.fashion_reviews for each row execute function public.touch_updated_at();
@@ -949,9 +955,13 @@ create or replace function public.apply_list_rls(table_name text)
 returns void language plpgsql as $$
 begin
   execute format('alter table public.%I enable row level security;', table_name);
+  execute format('drop policy if exists "Public select on %s" on public.%I;', table_name, table_name);
   execute format('create policy "Public select on %s" on public.%I for select using (true);', table_name, table_name);
+  execute format('drop policy if exists "Insert own %s" on public.%I;', table_name, table_name);
   execute format('create policy "Insert own %s" on public.%I for insert with check (user_id = auth.uid());', table_name, table_name);
+  execute format('drop policy if exists "Update own %s" on public.%I;', table_name, table_name);
   execute format('create policy "Update own %s" on public.%I for update using (user_id = auth.uid()) with check (user_id = auth.uid());', table_name, table_name);
+  execute format('drop policy if exists "Delete own %s" on public.%I;', table_name, table_name);
   execute format('create policy "Delete own %s" on public.%I for delete using (user_id = auth.uid());', table_name, table_name);
 end;
 $$;

@@ -5450,6 +5450,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       img.setAttribute('data-home-image-state', 'loading');
       img.removeAttribute('data-home-src');
+      img.onerror = function () {
+        if (this._fallbackSet) return;
+        this._fallbackSet = true;
+        this.removeAttribute('data-home-image-state');
+        this.alt = this.alt || '';
+        markHomeImageReady(this);
+      };
       img.src = nextSrc;
     }
 
