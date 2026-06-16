@@ -260,20 +260,22 @@
   const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
 
   function resolveLogo(value, domain, name) {
+    const direct = String(value || '').trim();
+    if (direct) {
+      if (direct.startsWith('http') || direct.startsWith('/') || direct.startsWith('data:')) {
+        return direct;
+      }
+    }
     const domainRaw = String(domain || '').trim();
     if (domainRaw) {
       const bucketType = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
       const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
       const base = `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}`;
-      if (/\.(jpe?g|png|gif|webp)$/i.test(String(value || ''))) {
-        const ext = String(value).match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
+      if (/\.(jpe?g|png|gif|webp)$/i.test(direct)) {
+        const ext = direct.match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
         return `${base}.${ext}`;
       }
       return `${base}.svg`;
-    }
-    const direct = String(value || '').trim();
-    if (direct && (direct.startsWith('/') || direct.startsWith('data:'))) {
-      return direct;
     }
     return '';
   }
