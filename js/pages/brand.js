@@ -133,7 +133,12 @@
     if (domainRaw) {
       const bucketType = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
       const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-      return `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}.svg`;
+      const base = `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}`;
+      if (/\.(jpe?g|png|gif|webp)$/i.test(String(value || ''))) {
+        const ext = String(value).match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
+        return `${base}.${ext}`;
+      }
+      return `${base}.svg`;
     }
     const direct = String(value || '').trim();
     if (direct && (direct.startsWith('/') || direct.startsWith('data:'))) {

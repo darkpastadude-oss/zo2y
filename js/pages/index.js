@@ -1922,7 +1922,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
       if (bucketType && domain) {
         const slug = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-        return `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}.svg`;
+        const base = `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}`;
+        const logoUrl = String(row?.logo_url || row?.logo || '').trim();
+        if (/\.(jpe?g|png|gif|webp)$/i.test(logoUrl)) {
+          const ext = logoUrl.match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
+          return `${base}.${ext}`;
+        }
+        return `${base}.svg`;
       }
       const logoValue = String(row?.logo_url || row?.logo || '').trim();
       if (logoValue && (logoValue.startsWith('/') || logoValue.startsWith('data:'))) {
