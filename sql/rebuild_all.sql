@@ -673,7 +673,7 @@ create table if not exists public.user_favorite_teams (
 -- Cross-cutting tables
 create table if not exists public.list_collaborators (
   id uuid primary key default gen_random_uuid(),
-  media_type text not null check (media_type in ('movie', 'anime', 'tv', 'game', 'book', 'music')),
+  media_type text not null check (media_type in ('movie', 'anime', 'tv', 'game', 'book', 'music', 'sports')),
   list_id text not null,
   list_owner_id uuid not null references auth.users(id) on delete cascade,
   collaborator_id uuid not null references auth.users(id) on delete cascade,

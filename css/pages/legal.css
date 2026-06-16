@@ -384,7 +384,7 @@
   bottom: 0;
   background: #0f1d3a;
   border-top: 1px solid rgba(255,255,255,0.12);
-  padding: 20px 24px;
+  padding: 20px 24px 24px;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
   z-index: 9999;
   display: flex;
@@ -448,10 +448,14 @@
   background: var(--legal-accent);
   color: #1a1300;
   border-color: var(--legal-accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 12px 24px;
 }
 
 .cookie-banner-btn-primary:hover {
   background: #ffb84d;
+  border-color: #ffb84d;
 }
 
 .cookie-prefs {
