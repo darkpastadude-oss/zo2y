@@ -126,6 +126,8 @@
     }, 2400);
   }
 
+  const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
+
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
     if (direct) {
@@ -133,25 +135,18 @@
         return direct;
       }
     }
+    const domainRaw = String(domain || '').trim();
+    if (domainRaw) {
+      const bucketType = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
+      const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
+      return `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}.svg`;
+    }
     const title = String(name || '').trim();
     if (title) {
       const params = new URLSearchParams();
       params.set('title', title);
-      const domainRaw = String(domain || '').trim();
-      if (domainRaw) params.set('domain', domainRaw);
       params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
-    }
-    const domainRaw = String(domain || '').trim();
-    const candidate = domainRaw;
-    if (!candidate) return '';
-    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
-      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256&mode=logo';
-    }
-    if (/^https?:\/\//i.test(candidate)) {
-      const match = candidate.match(/\/\/([^\/\?]+)/i);
-      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256&mode=logo';
-      return candidate;
     }
     return '';
   }

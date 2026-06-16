@@ -1923,8 +1923,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return logoValue;
         }
       }
+      const domain = String(row?.domain || '').trim();
       const typeKey = String(mediaType || '').toLowerCase();
-      // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.
+      if (domain) {
+        const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
+        if (bucketType) {
+          const slug = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
+          return `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}.svg`;
+        }
+      }
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
       if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
