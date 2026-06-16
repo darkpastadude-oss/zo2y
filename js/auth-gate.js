@@ -732,6 +732,7 @@
     var limit = Math.max(3, 30 - normalizedSuffix.length - 1);
     return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
   }
+  window.profileUsernameWithSuffix = profileUsernameWithSuffix;
 
   function getGeneratedPlaceholderProfileUsername(user) {
     var userId = String(user && user.id || '').trim();
