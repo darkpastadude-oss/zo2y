@@ -3322,9 +3322,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
         const { data, error } = await client
-          .from('user_list_items')
-          .select('media_id, list_id, user_id, created_at')
-          .eq('media_type', mediaType)
+          .from('list_items')
+          .select('external_id, list_id, user_id, created_at')
+          .eq('external_type', mediaType)
           .in('user_id', userIds)
           .order('created_at', { ascending: false })
           .limit(220);
@@ -3335,21 +3335,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         // Fetch default lists for these userIds and mediaType to map list_id to list_type
         const { data: defaultLists } = await client
-          .from('user_default_lists')
-          .select('id, list_type')
+          .from('user_lists')
+          .select('id, type')
           .in('user_id', userIds)
-          .eq('media_type', mediaType);
+          .eq('external_type', mediaType);
 
         const defaultListTypeById = new Map();
         if (Array.isArray(defaultLists)) {
           defaultLists.forEach(dl => {
-            defaultListTypeById.set(dl.id, dl.list_type);
+            defaultListTypeById.set(dl.id, dl.type);
           });
         }
 
         const rows = data.map((row) => ({
-          media_id: row.media_id,
-          external_id: row.media_id,
+          media_id: row.external_id,
+          external_id: row.external_id,
           user_id: row.user_id,
           list_type: defaultListTypeById.get(row.list_id) || 'custom',
           created_at: row.created_at
@@ -3788,7 +3788,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const categoryCountEntries = await Promise.all(
           Object.entries(listIdsByCategory).map(async ([cat, ids]) => {
             const { count } = await client
-              .from('user_list_items')
+              .from('list_items')
               .select('id', { count: 'exact', head: true })
               .in('list_id', ids);
             return [cat, Number(count || 0)];
@@ -4197,7 +4197,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           if (nextSaved === false) {
             const { error: deleteError } = await client
-              .from('user_list_items')
+              .from('list_items')
               .delete()
               .eq('list_id', listId)
               .eq('media_id', String(itemId));
@@ -4219,7 +4219,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               return result;
             }
             const { error: insertError } = await client
-              .from('user_list_items')
+              .from('list_items')
               .insert({
                 user_id: activeUser.id,
                 list_id: listId,
@@ -4241,14 +4241,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { data: existing } = await client
-            .from('user_list_items')
+            .from('list_items')
             .select('id')
             .eq('list_id', listId)
             .eq('media_id', String(itemId))
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            const { error: deleteError } = await client.from('user_list_items').delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4262,7 +4262,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           await ensureLinkedMediaRecord(itemId);
           const { error: insertError } = await client
-            .from('user_list_items')
+            .from('list_items')
             .insert({
               user_id: activeUser.id,
               list_id: listId,
@@ -4405,13 +4405,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('user_lists')
             .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq('media_type', mediaType);
+            .eq('external_type', mediaType);
           if (lists && lists.length) {
             const listIds = lists.map(l => l.id);
             const typeById = {};
             lists.forEach(l => { typeById[l.id] = l.type; });
             const { data: items } = await client
-              .from('user_list_items')
+              .from('list_items')
               .select('list_id')
               .in('list_id', listIds)
               .eq('external_id', String(normalizedItemId));
@@ -4635,7 +4635,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const typeById = {};
           lists.forEach(l => { typeById[l.id] = l.type; });
           const { data } = await client
-            .from('user_list_items')
+            .from('list_items')
             .select('list_id, external_id')
             .in('list_id', listIds)
             .in('external_id', visibleItemIds.map(String));

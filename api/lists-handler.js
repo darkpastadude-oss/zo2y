@@ -62,7 +62,7 @@ async function handleGetLists(req, res) {
       .from("user_lists")
       .select("*")
       .eq("user_id", userId)
-      .eq("media_type", mediaType)
+      .eq("category", mediaType)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -73,11 +73,11 @@ async function handleGetLists(req, res) {
     if (listType && VALID_DEFAULT_LIST_TYPES.has(listType)) {
       // For default list types, we need to query user_default_lists
       const { data: defaultLists } = await admin
-        .from("user_default_lists")
+        .from("user_lists")
         .select("*")
         .eq("user_id", userId)
-        .eq("media_type", mediaType)
-        .eq("list_type", listType);
+        .eq("category", mediaType)
+        .eq("type", listType);
       lists = defaultLists || [];
     }
 

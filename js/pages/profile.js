@@ -112,40 +112,40 @@
             const PROFILE_PIN_TABLE = 'profile_pinned_lists';
             const LIST_COLLAB_TABLE = 'list_collaborators';
             const CUSTOM_LIST_TABLES = {
-                movie: 'movie_lists',
-                tv: 'tv_lists',
-                anime: 'anime_lists',
-                ...(GAMES_DISABLED ? {} : { game: 'game_lists' }),
-                book: 'book_lists',
-                music: 'music_lists',
-                travel: 'travel_lists',
-                fashion: 'fashion_lists',
-                food: 'food_lists',
-                car: 'car_lists'
+                movie: 'user_lists',
+                tv: 'user_lists',
+                anime: 'user_lists',
+                ...(GAMES_DISABLED ? {} : { game: 'user_lists' }),
+                book: 'user_lists',
+                music: 'user_lists',
+                travel: 'user_lists',
+                fashion: 'user_lists',
+                food: 'user_lists',
+                car: 'user_lists'
             };
             const MEDIA_ITEM_TABLES = {
-                movie: 'movie_list_items',
-                tv: 'tv_list_items',
-                anime: 'anime_list_items',
-                ...(GAMES_DISABLED ? {} : { game: 'game_list_items' }),
-                book: 'book_list_items',
-                music: 'music_list_items',
-                travel: 'travel_list_items',
-                fashion: 'fashion_list_items',
-                food: 'food_list_items',
-                car: 'car_list_items'
+                movie: 'list_items',
+                tv: 'list_items',
+                anime: 'list_items',
+                ...(GAMES_DISABLED ? {} : { game: 'list_items' }),
+                book: 'list_items',
+                music: 'list_items',
+                travel: 'list_items',
+                fashion: 'list_items',
+                food: 'list_items',
+                car: 'list_items'
             };
             const MEDIA_ITEM_FIELDS = {
-                movie: 'movie_id',
-                tv: 'tv_id',
-                anime: 'anime_id',
-                ...(GAMES_DISABLED ? {} : { game: 'game_id' }),
-                book: 'book_id',
-                music: 'track_id',
-                travel: 'country_code',
-                fashion: 'brand_id',
-                food: 'brand_id',
-                car: 'brand_id'
+                movie: 'external_id',
+                tv: 'external_id',
+                anime: 'external_id',
+                ...(GAMES_DISABLED ? {} : { game: 'external_id' }),
+                book: 'external_id',
+                music: 'external_id',
+                travel: 'external_id',
+                fashion: 'external_id',
+                food: 'external_id',
+                car: 'external_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -1741,18 +1741,18 @@
                         bookListsCount,
                         musicListsCount
                     ] = await Promise.all([
-                        safeCountByUser('list_items', targetId, { external_type: 'movie' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'tv' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'anime' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'game' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'book' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'music' }),
-                        safeCountByUser('user_lists', targetId, { category: 'movie' }),
-                        safeCountByUser('user_lists', targetId, { category: 'tv' }),
-                        safeCountByUser('user_lists', targetId, { category: 'anime' }),
-                        safeCountByUser('user_lists', targetId, { category: 'game' }),
-                        safeCountByUser('user_lists', targetId, { category: 'book' }),
-                        safeCountByUser('user_lists', targetId, { category: 'music' })
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'movie') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'tv') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'anime') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'game') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'book') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'music') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'movie') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'tv') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'anime') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'game') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'book') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'music') })
                     ]);
 
                     const savedItemsCount = Number(movieSavedCount || 0)
@@ -1810,18 +1810,18 @@
                             .from('follows')
                             .select('*', { count: 'exact', head: true })
                             .eq('follower_id', targetId),
-                        safeCountByUser('list_items', targetId, { external_type: 'movie' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'tv' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'anime' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'game' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'book' }),
-                        safeCountByUser('list_items', targetId, { external_type: 'music' }),
-                        safeCountByUser('user_lists', targetId, { category: 'movie' }),
-                        safeCountByUser('user_lists', targetId, { category: 'tv' }),
-                        safeCountByUser('user_lists', targetId, { category: 'anime' }),
-                        safeCountByUser('user_lists', targetId, { category: 'game' }),
-                        safeCountByUser('user_lists', targetId, { category: 'book' }),
-                        safeCountByUser('user_lists', targetId, { category: 'music' }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'movie') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'tv') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'anime') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'game') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'book') }),
+                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'music') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'movie') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'tv') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'anime') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'game') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'book') }),
+                        safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'music') }),
                         safeCountByUser('journal_entries', targetId),
                         safeCountByUser('movie_reviews', targetId),
                         safeCountByUser('tv_reviews', targetId),
@@ -2510,12 +2510,12 @@
 
                     async loadFallbackActivityRows(actorIds) {
                         const listItemSources = [
-                            { table: 'list_items', external_type: 'movie', mediaType: 'movie', itemField: 'movie_id' },
-                            { table: 'list_items', external_type: 'tv', mediaType: 'tv', itemField: 'tv_id' },
-                            { table: 'list_items', external_type: 'anime', mediaType: 'anime', itemField: 'anime_id' },
-                            { table: 'list_items', external_type: 'game', mediaType: 'game', itemField: 'game_id' },
-                            { table: 'list_items', external_type: 'book', mediaType: 'book', itemField: 'book_id' },
-                            { table: 'list_items', external_type: 'music', mediaType: 'music', itemField: 'track_id' }
+                            { table: 'list_items', external_type: 'movie', mediaType: 'movie', itemField: 'external_id' },
+                            { table: 'list_items', external_type: 'tv', mediaType: 'tv', itemField: 'external_id' },
+                            { table: 'list_items', external_type: 'anime', mediaType: 'anime', itemField: 'external_id' },
+                            { table: 'list_items', external_type: 'game', mediaType: 'game', itemField: 'external_id' },
+                            { table: 'list_items', external_type: 'book', mediaType: 'book', itemField: 'external_id' },
+                            { table: 'list_items', external_type: 'music', mediaType: 'music', itemField: 'external_id' }
                         ];
                         const customListSources = [
                             { table: 'user_lists', category: 'movie', mediaType: 'movie' },
@@ -2526,12 +2526,12 @@
                             { table: 'user_lists', category: 'music', mediaType: 'music' }
                         ];
                         const reviewSources = [
-                            { table: 'movie_reviews', mediaType: 'movie', itemField: 'movie_id', textField: 'comment' },
-                            { table: 'tv_reviews', mediaType: 'tv', itemField: 'tv_id', textField: 'comment' },
-                            { table: 'anime_reviews', mediaType: 'anime', itemField: 'anime_id', textField: 'comment' },
-                            { table: 'game_reviews', mediaType: 'game', itemField: 'game_id', textField: 'comment' },
-                            { table: 'book_reviews', mediaType: 'book', itemField: 'book_id', textField: 'comment' },
-                            { table: 'music_reviews', mediaType: 'music', itemField: 'track_id', textField: 'comment' }
+                            { table: 'movie_reviews', mediaType: 'movie', itemField: 'external_id', textField: 'comment' },
+                            { table: 'tv_reviews', mediaType: 'tv', itemField: 'external_id', textField: 'comment' },
+                            { table: 'anime_reviews', mediaType: 'anime', itemField: 'external_id', textField: 'comment' },
+                            { table: 'game_reviews', mediaType: 'game', itemField: 'external_id', textField: 'comment' },
+                            { table: 'book_reviews', mediaType: 'book', itemField: 'external_id', textField: 'comment' },
+                            { table: 'music_reviews', mediaType: 'music', itemField: 'external_id', textField: 'comment' }
                         ];
 
                         const listAddTasks = listItemSources.map(async (source) => {
@@ -2616,7 +2616,7 @@
                     async fetchActivityRows(actorIds) {
                         const { data: rows, error } = await supabase
                             .from('user_activity_feed')
-                            .select('id, actor_id, event_type, media_type, item_id, list_type, list_id, rating, review_text, metadata, created_at')
+                            .select('id, actor_id, event_type, media_type, external_id, list_type, list_id, rating, review_text, metadata, created_at')
                             .in('actor_id', actorIds)
                             .order('created_at', { ascending: false })
                             .limit(60);
@@ -3411,7 +3411,7 @@
                 const { data: ownedLists, error: ownedError } = await supabase
                     .from(table)
                     .select('*')
-                    .eq('user_id', safeOwnerId)
+                    .eq('user_id', safeOwnerId).eq('category', contentType)
                     .order('created_at', { ascending: false });
                 if (ownedError) throw ownedError;
 
@@ -3706,24 +3706,24 @@
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_type, list_id`)
-                        .eq('user_id', safeOwnerId);
+                        .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
 
                     if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                         result = await supabase
                             .from(table)
                             .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId);
+                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                     }
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('item_id, list_type, list_id')
-                            .eq('user_id', safeOwnerId);
+                            .select('external_id, list_type, list_id')
+                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                         if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                             result = await supabase
                                 .from(table)
                                 .select('item_id, list_type')
-                                .eq('user_id', safeOwnerId);
+                                .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                         }
                     }
                     return result;
@@ -3734,24 +3734,24 @@
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_type, list_id`)
-                        .in('list_id', safeCustomIds);
+                        .in('list_id', safeCustomIds).eq('external_type', contentType);
 
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('item_id, list_type, list_id')
-                            .in('list_id', safeCustomIds);
+                            .select('external_id, list_type, list_id')
+                            .in('list_id', safeCustomIds).eq('external_type', contentType);
                     }
                     if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                         result = await supabase
                             .from(table)
                             .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId);
+                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                         if (result?.error && isColumnMissingError(result.error, itemField)) {
                             result = await supabase
                                 .from(table)
                                 .select('item_id, list_type')
-                                .eq('user_id', safeOwnerId);
+                                .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                         }
                     }
                     return result;
@@ -3786,9 +3786,9 @@
                     let query = supabase
                         .from(table)
                         .select(selectField)
-                        .eq(filterField, safeListId);
+                        .eq(filterField, safeListId).eq('external_type', contentType);
                     if (safeListType === 'default') {
-                        query = query.eq('user_id', safeOwnerId);
+                        query = query.eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
                     }
                     return await query;
                 };
@@ -3890,7 +3890,7 @@
                     const { data, error } = await supabase
                         .from(PROFILE_PIN_TABLE)
                         .select('media_type, list_id, list_type, sort_order')
-                        .eq('user_id', safeOwnerId)
+                        .eq('user_id', safeOwnerId).eq('category', contentType)
                         .order('sort_order', { ascending: true });
                     if (error) throw error;
                     (data || []).forEach((row) => {
@@ -4700,7 +4700,7 @@
 
                 const [listsRes, itemsRes] = await Promise.all([
                     supabase.from('user_lists').eq('category', 'movie').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-                    supabase.from('list_items').eq('external_type', 'movie').select('movie_id, list_type, list_id').eq('user_id', userId)
+                    supabase.from('list_items').eq('external_type', 'movie').select('external_id, list_type, list_id').eq('user_id', userId)
                 ]);
 
                 if (listsRes.error || itemsRes.error) {
@@ -4734,10 +4734,10 @@
                 items.forEach(item => {
                     if (item.list_type) {
                         const list = listMovieMap.get(item.list_type);
-                        if (list) list.push(item.movie_id);
+                        if (list) list.push(item.external_id);
                     } else if (item.list_id) {
                         const list = listMovieMap.get(item.list_id);
-                        if (list) list.push(item.movie_id);
+                        if (list) list.push(item.external_id);
                     }
                 });
 
@@ -4941,13 +4941,13 @@
                         .from('list_items').eq('external_type', 'movie')
                         .delete()
                         .eq('user_id', userId)
-                        .eq('movie_id', movieId)
+                        .eq('external_id', movieId)
                         .eq('list_type', listId);
                 } else {
                     await supabase
                         .from('list_items').eq('external_type', 'movie')
                         .delete()
-                        .eq('movie_id', movieId)
+                        .eq('external_id', movieId)
                         .eq('list_id', listId);
                 }
                 await showMovieListDetail(listId, listType);
@@ -6578,7 +6578,7 @@
                         list.movieIds = Array.from(new Set(
                             items
                                 .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.movie_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -6587,7 +6587,7 @@
                         list.movieIds = Array.from(new Set(
                             items
                                 .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.movie_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                         list.type = 'custom';
@@ -6674,7 +6674,7 @@
                         list.tvIds = Array.from(new Set(
                             items
                                 .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.tv_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -6683,7 +6683,7 @@
                         list.tvIds = Array.from(new Set(
                             items
                                 .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.tv_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                         list.type = 'custom';
@@ -6770,7 +6770,7 @@
                         list.animeIds = Array.from(new Set(
                             items
                                 .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.anime_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -6779,7 +6779,7 @@
                         list.animeIds = Array.from(new Set(
                             items
                                 .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.anime_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                         list.type = 'custom';
@@ -6857,7 +6857,7 @@
                         list.gameIds = Array.from(new Set(
                             items
                                 .filter(i => i.list_type === list.id)
-                                .map(i => i.game_id)
+                                .map(i => i.external_id)
                                 .filter((id) => String(id || '').trim() !== '')
                         ));
                     }
@@ -6866,7 +6866,7 @@
                         list.gameIds = Array.from(new Set(
                             items
                                 .filter(i => String(i.list_id || '') === String(list.id || ''))
-                                .map(i => i.game_id)
+                                .map(i => i.external_id)
                                 .filter((id) => String(id || '').trim() !== '')
                         ));
                         list.type = 'custom';
@@ -7078,7 +7078,7 @@
                         list.bookIds = Array.from(new Set(
                             allItems
                                 .filter(i => i.list_type === list.id)
-                                .map(i => i.book_id)
+                                .map(i => i.external_id)
                         ));
                     }
 
@@ -7086,7 +7086,7 @@
                         list.bookIds = Array.from(new Set(
                             allItems
                                 .filter(i => String(i.list_id) === String(list.id))
-                                .map(i => i.book_id)
+                                .map(i => i.external_id)
                         ));
                     }
 
@@ -7170,7 +7170,7 @@
                         list.trackIds = Array.from(new Set(
                             allItems
                                 .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.track_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7179,7 +7179,7 @@
                         list.trackIds = Array.from(new Set(
                             allItems
                                 .filter((i) => String(i.list_id) === String(list.id))
-                                .map((i) => String(i.track_id || '').trim())
+                                .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7449,7 +7449,7 @@
                         list.countryCodes = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
+                                .map((row) => normalizeCountryCode(row.external_id || row.external_id))
                                 .filter(Boolean)
                         ));
                     }
@@ -7458,7 +7458,7 @@
                         list.countryCodes = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
+                                .map((row) => normalizeCountryCode(row.external_id || row.external_id))
                                 .filter(Boolean)
                         ));
                     }
@@ -7545,7 +7545,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7553,7 +7553,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7640,7 +7640,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7648,7 +7648,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7735,7 +7735,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -7743,7 +7743,7 @@
                         list.brandIds = Array.from(new Set(
                             allItems
                                 .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
+                                .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
                     }
@@ -10279,8 +10279,8 @@
                     }
 
                     const insertPayload = listType === 'default'
-                        ? { user_id: userId, [itemField]: itemId, list_type: collectionId }
-                        : { [itemField]: itemId, list_id: collectionId };
+                        ? { user_id: userId, [itemField]: itemId, list_id: collectionId, external_type: type }
+                        : { [itemField]: itemId, list_id: collectionId, external_type: type };
 
                     const { error } = await supabase
                         .from(itemTable)

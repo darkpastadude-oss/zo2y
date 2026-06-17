@@ -17,8 +17,8 @@
   const LIST_CONFIG = {
     movie: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-film',
       category: 'movie',
@@ -26,8 +26,8 @@
     },
     tv: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-tv',
       category: 'tv',
@@ -35,8 +35,8 @@
     },
     anime: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-dragon',
       category: 'anime',
@@ -44,8 +44,8 @@
     },
     game: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-gamepad',
       category: 'game',
@@ -53,8 +53,8 @@
     },
     book: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-book',
       category: 'book',
@@ -62,8 +62,8 @@
     },
     music: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-music',
       category: 'music',
@@ -71,8 +71,8 @@
     },
     travel: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas',
       category: 'travel',
@@ -80,8 +80,8 @@
     },
     fashion: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-shirt',
       category: 'fashion',
@@ -89,8 +89,8 @@
     },
     food: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-burger',
       category: 'food',
@@ -98,8 +98,8 @@
     },
     car: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-car',
       category: 'car',
@@ -107,8 +107,8 @@
     },
     restaurant: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-utensils',
       category: 'restaurant',
@@ -116,8 +116,8 @@
     },
     sports: {
       listTable: 'user_lists',
-      itemsTable: 'user_list_items',
-      itemIdField: 'media_id',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
       category: 'sport',
@@ -616,7 +616,7 @@
         .eq('user_id', userId)
         .eq('media_type', safeType)
         .eq('list_id', safeListId)
-        .eq('item_id', safeItemId);
+        .eq('external_id', safeItemId);
       if (error) {
         if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
           tierRankServerSupported = false;
@@ -1288,16 +1288,16 @@
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
     if (customListsDisabled({})) return new Set();
-    if (missingItemTables.has('user_list_items')) return new Set();
+    if (missingItemTables.has('list_items')) return new Set();
     try {
       let query = client
-        .from('user_list_items')
+        .from('list_items')
         .select('list_id')
-        .eq('media_id', String(normalizedItemId))
+        .eq('external_id', String(normalizedItemId))
         .in('list_id', listIds);
       const { data, error } = await query;
-      if (error && isListTableMissingError(error, 'user_list_items')) {
-        missingItemTables.add('user_list_items');
+      if (error && isListTableMissingError(error, 'list_items')) {
+        missingItemTables.add('list_items');
         return new Set();
       }
       const set = new Set();
@@ -1338,7 +1338,7 @@
     const normalizedItemId = String(normalizeQueryableItemId(type, itemId));
     if (!client || normalizedItemId === null) return;
     if (customListsDisabled({})) return;
-    if (missingItemTables.has('user_list_items')) return;
+    if (missingItemTables.has('list_items')) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
       await ensureBookRecord(client, itemPayload).catch(() => false);
@@ -1352,9 +1352,9 @@
     const allListIds = allLists.map(l => l.id).filter(Boolean);
     if (allListIds.length) {
       await client
-        .from('user_list_items')
+        .from('list_items')
         .delete()
-        .eq('media_id', normalizedItemId)
+        .eq('external_id', normalizedItemId)
         .in('list_id', allListIds);
     }
 
@@ -1381,18 +1381,18 @@
 
     const inserts = listIds.map(listId => ({
       user_id: userId,
-      list_id: listId,
-      media_type: getCategoryName(type),
-      media_id: normalizedItemId,
+      list_
+      external_type: getCategoryName(type),
+      external_id: normalizedItemId,
       title: finalTitle,
       poster_url: posterUrl || null,
       metadata: itemPayload?.metadata || (itemPayload ? { ...itemPayload } : {})
     }));
 
-    if (inserts.length && !missingItemTables.has('user_list_items')) {
-      const { error: insertError } = await client.from('user_list_items').insert(inserts);
-      if (insertError && isListTableMissingError(insertError, 'user_list_items')) {
-        missingItemTables.add('user_list_items');
+    if (inserts.length && !missingItemTables.has('list_items')) {
+      const { error: insertError } = await client.from('list_items').insert(inserts);
+      if (insertError && isListTableMissingError(insertError, 'list_items')) {
+        missingItemTables.add('list_items');
       }
     }
   }
@@ -1442,7 +1442,7 @@
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
     const insertPayload = {
       user_id: userId,
-      title: payload.title,
+      name: payload.title,
       media_type: category,
       icon: payload.icon || 'fas fa-list',
       description: payload.description || `My ${payload.title} list`
@@ -1474,7 +1474,7 @@
     setTierSyncContext(client, userId);
     const { error } = await client
       .from('user_lists')
-      .update({ title: title })
+      .update({ name: title })
       .eq('id', listId)
       .eq('user_id', userId);
     if (error && isListTableMissingError(error, 'user_lists')) {
@@ -1547,11 +1547,11 @@
     const normalizedListType = String(listType || '').toLowerCase();
 
     const { data: existing } = await client
-      .from('user_default_lists')
+      .from('user_lists')
       .select('id')
       .eq('user_id', userId)
-      .eq('media_type', normalizedType)
-      .eq('list_type', normalizedListType)
+      .eq('category', normalizedType)
+      .eq('type', normalizedListType)
       .maybeSingle();
 
     if (existing?.id) {
@@ -1565,8 +1565,8 @@
       .from('user_lists')
       .insert({
         user_id: userId,
-        title: title,
-        media_type: normalizedType,
+        name: title,
+        category: normalizedType,
         icon: icon,
         is_public: false
       })
@@ -1581,13 +1581,13 @@
     const listId = newList.id;
 
     const { error: defaultListError } = await client
-      .from('user_default_lists')
+      .from('user_lists')
       .insert({
-        id: listId,
+        
         user_id: userId,
-        media_type: normalizedType,
-        list_type: normalizedListType,
-        title: title,
+        category: normalizedType,
+        type: normalizedListType,
+        name: title,
         icon: icon
       });
 
