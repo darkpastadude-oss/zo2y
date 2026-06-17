@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
@@ -269,7 +269,7 @@
           .from('user_lists')
           .select('id')
           .eq('user_id', currentUser.id)
-          .eq('category', mediaType)
+          .eq('media_type', mediaType)
           .eq('type', listType)
           .maybeSingle();
         if (listError || !list) {

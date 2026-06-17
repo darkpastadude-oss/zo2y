@@ -135,6 +135,7 @@ END;
 $$;
 
 -- 2. Accessible Custom Lists RPC
+DROP FUNCTION IF EXISTS public.zo2y_get_accessible_custom_lists(text);
 CREATE OR REPLACE FUNCTION public.zo2y_get_accessible_custom_lists(p_media_type text)
 RETURNS TABLE (
   id text,
@@ -203,6 +204,7 @@ END;
 $$;
 
 -- 3. Get Item List Status RPC
+DROP FUNCTION IF EXISTS public.get_item_list_status(uuid, text, text);
 CREATE OR REPLACE FUNCTION public.get_item_list_status(
   p_user_id uuid,
   p_category text,
@@ -232,6 +234,7 @@ END;
 $$;
 
 -- 4. Toggle Default List Item RPC
+DROP FUNCTION IF EXISTS public.toggle_list_item(uuid, text, text, text, text, jsonb);
 CREATE OR REPLACE FUNCTION public.toggle_list_item(
   p_user_id uuid,
   p_category text,

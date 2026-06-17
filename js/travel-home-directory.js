@@ -325,7 +325,7 @@
       .from('user_lists')
       .select('id, type')
       .eq('user_id', state.currentUser.id)
-      .eq('category', 'travel');
+      .eq('media_type', 'travel');
 
     if (travelLists && travelLists.length) {
       const listTypeMap = {};
@@ -361,7 +361,7 @@
       .from('user_lists')
       .select('id')
       .eq('user_id', userId)
-      .eq('category', 'travel')
+      .eq('media_type', 'travel')
       .eq('type', newType)
       .maybeSingle();
     return data?.id || null;

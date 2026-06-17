@@ -549,7 +549,7 @@
           .from('user_lists')
           .select('id')
           .eq('user_id', currentUser.id)
-          .eq('category', mediaType)
+          .eq('media_type', mediaType)
           .eq('type', listType)
           .maybeSingle();
         if (listError || !list) {

@@ -4405,7 +4405,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('user_lists')
             .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq('category', mediaType);
+            .eq('media_type', mediaType);
           if (lists && lists.length) {
             const listIds = lists.map(l => l.id);
             const typeById = {};
@@ -4629,7 +4629,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('user_lists')
             .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq('category', type);
+            .eq('media_type', type);
           if (!lists || !lists.length) return;
           const listIds = lists.map(l => l.id);
           const typeById = {};

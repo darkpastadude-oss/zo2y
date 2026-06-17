@@ -234,10 +234,12 @@ async function handleGetListItems(req, res) {
 
   const admin = await getSupabase(req);
   try {
-    const { data, error } = await admin.rpc("get_list_items", {
-      p_list_id: listId,
-      p_user_id: userId
-    });
+    const { data, error } = await admin
+      .from("user_list_items")
+      .select("*")
+      .eq("list_id", listId)
+      .eq("user_id", userId)
+      .order("sort_order", { ascending: true });
 
     if (error) {
       return jsonResponse(res, 500, { success: false, message: error.message });

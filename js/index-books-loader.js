@@ -121,7 +121,7 @@
         .from('user_lists')
         .select('id')
         .eq('user_id', userId)
-        .eq('category', 'book');
+        .eq('media_type', 'book');
 
       if (!bookLists || !bookLists.length) return [];
 
