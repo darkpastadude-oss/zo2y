@@ -3412,7 +3412,8 @@
                 const { data: ownedLists, error: ownedError } = await supabase
                     .from(table)
                     .select('*')
-                    .eq('user_id', safeOwnerId).eq('category', contentType)
+                    .eq('user_id', safeOwnerId)
+                    .eq('category', contentType)
                     .order('created_at', { ascending: false });
                 if (ownedError) throw ownedError;
 
@@ -3707,24 +3708,24 @@
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_type, list_id`)
-                        .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                        .eq('user_id', safeOwnerId).eq('external_type', contentType);
 
                     if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                         result = await supabase
                             .from(table)
                             .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
                     }
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
                             .select('external_id, list_type, list_id')
-                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
                         if (result?.error && isColumnMissingError(result.error, 'list_id')) {
                             result = await supabase
                                 .from(table)
-                                .select('item_id, list_type')
-                                .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                                .select('external_id, list_type')
+                                .eq('user_id', safeOwnerId).eq('external_type', contentType);
                         }
                     }
                     return result;
@@ -3747,12 +3748,12 @@
                         result = await supabase
                             .from(table)
                             .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
                         if (result?.error && isColumnMissingError(result.error, itemField)) {
                             result = await supabase
                                 .from(table)
-                                .select('item_id, list_type')
-                                .eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                                .select('external_id, list_type')
+                                .eq('user_id', safeOwnerId).eq('external_type', contentType);
                         }
                     }
                     return result;
@@ -3789,7 +3790,7 @@
                         .select(selectField)
                         .eq(filterField, safeListId).eq('external_type', contentType);
                     if (safeListType === 'default') {
-                        query = query.eq('user_id', safeOwnerId).eq('category', contentType).eq('external_type', contentType);
+                        query = query.eq('user_id', safeOwnerId).eq('external_type', contentType);
                     }
                     return await query;
                 };
@@ -3799,12 +3800,12 @@
 
                 let result = await runQuery(itemField, primaryFilterField);
                 if (result?.error && isColumnMissingError(result.error, itemField)) {
-                    result = await runQuery('item_id', primaryFilterField);
+                    result = await runQuery('external_id', primaryFilterField);
                 }
                 if (result?.error && isColumnMissingError(result.error, primaryFilterField)) {
                     result = await runQuery(itemField, fallbackFilterField);
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
-                        result = await runQuery('item_id', fallbackFilterField);
+                        result = await runQuery('external_id', fallbackFilterField);
                     }
                 }
 
@@ -3891,7 +3892,7 @@
                     const { data, error } = await supabase
                         .from(PROFILE_PIN_TABLE)
                         .select('media_type, list_id, list_type, sort_order')
-                        .eq('user_id', safeOwnerId).eq('category', contentType)
+                        .eq('user_id', safeOwnerId)
                         .order('sort_order', { ascending: true });
                     if (error) throw error;
                     (data || []).forEach((row) => {
