@@ -1403,33 +1403,30 @@
     const category = getCategoryName(type);
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
-    
-    // ✅ FIXED: Use correct column names matching your schema
     const insertPayload = {
       user_id: userId,
-      name: payload.title,           // ✅ 'name' not 'title'
-      category: category,            // ✅ 'category' not 'media_type'
+      name: payload.title,
+      category: category,
       icon: payload.icon || 'fas fa-list',
       description: payload.description || `My ${payload.title} list`
     };
-    
     let data = null;
     let error = null;
 
-    const { data: inserted, error: insertError } = await client
+    const insertOnce = async (nextPayload) => client
       .from('user_lists')
-      .insert(insertPayload)
+      .insert(nextPayload)
       .select('*')
       .single();
 
-    if (insertError || !inserted) {
-      if (insertError && isListTableMissingError(insertError, 'user_lists')) {
-        missingListTables.add('user_lists');
-      }
+    ({ data, error } = await insertOnce(insertPayload));
+    if (error && isListTableMissingError(error, 'user_lists')) {
+      missingListTables.add('user_lists');
       return null;
     }
+    if (error || !data) return null;
 
-    const mapped = mapListRow(inserted);
+    const mapped = mapListRow(data);
     setListMeta(normalizedType, mapped.id, { listKind, maxRank }, { client, userId });
     return applyListMeta(normalizedType, mapped);
   }
@@ -1438,14 +1435,11 @@
     if (!client || !userId || !listId) return false;
     if (missingListTables.has('user_lists')) return false;
     setTierSyncContext(client, userId);
-    
-    // ✅ FIXED: Use 'name' column
     const { error } = await client
       .from('user_lists')
       .update({ name: title })
       .eq('id', listId)
       .eq('user_id', userId);
-      
     if (error && isListTableMissingError(error, 'user_lists')) {
       missingListTables.add('user_lists');
       return false;
@@ -1509,10 +1503,21 @@
     return 'fas fa-list';
   }
 
-  // ✅ FIXED: ensureDefaultList with CORRECT column names and RLS bypass
+  // ============================================================
+  // FIXED: ensureDefaultList - Gets real auth user, not passed userId
+  // ============================================================
   async function ensureDefaultList(client, userId, mediaType, listType) {
-    if (!client || !userId) return null;
+    if (!client) return null;
     
+    // ✅ Get the REAL authenticated user from the session
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) {
+      console.error('ensureDefaultList: No authenticated user found');
+      return null;
+    }
+    
+    // ✅ Use the verified auth user ID, not the passed parameter
+    const actualUserId = user.id;
     const normalizedType = String(mediaType || '').toLowerCase();
     const normalizedListType = String(listType || '').toLowerCase();
 
@@ -1520,7 +1525,7 @@
     const { data: existing } = await client
       .from('user_lists')
       .select('id')
-      .eq('user_id', userId)
+      .eq('user_id', actualUserId)
       .eq('category', normalizedType)
       .eq('type', normalizedListType)
       .maybeSingle();
@@ -1532,21 +1537,26 @@
     const title = getListTypeTitle(normalizedListType, normalizedType);
     const icon = getListTypeIcon(normalizedListType, normalizedType);
 
-    // ✅ Insert with correct column names
+    // ✅ Insert with the REAL authenticated user ID
     const { data: newList, error: listError } = await client
       .from('user_lists')
       .insert({
-        user_id: userId,           // ✅ Must match auth.uid()
-        name: title,               // ✅ 'name' not 'title'
-        category: normalizedType,  // ✅ 'category' not 'media_type'
-        type: normalizedListType,  // ✅ 'type' column exists in your schema
+        user_id: actualUserId,
+        name: title,
+        category: normalizedType,
+        type: normalizedListType,
         icon: icon
       })
       .select('id')
       .single();
 
     if (listError) {
-      console.error('Failed to create default list in user_lists:', listError);
+      console.error('Failed to create default list:', {
+        error: listError,
+        userId: actualUserId,
+        category: normalizedType,
+        type: normalizedListType
+      });
       return null;
     }
 
