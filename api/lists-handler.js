@@ -1,11 +1,11 @@
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
-const VALID_CATEGORIES = new Set([
-  "movie", "tv", "book", "anime", "game", "sport", "car",
-  "food", "fashion", "travel", "music"
+const VALID_MEDIA_TYPES = new Set([
+  "movie", "tv", "anime", "game", "book", "music",
+  "fashion", "food", "travel", "car", "restaurant"
 ]);
 
-const VALID_LIST_TYPES = new Set(["favorites", "watchlist", "completed", "custom"]);
+const VALID_DEFAULT_LIST_TYPES = new Set(["favorites", "watchlist", "watched", "owned", "wishlist", "tried", "want_to_try", "visited", "bucketlist"]);
 
 function parsePath(query) {
   const raw = String(query?.path || "").split("/").filter(Boolean);
@@ -42,34 +42,43 @@ async function resolveUserId(req) {
 
 /**
  * GET /api/lists
- * Query params: category (required), type (optional filter)
- * Returns all lists for a user in a given category
+ * Query params: media_type (required), type (optional filter)
+ * Returns all lists for a user in a given media type
  */
 async function handleGetLists(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
-  const category = String(req.query?.category || "").toLowerCase().trim();
-  if (!category || !VALID_CATEGORIES.has(category)) {
-    return jsonResponse(res, 400, { success: false, message: "Invalid or missing category" });
+  const mediaType = String(req.query?.media_type || req.query?.category || "").toLowerCase().trim();
+  if (!mediaType || !VALID_MEDIA_TYPES.has(mediaType)) {
+    return jsonResponse(res, 400, { success: false, message: "Invalid or missing media_type" });
   }
 
   const listType = String(req.query?.type || "").toLowerCase().trim();
   const admin = await getSupabase(req);
 
   try {
-    const { data, error } = await admin.rpc("get_user_lists", {
-      p_user_id: userId,
-      p_category: category
-    });
+    const { data, error } = await admin
+      .from("user_lists")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("media_type", mediaType)
+      .order("created_at", { ascending: false });
 
     if (error) {
       return jsonResponse(res, 500, { success: false, message: error.message });
     }
 
     let lists = data || [];
-    if (listType && VALID_LIST_TYPES.has(listType)) {
-      lists = lists.filter((l) => l.type === listType);
+    if (listType && VALID_DEFAULT_LIST_TYPES.has(listType)) {
+      // For default list types, we need to query user_default_lists
+      const { data: defaultLists } = await admin
+        .from("user_default_lists")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("media_type", mediaType)
+        .eq("list_type", listType);
+      lists = defaultLists || [];
     }
 
     return jsonResponse(res, 200, { success: true, lists });
@@ -80,7 +89,7 @@ async function handleGetLists(req, res) {
 
 /**
  * POST /api/lists
- * Body: { category, name, type, icon?, description? }
+ * Body: { media_type, title, icon?, description? }
  * Creates a new custom list
  */
 async function handleCreateList(req, res) {
@@ -88,18 +97,14 @@ async function handleCreateList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const body = req.body || {};
-  const category = String(body.category || "").toLowerCase().trim();
-  const name = String(body.name || "").trim();
-  const type = String(body.type || "custom").toLowerCase().trim();
+  const mediaType = String(body.media_type || body.category || "").toLowerCase().trim();
+  const title = String(body.title || body.name || "").trim();
 
-  if (!category || !VALID_CATEGORIES.has(category)) {
-    return jsonResponse(res, 400, { success: false, message: "Invalid category" });
+  if (!mediaType || !VALID_MEDIA_TYPES.has(mediaType)) {
+    return jsonResponse(res, 400, { success: false, message: "Invalid media_type" });
   }
-  if (!name || name.length < 1 || name.length > 100) {
-    return jsonResponse(res, 400, { success: false, message: "List name must be 1-100 characters" });
-  }
-  if (!VALID_LIST_TYPES.has(type)) {
-    return jsonResponse(res, 400, { success: false, message: "Invalid list type" });
+  if (!title || title.length < 1 || title.length > 100) {
+    return jsonResponse(res, 400, { success: false, message: "List title must be 1-100 characters" });
   }
 
   const admin = await getSupabase(req);
@@ -108,19 +113,18 @@ async function handleCreateList(req, res) {
       .from("user_lists")
       .insert({
         user_id: userId,
-        name,
-        category,
-        type,
+        title,
+        media_type: mediaType,
         icon: body.icon || "fas fa-list",
         description: body.description || "",
-        sort_order: body.sort_order || 0
+        is_public: body.is_public || false
       })
       .select("*")
       .single();
 
     if (error) {
       if (error.code === "23505") {
-        return jsonResponse(res, 409, { success: false, message: "A list with that name already exists in this category" });
+        return jsonResponse(res, 409, { success: false, message: "A list with that title already exists for this media type" });
       }
       return jsonResponse(res, 500, { success: false, message: error.message });
     }
@@ -133,7 +137,7 @@ async function handleCreateList(req, res) {
 
 /**
  * PUT /api/lists/:id
- * Body: { name?, icon?, description? }
+ * Body: { title?, icon?, description?, is_public? }
  * Updates a custom list
  */
 async function handleUpdateList(req, res) {
@@ -149,10 +153,11 @@ async function handleUpdateList(req, res) {
 
   const body = req.body || {};
   const updates = {};
-  if (body.name !== undefined) updates.name = String(body.name).trim();
+  if (body.title !== undefined) updates.title = String(body.title).trim();
+  if (body.name !== undefined) updates.title = String(body.name).trim(); // backward compat
   if (body.icon !== undefined) updates.icon = String(body.icon).trim();
   if (body.description !== undefined) updates.description = String(body.description).trim();
-  if (body.sort_order !== undefined) updates.sort_order = Number(body.sort_order);
+  if (body.is_public !== undefined) updates.is_public = Boolean(body.is_public);
 
   const admin = await getSupabase(req);
   try {
@@ -194,6 +199,8 @@ async function handleDeleteList(req, res) {
 
   const admin = await getSupabase(req);
   try {
+    // Delete items first (CASCADE should handle this but being explicit)
+    await admin.from("user_list_items").delete().eq("list_id", listId);
     const { error } = await admin
       .from("user_lists")
       .delete()

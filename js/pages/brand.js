@@ -14,9 +14,9 @@
     document.body.dataset.elevatedCategory = brandType;
   }
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'list_items', itemField: 'external_id' },
-    food: { table: 'list_items', itemField: 'external_id' },
-    car: { table: 'list_items', itemField: 'external_id' }
+    fashion: { table: 'user_list_items', itemField: 'media_id' },
+    food: { table: 'user_list_items', itemField: 'media_id' },
+    car: { table: 'user_list_items', itemField: 'media_id' }
   };
 
   const CATEGORY_LABEL = brandType === 'food' ? 'Food' : brandType === 'car' ? 'Cars' : 'Fashion';
@@ -279,10 +279,10 @@
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
-            .from('list_items')
+            .from('user_list_items')
             .delete()
             .eq('list_id', list.id)
-            .eq('external_id', String(itemId));
+            .eq('media_id', String(itemId));
           if (deleteError) {
             showToast('Could not update list', 'error');
             return result;
@@ -300,8 +300,8 @@
             return result;
           }
           const { error: insertError } = await client
-            .from('list_items')
-            .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType });
+            .from('user_list_items')
+            .insert({ list_id: list.id, media_id: String(itemId), external_source: 'local_db', external_type: mediaType });
           if (insertError && String(insertError.code || '') !== '23505') {
             showToast('Could not add to list', 'error');
             return result;

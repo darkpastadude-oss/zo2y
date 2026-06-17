@@ -1787,17 +1787,6 @@
         });
       }
 
-      const DB_TYPE_MAP = {
-        favorites: 'favorites',
-        played: 'completed',
-        backlog: 'watchlist'
-      };
-      const REV_DB_TYPE_MAP = {
-        favorites: 'favorites',
-        completed: 'played',
-        watchlist: 'backlog'
-      };
-
       async function loadListStatus() {
         if (!supabaseClient || !currentUser || !gameId) return;
         const { data: lists } = await supabaseClient
@@ -1815,13 +1804,12 @@
           .in('list_id', listIds)
           .eq('external_id', String(gameId));
         listStatus.favorites = false;
-        listStatus.played = false;
-        listStatus.backlog = false;
+        listStatus.watched = false;
+        listStatus.watchlist = false;
         (data || []).forEach(item => {
-          const dbType = listTypeMap[item.list_id];
-          const frontendType = REV_DB_TYPE_MAP[dbType] || dbType;
-          if (listStatus[frontendType] !== undefined) {
-            listStatus[frontendType] = true;
+          const type = listTypeMap[item.list_id];
+          if (listStatus[type] !== undefined) {
+            listStatus[type] = true;
           }
         });
         updateListMenuUI();
@@ -1985,14 +1973,13 @@
         updateListMenuUI();
 
           try {
-            const dbType = DB_TYPE_MAP[listType] || listType;
             if (nextSaved) {
               const { data: userList } = await supabaseClient
                 .from('user_lists')
                 .select('id')
                 .eq('user_id', currentUser.id)
                 .eq('category', 'game')
-                .eq('type', dbType)
+                .eq('type', listType)
                 .single();
               if (!userList) throw new Error('List not found');
               const { error } = await supabaseClient
@@ -2006,7 +1993,7 @@
                 .select('id')
                 .eq('user_id', currentUser.id)
                 .eq('category', 'game')
-                .eq('type', dbType)
+                .eq('type', listType)
                 .single();
             if (!userList) throw new Error('List not found');
             const { error } = await supabaseClient

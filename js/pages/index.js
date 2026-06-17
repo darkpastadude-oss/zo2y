@@ -322,16 +322,16 @@
       wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
     const HOME_DEFAULT_LIST_TABLES = {
-      movie: { table: 'list_items', itemField: 'external_id' },
-      tv: { table: 'list_items', itemField: 'external_id' },
-      anime: { table: 'list_items', itemField: 'external_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'list_items', itemField: 'external_id' } } : {}),
-      book: { table: 'list_items', itemField: 'external_id' },
-      music: { table: 'list_items', itemField: 'external_id' },
-      travel: { table: 'list_items', itemField: 'external_id' },
-      ...(ENABLE_FASHION ? { fashion: { table: 'list_items', itemField: 'external_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'list_items', itemField: 'external_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'list_items', itemField: 'external_id' } } : {})
+      movie: { table: 'user_list_items', itemField: 'media_id' },
+      tv: { table: 'user_list_items', itemField: 'media_id' },
+      anime: { table: 'user_list_items', itemField: 'media_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'user_list_items', itemField: 'media_id' } } : {}),
+      book: { table: 'user_list_items', itemField: 'media_id' },
+      music: { table: 'user_list_items', itemField: 'media_id' },
+      travel: { table: 'user_list_items', itemField: 'media_id' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'user_list_items', itemField: 'media_id' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'user_list_items', itemField: 'media_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'user_list_items', itemField: 'media_id' } } : {})
     };
     const HOME_REVIEW_SIGNAL_TABLES = {
       movie: { table: 'movie_reviews', itemField: 'movie_id' },
@@ -3321,43 +3321,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!userIds.length) return null;
 
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
-        const withCreatedAt = await client
-          .from('list_items')
-          .select('external_id, user_lists!inner(user_id, type), added_at')
-          .eq('user_lists.category', mediaType)
-          .in('user_lists.user_id', userIds)
-          .order('added_at', { ascending: false })
+        const { data, error } = await client
+          .from('user_list_items')
+          .select('media_id, list_id, user_id, created_at')
+          .eq('media_type', mediaType)
+          .in('user_id', userIds)
+          .order('created_at', { ascending: false })
           .limit(220);
 
-        if (!withCreatedAt?.error) {
-          const rows = (Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : []).map((row) => ({
-            external_id: row.external_id,
-            user_id: row.user_lists?.user_id,
-            list_type: row.user_lists?.type,
-            created_at: row.added_at
-          }));
-          return { mediaType, itemField: 'external_id', rows };
+        if (error || !data) {
+          return { mediaType, itemField: 'media_id', rows: [] };
         }
 
-        const withoutCreatedAt = await client
-          .from('list_items')
-          .select('external_id, user_lists!inner(user_id, type), id')
-          .eq('user_lists.category', mediaType)
-          .in('user_lists.user_id', userIds)
-          .order('id', { ascending: false })
-          .limit(220);
+        // Fetch default lists for these userIds and mediaType to map list_id to list_type
+        const { data: defaultLists } = await client
+          .from('user_default_lists')
+          .select('id, list_type')
+          .in('user_id', userIds)
+          .eq('media_type', mediaType);
 
-        if (withoutCreatedAt?.error) {
-          return { mediaType, itemField: 'external_id', rows: [] };
+        const defaultListTypeById = new Map();
+        if (Array.isArray(defaultLists)) {
+          defaultLists.forEach(dl => {
+            defaultListTypeById.set(dl.id, dl.list_type);
+          });
         }
 
-        const rows = (Array.isArray(withoutCreatedAt?.data) ? withoutCreatedAt.data : []).map((row) => ({
-          external_id: row.external_id,
-          user_id: row.user_lists?.user_id,
-          list_type: row.user_lists?.type,
-          created_at: null
+        const rows = data.map((row) => ({
+          media_id: row.media_id,
+          external_id: row.media_id,
+          user_id: row.user_id,
+          list_type: defaultListTypeById.get(row.list_id) || 'custom',
+          created_at: row.created_at
         }));
-        return { mediaType, itemField: 'external_id', rows };
+        return { mediaType, itemField: 'media_id', rows };
       };
 
       const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
@@ -3791,7 +3788,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const categoryCountEntries = await Promise.all(
           Object.entries(listIdsByCategory).map(async ([cat, ids]) => {
             const { count } = await client
-              .from('list_items')
+              .from('user_list_items')
               .select('id', { count: 'exact', head: true })
               .in('list_id', ids);
             return [cat, Number(count || 0)];
@@ -4184,15 +4181,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return result;
           }
 
-          const { data: list, error: listError } = await client
-            .from('user_lists')
-            .select('id')
-            .eq('user_id', activeUser.id)
-            .eq('category', mediaType)
-            .eq('type', listType)
-            .maybeSingle();
-          if (listError || !list) {
-            showHomeToast('Could not update list', true);
+          // Ensure default list using the new ListUtils.ensureDefaultList helper
+          if (!window.ListUtils || typeof window.ListUtils.ensureDefaultList !== 'function') {
+            showHomeToast('List utility helper is not loaded yet', true);
+            return result;
+          }
+
+          const listId = await window.ListUtils.ensureDefaultList(client, activeUser.id, mediaType, listType);
+          if (!listId) {
+            showHomeToast('Could not prepare list', true);
             return result;
           }
 
@@ -4200,10 +4197,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           if (nextSaved === false) {
             const { error: deleteError } = await client
-              .from('list_items')
+              .from('user_list_items')
               .delete()
-              .eq('list_id', list.id)
-              .eq('external_id', String(itemId));
+              .eq('list_id', listId)
+              .eq('media_id', String(itemId));
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4218,12 +4215,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (nextSaved === true) {
             const ensured = await ensureLinkedMediaRecord(itemId);
             if (!ensured) {
-              showHomeToast('Book info is unavailable right now.', true);
+              showHomeToast('Info is unavailable right now.', true);
               return result;
             }
             const { error: insertError } = await client
-              .from('list_items')
-              .insert({ list_id: list.id, external_id: String(itemId), external_source: externalSrc, external_type: mediaType });
+              .from('user_list_items')
+              .insert({
+                user_id: activeUser.id,
+                list_id: listId,
+                media_type: mediaType,
+                media_id: String(itemId),
+                title: payload.title || 'Untitled',
+                poster_url: payload.image || null
+              });
             if (insertError && String(insertError.code || '') !== '23505') {
               showHomeToast('Could not add to list', true);
               return result;
@@ -4237,14 +4241,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { data: existing } = await client
-            .from('list_items')
+            .from('user_list_items')
             .select('id')
-            .eq('list_id', list.id)
-            .eq('external_id', String(itemId))
+            .eq('list_id', listId)
+            .eq('media_id', String(itemId))
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from('user_list_items').delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4258,8 +4262,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           await ensureLinkedMediaRecord(itemId);
           const { error: insertError } = await client
-            .from('list_items')
-            .insert({ list_id: list.id, external_id: String(itemId), external_source: externalSrc, external_type: mediaType });
+            .from('user_list_items')
+            .insert({
+              user_id: activeUser.id,
+              list_id: listId,
+              media_type: mediaType,
+              media_id: String(itemId),
+              title: payload.title || 'Untitled',
+              poster_url: payload.image || null
+            });
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
             return result;
@@ -4400,7 +4411,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const typeById = {};
             lists.forEach(l => { typeById[l.id] = l.type; });
             const { data: items } = await client
-              .from('list_items')
+              .from('user_list_items')
               .select('list_id')
               .in('list_id', listIds)
               .eq('external_id', String(normalizedItemId));
@@ -4624,7 +4635,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const typeById = {};
           lists.forEach(l => { typeById[l.id] = l.type; });
           const { data } = await client
-            .from('list_items')
+            .from('user_list_items')
             .select('list_id, external_id')
             .in('list_id', listIds)
             .in('external_id', visibleItemIds.map(String));

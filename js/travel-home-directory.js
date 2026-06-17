@@ -332,14 +332,14 @@
       const listIds = travelLists.map(l => { listTypeMap[l.id] = l.type; return l.id; });
 
       const { data } = await supabase
-        .from('list_items')
-        .select('list_id, external_id')
+        .from('user_list_items')
+        .select('list_id, media_id')
         .in('list_id', listIds)
-        .in('external_id', codes);
+        .in('media_id', codes);
 
       if (data) {
         (data || []).forEach(row => {
-          const code = String(row.external_id || '');
+          const code = String(row.media_id || '');
           if (!code) return;
           if (!state.listStatus.has(code)) {
             state.listStatus.set(code, { favorites: false, visited: false, bucketlist: false });
@@ -392,10 +392,10 @@
         const listId = await findTravelListId(supabase, state.currentUser.id, listType);
         if (listId) {
           const { error } = await supabase
-            .from('list_items')
+            .from('user_list_items')
             .insert({
               list_id: listId,
-              external_id: code,
+              media_id: code,
               external_source: 'local_db',
               external_type: 'travel'
             });
@@ -405,10 +405,10 @@
         const listId = await findTravelListId(supabase, state.currentUser.id, listType);
         if (listId) {
           const { error } = await supabase
-            .from('list_items')
+            .from('user_list_items')
             .delete()
             .eq('list_id', listId)
-            .eq('external_id', code);
+            .eq('media_id', code);
           if (error) throw error;
         }
       }

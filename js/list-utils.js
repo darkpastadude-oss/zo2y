@@ -10,97 +10,118 @@
     fashion: 'fashion',
     food: 'food',
     car: 'car',
+    restaurant: 'restaurant',
     sports: 'sport'
   };
 
   const LIST_CONFIG = {
     movie: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-film',
-      category: 'movie'
+      category: 'movie',
+      mediaType: 'movie'
     },
     tv: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-tv',
-      category: 'tv'
+      category: 'tv',
+      mediaType: 'tv'
     },
     anime: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-dragon',
-      category: 'anime'
+      category: 'anime',
+      mediaType: 'anime'
     },
     game: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-gamepad',
-      category: 'game'
+      category: 'game',
+      mediaType: 'game'
     },
     book: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-book',
-      category: 'book'
+      category: 'book',
+      mediaType: 'book'
     },
     music: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-music',
-      category: 'music'
+      category: 'music',
+      mediaType: 'music'
     },
     travel: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas',
-      category: 'travel'
+      category: 'travel',
+      mediaType: 'travel'
     },
     fashion: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-shirt',
-      category: 'fashion'
+      category: 'fashion',
+      mediaType: 'fashion'
     },
     food: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-burger',
-      category: 'food'
+      category: 'food',
+      mediaType: 'food'
     },
     car: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-car',
-      category: 'car'
+      category: 'car',
+      mediaType: 'car'
+    },
+    restaurant: {
+      listTable: 'user_lists',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-utensils',
+      category: 'restaurant',
+      mediaType: 'restaurant'
     },
     sports: {
       listTable: 'user_lists',
-      itemsTable: 'list_items',
-      itemIdField: 'external_id',
+      itemsTable: 'user_list_items',
+      itemIdField: 'media_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
       category: 'sport',
+      mediaType: 'sports',
       disableCustomLists: false
     }
   };
@@ -1142,7 +1163,7 @@
     if (!cfg || !client || !userId) return [];
     if (customListsDisabled(cfg)) return [];
     setTierSyncContext(client, userId);
-    const category = cfg.category || type;
+    const mediaType = cfg.mediaType || type;
     const rpcLists = await withTimeout(loadAccessibleCustomListsViaRpc(client, userId, type), 2200, null);
     let enhancedRpc = null;
     if (Array.isArray(rpcLists)) {
@@ -1175,8 +1196,7 @@
         .from('user_lists')
         .select('*')
         .eq('user_id', userId)
-        .eq('category', category)
-        .eq('type', 'custom')
+        .eq('media_type', mediaType)
         .order('created_at', { ascending: false });
       if (error && isListTableMissingError(error, 'user_lists')) {
         missingListTables.add('user_lists');
@@ -1194,8 +1214,7 @@
         const { data: rows, error: sharedError } = await client
           .from('user_lists')
           .select('*')
-          .in('id', sharedIds)
-          .eq('type', 'custom');
+          .in('id', sharedIds);
         if (sharedError && isListTableMissingError(sharedError, 'user_lists')) {
           missingListTables.add('user_lists');
           return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
@@ -1269,16 +1288,16 @@
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (!client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
     if (customListsDisabled({})) return new Set();
-    if (missingItemTables.has('list_items')) return new Set();
+    if (missingItemTables.has('user_list_items')) return new Set();
     try {
       let query = client
-        .from('list_items')
+        .from('user_list_items')
         .select('list_id')
-        .eq('external_id', String(normalizedItemId))
+        .eq('media_id', String(normalizedItemId))
         .in('list_id', listIds);
       const { data, error } = await query;
-      if (error && isListTableMissingError(error, 'list_items')) {
-        missingItemTables.add('list_items');
+      if (error && isListTableMissingError(error, 'user_list_items')) {
+        missingItemTables.add('user_list_items');
         return new Set();
       }
       const set = new Set();
@@ -1304,16 +1323,22 @@
       movie: 'movie', tv: 'tv', anime: 'anime', game: 'game',
       book: 'book', music: 'music', travel: 'travel',
       fashion: 'fashion', food: 'food', car: 'car',
+      restaurant: 'restaurant',
       sports: 'sport', sport: 'sport'
     };
     return map[String(type || '').toLowerCase()] || type;
+  }
+
+  function getMediaType(type) {
+    const cfg = getListConfig(type);
+    return cfg?.mediaType || getCategoryName(type);
   }
 
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
     const normalizedItemId = String(normalizeQueryableItemId(type, itemId));
     if (!client || normalizedItemId === null) return;
     if (customListsDisabled({})) return;
-    if (missingItemTables.has('list_items')) return;
+    if (missingItemTables.has('user_list_items')) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
       await ensureBookRecord(client, itemPayload).catch(() => false);
@@ -1321,32 +1346,53 @@
     if (type === 'music' && itemPayload) {
       await ensureTrackRecord(client, itemPayload);
     }
-    const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
-    if (listIds.length && !missingItemTables.has('list_items')) {
-      let del = client
-        .from('list_items')
+
+    // Clean up from all custom lists first to sync changes correctly
+    const allLists = await loadCustomLists(client, userId, type);
+    const allListIds = allLists.map(l => l.id).filter(Boolean);
+    if (allListIds.length) {
+      await client
+        .from('user_list_items')
         .delete()
-        .eq('external_id', normalizedItemId)
-        .in('list_id', listIds);
-      const { error: deleteError } = await del;
-      if (deleteError && isListTableMissingError(deleteError, 'list_items')) {
-        missingItemTables.add('list_items');
-        return;
+        .eq('media_id', normalizedItemId)
+        .in('list_id', allListIds);
+    }
+
+    const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
+    if (!listIds.length) return;
+
+    // Resolve title and poster URL
+    let title = itemPayload?.title || itemPayload?.name;
+    let posterUrl = itemPayload?.poster_url || itemPayload?.image || itemPayload?.thumbnail || itemPayload?.image_url;
+
+    if (!title && typeof document !== 'undefined') {
+      const titleEl = document.getElementById('title');
+      if (titleEl) {
+        title = titleEl.textContent.trim();
       }
     }
-    const externalSource = getExternalSource(type);
+    if (!posterUrl && typeof document !== 'undefined') {
+      const posterEl = document.getElementById('poster');
+      if (posterEl) {
+        posterUrl = posterEl.src;
+      }
+    }
+    const finalTitle = title || 'Untitled';
+
     const inserts = listIds.map(listId => ({
+      user_id: userId,
       list_id: listId,
-      external_id: normalizedItemId,
-      external_source: externalSource,
-      external_type: getCategoryName(type)
+      media_type: getCategoryName(type),
+      media_id: normalizedItemId,
+      title: finalTitle,
+      poster_url: posterUrl || null,
+      metadata: itemPayload?.metadata || (itemPayload ? { ...itemPayload } : {})
     }));
-    if (inserts.length && !missingItemTables.has('list_items')) {
-      const { error: insertError } = await client.from('list_items').insert(inserts);
-      if (insertError && isListTableMissingError(insertError, 'list_items')) {
-        missingItemTables.add('list_items');
-      } else if (insertError && isConflictError(insertError)) {
-        return;
+
+    if (inserts.length && !missingItemTables.has('user_list_items')) {
+      const { error: insertError } = await client.from('user_list_items').insert(inserts);
+      if (insertError && isListTableMissingError(insertError, 'user_list_items')) {
+        missingItemTables.add('user_list_items');
       }
     }
   }
@@ -1396,9 +1442,8 @@
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
     const insertPayload = {
       user_id: userId,
-      name: payload.title,
-      category: category,
-      type: 'custom',
+      title: payload.title,
+      media_type: category,
       icon: payload.icon || 'fas fa-list',
       description: payload.description || `My ${payload.title} list`
     };
@@ -1429,7 +1474,7 @@
     setTierSyncContext(client, userId);
     const { error } = await client
       .from('user_lists')
-      .update({ name: title })
+      .update({ title: title })
       .eq('id', listId)
       .eq('user_id', userId);
     if (error && isListTableMissingError(error, 'user_lists')) {
@@ -1437,6 +1482,122 @@
       return false;
     }
     return !error;
+  }
+
+  function getListTypeTitle(listType, mediaType) {
+    const listTypeLower = String(listType || '').toLowerCase();
+    const mediaTypeLower = String(mediaType || '').toLowerCase();
+    
+    if (listTypeLower === 'favorites') return 'Favorites';
+    
+    if (listTypeLower === 'watchlist') {
+      if (mediaTypeLower === 'book') return 'Reading List';
+      if (mediaTypeLower === 'game') return 'Backlog';
+      if (mediaTypeLower === 'music') return 'Listen Later';
+      if (mediaTypeLower === 'travel') return 'Bucket List';
+      if (mediaTypeLower === 'food') return 'Want to Try';
+      if (mediaTypeLower === 'restaurant') return 'Want to Go';
+      return 'Watchlist';
+    }
+    
+    if (listTypeLower === 'watched') {
+      if (mediaTypeLower === 'book') return 'Read';
+      if (mediaTypeLower === 'game') return 'Played';
+      if (mediaTypeLower === 'music') return 'Listened';
+      if (mediaTypeLower === 'travel') return 'Visited';
+      if (mediaTypeLower === 'food') return 'Tried';
+      if (mediaTypeLower === 'restaurant') return 'Visited';
+      return 'Watched';
+    }
+    
+    return listType.charAt(0).toUpperCase() + listType.slice(1);
+  }
+
+  function getListTypeIcon(listType, mediaType) {
+    const listTypeLower = String(listType || '').toLowerCase();
+    const mediaTypeLower = String(mediaType || '').toLowerCase();
+    
+    if (listTypeLower === 'favorites') return 'fas fa-heart';
+    
+    if (listTypeLower === 'watchlist') {
+      if (mediaTypeLower === 'book') return 'fas fa-book-open';
+      if (mediaTypeLower === 'game') return 'fas fa-gamepad';
+      if (mediaTypeLower === 'music') return 'fas fa-play';
+      if (mediaTypeLower === 'travel') return 'fas fa-map-marker-alt';
+      if (mediaTypeLower === 'food') return 'fas fa-utensils';
+      return 'fas fa-bookmark';
+    }
+    
+    if (listTypeLower === 'watched') {
+      if (mediaTypeLower === 'book') return 'fas fa-check';
+      if (mediaTypeLower === 'game') return 'fas fa-check';
+      if (mediaTypeLower === 'music') return 'fas fa-headphones';
+      if (mediaTypeLower === 'travel') return 'fas fa-check';
+      if (mediaTypeLower === 'food') return 'fas fa-check';
+      return 'fas fa-eye';
+    }
+    
+    return 'fas fa-list';
+  }
+
+  async function ensureDefaultList(client, userId, mediaType, listType) {
+    if (!client || !userId) return null;
+    
+    const normalizedType = String(mediaType || '').toLowerCase();
+    const normalizedListType = String(listType || '').toLowerCase();
+
+    const { data: existing } = await client
+      .from('user_default_lists')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('media_type', normalizedType)
+      .eq('list_type', normalizedListType)
+      .maybeSingle();
+
+    if (existing?.id) {
+      return existing.id;
+    }
+
+    const title = getListTypeTitle(normalizedListType, normalizedType);
+    const icon = getListTypeIcon(normalizedListType, normalizedType);
+
+    const { data: newList, error: listError } = await client
+      .from('user_lists')
+      .insert({
+        user_id: userId,
+        title: title,
+        media_type: normalizedType,
+        icon: icon,
+        is_public: false
+      })
+      .select('id')
+      .single();
+
+    if (listError || !newList?.id) {
+      console.error('Failed to create default list in user_lists:', listError);
+      return null;
+    }
+
+    const listId = newList.id;
+
+    const { error: defaultListError } = await client
+      .from('user_default_lists')
+      .insert({
+        id: listId,
+        user_id: userId,
+        media_type: normalizedType,
+        list_type: normalizedListType,
+        title: title,
+        icon: icon
+      });
+
+    if (defaultListError) {
+      console.error('Failed to create default list in user_default_lists:', defaultListError);
+      await client.from('user_lists').delete().eq('id', listId);
+      return null;
+    }
+
+    return listId;
   }
 
   window.ListUtils = {
@@ -1476,7 +1637,8 @@
     addItemToList,
     removeItemFromList,
     createCustomList,
-    renameCustomList
+    renameCustomList,
+    ensureDefaultList
   };
 
   if (typeof document !== 'undefined') {

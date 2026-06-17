@@ -124,28 +124,28 @@
                 car: 'user_lists'
             };
             const MEDIA_ITEM_TABLES = {
-                movie: 'list_items',
-                tv: 'list_items',
-                anime: 'list_items',
-                ...(GAMES_DISABLED ? {} : { game: 'list_items' }),
-                book: 'list_items',
-                music: 'list_items',
-                travel: 'list_items',
-                fashion: 'list_items',
-                food: 'list_items',
-                car: 'list_items'
+                movie: 'user_list_items',
+                tv: 'user_list_items',
+                anime: 'user_list_items',
+                ...(GAMES_DISABLED ? {} : { game: 'user_list_items' }),
+                book: 'user_list_items',
+                music: 'user_list_items',
+                travel: 'user_list_items',
+                fashion: 'user_list_items',
+                food: 'user_list_items',
+                car: 'user_list_items'
             };
             const MEDIA_ITEM_FIELDS = {
-                movie: 'external_id',
-                tv: 'external_id',
-                anime: 'external_id',
-                ...(GAMES_DISABLED ? {} : { game: 'external_id' }),
-                book: 'external_id',
-                music: 'external_id',
-                travel: 'external_id',
-                fashion: 'external_id',
-                food: 'external_id',
-                car: 'external_id'
+                movie: 'media_id',
+                tv: 'media_id',
+                anime: 'media_id',
+                ...(GAMES_DISABLED ? {} : { game: 'media_id' }),
+                book: 'media_id',
+                music: 'media_id',
+                travel: 'media_id',
+                fashion: 'media_id',
+                food: 'media_id',
+                car: 'media_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -1621,7 +1621,7 @@
                     { table: 'follows', filter: `followed_id=eq.${safeId}` },
                     { table: 'follows', filter: `follower_id=eq.${safeId}` },
                     { table: 'user_lists', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', filter: `list_id=in.(select id from user_lists where user_id=eq.${safeId})` },
+                    { table: 'user_list_items', filter: `list_id=in.(select id from user_lists where user_id=eq.${safeId})` },
                     { table: 'journal_entries', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'anime_reviews', filter: `user_id=eq.${safeId}` },
@@ -1727,7 +1727,7 @@
                             const listIds = (lists || []).map(r => r.id);
                             if (!listIds.length) return 0;
                             const { count } = await supabase
-                                .from('list_items')
+                                .from('user_list_items')
                                 .select('*', { count: 'exact', head: true })
                                 .in('list_id', listIds);
                             return Number(count || 0);
@@ -1763,7 +1763,7 @@
                             const listIds = (lists || []).map(r => r.id);
                             if (!listIds.length) return 0;
                             const { count } = await supabase
-                                .from('list_items')
+                                .from('user_list_items')
                                 .select('*', { count: 'exact', head: true })
                                 .in('list_id', listIds);
                             return Number(count || 0);
@@ -2472,12 +2472,12 @@
 
                     async loadFallbackActivityRows(actorIds) {
                         const listItemSources = [
-                            { table: 'list_items', mediaType: 'movie', itemField: 'external_id' },
-                            { table: 'list_items', mediaType: 'tv', itemField: 'external_id' },
-                            { table: 'list_items', mediaType: 'anime', itemField: 'external_id' },
-                            { table: 'list_items', mediaType: 'game', itemField: 'external_id' },
-                            { table: 'list_items', mediaType: 'book', itemField: 'external_id' },
-                            { table: 'list_items', mediaType: 'music', itemField: 'external_id' }
+                            { table: 'user_list_items', mediaType: 'movie', itemField: 'media_id' },
+                            { table: 'user_list_items', mediaType: 'tv', itemField: 'media_id' },
+                            { table: 'user_list_items', mediaType: 'anime', itemField: 'media_id' },
+                            { table: 'user_list_items', mediaType: 'game', itemField: 'media_id' },
+                            { table: 'user_list_items', mediaType: 'book', itemField: 'media_id' },
+                            { table: 'user_list_items', mediaType: 'music', itemField: 'media_id' }
                         ];
                         const customListSources = [
                             { table: 'user_lists', mediaType: 'movie' },
@@ -2522,8 +2522,8 @@
                         const listCreateTasks = customListSources.map(async (source) => {
                             const rows = await this.fetchRowsWithCreatedAtFallback(
                                 source.table,
-                                'id, user_id, name, created_at',
-                                'id, user_id, name',
+                                'id, user_id, title, created_at',
+                                'id, user_id, title',
                                 actorIds,
                                 20
                             );
@@ -2540,7 +2540,7 @@
                                 metadata: {
                                     source_table: source.table,
                                     fallback: true,
-                                    list_title: String(row.name || '').trim()
+                                    list_title: String(row.title || '').trim()
                                 },
                                 created_at: row.created_at || null
                             }));
@@ -3368,21 +3368,30 @@
                 const safeOwnerId = String(ownerUserId || '').trim();
                 if (!safeOwnerId) return [];
 
-                const { data: ownedLists, error: ownedError } = await supabase
-                    .from('user_lists')
-                    .select('*')
-                    .eq('user_id', safeOwnerId)
-                    .eq('category', contentType)
-                    .eq('type', 'custom')
-                    .order('created_at', { ascending: false });
-                if (ownedError) throw ownedError;
+                const [listsRes, defaultListsRes] = await Promise.all([
+                    supabase
+                        .from('user_lists')
+                        .select('*')
+                        .eq('user_id', safeOwnerId)
+                        .eq('media_type', contentType)
+                        .order('created_at', { ascending: false }),
+                    supabase
+                        .from('user_default_lists')
+                        .select('id')
+                        .eq('user_id', safeOwnerId)
+                        .eq('media_type', contentType)
+                ]);
+                if (listsRes.error) throw listsRes.error;
+
+                const defaultListIds = new Set((defaultListsRes?.data || []).map(d => String(d.id).trim()));
+                const ownedLists = (listsRes.data || []).filter(l => !defaultListIds.has(String(l.id).trim()));
 
                 const merged = [];
                 const byId = new Map();
                 (ownedLists || []).forEach((list) => {
                     const safeId = String(list?.id || '').trim();
                     if (!safeId || byId.has(safeId)) return;
-                    const row = { ...list, title: list.name, type: 'custom', __isCollaborative: false };
+                    const row = { ...list, type: 'custom', __isCollaborative: false };
                     byId.set(safeId, row);
                     merged.push(row);
                 });
@@ -3416,7 +3425,7 @@
                             const { data: sharedLists, error: sharedError } = await supabase
                                 .from('user_lists')
                                 .select('*')
-                                .eq('category', contentType)
+                                .eq('media_type', contentType)
                                 .in('id', sharedIds);
 
                             if (sharedError) {
@@ -3427,7 +3436,6 @@
                                     if (!safeId || byId.has(safeId)) return;
                                     const row = {
                                         ...list,
-                                        title: list.name,
                                         type: 'custom',
                                         __isCollaborative: true
                                     };
@@ -3451,7 +3459,7 @@
                     .from('user_lists')
                     .select('id, user_id')
                     .eq('id', safeListId)
-                    .eq('category', safeType)
+                    .eq('media_type', safeType)
                     .maybeSingle();
                 if (error || !data) return null;
                 const ownerUserId = String(data.user_id || '').trim();
@@ -3537,7 +3545,7 @@
                     .from('user_lists')
                     .select('*')
                     .eq('id', safeListId)
-                    .eq('category', safeType)
+                    .eq('media_type', safeType)
                     .maybeSingle();
                 if (error || !data) return null;
                 return { ...data, type: 'custom' };
@@ -3644,26 +3652,46 @@
             };
 
             async function loadMediaListItems(contentType, ownerUserId, customListIds = []) {
-                const itemField = MEDIA_ITEM_FIELDS[contentType];
-                if (!itemField) return [];
-
+                const itemField = MEDIA_ITEM_FIELDS[contentType] || 'media_id';
                 const safeOwnerId = String(ownerUserId || '').trim();
                 const safeCustomIds = [...new Set((Array.isArray(customListIds) ? customListIds : [])
                     .map((id) => String(id || '').trim())
                     .filter(Boolean))];
 
                 try {
-                    const { data: userLists } = await supabase
-                        .from('user_lists')
-                        .select('id, name, type')
-                        .eq('user_id', safeOwnerId)
-                        .eq('category', contentType);
+                    let listsQuery = supabase.from('user_lists').select('id, title').eq('media_type', contentType);
+                    if (safeOwnerId) {
+                        if (safeCustomIds.length) {
+                            listsQuery = listsQuery.or(`user_id.eq.${safeOwnerId},id.in.(${safeCustomIds.join(',')})`);
+                        } else {
+                            listsQuery = listsQuery.eq('user_id', safeOwnerId);
+                        }
+                    } else if (safeCustomIds.length) {
+                        listsQuery = listsQuery.in('id', safeCustomIds);
+                    }
 
-                    const allListIds = (userLists || []).map(l => l.id);
+                    let defaultsQuery = supabase.from('user_default_lists').select('id, list_type').eq('media_type', contentType);
+                    if (safeOwnerId) {
+                        if (safeCustomIds.length) {
+                            defaultsQuery = defaultsQuery.or(`user_id.eq.${safeOwnerId},id.in.(${safeCustomIds.join(',')})`);
+                        } else {
+                            defaultsQuery = defaultsQuery.eq('user_id', safeOwnerId);
+                        }
+                    } else if (safeCustomIds.length) {
+                        defaultsQuery = defaultsQuery.in('id', safeCustomIds);
+                    }
+
+                    const [userListsRes, defaultListsRes] = await Promise.all([listsQuery, defaultsQuery]);
+
+                    const userLists = userListsRes.data || [];
+                    const defaultLists = defaultListsRes.data || [];
+                    const defaultTypeMap = new Map(defaultLists.map(d => [d.id, d.list_type]));
+
+                    const allListIds = userLists.map(l => l.id);
                     const listTypeById = new Map();
                     const typeMapping = UNIFIED_TYPE_TO_FRONTEND[contentType] || {};
-                    (userLists || []).forEach(l => {
-                        const unifiedType = String(l.type || '').trim().toLowerCase();
+                    userLists.forEach(l => {
+                        const unifiedType = defaultTypeMap.get(l.id) || 'custom';
                         const frontendType = typeMapping[unifiedType] || '';
                         if (frontendType) listTypeById.set(String(l.id), frontendType);
                     });
@@ -3671,7 +3699,7 @@
                     if (!allListIds.length) return [];
 
                     const { data: items, error } = await supabase
-                        .from('list_items')
+                        .from('user_list_items')
                         .select(`${itemField}, list_id`)
                         .in('list_id', allListIds);
 
@@ -3680,12 +3708,13 @@
                     return (items || []).map((row) => {
                         const listIdStr = String(row.list_id || '').trim();
                         const frontendType = listTypeById.get(listIdStr) || '';
-                        const normalized = {
-                            [itemField]: row[itemField],
+                        const idValue = row[itemField];
+                        return {
+                            media_id: idValue,
+                            external_id: idValue,
                             list_id: listIdStr,
                             list_type: frontendType
                         };
-                        return normalized;
                     });
                 } catch (error) {
                     if (isIgnorableStatsError(error)) return [];
@@ -3695,8 +3724,7 @@
             }
 
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
-                const itemField = MEDIA_ITEM_FIELDS[contentType];
-                if (!itemField) return [];
+                const itemField = MEDIA_ITEM_FIELDS[contentType] || 'media_id';
 
                 const safeListType = String(listType || '').toLowerCase();
                 const safeOwnerId = String(ownerUserId || '').trim();
@@ -3707,19 +3735,22 @@
                     let searchListId = safeListId;
 
                     if (safeListType === 'default') {
+                        let dbListType = safeListId;
+                        if (dbListType === 'completed') dbListType = 'watched';
+
                         const { data: listData } = await supabase
-                            .from('user_lists')
+                            .from('user_default_lists')
                             .select('id')
                             .eq('user_id', safeOwnerId)
-                            .eq('category', contentType)
-                            .eq('name', safeListId)
+                            .eq('media_type', contentType)
+                            .eq('list_type', dbListType)
                             .maybeSingle();
                         if (!listData) return [];
                         searchListId = String(listData.id);
                     }
 
                     const { data, error } = await supabase
-                        .from('list_items')
+                        .from('user_list_items')
                         .select(itemField)
                         .eq('list_id', searchListId);
 
@@ -4616,7 +4647,9 @@
                 if (grid) grid.innerHTML = loadingHtml;
                 if (mobileGrid) mobileGrid.innerHTML = loadingHtml;
 
-                const listsRes = await supabase.from('user_lists').select('*').eq('user_id', userId).eq('category', 'movie').order('created_at', { ascending: false });
+                const listsPromise = supabase.from('user_lists').select('*').eq('user_id', userId).eq('media_type', 'movie').order('created_at', { ascending: false });
+                const defaultListsPromise = supabase.from('user_default_lists').select('*').eq('user_id', userId).eq('media_type', 'movie');
+                const [listsRes, defaultListsRes] = await Promise.all([listsPromise, defaultListsPromise]);
 
                 if (listsRes.error) {
                     const errorHtml = `
@@ -4632,8 +4665,12 @@
                 }
 
                 const allListsData = listsRes.data || [];
+                const defaultListsData = (defaultListsRes && defaultListsRes.data) || [];
+                const defaultTypeMap = new Map(defaultListsData.map(d => [d.id, d.list_type]));
+
                 const defaultTypeToFrontend = {
                     favorites: { title: 'Favorites', icon: 'fas fa-heart', description: 'Movies you love' },
+                    watched: { title: 'Watched', icon: 'fas fa-eye', description: 'Movies you watched' },
                     completed: { title: 'Watched', icon: 'fas fa-eye', description: 'Movies you watched' },
                     watchlist: { title: 'Watchlist', icon: 'fas fa-bookmark', description: 'Movies to watch later' }
                 };
@@ -4641,12 +4678,12 @@
                 const defaultLists = [];
                 const customLists = [];
                 allListsData.forEach(l => {
-                    const unifiedType = String(l.type || '').trim().toLowerCase();
+                    const unifiedType = defaultTypeMap.get(l.id) || 'custom';
                     if (unifiedType !== 'custom' && defaultTypeToFrontend[unifiedType]) {
                         const meta = defaultTypeToFrontend[unifiedType];
                         defaultLists.push({ id: l.id, title: meta.title, icon: l.icon || meta.icon || 'fas fa-film', description: meta.description, type: 'default' });
                     } else {
-                        customLists.push({ id: l.id, title: l.name || l.title || 'Custom list', icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' });
+                        customLists.push({ id: l.id, title: l.title || l.name || 'Custom list', icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' });
                     }
                 });
 
@@ -4655,7 +4692,7 @@
                 const listIds = allLists.map(l => l.id);
                 let items = [];
                 if (listIds.length) {
-                    const itemsRes = await supabase.from('list_items').select('external_id, list_id').in('list_id', listIds);
+                    const itemsRes = await supabase.from('user_list_items').select('media_id, list_id').in('list_id', listIds);
                     items = itemsRes.data || [];
                 }
 
@@ -4663,7 +4700,7 @@
                 allLists.forEach(l => listMovieMap.set(l.id, []));
                 items.forEach(item => {
                     const list = listMovieMap.get(item.list_id);
-                    if (list) list.push(item.external_id);
+                    if (list) list.push(item.media_id);
                 });
 
                 const cards = await Promise.all(allLists.map(async list => {
@@ -4756,7 +4793,7 @@
                     if (actions) actions.style.display = 'none';
                     if (mobileActions) mobileActions.style.display = 'none';
                 } else {
-                    const { data } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'movie').single();
+                    const { data } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'movie').single();
                     if (data?.id) {
                         const ownerUserId = String(data.user_id || '').trim();
                         const currentUserId = String(currentUser?.id || '').trim();
@@ -4797,7 +4834,7 @@
                 const ownerIdForDefault = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 let ownerIdForCustom = ownerIdForDefault;
                 if (listType === 'custom') {
-                    const { data: ownerRow } = await supabase.from('user_lists').select('user_id').eq('id', listId).eq('category', 'movie').maybeSingle();
+                    const { data: ownerRow } = await supabase.from('user_lists').select('user_id').eq('id', listId).eq('media_type', 'movie').maybeSingle();
                     ownerIdForCustom = ownerRow?.user_id || ownerIdForDefault;
                 }
                 const filtered = await fetchMediaCollectionItemIds(
@@ -4863,26 +4900,28 @@
                 const renderToken = ++renderMoviesToken;
                 const extId = String(movieId);
                 if (listType === 'default') {
+                    let dbListType = listId;
+                    if (dbListType === 'completed') dbListType = 'watched';
                     const { data: listData } = await supabase
-                        .from('user_lists')
+                        .from('user_default_lists')
                         .select('id')
                         .eq('user_id', userId)
-                        .eq('category', 'movie')
-                        .eq('name', listId)
+                        .eq('media_type', 'movie')
+                        .eq('list_type', dbListType)
                         .maybeSingle();
                     if (listData) {
                         await supabase
-                            .from('list_items')
+                            .from('user_list_items')
                             .delete()
                             .eq('list_id', listData.id)
-                            .eq('external_id', extId);
+                            .eq('media_id', extId);
                     }
                 } else {
                     await supabase
-                        .from('list_items')
+                        .from('user_list_items')
                         .delete()
                         .eq('list_id', listId)
-                        .eq('external_id', extId);
+                        .eq('media_id', extId);
                 }
                 await showMovieListDetail(listId, listType);
                 await renderMovies();
@@ -5739,9 +5778,9 @@
                 if (!record) {
                     let { data, error } = await supabase
                         .from('user_lists')
-                        .select('id, user_id, name, icon, list_kind')
+                        .select('id, user_id, title, icon, list_kind')
                         .eq('id', listId)
-                        .eq('category', type)
+                        .eq('media_type', type)
                         .single();
                     const message = String(error?.message || '').toLowerCase();
                     const details = String(error?.details || '').toLowerCase();
@@ -5753,9 +5792,9 @@
                     if (missingListKindColumn) {
                         ({ data, error } = await supabase
                             .from('user_lists')
-                            .select('id, user_id, name, icon')
+                            .select('id, user_id, title, icon')
                             .eq('id', listId)
-                            .eq('category', type)
+                            .eq('media_type', type)
                             .single());
                     }
                     if (error || !data) {
@@ -8116,7 +8155,7 @@
                         .from('user_lists')
                         .select('*')
                         .eq('id', listId)
-                        .eq('category', 'movie')
+                        .eq('media_type', 'movie')
                         .single();
 
                     if (error || !data) {
@@ -8309,7 +8348,7 @@
                         .from('user_lists')
                         .select('*')
                         .eq('id', listId)
-                        .eq('category', 'tv')
+                        .eq('media_type', 'tv')
                         .single();
 
                     if (error || !data) {
@@ -8504,7 +8543,7 @@
                         .from('user_lists')
                         .select('*')
                         .eq('id', listId)
-                        .eq('category', 'anime')
+                        .eq('media_type', 'anime')
                         .single();
 
                     if (error || !data) {
@@ -8699,7 +8738,7 @@
                         .from('user_lists')
                         .select('*')
                         .eq('id', listId)
-                        .eq('category', 'game')
+                        .eq('media_type', 'game')
                         .single();
 
                     if (error || !data) {
@@ -8895,7 +8934,7 @@
                     const descriptions = { favorites: 'Books you love', read: 'Books you finished', readlist: 'Books to read' };
                     list = { id: listId, title: titles[listId], icon: icons[listId], description: descriptions[listId], type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'book').single();
+                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'book').single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;
@@ -9094,7 +9133,7 @@
                     };
                     list = { id: listId, title: titles[listId], icon: icons[listId], description: descriptions[listId], type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'music').single();
+                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'music').single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;
@@ -9282,7 +9321,7 @@
                     };
                     list = { id: listId, title: titles[listId] || 'Travel', icon: icons[listId] || 'travel', description: descriptions[listId] || '', type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'travel').single();
+                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'travel').single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;
@@ -9478,7 +9517,7 @@
                     };
                     list = { id: listId, title: titles[listId] || 'Fashion', icon: icons[listId] || 'fashion', description: descriptions[listId] || '', type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'fashion').single();
+                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'fashion').single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;
@@ -9837,7 +9876,7 @@
                     };
                     list = { id: listId, title: titles[listId] || 'Food', icon: icons[listId] || 'food', description: descriptions[listId] || '', type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('category', 'food').single();
+                    const { data, error } = await supabase.from('user_lists').select('*').eq('id', listId).eq('media_type', 'food').single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;
@@ -10016,8 +10055,8 @@
                 showConfirmModal('Delete List', `Delete this ${type} list? This cannot be undone.`, async function() {
                     try {
                         const userId = currentUser.id;
-                        await supabase.from('list_items').delete().eq('list_id', listId);
-                        const { error } = await supabase.from('user_lists').delete().eq('id', listId).eq('user_id', userId).eq('category', type);
+                        await supabase.from('user_list_items').delete().eq('list_id', listId);
+                        const { error } = await supabase.from('user_lists').delete().eq('id', listId).eq('user_id', userId).eq('media_type', type);
                         if (error) throw error;
                         hideDetailByType(type);
                         if (renderFn) await renderFn();
@@ -10130,20 +10169,22 @@
                         };
                     }
 
-                    const itemField = MEDIA_ITEM_FIELDS[type];
+                    const itemField = MEDIA_ITEM_FIELDS[type] || 'media_id';
                     if (itemField) {
                         const extId = String(itemId);
                         if (listType === 'default') {
+                            let dbListType = collectionId;
+                            if (dbListType === 'completed') dbListType = 'watched';
                             const { data: listData } = await supabase
-                                .from('user_lists')
+                                .from('user_default_lists')
                                 .select('id')
                                 .eq('user_id', userId)
-                                .eq('category', type)
-                                .eq('name', collectionId)
+                                .eq('media_type', type)
+                                .eq('list_type', dbListType)
                                 .maybeSingle();
                             if (listData) {
                                 const { error } = await supabase
-                                    .from('list_items')
+                                    .from('user_list_items')
                                     .delete()
                                     .eq('list_id', listData.id)
                                     .eq(itemField, extId);
@@ -10151,7 +10192,7 @@
                             }
                         } else {
                             const { error } = await supabase
-                                .from('list_items')
+                                .from('user_list_items')
                                 .delete()
                                 .eq('list_id', collectionId)
                                 .eq(itemField, extId);
@@ -10196,7 +10237,7 @@
                         return;
                     }
 
-                    const itemField = MEDIA_ITEM_FIELDS[type];
+                    const itemField = MEDIA_ITEM_FIELDS[type] || 'media_id';
                     if (!itemField) {
                         showToast('Cannot add to this collection', 'error');
                         return;
@@ -10221,23 +10262,33 @@
 
                     let targetListId = collectionId;
                     if (listType === 'default') {
+                        let dbListType = collectionId;
+                        if (dbListType === 'completed') dbListType = 'watched';
+
+                        let listIdVal = null;
                         const { data: listData } = await supabase
-                            .from('user_lists')
+                            .from('user_default_lists')
                             .select('id')
                             .eq('user_id', userId)
-                            .eq('category', type)
-                            .eq('name', collectionId)
+                            .eq('media_type', type)
+                            .eq('list_type', dbListType)
                             .maybeSingle();
-                        if (!listData) {
+                        if (listData) {
+                            listIdVal = listData.id;
+                        } else if (window.ListUtils && typeof ListUtils.ensureDefaultList === 'function') {
+                            listIdVal = await ListUtils.ensureDefaultList(supabase, userId, type, dbListType);
+                        }
+
+                        if (!listIdVal) {
                             showToast('Default list not found', 'error');
                             if (typeof restoreAddedNode === 'function') restoreAddedNode();
                             return;
                         }
-                        targetListId = String(listData.id);
+                        targetListId = String(listIdVal);
                     }
 
                     const { data: existing } = await supabase
-                        .from('list_items')
+                        .from('user_list_items')
                         .select('id')
                         .eq(itemField, String(itemId))
                         .eq('list_id', targetListId)
@@ -10249,13 +10300,56 @@
                         return;
                     }
 
+                    let itemTitle = 'Item';
+                    let itemImage = '';
+
+                    const idStr = String(itemId);
+                    if (type === 'movie' && movieCache.has(idStr)) {
+                        const m = movieCache.get(idStr);
+                        itemTitle = m.title || itemTitle;
+                        itemImage = m.poster_path ? (TMDB_POSTER + m.poster_path) : itemImage;
+                    } else if (type === 'tv' && tvCache.has(idStr)) {
+                        const t = tvCache.get(idStr);
+                        itemTitle = t.name || itemTitle;
+                        itemImage = t.poster_path ? (TMDB_POSTER + t.poster_path) : itemImage;
+                    } else if (type === 'anime' && animeCache.has(idStr)) {
+                        const a = animeCache.get(idStr);
+                        itemTitle = a.title || a.name || itemTitle;
+                        itemImage = a.poster_path ? (TMDB_POSTER + a.poster_path) : itemImage;
+                    } else if (type === 'game' && gameCache.has(idStr)) {
+                        const g = gameCache.get(idStr);
+                        itemTitle = g.name || itemTitle;
+                        itemImage = (g.cover && g.cover.url) || itemImage;
+                    } else if (type === 'book' && bookCache.has(idStr)) {
+                        const b = bookCache.get(idStr);
+                        itemTitle = b.title || itemTitle;
+                        itemImage = b.cover_url || itemImage;
+                    } else if (type === 'music' && musicCache.has(idStr)) {
+                        const m = musicCache.get(idStr);
+                        itemTitle = m.name || itemTitle;
+                        itemImage = m.album_cover || itemImage;
+                    }
+
+                    const detailTitleEl = document.querySelector('.detail-title, #title, #detail-title, .modal-title, h1');
+                    if (itemTitle === 'Item' && detailTitleEl) {
+                        itemTitle = detailTitleEl.textContent.trim();
+                    }
+                    const detailPosterEl = document.querySelector('.detail-poster, #poster, #detail-poster, .modal-poster img, img');
+                    if (!itemImage && detailPosterEl && detailPosterEl.src) {
+                        itemImage = detailPosterEl.src;
+                    }
+
                     const insertPayload = {
-                        [itemField]: String(itemId),
-                        list_id: targetListId
+                        user_id: userId,
+                        list_id: targetListId,
+                        media_type: type,
+                        media_id: idStr,
+                        title: itemTitle,
+                        poster_url: itemImage
                     };
 
                     const { error } = await supabase
-                        .from('list_items')
+                        .from('user_list_items')
                         .insert(insertPayload);
                     
                     if (error) throw error;
@@ -10950,9 +11044,9 @@
                         // Fetch user lists for this category
                         const { data: userLists, error: listError } = await supabase
                             .from('user_lists')
-                            .select('id, name')
+                            .select('id, title')
                             .eq('user_id', currentUser.id)
-                            .eq('category', mediaType);
+                            .eq('media_type', mediaType);
 
                         if (listError) {
                             console.error(`Error fetching ${mediaType} lists:`, listError);
@@ -10964,8 +11058,8 @@
 
                         // Fetch list items with list info
                         const { data: listItems, error } = await supabase
-                            .from('list_items')
-                            .select(`list_id, ${itemField}`)
+                            .from('user_list_items')
+                            .select(`list_id, ${itemField}, title, poster_url`)
                             .in('list_id', listIds);
 
                         if (error) {
@@ -10974,7 +11068,7 @@
                         }
 
                         const listNameById = new Map();
-                        (userLists || []).forEach(l => listNameById.set(l.id, l.name));
+                        (userLists || []).forEach(l => listNameById.set(l.id, l.title));
 
                         // Group items by their media ID to collect all listTypes
                         const itemMap = new Map();
@@ -10988,10 +11082,10 @@
 
                             if (!itemMap.has(itemId)) {
                                 itemMap.set(itemId, {
-                                    title: item.title || item.name || '',
+                                    title: item.title || '',
                                     mediaType: mediaType,
                                     listTypes: [],
-                                    poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
+                                    poster: item.poster_url || ''
                                 });
                             }
 

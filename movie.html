@@ -1547,17 +1547,6 @@
         });
       }
 
-      const DB_TYPE_MAP = {
-        favorites: 'favorites',
-        watched: 'completed',
-        watchlist: 'watchlist'
-      };
-      const REV_DB_TYPE_MAP = {
-        favorites: 'favorites',
-        completed: 'watched',
-        watchlist: 'watchlist'
-      };
-
       async function loadListStatus() {
         if (!supabaseClient || !currentUser || !movieId) return;
         const { data: lists } = await supabaseClient
@@ -1578,10 +1567,9 @@
         listStatus.watched = false;
         listStatus.watchlist = false;
         (data || []).forEach(item => {
-          const dbType = listTypeMap[item.list_id];
-          const frontendType = REV_DB_TYPE_MAP[dbType] || dbType;
-          if (listStatus[frontendType] !== undefined) {
-            listStatus[frontendType] = true;
+          const type = listTypeMap[item.list_id];
+          if (listStatus[type] !== undefined) {
+            listStatus[type] = true;
           }
         });
         updateListMenuUI();
@@ -1745,13 +1733,12 @@
         updateListMenuUI();
 
           try {
-            const dbType = DB_TYPE_MAP[listType] || listType;
             const { data: list } = await supabaseClient
               .from('user_lists')
               .select('id')
               .eq('user_id', currentUser.id)
               .eq('category', 'movie')
-              .eq('type', dbType)
+              .eq('type', listType)
               .single();
             if (!list) throw new Error('List not found');
 
