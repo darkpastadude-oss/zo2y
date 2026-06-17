@@ -267,11 +267,7 @@
     const externalId = String(normalizeItemIdValue(id));
 
     try {
-      const{data}=await c.rpc('get_item_list_status', {
-        p_user_id: u.id,
-        p_category: category,
-        p_external_id: externalId
-      });
+      const{data}=await c.from('list_items').select('list_type').eq('user_id', u.id).eq('external_type', category).eq('external_id', externalId);
       if (Array.isArray(data)) {
         data.forEach(r=>{
           const t = resolveListTypeFromQuickKey(r.list_type || '');
@@ -472,11 +468,7 @@
         // Use the get_item_list_status RPC to quickly check status of visible items
         const statusPromises = vs.slice(0, 50).map(async (id) => {
           try {
-            const{data}=await c.rpc('get_item_list_status', {
-              p_user_id: u.id,
-              p_category: category,
-              p_external_id: String(id)
-            });
+            const{data}=await c.from('list_items').select('list_type').eq('user_id', u.id).eq('external_type', category).eq('external_id', String(id));
             if (Array.isArray(data)) {
               const s = buildBlankQuickStatus(lk);
               data.forEach(r => {

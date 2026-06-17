@@ -549,7 +549,7 @@
           .from('user_lists')
           .select('id')
           .eq('user_id', currentUser.id)
-          .eq('media_type', mediaType)
+          .eq('category', mediaType)
           .eq('type', listType)
           .maybeSingle();
         if (listError || !list) {
@@ -559,10 +559,10 @@
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
-            .from('user_list_items')
+            .from('list_items')
             .delete()
             .eq('list_id', list.id)
-            .eq('media_id', String(itemId));
+            .eq('external_id', String(itemId));
           if (deleteError) {
             showBrandsToast('Could not update list', true);
             return result;
@@ -580,8 +580,8 @@
             return result;
           }
           const { error: insertError } = await client
-            .from('user_list_items')
-            .insert({ list_id: list.id, media_id: String(itemId), external_source: 'local_db', external_type: mediaType });
+            .from('list_items')
+            .insert({ user_id: currentUser.id, list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType, metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
           if (insertError && String(insertError.code || '') !== '23505') {
             showBrandsToast('Could not add to list', true);
             return result;
@@ -615,7 +615,7 @@
         await ensureLinkedMediaRecord(itemId);
         const { error: insertError } = await client
           .from('list_items')
-          .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType });
+          .insert({ user_id: currentUser.id, list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType, metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
         if (insertError && String(insertError.code || '') !== '23505') {
           showBrandsToast('Could not add to list', true);
           return result;

@@ -333,15 +333,7 @@
       ...(ENABLE_FOOD ? { food: { table: 'user_list_items', itemField: 'media_id' } } : {}),
       ...(ENABLE_CARS ? { car: { table: 'user_list_items', itemField: 'media_id' } } : {})
     };
-    const HOME_REVIEW_SIGNAL_TABLES = {
-      movie: { table: 'movie_reviews', itemField: 'movie_id' },
-      tv: { table: 'tv_reviews', itemField: 'tv_id' },
-      anime: { table: 'anime_reviews', itemField: 'anime_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
-      book: { table: 'book_reviews', itemField: 'book_id' },
-      music: { table: 'music_reviews', itemField: 'track_id' },
-      travel: { table: 'travel_reviews', itemField: 'country_code' }
-    };
+    const HOME_REVIEW_SIGNAL_TABLES = {};
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v15';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
@@ -3323,10 +3315,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
         const { data, error } = await client
           .from('list_items')
-          .select('external_id, list_id, user_id, created_at')
+          .select('external_id, list_id, user_id, added_at')
           .eq('external_type', mediaType)
           .in('user_id', userIds)
-          .order('created_at', { ascending: false })
+          .order('added_at', { ascending: false })
           .limit(220);
 
         if (error || !data) {
@@ -3338,7 +3330,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           .from('user_lists')
           .select('id, type')
           .in('user_id', userIds)
-          .eq('external_type', mediaType);
+          .eq('category', mediaType);
 
         const defaultListTypeById = new Map();
         if (Array.isArray(defaultLists)) {
@@ -3352,7 +3344,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           external_id: row.external_id,
           user_id: row.user_id,
           list_type: defaultListTypeById.get(row.list_id) || 'custom',
-          created_at: row.created_at
+          created_at: row.added_at
         }));
         return { mediaType, itemField: 'media_id', rows };
       };
@@ -3985,27 +3977,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!ENABLE_RESTAURANTS) return null;
       const client = await ensureHomeSupabase();
       if (!client) return null;
-      const conf = HOME_RESTAURANT_LIST_META[listType] || HOME_RESTAURANT_LIST_META.favorites;
-      const { data: existing } = await client
-        .from('lists')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('title', conf.title)
-        .limit(1)
-        .maybeSingle();
-      if (existing?.id) return existing.id;
-      const { data: created, error } = await client
-        .from('lists')
-        .insert({
-          user_id: userId,
-          title: conf.title,
-          description: conf.description,
-          icon: conf.icon
-        })
-        .select('id')
-        .single();
-      if (error) return null;
-      return created?.id || null;
+      if (!window.ListUtils || typeof window.ListUtils.ensureDefaultList !== 'function') return null;
+      return await window.ListUtils.ensureDefaultList(client, userId, 'restaurant', listType);
     }
 
     function getHomeDefaultListTable(mediaType) {
@@ -4200,7 +4173,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .from('list_items')
               .delete()
               .eq('list_id', listId)
-              .eq('media_id', String(itemId));
+              .eq('external_id', String(itemId));
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4223,10 +4196,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .insert({
                 user_id: activeUser.id,
                 list_id: listId,
-                media_type: mediaType,
-                media_id: String(itemId),
-                title: payload.title || 'Untitled',
-                poster_url: payload.image || null
+                external_type: mediaType,
+                external_id: String(itemId),
+                metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
               });
             if (insertError && String(insertError.code || '') !== '23505') {
               showHomeToast('Could not add to list', true);
@@ -4244,7 +4216,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('list_items')
             .select('id')
             .eq('list_id', listId)
-            .eq('media_id', String(itemId))
+            .eq('external_id', String(itemId))
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
@@ -4266,10 +4238,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .insert({
               user_id: activeUser.id,
               list_id: listId,
-              media_type: mediaType,
-              media_id: String(itemId),
-              title: payload.title || 'Untitled',
-              poster_url: payload.image || null
+              external_type: mediaType,
+              external_id: String(itemId),
+              metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
             });
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
@@ -4297,10 +4268,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           if (nextSaved === false) {
             const { error: deleteError } = await client
-              .from('lists_restraunts')
+              .from('list_items')
               .delete()
               .eq('list_id', listId)
-              .eq('restraunt_id', restaurantId);
+              .eq('external_id', restaurantId);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4314,8 +4285,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           if (nextSaved === true) {
             const { error: insertError } = await client
-              .from('lists_restraunts')
-              .insert({ list_id: listId, restraunt_id: restaurantId });
+              .from('list_items')
+              .insert({
+                user_id: activeUser.id,
+                list_id: listId,
+                external_type: 'restaurant',
+                external_id: restaurantId,
+                metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null }
+              });
             if (insertError && String(insertError.code || '') !== '23505') {
               showHomeToast('Could not add to list', true);
               return result;
@@ -4329,14 +4306,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { data: existing } = await client
-            .from('lists_restraunts')
+            .from('list_items')
             .select('id')
             .eq('list_id', listId)
-            .eq('restraunt_id', restaurantId)
+            .eq('external_id', restaurantId)
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            const { error: deleteError } = await client.from('lists_restraunts').delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4348,8 +4325,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return result;
           }
           const { error: insertError } = await client
-            .from('lists_restraunts')
-            .insert({ list_id: listId, restraunt_id: restaurantId });
+            .from('list_items')
+            .insert({
+                user_id: activeUser.id,
+                list_id: listId,
+                external_type: 'restaurant',
+                external_id: restaurantId,
+                metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null }
+            });
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
             return result;
@@ -4405,7 +4388,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('user_lists')
             .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq('external_type', mediaType);
+            .eq('category', mediaType);
           if (lists && lists.length) {
             const listIds = lists.map(l => l.id);
             const typeById = {};
@@ -4629,7 +4612,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from('user_lists')
             .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq('media_type', type);
+            .eq('category', type);
           if (!lists || !lists.length) return;
           const listIds = lists.map(l => l.id);
           const typeById = {};
@@ -10830,15 +10813,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
       ]
     };
-    const LANDING_REVIEW_SOURCES = [
-      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
-      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
-      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
-      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
-      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
-      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
-      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
-    ];
+    const LANDING_REVIEW_SOURCES = [];
 
     function normalizeLandingImageUrl(value) {
       const raw = unwrapCloudflareImageUrl(String(value || '').trim());

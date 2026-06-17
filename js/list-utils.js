@@ -366,27 +366,7 @@
   }
 
   async function loadAccessibleCustomListsViaRpc(client, userId, type) {
-    const safeUserId = String(userId || '').trim();
-    const safeType = String(type || '').trim().toLowerCase();
-    if (!client || !safeUserId || !safeType || typeof client.rpc !== 'function') return null;
-    if (accessibleCustomListsRpcSupported === false) return null;
-
-    const { data, error } = await client.rpc('zo2y_get_accessible_custom_lists', {
-      p_media_type: safeType
-    });
-    if (error) {
-      accessibleCustomListsRpcSupported = false;
-      return null;
-    }
-    accessibleCustomListsRpcSupported = true;
-    if (!Array.isArray(data)) return [];
-    return data.map((row) => ({
-      ...row,
-      id: String(row?.id || '').trim(),
-      __isCollaborative: !!row?.is_collaborative,
-      __canEdit: !!row?.can_edit,
-      __listOwnerId: String(row?.list_owner_id || row?.user_id || '').trim()
-    })).filter((row) => !!row.id);
+    return null;
   }
 
   function toListMetaKey(type, listId) {
@@ -1384,9 +1364,7 @@
       list_id: listId,
       external_type: getCategoryName(type),
       external_id: normalizedItemId,
-      title: finalTitle,
-      poster_url: posterUrl || null,
-      metadata: itemPayload?.metadata || (itemPayload ? { ...itemPayload } : {})
+      metadata: { ...(itemPayload?.metadata || (itemPayload ? { ...itemPayload } : {})), title: finalTitle, poster_url: posterUrl || null }
     }));
 
     if (inserts.length && !missingItemTables.has('list_items')) {
@@ -1567,6 +1545,7 @@
         user_id: userId,
         name: title,
         category: normalizedType,
+        type: normalizedListType,
         icon: icon,
         is_public: false
       })
@@ -1578,26 +1557,7 @@
       return null;
     }
 
-    const listId = newList.id;
-
-    const { error: defaultListError } = await client
-      .from('user_lists')
-      .insert({
-        
-        user_id: userId,
-        category: normalizedType,
-        type: normalizedListType,
-        name: title,
-        icon: icon
-      });
-
-    if (defaultListError) {
-      console.error('Failed to create default list in user_default_lists:', defaultListError);
-      await client.from('user_lists').delete().eq('id', listId);
-      return null;
-    }
-
-    return listId;
+    return newList.id;
   }
 
   window.ListUtils = {
