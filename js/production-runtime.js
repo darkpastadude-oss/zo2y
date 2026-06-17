@@ -318,6 +318,26 @@
     window.addEventListener("pagehide", sendVitals);
   }
 
+  function removeDuplicateCards(root) {
+    if (!root) return 0;
+    const cards = Array.from(root.querySelectorAll('[data-media-id], [data-id]'));
+    const seen = new Map();
+    let removed = 0;
+    cards.forEach(card => {
+      const key = card.getAttribute('data-media-id') || card.getAttribute('data-id');
+      if (!key) return;
+      const tag = card.tagName + ':' + (card.getAttribute('data-media-type') || '');
+      const mapKey = key + '|' + tag;
+      if (seen.has(mapKey)) {
+        card.remove();
+        removed++;
+      } else {
+        seen.set(mapKey, card);
+      }
+    });
+    return removed;
+  }
+
   function setupDuplicateCardCleanup() {
     let scheduled = false;
     let debugRuns = 0;

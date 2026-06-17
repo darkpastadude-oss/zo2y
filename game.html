@@ -1787,6 +1787,17 @@
         });
       }
 
+      const DB_TYPE_MAP = {
+        favorites: 'favorites',
+        played: 'completed',
+        backlog: 'watchlist'
+      };
+      const REV_DB_TYPE_MAP = {
+        favorites: 'favorites',
+        completed: 'played',
+        watchlist: 'backlog'
+      };
+
       async function loadListStatus() {
         if (!supabaseClient || !currentUser || !gameId) return;
         const { data: lists } = await supabaseClient
@@ -1804,12 +1815,13 @@
           .in('list_id', listIds)
           .eq('external_id', String(gameId));
         listStatus.favorites = false;
-        listStatus.watched = false;
-        listStatus.watchlist = false;
+        listStatus.played = false;
+        listStatus.backlog = false;
         (data || []).forEach(item => {
-          const type = listTypeMap[item.list_id];
-          if (listStatus[type] !== undefined) {
-            listStatus[type] = true;
+          const dbType = listTypeMap[item.list_id];
+          const frontendType = REV_DB_TYPE_MAP[dbType] || dbType;
+          if (listStatus[frontendType] !== undefined) {
+            listStatus[frontendType] = true;
           }
         });
         updateListMenuUI();
@@ -1972,29 +1984,30 @@
         listStatus[listType] = nextSaved;
         updateListMenuUI();
 
-        try {
-          if (nextSaved) {
-            const { data: userList } = await supabaseClient
-              .from('user_lists')
-              .select('id')
-              .eq('user_id', currentUser.id)
-              .eq('category', 'game')
-              .eq('type', listType)
-              .single();
-            if (!userList) throw new Error('List not found');
-            const { error } = await supabaseClient
-              .from('list_items')
-              .insert({ list_id: userList.id, external_id: String(gameId), external_source: 'igdb', external_type: 'game' });
-            if (error && String(error.code || '') !== '23505') throw error;
-            showNotification('Saved to list', 'success');
-          } else {
-            const { data: userList } = await supabaseClient
-              .from('user_lists')
-              .select('id')
-              .eq('user_id', currentUser.id)
-              .eq('category', 'game')
-              .eq('type', listType)
-              .single();
+          try {
+            const dbType = DB_TYPE_MAP[listType] || listType;
+            if (nextSaved) {
+              const { data: userList } = await supabaseClient
+                .from('user_lists')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .eq('category', 'game')
+                .eq('type', dbType)
+                .single();
+              if (!userList) throw new Error('List not found');
+              const { error } = await supabaseClient
+                .from('list_items')
+                .insert({ list_id: userList.id, external_id: String(gameId), external_source: 'igdb', external_type: 'game' });
+              if (error && String(error.code || '') !== '23505') throw error;
+              showNotification('Saved to list', 'success');
+            } else {
+              const { data: userList } = await supabaseClient
+                .from('user_lists')
+                .select('id')
+                .eq('user_id', currentUser.id)
+                .eq('category', 'game')
+                .eq('type', dbType)
+                .single();
             if (!userList) throw new Error('List not found');
             const { error } = await supabaseClient
               .from('list_items')

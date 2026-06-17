@@ -3382,7 +3382,7 @@
                 (ownedLists || []).forEach((list) => {
                     const safeId = String(list?.id || '').trim();
                     if (!safeId || byId.has(safeId)) return;
-                    const row = { ...list, type: 'custom', __isCollaborative: false };
+                    const row = { ...list, title: list.name, type: 'custom', __isCollaborative: false };
                     byId.set(safeId, row);
                     merged.push(row);
                 });
@@ -3427,6 +3427,7 @@
                                     if (!safeId || byId.has(safeId)) return;
                                     const row = {
                                         ...list,
+                                        title: list.name,
                                         type: 'custom',
                                         __isCollaborative: true
                                     };
