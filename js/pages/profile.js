@@ -1,4 +1,5 @@
-﻿// ===== GLOBAL PROFILE MANAGER =====
+// ===== GLOBAL PROFILE MANAGER =====
+        console.log("PROFILE.JS IS EXECUTING!");
         const ProfileManager = (function() {
             // Supabase configuration
             const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
@@ -11153,7 +11154,10 @@
             };
         })();
 
+        console.log("REACHED BOTTOM OF PROFILE.JS");
+        console.log("ProfileManager object keys:", ProfileManager ? Object.keys(ProfileManager) : 'UNDEFINED!');
         window.ProfileManager = ProfileManager;
+        console.log("typeof window.ProfileManager is now:", typeof window.ProfileManager);
 
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {

@@ -1381,7 +1381,7 @@
 
     const inserts = listIds.map(listId => ({
       user_id: userId,
-      list_
+      list_id: listId,
       external_type: getCategoryName(type),
       external_id: normalizedItemId,
       title: finalTitle,
