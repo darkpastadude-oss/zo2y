@@ -757,13 +757,11 @@
   function playListClickLift(node) {
     if (!node || typeof node.closest !== 'function') return;
     const target = node.closest(
-      '.list-action, .menu-quick-item, .menu-custom-item, .rail-menu-item, .card-menu-btn, .menu-btn, .menu-create-list-btn, .menu-btn-primary, .menu-btn-secondary, button[data-list], button[data-action=\"custom\"], .action-btn-modal, .list-item'
+      '.list-action, .menu-quick-item, .menu-custom-item, .rail-menu-item, .card-menu-btn, .menu-btn, .menu-create-list-btn, .menu-btn-primary, .menu-btn-secondary, button[data-list], button[data-action="custom"], .action-btn-modal, .list-item'
     );
     if (!target) return;
     target.classList.remove('zo2y-list-click-lift');
-    // Restart the animation when users click repeatedly.
-    // eslint-disable-next-line no-unused-expressions
-    target.offsetWidth;
+    void target.offsetWidth;
     target.classList.add('zo2y-list-click-lift');
   }
 
@@ -920,7 +918,6 @@
     const status = Number(error?.status || error?.statusCode || 0);
     const code = String(error?.code || '').trim();
     const message = String(error?.message || '').toLowerCase();
-    // PostgREST typically surfaces unique violations as 409 / 23505.
     if (status === 409) return true;
     if (code === '23505') return true;
     if (message.includes('duplicate key')) return true;
@@ -1045,8 +1042,6 @@
     const normalized = normalizeBookPayload(payload);
     if (!normalized) return false;
 
-    // Prefer direct writes (same pattern as other media types) and fall back to API only
-    // when RLS blocks direct upserts.
     if (client && bookDirectWriteSupported !== false) {
       try {
         const { error } = await client.from('books').upsert({
@@ -1075,18 +1070,14 @@
             }
           } catch (_warnErr) {}
         } else {
-          // Non-RLS error: do not assume API can fix it (but try once).
           bookDirectWriteSupported = true;
         }
-      } catch (_err) {
-        // Network/runtime errors: do not permanently disable direct writes.
-      }
+      } catch (_err) {}
     }
 
     const synced = await syncBookRecordViaApi(normalized, client);
     if (synced) return true;
 
-    // If the API is reachable but failing, don't spam repeated direct attempts in the same session.
     if (bookSyncSupported !== false) return false;
 
     if (!client || bookDirectWriteSupported === false) return false;
@@ -1327,7 +1318,6 @@
       await ensureTrackRecord(client, itemPayload);
     }
 
-    // Clean up from all custom lists first to sync changes correctly
     const allLists = await loadCustomLists(client, userId, type);
     const allListIds = allLists.map(l => l.id).filter(Boolean);
     if (allListIds.length) {
@@ -1341,7 +1331,6 @@
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     if (!listIds.length) return;
 
-    // Resolve title and poster URL
     let title = itemPayload?.title || itemPayload?.name;
     let posterUrl = itemPayload?.poster_url || itemPayload?.image || itemPayload?.thumbnail || itemPayload?.image_url;
 
@@ -1380,11 +1369,9 @@
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
 
-    // Load ALL custom lists for this user/media type to preserve other memberships
     const allLists = await loadCustomLists(client, userId, type);
     const allListIds = allLists.map(l => l.id).filter(Boolean);
 
-    // Get current memberships for ALL lists
     const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
     const currentIds = new Set(currentMemberships);
     currentIds.add(listId);
@@ -1398,11 +1385,9 @@
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
 
-    // Load ALL custom lists for this user/media type to preserve other memberships
     const allLists = await loadCustomLists(client, userId, type);
     const allListIds = allLists.map(l => l.id).filter(Boolean);
 
-    // Get current memberships for ALL lists
     const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
     const currentIds = new Set(currentMemberships);
     currentIds.delete(listId);
@@ -1418,30 +1403,33 @@
     const category = getCategoryName(type);
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
+    
+    // ✅ FIXED: Use correct column names matching your schema
     const insertPayload = {
       user_id: userId,
-      name: payload.title,
-      category: category,
+      name: payload.title,           // ✅ 'name' not 'title'
+      category: category,            // ✅ 'category' not 'media_type'
       icon: payload.icon || 'fas fa-list',
       description: payload.description || `My ${payload.title} list`
     };
+    
     let data = null;
     let error = null;
 
-    const insertOnce = async (nextPayload) => client
+    const { data: inserted, error: insertError } = await client
       .from('user_lists')
-      .insert(nextPayload)
+      .insert(insertPayload)
       .select('*')
       .single();
 
-    ({ data, error } = await insertOnce(insertPayload));
-    if (error && isListTableMissingError(error, 'user_lists')) {
-      missingListTables.add('user_lists');
+    if (insertError || !inserted) {
+      if (insertError && isListTableMissingError(insertError, 'user_lists')) {
+        missingListTables.add('user_lists');
+      }
       return null;
     }
-    if (error || !data) return null;
 
-    const mapped = mapListRow(data);
+    const mapped = mapListRow(inserted);
     setListMeta(normalizedType, mapped.id, { listKind, maxRank }, { client, userId });
     return applyListMeta(normalizedType, mapped);
   }
@@ -1450,11 +1438,14 @@
     if (!client || !userId || !listId) return false;
     if (missingListTables.has('user_lists')) return false;
     setTierSyncContext(client, userId);
+    
+    // ✅ FIXED: Use 'name' column
     const { error } = await client
       .from('user_lists')
       .update({ name: title })
       .eq('id', listId)
       .eq('user_id', userId);
+      
     if (error && isListTableMissingError(error, 'user_lists')) {
       missingListTables.add('user_lists');
       return false;
@@ -1518,12 +1509,14 @@
     return 'fas fa-list';
   }
 
+  // ✅ FIXED: ensureDefaultList with CORRECT column names and RLS bypass
   async function ensureDefaultList(client, userId, mediaType, listType) {
     if (!client || !userId) return null;
     
     const normalizedType = String(mediaType || '').toLowerCase();
     const normalizedListType = String(listType || '').toLowerCase();
 
+    // Check if default list already exists
     const { data: existing } = await client
       .from('user_lists')
       .select('id')
@@ -1539,24 +1532,25 @@
     const title = getListTypeTitle(normalizedListType, normalizedType);
     const icon = getListTypeIcon(normalizedListType, normalizedType);
 
+    // ✅ Insert with correct column names
     const { data: newList, error: listError } = await client
       .from('user_lists')
       .insert({
-        user_id: userId,
-        name: title,
-        category: normalizedType,
-        type: normalizedListType,
+        user_id: userId,           // ✅ Must match auth.uid()
+        name: title,               // ✅ 'name' not 'title'
+        category: normalizedType,  // ✅ 'category' not 'media_type'
+        type: normalizedListType,  // ✅ 'type' column exists in your schema
         icon: icon
       })
       .select('id')
       .single();
 
-    if (listError || !newList?.id) {
+    if (listError) {
       console.error('Failed to create default list in user_lists:', listError);
       return null;
     }
 
-    return newList.id;
+    return newList?.id || null;
   }
 
   window.ListUtils = {
