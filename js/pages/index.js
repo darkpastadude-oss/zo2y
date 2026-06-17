@@ -4183,15 +4183,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Could not update list', true);
             return result;
           }
-          const { table, itemField } = defaultListTable;
+
+          const { data: list, error: listError } = await client
+            .from('user_lists')
+            .select('id')
+            .eq('user_id', activeUser.id)
+            .eq('category', mediaType)
+            .eq('type', listType)
+            .maybeSingle();
+          if (listError || !list) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
+
+          const externalSrc = { movie: 'tmdb', tv: 'tmdb', anime: 'tmdb', game: 'igdb', book: 'openlibrary', music: 'spotify', travel: 'local_db', fashion: 'local_db', food: 'local_db', car: 'local_db' }[mediaType] || 'local_db';
 
           if (nextSaved === false) {
             const { error: deleteError } = await client
-              .from(table)
+              .from('list_items')
               .delete()
-              .eq('user_id', activeUser.id)
-              .eq(itemField, itemId)
-              .eq('list_type', listType);
+              .eq('list_id', list.id)
+              .eq('external_id', String(itemId));
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4209,9 +4221,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const insertRow = { user_id: activeUser.id, list_type: listType };
-            insertRow[itemField] = itemId;
-            const { error: insertError } = await client.from(table).insert(insertRow);
+            const { error: insertError } = await client
+              .from('list_items')
+              .insert({ list_id: list.id, external_id: String(itemId), external_source: externalSrc, external_type: mediaType });
             if (insertError && String(insertError.code || '') !== '23505') {
               showHomeToast('Could not add to list', true);
               return result;
@@ -4225,15 +4237,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { data: existing } = await client
-            .from(table)
+            .from('list_items')
             .select('id')
-            .eq('user_id', activeUser.id)
-            .eq(itemField, itemId)
-            .eq('list_type', listType)
+            .eq('list_id', list.id)
+            .eq('external_id', String(itemId))
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4246,9 +4257,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const insertRow = { user_id: activeUser.id, list_type: listType };
-          insertRow[itemField] = itemId;
-          const { error: insertError } = await client.from(table).insert(insertRow);
+          const { error: insertError } = await client
+            .from('list_items')
+            .insert({ list_id: list.id, external_id: String(itemId), external_source: externalSrc, external_type: mediaType });
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
             return result;
@@ -4379,17 +4390,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (defaultListTable) {
           const normalizedItemId = normalizeHomeDefaultItemId(mediaType, itemId);
           if (normalizedItemId === null) return status;
-          const { table, itemField } = defaultListTable;
-          const { data } = await client
-            .from(table)
-            .select('list_type')
+          const { data: lists } = await client
+            .from('user_lists')
+            .select('id, type')
             .eq('user_id', activeUser.id)
-            .eq(itemField, normalizedItemId)
-            .in('list_type', listKeys);
-          (data || []).forEach((row) => {
-            const key = String(row.list_type || '');
-            if (key in status) status[key] = true;
-          });
+            .eq('category', mediaType);
+          if (lists && lists.length) {
+            const listIds = lists.map(l => l.id);
+            const typeById = {};
+            lists.forEach(l => { typeById[l.id] = l.type; });
+            const { data: items } = await client
+              .from('list_items')
+              .select('list_id')
+              .in('list_id', listIds)
+              .eq('external_id', String(normalizedItemId));
+            (items || []).forEach((row) => {
+              const key = typeById[row.list_id];
+              if (key in status) status[key] = true;
+            });
+          }
           return status;
         }
 
@@ -4595,20 +4614,27 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         const defaultTable = getHomeDefaultListTable(type);
         if (defaultTable && visibleItemIds.length && listKeys.length) {
-          const { table, itemField } = defaultTable;
-          const { data } = await client
-            .from(table)
-            .select(`${itemField},list_type`)
+          const { data: lists } = await client
+            .from('user_lists')
+            .select('id, type')
             .eq('user_id', activeUser.id)
-            .in(itemField, visibleItemIds)
-            .in('list_type', listKeys);
+            .eq('category', type);
+          if (!lists || !lists.length) return;
+          const listIds = lists.map(l => l.id);
+          const typeById = {};
+          lists.forEach(l => { typeById[l.id] = l.type; });
+          const { data } = await client
+            .from('list_items')
+            .select('list_id, external_id')
+            .in('list_id', listIds)
+            .in('external_id', visibleItemIds.map(String));
           const grouped = new Map();
           visibleItemIds.forEach((id) => {
             grouped.set(String(id), buildHomeMenuBlankQuickStatus(quickRows));
           });
           (data || []).forEach((row) => {
-            const itemKey = String(row?.[itemField] ?? '');
-            const listType = String(row?.list_type || '');
+            const itemKey = String(row?.external_id || '');
+            const listType = typeById[row?.list_id] || '';
             const status = grouped.get(itemKey);
             if (!status || !(listType in status)) return;
             status[listType] = true;

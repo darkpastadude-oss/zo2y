@@ -544,15 +544,25 @@
           showBrandsToast('Could not update list', true);
           return result;
         }
-        const { table, itemField } = defaultListTable;
+
+        const { data: list, error: listError } = await client
+          .from('user_lists')
+          .select('id')
+          .eq('user_id', currentUser.id)
+          .eq('category', mediaType)
+          .eq('type', listType)
+          .maybeSingle();
+        if (listError || !list) {
+          showBrandsToast('Could not update list', true);
+          return result;
+        }
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
-            .from(table)
+            .from('list_items')
             .delete()
-            .eq('user_id', currentUser.id)
-            .eq(itemField, itemId)
-            .eq('list_type', listType);
+            .eq('list_id', list.id)
+            .eq('external_id', String(itemId));
           if (deleteError) {
             showBrandsToast('Could not update list', true);
             return result;
@@ -569,9 +579,9 @@
             showBrandsToast('Book info is unavailable right now.', true);
             return result;
           }
-          const insertRow = { user_id: currentUser.id, list_type: listType };
-          insertRow[itemField] = itemId;
-          const { error: insertError } = await client.from(table).insert(insertRow);
+          const { error: insertError } = await client
+            .from('list_items')
+            .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType });
           if (insertError && String(insertError.code || '') !== '23505') {
             showBrandsToast('Could not add to list', true);
             return result;
@@ -582,16 +592,16 @@
           return result;
         }
 
+        // No explicit nextSaved - check if exists and toggle
         const { data: existing } = await client
-          .from(table)
+          .from('list_items')
           .select('id')
-          .eq('user_id', currentUser.id)
-          .eq(itemField, itemId)
-          .eq('list_type', listType)
+          .eq('list_id', list.id)
+          .eq('external_id', String(itemId))
           .limit(1)
           .maybeSingle();
         if (existing?.id) {
-          const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
+          const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
           if (deleteError) {
             showBrandsToast('Could not update list', true);
             return result;
@@ -603,9 +613,9 @@
         }
 
         await ensureLinkedMediaRecord(itemId);
-        const insertRow = { user_id: currentUser.id, list_type: listType };
-        insertRow[itemField] = itemId;
-        const { error: insertError } = await client.from(table).insert(insertRow);
+        const { error: insertError } = await client
+          .from('list_items')
+          .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', external_type: mediaType });
         if (insertError && String(insertError.code || '') !== '23505') {
           showBrandsToast('Could not add to list', true);
           return result;
