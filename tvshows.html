@@ -1359,17 +1359,27 @@
       if (!client) return;
       const ids = state.tvshows.map((tvshow) => tvshow.id);
       if (!ids.length) return;
-      const { data } = await client
-        .from('tvshow_list_items')
-        .select('tvshow_id, list_type')
+      const { data: lists } = await client
+        .from('user_lists')
+        .select('id, type')
         .eq('user_id', currentUser.id)
-        .in('tvshow_id', ids);
+        .eq('category', 'tv');
+      if (!lists || !lists.length) return;
+      const listIds = lists.map(l => l.id);
+      const listTypeMap = {};
+      lists.forEach(l => { listTypeMap[l.id] = l.type; });
+      const { data } = await client
+        .from('list_items')
+        .select('list_id, external_id')
+        .in('list_id', listIds)
+        .in('external_id', ids);
       (data || []).forEach((row) => {
-        const id = String(row.tvshow_id || '');
+        const id = String(row.external_id || '');
         if (!id) return;
         if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
         const bucket = state.listStatusMap.get(id);
-        if (row.list_type in bucket) bucket[row.list_type] = true;
+        const type = listTypeMap[row.list_id];
+        if (type in bucket) bucket[type] = true;
       });
     }
 
@@ -1495,20 +1505,36 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('tvshow_list_items').insert({
-            user_id: currentUser.id,
-            tvshow_id: tvshowId,
-            list_type: listType
+          const { data: list } = await client
+            .from('user_lists')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('category', 'tv')
+            .eq('type', listType)
+            .maybeSingle();
+          if (!list) throw new Error('List not found');
+          const { error } = await client.from('list_items').insert({
+            list_id: list.id,
+            external_id: String(tvshowId),
+            external_source: 'tmdb',
+            external_type: 'tv'
           });
           if (error && String(error.code || '') !== '23505') throw error;
           showToast('Added to list');
         } else {
-          const { error } = await client
-            .from('tvshow_list_items')
-            .delete()
+          const { data: list } = await client
+            .from('user_lists')
+            .select('id')
             .eq('user_id', currentUser.id)
-            .eq('tvshow_id', tvshowId)
-            .eq('list_type', listType);
+            .eq('category', 'tv')
+            .eq('type', listType)
+            .maybeSingle();
+          if (!list) throw new Error('List not found');
+          const { error } = await client
+            .from('list_items')
+            .delete()
+            .eq('list_id', list.id)
+            .eq('external_id', String(tvshowId));
           if (error) throw error;
           showToast('Removed from list');
         }
