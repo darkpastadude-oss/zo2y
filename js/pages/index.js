@@ -322,16 +322,16 @@
       wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
     const HOME_DEFAULT_LIST_TABLES = {
-      movie: { table: 'user_list_items', itemField: 'media_id' },
-      tv: { table: 'user_list_items', itemField: 'media_id' },
-      anime: { table: 'user_list_items', itemField: 'media_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'user_list_items', itemField: 'media_id' } } : {}),
-      book: { table: 'user_list_items', itemField: 'media_id' },
-      music: { table: 'user_list_items', itemField: 'media_id' },
-      travel: { table: 'user_list_items', itemField: 'media_id' },
-      ...(ENABLE_FASHION ? { fashion: { table: 'user_list_items', itemField: 'media_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'user_list_items', itemField: 'media_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'user_list_items', itemField: 'media_id' } } : {})
+      movie: { table: 'list_items', itemField: 'external_id' },
+      tv: { table: 'list_items', itemField: 'external_id' },
+      anime: { table: 'list_items', itemField: 'external_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'list_items', itemField: 'external_id' } } : {}),
+      book: { table: 'list_items', itemField: 'external_id' },
+      music: { table: 'list_items', itemField: 'external_id' },
+      travel: { table: 'list_items', itemField: 'external_id' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'list_items', itemField: 'external_id' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'list_items', itemField: 'external_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'list_items', itemField: 'external_id' } } : {})
     };
     const HOME_REVIEW_SIGNAL_TABLES = {};
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v15';

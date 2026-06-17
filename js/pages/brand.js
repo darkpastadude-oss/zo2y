@@ -14,9 +14,9 @@
     document.body.dataset.elevatedCategory = brandType;
   }
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'user_list_items', itemField: 'media_id' },
-    food: { table: 'user_list_items', itemField: 'media_id' },
-    car: { table: 'user_list_items', itemField: 'media_id' }
+    fashion: { table: 'list_items', itemField: 'external_id' },
+    food: { table: 'list_items', itemField: 'external_id' },
+    car: { table: 'list_items', itemField: 'external_id' }
   };
 
   const CATEGORY_LABEL = brandType === 'food' ? 'Food' : brandType === 'car' ? 'Cars' : 'Fashion';

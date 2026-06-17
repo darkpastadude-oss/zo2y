@@ -96,17 +96,17 @@
   };
 
   const DEFAULT_TABLE_BY_MEDIA = {
-    movie: { table: 'user_list_items', itemField: 'media_id', category: 'movie' },
-    tv: { table: 'user_list_items', itemField: 'media_id', category: 'tv' },
-    anime: { table: 'user_list_items', itemField: 'media_id', category: 'anime' },
-    game: { table: 'user_list_items', itemField: 'media_id', category: 'game' },
-    book: { table: 'user_list_items', itemField: 'media_id', category: 'book' },
-    music: { table: 'user_list_items', itemField: 'media_id', category: 'music' },
-    travel: { table: 'user_list_items', itemField: 'media_id', category: 'travel' },
-    fashion: { table: 'user_list_items', itemField: 'media_id', category: 'fashion' },
-    food: { table: 'user_list_items', itemField: 'media_id', category: 'food' },
-    car: { table: 'user_list_items', itemField: 'media_id', category: 'car' },
-    sports: { table: 'user_list_items', itemField: 'media_id', category: 'sport' }
+    movie: { table: 'list_items', itemField: 'external_id', category: 'movie' },
+    tv: { table: 'list_items', itemField: 'external_id', category: 'tv' },
+    anime: { table: 'list_items', itemField: 'external_id', category: 'anime' },
+    game: { table: 'list_items', itemField: 'external_id', category: 'game' },
+    book: { table: 'list_items', itemField: 'external_id', category: 'book' },
+    music: { table: 'list_items', itemField: 'external_id', category: 'music' },
+    travel: { table: 'list_items', itemField: 'external_id', category: 'travel' },
+    fashion: { table: 'list_items', itemField: 'external_id', category: 'fashion' },
+    food: { table: 'list_items', itemField: 'external_id', category: 'food' },
+    car: { table: 'list_items', itemField: 'external_id', category: 'car' },
+    sports: { table: 'list_items', itemField: 'external_id', category: 'sport' }
   };
 
   function escapeHtml(v) {
@@ -487,8 +487,8 @@
       }
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const lids=cl.map(l=>l.id).filter(Boolean);if(!lids.length||!vs.length)return;
-      const{data}=await c.from('user_list_items').select('list_id,media_id').in('list_id',lids).in('media_id',vs.map(String));
-      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data||[]).forEach(r=>{const ik=String(r?.media_id??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
+      const{data}=await c.from('list_items').select('list_id,external_id').in('list_id',lids).in('external_id',vs.map(String));
+      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data||[]).forEach(r=>{const id=String(r.external_id||'');if(!vks.has(id))return;if(!mb.has(id))mb.set(id,new Set());mb.get(id).add(r.list_id)});
       mb.forEach((m,ik)=>writeCachedMembership(ik,m));
     }catch(e){}finally{CACHE.primingScopes.delete(sk)}
   }

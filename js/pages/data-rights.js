@@ -2,7 +2,7 @@
   const TABLES_TO_EXPORT = [
     { table: 'user_profiles', label: 'Profile' },
     { table: 'user_lists', label: 'User lists' },
-    { table: 'user_list_items', label: 'List items' },
+    { table: 'list_items', label: 'List items' },
     { table: 'movie_reviews', label: 'Movie reviews' },
     { table: 'tv_reviews', label: 'TV reviews' },
     { table: 'anime_reviews', label: 'Anime reviews' },
@@ -121,14 +121,14 @@
     for (const t of TABLES_TO_EXPORT) {
       try {
         let data, error;
-        if (t.table === 'user_list_items') {
+        if (t.table === 'list_items') {
           const { data: userLists } = await supabase
             .from('user_lists')
             .select('id')
             .eq('user_id', userId);
           const listIds = (userLists || []).map(l => l.id);
           if (listIds.length) {
-            const res = await supabase.from('user_list_items').select('*').in('list_id', listIds);
+            const res = await supabase.from('list_items').select('*').in('list_id', listIds);
             data = res.data;
             error = res.error;
           } else {
@@ -166,14 +166,14 @@
     for (const t of TABLES_TO_EXPORT) {
       try {
         let error;
-        if (t.table === 'user_list_items') {
+        if (t.table === 'list_items') {
           const { data: userLists } = await supabase
             .from('user_lists')
             .select('id')
             .eq('user_id', userId);
           const listIds = (userLists || []).map(l => l.id);
           if (listIds.length) {
-            const res = await supabase.from('user_list_items').delete().in('list_id', listIds);
+            const res = await supabase.from('list_items').delete().in('list_id', listIds);
             error = res.error;
           }
         } else {
