@@ -1176,6 +1176,7 @@
         .select('*')
         .eq('user_id', userId)
         .eq('category', category)
+        .eq('type', 'custom')
         .order('created_at', { ascending: false });
       if (error && isListTableMissingError(error, 'user_lists')) {
         missingListTables.add('user_lists');
@@ -1193,7 +1194,8 @@
         const { data: rows, error: sharedError } = await client
           .from('user_lists')
           .select('*')
-          .in('id', sharedIds);
+          .in('id', sharedIds)
+          .eq('type', 'custom');
         if (sharedError && isListTableMissingError(sharedError, 'user_lists')) {
           missingListTables.add('user_lists');
           return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];

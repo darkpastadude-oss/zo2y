@@ -3373,6 +3373,7 @@
                     .select('*')
                     .eq('user_id', safeOwnerId)
                     .eq('category', contentType)
+                    .eq('type', 'custom')
                     .order('created_at', { ascending: false });
                 if (ownedError) throw ownedError;
 
@@ -3627,6 +3628,20 @@
                 });
             }
 
+            const UNIFIED_TYPE_TO_FRONTEND = {
+                movie: { favorites: 'favorites', completed: 'watched', watchlist: 'watchlist' },
+                tv: { favorites: 'favorites', completed: 'watched', watchlist: 'watchlist' },
+                anime: { favorites: 'favorites', completed: 'watched', watchlist: 'watchlist' },
+                game: { favorites: 'favorites', completed: 'played', watchlist: 'backlog' },
+                book: { favorites: 'favorites', completed: 'read', watchlist: 'readlist' },
+                music: { favorites: 'favorites', completed: 'listened', watchlist: 'listenlist' },
+                travel: { favorites: 'favorites', completed: 'visited', watchlist: 'bucketlist' },
+                fashion: { favorites: 'favorites', completed: 'owned', watchlist: 'wishlist' },
+                car: { favorites: 'favorites', completed: 'owned', watchlist: 'wishlist' },
+                food: { favorites: 'favorites', completed: 'tried', watchlist: 'want_to_try' },
+                sport: { favorites: 'favorites' }
+            };
+
             async function loadMediaListItems(contentType, ownerUserId, customListIds = []) {
                 const itemField = MEDIA_ITEM_FIELDS[contentType];
                 if (!itemField) return [];
@@ -3644,9 +3659,12 @@
                         .eq('category', contentType);
 
                     const allListIds = (userLists || []).map(l => l.id);
-                    const defaultListNameById = new Map();
+                    const listTypeById = new Map();
+                    const typeMapping = UNIFIED_TYPE_TO_FRONTEND[contentType] || {};
                     (userLists || []).forEach(l => {
-                        if (l.type === 'default') defaultListNameById.set(String(l.id), l.name);
+                        const unifiedType = String(l.type || '').trim().toLowerCase();
+                        const frontendType = typeMapping[unifiedType] || '';
+                        if (frontendType) listTypeById.set(String(l.id), frontendType);
                     });
 
                     if (!allListIds.length) return [];
@@ -3660,11 +3678,11 @@
 
                     return (items || []).map((row) => {
                         const listIdStr = String(row.list_id || '').trim();
-                        const listName = defaultListNameById.get(listIdStr) || '';
+                        const frontendType = listTypeById.get(listIdStr) || '';
                         const normalized = {
                             [itemField]: row[itemField],
                             list_id: listIdStr,
-                            list_type: listName
+                            list_type: frontendType
                         };
                         return normalized;
                     });
@@ -4613,19 +4631,19 @@
                 }
 
                 const allListsData = listsRes.data || [];
-                const defaultListNames = ['favorites', 'watched', 'watchlist'];
-                const defaultListMeta = {
+                const defaultTypeToFrontend = {
                     favorites: { title: 'Favorites', icon: 'fas fa-heart', description: 'Movies you love' },
-                    watched: { title: 'Watched', icon: 'fas fa-eye', description: 'Movies you watched' },
+                    completed: { title: 'Watched', icon: 'fas fa-eye', description: 'Movies you watched' },
                     watchlist: { title: 'Watchlist', icon: 'fas fa-bookmark', description: 'Movies to watch later' }
                 };
 
                 const defaultLists = [];
                 const customLists = [];
                 allListsData.forEach(l => {
-                    if (l.type === 'default' && defaultListNames.includes(l.name)) {
-                        const meta = defaultListMeta[l.name] || {};
-                        defaultLists.push({ id: l.id, title: meta.title || l.name, icon: l.icon || meta.icon || 'fas fa-film', description: meta.description || l.description || '', type: 'default' });
+                    const unifiedType = String(l.type || '').trim().toLowerCase();
+                    if (unifiedType !== 'custom' && defaultTypeToFrontend[unifiedType]) {
+                        const meta = defaultTypeToFrontend[unifiedType];
+                        defaultLists.push({ id: l.id, title: meta.title, icon: l.icon || meta.icon || 'fas fa-film', description: meta.description, type: 'default' });
                     } else {
                         customLists.push({ id: l.id, title: l.name || l.title || 'Custom list', icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' });
                     }

@@ -381,7 +381,6 @@
   function init() {
     setupErrorObservers();
     setupWebVitals();
-    setupFunnelTracking();
     const runDeferredUiWork = () => {
       setupDuplicateCardCleanup();
     };
