@@ -1176,7 +1176,7 @@
         .from('user_lists')
         .select('*')
         .eq('user_id', userId)
-        .eq('media_type', mediaType)
+        .eq('category', mediaType)
         .order('created_at', { ascending: false });
       if (error && isListTableMissingError(error, 'user_lists')) {
         missingListTables.add('user_lists');
@@ -1421,7 +1421,7 @@
     const insertPayload = {
       user_id: userId,
       name: payload.title,
-      media_type: category,
+      category: category,
       icon: payload.icon || 'fas fa-list',
       description: payload.description || `My ${payload.title} list`
     };
@@ -1546,8 +1546,7 @@
         name: title,
         category: normalizedType,
         type: normalizedListType,
-        icon: icon,
-        is_public: false
+        icon: icon
       })
       .select('id')
       .single();

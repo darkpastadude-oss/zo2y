@@ -325,21 +325,21 @@
       .from('user_lists')
       .select('id, type')
       .eq('user_id', state.currentUser.id)
-      .eq('media_type', 'travel');
+      .eq('category', 'travel');
 
     if (travelLists && travelLists.length) {
       const listTypeMap = {};
       const listIds = travelLists.map(l => { listTypeMap[l.id] = l.type; return l.id; });
 
       const { data } = await supabase
-        .from('user_list_items')
-        .select('list_id, media_id')
+        .from('list_items')
+        .select('list_id, external_id')
         .in('list_id', listIds)
-        .in('media_id', codes);
+        .in('external_id', codes);
 
       if (data) {
         (data || []).forEach(row => {
-          const code = String(row.media_id || '');
+          const code = String(row.external_id || '');
           if (!code) return;
           if (!state.listStatus.has(code)) {
             state.listStatus.set(code, { favorites: false, visited: false, bucketlist: false });
@@ -361,7 +361,7 @@
       .from('user_lists')
       .select('id')
       .eq('user_id', userId)
-      .eq('media_type', 'travel')
+      .eq('category', 'travel')
       .eq('type', newType)
       .maybeSingle();
     return data?.id || null;
@@ -392,12 +392,14 @@
         const listId = await findTravelListId(supabase, state.currentUser.id, listType);
         if (listId) {
           const { error } = await supabase
-            .from('user_list_items')
+            .from('list_items')
             .insert({
+              user_id: state.currentUser.id,
               list_id: listId,
-              media_id: code,
+              external_id: code,
               external_source: 'local_db',
-              external_type: 'travel'
+              external_type: 'travel',
+              metadata: { title: country.name, poster_url: country.flag }
             });
           if (error && String(error.code || '') !== '23505') throw error;
         }
@@ -405,10 +407,10 @@
         const listId = await findTravelListId(supabase, state.currentUser.id, listType);
         if (listId) {
           const { error } = await supabase
-            .from('user_list_items')
+            .from('list_items')
             .delete()
             .eq('list_id', listId)
-            .eq('media_id', code);
+            .eq('external_id', code);
           if (error) throw error;
         }
       }

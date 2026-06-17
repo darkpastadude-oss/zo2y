@@ -121,15 +121,15 @@
         .from('user_lists')
         .select('id')
         .eq('user_id', userId)
-        .eq('media_type', 'book');
+        .eq('category', 'book');
 
       if (!bookLists || !bookLists.length) return [];
 
       const listIds = bookLists.map(l => l.id);
 
       const { data: listItems, error } = await supabase
-        .from('user_list_items')
-        .select('media_id, added_at')
+        .from('list_items')
+        .select('external_id, added_at')
         .in('list_id', listIds)
         .order('added_at', { ascending: false });
 
@@ -140,7 +140,7 @@
 
       if (!listItems || !listItems.length) return [];
 
-      const externalIds = [...new Set(listItems.map(item => item.media_id))];
+      const externalIds = [...new Set(listItems.map(item => item.external_id))];
 
       const { data: books, error: booksError } = await supabase
         .from('books')
