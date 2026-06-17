@@ -1,90 +1,107 @@
 (function () {
+  const CATEGORY_MAP = {
+    movie: 'movie',
+    tv: 'tv',
+    anime: 'anime',
+    game: 'game',
+    book: 'book',
+    music: 'music',
+    travel: 'travel',
+    fashion: 'fashion',
+    food: 'food',
+    car: 'car',
+    sports: 'sport'
+  };
+
   const LIST_CONFIG = {
     movie: {
-      listTable: 'movie_lists',
-      itemsTable: 'movie_list_items',
-      itemIdField: 'movie_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-film'
+      defaultIcon: 'fas fa-film',
+      category: 'movie'
     },
     tv: {
-      listTable: 'tv_lists',
-      itemsTable: 'tv_list_items',
-      itemIdField: 'tv_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-tv'
+      defaultIcon: 'fas fa-tv',
+      category: 'tv'
     },
     anime: {
-      listTable: 'anime_lists',
-      itemsTable: 'anime_list_items',
-      itemIdField: 'anime_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-dragon'
+      defaultIcon: 'fas fa-dragon',
+      category: 'anime'
     },
     game: {
-      listTable: 'game_lists',
-      itemsTable: 'game_list_items',
-      itemIdField: 'game_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-gamepad'
+      defaultIcon: 'fas fa-gamepad',
+      category: 'game'
     },
     book: {
-      listTable: 'book_lists',
-      itemsTable: 'book_list_items',
-      itemIdField: 'book_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-book'
+      defaultIcon: 'fas fa-book',
+      category: 'book'
     },
     music: {
-      listTable: 'music_lists',
-      itemsTable: 'music_list_items',
-      itemIdField: 'track_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-music'
+      defaultIcon: 'fas fa-music',
+      category: 'music'
     },
     travel: {
-      listTable: 'travel_lists',
-      itemsTable: 'travel_list_items',
-      itemIdField: 'country_code',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-earth-americas'
+      defaultIcon: 'fas fa-earth-americas',
+      category: 'travel'
     },
     fashion: {
-      listTable: 'fashion_lists',
-      itemsTable: 'fashion_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-shirt'
+      defaultIcon: 'fas fa-shirt',
+      category: 'fashion'
     },
     food: {
-      listTable: 'food_lists',
-      itemsTable: 'food_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-burger'
+      defaultIcon: 'fas fa-burger',
+      category: 'food'
     },
     car: {
-      listTable: 'car_lists',
-      itemsTable: 'car_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-car'
+      defaultIcon: 'fas fa-car',
+      category: 'car'
     },
     sports: {
-      listTable: 'sports_lists',
-      itemsTable: 'sports_list_items',
-      itemIdField: 'team_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'external_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
+      category: 'sport',
       disableCustomLists: false
-    },
-    restaurant: {
-      listTable: 'lists',
-      itemsTable: 'lists_restraunts',
-      itemIdField: 'restraunt_id',
-      usesUserId: false,
-      defaultIcon: 'fas fa-clapperboard',
-      filterTitles: ['Favorites', 'Visited', 'Want to Go']
     }
   };
 
@@ -1111,11 +1128,21 @@
     }, { onConflict: 'id' });
   }
 
+  function mapListRow(row) {
+    if (!row) return row;
+    return {
+      ...row,
+      title: row.name || row.title || '',
+      name: row.name || row.title || ''
+    };
+  }
+
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
     if (customListsDisabled(cfg)) return [];
     setTierSyncContext(client, userId);
+    const category = cfg.category || type;
     const rpcLists = await withTimeout(loadAccessibleCustomListsViaRpc(client, userId, type), 2200, null);
     let enhancedRpc = null;
     if (Array.isArray(rpcLists)) {
@@ -1145,15 +1172,16 @@
     let sharedLists = [];
     try {
       const { data, error } = await client
-        .from(cfg.listTable)
+        .from('user_lists')
         .select('*')
         .eq('user_id', userId)
+        .eq('category', category)
         .order('created_at', { ascending: false });
-      if (error && isListTableMissingError(error, cfg.listTable)) {
-        missingListTables.add(cfg.listTable);
+      if (error && isListTableMissingError(error, 'user_lists')) {
+        missingListTables.add('user_lists');
         return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
       }
-      ownLists = error ? [] : (data || []);
+      ownLists = error ? [] : (data || []).map(mapListRow);
       const ownById = new Set(ownLists.map((row) => String(row?.id || '').trim()).filter(Boolean));
 
       const collaboratorRows = await withTimeout(loadCollaboratorRows(client, userId, type), 2200, []);
@@ -1161,13 +1189,13 @@
         .map((row) => String(row?.list_id || '').trim())
         .filter((id) => id && !ownById.has(id)))];
 
-      if (sharedIds.length && !missingListTables.has(cfg.listTable)) {
+      if (sharedIds.length && !missingListTables.has('user_lists')) {
         const { data: rows, error: sharedError } = await client
-          .from(cfg.listTable)
+          .from('user_lists')
           .select('*')
           .in('id', sharedIds);
-        if (sharedError && isListTableMissingError(sharedError, cfg.listTable)) {
-          missingListTables.add(cfg.listTable);
+        if (sharedError && isListTableMissingError(sharedError, 'user_lists')) {
+          missingListTables.add('user_lists');
           return Array.isArray(enhancedRpc) && enhancedRpc.length ? enhancedRpc : [];
         }
         if (!sharedError && Array.isArray(rows)) {
@@ -1181,7 +1209,7 @@
             const key = String(row?.id || '').trim();
             const collab = collabById.get(key);
             return {
-              ...row,
+              ...mapListRow(row),
               __isCollaborative: true,
               __canEdit: !!collab?.can_edit,
               __listOwnerId: String(collab?.list_owner_id || row?.user_id || '').trim()
@@ -1236,20 +1264,19 @@
   }
 
   async function loadCustomListMembership(client, userId, type, itemId, listIds) {
-    const cfg = getListConfig(type);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
-    if (customListsDisabled(cfg)) return new Set();
-    if (missingItemTables.has(cfg.itemsTable)) return new Set();
+    if (!client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
+    if (customListsDisabled({})) return new Set();
+    if (missingItemTables.has('list_items')) return new Set();
     try {
       let query = client
-        .from(cfg.itemsTable)
+        .from('list_items')
         .select('list_id')
-        .eq(cfg.itemIdField, normalizedItemId)
+        .eq('external_id', String(normalizedItemId))
         .in('list_id', listIds);
       const { data, error } = await query;
-      if (error && isListTableMissingError(error, cfg.itemsTable)) {
-        missingItemTables.add(cfg.itemsTable);
+      if (error && isListTableMissingError(error, 'list_items')) {
+        missingItemTables.add('list_items');
         return new Set();
       }
       const set = new Set();
@@ -1260,63 +1287,62 @@
     }
   }
 
+  function getExternalSource(type) {
+    const sources = {
+      movie: 'tmdb', tv: 'tmdb', anime: 'tmdb', game: 'igdb',
+      book: 'openlibrary', music: 'spotify', travel: 'local_db',
+      fashion: 'local_db', food: 'local_db', car: 'local_db',
+      sports: 'sportsdb', sport: 'sportsdb'
+    };
+    return sources[String(type || '').toLowerCase()] || 'local_db';
+  }
+
+  function getCategoryName(type) {
+    const map = {
+      movie: 'movie', tv: 'tv', anime: 'anime', game: 'game',
+      book: 'book', music: 'music', travel: 'travel',
+      fashion: 'fashion', food: 'food', car: 'car',
+      sports: 'sport', sport: 'sport'
+    };
+    return map[String(type || '').toLowerCase()] || type;
+  }
+
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
-    const cfg = getListConfig(type);
-    const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (!cfg || !client || normalizedItemId === null) return;
-    if (customListsDisabled(cfg)) return;
-    if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
+    const normalizedItemId = String(normalizeQueryableItemId(type, itemId));
+    if (!client || normalizedItemId === null) return;
+    if (customListsDisabled({})) return;
+    if (missingItemTables.has('list_items')) return;
     if (userId) setTierSyncContext(client, userId);
     if (type === 'book' && itemPayload) {
-      // Keep books aligned with other media flows: attempt catalog sync, but never
-      // block list writes if catalog enrichment fails due env/RLS differences.
       await ensureBookRecord(client, itemPayload).catch(() => false);
     }
     if (type === 'music' && itemPayload) {
       await ensureTrackRecord(client, itemPayload);
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
-    const ownerMap = new Map();
-    if (listIds.length && !missingListTables.has(cfg.listTable)) {
-      const { data: ownerRows, error: ownerError } = await client
-        .from(cfg.listTable)
-        .select('id,user_id')
-        .in('id', listIds);
-      if (ownerError && isListTableMissingError(ownerError, cfg.listTable)) {
-        missingListTables.add(cfg.listTable);
-        return;
-      }
-      (ownerRows || []).forEach((row) => {
-        const key = String(row?.id || '').trim();
-        if (!key) return;
-        ownerMap.set(key, String(row?.user_id || '').trim());
-      });
-    }
-    if (listIds.length && !missingItemTables.has(cfg.itemsTable)) {
+    if (listIds.length && !missingItemTables.has('list_items')) {
       let del = client
-        .from(cfg.itemsTable)
+        .from('list_items')
         .delete()
-        .eq(cfg.itemIdField, normalizedItemId)
+        .eq('external_id', normalizedItemId)
         .in('list_id', listIds);
       const { error: deleteError } = await del;
-      if (deleteError && isListTableMissingError(deleteError, cfg.itemsTable)) {
-        missingItemTables.add(cfg.itemsTable);
+      if (deleteError && isListTableMissingError(deleteError, 'list_items')) {
+        missingItemTables.add('list_items');
         return;
       }
     }
-    const inserts = listIds.map(listId => {
-      const row = { list_id: listId };
-      row[cfg.itemIdField] = normalizedItemId;
-      if (cfg.usesUserId) {
-        const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
-        row.user_id = ownerId || userId;
-      }
-      return row;
-    });
-    if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
-      if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
-        missingItemTables.add(cfg.itemsTable);
+    const externalSource = getExternalSource(type);
+    const inserts = listIds.map(listId => ({
+      list_id: listId,
+      external_id: normalizedItemId,
+      external_source: externalSource,
+      external_type: getCategoryName(type)
+    }));
+    if (inserts.length && !missingItemTables.has('list_items')) {
+      const { error: insertError } = await client.from('list_items').insert(inserts);
+      if (insertError && isListTableMissingError(insertError, 'list_items')) {
+        missingItemTables.add('list_items');
       } else if (insertError && isConflictError(insertError)) {
         return;
       }
@@ -1360,76 +1386,52 @@
   }
 
   async function createCustomList(client, userId, type, payload) {
-    const cfg = getListConfig(type);
-    if (!cfg || !client || !userId) return null;
-    if (customListsDisabled(cfg)) return null;
-    if (missingListTables.has(cfg.listTable)) return null;
+    if (!client || !userId) return null;
     setTierSyncContext(client, userId);
     const normalizedType = String(type || '').toLowerCase();
+    const category = getCategoryName(type);
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
-    const dbListKind = listKind === 'tier' ? 'tier' : normalizedType;
-    let insertPayload = {
+    const insertPayload = {
       user_id: userId,
-      title: payload.title,
-      icon: cfg.defaultIcon || 'fas fa-list',
-      list_kind: dbListKind,
-      created_at: new Date().toISOString()
+      name: payload.title,
+      category: category,
+      type: 'custom',
+      icon: payload.icon || 'fas fa-list',
+      description: payload.description || `My ${payload.title} list`
     };
-    if (cfg.listTable === 'lists') {
-      insertPayload = {
-        ...insertPayload,
-        description: payload.description || `My ${payload.title} list`,
-        is_default: false
-      };
-    }
     let data = null;
     let error = null;
 
     const insertOnce = async (nextPayload) => client
-      .from(cfg.listTable)
+      .from('user_lists')
       .insert(nextPayload)
       .select('*')
       .single();
 
     ({ data, error } = await insertOnce(insertPayload));
-    if (error && isListTableMissingError(error, cfg.listTable)) {
-      missingListTables.add(cfg.listTable);
+    if (error && isListTableMissingError(error, 'user_lists')) {
+      missingListTables.add('user_lists');
       return null;
-    }
-    const message = String(error?.message || '').toLowerCase();
-    const details = String(error?.details || '').toLowerCase();
-    const missingListKindColumn = !!error && (
-      message.includes('list_kind') ||
-      details.includes('list_kind') ||
-      error.code === '42703'
-    );
-    if (missingListKindColumn) {
-      const retryPayload = { ...insertPayload };
-      delete retryPayload.list_kind;
-      ({ data, error } = await insertOnce(retryPayload));
     }
     if (error || !data) return null;
 
-    setListMeta(normalizedType, data.id, { listKind, maxRank }, { client, userId });
-    return applyListMeta(normalizedType, data);
+    const mapped = mapListRow(data);
+    setListMeta(normalizedType, mapped.id, { listKind, maxRank }, { client, userId });
+    return applyListMeta(normalizedType, mapped);
   }
 
   async function renameCustomList(client, userId, type, listId, title) {
-    const cfg = getListConfig(type);
-    if (!cfg || !client || !userId || !listId) return false;
-    if (customListsDisabled(cfg)) return false;
-    if (missingListTables.has(cfg.listTable)) return false;
+    if (!client || !userId || !listId) return false;
+    if (missingListTables.has('user_lists')) return false;
     setTierSyncContext(client, userId);
-    const payload = { title };
-    if (cfg.listTable === 'lists') payload.updated_at = new Date().toISOString();
     const { error } = await client
-      .from(cfg.listTable)
-      .update(payload)
+      .from('user_lists')
+      .update({ name: title })
       .eq('id', listId)
       .eq('user_id', userId);
-    if (error && isListTableMissingError(error, cfg.listTable)) {
-      missingListTables.add(cfg.listTable);
+    if (error && isListTableMissingError(error, 'user_lists')) {
+      missingListTables.add('user_lists');
       return false;
     }
     return !error;

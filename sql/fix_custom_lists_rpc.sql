@@ -18,12 +18,12 @@ begin
       unique(media_type, list_id, collaborator_id)
     );
   else
-    -- Table exists — update check constraint to include 'sports'
+    -- Table exists — update check constraint to include all categories
     alter table public.list_collaborators
       drop constraint if exists list_collaborators_media_type_check;
     alter table public.list_collaborators
       add constraint list_collaborators_media_type_check
-      check (media_type in ('movie', 'anime', 'tv', 'game', 'book', 'music', 'sports'));
+      check (media_type in ('movie', 'tv', 'book', 'anime', 'game', 'sport', 'car', 'food', 'fashion', 'travel', 'music'));
   end if;
 end
 $$;
@@ -67,7 +67,7 @@ begin
 end
 $$;
 
--- 3. Create/update the RPC function with all media types
+-- 3. Create/update the RPC function with all media types (uses unified user_lists)
 create or replace function public.zo2y_get_accessible_custom_lists(p_media_type text)
 returns table (
   id text,
@@ -87,36 +87,42 @@ set search_path = public
 as $$
 declare
   safe_media_type text := lower(trim(coalesce(p_media_type, '')));
-  list_table text;
-  sql text;
+  cat_map text;
 begin
   if auth.uid() is null then
     return;
   end if;
 
-  case safe_media_type
-    when 'movie' then list_table := 'movie_lists';
-    when 'anime' then list_table := 'anime_lists';
-    when 'tv' then list_table := 'tv_lists';
-    when 'game' then list_table := 'game_lists';
-    when 'book' then list_table := 'book_lists';
-    when 'music' then list_table := 'music_lists';
-    when 'sports' then list_table := 'sports_lists';
-    when 'restaurant' then list_table := 'lists';
-    else
-      return;
-  end case;
+  -- Map frontend media type to category enum
+  cat_map := case safe_media_type
+    when 'movie' then 'movie'
+    when 'anime' then 'anime'
+    when 'tv' then 'tv'
+    when 'game' then 'game'
+    when 'book' then 'book'
+    when 'music' then 'music'
+    when 'sports' then 'sport'
+    when 'travel' then 'travel'
+    when 'fashion' then 'fashion'
+    when 'food' then 'food'
+    when 'car' then 'car'
+    else null
+  end;
 
-  if to_regclass(format('public.%s', list_table)) is null then
+  if cat_map is null then
     return;
   end if;
 
-  sql := format($q$
+  if to_regclass('public.user_lists') is null then
+    return;
+  end if;
+
+  return query
     with own_lists as (
       select
         l.id::text as id,
         l.user_id,
-        l.title,
+        l.name as title,
         l.description,
         l.icon,
         l.created_at,
@@ -124,14 +130,15 @@ begin
         false as is_collaborative,
         true as can_edit,
         l.user_id as list_owner_id
-      from public.%I l
+      from public.user_lists l
       where l.user_id = auth.uid()
+        and l.category = cat_map::public.user_list_category
     ),
     shared_lists as (
       select
         l.id::text as id,
         l.user_id,
-        l.title,
+        l.name as title,
         l.description,
         l.icon,
         l.created_at,
@@ -139,19 +146,17 @@ begin
         true as is_collaborative,
         coalesce(lc.can_edit, false) as can_edit,
         lc.list_owner_id
-      from public.%I l
+      from public.user_lists l
       join public.list_collaborators lc
-        on lc.media_type = %L
+        on lc.media_type = safe_media_type
        and lc.list_id = l.id::text
       where lc.collaborator_id = auth.uid()
+        and l.category = cat_map::public.user_list_category
     )
     select * from own_lists
     union all
     select * from shared_lists
-    order by created_at desc nulls last
-  $q$, list_table, list_table, safe_media_type);
-
-  return query execute sql;
+    order by created_at desc nulls last;
 end;
 $$;
 

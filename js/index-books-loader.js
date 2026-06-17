@@ -117,35 +117,56 @@
         return [];
       }
 
-      const { data, error } = await supabase
-        .from('book_list_items')
-        .select('*, books(*)')
+      const { data: bookLists } = await supabase
+        .from('user_lists')
+        .select('id')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .eq('category', 'book');
+
+      if (!bookLists || !bookLists.length) return [];
+
+      const listIds = bookLists.map(l => l.id);
+
+      const { data: listItems, error } = await supabase
+        .from('list_items')
+        .select('external_id, added_at')
+        .in('list_id', listIds)
+        .order('added_at', { ascending: false });
 
       if (error) {
         console.error('Error loading books:', error);
         return [];
       }
 
-      const bookMap = new Map();
-      data.forEach(item => {
-        if (item.books) {
-          const book = item.books;
-          const bookId = book.id || `book-${Math.random().toString(36).substr(2, 9)}`;
+      if (!listItems || !listItems.length) return [];
 
-          const existing = bookMap.get(bookId);
-          if (!existing) {
-            bookMap.set(bookId, {
-              id: bookId,
-              title: String(book.title || '').trim() || 'Untitled',
-              authors: String(book.authors || '').trim() || 'Unknown Author',
-              publishedDate: String(book.published_date || '').trim() || '',
-              description: '',
-              thumbnail: book.thumbnail || '',
-              publisher: String(book.publisher || '').trim() || ''
-            });
-          }
+      const externalIds = [...new Set(listItems.map(item => item.external_id))];
+
+      const { data: books, error: booksError } = await supabase
+        .from('books')
+        .select('id, title, authors, published_date, thumbnail, publisher')
+        .in('id', externalIds);
+
+      if (booksError) {
+        console.error('Error fetching book details:', booksError);
+        return [];
+      }
+
+      const bookMap = new Map();
+      books?.forEach(book => {
+        const bookId = book.id || `book-${Math.random().toString(36).substr(2, 9)}`;
+
+        const existing = bookMap.get(bookId);
+        if (!existing) {
+          bookMap.set(bookId, {
+            id: bookId,
+            title: String(book.title || '').trim() || 'Untitled',
+            authors: String(book.authors || '').trim() || 'Unknown Author',
+            publishedDate: String(book.published_date || '').trim() || '',
+            description: '',
+            thumbnail: book.thumbnail || '',
+            publisher: String(book.publisher || '').trim() || ''
+          });
         }
       });
 

@@ -1,19 +1,8 @@
 (() => {
   const TABLES_TO_EXPORT = [
     { table: 'user_profiles', label: 'Profile' },
-    { table: 'movie_list_items', label: 'Movie list items' },
-    { table: 'tv_list_items', label: 'TV list items' },
-    { table: 'anime_list_items', label: 'Anime list items' },
-    { table: 'game_list_items', label: 'Game list items' },
-    { table: 'book_list_items', label: 'Book list items' },
-    { table: 'music_list_items', label: 'Music list items' },
-    { table: 'sports_list_items', label: 'Sports list items' },
-    { table: 'travel_list_items', label: 'Travel list items' },
-    { table: 'fashion_list_items', label: 'Fashion list items' },
-    { table: 'food_list_items', label: 'Food list items' },
-    { table: 'car_list_items', label: 'Car list items' },
-    { table: 'custom_lists', label: 'Custom lists' },
-    { table: 'custom_list_items', label: 'Custom list items' },
+    { table: 'user_lists', label: 'User lists' },
+    { table: 'list_items', label: 'List items' },
     { table: 'movie_reviews', label: 'Movie reviews' },
     { table: 'tv_reviews', label: 'TV reviews' },
     { table: 'anime_reviews', label: 'Anime reviews' },
@@ -87,7 +76,7 @@
   async function loadStats(supabase, userId) {
     try {
       const [listsRes, reviewsRes, plansRes] = await Promise.all([
-        supabase.from('custom_lists').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('user_lists').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('travel_reviews').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('travel_plans').select('id', { count: 'exact', head: true }).eq('user_id', userId)
       ]);
@@ -131,10 +120,25 @@
 
     for (const t of TABLES_TO_EXPORT) {
       try {
-        const { data, error } = await supabase
-          .from(t.table)
-          .select('*')
-          .eq('user_id', userId);
+        let data, error;
+        if (t.table === 'list_items') {
+          const { data: userLists } = await supabase
+            .from('user_lists')
+            .select('id')
+            .eq('user_id', userId);
+          const listIds = (userLists || []).map(l => l.id);
+          if (listIds.length) {
+            const res = await supabase.from('list_items').select('*').in('list_id', listIds);
+            data = res.data;
+            error = res.error;
+          } else {
+            data = [];
+          }
+        } else {
+          const res = await supabase.from(t.table).select('*').eq('user_id', userId);
+          data = res.data;
+          error = res.error;
+        }
         if (!error && Array.isArray(data)) {
           archive.data[t.label] = data;
         } else {
@@ -161,7 +165,21 @@
     const errors = [];
     for (const t of TABLES_TO_EXPORT) {
       try {
-        const { error } = await supabase.from(t.table).delete().eq('user_id', userId);
+        let error;
+        if (t.table === 'list_items') {
+          const { data: userLists } = await supabase
+            .from('user_lists')
+            .select('id')
+            .eq('user_id', userId);
+          const listIds = (userLists || []).map(l => l.id);
+          if (listIds.length) {
+            const res = await supabase.from('list_items').delete().in('list_id', listIds);
+            error = res.error;
+          }
+        } else {
+          const res = await supabase.from(t.table).delete().eq('user_id', userId);
+          error = res.error;
+        }
         if (error && error.code !== 'PGRST116') errors.push({ table: t.table, message: error.message });
       } catch (e) {
         errors.push({ table: t.table, message: String(e && e.message || e) });

@@ -517,6 +517,13 @@ async function handlePasswordSignup(req, res) {
 
     // Record the ToS acceptance. Allowed even on signup. The RPC
     // is the only writer (the trigger blocks direct client writes).
+    // Create default lists for all categories
+    try {
+      await admin.rpc("create_default_user_lists", { p_user_id: createdUserId });
+    } catch (listErr) {
+      // Non-critical: user can create lists later
+    }
+
     if (tosVersion && /^[a-zA-Z0-9._-]+$/.test(tosVersion)) {
       try {
         await admin.rpc("zo2y_accept_tos", { p_version: tosVersion });

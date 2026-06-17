@@ -8,9 +8,9 @@
   const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
   const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' }
+    fashion: { table: 'list_items', itemField: 'external_id' },
+    food: { table: 'list_items', itemField: 'external_id' },
+    car: { table: 'list_items', itemField: 'external_id' }
   };
 
   const FALLBACKS = BRAND_TYPE === 'food'

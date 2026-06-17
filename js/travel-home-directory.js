@@ -321,21 +321,50 @@
     const codes = state.filtered.map(item => item.code);
     if (!codes.length) return;
 
-    const { data } = await supabase
-      .from('travel_list_items')
-      .select('country_code, list_type')
+    const { data: travelLists } = await supabase
+      .from('user_lists')
+      .select('id, type')
       .eq('user_id', state.currentUser.id)
-      .in('country_code', codes);
+      .eq('category', 'travel');
 
-    (data || []).forEach(row => {
-      const code = String(row.country_code || '');
-      if (!code) return;
-      if (!state.listStatus.has(code)) {
-        state.listStatus.set(code, { favorites: false, visited: false, bucketlist: false });
+    if (travelLists && travelLists.length) {
+      const listTypeMap = {};
+      const listIds = travelLists.map(l => { listTypeMap[l.id] = l.type; return l.id; });
+
+      const { data } = await supabase
+        .from('list_items')
+        .select('list_id, external_id')
+        .in('list_id', listIds)
+        .in('external_id', codes);
+
+      if (data) {
+        (data || []).forEach(row => {
+          const code = String(row.external_id || '');
+          if (!code) return;
+          if (!state.listStatus.has(code)) {
+            state.listStatus.set(code, { favorites: false, visited: false, bucketlist: false });
+          }
+          const status = state.listStatus.get(code);
+          const listType = listTypeMap[row.list_id];
+          if (listType === 'favorites') status.favorites = true;
+          else if (listType === 'completed') status.visited = true;
+          else if (listType === 'watchlist') status.bucketlist = true;
+        });
       }
-      const status = state.listStatus.get(code);
-      if (row.list_type in status) status[row.list_type] = true;
-    });
+    }
+  }
+
+  async function findTravelListId(supabase, userId, oldListType) {
+    const typeMap = { favorites: 'favorites', visited: 'completed', bucketlist: 'watchlist' };
+    const newType = typeMap[oldListType] || 'custom';
+    const { data } = await supabase
+      .from('user_lists')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('category', 'travel')
+      .eq('type', newType)
+      .maybeSingle();
+    return data?.id || null;
   }
 
   async function toggleTravelItem(itemCode, listType, card) {
@@ -360,22 +389,28 @@
 
     try {
       if (nextSaved) {
-        const { error } = await supabase
-          .from('travel_list_items')
-          .insert({
-            user_id: state.currentUser.id,
-            country_code: code,
-            list_type: listType
-          });
-        if (error && String(error.code || '') !== '23505') throw error;
+        const listId = await findTravelListId(supabase, state.currentUser.id, listType);
+        if (listId) {
+          const { error } = await supabase
+            .from('list_items')
+            .insert({
+              list_id: listId,
+              external_id: code,
+              external_source: 'local_db',
+              external_type: 'travel'
+            });
+          if (error && String(error.code || '') !== '23505') throw error;
+        }
       } else {
-        const { error } = await supabase
-          .from('travel_list_items')
-          .delete()
-          .eq('user_id', state.currentUser.id)
-          .eq('country_code', code)
-          .eq('list_type', listType);
-        if (error) throw error;
+        const listId = await findTravelListId(supabase, state.currentUser.id, listType);
+        if (listId) {
+          const { error } = await supabase
+            .from('list_items')
+            .delete()
+            .eq('list_id', listId)
+            .eq('external_id', code);
+          if (error) throw error;
+        }
       }
 
       if (card) {

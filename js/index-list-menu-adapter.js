@@ -78,19 +78,35 @@
     ]
   };
 
+  const CATEGORY_TO_LIST_TYPE = {
+    movie: 'favorites', tv: 'favorites', anime: 'favorites',
+    game: 'favorites', book: 'favorites', music: 'favorites',
+    travel: 'favorites', fashion: 'favorites', food: 'favorites',
+    car: 'favorites', sports: 'favorites'
+  };
+
+  const QUICK_KEY_TO_TYPE = {
+    favorites: 'favorites',
+    watched: 'completed', read: 'completed', played: 'completed',
+    visited: 'completed', listened: 'completed', tried: 'completed',
+    owned: 'completed',
+    watchlist: 'watchlist', readlist: 'watchlist', backlog: 'watchlist',
+    listenlist: 'watchlist', bucketlist: 'watchlist', wishlist: 'watchlist',
+    want_to_try: 'watchlist'
+  };
+
   const DEFAULT_TABLE_BY_MEDIA = {
-    movie: { table: 'movie_list_items', itemField: 'movie_id' },
-    tv: { table: 'tv_list_items', itemField: 'tv_id' },
-    anime: { table: 'anime_list_items', itemField: 'anime_id' },
-    game: { table: 'game_list_items', itemField: 'game_id' },
-    book: { table: 'book_list_items', itemField: 'book_id' },
-    music: { table: 'music_list_items', itemField: 'track_id' },
-    travel: { table: 'travel_list_items', itemField: 'country_code' },
-    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' },
-    sports: { table: 'sports_list_items', itemField: 'team_id' },
-    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' }
+    movie: { table: 'list_items', itemField: 'external_id', category: 'movie' },
+    tv: { table: 'list_items', itemField: 'external_id', category: 'tv' },
+    anime: { table: 'list_items', itemField: 'external_id', category: 'anime' },
+    game: { table: 'list_items', itemField: 'external_id', category: 'game' },
+    book: { table: 'list_items', itemField: 'external_id', category: 'book' },
+    music: { table: 'list_items', itemField: 'external_id', category: 'music' },
+    travel: { table: 'list_items', itemField: 'external_id', category: 'travel' },
+    fashion: { table: 'list_items', itemField: 'external_id', category: 'fashion' },
+    food: { table: 'list_items', itemField: 'external_id', category: 'food' },
+    car: { table: 'list_items', itemField: 'external_id', category: 'car' },
+    sports: { table: 'list_items', itemField: 'external_id', category: 'sport' }
   };
 
   function escapeHtml(v) {
@@ -204,28 +220,64 @@
     const img=li||card.querySelector('img')?.getAttribute('src')||'';
     return {mediaType:mt,itemId:cid,title:String(t).trim(),subtitle:String(sub).trim(),image:String(img).trim()};
   }
+  function resolveListTypeFromQuickKey(key) {
+    return QUICK_KEY_TO_TYPE[String(key || '').toLowerCase()] || 'favorites';
+  }
+
   async function toggleDefaultListWithFallback(user, item, listType, nextSaved) {
     if(!user?.id||!item?.itemId) return {ok:false,saved:false};
     const mt=getMediaType(); const tbl=DEFAULT_TABLE_BY_MEDIA[mt]; syncBridgeCurrentUser(user);
     try { if(_bridge&&typeof _bridge.toggleDefaultList==='function'&&(!tbl?.table||!tbl?.itemField||_bridgeCanUseResolvedUser())){const r=await _bridge.toggleDefaultList({itemId:item.itemId,listType,card:STATE.currentCard,nextSaved,user});if(r&&typeof r.ok==='boolean'){if(r.ok)return r;if(isConflictLikeError(r?.error))return{ok:true,saved:!!nextSaved};return r}} }catch(e){}
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
-    const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const{error}=await c.from(tbl.table).insert(p); if(error){const m=String(error.message||'').toLowerCase();if(m.includes('duplicate')||m.includes('already exists')||m.includes('unique'))return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
-    const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
-    if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
+    const category = tbl.category || mt;
+    const unifiedType = resolveListTypeFromQuickKey(listType);
+    const externalId = String(item.itemId);
+    const externalSource = {movie:'tmdb',tv:'tmdb',anime:'tmdb',game:'igdb',book:'openlibrary',music:'spotify',travel:'local_db',fashion:'local_db',food:'local_db',car:'local_db',sports:'sportsdb',sport:'sportsdb'}[mt]||'local_db';
+
+    try {
+      const { data, error } = await c.rpc('toggle_list_item', {
+        p_user_id: user.id,
+        p_category: category,
+        p_list_type: unifiedType,
+        p_external_id: externalId,
+        p_external_source: externalSource,
+        p_metadata: {}
+      });
+      if (error) return {ok:false,saved:false,error};
+      const action = data?.action;
+      return {ok:true, saved: action === 'added'};
+    } catch(e) {
+      return {ok:false,saved:false,error:e};
+    }
   }
   async function getDefaultListStatusMap(id, keys) {
     const s={}; (keys||[]).forEach(k=>s[k]=false);
-    const u=await resolveAuthenticatedUser(); if(!u?.id||!keys?.length) return s;
+    if(!keys?.length) return s;
+    const u=await resolveAuthenticatedUser(); if(!u?.id) return s;
     const c=await ensureClient(); if(!c) return s;
     const mt=getMediaType(); const tc=DEFAULT_TABLE_BY_MEDIA[mt];
     const bs=readBridgeQuickStatus(id,keys); if(bs) return bs;
     if(_bridge&&typeof _bridge.getDefaultListStatusMap==='function'){try{const r=await _bridge.getDefaultListStatusMap(normalizeItemIdValue(id),keys); if(r&&typeof r==='object') return cloneQuickStatus(r,keys)}catch(e){}}
     if(!tc) return s;
-    try { const nid=normalizeQueryableItemIdValue(id); if(nid===null||nid===undefined) return s;
-      const{data}=await c.from(tc.table).select('list_type').eq('user_id',u.id).eq(tc.itemField,nid).in('list_type',keys);
-      (data||[]).forEach(r=>{const k=String(r.list_type||'');if(k in s)s[k]=true});
+    const category = tc.category || mt;
+    const externalId = String(normalizeItemIdValue(id));
+
+    try {
+      const{data}=await c.rpc('get_item_list_status', {
+        p_user_id: u.id,
+        p_category: category,
+        p_external_id: externalId
+      });
+      if (Array.isArray(data)) {
+        data.forEach(r=>{
+          const t = resolveListTypeFromQuickKey(r.list_type || '');
+          const mapped = keys.find(k => resolveListTypeFromQuickKey(k) === t);
+          if (mapped && mapped in s) s[mapped] = true;
+          // Also check exact match
+          if (r.list_type in s) s[r.list_type] = true;
+        });
+      }
     }catch(e){}
     return s;
   }
@@ -412,13 +464,36 @@
       const rv=_bridge&&typeof _bridge.getVisibleItemIds==='function'?_bridge.getVisibleItemIds():[];
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
-      if(dt&&lk.length&&vs.length){const{data}=await c.from(dt.table).select(`${dt.itemField},list_type`).eq('user_id',u.id).in(dt.itemField,vs).in('list_type',lk);
-        const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'');const cur=sb.get(ik);if(cur&&!(lt in cur))cur[lt]=true});
-        sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));}
+      const category = dt?.category || mt;
+      if(dt&&lk.length&&vs.length){
+        // Use the get_item_list_status RPC to quickly check status of visible items
+        const statusPromises = vs.slice(0, 50).map(async (id) => {
+          try {
+            const{data}=await c.rpc('get_item_list_status', {
+              p_user_id: u.id,
+              p_category: category,
+              p_external_id: String(id)
+            });
+            if (Array.isArray(data)) {
+              const s = buildBlankQuickStatus(lk);
+              data.forEach(r => {
+                const t = resolveListTypeFromQuickKey(r.list_type || '');
+                const mapped = lk.find(k => resolveListTypeFromQuickKey(k) === t);
+                if (mapped && mapped in s) s[mapped] = true;
+                if (r.list_type in s) s[r.list_type] = true;
+              });
+              return [String(id), s];
+            }
+          } catch(e) {}
+          return null;
+        });
+        const results = await Promise.all(statusPromises);
+        results.forEach(r => { if (r) writeCachedQuickStatus(r[0], r[1], lk); });
+      }
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
-      const cfg=ListUtils.getListConfig(mt);const lids=cl.map(l=>l.id).filter(Boolean);if(!cfg||!lids.length||!vs.length)return;
-      const{data}=await c.from(cfg.itemsTable).select(`list_id,${cfg.itemIdField}`).in('list_id',lids).in(cfg.itemIdField,vs);
-      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data||[]).forEach(r=>{const ik=String(r?.[cfg.itemIdField]??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
+      const lids=cl.map(l=>l.id).filter(Boolean);if(!lids.length||!vs.length)return;
+      const{data}=await c.from('list_items').select('list_id,external_id').in('list_id',lids).in('external_id',vs.map(String));
+      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data||[]).forEach(r=>{const ik=String(r?.external_id??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
       mb.forEach((m,ik)=>writeCachedMembership(ik,m));
     }catch(e){}finally{CACHE.primingScopes.delete(sk)}
   }

@@ -943,6 +943,155 @@ begin
 end
 $$;
 
+-- ============================================================================
+-- UNIFIED TABLE TRIGGERS (for user_lists + list_items)
+-- These coexist with per-category triggers until old tables are dropped.
+-- ============================================================================
+
+create or replace function public.log_list_activity_iud_v2()
+returns trigger
+language plpgsql
+as $$
+declare
+  v_event_type text;
+  v_media_type text;
+  v_item_id text;
+  v_actor_id uuid;
+  v_list_type text;
+  v_list_id uuid;
+  v_list public.user_lists;
+  v_payload jsonb;
+begin
+  v_event_type := case tg_op
+    when 'INSERT' then 'list_add'
+    when 'DELETE' then 'list_remove'
+    else null
+  end;
+  if v_event_type is null then
+    return coalesce(new, old);
+  end if;
+
+  v_payload := case
+    when tg_op = 'INSERT' then to_jsonb(new)
+    when tg_op = 'DELETE' then to_jsonb(old)
+    else '{}'::jsonb
+  end;
+
+  v_item_id := nullif(v_payload->>'external_id', '');
+  v_list_id := nullif(v_payload->>'list_id', '')::uuid;
+
+  if v_list_id is not null then
+    select * into v_list from public.user_lists where id = v_list_id;
+    v_media_type := v_list.category::text;
+    v_list_type := v_list.type::text;
+    v_actor_id := v_list.user_id;
+  end if;
+
+  if v_media_type is null or v_item_id is null or v_actor_id is null then
+    return coalesce(new, old);
+  end if;
+
+  insert into public.user_activity_feed (
+    actor_id, event_type, media_type, item_id, list_type, list_id, metadata
+  ) values (
+    v_actor_id,
+    v_event_type,
+    v_media_type,
+    v_item_id,
+    v_list_type,
+    v_list_id,
+    jsonb_build_object(
+      'source_table', tg_table_name,
+      'source_pk', nullif(v_payload->>'id', '')
+    )
+  );
+
+  return coalesce(new, old);
+end;
+$$;
+
+create or replace function public.log_custom_list_activity_iud_v2()
+returns trigger
+language plpgsql
+as $$
+declare
+  v_event_type text;
+  v_media_type text;
+  v_actor_id uuid;
+  v_list_id uuid;
+  v_list_title text;
+  v_payload jsonb;
+begin
+  v_event_type := case tg_op
+    when 'INSERT' then 'list_create'
+    when 'DELETE' then 'list_delete'
+    else null
+  end;
+  if v_event_type is null then
+    return coalesce(new, old);
+  end if;
+
+  v_payload := case
+    when tg_op = 'INSERT' then to_jsonb(new)
+    when tg_op = 'DELETE' then to_jsonb(old)
+    else '{}'::jsonb
+  end;
+
+  v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
+  v_list_id := nullif(v_payload->>'id', '')::uuid;
+  v_list_title := nullif(trim(v_payload->>'name'), '');
+  v_media_type := nullif(v_payload->>'category', '');
+
+  if v_media_type is null or v_actor_id is null or v_list_id is null then
+    return coalesce(new, old);
+  end if;
+
+  insert into public.user_activity_feed (
+    actor_id, event_type, media_type, list_id, metadata
+  ) values (
+    v_actor_id,
+    v_event_type,
+    v_media_type,
+    v_list_id,
+    jsonb_build_object(
+      'source_table', tg_table_name,
+      'source_pk', nullif(v_payload->>'id', ''),
+      'list_title', v_list_title
+    )
+  );
+
+  return coalesce(new, old);
+end;
+$$;
+
+-- Create triggers on unified tables if they exist
+do $$
+begin
+  if to_regclass('public.list_items') is not null then
+    drop trigger if exists trg_list_items_add_activity on public.list_items;
+    create trigger trg_list_items_add_activity
+      after insert on public.list_items
+      for each row execute function public.log_list_activity_iud_v2();
+
+    drop trigger if exists trg_list_items_remove_activity on public.list_items;
+    create trigger trg_list_items_remove_activity
+      after delete on public.list_items
+      for each row execute function public.log_list_activity_iud_v2();
+  end if;
+
+  if to_regclass('public.user_lists') is not null then
+    drop trigger if exists trg_user_lists_create_activity on public.user_lists;
+    create trigger trg_user_lists_create_activity
+      after insert on public.user_lists
+      for each row execute function public.log_custom_list_activity_iud_v2();
+
+    drop trigger if exists trg_user_lists_delete_activity on public.user_lists;
+    create trigger trg_user_lists_delete_activity
+      after delete on public.user_lists
+      for each row execute function public.log_custom_list_activity_iud_v2();
+  end if;
+end $$;
+
 -- Optional cleanup for helper.
 drop function if exists public.ensure_activity_trigger(text, text, text, text);
 

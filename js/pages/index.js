@@ -322,16 +322,16 @@
       wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
     const HOME_DEFAULT_LIST_TABLES = {
-      movie: { table: 'movie_list_items', itemField: 'movie_id' },
-      tv: { table: 'tv_list_items', itemField: 'tv_id' },
-      anime: { table: 'anime_list_items', itemField: 'anime_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
-      book: { table: 'book_list_items', itemField: 'book_id' },
-      music: { table: 'music_list_items', itemField: 'track_id' },
-      travel: { table: 'travel_list_items', itemField: 'country_code' },
-      ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
+      movie: { table: 'list_items', itemField: 'external_id' },
+      tv: { table: 'list_items', itemField: 'external_id' },
+      anime: { table: 'list_items', itemField: 'external_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'list_items', itemField: 'external_id' } } : {}),
+      book: { table: 'list_items', itemField: 'external_id' },
+      music: { table: 'list_items', itemField: 'external_id' },
+      travel: { table: 'list_items', itemField: 'external_id' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'list_items', itemField: 'external_id' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'list_items', itemField: 'external_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'list_items', itemField: 'external_id' } } : {})
     };
     const HOME_REVIEW_SIGNAL_TABLES = {
       movie: { table: 'movie_reviews', itemField: 'movie_id' },
@@ -3322,33 +3322,42 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
         const withCreatedAt = await client
-          .from(cfg.table)
-          .select(`${cfg.itemField}, user_id, list_type, created_at`)
-          .in('user_id', userIds)
-          .order('created_at', { ascending: false })
+          .from('list_items')
+          .select('external_id, user_lists!inner(user_id, type), added_at')
+          .eq('user_lists.category', mediaType)
+          .in('user_lists.user_id', userIds)
+          .order('added_at', { ascending: false })
           .limit(220);
 
         if (!withCreatedAt?.error) {
-          return { mediaType, itemField: cfg.itemField, rows: Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : [] };
+          const rows = (Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : []).map((row) => ({
+            external_id: row.external_id,
+            user_id: row.user_lists?.user_id,
+            list_type: row.user_lists?.type,
+            created_at: row.added_at
+          }));
+          return { mediaType, itemField: 'external_id', rows };
         }
 
-        // Some deployments do not have created_at on media list tables.
         const withoutCreatedAt = await client
-          .from(cfg.table)
-          .select(`${cfg.itemField}, user_id, list_type, id`)
-          .in('user_id', userIds)
+          .from('list_items')
+          .select('external_id, user_lists!inner(user_id, type), id')
+          .eq('user_lists.category', mediaType)
+          .in('user_lists.user_id', userIds)
           .order('id', { ascending: false })
           .limit(220);
 
         if (withoutCreatedAt?.error) {
-          return { mediaType, itemField: cfg.itemField, rows: [] };
+          return { mediaType, itemField: 'external_id', rows: [] };
         }
 
         const rows = (Array.isArray(withoutCreatedAt?.data) ? withoutCreatedAt.data : []).map((row) => ({
-          ...row,
+          external_id: row.external_id,
+          user_id: row.user_lists?.user_id,
+          list_type: row.user_lists?.type,
           created_at: null
         }));
-        return { mediaType, itemField: cfg.itemField, rows };
+        return { mediaType, itemField: 'external_id', rows };
       };
 
       const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
@@ -3766,24 +3775,29 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes, listRes] = await Promise.all([
-          client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
-            .then((res) => res)
-            .catch(() => ({ count: 0 })),
-          ENABLE_GAMES
-            ? client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
-            : Promise.resolve({ count: 0 }),
-          client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
-            .then((res) => res)
-            .catch(() => ({ count: 0 })),
+        const [userListsRes, listRes] = await Promise.all([
+          client.from('user_lists').select('id, category').eq('user_id', homeCurrentUser.id),
           ENABLE_RESTAURANTS
             ? client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
             : Promise.resolve({ data: [] })
         ]);
+
+        const listIdsByCategory = {};
+        (userListsRes?.data || []).forEach(l => {
+          if (!listIdsByCategory[l.category]) listIdsByCategory[l.category] = [];
+          listIdsByCategory[l.category].push(l.id);
+        });
+
+        const categoryCountEntries = await Promise.all(
+          Object.entries(listIdsByCategory).map(async ([cat, ids]) => {
+            const { count } = await client
+              .from('list_items')
+              .select('id', { count: 'exact', head: true })
+              .in('list_id', ids);
+            return [cat, Number(count || 0)];
+          })
+        );
+        const catCounts = Object.fromEntries(categoryCountEntries);
 
         const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
         let restaurantCount = 0;
@@ -3796,13 +3810,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
 
         const counts = {
-          movie: Number(movieRes?.count || 0),
-          tv: Number(tvRes?.count || 0),
-          anime: Number(animeRes?.count || 0),
-          ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
-          book: Number(bookRes?.count || 0),
-          music: Number(musicRes?.count || 0),
-          travel: Number(travelRes?.count || 0),
+          movie: catCounts.movie || 0,
+          tv: catCounts.tv || 0,
+          anime: catCounts.anime || 0,
+          ...(ENABLE_GAMES ? { game: catCounts.game || 0 } : {}),
+          book: catCounts.book || 0,
+          music: catCounts.music || 0,
+          travel: catCounts.travel || 0,
           ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
         const interestProfile = await loadHomeInterestProfile(client);

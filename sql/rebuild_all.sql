@@ -15,11 +15,23 @@ drop function if exists public.zo2y_set_updated_at() cascade;
 drop function if exists public.apply_list_rls(text, text) cascade;
 drop function if exists public.touch_updated_at() cascade;
 drop function if exists public.log_list_activity_iud() cascade;
+drop function if exists public.log_list_activity_iud_v2() cascade;
 drop function if exists public.log_custom_list_activity_iud() cascade;
+drop function if exists public.log_custom_list_activity_iud_v2() cascade;
 drop function if exists public.log_media_review_activity_iud() cascade;
 drop function if exists public.ensure_activity_trigger(text, text, text, text) cascade;
 drop function if exists public.zo2y_custom_list_owner_matches(text, text, uuid) cascade;
 drop function if exists public.zo2y_get_accessible_custom_lists(text) cascade;
+drop function if exists public.get_user_lists(uuid, text) cascade;
+drop function if exists public.get_list_items(uuid, uuid) cascade;
+drop function if exists public.add_item_to_list(uuid, uuid, text, text, jsonb) cascade;
+drop function if exists public.remove_item_from_list(uuid, uuid, text) cascade;
+drop function if exists public.toggle_list_item(uuid, text, text, text, text, jsonb) cascade;
+drop function if exists public.get_item_list_status(uuid, text, text) cascade;
+drop function if exists public.create_default_user_lists(uuid) cascade;
+drop function if exists public.map_old_list_type(text, text) cascade;
+drop function if exists public.default_external_source(text) cascade;
+drop function if exists public.migrate_category_lists(text, text, text, text) cascade;
 
 drop table if exists public.anime_list_items cascade;
 drop table if exists public.anime_reviews cascade;
@@ -63,6 +75,8 @@ drop table if exists public.movie_list_items cascade;
 drop table if exists public.movie_reviews cascade;
 drop table if exists public.movie_lists cascade;
 drop table if exists public.games cascade;
+drop table if exists public.user_lists cascade;
+drop table if exists public.list_items cascade;
 drop table if exists public.follows cascade;
 drop table if exists public.user_profiles cascade;
 drop table if exists public.user_interest_profiles cascade;
@@ -79,6 +93,9 @@ drop table if exists public.security_captcha cascade;
 drop table if exists public.security_csrf cascade;
 drop table if exists public.security_lockout cascade;
 drop table if exists public.security_audit_log cascade;
+
+drop type if exists public.user_list_category cascade;
+drop type if exists public.user_list_type cascade;
 
 -- ============================================================================
 -- STEP 2: Create tables (dependency-safe order)
@@ -314,27 +331,50 @@ create table if not exists public.user_interest_profiles (
   updated_at timestamptz default now()
 );
 
--- Movies
-create table if not exists public.movie_lists (
+-- UNIFIED USER LISTS (replaces all per-category list tables)
+do $$ begin
+  create type public.user_list_category as enum (
+    'movie', 'tv', 'book', 'anime', 'game', 'sport', 'car',
+    'food', 'fashion', 'travel', 'music'
+  );
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.user_list_type as enum (
+    'favorites', 'watchlist', 'completed', 'custom'
+  );
+exception
+  when duplicate_object then null;
+end $$;
+
+create table if not exists public.user_lists (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
+  name text not null,
+  category public.user_list_category not null,
+  type public.user_list_type not null,
   icon text,
   description text default '',
-  list_kind text default 'movie',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id, category, name)
 );
 
-create table if not exists public.movie_list_items (
+create table if not exists public.list_items (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  movie_id bigint not null,
-  list_type text,
-  list_id uuid null references public.movie_lists(id) on delete cascade,
-  created_at timestamptz default now()
+  list_id uuid not null references public.user_lists(id) on delete cascade,
+  external_id text not null,
+  external_source text not null default 'local_db',
+  external_type public.user_list_category not null,
+  metadata jsonb not null default '{}'::jsonb,
+  added_at timestamptz not null default now(),
+  unique(list_id, external_id)
 );
 
+-- Reviews (still per-category for now, but shared structure)
 create table if not exists public.movie_reviews (
   id uuid primary key default gen_random_uuid(),
   movie_id bigint not null,
@@ -343,28 +383,6 @@ create table if not exists public.movie_reviews (
   comment text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);
-
--- Anime
-create table if not exists public.anime_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text default '',
-  is_public boolean default false,
-  list_kind text default 'anime',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table if not exists public.anime_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  anime_id bigint not null,
-  list_type text,
-  list_id uuid null references public.anime_lists(id) on delete cascade,
-  created_at timestamptz default now()
 );
 
 create table if not exists public.anime_reviews (
@@ -377,35 +395,6 @@ create table if not exists public.anime_reviews (
   updated_at timestamptz default now()
 );
 
--- TV
-create table if not exists public.tv_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  title text not null,
-  icon text,
-  description text default '',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table if not exists public.tv_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  tv_id bigint not null,
-  list_type text,
-  list_id uuid null references public.tv_lists(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.tvshow_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  tvshow_id bigint not null,
-  list_type text,
-  list_id uuid null references public.tv_lists(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
 create table if not exists public.tv_reviews (
   id uuid primary key default gen_random_uuid(),
   tv_id bigint not null,
@@ -416,24 +405,6 @@ create table if not exists public.tv_reviews (
   updated_at timestamptz default now()
 );
 
--- Games
-create table if not exists public.game_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  title text not null,
-  icon text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.game_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  game_id bigint not null,
-  list_type text,
-  list_id uuid null references public.game_lists(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
 create table if not exists public.game_reviews (
   id uuid primary key default gen_random_uuid(),
   game_id bigint not null,
@@ -442,24 +413,6 @@ create table if not exists public.game_reviews (
   comment text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);
-
--- Music
-create table if not exists public.music_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  title text not null,
-  icon text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.music_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  track_id text not null references public.tracks(id) on delete cascade,
-  list_type text,
-  list_id uuid null references public.music_lists(id) on delete cascade,
-  created_at timestamptz default now()
 );
 
 create table if not exists public.music_reviews (
@@ -482,24 +435,6 @@ create table if not exists public.user_album_reviews (
   updated_at timestamptz default now()
 );
 
--- Books
-create table if not exists public.book_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  title text not null,
-  icon text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.book_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  book_id text not null references public.books(id) on delete cascade,
-  list_type text,
-  list_id uuid null references public.book_lists(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
 create table if not exists public.book_reviews (
   id uuid primary key default gen_random_uuid(),
   book_id text not null references public.books(id) on delete cascade,
@@ -508,26 +443,6 @@ create table if not exists public.book_reviews (
   comment text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);
-
--- Fashion
-create table if not exists public.fashion_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.fashion_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  brand_id uuid not null references public.fashion_brands(id) on delete cascade,
-  list_type text check (list_type in ('favorites', 'owned', 'wishlist')),
-  list_id uuid null references public.fashion_lists(id) on delete cascade,
-  created_at timestamptz default now(),
-  check (list_id is not null or list_type in ('favorites', 'owned', 'wishlist'))
 );
 
 create table if not exists public.fashion_reviews (
@@ -540,26 +455,6 @@ create table if not exists public.fashion_reviews (
   updated_at timestamptz default now()
 );
 
--- Food
-create table if not exists public.food_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.food_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  brand_id uuid not null references public.food_brands(id) on delete cascade,
-  list_type text check (list_type in ('favorites', 'tried', 'want_to_try')),
-  list_id uuid null references public.food_lists(id) on delete cascade,
-  created_at timestamptz default now(),
-  check (list_id is not null or list_type in ('favorites', 'tried', 'want_to_try'))
-);
-
 create table if not exists public.food_reviews (
   id uuid primary key default gen_random_uuid(),
   brand_id uuid not null references public.food_brands(id) on delete cascade,
@@ -570,26 +465,6 @@ create table if not exists public.food_reviews (
   updated_at timestamptz default now()
 );
 
--- Cars
-create table if not exists public.car_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.car_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  brand_id uuid not null references public.car_brands(id) on delete cascade,
-  list_type text check (list_type in ('favorites', 'owned', 'wishlist')),
-  list_id uuid null references public.car_lists(id) on delete cascade,
-  created_at timestamptz default now(),
-  check (list_id is not null or list_type in ('favorites', 'owned', 'wishlist'))
-);
-
 create table if not exists public.car_reviews (
   id uuid primary key default gen_random_uuid(),
   brand_id uuid not null references public.car_brands(id) on delete cascade,
@@ -598,27 +473,6 @@ create table if not exists public.car_reviews (
   review_text text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);
-
--- Travel
-create table if not exists public.travel_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text default '',
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
-create table if not exists public.travel_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  country_code text not null check (char_length(country_code) between 2 and 3),
-  list_type text check (list_type in ('favorites', 'visited', 'bucketlist')),
-  list_id uuid null references public.travel_lists(id) on delete cascade,
-  check (list_id is not null or list_type in ('favorites', 'visited', 'bucketlist')),
-  created_at timestamptz default now()
 );
 
 create table if not exists public.travel_reviews (
@@ -642,32 +496,6 @@ create table if not exists public.travel_plans (
   notes text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
-);
-
--- Sports
-create table if not exists public.sports_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.sports_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  team_id text not null,
-  list_type text,
-  list_id uuid null references public.sports_lists(id) on delete cascade,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.user_favorite_teams (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  team_id text not null references public.teams(id) on delete cascade,
-  created_at timestamptz default now(),
-  unique(user_id, team_id)
 );
 
 -- Cross-cutting tables
@@ -966,41 +794,42 @@ begin
 end;
 $$;
 
-select public.apply_list_rls('movie_lists');
-select public.apply_list_rls('movie_list_items');
+-- Unified user_lists RLS
+alter table public.user_lists enable row level security;
+create policy "Users select own lists" on public.user_lists for select using (user_id = auth.uid());
+create policy "Users insert own lists" on public.user_lists for insert with check (user_id = auth.uid());
+create policy "Users update own lists" on public.user_lists for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Users delete own lists" on public.user_lists for delete using (user_id = auth.uid());
+
+-- Unified list_items RLS
+alter table public.list_items enable row level security;
+create policy "Users select own list items" on public.list_items for select using (
+  exists (select 1 from public.user_lists where user_lists.id = list_items.list_id and user_lists.user_id = auth.uid())
+);
+create policy "Users insert own list items" on public.list_items for insert with check (
+  exists (select 1 from public.user_lists where user_lists.id = list_items.list_id and user_lists.user_id = auth.uid())
+);
+create policy "Users update own list items" on public.list_items for update using (
+  exists (select 1 from public.user_lists where user_lists.id = list_items.list_id and user_lists.user_id = auth.uid())
+) with check (
+  exists (select 1 from public.user_lists where user_lists.id = list_items.list_id and user_lists.user_id = auth.uid())
+);
+create policy "Users delete own list items" on public.list_items for delete using (
+  exists (select 1 from public.user_lists where user_lists.id = list_items.list_id and user_lists.user_id = auth.uid())
+);
+
+-- Per-category review tables RLS
 select public.apply_list_rls('movie_reviews');
-select public.apply_list_rls('anime_lists');
-select public.apply_list_rls('anime_list_items');
 select public.apply_list_rls('anime_reviews');
-select public.apply_list_rls('tv_lists');
-select public.apply_list_rls('tv_list_items');
 select public.apply_list_rls('tv_reviews');
-select public.apply_list_rls('tvshow_list_items');
-select public.apply_list_rls('game_lists');
-select public.apply_list_rls('game_list_items');
 select public.apply_list_rls('game_reviews');
-select public.apply_list_rls('music_lists');
-select public.apply_list_rls('music_list_items');
 select public.apply_list_rls('music_reviews');
-select public.apply_list_rls('book_lists');
-select public.apply_list_rls('book_list_items');
 select public.apply_list_rls('book_reviews');
-select public.apply_list_rls('fashion_lists');
-select public.apply_list_rls('fashion_list_items');
 select public.apply_list_rls('fashion_reviews');
-select public.apply_list_rls('food_lists');
-select public.apply_list_rls('food_list_items');
 select public.apply_list_rls('food_reviews');
-select public.apply_list_rls('car_lists');
-select public.apply_list_rls('car_list_items');
 select public.apply_list_rls('car_reviews');
-select public.apply_list_rls('travel_lists');
-select public.apply_list_rls('travel_list_items');
 select public.apply_list_rls('travel_reviews');
 select public.apply_list_rls('travel_plans');
-select public.apply_list_rls('sports_lists');
-select public.apply_list_rls('sports_list_items');
-select public.apply_list_rls('user_favorite_teams');
 select public.apply_list_rls('list_tier_meta');
 select public.apply_list_rls('list_tier_ranks');
 
@@ -1057,26 +886,37 @@ create or replace function public.log_list_activity_iud()
 returns trigger language plpgsql as $$
 declare
   v_event_type text; v_media_type text; v_item_id text; v_actor_id uuid;
-  v_list_type text; v_list_id uuid; v_payload jsonb;
+  v_list_type text; v_list_id uuid; v_payload jsonb; v_list public.user_lists;
 begin
   v_event_type := case tg_op when 'INSERT' then 'list_add' when 'DELETE' then 'list_remove' else null end;
   if v_event_type is null then return coalesce(new, old); end if;
-  v_media_type := case tg_table_name
-    when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'
-    when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'
-    when 'book_list_items' then 'book' when 'music_list_items' then 'music'
-    when 'sports_list_items' then 'sports'
-    else null end;
   v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
-  v_item_id := case tg_table_name
-    when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')
-    when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')
-    when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')
-    when 'sports_list_items' then nullif(v_payload->>'team_id', '')
-    else null end;
-  v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
-  v_list_type := nullif(v_payload->>'list_type', '');
-  v_list_id := nullif(v_payload->>'list_id', '')::uuid;
+
+  if tg_table_name = 'list_items' then
+    v_item_id := nullif(v_payload->>'external_id', '');
+    v_list_id := nullif(v_payload->>'list_id', '')::uuid;
+    if v_list_id is not null then
+      select * into v_list from public.user_lists where id = v_list_id;
+      v_media_type := v_list.category::text;
+      v_list_type := v_list.type::text;
+      v_actor_id := v_list.user_id;
+    end if;
+  else
+    v_media_type := case tg_table_name
+      when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'
+      when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'
+      when 'book_list_items' then 'book' when 'music_list_items' then 'music'
+      else null end;
+    v_item_id := case tg_table_name
+      when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')
+      when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')
+      when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')
+      else null end;
+    v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
+    v_list_type := nullif(v_payload->>'list_type', '');
+    v_list_id := nullif(v_payload->>'list_id', '')::uuid;
+  end if;
+
   if v_media_type is null or v_item_id is null or v_actor_id is null then return coalesce(new, old); end if;
   insert into public.user_activity_feed (actor_id, event_type, media_type, item_id, list_type, list_id, metadata)
   values (v_actor_id, v_event_type, v_media_type, v_item_id, v_list_type, v_list_id,
@@ -1093,16 +933,25 @@ declare
 begin
   v_event_type := case tg_op when 'INSERT' then 'list_create' when 'DELETE' then 'list_delete' else null end;
   if v_event_type is null then return coalesce(new, old); end if;
-  v_media_type := case tg_table_name
-    when 'movie_lists' then 'movie' when 'tv_lists' then 'tv'
-    when 'anime_lists' then 'anime' when 'game_lists' then 'game'
-    when 'book_lists' then 'book' when 'music_lists' then 'music'
-    when 'sports_lists' then 'sports'
-    else null end;
   v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
-  v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
-  v_list_id := nullif(v_payload->>'id', '')::uuid;
-  v_list_title := nullif(trim(v_payload->>'title'), '');
+
+  if tg_table_name = 'user_lists' then
+    v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
+    v_list_id := nullif(v_payload->>'id', '')::uuid;
+    v_list_title := nullif(trim(v_payload->>'name'), '');
+    v_media_type := nullif(v_payload->>'category', '');
+  else
+    v_media_type := case tg_table_name
+      when 'movie_lists' then 'movie' when 'tv_lists' then 'tv'
+      when 'anime_lists' then 'anime' when 'game_lists' then 'game'
+      when 'book_lists' then 'book' when 'music_lists' then 'music'
+      else null end;
+    v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
+    v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
+    v_list_id := nullif(v_payload->>'id', '')::uuid;
+    v_list_title := nullif(trim(v_payload->>'title'), '');
+  end if;
+
   if v_media_type is null or v_actor_id is null or v_list_id is null then return coalesce(new, old); end if;
   insert into public.user_activity_feed (actor_id, event_type, media_type, list_id, metadata)
   values (v_actor_id, v_event_type, v_media_type, v_list_id,
@@ -1155,37 +1004,13 @@ begin
 end;
 $$;
 
--- List items triggers
-select ensure_activity_trigger('movie_list_items', 'trg_movie_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('movie_list_items', 'trg_movie_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('tv_list_items', 'trg_tv_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('tv_list_items', 'trg_tv_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('anime_list_items', 'trg_anime_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('anime_list_items', 'trg_anime_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('game_list_items', 'trg_game_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('game_list_items', 'trg_game_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('book_list_items', 'trg_book_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('book_list_items', 'trg_book_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('music_list_items', 'trg_music_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('music_list_items', 'trg_music_list_remove_activity', 'delete', 'public.log_list_activity_iud');
-select ensure_activity_trigger('sports_list_items', 'trg_sports_list_add_activity', 'insert', 'public.log_list_activity_iud');
-select ensure_activity_trigger('sports_list_items', 'trg_sports_list_remove_activity', 'delete', 'public.log_list_activity_iud');
+-- List items triggers (unified)
+select ensure_activity_trigger('list_items', 'trg_list_items_add_activity', 'insert', 'public.log_list_activity_iud');
+select ensure_activity_trigger('list_items', 'trg_list_items_remove_activity', 'delete', 'public.log_list_activity_iud');
 
--- Custom list triggers
-select ensure_activity_trigger('movie_lists', 'trg_movie_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('movie_lists', 'trg_movie_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('tv_lists', 'trg_tv_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('tv_lists', 'trg_tv_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('anime_lists', 'trg_anime_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('anime_lists', 'trg_anime_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('game_lists', 'trg_game_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('game_lists', 'trg_game_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('book_lists', 'trg_book_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('book_lists', 'trg_book_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('music_lists', 'trg_music_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('music_lists', 'trg_music_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('sports_lists', 'trg_sports_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
-select ensure_activity_trigger('sports_lists', 'trg_sports_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
+-- Custom list triggers (unified)
+select ensure_activity_trigger('user_lists', 'trg_user_lists_create_activity', 'insert', 'public.log_custom_list_activity_iud');
+select ensure_activity_trigger('user_lists', 'trg_user_lists_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 
 -- Review triggers
 select ensure_activity_trigger('movie_reviews', 'trg_movie_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
@@ -1209,6 +1034,18 @@ select ensure_activity_trigger('music_reviews', 'trg_music_review_delete_activit
 select ensure_activity_trigger('user_album_reviews', 'trg_album_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
 select ensure_activity_trigger('user_album_reviews', 'trg_album_review_edit_activity', 'update of rating, comment', 'public.log_media_review_activity_iud');
 select ensure_activity_trigger('user_album_reviews', 'trg_album_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('fashion_reviews', 'trg_fashion_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('fashion_reviews', 'trg_fashion_review_edit_activity', 'update of rating, review_text', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('fashion_reviews', 'trg_fashion_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('food_reviews', 'trg_food_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('food_reviews', 'trg_food_review_edit_activity', 'update of rating, review_text', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('food_reviews', 'trg_food_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('car_reviews', 'trg_car_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('car_reviews', 'trg_car_review_edit_activity', 'update of rating, review_text', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('car_reviews', 'trg_car_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('travel_reviews', 'trg_travel_review_add_activity', 'insert', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('travel_reviews', 'trg_travel_review_edit_activity', 'update of rating, comment', 'public.log_media_review_activity_iud');
+select ensure_activity_trigger('travel_reviews', 'trg_travel_review_delete_activity', 'delete', 'public.log_media_review_activity_iud');
 
 drop function if exists public.ensure_activity_trigger(text, text, text, text);
 
@@ -1226,15 +1063,10 @@ declare
   matches_owner boolean := false;
 begin
   if p_owner_id is null or safe_list_id = '' then return false; end if;
-  case safe_media_type
-    when 'movie' then select exists (select 1 from public.movie_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    when 'anime' then select exists (select 1 from public.anime_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    when 'tv' then select exists (select 1 from public.tv_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    when 'game' then select exists (select 1 from public.game_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    when 'book' then select exists (select 1 from public.book_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    when 'music' then select exists (select 1 from public.music_lists l where l.id::text = safe_list_id and l.user_id = p_owner_id) into matches_owner;
-    else return false;
-  end case;
+  select exists (
+    select 1 from public.user_lists l
+    where l.id::text = safe_list_id and l.user_id = p_owner_id
+  ) into matches_owner;
   return coalesce(matches_owner, false);
 end;
 $$;
@@ -1244,36 +1076,37 @@ returns table (id text, user_id uuid, title text, description text, icon text, c
 language plpgsql security definer set search_path = public as $$
 declare
   safe_media_type text := lower(trim(coalesce(p_media_type, '')));
-  list_table text; sql text;
+  cat_map text;
 begin
   if auth.uid() is null then return; end if;
-  case safe_media_type
-    when 'movie' then list_table := 'movie_lists';
-    when 'anime' then list_table := 'anime_lists';
-    when 'tv' then list_table := 'tv_lists';
-    when 'game' then list_table := 'game_lists';
-    when 'book' then list_table := 'book_lists';
-    when 'music' then list_table := 'music_lists';
-    when 'sports' then list_table := 'sports_lists';
-    else return;
-  end case;
-  if to_regclass(format('public.%s', list_table)) is null then return; end if;
-  sql := format($q$
+  cat_map := case safe_media_type
+    when 'movie' then 'movie' when 'anime' then 'anime'
+    when 'tv' then 'tv' when 'game' then 'game'
+    when 'book' then 'book' when 'music' then 'music'
+    when 'sports' then 'sport' when 'travel' then 'travel'
+    when 'fashion' then 'fashion' when 'food' then 'food'
+    when 'car' then 'car' else null end;
+  if cat_map is null then return; end if;
+
+  if to_regclass('public.user_lists') is null then return; end if;
+
+  return query
     with own_lists as (
-      select l.id::text as id, l.user_id, l.title, l.description, l.icon, l.created_at, l.updated_at,
+      select l.id::text as id, l.user_id, l.name as title, l.description, l.icon,
+             l.created_at, l.updated_at,
              false as is_collaborative, true as can_edit, l.user_id as list_owner_id
-      from public.%I l where l.user_id = auth.uid()
+      from public.user_lists l
+      where l.user_id = auth.uid() and l.category = cat_map::public.user_list_category
     ),
     shared_lists as (
-      select l.id::text as id, l.user_id, l.title, l.description, l.icon, l.created_at, l.updated_at,
+      select l.id::text as id, l.user_id, l.name as title, l.description, l.icon,
+             l.created_at, l.updated_at,
              true as is_collaborative, coalesce(lc.can_edit, false) as can_edit, lc.list_owner_id
-      from public.%I l
-      join public.list_collaborators lc on lc.media_type = %L and lc.list_id = l.id::text
-      where lc.collaborator_id = auth.uid()
+      from public.user_lists l
+      join public.list_collaborators lc on lc.media_type = safe_media_type and lc.list_id = l.id::text
+      where lc.collaborator_id = auth.uid() and l.category = cat_map::public.user_list_category
     )
-    select * from own_lists union all select * from shared_lists order by created_at desc nulls last
-  $q$, list_table, list_table, safe_media_type);
-  return query execute sql;
+    select * from own_lists union all select * from shared_lists order by created_at desc nulls last;
 end;
 $$;
 
