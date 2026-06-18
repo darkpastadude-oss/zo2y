@@ -203,10 +203,7 @@
     if(!authBootstrapReady()) await waitForAuthBootstrap(1200); await attemptSessionRecovery(c); u=await tr(); if(u?.id){syncBridgeCurrentUser(u);return u} return null;
   }
   function customListsEnabled() {
-    const mt=getMediaType(); if(!mt) return false;
-    if(!window.ListUtils||typeof ListUtils.getListConfig!=='function') return true;
-    const cfg=ListUtils.getListConfig(mt); if(!cfg) return false; if(cfg.disableCustomLists) return false; if(!cfg.listTable||!cfg.itemsTable) return false;
-    return true;
+    return false; // Custom lists are disabled
   }
   function getCardItem(card) {
     if(!card) return null;

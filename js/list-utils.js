@@ -1398,39 +1398,7 @@
   }
 
   async function createCustomList(client, userId, type, payload) {
-    if (!client || !userId) return null;
-    setTierSyncContext(client, userId);
-    const normalizedType = String(type || '').toLowerCase();
-    const category = getCategoryName(type);
-    const listKind = normalizeListKindValue(payload?.listKind, 'standard');
-    const maxRank = normalizeTierMaxRank(payload?.maxRank);
-    const insertPayload = {
-      user_id: userId,
-      name: String(payload.title || 'Untitled').trim(),
-      type: 'custom',
-      category: category,
-      icon: payload.icon || 'fas fa-list',
-      description: payload.description || `My ${payload.title || 'Untitled'} list`
-    };
-    let data = null;
-    let error = null;
-
-    const insertOnce = async (nextPayload) => client
-      .from('user_lists')
-      .insert(nextPayload)
-      .select('*')
-      .single();
-
-    ({ data, error } = await insertOnce(insertPayload));
-    if (error && isListTableMissingError(error, 'user_lists')) {
-      missingListTables.add('user_lists');
-      return null;
-    }
-    if (error || !data) return null;
-
-    const mapped = mapListRow(data);
-    setListMeta(normalizedType, mapped.id, { listKind, maxRank }, { client, userId });
-    return applyListMeta(normalizedType, mapped);
+    return null; // Custom lists are disabled
   }
 
   async function renameCustomList(client, userId, type, listId, title) {

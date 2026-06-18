@@ -4198,10 +4198,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: insertError } = await client
               .from('list_items')
               .insert({
-                user_id: activeUser.id,
                 list_id: listId,
                 external_type: mediaType,
                 external_id: String(itemId),
+                external_source: externalSrc,
                 metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
               });
             if (insertError && String(insertError.code || '') !== '23505') {

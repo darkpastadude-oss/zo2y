@@ -986,18 +986,18 @@
                 if (logoutBtn) logoutBtn.style.display = 'block';
                 if (viewingIndicator) viewingIndicator.style.display = 'none';
                 if (mobileViewingIndicator) mobileViewingIndicator.style.display = 'none';
-                if (createMovieListBtn) createMovieListBtn.style.display = 'inline-flex';
-                if (createTvListBtn) createTvListBtn.style.display = 'inline-flex';
-                if (createAnimeListBtn) createAnimeListBtn.style.display = 'inline-flex';
-                if (createGameListBtn) createGameListBtn.style.display = 'inline-flex';
-                if (createBookListBtn) createBookListBtn.style.display = 'inline-flex';
-                if (createMusicListBtn) createMusicListBtn.style.display = 'inline-flex';
-                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'inline-flex';
-                if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'inline-flex';
-                if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'inline-flex';
-                if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'inline-flex';
-                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'inline-flex';
-                if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'inline-flex';
+                if (createMovieListBtn) createMovieListBtn.style.display = 'none';
+                if (createTvListBtn) createTvListBtn.style.display = 'none';
+                if (createAnimeListBtn) createAnimeListBtn.style.display = 'none';
+                if (createGameListBtn) createGameListBtn.style.display = 'none';
+                if (createBookListBtn) createBookListBtn.style.display = 'none';
+                if (createMusicListBtn) createMusicListBtn.style.display = 'none';
+                if (mobileCreateMovieListBtn) mobileCreateMovieListBtn.style.display = 'none';
+                if (mobileCreateTvListBtn) mobileCreateTvListBtn.style.display = 'none';
+                if (mobileCreateAnimeListBtn) mobileCreateAnimeListBtn.style.display = 'none';
+                if (mobileCreateGameListBtn) mobileCreateGameListBtn.style.display = 'none';
+                if (mobileCreateBookListBtn) mobileCreateBookListBtn.style.display = 'none';
+                if (mobileCreateMusicListBtn) mobileCreateMusicListBtn.style.display = 'none';
                 document.body.classList.remove('mobile-viewing-other');
 
                 // Load profile - use cached if available
@@ -3404,82 +3404,7 @@
             }
 
             async function loadCollaborativeCustomLists(contentType, ownerUserId) {
-                const table = CUSTOM_LIST_TABLES[contentType];
-                if (!table) return [];
-                const safeOwnerId = String(ownerUserId || '').trim();
-                if (!safeOwnerId) return [];
-
-                const { data: ownedLists, error: ownedError } = await supabase
-                    .from(table)
-                    .select('*')
-                    .eq('user_id', safeOwnerId)
-                    .eq('category', contentType)
-                    .eq('type', 'custom')
-                    .order('created_at', { ascending: false });
-                if (ownedError) throw ownedError;
-
-                const merged = [];
-                const byId = new Map();
-                (ownedLists || []).forEach((list) => {
-                    const safeId = String(list?.id || '').trim();
-                    if (!safeId || byId.has(safeId)) return;
-                    const row = { ...list, type: 'custom', __isCollaborative: false, title: list.name || '' };
-                    byId.set(safeId, row);
-                    merged.push(row);
-                });
-
-                const isSelfView = isViewingOwnProfile && safeOwnerId === String(currentUser?.id || '').trim();
-                const collaboratorMap = new Map();
-
-                if (isSelfView) {
-                    const { data: collaboratorRows, error: collaboratorError } = await supabase
-                        .from(LIST_COLLAB_TABLE)
-                        .select('media_type, list_id, list_owner_id, can_edit')
-                        .eq('media_type', contentType)
-                        .eq('collaborator_id', safeOwnerId);
-
-                    if (collaboratorError) {
-                        if (String(collaboratorError?.code || '').trim() !== '42P01') {
-                            console.error('Error loading collaborative lists:', collaboratorError);
-                        } else if (!hasWarnedMissingCollaborativeTable) {
-                            hasWarnedMissingCollaborativeTable = true;
-                            showToast('Collaborative lists require the new SQL migration.', 'warning');
-                        }
-                    } else {
-                        (collaboratorRows || []).forEach((row) => {
-                            const safeListId = String(row?.list_id || '').trim();
-                            if (!safeListId) return;
-                            collaboratorMap.set(safeListId, row);
-                        });
-
-                        const sharedIds = [...collaboratorMap.keys()].filter((id) => !byId.has(id));
-                        if (sharedIds.length) {
-                            const { data: sharedLists, error: sharedError } = await supabase
-                                .from(table)
-                                .select('*')
-                                .in('id', sharedIds);
-
-                            if (sharedError) {
-                                console.error('Error loading shared lists:', sharedError);
-                            } else {
-                                (sharedLists || []).forEach((list) => {
-                                    const safeId = String(list?.id || '').trim();
-                                    if (!safeId || byId.has(safeId)) return;
-                                    const row = {
-                                        ...list,
-                                        type: 'custom',
-                                        __isCollaborative: true
-                                    };
-                                    byId.set(safeId, row);
-                                    merged.push(row);
-                                });
-                            }
-                        }
-                    }
-                }
-
-                setCollaborativeAccessForLists(contentType, merged, collaboratorMap);
-                return merged;
+                return []; // Custom lists are disabled
             }
 
             async function fetchCustomListAccessRecord(contentType, listId) {
