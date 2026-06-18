@@ -3103,7 +3103,7 @@
                 isEditingList = true;
                 editingListId = listId;
                 
-                document.getElementById('listName').value = list.title;
+                document.getElementById('listName').value = list.name || list.title || '';
                 document.getElementById('listDescription').value = list.description || '';
                 document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
                 
@@ -3414,6 +3414,7 @@
                     .select('*')
                     .eq('user_id', safeOwnerId)
                     .eq('category', contentType)
+                    .eq('type', 'custom')
                     .order('created_at', { ascending: false });
                 if (ownedError) throw ownedError;
 
@@ -3705,28 +3706,34 @@
                 };
 
                 const queryDefaultRows = async () => {
+                    const { data: userLists } = await supabase
+                        .from('user_lists')
+                        .select('id, type')
+                        .eq('user_id', safeOwnerId)
+                        .eq('category', contentType)
+                        .neq('type', 'custom');
+
+                    const listIds = (userLists || []).map(l => l.id);
+                    if (!listIds.length) return { data: [] };
+
+                    const listTypeMap = {};
+                    (userLists || []).forEach(l => { listTypeMap[l.id] = l.type; });
+
                     let result = await supabase
                         .from(table)
-                        .select(`${itemField}, list_type, list_id`)
-                        .eq('user_id', safeOwnerId).eq('external_type', contentType);
+                        .select(`${itemField}, list_id`)
+                        .in('list_id', listIds)
+                        .eq('external_type', contentType);
 
-                    if (result?.error && isColumnMissingError(result.error, 'list_id')) {
-                        result = await supabase
-                            .from(table)
-                            .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
-                    }
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('external_id, list_type, list_id')
-                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
-                        if (result?.error && isColumnMissingError(result.error, 'list_id')) {
-                            result = await supabase
-                                .from(table)
-                                .select('external_id, list_type')
-                                .eq('user_id', safeOwnerId).eq('external_type', contentType);
-                        }
+                            .select(`external_id, list_id`)
+                            .in('list_id', listIds)
+                            .eq('external_type', contentType);
+                    }
+                    if (result?.data) {
+                        result.data = result.data.map(r => ({ ...r, list_type: listTypeMap[r.list_id] || '' }));
                     }
                     return result;
                 };
@@ -3735,26 +3742,14 @@
                     if (!safeCustomIds.length) return { data: [] };
                     let result = await supabase
                         .from(table)
-                        .select(`${itemField}, list_type, list_id`)
+                        .select(`${itemField}, list_id`)
                         .in('list_id', safeCustomIds).eq('external_type', contentType);
 
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
-                            .select('external_id, list_type, list_id')
+                            .select('external_id, list_id')
                             .in('list_id', safeCustomIds).eq('external_type', contentType);
-                    }
-                    if (result?.error && isColumnMissingError(result.error, 'list_id')) {
-                        result = await supabase
-                            .from(table)
-                            .select(`${itemField}, list_type`)
-                            .eq('user_id', safeOwnerId).eq('external_type', contentType);
-                        if (result?.error && isColumnMissingError(result.error, itemField)) {
-                            result = await supabase
-                                .from(table)
-                                .select('external_id, list_type')
-                                .eq('user_id', safeOwnerId).eq('external_type', contentType);
-                        }
                     }
                     return result;
                 };
@@ -4701,7 +4696,7 @@
                 if (mobileGrid) mobileGrid.innerHTML = loadingHtml;
 
                 const [listsRes, itemsRes] = await Promise.all([
-                    supabase.from('user_lists').eq('category', 'movie').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+                    supabase.from('user_lists').eq('category', 'movie').select('*').eq('user_id', userId).eq('type', 'custom').order('created_at', { ascending: false }),
                     supabase.from('list_items').eq('external_type', 'movie').select('external_id, list_type, list_id').eq('user_id', userId)
                 ]);
 
@@ -4728,7 +4723,7 @@
 
                 const allLists = [
                     ...defaultLists,
-                    ...customLists.map(l => ({ id: l.id, title: l.title, icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' }))
+                    ...customLists.map(l => ({ id: l.id, title: l.name || '', icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' }))
                 ];
 
                 const listMovieMap = new Map();
@@ -5141,7 +5136,7 @@
                 return TierListMeta.detect(type, list, itemsCount);
             }
             function getCollectionTitleWithKind(type, list, listType) {
-                const baseTitle = String(list?.title || '');
+                const baseTitle = String(list?.name || list?.title || '');
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;

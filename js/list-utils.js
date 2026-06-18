@@ -1168,6 +1168,7 @@
         .select('*')
         .eq('user_id', userId)
         .eq('category', mediaType)
+        .eq('type', 'custom')
         .order('created_at', { ascending: false });
       if (error && isListTableMissingError(error, 'user_lists')) {
         missingListTables.add('user_lists');
