@@ -105,72 +105,7 @@
     .btn-primary { border: 0; color: #0b1633; background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%); }
     .btn:hover { border-color: var(--accent); color: var(--accent); }
     .btn-primary:hover { color: #0b1633; }
-    .menu-wrapper { position: relative; }
-    .menu-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 11px;
-      border: 1px solid var(--border);
-      background: var(--card-2);
-      color: var(--white);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: all 0.2s ease;
-    }
-    .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .list-menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      width: 220px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #0f2547;
-      box-shadow: 0 14px 32px rgba(0,0,0,0.35);
-      padding: 10px;
-      display: none;
-      z-index: 130;
-    }
-    .list-menu.open { display: block; }
-    .list-menu-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(6, 12, 28, 0.55);
-      z-index: 120;
-      display: none;
-    }
-    .list-menu-backdrop.active { display: block; }
-    .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-    .list-action {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      transition: all 0.2s ease;
-      margin-bottom: 6px;
-    }
-    .list-action:last-child { margin-bottom: 0; }
-    .list-action:hover { border-color: var(--accent); color: var(--accent); }
-    .list-action.active {
-      background: rgba(245,158,11,0.16);
-      border-color: rgba(245,158,11,0.82);
-      color: #fff2d6;
-    }
-    .list-action[aria-busy="true"] {
-      opacity: 0.72;
-      pointer-events: none;
-    }
+
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .error { color: #fecaca; }
     .album-tracks {
@@ -460,15 +395,7 @@
         </div>
         <div class="actions">
           <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
-          <div class="menu-wrapper">
-            <button class="menu-btn" id="songMenuBtn" type="button" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu" id="songListMenu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="listened"><span><i class="fas fa-check"></i> Listened</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="listenlist"><span><i class="fas fa-bookmark"></i> Listenlist</span><span class="list-action-state">Add</span></button>
-            </div>
-          </div>
+          <button class="btn btn-secondary" id="addToListBtn" type="button"><i class="fas fa-bookmark"></i> Add to list</button>
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
         <audio id="previewPlayer" preload="none" class="hidden"></audio>
@@ -507,7 +434,6 @@
     const albumPreviewState = { btn: null };
     const previewPlayerState = { initialized: false };
     const trackListStatus = { favorites: false, listened: false, listenlist: false };
-    const pendingListOps = new Set();
 
     function qs(id) { return document.getElementById(id); }
     function escapeHtml(value) {
@@ -823,30 +749,11 @@
       followersEl.innerHTML = `<i class="fa-solid fa-users"></i> Followers ${Number(artist.followers || 0).toLocaleString()}`;
     }
 
-    function updateListMenuUi() {
-      const menu = qs('songListMenu');
-      if (!menu) return;
-      const trackId = String(track?.id || '').trim();
-      menu.querySelectorAll('.list-action[data-list]').forEach((btn) => {
-        const listType = String(btn.getAttribute('data-list') || '').trim().toLowerCase();
-        if (!(listType in trackListStatus)) return;
-        const state = btn.querySelector('.list-action-state');
-        const isSaved = !!trackListStatus[listType];
-        const isPending = pendingListOps.has(`${trackId}:${listType}`);
-        btn.classList.toggle('active', isSaved);
-        btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
-        btn.disabled = isPending;
-        btn.title = isSaved ? `Remove from ${listType}` : `Add to ${listType}`;
-        if (state) state.textContent = isPending ? '...' : (isSaved ? 'Saved' : 'Add');
-      });
-    }
-
     async function loadTrackListStatus() {
       trackListStatus.favorites = false;
       trackListStatus.listened = false;
       trackListStatus.listenlist = false;
       if (!track?.id || !currentUser?.id) {
-        updateListMenuUi();
         return;
       }
       const client = await ensureSupabase();
@@ -857,7 +764,6 @@
         .eq('user_id', currentUser.id)
         .eq('category', 'music');
       if (!lists || !lists.length) {
-        updateListMenuUi();
         return;
       }
       const listIds = lists.map(l => l.id);
@@ -874,87 +780,9 @@
           trackListStatus[type] = true;
         }
       });
-      updateListMenuUi();
     }
 
-    async function toggleList(listType) {
-      if (!track?.id) return;
-      if (!(listType in trackListStatus)) return;
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id) {
-        window.location.href = 'login.html';
-        return;
-      }
-      const trackId = String(track.id);
-      const opKey = `${trackId}:${listType}`;
-      if (pendingListOps.has(opKey)) return;
-
-      const previousSaved = !!trackListStatus[listType];
-      const nextSaved = !previousSaved;
-      pendingListOps.add(opKey);
-      trackListStatus[listType] = nextSaved;
-      updateListMenuUi();
-
-      try {
-        if (nextSaved) {
-          await client.from('tracks').upsert({
-            id: trackId,
-            name: track.name || '',
-            artists: Array.isArray(track.artists) ? track.artists.join(', ') : '',
-            album_name: track.album?.name || '',
-            image_url: track.image || '',
-            preview_url: track.preview_url || '',
-            popularity: Number(track.popularity || 0),
-            duration_ms: Number(track.duration_ms || 0),
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
-          let listId = null;
-          const { data: list } = await client
-            .from('user_lists')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('category', 'music')
-            .eq('type', listType)
-            .maybeSingle();
-
-          if (list?.id) {
-            listId = list.id;
-          } else if (window.ListUtils) {
-            listId = await ListUtils.ensureDefaultList(client, currentUser.id, 'music', listType);
-          }
-
-          if (!listId) throw new Error('List not found');
-
-          if (nextSaved) {
-            const { error } = await client.from('list_items').insert({
-              list_id: listId,
-              external_id: String(trackId),
-              external_source: 'spotify',
-              external_type: 'music'
-            });
-            if (error && String(error.code || '') !== '23505') throw error;
-            qs('songStatus').textContent = 'Added to list.';
-            qs('songStatus').classList.remove('error');
-          } else {
-            const { error } = await client
-              .from('list_items')
-              .delete()
-              .eq('list_id', listId)
-              .eq('external_id', String(trackId));
-            if (error) throw error;
-            qs('songStatus').textContent = 'Removed from list.';
-            qs('songStatus').classList.remove('error');
-          }
-      } catch (_error) {
-        trackListStatus[listType] = previousSaved;
-        qs('songStatus').textContent = 'Could not update list.';
-        qs('songStatus').classList.add('error');
-      } finally {
-        pendingListOps.delete(opKey);
-        updateListMenuUi();
-      }
-    }
+    // List management handled by index-list-menu-adapter.js via bindUnifiedListMenu
 
     function getAlbumTrackStatus(trackId) {
       const id = String(trackId || '').trim();
@@ -1176,7 +1004,6 @@
       if (artistPanel) artistPanel.style.display = 'none';
       const menuBtn = qs('songMenuBtn');
       if (menuBtn) menuBtn.style.display = 'none';
-      closeAllListMenus();
       const listenBtn = qs('listenBtn');
       if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-list"></i> Album Tracks';
       const audio = qs('previewPlayer');
@@ -1239,68 +1066,9 @@
       });
     }
 
-    function ensureListMenuBackdrop() {
-      let backdrop = document.getElementById('songListMenuBackdrop');
-      if (!backdrop) {
-        backdrop = document.createElement('div');
-        backdrop.id = 'songListMenuBackdrop';
-        backdrop.className = 'list-menu-backdrop';
-        backdrop.addEventListener('click', closeAllListMenus);
-        document.body.appendChild(backdrop);
-      }
-      return backdrop;
-    }
 
-    function showListMenuBackdrop() {
-      const backdrop = ensureListMenuBackdrop();
-      backdrop.classList.add('active');
-    }
 
-    function hideListMenuBackdrop() {
-      const backdrop = document.getElementById('songListMenuBackdrop');
-      if (backdrop) backdrop.classList.remove('active');
-    }
-
-    function closeAllListMenus() {
-      const menu = qs('songListMenu');
-      if (menu) menu.classList.remove('open');
-      hideListMenuBackdrop();
-    }
-
-    function wireListMenu() {
-      const menuBtn = qs('songMenuBtn');
-      const menu = qs('songListMenu');
-      if (!menuBtn || !menu) return;
-
-      menuBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const wasOpen = menu.classList.contains('open');
-        closeAllListMenus();
-        if (!wasOpen) {
-          menu.classList.add('open');
-          showListMenuBackdrop();
-        }
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!event.target.closest('.menu-wrapper') && !event.target.closest('.list-menu')) {
-          closeAllListMenus();
-        }
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeAllListMenus();
-      });
-
-      menu.querySelectorAll('.list-action[data-list]').forEach((btn) => {
-        btn.addEventListener('click', async (event) => {
-          event.stopPropagation();
-          const listType = String(btn.getAttribute('data-list') || '').trim().toLowerCase();
-          await toggleList(listType);
-          closeAllListMenus();
-        });
-      });
-    }
+    // List management handled by index-list-menu-adapter.js via bindUnifiedListMenu
 
     async function initSongPage() {
       await loadAuth();
@@ -1366,6 +1134,29 @@
       playPreviewSource(track.preview_url);
     });
 
+    function bindUnifiedListMenu() {
+      const menuBtn = document.getElementById('addToListBtn');
+      if (!menuBtn || !window.initIndexStyleListMenu) return;
+
+      window.initIndexStyleListMenu({
+        mediaType: 'music',
+        itemIdAttr: 'data-item-id',
+        getItemFromCard: () => ({
+          mediaType: 'music',
+          itemId: String(track?.id || ''),
+          title: String(document.getElementById('songTitle')?.textContent || 'Song').trim(),
+          subtitle: String(document.getElementById('songArtist')?.textContent || '').trim(),
+          image: String(document.getElementById('songCover')?.getAttribute('src') || '').trim()
+        })
+      });
+
+      menuBtn.addEventListener('click', () => {
+        if (window.openIndexStyleListMenu) {
+          window.openIndexStyleListMenu(menuBtn);
+        }
+      });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (window.initUniversalSearch) {
         const initSearch = () => window.initUniversalSearch({ input: '#globalSearch', fallbackRoute: 'music.html' });
@@ -1377,7 +1168,7 @@
       }
       initPreviewPlayerUi();
       initAlbumTrackKebabMenu();
-      wireListMenu();
+      bindUnifiedListMenu();
       initSongPage();
     });
   </script>

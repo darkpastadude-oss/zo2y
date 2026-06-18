@@ -1621,12 +1621,6 @@
                 const defs = [
                     { table: 'follows', filter: `followed_id=eq.${safeId}` },
                     { table: 'follows', filter: `follower_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'movie', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'tv', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'anime', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'game', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'book', filter: `user_id=eq.${safeId}` },
-                    { table: 'list_items', external_type: 'music', filter: `user_id=eq.${safeId}` },
                     { table: 'user_lists', category: 'movie', filter: `user_id=eq.${safeId}` },
                     { table: 'user_lists', category: 'tv', filter: `user_id=eq.${safeId}` },
                     { table: 'user_lists', category: 'anime', filter: `user_id=eq.${safeId}` },
@@ -1742,12 +1736,12 @@
                         bookListsCount,
                         musicListsCount
                     ] = await Promise.all([
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'movie') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'tv') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'anime') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'game') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'book') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'music') }),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'movie'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'tv'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'anime'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'game'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'book'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'music'});return e?0:data?.length||0;}catch(_){return 0;}})(),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'movie') }),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'tv') }),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'anime') }),
@@ -1811,12 +1805,12 @@
                             .from('follows')
                             .select('*', { count: 'exact', head: true })
                             .eq('follower_id', targetId),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'movie') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'tv') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'anime') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'game') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'book') }),
-                        safeCountByUser('list_items', targetId, { extraFilter: q => q.eq('external_type', 'music') }),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'movie'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'tv'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'anime'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'game'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'book'});return e?0:data?.length||0;}catch(_){return 0;}})(),
+                        (async()=>{try{const{data,e}=await supabase.rpc('get_all_user_items',{p_user_id:targetId,p_category:'music'});return e?0:data?.length||0;}catch(_){return 0;}})(),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'movie') }),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'tv') }),
                         safeCountByUser('user_lists', targetId, { extraFilter: q => q.eq('category', 'anime') }),
@@ -2536,25 +2530,35 @@
                         ];
 
                         const listAddTasks = listItemSources.map(async (source) => {
-                            const rows = await this.fetchRowsWithCreatedAtFallback(
-                                source.table,
-                                `id, user_id, list_type, list_id, ${source.itemField}, created_at`,
-                                `id, user_id, list_type, list_id, ${source.itemField}`,
-                                actorIds,
-                                24
-                            );
-                            return rows.map((row) => ({
+                            const { data: userLists } = await supabase
+                                .from('user_lists')
+                                .select('id, user_id, type')
+                                .in('user_id', actorIds)
+                                .eq('category', source.mediaType);
+                            const listIds = (userLists || []).filter(l => l.id).map(l => l.id);
+                            if (!listIds.length) return [];
+                            const ownerByListId = {};
+                            const typeByListId = {};
+                            (userLists || []).forEach(l => { if (l.id) { ownerByListId[l.id] = l.user_id; typeByListId[l.id] = l.type; } });
+                            const { data, error } = await supabase
+                                .from('list_items')
+                                .select('id, list_id, external_id, added_at')
+                                .in('list_id', listIds)
+                                .order('added_at', { ascending: false })
+                                .limit(24);
+                            if (error) return [];
+                            return (data || []).map(row => ({
                                 id: `fallback-${source.mediaType}-list-add-${row.id}`,
-                                actor_id: row.user_id,
+                                actor_id: ownerByListId[row.list_id] || '',
                                 event_type: 'list_add',
                                 media_type: source.mediaType,
-                                item_id: row[source.itemField] != null ? String(row[source.itemField]) : '',
-                                list_type: row.list_type || null,
+                                item_id: row.external_id != null ? String(row.external_id) : '',
+                                list_type: typeByListId[row.list_id] || null,
                                 list_id: row.list_id != null ? String(row.list_id) : null,
                                 rating: null,
                                 review_text: null,
-                                metadata: { source_table: source.table, fallback: true },
-                                created_at: row.created_at || null
+                                metadata: { source_table: 'list_items', fallback: true },
+                                created_at: row.added_at || null
                             }));
                         });
 
@@ -3647,15 +3651,13 @@
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_id`)
-                        .in('list_id', listIds)
-                        .eq('external_type', contentType);
+                        .in('list_id', listIds);
 
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
                             .select(`external_id, list_id`)
-                            .in('list_id', listIds)
-                            .eq('external_type', contentType);
+                            .in('list_id', listIds);
                     }
                     if (result?.data) {
                         result.data = result.data.map(r => ({ ...r, list_type: listTypeMap[r.list_id] || '' }));
@@ -3668,13 +3670,13 @@
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_id`)
-                        .in('list_id', safeCustomIds).eq('external_type', contentType);
+                        .in('list_id', safeCustomIds);
 
                     if (result?.error && isColumnMissingError(result.error, itemField)) {
                         result = await supabase
                             .from(table)
                             .select('external_id, list_id')
-                            .in('list_id', safeCustomIds).eq('external_type', contentType);
+                            .in('list_id', safeCustomIds);
                     }
                     return result;
                 };
@@ -3723,8 +3725,7 @@
                     return await supabase
                         .from(table)
                         .select(selectField)
-                        .eq('list_id', actualListId)
-                        .eq('external_type', contentType);
+                        .eq('list_id', actualListId);
                 };
 
                 let result = await runQuery(itemField);
@@ -4622,7 +4623,7 @@
 
                 const [listsRes, itemsRes] = await Promise.all([
                     supabase.from('user_lists').eq('category', 'movie').select('*').eq('user_id', userId).eq('type', 'custom').order('created_at', { ascending: false }),
-                    supabase.from('list_items').eq('external_type', 'movie').select('external_id, list_type, list_id').eq('user_id', userId)
+                    supabase.rpc('get_all_user_items', { p_user_id: userId, p_category: 'movie' }).select('external_id, list_type, list_id')
                 ]);
 
                 if (listsRes.error || itemsRes.error) {
@@ -4859,15 +4860,23 @@
                 }
                 const renderToken = ++renderMoviesToken;
                 if (listType === 'default') {
-                    await supabase
-                        .from('list_items').eq('external_type', 'movie')
-                        .delete()
+                    const { data: dl } = await supabase
+                        .from('user_lists')
+                        .select('id')
                         .eq('user_id', userId)
-                        .eq('external_id', movieId)
-                        .eq('list_type', listId);
+                        .eq('category', 'movie')
+                        .eq('type', listId)
+                        .maybeSingle();
+                    if (dl) {
+                        await supabase
+                            .from('list_items')
+                            .delete()
+                            .eq('external_id', movieId)
+                            .eq('list_id', dl.id);
+                    }
                 } else {
                     await supabase
-                        .from('list_items').eq('external_type', 'movie')
+                        .from('list_items')
                         .delete()
                         .eq('external_id', movieId)
                         .eq('list_id', listId);
@@ -10000,7 +10009,7 @@
                 showConfirmModal('Delete List', `Delete this ${type} list? This cannot be undone.`, async function() {
                     try {
                         const userId = currentUser.id;
-                        await supabase.from(itemTable).delete().eq('user_id', userId).eq('list_id', listId);
+                        await supabase.from(itemTable).delete().eq('list_id', listId);
                         const { error } = await supabase.from(listTable).delete().eq('id', listId).eq('user_id', userId);
                         if (error) throw error;
                         hideDetailByType(type);
@@ -10117,10 +10126,19 @@
                     const itemTable = MEDIA_ITEM_TABLES[type];
                     const itemField = MEDIA_ITEM_FIELDS[type];
                     if (itemTable && itemField) {
-                        const query = supabase.from(itemTable).delete();
-                        const { error } = listType === 'default'
-                            ? await query.eq('user_id', userId).eq(itemField, itemId).eq('list_type', collectionId)
-                            : await query.eq(itemField, itemId).eq('list_id', collectionId);
+                        let { error } = listType === 'default'
+                            ? await (async () => {
+                                const { data: dl } = await supabase
+                                    .from('user_lists')
+                                    .select('id')
+                                    .eq('user_id', userId)
+                                    .eq('category', type)
+                                    .eq('type', collectionId)
+                                    .maybeSingle();
+                                if (!dl) return { error: new Error('List not found') };
+                                return supabase.from(itemTable).delete().eq(itemField, itemId).eq('list_id', dl.id);
+                            })()
+                            : await supabase.from(itemTable).delete().eq(itemField, itemId).eq('list_id', collectionId);
                         if (error) throw error;
                     }
 
@@ -10170,6 +10188,18 @@
                         return;
                     }
 
+                    let targetListId = collectionId;
+                    if (listType === 'default') {
+                        const { data: dl } = await supabase
+                            .from('user_lists')
+                            .select('id')
+                            .eq('user_id', userId)
+                            .eq('category', type)
+                            .eq('type', collectionId)
+                            .maybeSingle();
+                        if (dl) targetListId = dl.id;
+                    }
+
                     if (removableNode instanceof HTMLElement) {
                         const previousDisplay = removableNode.style.display;
                         const previousOpacity = removableNode.style.opacity;
@@ -10191,7 +10221,7 @@
                         .from(itemTable)
                         .select('id')
                         .eq(itemField, itemId)
-                        .eq(listType === 'default' ? 'user_id' : 'list_id', collectionId)
+                        .eq('list_id', targetListId)
                         .maybeSingle();
                     
                     if (existing?.id) {
@@ -10200,9 +10230,7 @@
                         return;
                     }
 
-                    const insertPayload = listType === 'default'
-                        ? { user_id: userId, [itemField]: itemId, list_id: collectionId, external_type: type }
-                        : { [itemField]: itemId, list_id: collectionId, external_type: type };
+                    const insertPayload = { list_id: targetListId, external_id: itemId, external_source: type };
 
                     const { error } = await supabase
                         .from(itemTable)

@@ -1,11 +1,17 @@
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
-const VALID_MEDIA_TYPES = new Set([
+const VALID_CATEGORIES = new Set([
   "movie", "tv", "anime", "game", "book", "music",
-  "fashion", "food", "travel", "car", "restaurant"
+  "fashion", "food", "travel", "car", "sport"
 ]);
 
-const VALID_DEFAULT_LIST_TYPES = new Set(["favorites", "watchlist", "watched", "owned", "wishlist", "tried", "want_to_try", "visited", "bucketlist"]);
+const VALID_LIST_TYPES = new Set(["favorites", "completed", "watchlist", "custom"]);
+
+const EXTERNAL_SOURCES = {
+  movie: "tmdb", tv: "tmdb", anime: "tmdb", game: "igdb",
+  book: "openlibrary", music: "spotify", travel: "local_db",
+  fashion: "local_db", food: "local_db", car: "local_db", sport: "sportsdb"
+};
 
 function parsePath(query) {
   const raw = String(query?.path || "").split("/").filter(Boolean);
@@ -18,15 +24,7 @@ function jsonResponse(res, status, body) {
   return res.status(status).json(body);
 }
 
-async function getSupabase(req) {
-  const admin = getSupabaseAdminClient();
-  // For user-scoped queries we need the authenticated user context.
-  // We use the service-role client and filter by user_id for RPC calls.
-  return admin;
-}
-
 async function resolveUserId(req) {
-  // Extract from auth header or session
   const authHeader = String(req.headers["authorization"] || "").trim();
   if (!authHeader.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7);
@@ -40,91 +38,76 @@ async function resolveUserId(req) {
   }
 }
 
-/**
- * GET /api/lists
- * Query params: media_type (required), type (optional filter)
- * Returns all lists for a user in a given media type
- */
+async function getAdmin() {
+  return getSupabaseAdminClient();
+}
+
+// ============================================================================
+// GET /api/lists?category=X
+// Returns all lists (default + custom) for a user in a category
+// ============================================================================
+
 async function handleGetLists(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
-  const mediaType = String(req.query?.media_type || req.query?.category || "").toLowerCase().trim();
-  if (!mediaType || !VALID_MEDIA_TYPES.has(mediaType)) {
-    return jsonResponse(res, 400, { success: false, message: "Invalid or missing media_type" });
+  const category = String(req.query?.category || "").toLowerCase().trim();
+  if (!category || !VALID_CATEGORIES.has(category)) {
+    return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
 
-  const listType = String(req.query?.type || "").toLowerCase().trim();
-  const admin = await getSupabase(req);
-
+  const admin = await getAdmin();
   try {
-    const { data, error } = await admin
-      .from("user_lists")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("category", mediaType)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
-    let lists = data || [];
-    if (listType && VALID_DEFAULT_LIST_TYPES.has(listType)) {
-      // For default list types, we need to query user_default_lists
-      const { data: defaultLists } = await admin
-        .from("user_lists")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("category", mediaType)
-        .eq("type", listType);
-      lists = defaultLists || [];
-    }
-
-    return jsonResponse(res, 200, { success: true, lists });
+    const { data, error } = await admin.rpc("get_user_lists", {
+      p_user_id: userId,
+      p_category: category
+    });
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
+    return jsonResponse(res, 200, { success: true, lists: data || [] });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-/**
- * POST /api/lists
- * Body: { media_type, title, icon?, description? }
- * Creates a new custom list
- */
+// ============================================================================
+// POST /api/lists
+// Create a custom list
+// Body: { category, name, icon?, description? }
+// ============================================================================
+
 async function handleCreateList(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const body = req.body || {};
-  const mediaType = String(body.media_type || body.category || "").toLowerCase().trim();
-  const title = String(body.title || body.name || "").trim();
+  const category = String(body.category || "").toLowerCase().trim();
+  const name = String(body.name || "").trim();
 
-  if (!mediaType || !VALID_MEDIA_TYPES.has(mediaType)) {
-    return jsonResponse(res, 400, { success: false, message: "Invalid media_type" });
+  if (!category || !VALID_CATEGORIES.has(category)) {
+    return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
-  if (!title || title.length < 1 || title.length > 100) {
-    return jsonResponse(res, 400, { success: false, message: "List title must be 1-100 characters" });
+  if (!name || name.length < 1 || name.length > 100) {
+    return jsonResponse(res, 400, { success: false, message: "List name must be 1-100 characters" });
   }
 
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin
       .from("user_lists")
       .insert({
         user_id: userId,
-        name: title,
-        media_type: mediaType,
+        name: name,
+        category: category,
+        type: "custom",
         icon: body.icon || "fas fa-list",
-        description: body.description || "",
-        is_public: body.is_public || false
+        description: body.description || ""
       })
       .select("*")
       .single();
 
     if (error) {
       if (error.code === "23505") {
-        return jsonResponse(res, 409, { success: false, message: "A list with that title already exists for this media type" });
+        return jsonResponse(res, 409, { success: false, message: "A list with that name already exists" });
       }
       return jsonResponse(res, 500, { success: false, message: error.message });
     }
@@ -135,31 +118,27 @@ async function handleCreateList(req, res) {
   }
 }
 
-/**
- * PUT /api/lists/:id
- * Body: { title?, icon?, description?, is_public? }
- * Updates a custom list
- */
+// ============================================================================
+// PUT /api/lists/:id
+// Update a custom list
+// Body: { name?, icon?, description? }
+// ============================================================================
+
 async function handleUpdateList(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1]; // /api/lists/:id
-
-  if (!listId) {
-    return jsonResponse(res, 400, { success: false, message: "List ID required" });
-  }
+  const listId = pathParts[1];
+  if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const body = req.body || {};
   const updates = {};
   if (body.name !== undefined) updates.name = String(body.name).trim();
-  if (body.title !== undefined) updates.name = String(body.title).trim(); // backward compat
   if (body.icon !== undefined) updates.icon = String(body.icon).trim();
   if (body.description !== undefined) updates.description = String(body.description).trim();
-  if (body.is_public !== undefined) updates.is_public = Boolean(body.is_public);
 
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin
       .from("user_lists")
@@ -170,9 +149,7 @@ async function handleUpdateList(req, res) {
       .single();
 
     if (error) {
-      if (error.code === "PGRST116") {
-        return jsonResponse(res, 404, { success: false, message: "List not found" });
-      }
+      if (error.code === "PGRST116") return jsonResponse(res, 404, { success: false, message: "List not found" });
       return jsonResponse(res, 500, { success: false, message: error.message });
     }
 
@@ -182,34 +159,28 @@ async function handleUpdateList(req, res) {
   }
 }
 
-/**
- * DELETE /api/lists/:id
- * Deletes a list and all its items
- */
+// ============================================================================
+// DELETE /api/lists/:id
+// Delete a custom list and all its items
+// ============================================================================
+
 async function handleDeleteList(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
   const listId = pathParts[1];
+  if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
-  if (!listId) {
-    return jsonResponse(res, 400, { success: false, message: "List ID required" });
-  }
-
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
-    // Delete items first (CASCADE should handle this but being explicit)
-    await admin.from("user_list_items").delete().eq("list_id", listId);
     const { error } = await admin
       .from("user_lists")
       .delete()
       .eq("id", listId)
       .eq("user_id", userId);
 
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
 
     return jsonResponse(res, 200, { success: true, message: "List deleted" });
   } catch (err) {
@@ -217,65 +188,54 @@ async function handleDeleteList(req, res) {
   }
 }
 
-/**
- * GET /api/lists/:id/items
- * Returns items in a specific list
- */
+// ============================================================================
+// GET /api/lists/:id/items
+// Returns items in a specific list
+// ============================================================================
+
 async function handleGetListItems(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
   const listId = pathParts[1];
+  if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
-  if (!listId) {
-    return jsonResponse(res, 400, { success: false, message: "List ID required" });
-  }
-
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
-    const { data, error } = await admin
-      .from("user_list_items")
-      .select("*")
-      .eq("list_id", listId)
-      .eq("user_id", userId)
-      .order("sort_order", { ascending: true });
+    const { data, error } = await admin.rpc("get_list_items", {
+      p_list_id: listId,
+      p_user_id: userId
+    });
 
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
     return jsonResponse(res, 200, { success: true, items: data || [] });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-/**
- * POST /api/lists/:id/items
- * Body: { external_id, external_source, metadata? }
- * Adds an item to a list
- */
+// ============================================================================
+// POST /api/lists/:id/items
+// Add item to a custom list
+// Body: { external_id, external_source?, metadata? }
+// ============================================================================
+
 async function handleAddItemToList(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
   const listId = pathParts[1];
-
-  if (!listId) {
-    return jsonResponse(res, 400, { success: false, message: "List ID required" });
-  }
+  if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const body = req.body || {};
   const externalId = String(body.external_id || "").trim();
+  if (!externalId) return jsonResponse(res, 400, { success: false, message: "external_id required" });
+
   const externalSource = String(body.external_source || "local_db").trim();
 
-  if (!externalId) {
-    return jsonResponse(res, 400, { success: false, message: "external_id is required" });
-  }
-
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin.rpc("add_item_to_list", {
       p_list_id: listId,
@@ -285,36 +245,30 @@ async function handleAddItemToList(req, res) {
       p_metadata: body.metadata || {}
     });
 
-    if (error) {
-      if (error.code === "P0002") {
-        return jsonResponse(res, 404, { success: false, message: "List not found or access denied" });
-      }
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
-    return jsonResponse(res, 201, { success: true, item: data });
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
+    return jsonResponse(res, 201, { success: true, result: data });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-/**
- * DELETE /api/lists/:id/items/:externalId
- * Removes an item from a list
- */
+// ============================================================================
+// DELETE /api/lists/:id/items/:externalId
+// Remove item from a custom list
+// ============================================================================
+
 async function handleRemoveItemFromList(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
   const listId = pathParts[1];
-  const externalId = pathParts[3]; // /api/lists/:id/items/:externalId
-
+  const externalId = pathParts[3];
   if (!listId || !externalId) {
-    return jsonResponse(res, 400, { success: false, message: "List ID and item external_id required" });
+    return jsonResponse(res, 400, { success: false, message: "List ID and external_id required" });
   }
 
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin.rpc("remove_item_from_list", {
       p_list_id: listId,
@@ -322,24 +276,19 @@ async function handleRemoveItemFromList(req, res) {
       p_external_id: externalId
     });
 
-    if (error) {
-      if (error.code === "P0002") {
-        return jsonResponse(res, 404, { success: false, message: "List not found or access denied" });
-      }
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
-    return jsonResponse(res, 200, { success: true, removed: data });
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
+    return jsonResponse(res, 200, { success: true, result: data });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-/**
- * POST /api/lists/toggle
- * Body: { category, type, external_id, external_source?, metadata? }
- * Toggles an item in a default list (favorites/completed/watchlist)
- */
+// ============================================================================
+// POST /api/lists/toggle
+// Toggle item in a default list (favorites/completed/watchlist)
+// Body: { category, type, external_id, external_source?, metadata? }
+// ============================================================================
+
 async function handleToggleItem(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
@@ -352,39 +301,38 @@ async function handleToggleItem(req, res) {
   if (!category || !VALID_CATEGORIES.has(category)) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
-  if (!listType || !VALID_LIST_TYPES.has(listType) || listType === "custom") {
-    return jsonResponse(res, 400, { success: false, message: "Invalid list type (must be favorites, watchlist, or completed)" });
+  if (!listType || listType === "custom") {
+    return jsonResponse(res, 400, { success: false, message: "Invalid list type (must be favorites, completed, or watchlist)" });
   }
   if (!externalId) {
-    return jsonResponse(res, 400, { success: false, message: "external_id is required" });
+    return jsonResponse(res, 400, { success: false, message: "external_id required" });
   }
 
-  const admin = await getSupabase(req);
+  const externalSource = String(body.external_source || EXTERNAL_SOURCES[category] || "local_db").trim();
+
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin.rpc("toggle_list_item", {
       p_user_id: userId,
       p_category: category,
       p_list_type: listType,
       p_external_id: externalId,
-      p_external_source: body.external_source || "local_db",
+      p_external_source: externalSource,
       p_metadata: body.metadata || {}
     });
 
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
     return jsonResponse(res, 200, { success: true, result: data });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-/**
- * GET /api/lists/status
- * Query params: category, external_id
- * Returns which lists an item is in
- */
+// ============================================================================
+// GET /api/lists/status?category=X&external_id=Y
+// Returns which lists an item is in
+// ============================================================================
+
 async function handleGetItemStatus(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
@@ -396,10 +344,10 @@ async function handleGetItemStatus(req, res) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
   if (!externalId) {
-    return jsonResponse(res, 400, { success: false, message: "external_id is required" });
+    return jsonResponse(res, 400, { success: false, message: "external_id required" });
   }
 
-  const admin = await getSupabase(req);
+  const admin = await getAdmin();
   try {
     const { data, error } = await admin.rpc("get_item_list_status", {
       p_user_id: userId,
@@ -407,15 +355,12 @@ async function handleGetItemStatus(req, res) {
       p_external_id: externalId
     });
 
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
 
-    // Build a status map indexed by type
-    const statusMap = { favorites: false, watchlist: false, completed: false };
+    const statusMap = { favorites: false, completed: false, watchlist: false };
     const customLists = [];
     (data || []).forEach((entry) => {
-      if (entry.list_type === "favorites" || entry.list_type === "watchlist" || entry.list_type === "completed") {
+      if (entry.list_type === "favorites" || entry.list_type === "completed" || entry.list_type === "watchlist") {
         statusMap[entry.list_type] = true;
       } else {
         customLists.push({ list_id: entry.list_id, list_name: entry.list_name });
@@ -428,69 +373,78 @@ async function handleGetItemStatus(req, res) {
   }
 }
 
-/**
- * GET /api/lists/defaults
- * Creates default lists for all categories for current user
- */
+// ============================================================================
+// POST /api/lists/defaults
+// Create default lists for a user in a category
+// Body: { category }
+// ============================================================================
+
 async function handleCreateDefaults(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
-  const admin = await getSupabase(req);
+  const body = req.body || {};
+  const category = String(body.category || "").toLowerCase().trim();
+
+  if (!category || !VALID_CATEGORIES.has(category)) {
+    return jsonResponse(res, 400, { success: false, message: "Invalid category" });
+  }
+
+  const admin = await getAdmin();
   try {
     const { error } = await admin.rpc("create_default_user_lists", {
-      p_user_id: userId
+      p_user_id: userId,
+      p_category: category
     });
 
-    if (error) {
-      return jsonResponse(res, 500, { success: false, message: error.message });
-    }
-
+    if (error) return jsonResponse(res, 500, { success: false, message: error.message });
     return jsonResponse(res, 200, { success: true, message: "Default lists created" });
   } catch (err) {
     return jsonResponse(res, 500, { success: false, message: String(err.message || err) });
   }
 }
 
-const HANDLERS = {
-  "GET:default": handleGetLists,
-  "POST:default": handleCreateList,
-  "toggle": { POST: handleToggleItem },
-  "status": { GET: handleGetItemStatus },
-  "defaults": { POST: handleCreateDefaults }
-};
+// ============================================================================
+// ROUTING
+// ============================================================================
 
 export default async function handler(req, res) {
   try {
-    const query = req.query || {};
-    const pathParts = parsePath(query);
+    const pathParts = parsePath(req.query);
     const section = String(pathParts[0] || "").toLowerCase().trim();
     const method = String(req.method || "GET").toUpperCase();
 
-    // Sub-routes without a list ID
-    if (!section || section === "lists" || section === "") {
-      if (!pathParts[1]) {
-        // /api/lists or /api/lists/
-        if (method === "GET") return handleGetLists(req, res);
-        if (method === "POST") return handleCreateList(req, res);
-        return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
-      }
-
+    // /api/lists routes
+    if (!section || section === "lists") {
       const sub = String(pathParts[1] || "").toLowerCase();
+
+      // /api/lists/toggle (POST)
       if (sub === "toggle" && method === "POST") return handleToggleItem(req, res);
+      // /api/lists/status (GET)
       if (sub === "status" && method === "GET") return handleGetItemStatus(req, res);
+      // /api/lists/defaults (POST)
       if (sub === "defaults" && method === "POST") return handleCreateDefaults(req, res);
 
+      // /api/lists/:id/items
       if (pathParts[2] === "items") {
-        if (!pathParts[3] && method === "GET") return handleGetListItems(req, res);
-        if (!pathParts[3] && method === "POST") return handleAddItemToList(req, res);
+        if (method === "GET") return handleGetListItems(req, res);
+        if (method === "POST") return handleAddItemToList(req, res);
+        // /api/lists/:id/items/:externalId (DELETE)
         if (pathParts[3] && method === "DELETE") return handleRemoveItemFromList(req, res);
         return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
       }
 
-      // /api/lists/:id
-      if (method === "PUT") return handleUpdateList(req, res);
-      if (method === "DELETE") return handleDeleteList(req, res);
+      // /api/lists/:id (PUT/DELETE)
+      if (sub && sub !== "toggle" && sub !== "status" && sub !== "defaults") {
+        if (method === "PUT") return handleUpdateList(req, res);
+        if (method === "DELETE") return handleDeleteList(req, res);
+        return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
+      }
+
+      // /api/lists (GET/POST)
+      if (method === "GET") return handleGetLists(req, res);
+      if (method === "POST") return handleCreateList(req, res);
+
       return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
     }
 

@@ -865,29 +865,7 @@
     </div>
   </section>
 
-  <div class="modal" id="movieListsModal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">Custom Game Lists</div>
-        <button class="modal-close" id="closeGameListsBtn">&times;</button>
-      </div>
-      <div class="modal-list" id="movieListsContainer"></div>
-      <div class="modal-input">
-        <input type="text" id="newGameListName" placeholder="New list name..." maxlength="50">
-        <button class="btn" id="createGameListBtn">Create</button>
-      </div>
-      <div class="icon-options" id="movieListIconOptions">
-        <button class="icon-option selected" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
-        <button class="icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
-        <button class="icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
-        <button class="icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
-        <button class="icon-option" data-icon="fas fa-eye"><i class="fas fa-eye"></i></button>
-      </div>
-      <div class="mt-10 flex justify-end gap-2">
-        <button class="btn" id="saveGameListsBtn">Save Changes</button>
-      </div>
-    </div>
-  </div>
+
 
     <script src="js/list-utils.js?v=20260617f" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260617f" defer></script>
@@ -973,11 +951,7 @@
       let editingReviewId = null;
       let reviews = [];
       let currentSort = 'latest';
-      const listStatus = { favorites: false, watched: false, watchlist: false };
-      const pendingListOps = new Set();
-      let customLists = [];
-      let modalSelectedLists = new Set();
-      let selectedIcon = 'fas fa-gamepad';
+      const listStatus = { favorites: false, completed: false, watchlist: false };
 
       function normalizeGameGenres(extra) {
         const rawGenres = Array.isArray(extra?.genres) ? extra.genres : [];
@@ -1488,11 +1462,9 @@
         const { data: { user } } = await supabaseClient.auth.getUser();
         currentUser = user || null;
         renderReviewForm();
-        await loadListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
           currentUser = session?.user || null;
           renderReviewForm();
-          loadListStatus();
         });
       }
 
@@ -1738,283 +1710,9 @@
         return backdrop;
       }
 
-      function showListMenuBackdrop() {
-        const backdrop = ensureListMenuBackdrop();
-        backdrop.classList.add('active');
-      }
+      // List management handled by index-list-menu-adapter.js
 
-      function hideListMenuBackdrop() {
-        const backdrop = document.getElementById('listMenuBackdrop');
-        if (backdrop) backdrop.classList.remove('active');
-      }
-
-      function closeAllListMenus() {
-        const menu = document.getElementById('movieListMenu');
-        if (menu) menu.classList.remove('open');
-        hideListMenuBackdrop();
-      }
-
-      function wireListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
-        const menu = document.getElementById('movieListMenu');
-        if (!menuBtn || !menu) return;
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const wasOpen = menu.classList.contains('open');
-          closeAllListMenus();
-          if (!wasOpen) {
-            menu.classList.add('open');
-            showListMenuBackdrop();
-          }
-        });
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.menu-wrapper') && !e.target.closest('.list-menu')) {
-            closeAllListMenus();
-          }
-        });
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const listType = btn.getAttribute('data-list');
-            if (listType === 'custom') {
-              closeAllListMenus();
-              openGameListsModal();
-              return;
-            }
-            await toggleList(listType);
-            closeAllListMenus();
-          });
-        });
-      }
-
-      async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !gameId) return;
-        const { data: lists } = await supabaseClient
-          .from('user_lists')
-          .select('id, type')
-          .eq('user_id', currentUser.id)
-          .eq('category', 'game');
-        if (!lists || !lists.length) return;
-        const listIds = lists.map(l => l.id);
-        const listTypeMap = {};
-        lists.forEach(l => { listTypeMap[l.id] = l.type; });
-        const { data } = await supabaseClient
-          .from('list_items')
-          .select('list_id')
-          .in('list_id', listIds)
-          .eq('external_id', String(gameId));
-        listStatus.favorites = false;
-        listStatus.watched = false;
-        listStatus.watchlist = false;
-        (data || []).forEach(item => {
-          const type = listTypeMap[item.list_id];
-          if (listStatus[type] !== undefined) {
-            listStatus[type] = true;
-          }
-        });
-        updateListMenuUI();
-      }
-
-      async function loadCustomLists() {
-        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'game');
-      }
-
-      async function openGameListsModal() {
-        if (!currentUser) {
-          showNotification('Please sign in to manage lists', 'info');
-          return;
-        }
-        const modal = document.getElementById('movieListsModal');
-        const container = document.getElementById('movieListsContainer');
-        if (!modal || !container) return;
-        container.innerHTML = '<div class="chip">Loading...</div>';
-        customLists = await loadCustomLists();
-        const listIds = customLists.map(l => l.id);
-        modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'game', gameId, listIds)
-          : new Set();
-        container.innerHTML = '';
-        if (!customLists.length) {
-          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
-        } else {
-          customLists.forEach(list => {
-            const item = document.createElement('div');
-            item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `
-              <span>${renderListIcon(list.icon)} ${list.title}</span>
-              <span class="modal-list-actions">
-                <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
-                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
-              </span>
-            `;
-            item.onclick = () => {
-              if (modalSelectedLists.has(list.id)) {
-                modalSelectedLists.delete(list.id);
-              } else {
-                modalSelectedLists.add(list.id);
-              }
-              item.classList.toggle('active');
-              item.querySelector('.modal-list-actions span').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
-            };
-            const editBtn = item.querySelector('.list-edit-btn');
-            if (editBtn) {
-              editBtn.onclick = (e) => {
-                e.stopPropagation();
-                renameGameList(list.id, list.title);
-              };
-            }
-            container.appendChild(item);
-          });
-        }
-        modal.classList.add('active');
-      }
-
-      async function saveGameListChanges() {
-        if (!supabaseClient || !currentUser || !gameId) return;
-        if (window.ListUtils) {
-          await ListUtils.saveCustomListChanges(
-            supabaseClient,
-            currentUser.id,
-            'game',
-            gameId,
-            [...modalSelectedLists]
-          );
-        }
-        showNotification('Lists updated', 'success');
-        closeGameListsModal();
-      }
-
-      function closeGameListsModal() {
-        const modal = document.getElementById('movieListsModal');
-        if (modal) modal.classList.remove('active');
-      }
-
-      async function createGameList() {
-        const input = document.getElementById('newGameListName');
-        if (!input || !input.value.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const title = input.value.trim();
-        const modal = document.getElementById('movieListsModal');
-        const tierState = window.ListUtils && modal
-          ? ListUtils.readTierCreateState(modal)
-          : { listKind: 'standard', maxRank: null };
-        const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'game', {
-            title,
-            icon: selectedIcon || 'fas fa-gamepad',
-          listKind: tierState.listKind,
-          maxRank: tierState.maxRank
-          })
-          : null;
-        if (!data) {
-          showNotification('Could not create list', 'error');
-          return;
-        }
-        input.value = '';
-        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
-        customLists.unshift(data);
-        openGameListsModal();
-      }
-
-      async function renameGameList(listId, currentTitle) {
-        const nextTitle = prompt('Rename list', currentTitle || '');
-        if (!nextTitle || !nextTitle.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'game', listId, nextTitle.trim())
-          : false;
-        if (!ok) {
-          showNotification('Could not rename list', 'error');
-          return;
-        }
-        customLists = customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
-        openGameListsModal();
-      }
-
-      function updateListMenuUI() {
-        const menu = document.getElementById('movieListMenu');
-        if (!menu) return;
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          const listType = btn.getAttribute('data-list');
-          const state = btn.querySelector('.list-action-state');
-          if (listType === 'custom') {
-            btn.classList.remove('active');
-            btn.removeAttribute('aria-busy');
-            btn.style.pointerEvents = '';
-            btn.style.opacity = '';
-            if (state) state.textContent = 'Open';
-            return;
-          }
-          const isActive = !!listStatus[listType];
-          const opKey = `${String(gameId || '')}:${listType}`;
-          const isPending = pendingListOps.has(opKey);
-          btn.classList.toggle('active', isActive);
-          if (state) state.textContent = isActive ? 'Saved' : 'Add';
-          btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
-          btn.style.pointerEvents = isPending ? 'none' : '';
-          btn.style.opacity = isPending ? '0.72' : '';
-        });
-      }
-
-      async function toggleList(listType, forcedNextSaved) {
-        if (!currentUser) {
-          showNotification('Please sign in to save games', 'info');
-          return { ok: false, saved: false };
-        }
-        if (!gameId || !(listType in listStatus)) return { ok: false, saved: false };
-        const opKey = `${String(gameId)}:${listType}`;
-        if (pendingListOps.has(opKey)) return { ok: false, saved: !!listStatus[listType] };
-
-        const previousSaved = !!listStatus[listType];
-        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-        pendingListOps.add(opKey);
-        listStatus[listType] = nextSaved;
-        updateListMenuUI();
-
-          try {
-            let listId = null;
-            const { data: list } = await supabaseClient
-              .from('user_lists')
-              .select('id')
-              .eq('user_id', currentUser.id)
-              .eq('category', 'game')
-              .eq('type', listType)
-              .maybeSingle();
-
-            if (list?.id) {
-              listId = list.id;
-            } else if (window.ListUtils) {
-              listId = await ListUtils.ensureDefaultList(supabaseClient, currentUser.id, 'game', listType);
-            }
-
-            if (!listId) throw new Error('List not found');
-
-            if (nextSaved) {
-              const { error } = await supabaseClient
-                .from('list_items')
-                .insert({ list_id: listId, external_id: String(gameId), external_source: 'igdb', external_type: 'game' });
-              if (error && String(error.code || '') !== '23505') throw error;
-              showNotification('Saved to list', 'success');
-            } else {
-              const { error } = await supabaseClient
-                .from('list_items')
-                .delete()
-                .eq('list_id', listId)
-                .eq('external_id', String(gameId));
-              if (error) throw error;
-              showNotification('Removed from list', 'info');
-            }
-            return { ok: true, saved: nextSaved };
-        } catch (error) {
-          listStatus[listType] = previousSaved;
-          showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
-        } finally {
-          pendingListOps.delete(opKey);
-          updateListMenuUI();
-        }
-      }
+      // Toggle list handled by index-list-menu-adapter.js
 
       function bindUnifiedListMenu() {
         const menuBtn = document.getElementById('addWatchlistBtn');
@@ -2023,26 +1721,19 @@
         window.initIndexStyleListMenu({
           mediaType: 'game',
           itemIdAttr: 'data-item-id',
-          getVisibleItemIds: () => gameId ? [gameId] : [],
-          getQuickStatusForItem: (itemId) => {
-            const numericId = Number(itemId);
-            if (Number.isFinite(numericId) && numericId !== gameId) return null;
-            return { ...listStatus };
-          },
           getItemFromCard: () => ({
             mediaType: 'game',
             itemId: gameId,
             title: String(document.getElementById('title')?.textContent || 'Game').trim(),
             subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
             image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
-          }),
-          ensureClient: async () => {
-            if (supabaseClient) return supabaseClient;
-            return initSupabase();
-          },
-          getCurrentUser: () => currentUser,
-          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-          toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
+          })
+        });
+
+        menuBtn.addEventListener('click', () => {
+          if (window.openIndexStyleListMenu) {
+            window.openIndexStyleListMenu(menuBtn);
+          }
         });
       }
 
@@ -2462,23 +2153,6 @@
         wireOverviewToggle();
         wireTrailerLightbox();
         wireHeroActions();
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeAllListMenus();
-        });
-        const closeListsBtn = document.getElementById('closeGameListsBtn');
-        const saveListsBtn = document.getElementById('saveGameListsBtn');
-        const createListBtn = document.getElementById('createGameListBtn');
-        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
-        if (closeListsBtn) closeListsBtn.addEventListener('click', closeGameListsModal);
-        if (saveListsBtn) saveListsBtn.addEventListener('click', saveGameListChanges);
-        if (createListBtn) createListBtn.addEventListener('click', createGameList);
-        iconOptions.forEach(btn => {
-          btn.addEventListener('click', () => {
-            iconOptions.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedIcon = btn.getAttribute('data-icon') || 'fas fa-gamepad';
-          });
-        });
         await initAuth();
         try {
           await load();
