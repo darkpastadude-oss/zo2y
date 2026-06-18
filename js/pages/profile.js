@@ -2505,12 +2505,12 @@
 
                     async loadFallbackActivityRows(actorIds) {
                         const listItemSources = [
-                            { table: 'list_items', external_type: 'movie', mediaType: 'movie', itemField: 'external_id' },
-                            { table: 'list_items', external_type: 'tv', mediaType: 'tv', itemField: 'external_id' },
-                            { table: 'list_items', external_type: 'anime', mediaType: 'anime', itemField: 'external_id' },
-                            { table: 'list_items', external_type: 'game', mediaType: 'game', itemField: 'external_id' },
-                            { table: 'list_items', external_type: 'book', mediaType: 'book', itemField: 'external_id' },
-                            { table: 'list_items', external_type: 'music', mediaType: 'music', itemField: 'external_id' }
+                            { table: 'list_items', mediaType: 'movie', itemField: 'external_id' },
+                            { table: 'list_items', mediaType: 'tv', itemField: 'external_id' },
+                            { table: 'list_items', mediaType: 'anime', itemField: 'external_id' },
+                            { table: 'list_items', mediaType: 'game', itemField: 'external_id' },
+                            { table: 'list_items', mediaType: 'book', itemField: 'external_id' },
+                            { table: 'list_items', mediaType: 'music', itemField: 'external_id' }
                         ];
                         const customListSources = [
                             { table: 'user_lists', category: 'movie', mediaType: 'movie' },
@@ -3577,115 +3577,36 @@
             }
 
             async function loadMediaListItems(contentType, ownerUserId, customListIds = []) {
-                const table = MEDIA_ITEM_TABLES[contentType];
-                const itemField = MEDIA_ITEM_FIELDS[contentType];
-                if (!table || !itemField) return [];
-
                 const safeOwnerId = String(ownerUserId || '').trim();
-                const safeCustomIds = [...new Set((Array.isArray(customListIds) ? customListIds : [])
-                    .map((id) => String(id || '').trim())
-                    .filter(Boolean))];
+                if (!safeOwnerId) return [];
 
-                const normalizeRows = (rows = []) => (Array.isArray(rows) ? rows : []).map((row) => {
-                    const normalized = { ...(row || {}) };
-                    if (
-                        (normalized?.[itemField] === null || normalized?.[itemField] === undefined || normalized?.[itemField] === '') &&
-                        normalized?.item_id !== null &&
-                        normalized?.item_id !== undefined &&
-                        normalized?.item_id !== ''
-                    ) {
-                        normalized[itemField] = normalized.item_id;
-                    }
-                    return normalized;
-                });
-
-                const dedupeRows = (rows = []) => {
-                    const out = [];
-                    const seen = new Set();
-                    (Array.isArray(rows) ? rows : []).forEach((row) => {
-                        const value = String(row?.[itemField] || row?.item_id || '').trim();
-                        const listType = String(row?.list_type || '').trim();
-                        const listId = String(row?.list_id || '').trim();
-                        const key = `${value}::${listType}::${listId}`;
-                        if (!value || seen.has(key)) return;
-                        seen.add(key);
-                        out.push(row);
+                try {
+                    const { data, error } = await supabase.rpc('get_all_user_items', {
+                        p_user_id: safeOwnerId,
+                        p_category: contentType === 'sports' ? 'sport' : contentType
                     });
-                    return out;
-                };
-
-                const queryDefaultRows = async () => {
-                    const { data: userLists } = await supabase
-                        .from('user_lists')
-                        .select('id, type')
-                        .eq('user_id', safeOwnerId)
-                        .eq('category', contentType)
-                        .neq('type', 'custom');
-
-                    const listIds = (userLists || []).filter(l => l.id).map(l => l.id);
-                    if (!listIds.length) return { data: [] };
-
-                    const listTypeMap = {};
-                    (userLists || []).forEach(l => { listTypeMap[l.id] = l.type; });
-
-                    const { data, error } = { data: [], error: null };
-                    let result = await supabase
-                        .from(table)
-                        .select(`${itemField}, list_id`)
-                        .in('list_id', listIds);
-
-                    if (result?.error && isColumnMissingError(result.error, itemField)) {
-                        result = await supabase
-                            .from(table)
-                            .select(`external_id, list_id`)
-                            .in('list_id', listIds);
+                    
+                    if (error) {
+                        console.error('loadMediaListItems error:', error);
+                        return [];
                     }
-                    if (result?.data) {
-                        result.data = result.data.map(r => ({ ...r, list_type: listTypeMap[r.list_id] || '' }));
-                    }
-                    return result;
-                };
-
-                const queryCustomRows = async () => {
-                    if (!safeCustomIds.length) return { data: [] };
-                    let result = await supabase
-                        .from(table)
-                        .select(`${itemField}, list_id`)
-                        .in('list_id', safeCustomIds);
-
-                    if (result?.error && isColumnMissingError(result.error, itemField)) {
-                        result = await supabase
-                            .from(table)
-                            .select('external_id, list_id')
-                            .in('list_id', safeCustomIds);
-                    }
-                    return result;
-                };
-
-                const [defaultRes, customRes] = await Promise.all([
-                    queryDefaultRows(),
-                    queryCustomRows()
-                ]);
-
-                if (defaultRes?.error) throw defaultRes.error;
-                if (customRes?.error) throw customRes.error;
-
-                const merged = dedupeRows([
-                    ...normalizeRows(defaultRes?.data || []),
-                    ...normalizeRows(customRes?.data || [])
-                ]);
-                return merged;
+                    
+                    return (data || []).map(row => ({
+                        external_id: row.external_id,
+                        list_id: row.list_id,
+                        list_type: row.list_type
+                    }));
+                } catch (e) {
+                    console.error('loadMediaListItems exception:', e);
+                    return [];
+                }
             }
 
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
-                const table = MEDIA_ITEM_TABLES[contentType];
-                const itemField = MEDIA_ITEM_FIELDS[contentType];
-                if (!table || !itemField) return [];
-
                 const safeListType = String(listType || '').toLowerCase();
                 const safeOwnerId = String(ownerUserId || '').trim();
                 const safeListId = String(listId || '').trim();
-                if (!safeListId) return [];
+                if (!safeListId || !safeOwnerId) return [];
 
                 let actualListId = safeListId;
 
@@ -3695,35 +3616,37 @@
                         .from('user_lists')
                         .select('id')
                         .eq('user_id', safeOwnerId)
-                        .eq('category', contentType)
+                        .eq('category', contentType === 'sports' ? 'sport' : contentType)
                         .eq('type', safeListId)
                         .maybeSingle();
                     if (!defaultList) return [];
                     actualListId = defaultList.id;
                 }
 
-                const runQuery = async (selectField) => {
-                    return await supabase
-                        .from(table)
-                        .select(selectField)
-                        .eq('list_id', actualListId);
-                };
+                try {
+                    const { data, error } = await supabase.rpc('get_list_items', {
+                        p_list_id: actualListId,
+                        p_user_id: safeOwnerId
+                    });
 
-                let result = await runQuery(itemField);
-                if (result?.error && isColumnMissingError(result.error, itemField)) {
-                    result = await runQuery('external_id');
+                    if (error) {
+                        console.error('fetchMediaCollectionItemIds error:', error);
+                        return [];
+                    }
+
+                    const unique = [];
+                    const seen = new Set();
+                    (data || []).forEach((row) => {
+                        const value = String(row?.external_id || '').trim();
+                        if (!value || seen.has(value)) return;
+                        seen.add(value);
+                        unique.push(value);
+                    });
+                    return unique;
+                } catch (e) {
+                    console.error('fetchMediaCollectionItemIds exception:', e);
+                    return [];
                 }
-
-                const data = result?.data || [];
-                const unique = [];
-                const seen = new Set();
-                data.forEach((row) => {
-                    const value = String(row?.[itemField] || row?.external_id || '').trim();
-                    if (!value || seen.has(value)) return;
-                    seen.add(value);
-                    unique.push(value);
-                });
-                return unique;
             }
 
             function buildProfileUrl({ tab = null, collection = null, listId = null, listType = null, view = null } = {}) {

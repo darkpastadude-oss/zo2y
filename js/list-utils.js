@@ -44,8 +44,13 @@
     }
   };
 
+  function normalizeCategory(c) {
+    const n = String(c || "").toLowerCase().trim();
+    return n === "sports" ? "sport" : n;
+  }
+
   function getConfig(category) {
-    return CATEGORY_CONFIG[String(category || "").toLowerCase()] || null;
+    return CATEGORY_CONFIG[normalizeCategory(category)] || null;
   }
 
   function getExternalSource(category) {
@@ -55,14 +60,14 @@
 
   function getDefaultListName(category, listType) {
     if (listType === "favorites") return "Favorites";
-    const names = DEFAULT_LIST_NAMES[String(category || "").toLowerCase()];
+    const names = DEFAULT_LIST_NAMES[normalizeCategory(category)];
     return names ? names[listType] || "Watchlist" : "Watchlist";
   }
 
   function getDefaultListIcon(category, listType) {
     if (listType === "favorites") return "fas fa-heart";
     const icons = DEFAULT_LIST_ICONS[listType];
-    if (icons) return icons[String(category || "").toLowerCase()] || "fas fa-bookmark";
+    if (icons) return icons[normalizeCategory(category)] || "fas fa-bookmark";
     return "fas fa-list";
   }
 
@@ -99,7 +104,7 @@
 
   // Normalize item IDs for different media types
   function normalizeItemId(category, itemId) {
-    const key = String(category || "").toLowerCase();
+    const key = normalizeCategory(category);
     if (key === "movie" || key === "tv" || key === "anime" || key === "game") {
       const num = Number(itemId);
       return Number.isFinite(num) ? String(num) : String(itemId || "");
@@ -113,8 +118,9 @@
   // ====================================================================
 
   async function getLists(category) {
+    const cat = normalizeCategory(category);
     try {
-      const res = await authFetch(`${API_BASE}?category=${encodeURIComponent(category)}`);
+      const res = await authFetch(`${API_BASE}?category=${encodeURIComponent(cat)}`);
       const data = await res.json();
       if (data.success) return data.lists || [];
       return [];
@@ -130,8 +136,9 @@
   // ====================================================================
 
   async function getDefaultList(category, listType) {
+    const cat = normalizeCategory(category);
     try {
-      const res = await authFetch(`${API_BASE}?category=${encodeURIComponent(category)}`);
+      const res = await authFetch(`${API_BASE}?category=${encodeURIComponent(cat)}`);
       const data = await res.json();
       if (!data.success) return null;
       const lists = data.lists || [];
@@ -147,14 +154,15 @@
   // ====================================================================
 
   async function toggleDefaultItem(category, listType, externalId, metadata) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(`${API_BASE}/toggle`, {
         method: "POST",
         body: JSON.stringify({
-          category: category,
+          category: cat,
           type: listType,
-          external_id: normalizeItemId(category, externalId),
-          external_source: getExternalSource(category),
+          external_id: normalizeItemId(cat, externalId),
+          external_source: getExternalSource(cat),
           metadata: metadata || {}
         })
       });
@@ -171,9 +179,10 @@
   // ====================================================================
 
   async function getItemStatus(category, externalId) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(
-        `${API_BASE}/status?category=${encodeURIComponent(category)}&external_id=${encodeURIComponent(normalizeItemId(category, externalId))}`
+        `${API_BASE}/status?category=${encodeURIComponent(cat)}&external_id=${encodeURIComponent(normalizeItemId(cat, externalId))}`
       );
       const data = await res.json();
       if (data.success) return data;
@@ -189,11 +198,12 @@
   // ====================================================================
 
   async function createCustomList(category, name, icon) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(`${API_BASE}`, {
         method: "POST",
         body: JSON.stringify({
-          category: category,
+          category: cat,
           name: name.trim(),
           icon: icon || "fas fa-list",
           description: ""
@@ -247,12 +257,13 @@
   // ====================================================================
 
   async function addItemToCustomList(listId, category, externalId, metadata) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(`${API_BASE}/${listId}/items`, {
         method: "POST",
         body: JSON.stringify({
-          external_id: normalizeItemId(category, externalId),
-          external_source: getExternalSource(category),
+          external_id: normalizeItemId(cat, externalId),
+          external_source: getExternalSource(cat),
           metadata: metadata || {}
         })
       });
@@ -269,9 +280,10 @@
   // ====================================================================
 
   async function removeItemFromCustomList(listId, category, externalId) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(
-        `${API_BASE}/${listId}/items/${encodeURIComponent(normalizeItemId(category, externalId))}`,
+        `${API_BASE}/${listId}/items/${encodeURIComponent(normalizeItemId(cat, externalId))}`,
         { method: "DELETE" }
       );
       const data = await res.json();
@@ -287,10 +299,11 @@
   // ====================================================================
 
   async function ensureDefaults(category) {
+    const cat = normalizeCategory(category);
     try {
       const res = await authFetch(`${API_BASE}/defaults`, {
         method: "POST",
-        body: JSON.stringify({ category })
+        body: JSON.stringify({ category: cat })
       });
       return await res.json();
     } catch (e) {
@@ -303,13 +316,14 @@
   // ====================================================================
 
   async function ensureDefaultList(category, listType) {
-    const lists = await getLists(category);
+    const cat = normalizeCategory(category);
+    const lists = await getLists(cat);
     const existing = lists.find(l => l.type === listType);
     if (existing) return existing;
 
     // Create defaults for this category first
-    await ensureDefaults(category);
-    const lists2 = await getLists(category);
+    await ensureDefaults(cat);
+    const lists2 = await getLists(cat);
     return lists2.find(l => l.type === listType) || null;
   }
 
@@ -318,17 +332,18 @@
   // ====================================================================
 
   async function syncCustomLists(category, externalId, selectedListIds, metadata) {
-    const allLists = await getLists(category);
+    const cat = normalizeCategory(category);
+    const allLists = await getLists(cat);
     const customLists = allLists.filter(l => l.type === "custom");
-    const normalizedId = normalizeItemId(category, externalId);
+    const normalizedId = normalizeItemId(cat, externalId);
     const selected = new Set(selectedListIds || []);
 
     for (const list of customLists) {
       const isSelected = selected.has(list.id);
       if (isSelected) {
-        await addItemToCustomList(list.id, category, normalizedId, metadata);
+        await addItemToCustomList(list.id, cat, normalizedId, metadata);
       } else {
-        await removeItemFromCustomList(list.id, category, normalizedId);
+        await removeItemFromCustomList(list.id, cat, normalizedId);
       }
     }
   }

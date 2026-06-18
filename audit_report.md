@@ -1,0 +1,719 @@
+# Audit Results
+
+## external_type (31 matches)
+- **js\pages\profile.js:2508**: `{ table: 'list_items', external_type: 'movie', mediaType: 'movie', itemField: 'external_id' },`
+- **js\pages\profile.js:2509**: `{ table: 'list_items', external_type: 'tv', mediaType: 'tv', itemField: 'external_id' },`
+- **js\pages\profile.js:2510**: `{ table: 'list_items', external_type: 'anime', mediaType: 'anime', itemField: 'external_id' },`
+- **js\pages\profile.js:2511**: `{ table: 'list_items', external_type: 'game', mediaType: 'game', itemField: 'external_id' },`
+- **js\pages\profile.js:2512**: `{ table: 'list_items', external_type: 'book', mediaType: 'book', itemField: 'external_id' },`
+- **js\pages\profile.js:2513**: `{ table: 'list_items', external_type: 'music', mediaType: 'music', itemField: 'external_id' }`
+- **sql\apply_unified_lists.sql:117**: `external_type text not null,`
+- **sql\apply_unified_lists.sql:128**: `create index idx_list_items_ext on public.list_items(external_id, external_type);`
+- **sql\cleanup_duplicate_lists.sql:33**: `insert into public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\cleanup_duplicate_lists.sql:34**: `select v_rec.default_id, li.external_id, li.external_source, li.external_type, li.added_at`
+- **sql\clean_unified_lists.sql:45**: `external_type public.user_list_category not null,`
+- **sql\clean_unified_lists.sql:105**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\final_unified_lists.sql:66**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\fix_rls_and_toggle.sql:138**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\post_migration_fixes.sql:131**: `insert into public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\post_migration_fixes.sql:132**: `select v_rec.default_id, li.external_id, li.external_source, li.external_type, li.added_at`
+- **sql\rebuild_all.sql:371**: `external_type public.user_list_category not null,`
+- **sql\unified_lists_cleanup.sql:232**: `INSERT INTO public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\unified_lists_cleanup.sql:233**: `SELECT v_rec.default_id, li.external_id, li.external_source, li.external_type, li.added_at`
+- **sql\unified_lists_cleanup.sql:532**: `INSERT INTO public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\unified_lists_migration.sql:60**: `external_type public.user_list_category not null,`
+- **sql\unified_lists_migration.sql:450**: `insert into public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\unified_lists_migration.sql:465**: `insert into public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\unified_lists_migration.sql:555**: `insert into public.list_items (list_id, external_id, external_source, external_type, added_at)`
+- **sql\unified_lists_migration.sql:652**: `external_type public.user_list_category,`
+- **sql\unified_lists_migration.sql:666**: `li.external_type,`
+- **sql\unified_lists_migration.sql:702**: `-- Category enforcement: external_type must match list category`
+- **sql\unified_lists_migration.sql:703**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\unified_lists_migration.sql:793**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+- **sql\v2_default_lists_only.sql:61**: `external_type public.user_list_category not null,`
+- **sql\v2_default_lists_only.sql:152**: `insert into public.list_items (list_id, external_id, external_source, external_type, metadata)`
+
+## anime_list_items (65 matches)
+- **sql\activity_feed.sql:92**: `when 'anime_list_items' then 'anime'`
+- **sql\activity_feed.sql:108**: `when 'anime_list_items' then nullif(v_payload->>'anime_id', '')`
+- **sql\activity_feed.sql:348**: `select public.ensure_activity_trigger('anime_list_items', 'trg_anime_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:349**: `select public.ensure_activity_trigger('anime_list_items', 'trg_anime_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:454**: `if to_regclass('public.anime_list_items') is not null then`
+- **sql\activity_feed.sql:465**: `jsonb_build_object('source_table', 'anime_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:467**: `from public.anime_list_items src`
+- **sql\activity_feed.sql:475**: `and f.metadata->>'source_table' = 'anime_list_items'`
+- **sql\apply_unified_lists.sql:70**: `drop view if exists public.anime_list_items cascade;`
+- **sql\apply_unified_lists.sql:71**: `drop table if exists public.anime_list_items cascade;`
+- **sql\rebuild_all.sql:36**: `drop table if exists public.anime_list_items cascade;`
+- **sql\rebuild_all.sql:670**: `create index if not exists idx_anime_list_items_user on public.anime_list_items(user_id);`
+- **sql\rebuild_all.sql:671**: `create index if not exists idx_anime_list_items_anime on public.anime_list_items(anime_id);`
+- **sql\rebuild_all.sql:672**: `create index if not exists idx_anime_list_items_list_id on public.anime_list_items(list_id);`
+- **sql\rebuild_all.sql:677**: `create unique index if not exists ux_anime_list_items_unique on public.anime_list_items(user_id, anime_id, coalesce(list_type, ''), coalesce(list_id::text, ''));`
+- **sql\rebuild_all.sql:907**: `when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'`
+- **sql\rebuild_all.sql:912**: `when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')`
+- **sql\rebuild_lists_clean.sql:41**: `drop table if exists public.anime_list_items cascade;`
+- **sql\supabase_anime_schema.sql:48**: `create table if not exists public.anime_list_items (`
+- **sql\supabase_anime_schema.sql:57**: `alter table public.anime_list_items add column if not exists user_id uuid;`
+- **sql\supabase_anime_schema.sql:58**: `alter table public.anime_list_items add column if not exists anime_id bigint;`
+- **sql\supabase_anime_schema.sql:59**: `alter table public.anime_list_items add column if not exists list_type text;`
+- **sql\supabase_anime_schema.sql:60**: `alter table public.anime_list_items add column if not exists list_id uuid;`
+- **sql\supabase_anime_schema.sql:61**: `alter table public.anime_list_items add column if not exists created_at timestamptz default now();`
+- **sql\supabase_anime_schema.sql:63**: `update public.anime_list_items`
+- **sql\supabase_anime_schema.sql:67**: `alter table public.anime_list_items alter column created_at set default now();`
+- **sql\supabase_anime_schema.sql:111**: `if to_regclass('public.anime_list_items') is not null then`
+- **sql\supabase_anime_schema.sql:115**: `where conname = 'anime_list_items_user_id_fkey'`
+- **sql\supabase_anime_schema.sql:116**: `and conrelid = 'public.anime_list_items'::regclass`
+- **sql\supabase_anime_schema.sql:118**: `alter table public.anime_list_items`
+- **sql\supabase_anime_schema.sql:119**: `add constraint anime_list_items_user_id_fkey`
+- **sql\supabase_anime_schema.sql:126**: `where conname = 'anime_list_items_list_id_fkey'`
+- **sql\supabase_anime_schema.sql:127**: `and conrelid = 'public.anime_list_items'::regclass`
+- **sql\supabase_anime_schema.sql:129**: `alter table public.anime_list_items`
+- **sql\supabase_anime_schema.sql:130**: `add constraint anime_list_items_list_id_fkey`
+- **sql\supabase_anime_schema.sql:213**: `insert into public.anime_list_items (user_id, anime_id, list_type, list_id, created_at)`
+- **sql\supabase_anime_schema.sql:230**: `insert into public.anime_list_items (user_id, anime_id, list_type, list_id, created_at)`
+- **sql\supabase_anime_schema.sql:256**: `create index if not exists idx_anime_list_items_user on public.anime_list_items(user_id);`
+- **sql\supabase_anime_schema.sql:257**: `create index if not exists idx_anime_list_items_anime on public.anime_list_items(anime_id);`
+- **sql\supabase_anime_schema.sql:258**: `create index if not exists idx_anime_list_items_list_id on public.anime_list_items(list_id);`
+- **sql\supabase_anime_schema.sql:267**: `drop index if exists public.ux_anime_list_items_unique;`
+- **sql\supabase_anime_schema.sql:268**: `create unique index ux_anime_list_items_unique`
+- **sql\supabase_anime_schema.sql:269**: `on public.anime_list_items(user_id, anime_id, coalesce(list_type, ''), coalesce(list_id::text, ''));`
+- **sql\supabase_anime_schema.sql:312**: `alter table public.anime_list_items enable row level security;`
+- **sql\supabase_anime_schema.sql:341**: `drop policy if exists "Public select on anime_list_items" on public.anime_list_items;`
+- **sql\supabase_anime_schema.sql:342**: `drop policy if exists "Insert own anime_list_items" on public.anime_list_items;`
+- **sql\supabase_anime_schema.sql:343**: `drop policy if exists "Update own anime_list_items" on public.anime_list_items;`
+- **sql\supabase_anime_schema.sql:344**: `drop policy if exists "Delete own anime_list_items" on public.anime_list_items;`
+- **sql\supabase_anime_schema.sql:346**: `create policy "Public select on anime_list_items"`
+- **sql\supabase_anime_schema.sql:347**: `on public.anime_list_items`
+- **sql\supabase_anime_schema.sql:351**: `create policy "Insert own anime_list_items"`
+- **sql\supabase_anime_schema.sql:352**: `on public.anime_list_items`
+- **sql\supabase_anime_schema.sql:361**: `where l.id = anime_list_items.list_id`
+- **sql\supabase_anime_schema.sql:367**: `create policy "Update own anime_list_items"`
+- **sql\supabase_anime_schema.sql:368**: `on public.anime_list_items`
+- **sql\supabase_anime_schema.sql:380**: `where l.id = anime_list_items.list_id`
+- **sql\supabase_anime_schema.sql:386**: `create policy "Delete own anime_list_items"`
+- **sql\supabase_anime_schema.sql:387**: `on public.anime_list_items`
+- **sql\unified_lists_cleanup.sql:43**: `IF to_regclass('public.anime_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:44**: `DROP TABLE IF EXISTS public.anime_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:45**: `RAISE NOTICE 'Dropped anime_list_items';`
+- **sql\unified_lists_migration.sql:513**: `'anime', 'anime_lists', 'anime_list_items', 'anime_id'`
+- **sql\unified_lists_migration.sql:1066**: `if to_regclass('public.anime_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1067**: `select count(*) into v_old_count from public.anime_list_items;`
+- **sql\unified_lists_migration.sql:1219**: `-- drop table if exists public.anime_list_items cascade;`
+
+## game_list_items (39 matches)
+- **sql\activity_feed.sql:93**: `when 'game_list_items' then 'game'`
+- **sql\activity_feed.sql:109**: `when 'game_list_items' then nullif(v_payload->>'game_id', '')`
+- **sql\activity_feed.sql:350**: `select public.ensure_activity_trigger('game_list_items', 'trg_game_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:351**: `select public.ensure_activity_trigger('game_list_items', 'trg_game_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:480**: `if to_regclass('public.game_list_items') is not null then`
+- **sql\activity_feed.sql:491**: `jsonb_build_object('source_table', 'game_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:493**: `from public.game_list_items src`
+- **sql\activity_feed.sql:501**: `and f.metadata->>'source_table' = 'game_list_items'`
+- **sql\apply_unified_lists.sql:73**: `drop view if exists public.game_list_items cascade;`
+- **sql\apply_unified_lists.sql:74**: `drop table if exists public.game_list_items cascade;`
+- **sql\rebuild_all.sql:57**: `drop table if exists public.game_list_items cascade;`
+- **sql\rebuild_all.sql:628**: `create index if not exists idx_game_list_items_user on public.game_list_items(user_id);`
+- **sql\rebuild_all.sql:629**: `create index if not exists idx_game_list_items_game on public.game_list_items(game_id);`
+- **sql\rebuild_all.sql:632**: `create unique index if not exists ux_game_list_items_unique on public.game_list_items (user_id, game_id, list_type, list_id);`
+- **sql\rebuild_all.sql:907**: `when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'`
+- **sql\rebuild_all.sql:912**: `when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')`
+- **sql\rebuild_lists_clean.sql:43**: `drop table if exists public.game_list_items cascade;`
+- **sql\supabase_game_schema.sql:14**: `create table if not exists public.game_list_items (`
+- **sql\supabase_game_schema.sql:34**: `create index if not exists idx_game_list_items_user on public.game_list_items(user_id);`
+- **sql\supabase_game_schema.sql:35**: `create index if not exists idx_game_list_items_game on public.game_list_items(game_id);`
+- **sql\supabase_game_schema.sql:40**: `create unique index if not exists ux_game_list_items_unique`
+- **sql\supabase_game_schema.sql:41**: `on public.game_list_items (user_id, game_id, list_type, list_id);`
+- **sql\supabase_game_schema.sql:60**: `alter table public.game_list_items enable row level security;`
+- **sql\supabase_game_schema.sql:73**: `-- game_list_items policies`
+- **sql\supabase_game_schema.sql:74**: `drop policy if exists "Public select on game_list_items" on public.game_list_items;`
+- **sql\supabase_game_schema.sql:75**: `drop policy if exists "Insert own game_list_items" on public.game_list_items;`
+- **sql\supabase_game_schema.sql:76**: `drop policy if exists "Update own game_list_items" on public.game_list_items;`
+- **sql\supabase_game_schema.sql:77**: `drop policy if exists "Delete own game_list_items" on public.game_list_items;`
+- **sql\supabase_game_schema.sql:78**: `create policy "Public select on game_list_items" on public.game_list_items for select using (true);`
+- **sql\supabase_game_schema.sql:79**: `create policy "Insert own game_list_items" on public.game_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_game_schema.sql:80**: `create policy "Update own game_list_items" on public.game_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_game_schema.sql:81**: `create policy "Delete own game_list_items" on public.game_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:50**: `IF to_regclass('public.game_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:51**: `DROP TABLE IF EXISTS public.game_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:52**: `RAISE NOTICE 'Dropped game_list_items';`
+- **sql\unified_lists_migration.sql:520**: `'game', 'game_lists', 'game_list_items', 'game_id'`
+- **sql\unified_lists_migration.sql:1081**: `if to_regclass('public.game_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1082**: `select count(*) into v_old_count from public.game_list_items;`
+- **sql\unified_lists_migration.sql:1221**: `-- drop table if exists public.game_list_items cascade;`
+
+## movie_list_items (25 matches)
+- **sql\activity_feed.sql:90**: `when 'movie_list_items' then 'movie'`
+- **sql\activity_feed.sql:106**: `when 'movie_list_items' then nullif(v_payload->>'movie_id', '')`
+- **sql\activity_feed.sql:344**: `select public.ensure_activity_trigger('movie_list_items', 'trg_movie_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:345**: `select public.ensure_activity_trigger('movie_list_items', 'trg_movie_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:402**: `if to_regclass('public.movie_list_items') is not null then`
+- **sql\activity_feed.sql:413**: `jsonb_build_object('source_table', 'movie_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:415**: `from public.movie_list_items src`
+- **sql\activity_feed.sql:423**: `and f.metadata->>'source_table' = 'movie_list_items'`
+- **sql\apply_unified_lists.sql:64**: `drop view if exists public.movie_list_items cascade;`
+- **sql\apply_unified_lists.sql:65**: `drop table if exists public.movie_list_items cascade;`
+- **sql\final_unified_lists.sql:96**: `-- drop table if exists public.movie_list_items cascade;`
+- **sql\rebuild_all.sql:74**: `drop table if exists public.movie_list_items cascade;`
+- **sql\rebuild_all.sql:662**: `create index if not exists idx_movie_list_items_user on public.movie_list_items(user_id);`
+- **sql\rebuild_all.sql:663**: `create index if not exists idx_movie_list_items_movie on public.movie_list_items(movie_id);`
+- **sql\rebuild_all.sql:667**: `create unique index if not exists ux_movie_list_items_unique on public.movie_list_items (user_id, movie_id, coalesce(list_type, ''), coalesce(list_id::text, ''));`
+- **sql\rebuild_all.sql:906**: `when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'`
+- **sql\rebuild_all.sql:911**: `when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')`
+- **sql\rebuild_lists_clean.sql:36**: `drop table if exists public.movie_list_items cascade;`
+- **sql\unified_lists_cleanup.sql:22**: `IF to_regclass('public.movie_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:23**: `DROP TABLE IF EXISTS public.movie_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:24**: `RAISE NOTICE 'Dropped movie_list_items';`
+- **sql\unified_lists_migration.sql:490**: `'movie', 'movie_lists', 'movie_list_items', 'movie_id'`
+- **sql\unified_lists_migration.sql:1036**: `if to_regclass('public.movie_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1037**: `select count(*) into v_old_count from public.movie_list_items;`
+- **sql\unified_lists_migration.sql:1214**: `-- drop table if exists public.movie_list_items cascade;`
+
+## tv_list_items (42 matches)
+- **sql\activity_feed.sql:91**: `when 'tv_list_items' then 'tv'`
+- **sql\activity_feed.sql:107**: `when 'tv_list_items' then nullif(v_payload->>'tv_id', '')`
+- **sql\activity_feed.sql:346**: `select public.ensure_activity_trigger('tv_list_items', 'trg_tv_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:347**: `select public.ensure_activity_trigger('tv_list_items', 'trg_tv_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:428**: `if to_regclass('public.tv_list_items') is not null then`
+- **sql\activity_feed.sql:439**: `jsonb_build_object('source_table', 'tv_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:441**: `from public.tv_list_items src`
+- **sql\activity_feed.sql:449**: `and f.metadata->>'source_table' = 'tv_list_items'`
+- **sql\apply_unified_lists.sql:67**: `drop view if exists public.tv_list_items cascade;`
+- **sql\apply_unified_lists.sql:68**: `drop table if exists public.tv_list_items cascade;`
+- **sql\rebuild_all.sql:60**: `drop table if exists public.tv_list_items cascade;`
+- **sql\rebuild_all.sql:635**: `create index if not exists idx_tv_list_items_user on public.tv_list_items(user_id);`
+- **sql\rebuild_all.sql:636**: `create index if not exists idx_tv_list_items_tv on public.tv_list_items(tv_id);`
+- **sql\rebuild_all.sql:639**: `create unique index if not exists ux_tv_list_items_unique on public.tv_list_items (user_id, tv_id, list_type, list_id);`
+- **sql\rebuild_all.sql:906**: `when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'`
+- **sql\rebuild_all.sql:911**: `when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')`
+- **sql\rebuild_lists_clean.sql:38**: `drop table if exists public.tv_list_items cascade;`
+- **sql\supabase_anime_schema.sql:157**: `has_tv_items boolean := to_regclass('public.tv_list_items') is not null;`
+- **sql\supabase_anime_schema.sql:220**: `from public.tv_list_items tli`
+- **sql\supabase_anime_schema.sql:237**: `from public.tv_list_items tli`
+- **sql\supabase_tv_schema.sql:14**: `create table if not exists public.tv_list_items (`
+- **sql\supabase_tv_schema.sql:34**: `create index if not exists idx_tv_list_items_user on public.tv_list_items(user_id);`
+- **sql\supabase_tv_schema.sql:35**: `create index if not exists idx_tv_list_items_tv on public.tv_list_items(tv_id);`
+- **sql\supabase_tv_schema.sql:40**: `create unique index if not exists ux_tv_list_items_unique`
+- **sql\supabase_tv_schema.sql:41**: `on public.tv_list_items (user_id, tv_id, list_type, list_id);`
+- **sql\supabase_tv_schema.sql:60**: `alter table public.tv_list_items enable row level security;`
+- **sql\supabase_tv_schema.sql:73**: `-- tv_list_items policies`
+- **sql\supabase_tv_schema.sql:74**: `drop policy if exists "Public select on tv_list_items" on public.tv_list_items;`
+- **sql\supabase_tv_schema.sql:75**: `drop policy if exists "Insert own tv_list_items" on public.tv_list_items;`
+- **sql\supabase_tv_schema.sql:76**: `drop policy if exists "Update own tv_list_items" on public.tv_list_items;`
+- **sql\supabase_tv_schema.sql:77**: `drop policy if exists "Delete own tv_list_items" on public.tv_list_items;`
+- **sql\supabase_tv_schema.sql:78**: `create policy "Public select on tv_list_items" on public.tv_list_items for select using (true);`
+- **sql\supabase_tv_schema.sql:79**: `create policy "Insert own tv_list_items" on public.tv_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_tv_schema.sql:80**: `create policy "Update own tv_list_items" on public.tv_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_tv_schema.sql:81**: `create policy "Delete own tv_list_items" on public.tv_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:29**: `IF to_regclass('public.tv_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:30**: `DROP TABLE IF EXISTS public.tv_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:31**: `RAISE NOTICE 'Dropped tv_list_items';`
+- **sql\unified_lists_migration.sql:497**: `'tv', 'tv_lists', 'tv_list_items', 'tv_id'`
+- **sql\unified_lists_migration.sql:1051**: `if to_regclass('public.tv_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1052**: `select count(*) into v_old_count from public.tv_list_items;`
+- **sql\unified_lists_migration.sql:1216**: `-- drop table if exists public.tv_list_items cascade;`
+
+## book_list_items (40 matches)
+- **sql\activity_feed.sql:94**: `when 'book_list_items' then 'book'`
+- **sql\activity_feed.sql:110**: `when 'book_list_items' then nullif(v_payload->>'book_id', '')`
+- **sql\activity_feed.sql:352**: `select public.ensure_activity_trigger('book_list_items', 'trg_book_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:353**: `select public.ensure_activity_trigger('book_list_items', 'trg_book_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:506**: `if to_regclass('public.book_list_items') is not null then`
+- **sql\activity_feed.sql:517**: `jsonb_build_object('source_table', 'book_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:519**: `from public.book_list_items src`
+- **sql\activity_feed.sql:527**: `and f.metadata->>'source_table' = 'book_list_items'`
+- **sql\apply_unified_lists.sql:76**: `drop view if exists public.book_list_items cascade;`
+- **sql\apply_unified_lists.sql:77**: `drop table if exists public.book_list_items cascade;`
+- **sql\rebuild_all.sql:70**: `drop table if exists public.book_list_items cascade;`
+- **sql\rebuild_all.sql:655**: `create index if not exists idx_book_list_items_user on public.book_list_items (user_id);`
+- **sql\rebuild_all.sql:656**: `create index if not exists idx_book_list_items_book on public.book_list_items (book_id);`
+- **sql\rebuild_all.sql:659**: `create unique index if not exists ux_book_list_items_unique on public.book_list_items (user_id, book_id, list_type, list_id);`
+- **sql\rebuild_all.sql:908**: `when 'book_list_items' then 'book' when 'music_list_items' then 'music'`
+- **sql\rebuild_all.sql:913**: `when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')`
+- **sql\rebuild_lists_clean.sql:45**: `drop table if exists public.book_list_items cascade;`
+- **sql\supabase_books_schema.sql:8**: `DROP TABLE IF EXISTS book_list_items CASCADE;`
+- **sql\supabase_books_schema.sql:36**: `-- Create book_list_items to map users/books to lists or to quick lists`
+- **sql\supabase_books_schema.sql:37**: `CREATE TABLE IF NOT EXISTS book_list_items (`
+- **sql\supabase_books_schema.sql:49**: `CREATE INDEX IF NOT EXISTS idx_book_list_items_user ON book_list_items (user_id);`
+- **sql\supabase_books_schema.sql:50**: `CREATE INDEX IF NOT EXISTS idx_book_list_items_book ON book_list_items (book_id);`
+- **sql\supabase_books_schema.sql:53**: `CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_unique ON book_list_items (user_id, book_id, list_type, list_id);`
+- **sql\supabase_books_schema.sql:68**: `-- INSERT INTO book_list_items (user_id, book_id, list_type) VALUES ('USER_UUID', 'OL3W', 'favorites');`
+- **sql\supabase_books_schema.sql:120**: `ALTER TABLE book_list_items ENABLE ROW LEVEL SECURITY;`
+- **sql\supabase_books_schema.sql:121**: `DROP POLICY IF EXISTS "Public select on book_list_items" ON book_list_items;`
+- **sql\supabase_books_schema.sql:122**: `DROP POLICY IF EXISTS "Insert own book_list_items" ON book_list_items;`
+- **sql\supabase_books_schema.sql:123**: `DROP POLICY IF EXISTS "Update own book_list_items" ON book_list_items;`
+- **sql\supabase_books_schema.sql:124**: `DROP POLICY IF EXISTS "Delete own book_list_items" ON book_list_items;`
+- **sql\supabase_books_schema.sql:125**: `CREATE POLICY "Public select on book_list_items" ON book_list_items FOR SELECT USING (true);`
+- **sql\supabase_books_schema.sql:126**: `CREATE POLICY "Insert own book_list_items" ON book_list_items FOR INSERT WITH CHECK (user_id = auth.uid());`
+- **sql\supabase_books_schema.sql:127**: `CREATE POLICY "Update own book_list_items" ON book_list_items FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());`
+- **sql\supabase_books_schema.sql:128**: `CREATE POLICY "Delete own book_list_items" ON book_list_items FOR DELETE USING (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:57**: `IF to_regclass('public.book_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:58**: `DROP TABLE IF EXISTS public.book_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:59**: `RAISE NOTICE 'Dropped book_list_items';`
+- **sql\unified_lists_migration.sql:527**: `'book', 'book_lists', 'book_list_items', 'book_id'`
+- **sql\unified_lists_migration.sql:1096**: `if to_regclass('public.book_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1097**: `select count(*) into v_old_count from public.book_list_items;`
+- **sql\unified_lists_migration.sql:1223**: `-- drop table if exists public.book_list_items cascade;`
+
+## music_list_items (38 matches)
+- **sql\activity_feed.sql:95**: `when 'music_list_items' then 'music'`
+- **sql\activity_feed.sql:111**: `when 'music_list_items' then nullif(v_payload->>'track_id', '')`
+- **sql\activity_feed.sql:354**: `select public.ensure_activity_trigger('music_list_items', 'trg_music_list_add_activity', 'insert', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:355**: `select public.ensure_activity_trigger('music_list_items', 'trg_music_list_remove_activity', 'delete', 'public.log_list_activity_iud');`
+- **sql\activity_feed.sql:532**: `if to_regclass('public.music_list_items') is not null then`
+- **sql\activity_feed.sql:543**: `jsonb_build_object('source_table', 'music_list_items', 'source_pk', src.id::text, 'backfill', true),`
+- **sql\activity_feed.sql:545**: `from public.music_list_items src`
+- **sql\activity_feed.sql:553**: `and f.metadata->>'source_table' = 'music_list_items'`
+- **sql\apply_unified_lists.sql:79**: `drop view if exists public.music_list_items cascade;`
+- **sql\apply_unified_lists.sql:80**: `drop table if exists public.music_list_items cascade;`
+- **sql\rebuild_all.sql:51**: `drop table if exists public.music_list_items cascade;`
+- **sql\rebuild_all.sql:613**: `create index if not exists idx_music_list_items_user on public.music_list_items(user_id);`
+- **sql\rebuild_all.sql:614**: `create index if not exists idx_music_list_items_track on public.music_list_items(track_id);`
+- **sql\rebuild_all.sql:617**: `create unique index if not exists ux_music_list_items_unique on public.music_list_items (user_id, track_id, list_type, list_id);`
+- **sql\rebuild_all.sql:908**: `when 'book_list_items' then 'book' when 'music_list_items' then 'music'`
+- **sql\rebuild_all.sql:913**: `when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')`
+- **sql\rebuild_lists_clean.sql:47**: `drop table if exists public.music_list_items cascade;`
+- **sql\supabase_music_schema.sql:28**: `create table if not exists public.music_list_items (`
+- **sql\supabase_music_schema.sql:50**: `create index if not exists idx_music_list_items_user on public.music_list_items(user_id);`
+- **sql\supabase_music_schema.sql:51**: `create index if not exists idx_music_list_items_track on public.music_list_items(track_id);`
+- **sql\supabase_music_schema.sql:55**: `create unique index if not exists ux_music_list_items_unique`
+- **sql\supabase_music_schema.sql:56**: `on public.music_list_items (user_id, track_id, list_type, list_id);`
+- **sql\supabase_music_schema.sql:88**: `alter table public.music_list_items enable row level security;`
+- **sql\supabase_music_schema.sql:107**: `drop policy if exists "Public select on music_list_items" on public.music_list_items;`
+- **sql\supabase_music_schema.sql:108**: `drop policy if exists "Insert own music_list_items" on public.music_list_items;`
+- **sql\supabase_music_schema.sql:109**: `drop policy if exists "Update own music_list_items" on public.music_list_items;`
+- **sql\supabase_music_schema.sql:110**: `drop policy if exists "Delete own music_list_items" on public.music_list_items;`
+- **sql\supabase_music_schema.sql:111**: `create policy "Public select on music_list_items" on public.music_list_items for select using (true);`
+- **sql\supabase_music_schema.sql:112**: `create policy "Insert own music_list_items" on public.music_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_music_schema.sql:113**: `create policy "Update own music_list_items" on public.music_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_music_schema.sql:114**: `create policy "Delete own music_list_items" on public.music_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:15**: `IF to_regclass('public.music_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:16**: `DROP TABLE IF EXISTS public.music_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:17**: `RAISE NOTICE 'Dropped music_list_items';`
+- **sql\unified_lists_migration.sql:534**: `'music', 'music_lists', 'music_list_items', 'track_id'`
+- **sql\unified_lists_migration.sql:1111**: `if to_regclass('public.music_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1112**: `select count(*) into v_old_count from public.music_list_items;`
+- **sql\unified_lists_migration.sql:1225**: `-- drop table if exists public.music_list_items cascade;`
+
+## food_list_items (25 matches)
+- **sql\apply_unified_lists.sql:88**: `drop view if exists public.food_list_items cascade;`
+- **sql\apply_unified_lists.sql:89**: `drop table if exists public.food_list_items cascade;`
+- **sql\rebuild_all.sql:43**: `drop table if exists public.food_list_items cascade;`
+- **sql\rebuild_all.sql:592**: `create index if not exists idx_food_list_items_user on public.food_list_items(user_id);`
+- **sql\rebuild_all.sql:593**: `create index if not exists idx_food_list_items_brand on public.food_list_items(brand_id);`
+- **sql\rebuild_all.sql:596**: `create unique index if not exists ux_food_default_items_unique on public.food_list_items (user_id, brand_id, list_type) where list_id is null;`
+- **sql\rebuild_all.sql:597**: `create unique index if not exists ux_food_custom_items_unique on public.food_list_items (list_id, brand_id) where list_id is not null;`
+- **sql\rebuild_lists_clean.sql:55**: `drop table if exists public.food_list_items cascade;`
+- **sql\supabase_fashion_food_schema.sql:74**: `create table if not exists public.food_list_items (`
+- **sql\supabase_fashion_food_schema.sql:90**: `create index if not exists idx_food_list_items_user on public.food_list_items(user_id);`
+- **sql\supabase_fashion_food_schema.sql:92**: `create index if not exists idx_food_list_items_brand on public.food_list_items(brand_id);`
+- **sql\supabase_fashion_food_schema.sql:102**: `on public.food_list_items (user_id, brand_id, list_type)`
+- **sql\supabase_fashion_food_schema.sql:105**: `on public.food_list_items (list_id, brand_id)`
+- **sql\supabase_fashion_food_schema.sql:169**: `alter table public.food_list_items enable row level security;`
+- **sql\supabase_fashion_food_schema.sql:194**: `create policy "Public select on food_list_items" on public.food_list_items for select using (true);`
+- **sql\supabase_fashion_food_schema.sql:195**: `create policy "Insert own food_list_items" on public.food_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_fashion_food_schema.sql:196**: `create policy "Update own food_list_items" on public.food_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_fashion_food_schema.sql:197**: `create policy "Delete own food_list_items" on public.food_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:85**: `IF to_regclass('public.food_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:86**: `DROP TABLE IF EXISTS public.food_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:87**: `RAISE NOTICE 'Dropped food_list_items';`
+- **sql\unified_lists_migration.sql:586**: `'food', 'food_lists', 'food_list_items', 'brand_id'`
+- **sql\unified_lists_migration.sql:1171**: `if to_regclass('public.food_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1172**: `select count(*) into v_old_count from public.food_list_items;`
+- **sql\unified_lists_migration.sql:1234**: `-- drop table if exists public.food_list_items cascade;`
+
+## travel_list_items (30 matches)
+- **sql\apply_unified_lists.sql:82**: `drop view if exists public.travel_list_items cascade;`
+- **sql\apply_unified_lists.sql:83**: `drop table if exists public.travel_list_items cascade;`
+- **sql\rebuild_all.sql:64**: `drop table if exists public.travel_list_items cascade;`
+- **sql\rebuild_all.sql:642**: `create index if not exists idx_travel_list_items_user on public.travel_list_items(user_id);`
+- **sql\rebuild_all.sql:643**: `create index if not exists idx_travel_list_items_country on public.travel_list_items(country_code);`
+- **sql\rebuild_all.sql:648**: `create unique index if not exists ux_travel_default_items_unique on public.travel_list_items (user_id, country_code, list_type) where list_id is null;`
+- **sql\rebuild_all.sql:649**: `create unique index if not exists ux_travel_custom_items_unique on public.travel_list_items (list_id, country_code) where list_id is not null;`
+- **sql\rebuild_lists_clean.sql:49**: `drop table if exists public.travel_list_items cascade;`
+- **sql\supabase_travel_schema.sql:14**: `create table if not exists public.travel_list_items (`
+- **sql\supabase_travel_schema.sql:51**: `create index if not exists idx_travel_list_items_user on public.travel_list_items(user_id);`
+- **sql\supabase_travel_schema.sql:52**: `create index if not exists idx_travel_list_items_country on public.travel_list_items(country_code);`
+- **sql\supabase_travel_schema.sql:58**: `drop index if exists ux_travel_list_items_unique;`
+- **sql\supabase_travel_schema.sql:60**: `on public.travel_list_items (user_id, country_code, list_type)`
+- **sql\supabase_travel_schema.sql:63**: `on public.travel_list_items (list_id, country_code)`
+- **sql\supabase_travel_schema.sql:91**: `alter table public.travel_list_items enable row level security;`
+- **sql\supabase_travel_schema.sql:104**: `drop policy if exists "Public select on travel_list_items" on public.travel_list_items;`
+- **sql\supabase_travel_schema.sql:105**: `drop policy if exists "Insert own travel_list_items" on public.travel_list_items;`
+- **sql\supabase_travel_schema.sql:106**: `drop policy if exists "Update own travel_list_items" on public.travel_list_items;`
+- **sql\supabase_travel_schema.sql:107**: `drop policy if exists "Delete own travel_list_items" on public.travel_list_items;`
+- **sql\supabase_travel_schema.sql:108**: `create policy "Public select on travel_list_items" on public.travel_list_items for select using (true);`
+- **sql\supabase_travel_schema.sql:109**: `create policy "Insert own travel_list_items" on public.travel_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_travel_schema.sql:110**: `create policy "Update own travel_list_items" on public.travel_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_travel_schema.sql:111**: `create policy "Delete own travel_list_items" on public.travel_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:64**: `IF to_regclass('public.travel_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:65**: `DROP TABLE IF EXISTS public.travel_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:66**: `RAISE NOTICE 'Dropped travel_list_items';`
+- **sql\unified_lists_migration.sql:541**: `'travel', 'travel_lists', 'travel_list_items', 'country_code'`
+- **sql\unified_lists_migration.sql:1126**: `if to_regclass('public.travel_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1127**: `select count(*) into v_old_count from public.travel_list_items;`
+- **sql\unified_lists_migration.sql:1227**: `-- drop table if exists public.travel_list_items cascade;`
+
+## fashion_list_items (25 matches)
+- **sql\apply_unified_lists.sql:85**: `drop view if exists public.fashion_list_items cascade;`
+- **sql\apply_unified_lists.sql:86**: `drop table if exists public.fashion_list_items cascade;`
+- **sql\rebuild_all.sql:39**: `drop table if exists public.fashion_list_items cascade;`
+- **sql\rebuild_all.sql:582**: `create index if not exists idx_fashion_list_items_user on public.fashion_list_items(user_id);`
+- **sql\rebuild_all.sql:583**: `create index if not exists idx_fashion_list_items_brand on public.fashion_list_items(brand_id);`
+- **sql\rebuild_all.sql:586**: `create unique index if not exists ux_fashion_default_items_unique on public.fashion_list_items (user_id, brand_id, list_type) where list_id is null;`
+- **sql\rebuild_all.sql:587**: `create unique index if not exists ux_fashion_custom_items_unique on public.fashion_list_items (list_id, brand_id) where list_id is not null;`
+- **sql\rebuild_lists_clean.sql:53**: `drop table if exists public.fashion_list_items cascade;`
+- **sql\supabase_fashion_food_schema.sql:61**: `create table if not exists public.fashion_list_items (`
+- **sql\supabase_fashion_food_schema.sql:89**: `create index if not exists idx_fashion_list_items_user on public.fashion_list_items(user_id);`
+- **sql\supabase_fashion_food_schema.sql:91**: `create index if not exists idx_fashion_list_items_brand on public.fashion_list_items(brand_id);`
+- **sql\supabase_fashion_food_schema.sql:95**: `on public.fashion_list_items (user_id, brand_id, list_type)`
+- **sql\supabase_fashion_food_schema.sql:98**: `on public.fashion_list_items (list_id, brand_id)`
+- **sql\supabase_fashion_food_schema.sql:168**: `alter table public.fashion_list_items enable row level security;`
+- **sql\supabase_fashion_food_schema.sql:189**: `create policy "Public select on fashion_list_items" on public.fashion_list_items for select using (true);`
+- **sql\supabase_fashion_food_schema.sql:190**: `create policy "Insert own fashion_list_items" on public.fashion_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_fashion_food_schema.sql:191**: `create policy "Update own fashion_list_items" on public.fashion_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_fashion_food_schema.sql:192**: `create policy "Delete own fashion_list_items" on public.fashion_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:78**: `IF to_regclass('public.fashion_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:79**: `DROP TABLE IF EXISTS public.fashion_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:80**: `RAISE NOTICE 'Dropped fashion_list_items';`
+- **sql\unified_lists_migration.sql:579**: `'fashion', 'fashion_lists', 'fashion_list_items', 'brand_id'`
+- **sql\unified_lists_migration.sql:1156**: `if to_regclass('public.fashion_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1157**: `select count(*) into v_old_count from public.fashion_list_items;`
+- **sql\unified_lists_migration.sql:1232**: `-- drop table if exists public.fashion_list_items cascade;`
+
+## car_list_items (25 matches)
+- **sql\apply_unified_lists.sql:91**: `drop view if exists public.car_list_items cascade;`
+- **sql\apply_unified_lists.sql:92**: `drop table if exists public.car_list_items cascade;`
+- **sql\rebuild_all.sql:47**: `drop table if exists public.car_list_items cascade;`
+- **sql\rebuild_all.sql:602**: `create index if not exists idx_car_list_items_user on public.car_list_items(user_id);`
+- **sql\rebuild_all.sql:603**: `create index if not exists idx_car_list_items_brand on public.car_list_items(brand_id);`
+- **sql\rebuild_all.sql:606**: `create unique index if not exists ux_car_default_items_unique on public.car_list_items (user_id, brand_id, list_type) where list_id is null;`
+- **sql\rebuild_all.sql:607**: `create unique index if not exists ux_car_custom_items_unique on public.car_list_items (list_id, brand_id) where list_id is not null;`
+- **sql\rebuild_lists_clean.sql:57**: `drop table if exists public.car_list_items cascade;`
+- **sql\supabase_car_schema.sql:37**: `create table if not exists public.car_list_items (`
+- **sql\supabase_car_schema.sql:51**: `create index if not exists idx_car_list_items_user on public.car_list_items(user_id);`
+- **sql\supabase_car_schema.sql:52**: `create index if not exists idx_car_list_items_brand on public.car_list_items(brand_id);`
+- **sql\supabase_car_schema.sql:55**: `on public.car_list_items (user_id, brand_id, list_type)`
+- **sql\supabase_car_schema.sql:58**: `on public.car_list_items (list_id, brand_id)`
+- **sql\supabase_car_schema.sql:99**: `alter table public.car_list_items enable row level security;`
+- **sql\supabase_car_schema.sql:112**: `create policy "Public select on car_list_items" on public.car_list_items for select using (true);`
+- **sql\supabase_car_schema.sql:113**: `create policy "Insert own car_list_items" on public.car_list_items for insert with check (user_id = auth.uid());`
+- **sql\supabase_car_schema.sql:114**: `create policy "Update own car_list_items" on public.car_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());`
+- **sql\supabase_car_schema.sql:115**: `create policy "Delete own car_list_items" on public.car_list_items for delete using (user_id = auth.uid());`
+- **sql\unified_lists_cleanup.sql:92**: `IF to_regclass('public.car_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:93**: `DROP TABLE IF EXISTS public.car_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:94**: `RAISE NOTICE 'Dropped car_list_items';`
+- **sql\unified_lists_migration.sql:593**: `'car', 'car_lists', 'car_list_items', 'brand_id'`
+- **sql\unified_lists_migration.sql:1186**: `if to_regclass('public.car_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1187**: `select count(*) into v_old_count from public.car_list_items;`
+- **sql\unified_lists_migration.sql:1236**: `-- drop table if exists public.car_list_items cascade;`
+
+## sports (296 matches)
+- **anime.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **animes.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **api\lists-handler.js:13**: `fashion: "local_db", food: "local_db", car: "local_db", sport: "sportsdb"`
+- **api\sportsdb-handler.js:6**: `const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json";`
+- **api\sportsdb-handler.js:76**: `return res.json({ ok: true, service: "sportsdb-proxy", configured: Boolean(getSportsDbKey()) });`
+- **auth-callback.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **backend\lib\guardrails.js:802**: `"connect-src 'self' https://gfkhjbztayjyojsgdpgk.supabase.co https://api.supabase.com https://image.tmdb.org https://covers.openlibrary.org https://books.googleusercontent.com https://i.scdn.co https://images.igdb.com https://flagcdn.com https://commons.wikimedia.org https://www.thesportsdb.com https://media.rawg.io https://is1-ssl.mzstatic.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org",`
+- **backend\lib\wiki-games-provider.js:22**: `{ id: 7, name: "Sports", slug: "sports" },`
+- **backend\lib\wiki-games-provider.js:173**: `sports: ["sports video game", "fifa video game", "ea sports fc", "madden nfl video game", "nba 2k video game"],`
+- **backend\lib\wiki-games-provider.js:200**: `{ slug: "sports", patterns: [/sports?/, /football/, /soccer/, /basketball/, /baseball/, /hockey/, /tennis/, /golf/, /fifa/, /madden/, /nba\s*2k/, /ea sports fc/, /wwe\s*2k/, /mlb the show/, /\bufc\b/, /\bpga\b/] },`
+- **book.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **books.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **brand.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **brand.html:70**: `<a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>`
+- **cars.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **clear-auth.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **cookies.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **country.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **country.html:71**: `<a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>`
+- **credits.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **data.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **dmca.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **fashion.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **food.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **functions\api\[[path]].js:14**: `import sportsdbHandler from "../../api/sportsdb-handler.js";`
+- **functions\api\[[path]].js:51**: `["sportsdb", sportsdbHandler],`
+- **game.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **games.html:8**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **index.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com https://logo.clearbit.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **index.html:15**: `<meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />`
+- **index.html:20**: `<meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />`
+- **index.html:26**: `<meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />`
+- **index.html:60**: `<link rel="dns-prefetch" href="//www.thesportsdb.com">`
+- **index.html:162**: `<div class="landing-v4-wall-row" id="sportsWallRow">`
+- **index.html:307**: `<p>Travel, sports, fashion, food, and cars - the stuff you live for.</p>`
+- **index.html:316**: `<div class="rail-title"><span><i class="fa-solid fa-futbol"></i> Sports</span><a href="sports.html">View all</a></div>`
+- **index.html:317**: `<div class="rail" id="sportsRail"></div>`
+- **index.html:347**: `<a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>`
+- **index.html:387**: `var row = document.getElementById('sportsWallRow');`
+- **index.html:396**: `fig.setAttribute('data-wall-slot', 'sports-' + (i + 1));`
+- **index.html:398**: `fig.onclick = function() { window.location.href = 'sports.html'; };`
+- **index.html:400**: `img.src = team.image || '/images/fallback/sports.svg';`
+- **index.html:402**: `img.onerror = function() { this.src = '/images/fallback/sports.svg'; };`
+- **index.html:404**: `cap.textContent = 'sports';`
+- **js\list-utils.js:12**: `sport: { icon: "fas fa-futbol", source: "sportsdb" },`
+- **js\mobile-webapp.js:54**: `'https://www.thesportsdb.com'`
+- **js\pages\brands.js:39**: `{ id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com', description: 'Global sportswear brand.' },`
+- **js\pages\data-rights.js:12**: `{ table: 'sports_reviews', label: 'Sports reviews' },`
+- **js\pages\index-home-heavy-loaders.js:1389**: `const HOME_SPORTS_ASSET_BUCKET_NAME = 'sports-assets';`
+- **js\pages\index-home-heavy-loaders.js:1390**: `const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/${HOME_SPORTS_ASSET_BUCKET_NAME}/manifest/sports-assets.json`;`
+- **js\pages\index-home-heavy-loaders.js:1391**: `const HOME_SPORTS_ASSET_MANIFEST_CACHE_KEY = 'zo2y_home_sports_asset_manifest_v3';`
+- **js\pages\index-home-heavy-loaders.js:1393**: `const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v7';`
+- **js\pages\index-home-heavy-loaders.js:1404**: `const id = String(row.id || row.sportsDbId || '').trim();`
+- **js\pages\index-home-heavy-loaders.js:1409**: `sportsDbId: id || '',`
+- **js\pages\index-home-heavy-loaders.js:1426**: `const id = String(row?.sportsDbId || row?.id || '').trim();`
+- **js\pages\index-home-heavy-loaders.js:1509**: `const id = String(team?.idTeam || team?.sportsDbId || team?.id || '').trim();`
+- **js\pages\index-home-heavy-loaders.js:1517**: `const id = String(team.idTeam || override?.sportsDbId || override?.id || '').trim();`
+- **js\pages\index-home-heavy-loaders.js:1545**: `mediaType: 'sports',`
+- **js\pages\index-home-heavy-loaders.js:1649**: `mediaType: 'sports',`
+- **js\pages\index-home-heavy-loaders.js:1665**: `href: 'sports.html'`
+- **js\pages\index-home-heavy-loaders.js:1969**: `const sportsFallback = '/images/fallback/sports.svg';`
+- **js\pages\index-home-heavy-loaders.js:1976**: `const image = supabaseLogo || row.local || sportsFallback;`
+- **js\pages\index-home-heavy-loaders.js:1978**: `mediaType: 'sports',`
+- **js\pages\index-home-heavy-loaders.js:1991**: `fallbackImage: sportsFallback,`
+- **js\pages\index-home-heavy-loaders.js:1992**: `href: 'sports.html',`
+- **js\pages\index.js:7**: `? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']`
+- **js\pages\index.js:8**: `: ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];`
+- **js\pages\index.js:19**: `const HOME_LIST_MEDIA_TYPES = HOME_ACTIVE_MEDIA_TYPES.filter((type) => type !== 'sports' || window.ZO2Y_SPORTS_LISTS !== false);`
+- **js\pages\index.js:28**: `const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';`
+- **js\pages\index.js:30**: `const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;`
+- **js\pages\index.js:317**: `sports: { label: 'Sports', icon: 'fa-futbol', accent: '#f59e0b' }`
+- **js\pages\index.js:390**: `const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';`
+- **js\pages\index.js:392**: `const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;`
+- **js\pages\index.js:781**: `{ id: 'sports', label: 'Sports', kind: 'type', tags: ['sports'] },`
+- **js\pages\index.js:809**: `{ id: 'esports', label: 'Esports', kind: 'tag', tags: ['esports', 'e-sports', 'gaming'] },`
+- **js\pages\index.js:830**: `sports: { icon: 'fas fa-futbol', hint: 'Teams and leagues', fallback: '/images/onboarding/onboard-media.svg' },`
+- **js\pages\index.js:933**: `if (!['travel', 'sports', 'car', 'music'].includes(k)) return false;`
+- **js\pages\index.js:1875**: `const cacheKey = `sportsdb:${url.toString()}`;`
+- **js\pages\index.js:1892**: `cacheKey: `sportsdb:direct:${directUrl.toString()}`,`
+- **js\pages\index.js:1936**: `if (typeKey === 'sports') return '/images/onboarding/onboard-interests.svg';`
+- **js\pages\index.js:1986**: `const itemId = String(row?.id || `sports-fallback-${fallbackIndex}`).trim();`
+- **js\pages\index.js:1988**: `const sportsFallback = '/images/fallback/sports.svg';`
+- **js\pages\index.js:1989**: `const image = logo || sportsFallback;`
+- **js\pages\index.js:1991**: `mediaType: 'sports',`
+- **js\pages\index.js:2004**: `fallbackImage: sportsFallback,`
+- **js\pages\index.js:2133**: `if (type === 'sports') return 'Sports';`
+- **js\pages\index.js:2218**: `if (type === 'sports') {`
+- **js\pages\index.js:2220**: `customHref: 'sports.html',`
+- **js\pages\index.js:3166**: `travel: ['sports'],`
+- **js\pages\index.js:3167**: `sports: ['travel']`
+- **js\pages\index.js:4079**: `if (mediaType === 'sports') {`
+- **js\pages\index.js:4378**: `if (mediaType === 'sports') {`
+- **js\pages\index.js:5365**: `if (!['travelRail', 'sportsRail'].includes(key)) return list;`
+- **js\pages\index.js:5885**: `sports: makeSeedItems('sports', ['Top Teams', 'Fan Favorites', 'Legendary Clubs', 'Home Stadiums', 'Rivalry Picks'], 'sports.html')`
+- **js\pages\index.js:5941**: `if (key === 'sports') {`
+- **js\pages\index.js:5964**: `{ key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }`
+- **js\pages\index.js:6680**: `if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') mediaClasses.push('brand-cover');`
+- **js\pages\index.js:6763**: `const BRAND_RAIL_MEDIA_TYPES = new Set(['fashion', 'food', 'car', 'sports']);`
+- **js\pages\index.js:10563**: `'sports',`
+- **js\pages\index.js:10781**: `sports: [`
+- **js\pages\index.js:10794**: `{ title: 'UFC', image: '/assets/sports/ufc-logo.svg' }`
+- **js\pages\index.js:10893**: `return key === 'sports' || key === 'food' || key === 'fashion' ? 'logo' : 'poster';`
+- **js\pages\index.js:11169**: `|| getLandingWallTile('sports-1'));`
+- **js\pages\index.js:11196**: `'sports',`
+- **js\pages\index.js:11198**: `LANDING_WALL_FALLBACK_LOGOS.sports.map(buildLandingWallLogoEntry)`
+- **js\pages\index.js:11228**: `case 'sports': return 'sports.html';`
+- **js\pages\index.js:11253**: `: (type === 'sports'`
+- **js\pages\index.js:11750**: `const sports = getLandingRailItems(normalized.sports, 3, 3);`
+- **js\pages\index.js:11765**: `...sports.slice(0, 1)`
+- **js\pages\profile.js:170**: `['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']`
+- **js\pages\profile.js:535**: `{ key: 'sports', fn: () => renderSports(), enabled: true },`
+- **js\pages\profile.js:661**: `const lifestyleTabs = new Set(['sports', 'travel', 'fashion', 'food', 'cars']);`
+- **js\pages\profile.js:1302**: `const sportsTabText = document.getElementById('sportsTabText');`
+- **js\pages\profile.js:1315**: `const sportsTitle = document.getElementById('sportsTitle');`
+- **js\pages\profile.js:1329**: `const sportsSubtitle = document.getElementById('sportsSubtitle');`
+- **js\pages\profile.js:1348**: `if (sportsTabText) sportsTabText.textContent = `${userName}'s Sports`;`
+- **js\pages\profile.js:1361**: `if (sportsTitle) sportsTitle.textContent = `${userName}'s Teams`;`
+- **js\pages\profile.js:1375**: `if (sportsSubtitle) sportsSubtitle.textContent = `${userName}'s favorite teams`;`
+- **js\pages\profile.js:6278**: `sports: () => renderSports(),`
+- **js\pages\profile.js:7145**: `const SPORTS_MANIFEST_CACHE_KEY = 'zo2y_sports_manifest_v1';`
+- **js\pages\profile.js:7147**: `let sportsManifestMap = null;`
+- **js\pages\profile.js:7150**: `if (sportsManifestMap) return sportsManifestMap;`
+- **js\pages\profile.js:7156**: `sportsManifestMap = parsed.map;`
+- **js\pages\profile.js:7157**: `return sportsManifestMap;`
+- **js\pages\profile.js:7165**: `const res = await fetch(`${supabaseUrl}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`, { cache: 'force-cache' });`
+- **js\pages\profile.js:7173**: `sportsManifestMap = map;`
+- **js\pages\profile.js:7183**: `if (sportsManifestMap && sportsManifestMap[name]) return sportsManifestMap[name];`
+- **js\pages\profile.js:7260**: `const grid = isMobile ? document.getElementById('mobileSportsGrid') : document.getElementById('sportsGrid');`
+- **js\pages\profile.js:7293**: `markTabRendered('sports');`
+- **js\pages\profile.js:7310**: `markTabRendered('sports');`
+- **js\pages\profile.js:7312**: `console.error('Error loading sports:', error);`
+- **js\pages\sports.js:7**: `const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';`
+- **js\pages\sports.js:292**: `const grid = document.getElementById('sportsGrid');`
+- **js\pages\sports.js:293**: `const searchInput = document.getElementById('sportsSearch');`
+- **js\pages\sports.js:294**: `const searchBtn = document.getElementById('sportsSearchBtn');`
+- **js\pages\sports.js:295**: `const filterBtn = document.getElementById('sportsFilterBtn');`
+- **js\pages\sports.js:296**: `const filterModal = document.getElementById('sportsFilterModal');`
+- **js\pages\sports.js:297**: `const filterClose = document.getElementById('sportsFilterClose');`
+- **js\pages\sports.js:300**: `const countText = document.getElementById('sportsCount');`
+- **js\pages\sports.js:301**: `const titleEl = document.getElementById('sportsTitle');`
+- **js\pages\sports.js:302**: `const subEl = document.getElementById('sportsSubtitle');`
+- **js\pages\sports.js:303**: `const loadingEl = document.getElementById('sportsLoading');`
+- **js\pages\sports.js:304**: `const emptyEl = document.getElementById('sportsEmpty');`
+- **js\pages\sports.js:529**: `const el = document.getElementById('sportsToast');`
+- **js\pages\sports.js:599**: `card.dataset.mediaType = 'sports';`
+- **js\pages\sports.js:733**: `const sports = new Set();`
+- **js\pages\sports.js:736**: `if (t.sport) sports.add(t.sport);`
+- **js\pages\sports.js:743**: `filterSport.innerHTML = '<option value="all">All sports</option>' +`
+- **js\pages\sports.js:744**: `[...sports].sort().map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');`
+- **js\pages\sports.js:767**: `document.querySelectorAll('#sportsTags .sports-search-tag').forEach(btn => {`
+- **js\pages\sports.js:799**: `mediaType: 'sports',`
+- **js\pages\team.js:6**: `const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_KEY}`;`
+- **js\pages\team.js:715**: `document.body.dataset.navPage = 'sports';`
+- **js\pages\team.js:1012**: `// Try just the team name first (works for all sports)`
+- **js\pages\team.js:1112**: `const res = await fetch('/assets/sports-badges/local-manifest.json', { cache: 'force-cache' });`
+- **js\pages\team.js:1236**: `let sportsdbRaw = null;`
+- **js\pages\team.js:1249**: `sportsdbRaw = best || teams[0];`
+- **js\pages\team.js:1315**: `state.roster = extractRoster(sportsdbRaw);`
+- **js\shared-header.js:96**: `<a class="zo2y-nav-link" data-nav-page="sports" href="sports.html">Sports</a>`
+- **js\shared-header.js:145**: `<a class="zo2y-desktop-rail-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>sports</span></a>`
+- **js\shared-header.js:203**: `<a class="zo2y-mobile-drawer-link" data-nav-page="sports" href="sports.html"><i class="fa-solid fa-futbol"></i><span>Sports</span></a>`
+- **js\shared-header.js:296**: `if (file.startsWith('sport')) return 'sports';`
+- **js\sportsdb-client.js:20**: `pushCandidate('/api/sportsdb');`
+- **js\sportsdb-client.js:22**: `pushCandidate('http://localhost:5000/api/sportsdb');`
+- **js\sportsdb-client.js:27**: `pushCandidate(normalizeBase(global.document?.querySelector('meta[name="zo2y-sportsdb-base"]')?.getAttribute('content')));`
+- **js\sportsdb-client.js:31**: `const storedApiBase = global.localStorage ? global.localStorage.getItem('zo2y_sportsdb_base') : '';`
+- **js\sportsdb-client.js:35**: `pushCandidate('/api/sportsdb');`
+- **js\sportsdb-client.js:59**: `resolvedBase = candidates[0] || '/api/sportsdb';`
+- **js\sportsdb-client.js:75**: `// `base` can be a relative path like "/api/sportsdb". `new URL('/api/...')` throws`
+- **js\sportsdb-client.js:77**: `// (and the sports pages would show no teams without obvious console errors).`
+- **js\universal-search.js:8**: `const SPORTSDB_PROXY_BASE = String(window.ZO2Y_SPORTSDB_PROXY || '/api/sportsdb').trim() || '/api/sportsdb';`
+- **js\universal-search.js:263**: `href: id ? `team.html?id=${encodeURIComponent(id)}` : 'sports.html'`
+- **login.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **movie.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **movies.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **music.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **onboarding.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **privacy.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **privacy.html:96**: `<p>Zo2y ("we", "us", "our") is a personal media-tracking app. We let you build lists, write reviews, and save travel plans across movies, TV, books, games, music, sports, and travel. This policy explains what data we collect, why, who we share it with, and the rights you have over it.</p>`
+- **profile.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **profile.html:207**: `<div class="nav-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span></div>`
+- **profile.html:594**: `<div class="tab-content" id="sports-tab">`
+- **profile.html:598**: `<h2 class="section-title" id="sportsTitle">Favorite Teams</h2>`
+- **profile.html:599**: `<p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>`
+- **profile.html:602**: `<button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">`
+- **profile.html:607**: `<div class="collection-grid" id="sportsGrid">`
+- **profile.html:612**: `<button class="btn btn-primary mt-md" onclick="window.location.href='sports.html'">`
+- **profile.html:1085**: `<div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>`
+- **profile.html:1406**: `<button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='sports.html'">`
+- **profile.html:1418**: `<button class="mobile-action-btn" onclick="window.location.href='sports.html'">`
+- **reviews.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **sign-up.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **song.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **sports.html:6**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self'; form-action 'self' https://*.supabase.co">`
+- **sports.html:20**: `<link rel="stylesheet" href="css/pages/sports-page.css?v=20260617f" media="print" onload="this.media='all'">`
+- **sports.html:21**: `<noscript><link rel="stylesheet" href="css/pages/sports-page.css?v=20260617f"></noscript>`
+- **sports.html:43**: `<script src="js/pages/sports.js?v=20260617f" defer></script>`
+- **sports.html:45**: `.brand-hero.sports-hero {`
+- **sports.html:51**: `url("/assets/home-spotlights/sports-multi.jpg") center/cover;`
+- **sports.html:56**: `.brand-hero.sports-hero h1 {`
+- **sports.html:61**: `.brand-hero.sports-hero p {`
+- **sports.html:70**: `<body data-nav-page="sports">`
+- **sports.html:72**: `<section class="brand-hero sports-hero" aria-label="Sports header">`
+- **sports.html:77**: `<div class="controls sports-search-bar">`
+- **sports.html:78**: `<input id="sportsSearch" class="search-input" type="search" placeholder="Search teams, leagues, or sports..." />`
+- **sports.html:79**: `<button class="control-icon-btn" id="sportsSearchBtn" type="button" aria-label="Search">`
+- **sports.html:82**: `<button class="control-icon-btn" id="sportsFilterBtn" type="button" aria-label="Filters">`
+- **sports.html:85**: `<div class="sports-search-suggest" id="sportsSuggest" role="listbox"></div>`
+- **sports.html:89**: `<span id="sportsCount">0 teams shown</span>`
+- **sports.html:92**: `<div class="control-modal" id="sportsFilterModal" aria-hidden="true">`
+- **sports.html:96**: `<button class="control-modal-close" id="sportsFilterClose" type="button">&times;</button>`
+- **sports.html:98**: `<div class="sports-filter-grid">`
+- **sports.html:99**: `<label class="sports-filter-label">`
+- **sports.html:101**: `<select id="filterSport"><option value="all">All sports</option></select>`
+- **sports.html:103**: `<label class="sports-filter-label">`
+- **sports.html:111**: `<div class="sports-search-tags" id="sportsTags">`
+- **sports.html:112**: `<button class="sports-search-tag" type="button" data-q="Real Madrid">Real Madrid</button>`
+- **sports.html:113**: `<button class="sports-search-tag" type="button" data-q="Liverpool">Liverpool</button>`
+- **sports.html:114**: `<button class="sports-search-tag" type="button" data-q="NBA">NBA</button>`
+- **sports.html:115**: `<button class="sports-search-tag" type="button" data-q="NFL">NFL</button>`
+- **sports.html:116**: `<button class="sports-search-tag" type="button" data-q="Formula 1">Formula 1</button>`
+- **sports.html:117**: `<button class="sports-search-tag" type="button" data-q="UFC">UFC</button>`
+- **sports.html:118**: `<button class="sports-search-tag" type="button" data-q="Al Ahly">Al Ahly</button>`
+- **sports.html:119**: `<button class="sports-search-tag" type="button" data-q="Flamengo">Flamengo</button>`
+- **sports.html:122**: `<section class="sports-results">`
+- **sports.html:123**: `<div class="sports-results-head">`
+- **sports.html:124**: `<h2 id="sportsTitle">All teams</h2>`
+- **sports.html:125**: `<p id="sportsSubtitle">Loading...</p>`
+- **sports.html:127**: `<div class="sports-loading visible" id="sportsLoading">Loading teams...</div>`
+- **sports.html:128**: `<div class="sports-empty" id="sportsEmpty">No teams found. Try another search.</div>`
+- **sports.html:129**: `<div class="sports-grid" id="sportsGrid"></div>`
+- **sports.html:133**: `<div class="sports-toast" id="sportsToast"></div>`
+- **sql\apply_list_fixes.sql:38**: `WHEN 'sports' THEN 'sport'`
+- **sql\fix_custom_lists_rpc.sql:12**: `media_type text not null check (media_type in ('movie', 'anime', 'tv', 'game', 'book', 'music', 'sports')),`
+- **sql\fix_custom_lists_rpc.sql:104**: `when 'sports' then 'sport'`
+- **sql\post_migration_fixes.sql:44**: `when 'sports' then 'sport'`
+- **sql\rebuild_all.sql:504**: `media_type text not null check (media_type in ('movie', 'anime', 'tv', 'game', 'book', 'music', 'sports')),`
+- **sql\rebuild_all.sql:679**: `create index if not exists idx_sports_lists_user on public.sports_lists(user_id);`
+- **sql\rebuild_all.sql:680**: `create index if not exists idx_sports_list_items_user on public.sports_list_items(user_id);`
+- **sql\rebuild_all.sql:681**: `create index if not exists idx_sports_list_items_team on public.sports_list_items(team_id);`
+- **sql\rebuild_all.sql:682**: `create index if not exists idx_sports_list_items_list_id on public.sports_list_items(list_id);`
+- **sql\rebuild_all.sql:683**: `create unique index if not exists ux_sports_list_items_unique on public.sports_list_items (user_id, team_id, list_type, list_id);`
+- **sql\rebuild_all.sql:1086**: `when 'sports' then 'sport' when 'travel' then 'travel'`
+- **sql\rebuild_all.sql:1120**: `('Nike', 'nike', 'nike.com', 'https://logo.clearbit.com/nike.com', 'Global sportswear brand.', 'Sportswear', 'USA', '1964', array['sportswear','sneakers']),`
+- **sql\rebuild_all.sql:1121**: `('Adidas', 'adidas', 'adidas.com', 'https://logo.clearbit.com/adidas.com', 'Athletic apparel and footwear.', 'Sportswear', 'Germany', '1949', array['sportswear','sneakers']),`
+- **sql\rebuild_lists_clean.sql:50**: `drop table if exists public.sports_lists cascade;`
+- **sql\rebuild_lists_clean.sql:51**: `drop table if exists public.sports_list_items cascade;`
+- **sql\seed_brands.sql:28**: `('Ferrari', 'ferrari', 'ferrari.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/car_brands/ferrari-com.svg', 'Italian luxury sports car manufacturer.', 'Sports Car', 'Italy', '1939', array['italian','supercar']),`
+- **sql\seed_brands.sql:41**: `('Lamborghini', 'lamborghini', 'lamborghini.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/car_brands/lamborghini-com.svg', 'Italian luxury sports car manufacturer.', 'Supercar', 'Italy', '1963', array['italian','supercar']),`
+- **sql\seed_brands.sql:56**: `('Porsche', 'porsche', 'porsche.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/car_brands/porsche-com.svg', 'German luxury sports car manufacturer.', 'Sports Car', 'Germany', '1931', array['german','sports-car']),`
+- **sql\seed_brands.sql:98**: `('Champion', 'champion', 'champion.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/champion-com.png', 'American sportswear brand.', 'Sportswear', 'USA', '1919', array['sportswear','american']),`
+- **sql\seed_brands.sql:108**: `('ASICS', 'asics', 'asics.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/asics-com.svg', 'Japanese athletic footwear brand.', 'Sportswear', 'Japan', '1949', array['sportswear','running']),`
+- **sql\seed_brands.sql:112**: `('Fila', 'fila', 'fila.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/fila-com.svg', 'South Korean sportswear brand.', 'Sportswear', 'South Korea', '1911', array['sportswear','korean']),`
+- **sql\seed_brands.sql:127**: `('Lacoste', 'lacoste', 'lacoste.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/lacoste-com.png', 'French clothing brand.', 'Sportswear', 'France', '1933', array['sportswear','french']),`
+- **sql\seed_brands.sql:139**: `('Nike', 'nike', 'nike.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg', 'Global sportswear brand.', 'Sportswear', 'USA', '1964', array['sportswear','sneakers']),`
+- **sql\seed_brands.sql:141**: `('Oakley', 'oakley', 'oakley.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/oakley-com.svg', 'American sportswear and eyewear brand.', 'Accessories', 'USA', '1975', array['eyewear','sportswear']),`
+- **sql\seed_brands.sql:147**: `('Puma', 'puma', 'puma.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/puma-com.svg', 'German sportswear brand.', 'Sportswear', 'Germany', '1948', array['sportswear','german']),`
+- **sql\seed_brands.sql:150**: `('Reebok', 'reebok', 'reebok.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/reebok-com.svg', 'American athletic footwear brand.', 'Sportswear', 'USA', '1958', array['sportswear','american']),`
+- **sql\seed_brands.sql:170**: `('Umbro', 'umbro', 'umbro.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/umbro-com.svg', 'British sportswear brand.', 'Sportswear', 'UK', '1920', array['sportswear','british']),`
+- **sql\seed_brands.sql:171**: `('Under Armour', 'underarmour', 'underarmour.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/underarmour-com.svg', 'American sportswear brand.', 'Sportswear', 'USA', '1996', array['sportswear','american']),`
+- **sql\seed_brands.sql:187**: `('Adidas', 'adidas', 'adidas.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg', 'Athletic apparel and footwear.', 'Sportswear', 'Germany', '1949', array['sportswear','sneakers']),`
+- **sql\seed_brands.sql:197**: `('Buffalo Wild Wings', 'buffalowildwings', 'buffalowildwings.com', 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/buffalowildwings-com.svg', 'American casual dining restaurant chain.', 'Casual Dining', 'USA', '1982', array['wings','sports-bar']),`
+- **sql\seed_sports.sql:1**: `-- Seed teams from sports-assets manifest`
+- **sql\seed_sports.sql:2**: `-- Generated from Supabase sports-assets storage manifest`
+- **sql\supabase_fashion_food_schema.sql:215**: `('Nike', 'nike', 'nike.com', 'https://logo.clearbit.com/nike.com', 'Global sportswear brand.', 'Sportswear', 'USA', '1964', array['sportswear','sneakers']),`
+- **sql\supabase_fashion_food_schema.sql:216**: `('Adidas', 'adidas', 'adidas.com', 'https://logo.clearbit.com/adidas.com', 'Athletic apparel and footwear.', 'Sportswear', 'Germany', '1949', array['sportswear','sneakers']),`
+- **sql\supabase_sports_schema.sql:1**: `-- Supabase SQL schema for sports teams + favorites used by sports.html and profile.html`
+- **sql\unified_lists_cleanup.sql:71**: `IF to_regclass('public.sports_list_items') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:72**: `DROP TABLE IF EXISTS public.sports_list_items CASCADE;`
+- **sql\unified_lists_cleanup.sql:73**: `RAISE NOTICE 'Dropped sports_list_items';`
+- **sql\unified_lists_cleanup.sql:148**: `IF to_regclass('public.sports_lists') IS NOT NULL THEN`
+- **sql\unified_lists_cleanup.sql:149**: `DROP TABLE IF EXISTS public.sports_lists CASCADE;`
+- **sql\unified_lists_cleanup.sql:150**: `RAISE NOTICE 'Dropped sports_lists';`
+- **sql\unified_lists_cleanup.sql:405**: `WHEN 'sports' THEN 'sport'`
+- **sql\unified_lists_migration.sql:224**: `when 'sports' then 'sportsdb'`
+- **sql\unified_lists_migration.sql:548**: `'sport', 'sports_lists', 'sports_list_items', 'team_id'`
+- **sql\unified_lists_migration.sql:563**: `'sportsdb',`
+- **sql\unified_lists_migration.sql:1141**: `if to_regclass('public.sports_list_items') is not null then`
+- **sql\unified_lists_migration.sql:1142**: `select count(*) into v_old_count from public.sports_list_items;`
+- **sql\unified_lists_migration.sql:1229**: `-- drop table if exists public.sports_list_items cascade;`
+- **sql\unified_lists_migration.sql:1230**: `-- drop table if exists public.sports_lists cascade;`
+- **support-admin.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **support.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **sw.js:54**: `'/sports.html',`
+- **sw.js:55**: `'/css/pages/sports-page.css?v=20260601b',`
+- **sw.js:56**: `'/js/pages/sports.js?v=20260601b',`
+- **sw.js:229**: `return /^\/api\/(tmdb|igdb|igdb-handler|books|music|openlibrary|sportsdb)(\/|$)/i.test(url.pathname);`
+- **team.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **team.html:15**: `<link rel="preconnect" href="https://www.thesportsdb.com" crossorigin>`
+- **team.html:64**: `<a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>`
+- **team.html:202**: `<script src="js/sportsdb-client.js?v=20260617f" defer></script>`
+- **terms.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **travel.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **tvshow.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **tvshows.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+- **update-password.html:5**: `<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">`
+
+## list.title (10 matches)
+- **js\home-desktop-rebrand.js:1064**: `const title = escapeHtml(String(list.title || 'Custom List').trim() || 'Custom List');`
+- **js\pages\index.js:5167**: `renameHomeList(list.id, list.title);`
+- **js\pages\profile.js:3110**: `document.getElementById('listName').value = list.name || list.title || '';`
+- **js\pages\profile.js:4677**: `<div class="movie-list-title">${list.title}</div>`
+- **js\pages\profile.js:5921**: `String(list.title || '').trim().toLowerCase() === normalizedTitle`
+- **js\pages\profile.js:7445**: `const title = String(list.title || '').trim().toLowerCase();`
+- **js\pages\profile.js:7540**: `const title = String(list.title || '').trim().toLowerCase();`
+- **js\pages\profile.js:7635**: `const title = String(list.title || '').trim().toLowerCase();`
+- **js\pages\profile.js:7864**: `<div class="collection-card-title">${list.title}</div>`
+- **js\pages\profile.js:10989**: `titleCounts[list.title] = (titleCounts[list.title] || 0) + 1;`
+

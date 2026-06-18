@@ -51,7 +51,9 @@ async function handleGetLists(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
-  const category = String(req.query?.category || "").toLowerCase().trim();
+  let category = String(req.query?.category || "").toLowerCase().trim();
+  if (category === "sports") category = "sport";
+
   if (!category || !VALID_CATEGORIES.has(category)) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
@@ -80,7 +82,8 @@ async function handleCreateList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const body = req.body || {};
-  const category = String(body.category || "").toLowerCase().trim();
+  let category = String(body.category || "").toLowerCase().trim();
+  if (category === "sports") category = "sport";
   const name = String(body.name || "").trim();
 
   if (!category || !VALID_CATEGORIES.has(category)) {
@@ -294,7 +297,8 @@ async function handleToggleItem(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const body = req.body || {};
-  const category = String(body.category || "").toLowerCase().trim();
+  let category = String(body.category || "").toLowerCase().trim();
+  if (category === "sports") category = "sport";
   const listType = String(body.type || "").toLowerCase().trim();
   const externalId = String(body.external_id || "").trim();
 
@@ -337,7 +341,8 @@ async function handleGetItemStatus(req, res) {
   const userId = await resolveUserId(req);
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
-  const category = String(req.query?.category || "").toLowerCase().trim();
+  let category = String(req.query?.category || "").toLowerCase().trim();
+  if (category === "sports") category = "sport";
   const externalId = String(req.query?.external_id || "").trim();
 
   if (!category || !VALID_CATEGORIES.has(category)) {
@@ -384,7 +389,8 @@ async function handleCreateDefaults(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const body = req.body || {};
-  const category = String(body.category || "").toLowerCase().trim();
+  let category = String(body.category || "").toLowerCase().trim();
+  if (category === "sports") category = "sport";
 
   if (!category || !VALID_CATEGORIES.has(category)) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });

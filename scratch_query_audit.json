@@ -1,0 +1,2954 @@
+[
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1458,
+    "type": "from",
+    "target": "anime_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1540,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1630,
+    "type": "from",
+    "target": "anime_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1636,
+    "type": "from",
+    "target": "anime_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1659,
+    "type": "from",
+    "target": "anime_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\anime.html",
+    "line": 1681,
+    "type": "from",
+    "target": "anime_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1539,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1548,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1685,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1692,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1701,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\animes.html",
+    "line": 1709,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\auth-handler.js",
+    "line": 507,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\auth-handler.js",
+    "line": 522,
+    "type": "rpc",
+    "target": "create_default_user_lists",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\auth-handler.js",
+    "line": 529,
+    "type": "rpc",
+    "target": "zo2y_accept_tos",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\auth-handler.js",
+    "line": 537,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\books-handler.js",
+    "line": 1176,
+    "type": "from",
+    "target": "books",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\home-feed.js",
+    "line": 133,
+    "type": "from",
+    "target": "home_spotlight_cache",
+    "action": "select",
+    "cols": "feed_payload, generated_at, expires_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 61,
+    "type": "rpc",
+    "target": "get_user_lists",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 96,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 144,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 178,
+    "type": "from",
+    "target": "user_lists",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 206,
+    "type": "rpc",
+    "target": "get_list_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 240,
+    "type": "rpc",
+    "target": "add_item_to_list",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 273,
+    "type": "rpc",
+    "target": "remove_item_from_list",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 315,
+    "type": "rpc",
+    "target": "toggle_list_item",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 352,
+    "type": "rpc",
+    "target": "get_item_list_status",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\lists-handler.js",
+    "line": 395,
+    "type": "rpc",
+    "target": "create_default_user_lists",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\spotlight-precompute.js",
+    "line": 254,
+    "type": "from",
+    "target": "home_spotlight_cache",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\support-handler.js",
+    "line": 208,
+    "type": "from",
+    "target": "support_tickets",
+    "action": "select",
+    "cols": "id,status,priority,created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\support-handler.js",
+    "line": 236,
+    "type": "from",
+    "target": "support_tickets",
+    "action": "select",
+    "cols": "id,name,email,category,message,status,priority,page_url,user_id,source,created_at,updated_at,admin_note"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\api\\support-handler.js",
+    "line": 278,
+    "type": "from",
+    "target": "support_tickets",
+    "action": "select",
+    "cols": "id,status,priority,updated_at,admin_note"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 249,
+    "type": "rpc",
+    "target": "zo2y_increment_rate_limit",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 290,
+    "type": "from",
+    "target": "security_captcha",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 320,
+    "type": "from",
+    "target": "security_captcha",
+    "action": "select",
+    "cols": "answer_hash, expires_at, consumed"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 331,
+    "type": "from",
+    "target": "security_captcha",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 372,
+    "type": "from",
+    "target": "security_csrf",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 400,
+    "type": "from",
+    "target": "security_csrf",
+    "action": "select",
+    "cols": "session_hint, expires_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 407,
+    "type": "from",
+    "target": "security_csrf",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 453,
+    "type": "rpc",
+    "target": "zo2y_record_failed_auth",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 491,
+    "type": "from",
+    "target": "security_lockout",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 507,
+    "type": "from",
+    "target": "security_lockout",
+    "action": "select",
+    "cols": "failed_count, locked_until, last_failed_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\backend\\lib\\guardrails.js",
+    "line": 531,
+    "type": "from",
+    "target": "security_audit_log",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1011,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id, title, authors"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1548,
+    "type": "from",
+    "target": "book_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1630,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1720,
+    "type": "from",
+    "target": "book_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1726,
+    "type": "from",
+    "target": "book_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1749,
+    "type": "from",
+    "target": "book_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\book.html",
+    "line": 1771,
+    "type": "from",
+    "target": "book_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1415,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1792,
+    "type": "from",
+    "target": "game_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1874,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1964,
+    "type": "from",
+    "target": "game_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1970,
+    "type": "from",
+    "target": "game_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 1993,
+    "type": "from",
+    "target": "game_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 2015,
+    "type": "from",
+    "target": "game_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\game.html",
+    "line": 2095,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,release_date,cover_url,hero_url,rating,rating_count"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 1786,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 1810,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 1862,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 1880,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2370,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2388,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2798,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2812,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2826,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\games.html",
+    "line": 2842,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 773,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 781,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 913,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1474,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, onboarding_completed_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1482,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1499,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, onboarding_completed_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1507,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1529,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, onboarding_completed_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\auth-gate.js",
+    "line": 1536,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\home-desktop-rebrand.js",
+    "line": 587,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\home-desktop-rebrand.js",
+    "line": 638,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id, title, authors, thumbnail"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\home-desktop-rebrand.js",
+    "line": 660,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id, name, artists, image_url, album_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\index-books-loader.js",
+    "line": 93,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id, title, authors, published_date, thumbnail, publisher"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\index-books-loader.js",
+    "line": 121,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\index-books-loader.js",
+    "line": 131,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "external_id, added_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\index-books-loader.js",
+    "line": 146,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id, title, authors, published_date, thumbnail, publisher"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 273,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 286,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 307,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 320,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 327,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 340,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brand.js",
+    "line": 1036,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 549,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 562,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 583,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 597,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 604,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\brands.js",
+    "line": 617,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\country.js",
+    "line": 721,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id,username,full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\country.js",
+    "line": 751,
+    "type": "from",
+    "target": "travel_reviews",
+    "action": "select",
+    "cols": "id,user_id,rating,comment,created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\country.js",
+    "line": 821,
+    "type": "from",
+    "target": "travel_reviews",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\country.js",
+    "line": 826,
+    "type": "from",
+    "target": "travel_reviews",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\country.js",
+    "line": 866,
+    "type": "from",
+    "target": "travel_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 79,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 80,
+    "type": "from",
+    "target": "travel_reviews",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 81,
+    "type": "from",
+    "target": "travel_plans",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 112,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 126,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 131,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 171,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\data-rights.js",
+    "line": 176,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\games-shared.js",
+    "line": 276,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,release_date,description,cover_url,hero_url,rating,rating_count,extra,source,slug"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index-home-heavy-loaders.js",
+    "line": 1933,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "name,logo_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 2926,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,release_date,rating,rating_count,cover_url,hero_url,extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3308,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3322,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type, user_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3342,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "external_id, list_id, added_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3778,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, category"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3780,
+    "type": "from",
+    "target": "lists",
+    "action": "select",
+    "cols": "id, category"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3793,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 3805,
+    "type": "from",
+    "target": "lists_restraunts",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4067,
+    "type": "from",
+    "target": "tracks",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4090,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4110,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4120,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4136,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4144,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4185,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4207,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4227,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4234,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4248,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4281,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4298,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4318,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4325,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4337,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4382,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "team_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4396,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4405,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4429,
+    "type": "from",
+    "target": "lists",
+    "action": "select",
+    "cols": "id,title"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4444,
+    "type": "from",
+    "target": "lists_restraunts",
+    "action": "select",
+    "cols": "list_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4620,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 4629,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 7612,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 7715,
+    "type": "from",
+    "target": "user_interest_profiles",
+    "action": "select",
+    "cols": "interest_types, interest_tags"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 8989,
+    "type": "from",
+    "target": "restraunts",
+    "action": "select",
+    "cols": "id,name,image,category,rating,slug,logo_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9015,
+    "type": "from",
+    "target": "restaurant_gallery",
+    "action": "select",
+    "cols": "restaurant_slug, image_url, image_type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9073,
+    "type": "from",
+    "target": "fashion_brands",
+    "action": "select",
+    "cols": "id,name,slug,domain,logo_url,description,category,country,founded,tags"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9093,
+    "type": "from",
+    "target": "food_brands",
+    "action": "select",
+    "cols": "id,name,slug,domain,logo_url,description,category,country,founded,tags"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9113,
+    "type": "from",
+    "target": "car_brands",
+    "action": "select",
+    "cols": "id,name,slug,domain,logo_url,description,category,country,founded,tags"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9394,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9447,
+    "type": "from",
+    "target": "user_interest_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 9791,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,release_date,rating,rating_count,cover_url,hero_url,extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 10436,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "name,logo_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 11501,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 11524,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id,title,authors,thumbnail"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\index.js",
+    "line": 11541,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id,name,artists,image_url,album_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 476,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1058,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1082,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1092,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1137,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1146,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1157,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1498,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1523,
+    "type": "from",
+    "target": "follows",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1544,
+    "type": "from",
+    "target": "follows",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1739,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1740,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1741,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1742,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1743,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1744,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1801,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1805,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1808,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1809,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1810,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1811,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1812,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1813,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1925,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1931,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 1955,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, avatar_icon"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2014,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2020,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2049,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2065,
+    "type": "from",
+    "target": "user_activity_feed",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2097,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2137,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2167,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2207,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2534,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, user_id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2544,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "id, list_id, external_id, added_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2623,
+    "type": "from",
+    "target": "user_activity_feed",
+    "action": "select",
+    "cols": "id, actor_id, event_type, media_type, external_id, list_type, list_id, rating, review_text, metadata, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2656,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2708,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, avatar_icon"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 2851,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 3264,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 3270,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 3619,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 3695,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4348,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4418,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id, name, artists, album_name, image_url, external_url, preview_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4607,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4608,
+    "type": "rpc",
+    "target": "get_all_user_items",
+    "action": "rpc",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4739,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4780,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "user_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4846,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4854,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 4861,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 5657,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 5802,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 5808,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 7194,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 7279,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 7951,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id, image_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 8093,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 8285,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 8479,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 8673,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 8871,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 9070,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 9258,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 9454,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 9813,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10114,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10176,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10519,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10531,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10570,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10577,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10843,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10852,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\profile.js",
+    "line": 10979,
+    "type": "from",
+    "target": "lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 414,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "team_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 431,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 493,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 498,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 503,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 807,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 813,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 818,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 915,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\sports.js",
+    "line": 923,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 577,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "id,name,sport,league,logo_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 870,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "team_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 898,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 907,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 921,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 1153,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 1197,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "id,sport,league"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 1330,
+    "type": "from",
+    "target": "teams",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\pages\\team.js",
+    "line": 1338,
+    "type": "from",
+    "target": "teams",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 210,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 243,
+    "type": "from",
+    "target": "review_reactions",
+    "action": "select",
+    "cols": "id, review_source, review_id, target_type, target_id, user_id, reaction_type, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 248,
+    "type": "from",
+    "target": "review_replies",
+    "action": "select",
+    "cols": "id, review_source, review_id, parent_reply_id, user_id, body, created_at, updated_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 489,
+    "type": "from",
+    "target": "review_reactions",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 495,
+    "type": "from",
+    "target": "review_reactions",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 501,
+    "type": "from",
+    "target": "review_reactions",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 570,
+    "type": "from",
+    "target": "review_replies",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\review-interactions.js",
+    "line": 596,
+    "type": "from",
+    "target": "review_replies",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\reviews-page.js",
+    "line": 233,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\reviews-page.js",
+    "line": 260,
+    "type": "from",
+    "target": "books",
+    "action": "select",
+    "cols": "id,title,authors,thumbnail"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\reviews-page.js",
+    "line": 274,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id,name,artists,image_url,album_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\travel-home-directory.js",
+    "line": 325,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\travel-home-directory.js",
+    "line": 335,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\travel-home-directory.js",
+    "line": 361,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\travel-home-directory.js",
+    "line": 395,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\js\\travel-home-directory.js",
+    "line": 408,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1600,
+    "type": "from",
+    "target": "movie_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1682,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1772,
+    "type": "from",
+    "target": "movie_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1778,
+    "type": "from",
+    "target": "movie_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1801,
+    "type": "from",
+    "target": "movie_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movie.html",
+    "line": 1823,
+    "type": "from",
+    "target": "movie_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 515,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 524,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 661,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 668,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 677,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\movies.html",
+    "line": 685,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 587,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 596,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 681,
+    "type": "from",
+    "target": "tracks",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 718,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 725,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 734,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\music.html",
+    "line": 742,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 475,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1057,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1081,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1091,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1136,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1145,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1156,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1497,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1522,
+    "type": "from",
+    "target": "follows",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1543,
+    "type": "from",
+    "target": "follows",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1806,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1810,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1930,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1936,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 1960,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, avatar_icon"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2019,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2025,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2054,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2070,
+    "type": "from",
+    "target": "user_activity_feed",
+    "action": "select",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2102,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2142,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2172,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2212,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2618,
+    "type": "from",
+    "target": "user_activity_feed",
+    "action": "select",
+    "cols": "id, actor_id, event_type, media_type, item_id, list_type, list_id, rating, review_text, metadata, created_at"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2651,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "followed_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2703,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name, avatar_icon"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 2846,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 3259,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 3265,
+    "type": "from",
+    "target": "follows",
+    "action": "select",
+    "cols": "follower_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4443,
+    "type": "from",
+    "target": "games",
+    "action": "select",
+    "cols": "id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4513,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id, name, artists, album_name, image_url, external_url, preview_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4702,
+    "type": "from",
+    "target": "movie_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4703,
+    "type": "from",
+    "target": "movie_list_items",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4834,
+    "type": "from",
+    "target": "movie_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4875,
+    "type": "from",
+    "target": "movie_lists",
+    "action": "select",
+    "cols": "user_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4941,
+    "type": "from",
+    "target": "movie_list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 4948,
+    "type": "from",
+    "target": "movie_list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 5744,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 5889,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 5895,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 7281,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 7366,
+    "type": "from",
+    "target": "user_favorite_teams",
+    "action": "select",
+    "cols": "team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8038,
+    "type": "from",
+    "target": "tracks",
+    "action": "select",
+    "cols": "id, image_url"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8180,
+    "type": "from",
+    "target": "movie_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8372,
+    "type": "from",
+    "target": "tv_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8566,
+    "type": "from",
+    "target": "anime_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8760,
+    "type": "from",
+    "target": "game_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 8958,
+    "type": "from",
+    "target": "book_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 9157,
+    "type": "from",
+    "target": "music_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 9345,
+    "type": "from",
+    "target": "travel_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 9541,
+    "type": "from",
+    "target": "fashion_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 9900,
+    "type": "from",
+    "target": "food_lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10587,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10599,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10638,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10645,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10911,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 10920,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "update",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\scratch_profile_old.js",
+    "line": 11047,
+    "type": "from",
+    "target": "lists",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 762,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 773,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 805,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 814,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 840,
+    "type": "from",
+    "target": "tracks",
+    "action": "upsert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 871,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 878,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 889,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\song.html",
+    "line": 897,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1557,
+    "type": "from",
+    "target": "tv_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1639,
+    "type": "from",
+    "target": "user_profiles",
+    "action": "select",
+    "cols": "id, username, full_name"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1729,
+    "type": "from",
+    "target": "tv_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1735,
+    "type": "from",
+    "target": "tv_reviews",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1758,
+    "type": "from",
+    "target": "tv_reviews",
+    "action": "select",
+    "cols": "*"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshow.html",
+    "line": 1780,
+    "type": "from",
+    "target": "tv_reviews",
+    "action": "delete",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1363,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id, type"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1372,
+    "type": "from",
+    "target": "list_items",
+    "action": "select",
+    "cols": "list_id, external_id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1509,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1516,
+    "type": "from",
+    "target": "list_items",
+    "action": "insert",
+    "cols": ""
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1525,
+    "type": "from",
+    "target": "user_lists",
+    "action": "select",
+    "cols": "id"
+  },
+  {
+    "file": "c:\\Users\\sigma\\OneDrive\\Desktop\\zo2ys\\tvshows.html",
+    "line": 1533,
+    "type": "from",
+    "target": "list_items",
+    "action": "delete",
+    "cols": ""
+  }
+]
