@@ -1406,10 +1406,11 @@
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
     const insertPayload = {
       user_id: userId,
-      name: payload.title,
+      name: String(payload.title || 'Untitled').trim(),
+      type: 'custom',
       category: category,
       icon: payload.icon || 'fas fa-list',
-      description: payload.description || `My ${payload.title} list`
+      description: payload.description || `My ${payload.title || 'Untitled'} list`
     };
     let data = null;
     let error = null;

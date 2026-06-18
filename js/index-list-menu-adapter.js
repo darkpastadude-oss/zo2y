@@ -267,14 +267,24 @@
     const externalId = String(normalizeItemIdValue(id));
 
     try {
-      const{data}=await c.from('list_items').select('list_type').eq('user_id', u.id).eq('external_type', category).eq('external_id', externalId);
-      if (Array.isArray(data)) {
-        data.forEach(r=>{
-          const t = resolveListTypeFromQuickKey(r.list_type || '');
-          const mapped = keys.find(k => resolveListTypeFromQuickKey(k) === t);
-          if (mapped && mapped in s) s[mapped] = true;
-          // Also check exact match
-          if (r.list_type in s) s[r.list_type] = true;
+      // list_items has no user_id or list_type columns — join through user_lists to get the type
+      const{data: listRows}=await c.from('user_lists').select('id,type').eq('user_id',u.id).eq('category',category).neq('type','custom');
+      const listIds=(listRows||[]).map(l=>l.id).filter(Boolean);
+      if(!listIds.length) return s;
+      const listTypeMap={};
+      (listRows||[]).forEach(l=>{listTypeMap[l.id]=l.type;});
+      const{data: itemRows}=await c.from('list_items').select('list_id').in('list_id',listIds).eq('external_id',externalId);
+      if(Array.isArray(itemRows)){
+        itemRows.forEach(r=>{
+          // dbType is the stored user_list_type enum value e.g. 'favorites','completed','watchlist'
+          const dbType=listTypeMap[r.list_id]||'';
+          // Map each quick-menu key to the db type and mark active
+          keys.forEach(k=>{
+            const kMapped=resolveListTypeFromQuickKey(k);
+            if(kMapped===dbType) s[k]=true;
+            // Also direct match (e.g. key='favorites', dbType='favorites')
+            if(k===dbType) s[k]=true;
+          });
         });
       }
     }catch(e){}
@@ -465,25 +475,31 @@
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
       const category = dt?.category || mt;
       if(dt&&lk.length&&vs.length){
-        // Use the get_item_list_status RPC to quickly check status of visible items
-        const statusPromises = vs.slice(0, 50).map(async (id) => {
-          try {
-            const{data}=await c.from('list_items').select('list_type').eq('user_id', u.id).eq('external_type', category).eq('external_id', String(id));
-            if (Array.isArray(data)) {
-              const s = buildBlankQuickStatus(lk);
-              data.forEach(r => {
-                const t = resolveListTypeFromQuickKey(r.list_type || '');
-                const mapped = lk.find(k => resolveListTypeFromQuickKey(k) === t);
-                if (mapped && mapped in s) s[mapped] = true;
-                if (r.list_type in s) s[r.list_type] = true;
-              });
-              return [String(id), s];
-            }
-          } catch(e) {}
-          return null;
-        });
-        const results = await Promise.all(statusPromises);
-        results.forEach(r => { if (r) writeCachedQuickStatus(r[0], r[1], lk); });
+        // Join through user_lists to get list type — list_items has no user_id/list_type columns
+        const{data:listRows}=await c.from('user_lists').select('id,type').eq('user_id',u.id).eq('category',category).neq('type','custom');
+        const listTypeMap={};
+        (listRows||[]).forEach(l=>{listTypeMap[l.id]=l.type;});
+        const defListIds=(listRows||[]).map(l=>l.id).filter(Boolean);
+        if(defListIds.length){
+          const statusPromises = vs.slice(0, 50).map(async (id) => {
+            try {
+              const{data:itemRows}=await c.from('list_items').select('list_id').in('list_id',defListIds).eq('external_id',String(id));
+              if (Array.isArray(itemRows)) {
+                const s = buildBlankQuickStatus(lk);
+                itemRows.forEach(r => {
+                  const dbType=listTypeMap[r.list_id]||'';
+                  lk.forEach(k=>{
+                    if(resolveListTypeFromQuickKey(k)===dbType||k===dbType) s[k]=true;
+                  });
+                });
+                return [String(id), s];
+              }
+            } catch(e) {}
+            return null;
+          });
+          const results = await Promise.all(statusPromises);
+          results.forEach(r => { if (r) writeCachedQuickStatus(r[0], r[1], lk); });
+        }
       }
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const lids=cl.map(l=>l.id).filter(Boolean);if(!lids.length||!vs.length)return;

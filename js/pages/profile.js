@@ -6559,9 +6559,9 @@
                         loadCollaborativeCustomLists('movie', userId)
                     ]);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Movies you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
+                        { id: 'watched',   dbType: 'completed', title: 'Watched',   icon: 'check', description: 'Movies you watched', type: 'default' },
+                        { id: 'watchlist', dbType: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
                     ];
 
                     let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
@@ -6574,7 +6574,7 @@
                     for (const list of defaultLists) {
                         list.movieIds = Array.from(new Set(
                             items
-                                .filter((i) => i.list_type === list.id)
+                                .filter((i) => i.list_type === list.dbType)
                                 .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -6655,9 +6655,9 @@
                         loadCollaborativeCustomLists('tv', userId)
                     ]);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
+                        { id: 'watched',   dbType: 'completed', title: 'Watched',   icon: 'check', description: 'Shows you watched', type: 'default' },
+                        { id: 'watchlist', dbType: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
                     ];
 
                     let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
@@ -6670,7 +6670,7 @@
                     for (const list of defaultLists) {
                         list.tvIds = Array.from(new Set(
                             items
-                                .filter((i) => i.list_type === list.id)
+                                .filter((i) => i.list_type === list.dbType)
                                 .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -6751,9 +6751,9 @@
                         loadCollaborativeCustomLists('anime', userId)
                     ]);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Anime you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Anime to watch', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
+                        { id: 'watched',   dbType: 'completed', title: 'Watched',   icon: 'check', description: 'Anime you watched', type: 'default' },
+                        { id: 'watchlist', dbType: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Anime to watch', type: 'default' }
                     ];
 
                     let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
@@ -6766,7 +6766,7 @@
                     for (const list of defaultLists) {
                         list.animeIds = Array.from(new Set(
                             items
-                                .filter((i) => i.list_type === list.id)
+                                .filter((i) => i.list_type === list.dbType)
                                 .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -6838,9 +6838,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Games you love', type: 'default' },
-                        { id: 'watched', title: 'Played', icon: 'check', description: 'Games you played', type: 'default' },
-                        { id: 'watchlist', title: 'Backlog', icon: 'bookmark', description: 'Games to play', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Games you love', type: 'default' },
+                        { id: 'watched',   dbType: 'completed', title: 'Played',    icon: 'check', description: 'Games you played', type: 'default' },
+                        { id: 'watchlist', dbType: 'watchlist', title: 'Backlog',   icon: 'bookmark', description: 'Games to play', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('game', userId);
@@ -6853,7 +6853,7 @@
                     for (const list of defaultLists) {
                         list.gameIds = Array.from(new Set(
                             items
-                                .filter(i => i.list_type === list.id)
+                                .filter(i => i.list_type === list.dbType)
                                 .map(i => i.external_id)
                                 .filter((id) => String(id || '').trim() !== '')
                         ));
@@ -7043,9 +7043,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Books you love', type: 'default' },
-                        { id: 'read', title: 'Read', icon: 'check', description: 'Books you finished', type: 'default' },
-                        { id: 'readlist', title: 'Readlist', icon: 'bookmark', description: 'Books to read', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Books you love', type: 'default' },
+                        { id: 'read',      dbType: 'completed', title: 'Read',      icon: 'check', description: 'Books you finished', type: 'default' },
+                        { id: 'readlist',  dbType: 'watchlist', title: 'Readlist',  icon: 'bookmark', description: 'Books to read', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('book', userId);
@@ -7074,7 +7074,7 @@
                     for (const list of defaultLists) {
                         list.bookIds = Array.from(new Set(
                             allItems
-                                .filter(i => i.list_type === list.id)
+                                .filter(i => i.list_type === list.dbType)
                                 .map(i => i.external_id)
                         ));
                     }
@@ -7135,9 +7135,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Tracks you love', type: 'default' },
-                        { id: 'listened', title: 'Listened', icon: 'check', description: 'Tracks you already played', type: 'default' },
-                        { id: 'listenlist', title: 'Listenlist', icon: 'bookmark', description: 'Tracks to play later', type: 'default' }
+                        { id: 'favorites',  dbType: 'favorites', title: 'Favorites',  icon: 'heart', description: 'Tracks you love', type: 'default' },
+                        { id: 'listened',   dbType: 'completed', title: 'Listened',   icon: 'check', description: 'Tracks you already played', type: 'default' },
+                        { id: 'listenlist', dbType: 'watchlist', title: 'Listenlist', icon: 'bookmark', description: 'Tracks to play later', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('music', userId);
@@ -7166,7 +7166,7 @@
                     for (const list of defaultLists) {
                         list.trackIds = Array.from(new Set(
                             allItems
-                                .filter((i) => i.list_type === list.id)
+                                .filter((i) => i.list_type === list.dbType)
                                 .map((i) => String(i.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -7416,9 +7416,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Countries you love', type: 'default' },
-                        { id: 'visited', title: 'Visited', icon: 'check', description: 'Countries you visited', type: 'default' },
-                        { id: 'bucketlist', title: 'Bucket List', icon: 'bookmark', description: 'Countries you want to visit', type: 'default' }
+                        { id: 'favorites',  dbType: 'favorites', title: 'Favorites',   icon: 'heart', description: 'Countries you love', type: 'default' },
+                        { id: 'visited',    dbType: 'completed', title: 'Visited',     icon: 'check', description: 'Countries you visited', type: 'default' },
+                        { id: 'bucketlist', dbType: 'watchlist', title: 'Bucket List', icon: 'bookmark', description: 'Countries you want to visit', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('travel', userId);
@@ -7445,7 +7445,7 @@
                     for (const list of defaultLists) {
                         list.countryCodes = Array.from(new Set(
                             allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .filter((row) => row.list_type === list.dbType)
                                 .map((row) => normalizeCountryCode(row.external_id || row.external_id))
                                 .filter(Boolean)
                         ));
@@ -7511,9 +7511,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
-                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'owned',     dbType: 'completed', title: 'Owned',     icon: 'check', description: 'Brands you own', type: 'default' },
+                        { id: 'wishlist',  dbType: 'watchlist', title: 'Wishlist',  icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('fashion', userId);
@@ -7541,7 +7541,7 @@
                     for (const list of defaultLists) {
                         list.brandIds = Array.from(new Set(
                             allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .filter((row) => row.list_type === list.dbType)
                                 .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -7606,9 +7606,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
-                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
+                        { id: 'favorites', dbType: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'owned',     dbType: 'completed', title: 'Owned',     icon: 'check', description: 'Brands you own', type: 'default' },
+                        { id: 'wishlist',  dbType: 'watchlist', title: 'Wishlist',  icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('car', userId);
@@ -7636,7 +7636,7 @@
                     for (const list of defaultLists) {
                         list.brandIds = Array.from(new Set(
                             allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .filter((row) => row.list_type === list.dbType)
                                 .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));
@@ -7701,9 +7701,9 @@
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
                     const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'tried', title: 'Tried', icon: 'check', description: 'Places you already tried', type: 'default' },
-                        { id: 'want_to_try', title: 'Want to Try', icon: 'bookmark', description: 'Spots you want to try', type: 'default' }
+                        { id: 'favorites',   dbType: 'favorites', title: 'Favorites',    icon: 'heart', description: 'Brands you love', type: 'default' },
+                        { id: 'tried',       dbType: 'completed', title: 'Tried',        icon: 'check', description: 'Places you already tried', type: 'default' },
+                        { id: 'want_to_try', dbType: 'watchlist', title: 'Want to Try',  icon: 'bookmark', description: 'Spots you want to try', type: 'default' }
                     ];
 
                     let customLists = await loadCollaborativeCustomLists('food', userId);
@@ -7731,7 +7731,7 @@
                     for (const list of defaultLists) {
                         list.brandIds = Array.from(new Set(
                             allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
+                                .filter((row) => row.list_type === list.dbType)
                                 .map((row) => String(row.external_id || row.external_id || '').trim())
                                 .filter(Boolean)
                         ));

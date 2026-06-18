@@ -898,6 +898,10 @@
       let reviews = [];
       let currentSort = 'latest';
       const listStatus = { favorites: false, watched: false, watchlist: false };
+      // Map UI key → DB enum value (user_list_type: 'favorites','watchlist','completed','custom')
+      const UI_TO_DB_TYPE = { favorites: 'favorites', watchlist: 'watchlist', watched: 'completed' };
+      // Map DB enum value → UI key
+      const DB_TO_UI_TYPE = { favorites: 'favorites', watchlist: 'watchlist', completed: 'watched' };
       const pendingListOps = new Set();
       let customLists = [];
       let modalSelectedLists = new Set();
@@ -1567,9 +1571,10 @@
         listStatus.watched = false;
         listStatus.watchlist = false;
         (data || []).forEach(item => {
-          const type = listTypeMap[item.list_id];
-          if (listStatus[type] !== undefined) {
-            listStatus[type] = true;
+          const dbType = listTypeMap[item.list_id];  // e.g. 'completed'
+          const uiKey = DB_TO_UI_TYPE[dbType] || dbType;  // e.g. 'watched'
+          if (uiKey in listStatus) {
+            listStatus[uiKey] = true;
           }
         });
         updateListMenuUI();
@@ -1732,6 +1737,9 @@
         listStatus[listType] = nextSaved;
         updateListMenuUI();
 
+        // Map UI key to DB enum value: 'watched' -> 'completed', etc.
+        const dbType = UI_TO_DB_TYPE[listType] || listType;
+
         try {
           let listId = null;
           const { data: list } = await supabaseClient
@@ -1739,13 +1747,21 @@
             .select('id')
             .eq('user_id', currentUser.id)
             .eq('category', 'movie')
-            .eq('type', listType)
+            .eq('type', dbType)
             .maybeSingle();
 
           if (list?.id) {
             listId = list.id;
-          } else if (window.ListUtils) {
-            listId = await ListUtils.ensureDefaultList(supabaseClient, currentUser.id, 'movie', listType);
+          } else {
+            // Auto-create the default list with the correct DB type
+            const { data: created, error: createError } = await supabaseClient
+              .from('user_lists')
+              .insert({ user_id: currentUser.id, name: listType.charAt(0).toUpperCase() + listType.slice(1), category: 'movie', type: dbType, description: 'Auto-generated list' })
+              .select('id')
+              .single();
+            if (!createError && created?.id) {
+              listId = created.id;
+            }
           }
 
           if (!listId) throw new Error('List not found');
