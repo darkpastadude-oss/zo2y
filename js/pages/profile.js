@@ -111,7 +111,7 @@
                 forest: { themeColor: '#102015' }
             };
             const PROFILE_PIN_TABLE = 'profile_pinned_lists';
-            const LIST_COLLAB_TABLE = 'list_collaborators';
+
             const CUSTOM_LIST_TABLES = {
                 movie: 'user_lists',
                 tv: 'user_lists',
@@ -2414,11 +2414,11 @@
                             if (!table) return;
                             const { data } = await supabase
                                 .from(table)
-                                .select('id, title')
+                                .select('id, name')
                                 .in('id', ids);
                             (data || []).forEach((row) => {
                                 const key = `${mediaType}:${String(row.id || '').trim()}`;
-                                const title = String(row.title || '').trim();
+                                const title = String(row.name || '').trim();
                                 if (title) listMap.set(key, title);
                             });
                         }));
@@ -3425,21 +3425,7 @@
                 const currentUserId = String(currentUser?.id || '').trim();
                 let isCollaborative = false;
                 let canEdit = ownerUserId === currentUserId;
-                if (!canEdit && isViewingOwnProfile) {
-                    try {
-                        const { data: collabRow, error: collabError } = await supabase
-                            .from(LIST_COLLAB_TABLE)
-                            .select('can_edit')
-                            .eq('media_type', String(contentType || '').toLowerCase())
-                            .eq('list_id', safeListId)
-                            .eq('collaborator_id', currentUserId)
-                            .maybeSingle();
-                        if (!collabError && collabRow) {
-                            isCollaborative = true;
-                            canEdit = !!collabRow.can_edit;
-                        }
-                    } catch (_e) {}
-                }
+
                 setCollaborativeAccess(contentType, safeListId, {
                     ownerUserId,
                     isOwner: ownerUserId === currentUserId,
@@ -3536,19 +3522,11 @@
                 if (cached?.ownerUserId || cached?.canEdit) return cached;
 
                 try {
-                    const { data, error } = await supabase
-                        .from(LIST_COLLAB_TABLE)
-                        .select('can_edit, list_owner_id')
-                        .eq('media_type', safeType)
-                        .eq('list_id', safeListId)
-                        .eq('collaborator_id', currentUserId)
-                        .maybeSingle();
-                    if (error) throw error;
-
+                    const collabs = [];
                     const access = {
-                        ownerUserId: String(ownerUserId || data?.list_owner_id || '').trim(),
+                        ownerUserId: String(ownerUserId || '').trim(),
                         isOwner: false,
-                        canEdit: !!data?.can_edit,
+                        canEdit: false,
                         isCollaborative: true
                     };
                     setCollaborativeAccess(safeType, safeListId, access);
@@ -3644,12 +3622,13 @@
                         .eq('category', contentType)
                         .neq('type', 'custom');
 
-                    const listIds = (userLists || []).map(l => l.id);
+                    const listIds = (userLists || []).filter(l => l.id).map(l => l.id);
                     if (!listIds.length) return { data: [] };
 
                     const listTypeMap = {};
                     (userLists || []).forEach(l => { listTypeMap[l.id] = l.type; });
 
+                    const { data, error } = { data: [], error: null };
                     let result = await supabase
                         .from(table)
                         .select(`${itemField}, list_id`)
@@ -3912,6 +3891,7 @@
                 const existing = pinnedListsMap.get(key);
                 try {
                     if (existing) {
+                        const collabs = [];
                         const { error } = await supabase
                             .from(PROFILE_PIN_TABLE)
                             .delete()
@@ -10270,7 +10250,7 @@
                 const renderFn = MEDIA_TYPE_RENDERERS[type];
                 showConfirmModal('Delete Collection', 'Are you sure? This cannot be undone.', async () => {
                     try {
-                        const collabCleanup = await supabase.from(LIST_COLLAB_TABLE).delete().eq('media_type', type).eq('list_id', String(id));
+
                         if (collabCleanup?.error && String(collabCleanup.error.code || '').trim() !== '42P01') {
                             console.warn(`Could not remove collaborators for ${type} list:`, collabCleanup.error);
                         }

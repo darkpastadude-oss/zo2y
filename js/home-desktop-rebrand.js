@@ -1002,7 +1002,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     const listContainer = document.getElementById('sidebarCustomListItems');
     if (!listContainer) return;
 
-    if (!window.ListUtils || typeof window.ListUtils.loadCustomLists !== 'function') {
+    if (!window.ListUtils || typeof window.ListUtils.getLists !== 'function') {
       listContainer.innerHTML = '<div class="sidebar-list-empty">List preview unavailable right now.</div>';
       return;
     }
@@ -1030,7 +1030,8 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
     const perType = await Promise.all(SIDEBAR_MEDIA_TYPES.map(async (mediaType) => {
       try {
-        const rows = await window.ListUtils.loadCustomLists(client, user.id, mediaType);
+        const allLists = await window.ListUtils.getLists(mediaType);
+        const rows = allLists.filter(l => l.type === 'custom');
         return {
           mediaType,
           lists: Array.isArray(rows) ? rows : []

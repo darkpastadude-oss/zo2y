@@ -3988,7 +3988,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return null;
       if (!window.ListUtils || typeof window.ListUtils.ensureDefaultList !== 'function') return null;
-      return await window.ListUtils.ensureDefaultList(client, userId, 'restaurant', listType);
+      const listObj = await window.ListUtils.ensureDefaultList('restaurant', listType);
+      return listObj ? listObj.id : null;
     }
 
     function getHomeDefaultListTable(mediaType) {
@@ -4170,7 +4171,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return result;
           }
 
-          const listId = await window.ListUtils.ensureDefaultList(client, activeUser.id, mediaType, listType);
+          const listObj = await window.ListUtils.ensureDefaultList(mediaType, listType);
+          const listId = listObj ? listObj.id : null;
           if (!listId) {
             showHomeToast('Could not prepare list', true);
             return result;
@@ -4651,7 +4653,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         let customLists = readHomeMenuCustomListsCache(type);
         if (!customLists.length) {
-          customLists = await ListUtils.loadCustomLists(client, activeUser.id, type);
+          const allLists = await ListUtils.getLists(type);
+          customLists = allLists.filter(l => l.type === 'custom');
           writeHomeMenuCustomListsCache(type, customLists);
         }
 
@@ -4906,7 +4909,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
             <div class="menu-custom-left">
               ${window.ListUtils ? ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>'}
-              <span>${escapeHtml(list.title || 'Custom List')}</span>
+              <span>${escapeHtml(list.name || 'Custom List')}</span>
             </div>
             <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>
@@ -4979,7 +4982,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!client) return;
       const [statusMap, customLists] = await Promise.all([
         getHomeListStatusMap(item.mediaType, item.itemId, homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean)),
-        ListUtils.loadCustomLists(client, activeUserId, item.mediaType)
+        ListUtils.getLists(item.mediaType).then(lists => lists.filter(l => l.type === 'custom'))
       ]);
       homeItemMenuState.quickStatus = statusMap;
       writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
@@ -5140,7 +5143,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const isActive = homeCustomListState.selectedLists.has(list.id);
         item.className = `modal-list-item${isActive ? ' active' : ''}`;
         item.innerHTML = `
-          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.title}</span>
+          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.name}</span>
           <span class="modal-list-actions">
             <span>${isActive ? 'Saved' : 'Add'}</span>
             <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
@@ -5234,7 +5237,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!modal || !container) return;
       container.innerHTML = '<div class="chip">Loading...</div>';
       homeCustomListState.customLists = window.ListUtils
-        ? await ListUtils.loadCustomLists(client, activeUser.id, homeCustomListState.mediaType)
+        ? await ListUtils.getLists(homeCustomListState.mediaType).then(lists => lists.filter(l => l.type === 'custom'))
         : [];
       const listIds = homeCustomListState.customLists.map(l => l.id);
       homeCustomListState.selectedLists = window.ListUtils
