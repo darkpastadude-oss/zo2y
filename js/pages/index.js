@@ -3341,7 +3341,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const { data, error } = await client
           .from('list_items')
           .select('external_id, list_id, added_at')
-          .eq('external_type', mediaType)
           .in('list_id', listIds)
           .order('added_at', { ascending: false })
           .limit(220);
@@ -4206,7 +4205,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .from('list_items')
               .insert({
                 list_id: listId,
-                external_type: mediaType,
                 external_id: String(itemId),
                 external_source: externalSrc,
                 metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
@@ -4247,10 +4245,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { error: insertError } = await client
             .from('list_items')
             .insert({
-              user_id: activeUser.id,
               list_id: listId,
-              external_type: mediaType,
               external_id: String(itemId),
+              external_source: externalSrc,
               metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
             });
           if (insertError && String(insertError.code || '') !== '23505') {
@@ -4298,10 +4295,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { error: insertError } = await client
               .from('list_items')
               .insert({
-                user_id: activeUser.id,
                 list_id: listId,
-                external_type: 'restaurant',
                 external_id: restaurantId,
+                external_source: 'local_db',
                 metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null }
               });
             if (insertError && String(insertError.code || '') !== '23505') {
@@ -4338,10 +4334,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const { error: insertError } = await client
             .from('list_items')
             .insert({
-                user_id: activeUser.id,
                 list_id: listId,
-                external_type: 'restaurant',
                 external_id: restaurantId,
+                external_source: 'local_db',
                 metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null }
             });
           if (insertError && String(insertError.code || '') !== '23505') {

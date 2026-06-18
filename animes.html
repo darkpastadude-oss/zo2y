@@ -1692,8 +1692,7 @@
           const { error } = await client.from('list_items').insert({
             list_id: list.id,
             external_id: String(animeId),
-            external_source: 'tmdb',
-            external_type: 'anime'
+            external_source: 'tmdb'
           });
           if (error && String(error.code || '') !== '23505') throw error;
           showToast('Added to list');

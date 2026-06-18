@@ -3426,17 +3426,19 @@
                 let isCollaborative = false;
                 let canEdit = ownerUserId === currentUserId;
                 if (!canEdit && isViewingOwnProfile) {
-                    const { data: collabRow, error: collabError } = await supabase
-                        .from(LIST_COLLAB_TABLE)
-                        .select('can_edit')
-                        .eq('media_type', String(contentType || '').toLowerCase())
-                        .eq('list_id', safeListId)
-                        .eq('collaborator_id', currentUserId)
-                        .maybeSingle();
-                    if (!collabError && collabRow) {
-                        isCollaborative = true;
-                        canEdit = !!collabRow.can_edit;
-                    }
+                    try {
+                        const { data: collabRow, error: collabError } = await supabase
+                            .from(LIST_COLLAB_TABLE)
+                            .select('can_edit')
+                            .eq('media_type', String(contentType || '').toLowerCase())
+                            .eq('list_id', safeListId)
+                            .eq('collaborator_id', currentUserId)
+                            .maybeSingle();
+                        if (!collabError && collabRow) {
+                            isCollaborative = true;
+                            canEdit = !!collabRow.can_edit;
+                        }
+                    } catch (_e) {}
                 }
                 setCollaborativeAccess(contentType, safeListId, {
                     ownerUserId,
@@ -5904,7 +5906,7 @@
                         .eq('media_type', editingMediaList.type)
                         .eq('list_id', editingMediaList.id)
                         .eq('collaborator_id', safeCollaboratorId);
-                    if (error) throw error;
+                    if (error && String(error?.code || '').trim() !== '42P01') throw error;
 
                     editingMediaCollaborators = editingMediaCollaborators.filter(
                         (row) => String(row.collaborator_id || '').trim() !== safeCollaboratorId

@@ -878,8 +878,7 @@
           const { error } = await client.from('list_items').insert({
             list_id: target.id,
             external_id: String(id),
-            external_source: 'spotify',
-            external_type: 'music'
+            external_source: 'spotify'
           });
           if (error && String(error.code || '') !== '23505') throw error;
           qs('songStatus').textContent = 'Added to list.';

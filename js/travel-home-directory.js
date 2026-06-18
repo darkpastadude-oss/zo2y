@@ -394,11 +394,9 @@
           const { error } = await supabase
             .from('list_items')
             .insert({
-              user_id: state.currentUser.id,
               list_id: listId,
               external_id: code,
               external_source: 'local_db',
-              external_type: 'travel',
               metadata: { title: country.name, poster_url: country.flag }
             });
           if (error && String(error.code || '') !== '23505') throw error;
