@@ -113,7 +113,7 @@ async function handleCreateList(req, res) {
       .from("user_lists")
       .insert({
         user_id: userId,
-        title,
+        name: title,
         media_type: mediaType,
         icon: body.icon || "fas fa-list",
         description: body.description || "",
@@ -153,8 +153,8 @@ async function handleUpdateList(req, res) {
 
   const body = req.body || {};
   const updates = {};
-  if (body.title !== undefined) updates.title = String(body.title).trim();
-  if (body.name !== undefined) updates.title = String(body.name).trim(); // backward compat
+  if (body.name !== undefined) updates.name = String(body.name).trim();
+  if (body.title !== undefined) updates.name = String(body.title).trim(); // backward compat
   if (body.icon !== undefined) updates.icon = String(body.icon).trim();
   if (body.description !== undefined) updates.description = String(body.description).trim();
   if (body.is_public !== undefined) updates.is_public = Boolean(body.is_public);

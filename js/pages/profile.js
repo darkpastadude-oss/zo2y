@@ -2527,12 +2527,12 @@
                             { table: 'user_lists', category: 'music', mediaType: 'music' }
                         ];
                         const reviewSources = [
-                            { table: 'movie_reviews', mediaType: 'movie', itemField: 'external_id', textField: 'comment' },
-                            { table: 'tv_reviews', mediaType: 'tv', itemField: 'external_id', textField: 'comment' },
-                            { table: 'anime_reviews', mediaType: 'anime', itemField: 'external_id', textField: 'comment' },
-                            { table: 'game_reviews', mediaType: 'game', itemField: 'external_id', textField: 'comment' },
-                            { table: 'book_reviews', mediaType: 'book', itemField: 'external_id', textField: 'comment' },
-                            { table: 'music_reviews', mediaType: 'music', itemField: 'external_id', textField: 'comment' }
+                            { table: 'movie_reviews', mediaType: 'movie', itemField: 'media_id', textField: 'review_text' },
+                            { table: 'tv_reviews', mediaType: 'tv', itemField: 'media_id', textField: 'review_text' },
+                            { table: 'anime_reviews', mediaType: 'anime', itemField: 'media_id', textField: 'review_text' },
+                            { table: 'game_reviews', mediaType: 'game', itemField: 'media_id', textField: 'review_text' },
+                            { table: 'book_reviews', mediaType: 'book', itemField: 'media_id', textField: 'review_text' },
+                            { table: 'music_reviews', mediaType: 'music', itemField: 'media_id', textField: 'review_text' }
                         ];
 
                         const listAddTasks = listItemSources.map(async (source) => {
@@ -3422,7 +3422,7 @@
                 (ownedLists || []).forEach((list) => {
                     const safeId = String(list?.id || '').trim();
                     if (!safeId || byId.has(safeId)) return;
-                    const row = { ...list, type: 'custom', __isCollaborative: false };
+                    const row = { ...list, type: 'custom', __isCollaborative: false, title: list.name || '' };
                     byId.set(safeId, row);
                     merged.push(row);
                 });
@@ -3577,7 +3577,7 @@
                     .eq('id', safeListId)
                     .maybeSingle();
                 if (error || !data) return null;
-                return { ...data, type: 'custom' };
+                return { ...data, type: 'custom', title: data.name || '' };
             }
 
             async function ensureCollaborativeAccessForList(contentType, list = null) {
@@ -5855,7 +5855,7 @@
                 };
 
                 const nameInput = document.getElementById('editMediaListName');
-                if (nameInput) nameInput.value = record.title || '';
+                if (nameInput) nameInput.value = record.name || record.title || '';
                 setEditMediaListIcon(config.fallback);
                 setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
@@ -6024,7 +6024,7 @@
 
                 const insertBase = {
                     user_id: currentUser.id,
-                    title: trimmedTitle,
+                    name: trimmedTitle,
                     icon,
                     list_kind: dbListKind,
                     created_at: new Date().toISOString()
@@ -6033,7 +6033,7 @@
                 const insertRow = async (payload, includeListKind = true) => supabase
                     .from(context.table)
                     .insert(payload)
-                    .select(includeListKind ? 'id,title,icon,list_kind' : 'id,title,icon')
+                    .select(includeListKind ? 'id,name,icon,list_kind' : 'id,name,icon')
                     .single();
 
                 const hasListKindColumnError = (error) => {
@@ -6151,7 +6151,7 @@
                     ? ListUtils.normalizeTierMaxRank(tierState.maxRank)
                     : null;
                 const updatePayload = {
-                    title,
+                    name: title,
                     icon: enforcedIcon,
                     list_kind: normalizedKind === 'tier' ? 'tier' : editingMediaList.type
                 };
@@ -6171,7 +6171,7 @@
                     .eq('id', editingMediaList.id);
 
                 if (hasListKindColumnError(error)) {
-                    const fallbackPayload = { title, icon };
+                    const fallbackPayload = { name: title, icon };
                     ({ error } = await supabase
                         .from(editingMediaList.table)
                         .update(fallbackPayload)
@@ -8188,7 +8188,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -8380,7 +8380,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -8574,7 +8574,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -8768,7 +8768,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -8962,7 +8962,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -9161,7 +9161,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -9349,7 +9349,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -9545,7 +9545,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {
@@ -9904,7 +9904,7 @@
                         showToast('Collection not found', 'error');
                         return;
                     }
-                    list = { ...data, type: 'custom' };
+                    list = { ...data, type: 'custom', title: data.name || '' };
                 }
 
                 if (listType === 'custom' && window.ListUtils) {

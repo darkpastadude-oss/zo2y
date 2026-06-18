@@ -129,6 +129,10 @@
   const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
 
   function resolveLogo(value, domain, name) {
+    const logoUrl = String(value || '').trim();
+    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+      return logoUrl;
+    }
     const domainRaw = String(domain || '').trim();
     if (domainRaw) {
       const bucketType = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');

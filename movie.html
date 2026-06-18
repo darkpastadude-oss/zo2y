@@ -1732,27 +1732,35 @@
         listStatus[listType] = nextSaved;
         updateListMenuUI();
 
-          try {
-            const { data: list } = await supabaseClient
-              .from('user_lists')
-              .select('id')
-              .eq('user_id', currentUser.id)
-              .eq('category', 'movie')
-              .eq('type', listType)
-              .single();
-            if (!list) throw new Error('List not found');
+        try {
+          let listId = null;
+          const { data: list } = await supabaseClient
+            .from('user_lists')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('category', 'movie')
+            .eq('type', listType)
+            .maybeSingle();
+
+          if (list?.id) {
+            listId = list.id;
+          } else if (window.ListUtils) {
+            listId = await ListUtils.ensureDefaultList(supabaseClient, currentUser.id, 'movie', listType);
+          }
+
+          if (!listId) throw new Error('List not found');
 
           if (nextSaved) {
             const { error } = await supabaseClient
               .from('list_items')
-              .insert({ list_id: list.id, external_id: String(movieId), external_source: 'tmdb', external_type: 'movie' });
+              .insert({ list_id: listId, external_id: String(movieId), external_source: 'tmdb', external_type: 'movie' });
             if (error && String(error.code || '') !== '23505') throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
               .from('list_items')
               .delete()
-              .eq('list_id', list.id)
+              .eq('list_id', listId)
               .eq('external_id', String(movieId));
             if (error) throw error;
             showNotification('Removed from list', 'info');
@@ -1852,7 +1860,7 @@
         const { data, error } = await supabaseClient
           .from('movie_reviews')
           .select('*')
-          .eq('movie_id', movieId)
+          .eq('media_id', movieId)
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -1970,7 +1978,7 @@
                 </div>
                 <div class="review-rating">${renderStarRating(review.rating)}</div>
               </div>
-              <p class="review-comment">${escapeHtml(review.comment || '')}</p>
+              <p class="review-comment">${escapeHtml(review.review_text || review.comment || '')}</p>
               ${canEditDelete ? `
                 <div class="review-actions">
                   <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
@@ -2017,7 +2025,8 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { movie_id: movieId, user_id: currentUser.id, rating: currentRating, comment };
+        const titleVal = document.getElementById('title')?.textContent?.trim() || 'Untitled';
+        const payload = { media_id: movieId, user_id: currentUser.id, rating: currentRating, review_text: comment, media_type: 'movie', title: titleVal };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
@@ -2057,7 +2066,7 @@
         if (!review) return;
         editingReviewId = reviewId;
         currentRating = review.rating;
-        document.getElementById('review-comment').value = review.comment || '';
+        document.getElementById('review-comment').value = review.review_text || review.comment || '';
         updateStarDisplay();
         const submitText = document.querySelector('.submit-review-btn .btn-text');
         if (submitText) submitText.textContent = 'Update Review';

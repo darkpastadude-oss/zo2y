@@ -1973,38 +1973,39 @@
         updateListMenuUI();
 
           try {
+            let listId = null;
+            const { data: list } = await supabaseClient
+              .from('user_lists')
+              .select('id')
+              .eq('user_id', currentUser.id)
+              .eq('category', 'game')
+              .eq('type', listType)
+              .maybeSingle();
+
+            if (list?.id) {
+              listId = list.id;
+            } else if (window.ListUtils) {
+              listId = await ListUtils.ensureDefaultList(supabaseClient, currentUser.id, 'game', listType);
+            }
+
+            if (!listId) throw new Error('List not found');
+
             if (nextSaved) {
-              const { data: userList } = await supabaseClient
-                .from('user_lists')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .eq('category', 'game')
-                .eq('type', listType)
-                .single();
-              if (!userList) throw new Error('List not found');
               const { error } = await supabaseClient
                 .from('list_items')
-                .insert({ list_id: userList.id, external_id: String(gameId), external_source: 'igdb', external_type: 'game' });
+                .insert({ list_id: listId, external_id: String(gameId), external_source: 'igdb', external_type: 'game' });
               if (error && String(error.code || '') !== '23505') throw error;
               showNotification('Saved to list', 'success');
             } else {
-              const { data: userList } = await supabaseClient
-                .from('user_lists')
-                .select('id')
-                .eq('user_id', currentUser.id)
-                .eq('category', 'game')
-                .eq('type', listType)
-                .single();
-            if (!userList) throw new Error('List not found');
-            const { error } = await supabaseClient
-              .from('list_items')
-              .delete()
-              .eq('list_id', userList.id)
-              .eq('external_id', String(gameId));
-            if (error) throw error;
-            showNotification('Removed from list', 'info');
-          }
-          return { ok: true, saved: nextSaved };
+              const { error } = await supabaseClient
+                .from('list_items')
+                .delete()
+                .eq('list_id', listId)
+                .eq('external_id', String(gameId));
+              if (error) throw error;
+              showNotification('Removed from list', 'info');
+            }
+            return { ok: true, saved: nextSaved };
         } catch (error) {
           listStatus[listType] = previousSaved;
           showNotification('Could not update list', 'error');
@@ -2099,7 +2100,7 @@
         const { data, error } = await supabaseClient
           .from('game_reviews')
           .select('*')
-          .eq('game_id', gameId)
+          .eq('media_id', gameId)
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -2217,7 +2218,7 @@
                 </div>
                 <div class="review-rating">${renderStarRating(review.rating)}</div>
               </div>
-              <p class="review-comment">${escapeHtml(review.comment || '')}</p>
+              <p class="review-comment">${escapeHtml(review.review_text || review.comment || '')}</p>
               ${canEditDelete ? `
                 <div class="review-actions">
                   <button class="review-edit" onclick="editReview('${review.id}')">Edit</button>
@@ -2264,7 +2265,8 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { game_id: gameId, user_id: currentUser.id, rating: currentRating, comment };
+        const titleVal = document.getElementById('title')?.textContent?.trim() || 'Untitled';
+        const payload = { media_id: gameId, user_id: currentUser.id, rating: currentRating, review_text: comment, media_type: 'game', title: titleVal };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
@@ -2304,7 +2306,7 @@
         if (!review) return;
         editingReviewId = reviewId;
         currentRating = review.rating;
-        document.getElementById('review-comment').value = review.comment || '';
+        document.getElementById('review-comment').value = review.review_text || review.comment || '';
         updateStarDisplay();
         const submitText = document.querySelector('.submit-review-btn .btn-text');
         if (submitText) submitText.textContent = 'Update Review';

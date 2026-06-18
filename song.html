@@ -909,41 +909,43 @@
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
-          const { data: target } = await client
+          let listId = null;
+          const { data: list } = await client
             .from('user_lists')
             .select('id')
             .eq('user_id', currentUser.id)
             .eq('category', 'music')
             .eq('type', listType)
             .maybeSingle();
-          if (!target) throw new Error('list_not_found');
-          const { error } = await client.from('list_items').insert({
-            list_id: target.id,
-            external_id: String(trackId),
-            external_source: 'spotify',
-            external_type: 'music'
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
-          qs('songStatus').textContent = 'Added to list.';
-          qs('songStatus').classList.remove('error');
-        } else {
-          const { data: target } = await client
-            .from('user_lists')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('category', 'music')
-            .eq('type', listType)
-            .maybeSingle();
-          if (!target) throw new Error('list_not_found');
-          const { error } = await client
-            .from('list_items')
-            .delete()
-            .eq('list_id', target.id)
-            .eq('external_id', String(trackId));
-          if (error) throw error;
-          qs('songStatus').textContent = 'Removed from list.';
-          qs('songStatus').classList.remove('error');
-        }
+
+          if (list?.id) {
+            listId = list.id;
+          } else if (window.ListUtils) {
+            listId = await ListUtils.ensureDefaultList(client, currentUser.id, 'music', listType);
+          }
+
+          if (!listId) throw new Error('List not found');
+
+          if (nextSaved) {
+            const { error } = await client.from('list_items').insert({
+              list_id: listId,
+              external_id: String(trackId),
+              external_source: 'spotify',
+              external_type: 'music'
+            });
+            if (error && String(error.code || '') !== '23505') throw error;
+            qs('songStatus').textContent = 'Added to list.';
+            qs('songStatus').classList.remove('error');
+          } else {
+            const { error } = await client
+              .from('list_items')
+              .delete()
+              .eq('list_id', listId)
+              .eq('external_id', String(trackId));
+            if (error) throw error;
+            qs('songStatus').textContent = 'Removed from list.';
+            qs('songStatus').classList.remove('error');
+          }
       } catch (_error) {
         trackListStatus[listType] = previousSaved;
         qs('songStatus').textContent = 'Could not update list.';

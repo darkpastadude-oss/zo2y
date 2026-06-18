@@ -1909,6 +1909,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function resolveBrandLogo(row, mediaType) {
+      const logoUrl = String(row?.logo_url || row?.logo || '').trim();
+      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+        return logoUrl;
+      }
       const typeKey = String(mediaType || '').toLowerCase();
       const domain = String(row?.domain || '').trim();
       const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
