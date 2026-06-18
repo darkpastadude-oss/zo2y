@@ -3704,39 +3704,39 @@
                 const safeListId = String(listId || '').trim();
                 if (!safeListId) return [];
 
-                const runQuery = async (selectField, filterField) => {
-                    let query = supabase
+                let actualListId = safeListId;
+
+                // For default lists, listId is actually the type ('favorites', etc). We need to get the real list_id.
+                if (safeListType === 'default') {
+                    const { data: defaultList } = await supabase
+                        .from('user_lists')
+                        .select('id')
+                        .eq('user_id', safeOwnerId)
+                        .eq('category', contentType)
+                        .eq('type', safeListId)
+                        .maybeSingle();
+                    if (!defaultList) return [];
+                    actualListId = defaultList.id;
+                }
+
+                const runQuery = async (selectField) => {
+                    return await supabase
                         .from(table)
                         .select(selectField)
-                        .eq(filterField, safeListId).eq('external_type', contentType);
-                    if (safeListType === 'default') {
-                        query = query.eq('user_id', safeOwnerId).eq('external_type', contentType);
-                    }
-                    return await query;
+                        .eq('list_id', actualListId)
+                        .eq('external_type', contentType);
                 };
 
-                const primaryFilterField = safeListType === 'default' ? 'list_type' : 'list_id';
-                const fallbackFilterField = primaryFilterField === 'list_type' ? 'list_id' : 'list_type';
-
-                let result = await runQuery(itemField, primaryFilterField);
+                let result = await runQuery(itemField);
                 if (result?.error && isColumnMissingError(result.error, itemField)) {
-                    result = await runQuery('external_id', primaryFilterField);
-                }
-                if (result?.error && isColumnMissingError(result.error, primaryFilterField)) {
-                    result = await runQuery(itemField, fallbackFilterField);
-                    if (result?.error && isColumnMissingError(result.error, itemField)) {
-                        result = await runQuery('external_id', fallbackFilterField);
-                    }
+                    result = await runQuery('external_id');
                 }
 
                 const data = result?.data || [];
-                const error = result?.error || null;
-                if (error) throw error;
-
                 const unique = [];
                 const seen = new Set();
-                (data || []).forEach((row) => {
-                    const value = String(row?.[itemField] || row?.item_id || '').trim();
+                data.forEach((row) => {
+                    const value = String(row?.[itemField] || row?.external_id || '').trim();
                     if (!value || seen.has(value)) return;
                     seen.add(value);
                     unique.push(value);

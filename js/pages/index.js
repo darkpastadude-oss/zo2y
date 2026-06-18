@@ -3317,11 +3317,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!userIds.length) return null;
 
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
+        // Fetch default lists for these userIds and mediaType to map list_id to user_id/list_type
+        const { data: defaultLists } = await client
+          .from('user_lists')
+          .select('id, type, user_id')
+          .in('user_id', userIds)
+          .eq('category', mediaType);
+
+        if (!defaultLists || !defaultLists.length) {
+          return { mediaType, itemField: 'media_id', rows: [] };
+        }
+
+        const defaultListTypeById = new Map();
+        const userIdByListId = new Map();
+        const listIds = [];
+        
+        defaultLists.forEach(dl => {
+          defaultListTypeById.set(dl.id, dl.type);
+          userIdByListId.set(dl.id, dl.user_id);
+          listIds.push(dl.id);
+        });
+
         const { data, error } = await client
           .from('list_items')
-          .select('external_id, list_id, user_id, added_at')
+          .select('external_id, list_id, added_at')
           .eq('external_type', mediaType)
-          .in('user_id', userIds)
+          .in('list_id', listIds)
           .order('added_at', { ascending: false })
           .limit(220);
 
@@ -3329,24 +3350,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return { mediaType, itemField: 'media_id', rows: [] };
         }
 
-        // Fetch default lists for these userIds and mediaType to map list_id to list_type
-        const { data: defaultLists } = await client
-          .from('user_lists')
-          .select('id, type')
-          .in('user_id', userIds)
-          .eq('category', mediaType);
-
-        const defaultListTypeById = new Map();
-        if (Array.isArray(defaultLists)) {
-          defaultLists.forEach(dl => {
-            defaultListTypeById.set(dl.id, dl.type);
-          });
-        }
-
         const rows = data.map((row) => ({
           media_id: row.external_id,
           external_id: row.external_id,
-          user_id: row.user_id,
+          user_id: userIdByListId.get(row.list_id),
           list_type: defaultListTypeById.get(row.list_id) || 'custom',
           created_at: row.added_at
         }));
