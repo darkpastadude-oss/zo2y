@@ -166,7 +166,7 @@ async function handleUpdateList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1];
+  const listId = pathParts[0];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const body = req.body || {};
@@ -206,7 +206,7 @@ async function handleDeleteList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1];
+  const listId = pathParts[0];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const admin = await getAuthenticatedClient(req);
@@ -235,7 +235,7 @@ async function handleGetListItems(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1];
+  const listId = pathParts[0];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const admin = await getAuthenticatedClient(req);
@@ -263,7 +263,7 @@ async function handleAddItemToList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1];
+  const listId = pathParts[0];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
   const body = req.body || {};
@@ -299,8 +299,8 @@ async function handleRemoveItemFromList(req, res) {
   if (!userId) return jsonResponse(res, 401, { success: false, message: "Unauthorized" });
 
   const pathParts = parsePath(req.query);
-  const listId = pathParts[1];
-  const externalId = pathParts[3];
+  const listId = pathParts[0];
+  const externalId = pathParts[2];
   if (!listId || !externalId) {
     return jsonResponse(res, 400, { success: false, message: "List ID and external_id required" });
   }
@@ -451,41 +451,36 @@ async function handleCreateDefaults(req, res) {
 export default async function handler(req, res) {
   try {
     const pathParts = parsePath(req.query);
-    const section = String(pathParts[0] || "").toLowerCase().trim();
+    const action = String(pathParts[0] || "").toLowerCase().trim();
     const method = String(req.method || "GET").toUpperCase();
 
-    // /api/lists routes
-    if (!section || section === "lists") {
-      const sub = String(pathParts[1] || "").toLowerCase();
+    // /api/lists/toggle (POST)
+    if (action === "toggle" && method === "POST") return handleToggleItem(req, res);
+    // /api/lists/status (GET)
+    if (action === "status" && method === "GET") return handleGetItemStatus(req, res);
+    // /api/lists/defaults (POST)
+    if (action === "defaults" && method === "POST") return handleCreateDefaults(req, res);
 
-      // /api/lists/toggle (POST)
-      if (sub === "toggle" && method === "POST") return handleToggleItem(req, res);
-      // /api/lists/status (GET)
-      if (sub === "status" && method === "GET") return handleGetItemStatus(req, res);
-      // /api/lists/defaults (POST)
-      if (sub === "defaults" && method === "POST") return handleCreateDefaults(req, res);
+    // /api/lists/:id/items
+    if (pathParts[1] === "items") {
+      if (method === "GET") return handleGetListItems(req, res);
+      if (method === "POST") return handleAddItemToList(req, res);
+      // /api/lists/:id/items/:externalId (DELETE)
+      if (pathParts[2] && method === "DELETE") return handleRemoveItemFromList(req, res);
+      return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
+    }
 
-      // /api/lists/:id/items
-      if (pathParts[2] === "items") {
-        if (method === "GET") return handleGetListItems(req, res);
-        if (method === "POST") return handleAddItemToList(req, res);
-        // /api/lists/:id/items/:externalId (DELETE)
-        if (pathParts[3] && method === "DELETE") return handleRemoveItemFromList(req, res);
-        return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
-      }
+    // /api/lists/:id (PUT/DELETE)
+    if (action && action !== "toggle" && action !== "status" && action !== "defaults") {
+      if (method === "PUT") return handleUpdateList(req, res);
+      if (method === "DELETE") return handleDeleteList(req, res);
+      return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
+    }
 
-      // /api/lists/:id (PUT/DELETE)
-      if (sub && sub !== "toggle" && sub !== "status" && sub !== "defaults") {
-        if (method === "PUT") return handleUpdateList(req, res);
-        if (method === "DELETE") return handleDeleteList(req, res);
-        return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
-      }
-
-      // /api/lists (GET/POST)
+    // /api/lists (GET/POST)
+    if (!action) {
       if (method === "GET") return handleGetLists(req, res);
       if (method === "POST") return handleCreateList(req, res);
-
-      return jsonResponse(res, 405, { success: false, message: "Method not allowed" });
     }
 
     return jsonResponse(res, 404, { success: false, message: "Not found" });
