@@ -110,6 +110,7 @@
                 forest: { themeColor: '#102015' }
             };
             const PROFILE_PIN_TABLE = 'profile_pinned_lists';
+            const LIST_COLLAB_TABLE = 'list_collaborators';
 
             const CUSTOM_LIST_TABLES = {
                 movie: 'user_lists',
@@ -7088,19 +7089,28 @@
                     showToast('Sign in to remove teams', 'error');
                     return false;
                 }
-                const { error } = await supabase
-                    .from('user_favorite_teams')
-                    .delete()
-                    .eq('user_id', currentUser.id)
-                    .eq('team_id', teamId);
+                try {
+                    const { error } = await supabase
+                        .from('user_favorite_teams')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('team_id', teamId);
 
-                if (error) {
-                    console.error('Error removing team:', error);
-                    showToast('Unable to remove team', 'error');
+                    if (error) {
+                        if (String(error.code || '').trim() === '42P01') {
+                            console.warn('user_favorite_teams table not available');
+                            return false;
+                        }
+                        console.error('Error removing team:', error);
+                        showToast('Unable to remove team', 'error');
+                        return false;
+                    }
+                    showToast('Removed from favorites', 'success');
+                    return true;
+                } catch (e) {
+                    console.error('Error removing team:', e);
                     return false;
                 }
-                showToast('Removed from favorites', 'success');
-                return true;
             }
 
             function buildSportsTeamCard(team, options = {}) {
@@ -7173,13 +7183,24 @@
                 };
 
                 try {
-                    const { data, error } = await supabase
-                        .from('user_favorite_teams')
-                        .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false });
+                    let data, error;
+                    try {
+                        ({ data, error } = await supabase
+                            .from('user_favorite_teams')
+                            .select('team_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
+                            .eq('user_id', userId)
+                            .order('created_at', { ascending: false }));
+                    } catch (tableErr) {
+                        error = tableErr;
+                    }
 
-                    if (error) throw error;
+                    if (error) {
+                        if (String(error.code || '').trim() !== '42P01') throw error;
+                        console.warn('user_favorite_teams table not available, showing empty sports');
+                        renderEmptyState();
+                        markTabRendered('sports');
+                        return;
+                    }
                     if (renderToken !== renderSportsToken) return;
 
                     const teams = (data || [])
@@ -10797,39 +10818,30 @@
                     const allItems = [];
 
                     for (const mediaType of mediaTypes) {
-                        const itemTable = MEDIA_ITEM_TABLES[mediaType];
-                        const listTable = CUSTOM_LIST_TABLES[mediaType];
-                        const itemField = MEDIA_ITEM_FIELDS[mediaType];
-
-                        if (!itemTable || !itemField) continue;
-
-                        // Fetch list items with list info
-                        const { data: listItems, error } = await supabase
-                            .from(itemTable)
-                            .select(`*, ${listTable}(title, id)`)
-                            .eq('user_id', currentUser.id);
+                        const category = mediaType === 'fashion' || mediaType === 'food' || mediaType === 'travel' || mediaType === 'car' ? mediaType : mediaType;
+                        const { data: items, error } = await supabase
+                            .rpc('get_all_user_items', { p_user_id: currentUser.id, p_category: category });
 
                         if (error) {
                             console.error(`Error fetching ${mediaType} items:`, error);
                             continue;
                         }
 
-                        // Group items by their media ID to collect all listTypes
                         const itemMap = new Map();
 
-                        (listItems || []).forEach(item => {
-                            const listInfo = item[listTable] || {};
+                        (items || []).forEach(item => {
                             const listType = (item.list_type || 'custom').toLowerCase();
-                            const itemId = item[itemField];
+                            const itemId = item.external_id;
 
                             if (!itemId) return;
 
                             if (!itemMap.has(itemId)) {
+                                const meta = item.metadata || {};
                                 itemMap.set(itemId, {
-                                    title: item.title || item.name || '',
+                                    title: meta.title || meta.name || '',
                                     mediaType: mediaType,
                                     listTypes: [],
-                                    poster: item.poster || item.image || item.cover_url || item.poster_path || item.poster_url
+                                    poster: meta.poster || meta.image || meta.cover_url || meta.poster_path || meta.poster_url || ''
                                 });
                             }
 

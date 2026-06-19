@@ -92,6 +92,17 @@
           }
         }
       }
+      if (!token && typeof localStorage !== "undefined") {
+        for (const k of ["zo2y-auth-v2", "zo2y-auth-persist-v2", "zo2y-auth-durable-v2"]) {
+          try {
+            const raw = localStorage.getItem(k);
+            if (!raw) continue;
+            const parsed = JSON.parse(raw);
+            const t = parsed?.access_token || (parsed?.session?.access_token) || (parsed?.data?.session?.access_token);
+            if (t) { token = t; break; }
+          } catch (e) {}
+        }
+      }
       if (token) headers["Authorization"] = "Bearer " + token;
     } catch (e) {}
     return headers;
