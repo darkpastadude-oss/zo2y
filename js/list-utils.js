@@ -1305,7 +1305,7 @@
       }
     }
     const inserts = listIds.map(listId => {
-      const row = { list_id: listId };
+      const row = { list_id: listId, list_type: null };
       row[cfg.itemIdField] = normalizedItemId;
       if (cfg.usesUserId) {
         const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
@@ -1315,7 +1315,7 @@
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
       // Use upsert with onConflict to avoid 409 errors for duplicate entries
-      const conflictTarget = cfg.usesUserId ? `${cfg.itemIdField},list_id,user_id` : `${cfg.itemIdField},list_id`;
+      const conflictTarget = cfg.usesUserId ? `${cfg.itemIdField},list_id,user_id,list_type` : `${cfg.itemIdField},list_id,list_type`;
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
         onConflict: conflictTarget,
         ignoreDuplicates: false
