@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 const VALID_CATEGORIES = new Set([
@@ -29,17 +30,50 @@ async function resolveUserId(req) {
   if (!authHeader.startsWith("Bearer ")) return null;
   const token = authHeader.slice(7);
   try {
-    const admin = getSupabaseAdminClient();
-    const { data, error } = await admin.auth.getUser(token);
+    const client = await getAuthenticatedClient(req);
+    const { data, error } = await client.auth.getUser(token);
     if (error || !data?.user?.id) return null;
     return data.user.id;
-  } catch {
+  } catch (err) {
+    console.error("resolveUserId error:", err);
     return null;
   }
 }
 
-async function getAdmin() {
-  return getSupabaseAdminClient();
+async function getAuthenticatedClient(req) {
+  const url = String(process.env.SUPABASE_URL || process.env.SUPABASE_PROJECT_REF || "").trim();
+  let anonKey = String(
+    process.env.SUPABASE_ANON_KEY || 
+    process.env.SUPABASE_KEY || 
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 
+    process.env.SUPABASE_SERVICE_KEY || 
+    ""
+  ).trim();
+
+  let formattedUrl = url;
+  if (formattedUrl && !/^https?:\/\//i.test(formattedUrl)) {
+    if (/^[a-z0-9]{20}$/i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}.supabase.co`;
+    } else if (/supabase\.co/i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+  }
+
+  if (!formattedUrl || !anonKey) {
+    // If running in an environment without env vars, fallback to the hardcoded anon key
+    formattedUrl = "https://gfkhjbztayjyojsgdpgk.supabase.co";
+    anonKey = "sb_publishable_Rw-VlOLSWfzsycF4JMFUvg_vNlaMwVd";
+  }
+
+  const authHeader = String(req.headers["authorization"] || "").trim();
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+
+  return createClient(formattedUrl, anonKey, {
+    global: {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
 }
 
 // ============================================================================
@@ -58,7 +92,7 @@ async function handleGetLists(req, res) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("get_user_lists", {
       p_user_id: userId,
@@ -93,7 +127,7 @@ async function handleCreateList(req, res) {
     return jsonResponse(res, 400, { success: false, message: "List name must be 1-100 characters" });
   }
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin
       .from("user_lists")
@@ -141,7 +175,7 @@ async function handleUpdateList(req, res) {
   if (body.icon !== undefined) updates.icon = String(body.icon).trim();
   if (body.description !== undefined) updates.description = String(body.description).trim();
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin
       .from("user_lists")
@@ -175,7 +209,7 @@ async function handleDeleteList(req, res) {
   const listId = pathParts[1];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { error } = await admin
       .from("user_lists")
@@ -204,7 +238,7 @@ async function handleGetListItems(req, res) {
   const listId = pathParts[1];
   if (!listId) return jsonResponse(res, 400, { success: false, message: "List ID required" });
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("get_list_items", {
       p_list_id: listId,
@@ -238,7 +272,7 @@ async function handleAddItemToList(req, res) {
 
   const externalSource = String(body.external_source || "local_db").trim();
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("add_item_to_list", {
       p_list_id: listId,
@@ -271,7 +305,7 @@ async function handleRemoveItemFromList(req, res) {
     return jsonResponse(res, 400, { success: false, message: "List ID and external_id required" });
   }
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("remove_item_from_list", {
       p_list_id: listId,
@@ -314,7 +348,7 @@ async function handleToggleItem(req, res) {
 
   const externalSource = String(body.external_source || EXTERNAL_SOURCES[category] || "local_db").trim();
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("toggle_list_item", {
       p_user_id: userId,
@@ -352,7 +386,7 @@ async function handleGetItemStatus(req, res) {
     return jsonResponse(res, 400, { success: false, message: "external_id required" });
   }
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { data, error } = await admin.rpc("get_item_list_status", {
       p_user_id: userId,
@@ -396,7 +430,7 @@ async function handleCreateDefaults(req, res) {
     return jsonResponse(res, 400, { success: false, message: "Invalid category" });
   }
 
-  const admin = await getAdmin();
+  const admin = await getAuthenticatedClient(req);
   try {
     const { error } = await admin.rpc("create_default_user_lists", {
       p_user_id: userId,

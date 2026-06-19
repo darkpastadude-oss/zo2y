@@ -172,14 +172,16 @@
       return window.ListUtils.addItemToCustomList(listId, category, externalId, metadata);
     }
     // fallback
-    return { success: false };
+    console.error("ListUtils not found. Cannot add item to custom list.");
+    return { success: false, message: "List system not fully loaded." };
   }
 
   async function apiRemoveItemFromCustomList(listId, category, externalId) {
     if (window.ListUtils && typeof window.ListUtils.removeItemFromCustomList === "function") {
       return window.ListUtils.removeItemFromCustomList(listId, category, externalId);
     }
-    return { success: false };
+    console.error("ListUtils not found. Cannot remove item from custom list.");
+    return { success: false, message: "List system not fully loaded." };
   }
 
   // ====================================================================
@@ -300,6 +302,9 @@
       document.getElementById("menuCreateListForm").classList.remove("visible");
       await loadCustomListsData();
       renderCustomLists();
+    } else {
+      console.error("List creation failed:", result.message || "Unknown error");
+      alert("Failed to create list: " + (result.message || "Unknown error"));
     }
   }
 
@@ -367,6 +372,8 @@
     if (STATE.quickVersions[key] !== ver) return;
 
     if (!result.success) {
+      console.error("List toggle failed:", result.message || "Unknown error");
+      alert("Failed to save: " + (result.message || "Unknown error"));
       STATE.quickStatus[key] = prev;
     } else {
       const action = result.result?.action;
@@ -421,20 +428,23 @@
     STATE.selectedCustomLists = new Set(STATE.selectedCustomLists);
 
     let success = false;
+    let result;
     if (wasSelected) {
       STATE.selectedCustomLists.delete(listId);
       renderCustomLists();
-      const result = await apiRemoveItemFromCustomList(listId, mt, externalId);
+      result = await apiRemoveItemFromCustomList(listId, mt, externalId);
       success = result.success;
     } else {
       STATE.selectedCustomLists.add(listId);
       renderCustomLists();
-      const result = await apiAddItemToCustomList(listId, mt, externalId, metadata);
+      result = await apiAddItemToCustomList(listId, mt, externalId, metadata);
       success = result.success;
     }
 
     if (STATE.customVersion !== version) return;
     if (!success) {
+      console.error("Custom list toggle failed:", result?.message || "Unknown error");
+      alert("Failed to update custom list: " + (result?.message || "Unknown error"));
       if (wasSelected) STATE.selectedCustomLists.add(listId);
       else STATE.selectedCustomLists.delete(listId);
     }
