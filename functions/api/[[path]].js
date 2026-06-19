@@ -6,7 +6,6 @@ import emailsHandler from "../../api/emails-handler.js";
 import healthHandler from "../../api/health.js";
 import homeFeedHandler from "../../api/home-feed.js";
 import igdbHandler from "../../api/igdb-handler.js";
-import listsHandler from "../../api/lists-handler.js";
 import logoHandler from "../../api/logo.js";
 import musicHandler from "../../api/music-handler.js";
 import openlibraryHandler from "../../api/openlibrary-handler.js";
@@ -43,7 +42,6 @@ const ROUTE_HANDLERS = new Map([
   ["health", healthHandler],
   ["home-feed", homeFeedHandler],
   ["igdb", igdbHandler],
-  ["lists", listsHandler],
   ["logo", logoHandler],
   ["music", musicHandler],
   ["openlibrary", openlibraryHandler],
