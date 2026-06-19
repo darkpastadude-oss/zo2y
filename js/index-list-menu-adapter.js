@@ -59,7 +59,7 @@
     food: [
       { key: "favorites", label: "Favorites", icon: "fas fa-heart" },
       { key: "completed", label: "Tried", icon: "fas fa-utensils" },
-      { key: "watchlist", label: "Want to Try", icon: "fas fa-utensils" }
+      { key: "watchlist", label: "Go List", icon: "fas fa-utensils" }
     ],
     car: [
       { key: "favorites", label: "Favorites", icon: "fas fa-heart" },
@@ -68,7 +68,7 @@
     ],
     sport: [
       { key: "favorites", label: "Favorites", icon: "fas fa-heart" },
-      { key: "completed", label: "Watched", icon: "fas fa-eye" },
+      { key: "completed", label: "Following", icon: "fas fa-eye" },
       { key: "watchlist", label: "Watchlist", icon: "fas fa-bookmark" }
     ]
   };
@@ -77,8 +77,13 @@
   let _lastFocusedTrigger = null;
   let DOM = { quickContainer: null, quickNodesByKey: new Map(), customContainer: null };
 
+  function normalizeMediaType(t) {
+    const n = String(t || "").toLowerCase().trim();
+    return n === "sports" ? "sport" : n;
+  }
+
   function getMediaType() {
-    return String(_bridge?.mediaType || STATE.currentItem?.mediaType || "").toLowerCase();
+    return normalizeMediaType(_bridge?.mediaType || STATE.currentItem?.mediaType || "");
   }
 
   function escapeHtml(v) {
@@ -456,44 +461,28 @@
   // Data Loading
   // ====================================================================
 
-  async function loadQuickStatus(category, externalId) {
-    const result = await apiGetStatus(category, externalId);
-    if (result.success) {
-      STATE.quickStatus = { ...result.status };
-    } else {
-      STATE.quickStatus = { favorites: false, completed: false, watchlist: false };
-    }
-    renderQuickLists();
-  }
-
-  async function loadCustomListsData() {
-    const mt = getMediaType();
-    const lists = await apiGetLists(mt);
-    STATE.customLists = lists.filter(l => l.type === "custom");
-    renderCustomLists();
-  }
-
-  async function loadMembership(category, externalId) {
-    const result = await apiGetStatus(category, externalId);
-    if (result.success) {
-      STATE.selectedCustomLists = new Set((result.custom_lists || []).map(c => c.list_id));
-    } else {
-      STATE.selectedCustomLists = new Set();
-    }
-    renderCustomLists();
-  }
-
   async function loadAllData() {
     const item = STATE.currentItem;
     if (!item) return;
     const mt = getMediaType();
     const externalId = String(item.itemId);
 
-    await Promise.all([
-      loadQuickStatus(mt, externalId),
-      loadCustomListsData(),
-      loadMembership(mt, externalId)
+    const [statusResult, lists] = await Promise.all([
+      apiGetStatus(mt, externalId),
+      apiGetLists(mt)
     ]);
+
+    if (statusResult.success) {
+      STATE.quickStatus = { ...statusResult.status };
+      STATE.selectedCustomLists = new Set((statusResult.custom_lists || []).map(c => c.list_id));
+    } else {
+      STATE.quickStatus = { favorites: false, completed: false, watchlist: false };
+      STATE.selectedCustomLists = new Set();
+    }
+
+    STATE.customLists = lists.filter(l => l.type === "custom");
+    renderQuickLists();
+    renderCustomLists();
   }
 
   // ====================================================================

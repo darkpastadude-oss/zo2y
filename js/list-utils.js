@@ -23,9 +23,9 @@
     book: { completed: "Read", watchlist: "Reading List" },
     music: { completed: "Listened", watchlist: "Listen Later" },
     travel: { completed: "Visited", watchlist: "Bucket List" },
-    sport: { completed: "Watched", watchlist: "Watchlist" },
+    sport: { completed: "Following", watchlist: "Watchlist" },
     fashion: { completed: "Owned", watchlist: "Wishlist" },
-    food: { completed: "Tried", watchlist: "Want to Try" },
+    food: { completed: "Tried", watchlist: "Go List" },
     car: { completed: "Owned", watchlist: "Wishlist" }
   };
 

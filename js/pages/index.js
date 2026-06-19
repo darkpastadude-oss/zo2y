@@ -2119,115 +2119,97 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getMediaListConfig(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      if (type === 'movie') {
-        return {
+      const configs = {
+        movie: {
           customHref: 'movies.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        };
-      }
-      if (type === 'tv') {
-        return {
+        },
+        tv: {
           customHref: 'tvshows.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        };
-      }
-      if (type === 'anime') {
-        return {
+        },
+        anime: {
           customHref: 'animes.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        };
-      }
-      if (type === 'game') {
-        return {
+        },
+        game: {
           customHref: 'games.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
-            { key: 'watchlist', label: 'Backlog', icon: 'fas fa-bookmark' }
+            { key: 'completed', label: 'Played', icon: 'fas fa-gamepad' },
+            { key: 'watchlist', label: 'Backlog', icon: 'fas fa-clock' }
           ]
-        };
-      }
-      if (type === 'book') {
-        return {
+        },
+        book: {
           customHref: 'books.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'read', label: 'Read', icon: 'fas fa-eye' },
-            { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
+            { key: 'completed', label: 'Read', icon: 'fas fa-check' },
+            { key: 'watchlist', label: 'Reading List', icon: 'fas fa-book-open' }
           ]
-        };
-      }
-      if (type === 'music') {
-        return {
+        },
+        music: {
           customHref: 'music.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
-            { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
+            { key: 'completed', label: 'Listened', icon: 'fas fa-headphones' },
+            { key: 'watchlist', label: 'Listen Later', icon: 'fas fa-clock' }
           ]
-        };
-      }
-      if (type === 'travel') {
-        return {
+        },
+        travel: {
           customHref: 'travel.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
-            { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
+            { key: 'completed', label: 'Visited', icon: 'fas fa-check' },
+            { key: 'watchlist', label: 'Bucket List', icon: 'fas fa-map-marker-alt' }
           ]
-        };
-      }
-        if (type === 'sports') {
-          return {
-            customHref: 'sports.html',
-            rows: [
-              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
-            ]
-          };
+        },
+        sports: {
+          customHref: 'sports.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'completed', label: 'Following', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
+          ]
+        },
+        fashion: {
+          customHref: 'fashion.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'completed', label: 'Owned', icon: 'fas fa-check' },
+            { key: 'watchlist', label: 'Wishlist', icon: 'fas fa-cart-plus' }
+          ]
+        },
+        food: {
+          customHref: 'food.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'completed', label: 'Tried', icon: 'fas fa-utensils' },
+            { key: 'watchlist', label: 'Go List', icon: 'fas fa-utensils' }
+          ]
+        },
+        car: {
+          customHref: 'cars.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'completed', label: 'Owned', icon: 'fas fa-check' },
+            { key: 'watchlist', label: 'Wishlist', icon: 'fas fa-cart-plus' }
+          ]
         }
-        if (type === 'fashion') {
-          return {
-            customHref: 'fashion.html',
-            rows: [
-              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
-              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
-            ]
-          };
-        }
-        if (type === 'food') {
-          return {
-            customHref: 'food.html',
-            rows: [
-              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-              { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
-              { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
-            ]
-          };
-        }
-        if (type === 'car') {
-          return {
-            customHref: 'cars.html',
-            rows: [
-              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
-              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
-            ]
-          };
-        }
-      return null;
+      };
+      return configs[type] || null;
     }
 
     function buildRailListMenuHtml(item) {
