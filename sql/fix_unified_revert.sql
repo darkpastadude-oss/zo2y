@@ -128,6 +128,132 @@ create policy "Insert own tv_reviews" on public.tv_reviews for insert with check
 create policy "Update own tv_reviews" on public.tv_reviews for update using (user_id = auth.uid()) with check (user_id = auth.uid());
 create policy "Delete own tv_reviews" on public.tv_reviews for delete using (user_id = auth.uid());
 
+-- ---------- Movie schema ----------
+create table if not exists public.movie_lists (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  title text not null,
+  icon text,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.movie_list_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  movie_id bigint not null,
+  list_type text,
+  list_id uuid null references public.movie_lists(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.movie_reviews (
+  id uuid primary key default gen_random_uuid(),
+  movie_id bigint not null,
+  user_id uuid not null,
+  rating integer not null check (rating between 1 and 5),
+  comment text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_movie_lists_user on public.movie_lists(user_id);
+create index if not exists idx_movie_list_items_user on public.movie_list_items(user_id);
+create index if not exists idx_movie_list_items_movie on public.movie_list_items(movie_id);
+create index if not exists idx_movie_reviews_movie on public.movie_reviews(movie_id);
+create index if not exists idx_movie_reviews_user on public.movie_reviews(user_id);
+create unique index if not exists ux_movie_list_items_unique
+  on public.movie_list_items (user_id, movie_id, list_type, list_id);
+
+create or replace function public.touch_movie_reviews_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists movie_reviews_touch_updated_at on public.movie_reviews;
+create trigger movie_reviews_touch_updated_at
+before update on public.movie_reviews
+for each row
+execute function public.touch_movie_reviews_updated_at();
+
+alter table public.movie_lists enable row level security;
+alter table public.movie_list_items enable row level security;
+alter table public.movie_reviews enable row level security;
+
+ drop policy if exists "Public select on movie_lists" on public.movie_lists;
+ drop policy if exists "Insert own movie_lists" on public.movie_lists;
+ drop policy if exists "Update own movie_lists" on public.movie_lists;
+ drop policy if exists "Delete own movie_lists" on public.movie_lists;
+create policy "Public select on movie_lists" on public.movie_lists for select using (true);
+create policy "Insert own movie_lists" on public.movie_lists for insert with check (user_id = auth.uid());
+create policy "Update own movie_lists" on public.movie_lists for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own movie_lists" on public.movie_lists for delete using (user_id = auth.uid());
+
+ drop policy if exists "Public select on movie_list_items" on public.movie_list_items;
+ drop policy if exists "Insert own movie_list_items" on public.movie_list_items;
+ drop policy if exists "Update own movie_list_items" on public.movie_list_items;
+ drop policy if exists "Delete own movie_list_items" on public.movie_list_items;
+create policy "Public select on movie_list_items" on public.movie_list_items for select using (true);
+create policy "Insert own movie_list_items" on public.movie_list_items for insert with check (user_id = auth.uid());
+create policy "Update own movie_list_items" on public.movie_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own movie_list_items" on public.movie_list_items for delete using (user_id = auth.uid());
+
+ drop policy if exists "Public select on movie_reviews" on public.movie_reviews;
+ drop policy if exists "Insert own movie_reviews" on public.movie_reviews;
+ drop policy if exists "Update own movie_reviews" on public.movie_reviews;
+ drop policy if exists "Delete own movie_reviews" on public.movie_reviews;
+create policy "Public select on movie_reviews" on public.movie_reviews for select using (true);
+create policy "Insert own movie_reviews" on public.movie_reviews for insert with check (user_id = auth.uid());
+create policy "Update own movie_reviews" on public.movie_reviews for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own movie_reviews" on public.movie_reviews for delete using (user_id = auth.uid());
+
+-- ---------- Sports lists schema ----------
+create table if not exists public.sports_lists (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  title text not null,
+  icon text,
+  created_at timestamptz default now()
+);
+
+create table if not exists public.sports_list_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  team_id text not null,
+  list_type text,
+  list_id uuid null references public.sports_lists(id) on delete cascade,
+  created_at timestamptz default now()
+);
+
+create index if not exists idx_sports_lists_user on public.sports_lists(user_id);
+create index if not exists idx_sports_list_items_user on public.sports_list_items(user_id);
+create index if not exists idx_sports_list_items_team on public.sports_list_items(team_id);
+create unique index if not exists ux_sports_list_items_unique
+  on public.sports_list_items (user_id, team_id, list_type, list_id);
+
+alter table public.sports_lists enable row level security;
+alter table public.sports_list_items enable row level security;
+
+ drop policy if exists "Public select on sports_lists" on public.sports_lists;
+ drop policy if exists "Insert own sports_lists" on public.sports_lists;
+ drop policy if exists "Update own sports_lists" on public.sports_lists;
+ drop policy if exists "Delete own sports_lists" on public.sports_lists;
+create policy "Public select on sports_lists" on public.sports_lists for select using (true);
+create policy "Insert own sports_lists" on public.sports_lists for insert with check (user_id = auth.uid());
+create policy "Update own sports_lists" on public.sports_lists for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own sports_lists" on public.sports_lists for delete using (user_id = auth.uid());
+
+ drop policy if exists "Public select on sports_list_items" on public.sports_list_items;
+ drop policy if exists "Insert own sports_list_items" on public.sports_list_items;
+ drop policy if exists "Update own sports_list_items" on public.sports_list_items;
+ drop policy if exists "Delete own sports_list_items" on public.sports_list_items;
+create policy "Public select on sports_list_items" on public.sports_list_items for select using (true);
+create policy "Insert own sports_list_items" on public.sports_list_items for insert with check (user_id = auth.uid());
+create policy "Update own sports_list_items" on public.sports_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "Delete own sports_list_items" on public.sports_list_items for delete using (user_id = auth.uid());
+
 -- ---------- Game schema ----------
 create table if not exists public.game_lists (
   id uuid primary key default gen_random_uuid(),
@@ -1422,6 +1548,8 @@ select public.ensure_activity_trigger('book_list_items', 'trg_book_list_add_acti
 select public.ensure_activity_trigger('book_list_items', 'trg_book_list_remove_activity', 'delete', 'public.log_list_activity_iud');
 select public.ensure_activity_trigger('music_list_items', 'trg_music_list_add_activity', 'insert', 'public.log_list_activity_iud');
 select public.ensure_activity_trigger('music_list_items', 'trg_music_list_remove_activity', 'delete', 'public.log_list_activity_iud');
+select public.ensure_activity_trigger('sports_list_items', 'trg_sports_list_add_activity', 'insert', 'public.log_list_activity_iud');
+select public.ensure_activity_trigger('sports_list_items', 'trg_sports_list_remove_activity', 'delete', 'public.log_list_activity_iud');
 
 -- Custom list create/delete triggers
 select public.ensure_activity_trigger('movie_lists', 'trg_movie_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
@@ -1436,6 +1564,8 @@ select public.ensure_activity_trigger('book_lists', 'trg_book_list_create_activi
 select public.ensure_activity_trigger('book_lists', 'trg_book_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 select public.ensure_activity_trigger('music_lists', 'trg_music_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
 select public.ensure_activity_trigger('music_lists', 'trg_music_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
+select public.ensure_activity_trigger('sports_lists', 'trg_sports_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
+select public.ensure_activity_trigger('sports_lists', 'trg_sports_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 select public.ensure_activity_trigger('lists', 'trg_restaurant_list_create_activity', 'insert', 'public.log_custom_list_activity_iud');
 select public.ensure_activity_trigger('lists', 'trg_restaurant_list_delete_activity', 'delete', 'public.log_custom_list_activity_iud');
 
