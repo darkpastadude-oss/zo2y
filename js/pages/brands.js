@@ -263,6 +263,7 @@
       if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
         return direct;
       }
+      return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
     }
     const title = String(name || '').trim();
     if (title) {

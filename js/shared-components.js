@@ -45,6 +45,7 @@
     const style = document.createElement('style');
     style.id = 'zo2ySharedMenuModalStyle';
     style.textContent = `
+      .menu-modal { display: none; }
       .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
     `;
     document.head.appendChild(style);

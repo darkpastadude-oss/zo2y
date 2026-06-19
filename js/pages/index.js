@@ -5445,8 +5445,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function loadHomeDeferredImage(img) {
       if (!img || !img.hasAttribute('data-home-src')) return;
       const nextSrc = String(img.getAttribute('data-home-src') || '').trim();
-      if (!nextSrc) {
+      if (!nextSrc || nextSrc.includes('logo.clearbit.com')) {
         img.removeAttribute('data-home-src');
+        if (nextSrc.includes('logo.clearbit.com')) {
+           img.src = 'images/placeholder.jpg';
+        }
         markHomeImageReady(img);
         return;
       }
@@ -9690,8 +9693,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
         const popularity = Number(row?.follows || row?.rating_count || 0);
-        const useHeroAsCard = !!hero && isLikelyLogoOnlyGameArt(cover);
-        const cardImage = useHeroAsCard ? hero : cover;
+        const cardImage = cover;
         const genreText = genres.length
           ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
           : 'Video Game';
@@ -9876,7 +9878,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadBooks(signal) {
       const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return cached.slice(0, targetCount);
+      if (cached.length) return shuffleArray(cached).slice(0, targetCount);
 
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
       const proxyBookCover = (url) => {
@@ -9915,9 +9917,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
 
       // Stage 1: Try server API
-      const data = await fetchJson(`/api/books/ol-popular?limit=${targetCount}`);
+      const data = await fetchJson(`/api/books/ol-popular?limit=${Math.max(40, targetCount * 2)}`);
       if (data && data.books && data.books.length) {
-        items = safeArr(data.books).map(mapBook).filter((i) => i && i.itemId);
+        let booksList = safeArr(data.books);
+        booksList = shuffleArray(booksList);
+        items = booksList.slice(0, targetCount).map(mapBook).filter((i) => i && i.itemId);
       }
 
       if (items.length) {
@@ -9978,28 +9982,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return out.slice(0, count);
       };
 
-      const fetchItunesTracks = async (term, limit = 30) => {
+      const fetchItunesTracks = async (limit = 30) => {
         try {
-          const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=song&limit=${limit}&country=US`, { signal });
+          const r = await fetch(`https://itunes.apple.com/us/rss/topsongs/limit=${limit}/json`, { signal });
           if (!r.ok) return [];
           const j = await r.json();
-          return safeArr(j?.results).map((t) => ({
-            id: String(t.trackId || ''), name: t.trackName || 'Track',
-            artists: [t.artistName || ''].filter(Boolean), image: t.artworkUrl100 || '',
-            collectionName: t.collectionName || '', preview_url: t.previewUrl || ''
-          }));
+          return safeArr(j?.feed?.entry).map((t) => {
+            const linkObj = Array.isArray(t.link) ? t.link.find(l => l.attributes?.rel === 'enclosure') : t.link;
+            return {
+              id: String(t.id?.attributes?.['im:id'] || ''), name: t['im:name']?.label || 'Track',
+              artists: [t['im:artist']?.label || ''].filter(Boolean), image: (t['im:image'] && t['im:image'][2]?.label) || '',
+              collectionName: t['im:collection']?.['im:name']?.label || '', preview_url: linkObj?.attributes?.href || ''
+            };
+          });
         } catch (_err) { return []; }
       };
 
-      const fetchItunesAlbums = async (term, limit = 20) => {
+      const fetchItunesAlbums = async (limit = 20) => {
         try {
-          const r = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&media=music&entity=album&limit=${limit}&country=US`, { signal });
+          const r = await fetch(`https://itunes.apple.com/us/rss/topalbums/limit=${limit}/json`, { signal });
           if (!r.ok) return [];
           const j = await r.json();
-          return safeArr(j?.results).map((a) => ({
-            id: String(a.collectionId || ''), name: a.collectionName || 'Album',
-            artists: [a.artistName || ''].filter(Boolean), image: a.artworkUrl100 || '',
-            release_date: (a.releaseDate || '').slice(0, 10)
+          return safeArr(j?.feed?.entry).map((a) => ({
+            id: String(a.id?.attributes?.['im:id'] || ''), name: a['im:name']?.label || 'Album',
+            artists: [a['im:artist']?.label || ''].filter(Boolean), image: (a['im:image'] && a['im:image'][2]?.label) || '',
+            release_date: (a['im:releaseDate']?.label || '').slice(0, 10)
           }));
         } catch (_err) { return []; }
       };
@@ -10022,13 +10029,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       } catch (_err) {}
 
       if (!albumRows.length) {
-        albumRows = await fetchItunesAlbums('popular albums US');
+        albumRows = await fetchItunesAlbums(20);
       }
       if (!trackRows.length) {
-        trackRows = await fetchItunesTracks('popular songs US');
-      }
-      if (!trackRows.length) {
-        trackRows = await fetchItunesTracks('top hits');
+        trackRows = await fetchItunesTracks(30);
       }
 
       if (trackRows.length || albumRows.length) {

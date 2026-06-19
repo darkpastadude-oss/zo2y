@@ -553,26 +553,6 @@
 
     .card-media.cover img {
 
-      object-fit: cover;
-
-    }
-
-    .game-card .card-media {
-      background: linear-gradient(135deg, #132347 0%, #0e1f42 100%);
-      padding: 10px;
-      box-sizing: border-box;
-    }
-
-    .game-card .card-media img {
-      object-fit: contain;
-      object-position: center;
-      transform: none;
-      border-radius: 6px;
-      background: transparent;
-    }
-
-
-
     .card-meta {
 
       padding: 9px;
@@ -2220,7 +2200,9 @@
       const raw = String(row?.cover_url || row?.cover || row?.image || '').trim();
 
       if (raw && raw !== '[object Object]') {
-
+        if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/') && !raw.startsWith('data:')) {
+          return `${SUPABASE_URL}/storage/v1/object/public/game-assets/${raw}`;
+        }
         return toHttpsUrl(raw);
 
       }
@@ -2515,9 +2497,11 @@
 
         return `
 
-        <article class="card game-card" data-id="${escapeHtml(game.id)}">
+        <article class="card" data-href="game.html?id=${escapeHtml(game.id)}" data-media-type="game" data-item-id="${escapeHtml(game.id)}" data-title="${escapeHtml(game.name)}" data-image="${escapeHtml(coverUrl)}">
 
-          <div class="card-media">
+          <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
+
+          <div class="card-media game-poster is-loading-media">
 
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
 
@@ -2529,17 +2513,19 @@
 
             <div class="card-meta-top">
 
-              <div class="card-name">${escapeHtml(game.name)}</div>
+              <p class="card-name">${escapeHtml(game.name)}</p>
 
-              <div class="card-actions">
+              <div class="card-menu-wrap">
 
-                <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+                <button class="card-menu-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
 
               </div>
 
             </div>
 
-            <div class="card-sub">${escapeHtml(year)}</div>
+            <p class="card-sub">${escapeHtml(year)}</p>
+
+            <p class="card-extra">${escapeHtml(getGameCardExtra(game))}</p>
 
           </div>
 

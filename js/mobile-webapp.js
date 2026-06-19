@@ -615,7 +615,7 @@ const APP_RUNTIME_VERSION = '20260612c';
 
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
-    try { event.preventDefault(); } catch (_) {}
+    // try { event.preventDefault(); } catch (_) {}
     ensureHeaderInstallButton();
   });
 

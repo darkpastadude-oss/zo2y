@@ -187,10 +187,14 @@
   }
 
   function renderListIcon(icon, fallbackIcon) {
-    const raw = String(icon || '').trim();
+    let raw = String(icon || '').trim();
     const fallback = fallbackIcon || 'fas fa-list';
     if (!raw) return `<i class="${fallback}"></i>`;
     if (raw.includes('fa-')) return `<i class="${raw}"></i>`;
+    if (raw.includes('material-icons')) {
+      const match = raw.match(/>([^<]+)</);
+      if (match && match[1]) raw = match[1].trim();
+    }
     const ICON_MAP = {
       movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
       game:'fas fa-gamepad', book:'fas fa-book', music:'fas fa-music',
@@ -322,7 +326,7 @@
     const safeUserId = String(userId || '').trim();
     const safeType = String(type || '').trim().toLowerCase();
     if (!client || !safeUserId || !safeType) return [];
-    if (collaboratorTableSupported === false) return [];
+    if (collaboratorTableSupported === false || readStorageObject('zo2y_collab_unsupported') === '1') return [];
     const { data, error } = await client
       .from(LIST_COLLAB_TABLE)
       .select('media_type,list_id,list_owner_id,can_edit')
@@ -331,6 +335,7 @@
     if (error) {
       if (isCollaboratorTableMissingError(error)) {
         collaboratorTableSupported = false;
+        writeStorageObject('zo2y_collab_unsupported', '1');
       }
       return [];
     }
@@ -342,13 +347,14 @@
     const safeUserId = String(userId || '').trim();
     const safeType = String(type || '').trim().toLowerCase();
     if (!client || !safeUserId || !safeType || typeof client.rpc !== 'function') return null;
-    if (accessibleCustomListsRpcSupported === false) return null;
+    if (accessibleCustomListsRpcSupported === false || readStorageObject('zo2y_rpc_custom_lists_unsupported') === '1') return null;
 
     const { data, error } = await client.rpc('zo2y_get_accessible_custom_lists', {
       p_media_type: safeType
     });
     if (error) {
       accessibleCustomListsRpcSupported = false;
+      writeStorageObject('zo2y_rpc_custom_lists_unsupported', '1');
       return null;
     }
     accessibleCustomListsRpcSupported = true;

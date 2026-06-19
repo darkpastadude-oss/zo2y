@@ -908,6 +908,9 @@
         if (!raw || raw === '[object Object]') return '';
         if (raw.startsWith('//')) return `https:${raw}`;
         if (raw.startsWith('http://')) return raw.replace(/^http:\/\//i, 'https://');
+        if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/') && !raw.startsWith('data:')) {
+          return `${SUPABASE_URL}/storage/v1/object/public/game-assets/${raw}`;
+        }
         return raw;
       }
 
