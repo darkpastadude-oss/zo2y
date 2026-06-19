@@ -360,6 +360,9 @@ function rewriteSearchQuery(raw) {
   const clean = String(raw || '').trim().replace(/\s+/g, ' ');
   if (!clean) return '';
   const lower = clean.toLowerCase();
+  
+  if (lower.includes(' or ') || lower.includes('inauthor:') || lower.includes('subject:')) return clean;
+
   for (const hint of FRANCHISE_HINTS) {
     for (const k of hint.keys) {
       if (lower === k || lower.startsWith(k) || lower.includes(k)) return hint.hint;
@@ -1219,8 +1222,12 @@ export default async function handler(req, res) {
       const limit = clampInt(query.limit, 1, 40, 24);
       const page = clampInt(query.page, 1, 1000, 1);
       const subject = String(query.subject || "").trim();
+      const qRaw = String(query.q || "").trim();
+      const fallbackAuthors = ["Stephen King", "Sarah J. Maas", "Colleen Hoover", "John Grisham", "James Patterson", "David Baldacci", "Freida McFadden", "Rebecca Yarros"];
+      const randAuthor = fallbackAuthors[Math.floor(Date.now() / (1000 * 60 * 60)) % fallbackAuthors.length];
+      const fallbackQuery = subject ? `subject:"${subject}"` : `inauthor:"${randAuthor}"`;
       const result = await runBookPipeline({
-        q: String(query.q || "").trim() || (subject ? `popular ${subject} books` : "bestseller fiction"),
+        q: qRaw || fallbackQuery,
         subject: subject,
         limit, page,
         language: String(query.language || "en").trim() || "en",

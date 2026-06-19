@@ -8,15 +8,25 @@
   }
 
   // DOM Elements
-  const discoverContainer = document.getElementById('booksDiscover');
-  const flatSection = document.getElementById('booksFlatSection');
   const grid = document.getElementById('booksGrid');
   const searchInput = document.getElementById('q');
   const searchBtn = document.getElementById('booksSearchBtn');
   const filterBtn = document.getElementById('booksFilterBtn');
   const filterModal = document.getElementById('booksFilterModal');
   const filterCloseBtn = document.getElementById('booksFilterCloseBtn');
-  const paginationContainer = document.getElementById('booksPagination');
+  const paginationContainer = document.querySelector('.pagination');
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  const pageInfo = document.getElementById('pageInfo');
+  
+  // Spotlight
+  const spotlightSec = document.getElementById('booksSpotlight');
+  const spotlightBg = document.getElementById('booksSpotlightBg');
+  const spotlightTitle = document.getElementById('booksSpotlightTitle');
+  const spotlightMeta = document.getElementById('booksSpotlightMeta');
+  const spotlightSummary = document.getElementById('booksSpotlightSummary');
+  const spotlightImg = document.getElementById('booksSpotlightImage');
+  const spotlightCta = document.getElementById('booksSpotlightOpen');
 
   // Filter DOM
   const filterGenre = document.getElementById('genre');
@@ -27,9 +37,31 @@
 
   let currentPage = 1;
   let currentSearchQuery = '';
-  let currentSection = '';
+  let currentSection = 'popular';
   let currentFilters = {};
-  let currentMode = 'discover'; // 'discover', 'flat', 'search'
+  let currentMode = 'flat'; // 'flat' or 'search'
+  
+  function getGridPageSize() {
+    if (!grid) return 24;
+    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+    const rows = 3;
+    return Math.max(18, cols * rows);
+  }
+
+  function renderGridSkeleton() {
+    if (!grid) return;
+    const count = getGridPageSize();
+    let cards = '';
+    for (let i = 0; i < count; i++) {
+      cards += '<article class="card book-skeleton-card"><div class="card-media skeleton-shimmer"></div>'
+            + '<div class="card-meta">'
+            + '<span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>'
+            + '<span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>'
+            + '<span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>'
+            + '</div></article>';
+    }
+    grid.innerHTML = cards;
+  }
 
   const GENRE_OPTIONS = [
     { value: '', label: 'All Genres' },
@@ -53,16 +85,25 @@
     }
   }
 
+  function updatePaginationUI(hasMore) {
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage}`;
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = !hasMore;
+    if (paginationContainer) {
+      paginationContainer.style.display = (currentPage <= 1 && !hasMore) ? 'none' : 'flex';
+    }
+  }
+
   function wireEvents() {
-    if (searchBtn) searchBtn.addEventListener('click', handleSearch);
+    if (searchBtn) searchBtn.addEventListener('click', () => { currentPage = 1; executeSearch(); });
     if (searchInput) {
       searchInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') handleSearch();
+        if (e.key === 'Enter') { currentPage = 1; executeSearch(); }
       });
-      // Handle when the user manually clears the input (or clears via native button)
       searchInput.addEventListener('input', () => {
         if (searchInput.value.trim() === '' && currentMode === 'search') {
-          handleSearch();
+          currentPage = 1;
+          executeSearch();
         }
       });
     }
@@ -79,101 +120,112 @@
         applyFilters();
       });
     }
-
-    // Delegation for "See all" buttons on discover sections
-    if (discoverContainer) {
-      discoverContainer.addEventListener('click', e => {
-        const moreBtn = e.target.closest('.section-more-btn');
-        if (moreBtn) {
-          const sectionId = moreBtn.dataset.moreSection;
-          if (sectionId) loadFlatSection(sectionId);
+    
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          executeCurrentMode();
         }
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        currentPage++;
+        executeCurrentMode();
       });
     }
   }
 
-  async function loadDiscovery() {
-    currentMode = 'discover';
-    currentSection = '';
-    currentSearchQuery = '';
-
-    if (discoverContainer) {
-      discoverContainer.hidden = false;
-      discoverContainer.innerHTML = Engine.skeletonSectionsHtml(4);
+  function updateSpotlight(book) {
+    if (!spotlightSec) return;
+    if (!book) {
+      spotlightSec.hidden = true;
+      return;
     }
-    if (flatSection) flatSection.hidden = true;
-
-    try {
-      const data = await Engine.fetchDiscovery();
-      if (!data || !data.sections || !data.sections.length) {
-        if (discoverContainer) discoverContainer.innerHTML = '<div class="empty">No books available.</div>';
-        return;
-      }
-      if (discoverContainer) {
-        discoverContainer.innerHTML = data.sections.map(s => Engine.renderSection(s)).join('');
-      }
-    } catch (err) {
-      console.error(err);
-      if (discoverContainer) discoverContainer.innerHTML = '<div class="empty">Failed to load books.</div>';
+    spotlightSec.hidden = false;
+    if (spotlightTitle) spotlightTitle.textContent = book.title || 'Unknown Title';
+    if (spotlightMeta) {
+      const year = book.first_publish_year || book.year || '';
+      const author = book.author || 'Unknown Author';
+      spotlightMeta.textContent = year ? `${author} | ${year}` : author;
+    }
+    if (spotlightSummary) spotlightSummary.textContent = book.description || 'No description available for this title.';
+    
+    let cover = book.cover || '/images/fallback/book.svg';
+    if (cover.startsWith('http:') || cover.startsWith('https:')) {
+       // Convert small covers to large for spotlight
+       cover = cover.replace('-M.jpg', '-L.jpg').replace('zoom=1', 'zoom=0');
+    }
+    
+    if (spotlightImg) {
+      spotlightImg.src = cover;
+      spotlightImg.onerror = function() { this.src = '/images/fallback/book.svg'; };
+    }
+    if (spotlightBg) {
+      spotlightBg.style.backgroundImage = `url("${cover}")`;
+    }
+    if (spotlightCta) {
+      spotlightCta.href = `javascript:window.openIndexStyleListMenu(document.querySelector('.card[data-id="${book.id}"]'))`;
     }
   }
 
-  async function loadFlatSection(sectionId, page = 1) {
-    currentMode = 'flat';
-    currentSection = sectionId;
-    currentSearchQuery = '';
-    currentPage = page;
+  async function executeCurrentMode() {
+    renderGridSkeleton();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
-    if (discoverContainer) discoverContainer.hidden = true;
-    if (flatSection) flatSection.hidden = false;
-    if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
-    
-    const titleEl = document.getElementById('flatSectionTitle');
-    const descEl = document.getElementById('flatSectionDesc');
-    
-    const allSections = (window.Zo2yBooksDataLayer && window.Zo2yBooksDataLayer.DISCOVERY_SECTIONS) || [];
-    const secInfo = allSections.find(s => s.id === sectionId);
-    if (titleEl) titleEl.textContent = secInfo ? secInfo.label : 'Popular Books';
-    if (descEl) descEl.textContent = secInfo ? secInfo.desc : 'Browsing section.';
+    if (currentMode === 'search') {
+      await loadSearchData();
+    } else {
+      await loadFlatData();
+    }
+  }
 
-    const opts = { section: sectionId, page: currentPage, limit: 24, ...currentFilters };
+  async function loadFlatData() {
+    const limit = getGridPageSize();
+    const opts = { section: currentSection, page: currentPage, limit: limit, ...currentFilters };
     try {
       const data = await Engine.fetchFlat(opts);
       if (grid) Engine.renderGrid(grid, data.books);
-      renderPagination(data.page, data.books && data.books.length >= 24);
+      updatePaginationUI(data.books && data.books.length >= limit);
+      
+      if (currentPage === 1 && data.books && data.books.length > 0) {
+        updateSpotlight(data.books[0]);
+      } else if (currentPage > 1) {
+        updateSpotlight(null);
+      }
     } catch (err) {
       console.error(err);
       if (grid) grid.innerHTML = '<div class="empty">Failed to load books.</div>';
     }
   }
 
-  async function handleSearch() {
+  async function executeSearch() {
     const q = searchInput ? searchInput.value.trim() : '';
-    currentPage = 1;
     currentFilters = {};
-    
     if (!q) {
-      loadDiscovery();
+      currentMode = 'flat';
+      currentSection = 'popular';
+      document.getElementById('gridTitle').textContent = 'popular books right now';
+      document.getElementById('gridDesc').textContent = 'Trending fiction and non-fiction across Zo2y.';
+      await executeCurrentMode();
       return;
     }
     
     currentMode = 'search';
     currentSearchQuery = q;
-    currentSection = '';
-    
-    if (discoverContainer) discoverContainer.hidden = true;
-    if (flatSection) flatSection.hidden = false;
-    if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
-    
-    const titleEl = document.getElementById('flatSectionTitle');
-    const descEl = document.getElementById('flatSectionDesc');
-    if (titleEl) titleEl.textContent = `Search results for "${q}"`;
-    if (descEl) descEl.textContent = '';
+    document.getElementById('gridTitle').textContent = `Search results for "${q}"`;
+    document.getElementById('gridDesc').textContent = '';
+    await executeCurrentMode();
+  }
 
+  async function loadSearchData() {
+    const limit = getGridPageSize();
     try {
-      const data = await Engine.search(q, { page: 1, limit: 24 });
+      const data = await Engine.search(currentSearchQuery, { ...currentFilters, page: currentPage, limit: limit });
       if (grid) Engine.renderGrid(grid, data.books);
-      renderPagination(data.page || 1, data.books && data.books.length >= 24);
+      updatePaginationUI(data.books && data.books.length >= limit);
+      updateSpotlight(null); // No spotlight for searches
     } catch (err) {
       console.error(err);
       if (grid) grid.innerHTML = '<div class="empty">Search failed.</div>';
@@ -196,78 +248,18 @@
     currentSection = genre ? '' : 'popular'; 
     currentSearchQuery = searchInput ? searchInput.value.trim() : '';
     
-    if (discoverContainer) discoverContainer.hidden = true;
-    if (flatSection) flatSection.hidden = false;
-    if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
-
-    const titleEl = document.getElementById('flatSectionTitle');
-    const descEl = document.getElementById('flatSectionDesc');
+    const titleEl = document.getElementById('gridTitle');
+    const descEl = document.getElementById('gridDesc');
     if (titleEl) titleEl.textContent = currentSearchQuery ? `Filtered search for "${currentSearchQuery}"` : (genre ? `${genre} Books` : 'Filtered Books');
     if (descEl) descEl.textContent = '';
 
-    try {
-      let data;
-      if (currentSearchQuery) {
-        currentMode = 'search';
-        data = await Engine.search(currentSearchQuery, { ...currentFilters, page: 1, limit: 24 });
-      } else {
-        currentMode = 'flat';
-        data = await Engine.fetchFlat({ q: genre || 'books', ...currentFilters, page: 1, limit: 24 });
-      }
-      if (grid) Engine.renderGrid(grid, data.books);
-      renderPagination(data.page || 1, data.books && data.books.length >= 24);
-    } catch (err) {
-      console.error(err);
-      if (grid) grid.innerHTML = '<div class="empty">Failed to load filtered books.</div>';
-    }
-  }
-
-  function renderPagination(page, hasMore) {
-    if (!paginationContainer) return;
-    if (page <= 1 && !hasMore) {
-      paginationContainer.innerHTML = '';
-      return;
+    if (currentSearchQuery) {
+      currentMode = 'search';
+    } else {
+      currentMode = 'flat';
     }
     
-    let html = '<div class="pagination">';
-    html += `<button class="page-btn" id="prevPageBtn" type="button" ${page <= 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
-    html += `<div class="page-info" id="pageInfo">Page ${page}</div>`;
-    html += `<button class="page-btn" id="nextPageBtn" type="button" ${!hasMore ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
-    html += '</div>';
-    
-    paginationContainer.innerHTML = html;
-    
-    const prev = document.getElementById('prevPageBtn');
-    const next = document.getElementById('nextPageBtn');
-    
-    if (prev) {
-      prev.addEventListener('click', () => {
-        if (page > 1) {
-          if (currentMode === 'search') performPaginatedSearch(page - 1);
-          else loadFlatSection(currentSection, page - 1);
-        }
-      });
-    }
-    if (next) {
-      next.addEventListener('click', () => {
-        if (hasMore) {
-          if (currentMode === 'search') performPaginatedSearch(page + 1);
-          else loadFlatSection(currentSection, page + 1);
-        }
-      });
-    }
-  }
-
-  async function performPaginatedSearch(page) {
-    currentPage = page;
-    if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
-    try {
-      const data = await Engine.search(currentSearchQuery, { ...currentFilters, page: page, limit: 24 });
-      if (grid) Engine.renderGrid(grid, data.books);
-      renderPagination(data.page || page, data.books && data.books.length >= 24);
-    } catch (err) {
-      console.error(err);
-    }
+    await executeCurrentMode();
   }
 
   function initMenuBridge() {
@@ -324,7 +316,7 @@
     populateFilters();
     wireEvents();
     initMenuBridge();
-    loadDiscovery();
+    executeCurrentMode();
   }
 
   if (document.readyState === 'loading') {

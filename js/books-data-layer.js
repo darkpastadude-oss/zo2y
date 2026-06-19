@@ -88,15 +88,15 @@ var FRANCHISE_HINTS = [
 
 // Discovery sections
 var DISCOVERY_SECTIONS = [
-  { id: "popular",     label: "popular right now",
-    desc: "The most-read books across Zo2y this week.",
-    query: "bestseller fiction novel",     subject: "fiction", orderBy: "relevance", limit: 20 },
+  { id: "popular",     label: "popular books right now",
+    desc: "Trending fiction and non-fiction across Zo2y.",
+    query: 'inauthor:"Stephen King" OR inauthor:"Sarah J. Maas" OR inauthor:"Colleen Hoover" OR inauthor:"John Grisham" OR inauthor:"James Patterson" OR inauthor:"David Baldacci"', orderBy: "relevance", limit: 24 },
   { id: "trending",    label: "trending this week",
     desc: "What everyone is talking about.",
-    query: "trending fiction novel 2026",  subject: "fiction", orderBy: "relevance", limit: 20 },
+    query: 'inauthor:"Rebecca Yarros" OR inauthor:"Freida McFadden" OR inauthor:"Lucy Score" OR inauthor:"Emily Henry"', orderBy: "relevance", limit: 24 },
   { id: "new",         label: "new releases",
     desc: "The latest English-language fiction.",
-    query: "new release fiction novel 2026", orderBy: "newest", limit: 20 },
+    query: 'subject:"fiction"', orderBy: "newest", limit: 24 },
   { id: "fantasy",     label: "fantasy essentials",
     desc: "From Tolkien to Sanderson and beyond.",
     subject: "fantasy",          orderBy: "relevance", limit: 16 },
@@ -154,6 +154,9 @@ function rewriteSearchQuery(raw) {
   const clean = String(raw || '').trim().replace(/\s+/g, ' ');
   if (!clean) return '';
   const lower = clean.toLowerCase();
+  
+  if (lower.includes(' or ') || lower.includes('inauthor:') || lower.includes('subject:')) return clean;
+
   for (const hint of FRANCHISE_HINTS) {
     for (const k of hint.keys) {
       if (lower === k || lower.startsWith(k) || lower.includes(k)) return hint.hint;
