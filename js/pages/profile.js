@@ -10106,7 +10106,7 @@
                         return;
                     }
 
-                    const insertPayload = { list_id: targetListId, external_id: itemId, external_source: type };
+                    const insertPayload = { list_id: targetListId, media_type: type, external_id: itemId, external_source: type };
 
                     const { error } = await supabase
                         .from(itemTable)

@@ -4126,6 +4126,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .from('list_items')
               .insert({
                 list_id: listId,
+                media_type: mediaType,
                 external_id: String(itemId),
                 external_source: externalSrc,
                 metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }

@@ -395,6 +395,7 @@
             .from('list_items')
             .insert({
               list_id: listId,
+              media_type: 'travel',
               external_id: code,
               external_source: 'local_db',
               metadata: { title: country.name, poster_url: country.flag }

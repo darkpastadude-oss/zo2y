@@ -305,7 +305,7 @@
           }
           const { error: insertError } = await client
             .from('list_items')
-            .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+            .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
           if (insertError && String(insertError.code || '') !== '23505') {
             showToast('Could not add to list', 'error');
             return result;
@@ -338,7 +338,7 @@
         await ensureLinkedMediaRecord(itemId);
         const { error: insertError } = await client
           .from('list_items')
-          .insert({ list_id: list.id, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+          .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
         if (insertError && String(insertError.code || '') !== '23505') {
           showToast('Could not add to list', 'error');
           return result;
