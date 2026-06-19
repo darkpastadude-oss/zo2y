@@ -5,8 +5,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   
-  <script src="/js/auth-gate.js?v=20260619z" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260619z" defer></script>
+  <script src="/js/auth-gate.js?v=20260610c" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260605m" defer></script>
   <meta name="robots" content="index,follow" />
   <title>Zo2y - Music</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -14,14 +14,14 @@
   <meta name="description" content="Discover trending tracks and albums on Zo2y and save tracks to your music lists." />
   <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260619z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
-  <script src="js/list-utils.js?v=20260619z" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260619z" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260605m" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/list-utils.js?v=20260601b" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260612e" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
-  <link rel="stylesheet" href="css/animations.css?v=20260619z">
-  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260619z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260619z"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260601b">
+  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260610c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260610c"></noscript>
   <style>
     :root {
       --category-hero-image: url("https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1600&q=80");
@@ -34,14 +34,14 @@
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260619z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260619z"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260619z" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260619z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260619z"></noscript>
-<script src="js/shared-header.js?v=20260619z" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260619z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260619z"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260601b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260601b"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260605m" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
+<script src="js/shared-header.js?v=20260610c" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260601b" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260601b"></noscript>
 
   </head>
 <body>
@@ -583,33 +583,23 @@
       const ids = state.tracks
         .map((track) => track.id);
       if (!ids.length) return;
-      const { data: lists } = await client
-        .from('user_lists')
-        .select('id, type')
-        .eq('user_id', currentUser.id)
-        .eq('category', 'music');
-      if (!lists || !lists.length) return;
-      const listIds = lists.map(l => l.id);
-      const listTypeMap = {};
-      lists.forEach(l => { listTypeMap[l.id] = l.type; });
       const { data } = await client
-        .from('list_items')
-        .select('list_id, external_id')
-        .in('list_id', listIds)
-        .in('external_id', ids.map(id => String(id)));
+        .from('music_list_items')
+        .select('track_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('track_id', ids);
       (data || []).forEach((row) => {
-        const id = String(row.external_id || '');
+        const id = String(row.track_id || '');
         if (!id) return;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, completed: false, watchlist: false });
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, listened: false, listenlist: false });
         const bucket = state.listStatusMap.get(id);
-        const type = listTypeMap[row.list_id];
-        if (type && type in bucket) bucket[type] = true;
+        if (row.list_type in bucket) bucket[row.list_type] = true;
       });
     }
 
     function getTrackListStatus(trackId) {
       const id = String(trackId || '').trim();
-      const empty = { favorites: false, completed: false, watchlist: false };
+      const empty = { favorites: false, listened: false, listenlist: false };
       if (!id) return empty;
       if (!state.listStatusMap.has(id)) {
         state.listStatusMap.set(id, { ...empty });
@@ -714,35 +704,20 @@
         if (nextSaved) {
           const ok = await upsertTrackRecord(client, track);
           if (!ok) throw new Error('Track upsert failed');
-          const { data: target } = await client
-            .from('user_lists')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('category', 'music')
-            .eq('type', listType)
-            .maybeSingle();
-          if (!target) throw new Error('list_not_found');
-          const { error } = await client.from('list_items').insert({
-            list_id: target.id,
-            external_id: String(trackId),
-            external_source: 'spotify'
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id,
+            track_id: trackId,
+            list_type: listType
           });
           if (error && String(error.code || '') !== '23505') throw error;
           showToast('Added to list');
         } else {
-          const { data: target } = await client
-            .from('user_lists')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('category', 'music')
-            .eq('type', listType)
-            .maybeSingle();
-          if (!target) throw new Error('list_not_found');
           const { error } = await client
-            .from('list_items')
+            .from('music_list_items')
             .delete()
-            .eq('list_id', target.id)
-            .eq('external_id', String(trackId));
+            .eq('user_id', currentUser.id)
+            .eq('track_id', trackId)
+            .eq('list_type', listType);
           if (error) throw error;
           showToast('Removed from list');
         }
@@ -950,10 +925,10 @@
       loadPage();
     });
   </script>
-<link rel="stylesheet" href="css/pages/legal.css?v=20260619z">
-  <script src="js/legal-consent.js?v=20260619z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260606a">
+  <script src="js/legal-consent.js?v=20260606a" defer></script>
 
-  <script src="/js/shared-components.js?v=20260619z" defer></script>
+  <script src="/js/shared-components.js?v=20260612e" defer></script>
 </body>
 </html>
 

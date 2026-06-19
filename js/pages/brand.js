@@ -1,4 +1,4 @@
-(() => {
+﻿(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
@@ -14,9 +14,9 @@
     document.body.dataset.elevatedCategory = brandType;
   }
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'list_items', itemField: 'external_id' },
-    food: { table: 'list_items', itemField: 'external_id' },
-    car: { table: 'list_items', itemField: 'external_id' }
+    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
+    food: { table: 'food_list_items', itemField: 'brand_id' },
+    car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
   const CATEGORY_LABEL = brandType === 'food' ? 'Food' : brandType === 'car' ? 'Cars' : 'Fashion';
@@ -126,27 +126,32 @@
     }, 2400);
   }
 
-  const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
-
   function resolveLogo(value, domain, name) {
-    const logoUrl = String(value || '').trim();
-    if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
-      return logoUrl;
+    const direct = String(value || '').trim();
+    if (direct) {
+      if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
+        return direct;
+      }
+    }
+    const title = String(name || '').trim();
+    if (title) {
+      const params = new URLSearchParams();
+      params.set('title', title);
+      const domainRaw = String(domain || '').trim();
+      if (domainRaw) params.set('domain', domainRaw);
+      params.set('mode', 'logo');
+      return '/api/logo?' + params.toString();
     }
     const domainRaw = String(domain || '').trim();
-    if (domainRaw) {
-      const bucketType = brandType === 'food' ? 'food_brands' : (brandType === 'car' ? 'car_brands' : 'fashion_brands');
-      const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-      const base = `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}`;
-      if (/\.(jpe?g|png|gif|webp)$/i.test(String(value || ''))) {
-        const ext = String(value).match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
-        return `${base}.${ext}`;
-      }
-      return `${base}.svg`;
+    const candidate = domainRaw;
+    if (!candidate) return '';
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=256&mode=logo';
     }
-    const direct = String(value || '').trim();
-    if (direct && (direct.startsWith('/') || direct.startsWith('data:'))) {
-      return direct;
+    if (/^https?:\/\//i.test(candidate)) {
+      const match = candidate.match(/\/\/([^\/\?]+)/i);
+      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=256&mode=logo';
+      return candidate;
     }
     return '';
   }
@@ -268,25 +273,15 @@
           showToast('Could not update list', 'error');
           return result;
         }
-
-        const { data: list, error: listError } = await client
-          .from('user_lists')
-          .select('id')
-          .eq('user_id', currentUser.id)
-          .eq('category', mediaType)
-          .eq('type', listType)
-          .maybeSingle();
-        if (listError || !list) {
-          showToast('Could not update list', 'error');
-          return result;
-        }
+        const { table, itemField } = defaultListTable;
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
-            .from('list_items')
+            .from(table)
             .delete()
-            .eq('list_id', list.id)
-            .eq('external_id', String(itemId));
+            .eq('user_id', currentUser.id)
+            .eq(itemField, itemId)
+            .eq('list_type', listType);
           if (deleteError) {
             showToast('Could not update list', 'error');
             return result;
@@ -303,9 +298,9 @@
             showToast('Book info is unavailable right now.', 'error');
             return result;
           }
-          const { error: insertError } = await client
-            .from('list_items')
-            .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+          const insertRow = { user_id: currentUser.id, list_type: listType };
+          insertRow[itemField] = itemId;
+          const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
             showToast('Could not add to list', 'error');
             return result;
@@ -317,14 +312,15 @@
         }
 
         const { data: existing } = await client
-          .from('list_items')
+          .from(table)
           .select('id')
-          .eq('list_id', list.id)
-          .eq('external_id', String(itemId))
+          .eq('user_id', currentUser.id)
+          .eq(itemField, itemId)
+          .eq('list_type', listType)
           .limit(1)
           .maybeSingle();
         if (existing?.id) {
-          const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
+          const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
           if (deleteError) {
             showToast('Could not update list', 'error');
             return result;
@@ -336,9 +332,9 @@
         }
 
         await ensureLinkedMediaRecord(itemId);
-        const { error: insertError } = await client
-          .from('list_items')
-          .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+        const insertRow = { user_id: currentUser.id, list_type: listType };
+        insertRow[itemField] = itemId;
+        const { error: insertError } = await client.from(table).insert(insertRow);
         if (insertError && String(insertError.code || '') !== '23505') {
           showToast('Could not add to list', 'error');
           return result;

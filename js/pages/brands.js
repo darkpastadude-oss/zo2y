@@ -8,9 +8,9 @@
   const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
   const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'list_items', itemField: 'external_id' },
-    food: { table: 'list_items', itemField: 'external_id' },
-    car: { table: 'list_items', itemField: 'external_id' }
+    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
+    food: { table: 'food_list_items', itemField: 'brand_id' },
+    car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
   const FALLBACKS = BRAND_TYPE === 'food'
@@ -257,25 +257,32 @@
     return supabaseClient;
   }
 
-  const SUPABASE_STORAGE_BASE = 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos';
-
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
     if (direct) {
-      if (direct.startsWith('http') || direct.startsWith('/') || direct.startsWith('data:')) {
+      if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
         return direct;
       }
     }
+    const title = String(name || '').trim();
+    if (title) {
+      const params = new URLSearchParams();
+      params.set('title', title);
+      const domainRaw = String(domain || '').trim();
+      if (domainRaw) params.set('domain', domainRaw);
+      params.set('mode', 'logo');
+      return '/api/logo?' + params.toString();
+    }
     const domainRaw = String(domain || '').trim();
-    if (domainRaw) {
-      const bucketType = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
-      const slug = domainRaw.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-      const base = `${SUPABASE_STORAGE_BASE}/${bucketType}/${slug}`;
-      if (/\.(jpe?g|png|gif|webp)$/i.test(direct)) {
-        const ext = direct.match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
-        return `${base}.${ext}`;
-      }
-      return `${base}.svg`;
+    const candidate = domainRaw;
+    if (!candidate) return '';
+    if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
+      return '/api/logo?domain=' + encodeURIComponent(candidate) + '&size=128&mode=logo';
+    }
+    if (/^https?:\/\//i.test(candidate)) {
+      const match = candidate.match(/\/\/([^\/\?]+)/i);
+      if (match && match[1]) return '/api/logo?domain=' + encodeURIComponent(match[1]) + '&size=128&mode=logo';
+      return candidate;
     }
     return '';
   }
@@ -544,25 +551,15 @@
           showBrandsToast('Could not update list', true);
           return result;
         }
-
-        const { data: list, error: listError } = await client
-          .from('user_lists')
-          .select('id')
-          .eq('user_id', currentUser.id)
-          .eq('category', mediaType)
-          .eq('type', listType)
-          .maybeSingle();
-        if (listError || !list) {
-          showBrandsToast('Could not update list', true);
-          return result;
-        }
+        const { table, itemField } = defaultListTable;
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
-            .from('list_items')
+            .from(table)
             .delete()
-            .eq('list_id', list.id)
-            .eq('external_id', String(itemId));
+            .eq('user_id', currentUser.id)
+            .eq(itemField, itemId)
+            .eq('list_type', listType);
           if (deleteError) {
             showBrandsToast('Could not update list', true);
             return result;
@@ -579,9 +576,9 @@
             showBrandsToast('Book info is unavailable right now.', true);
             return result;
           }
-          const { error: insertError } = await client
-            .from('list_items')
-            .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+          const insertRow = { user_id: currentUser.id, list_type: listType };
+          insertRow[itemField] = itemId;
+          const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
             showBrandsToast('Could not add to list', true);
             return result;
@@ -592,16 +589,16 @@
           return result;
         }
 
-        // No explicit nextSaved - check if exists and toggle
         const { data: existing } = await client
-          .from('list_items')
+          .from(table)
           .select('id')
-          .eq('list_id', list.id)
-          .eq('external_id', String(itemId))
+          .eq('user_id', currentUser.id)
+          .eq(itemField, itemId)
+          .eq('list_type', listType)
           .limit(1)
           .maybeSingle();
         if (existing?.id) {
-          const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
+          const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
           if (deleteError) {
             showBrandsToast('Could not update list', true);
             return result;
@@ -613,9 +610,9 @@
         }
 
         await ensureLinkedMediaRecord(itemId);
-        const { error: insertError } = await client
-          .from('list_items')
-          .insert({ list_id: list.id, media_type: mediaType, external_id: String(itemId), external_source: 'local_db', metadata: { title: payload.name || 'Untitled', poster_url: payload.photo || null } });
+        const insertRow = { user_id: currentUser.id, list_type: listType };
+        insertRow[itemField] = itemId;
+        const { error: insertError } = await client.from(table).insert(insertRow);
         if (insertError && String(insertError.code || '') !== '23505') {
           showBrandsToast('Could not add to list', true);
           return result;

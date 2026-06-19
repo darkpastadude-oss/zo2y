@@ -1,4 +1,5 @@
     const ENABLE_GAMES = true;
+    const ENABLE_RESTAURANTS = false;
     const ENABLE_FASHION = window.ZO2Y_DISABLE_FASHION !== true;
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
     const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
@@ -7,7 +8,9 @@
       : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
-      ...(ENABLE_FOOD ? ['food'] : [])
+      ...(ENABLE_FOOD ? ['food'] : []),
+      ...(ENABLE_CARS ? ['car'] : []),
+      ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])
     ];
     const HOME_ACTIVE_MEDIA_TYPES = [...HOME_BASE_MEDIA_TYPES, ...HOME_LIFESTYLE_MEDIA_TYPES];
     if (window.ZO2Y_SPORTS_LISTS == null) {
@@ -26,6 +29,13 @@
     const SPORTSDB_DIRECT_KEY = String(window.ZO2Y_SPORTSDB_KEY || '3').trim() || '3';
     const SPORTSDB_DIRECT_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_DIRECT_KEY}`;
     const REST_COUNTRIES_ALL_URL = '/api/restcountries/all?fields=name,cca2,cca3,capital,region,subregion,flags';
+    const FALLBACK_RESTAURANTS = [
+      { id: 'fallback-r1', name: 'Top Rated Picks', category: 'Community', rating: '4.8' },
+      { id: 'fallback-r2', name: 'Most Saved', category: 'Trending', rating: '4.7' },
+      { id: 'fallback-r3', name: 'Local Favorites', category: 'Local', rating: '4.9' },
+      { id: 'fallback-r4', name: 'Date Night', category: 'Curated', rating: '4.7' },
+      { id: 'fallback-r5', name: 'Quick Bites', category: 'Casual', rating: '4.6' }
+    ];
     const HOME_FASHION_FALLBACKS = [
       { id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com' },
       { id: '1982d6c7-716d-4f92-8529-039e03d83b72', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com' },
@@ -293,6 +303,7 @@
       'philadelphia eagles', 'buffalo bills', 'green bay packers'
     ]);
     const HOME_MEDIA_META = {
+      restaurant: { label: 'Restaurant', icon: 'fa-clapperboard', accent: '#f59e0b' },
       fashion: { label: 'Fashion', icon: 'fa-shirt', accent: '#38bdf8' },
       food: { label: 'Food', icon: 'fa-burger', accent: '#f59e0b' },
       car: { label: 'Cars', icon: 'fa-car', accent: '#ef4444' },
@@ -305,19 +316,32 @@
       travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' },
       sports: { label: 'Sports', icon: 'fa-futbol', accent: '#f59e0b' }
     };
-    const HOME_DEFAULT_LIST_TABLES = {
-      movie: { table: 'list_items', itemField: 'external_id' },
-      tv: { table: 'list_items', itemField: 'external_id' },
-      anime: { table: 'list_items', itemField: 'external_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'list_items', itemField: 'external_id' } } : {}),
-      book: { table: 'list_items', itemField: 'external_id' },
-      music: { table: 'list_items', itemField: 'external_id' },
-      travel: { table: 'list_items', itemField: 'external_id' },
-      ...(ENABLE_FASHION ? { fashion: { table: 'list_items', itemField: 'external_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'list_items', itemField: 'external_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'list_items', itemField: 'external_id' } } : {})
+    const HOME_RESTAURANT_LIST_META = {
+      favorites: { title: 'Favorites', description: 'My favorite restaurants', icon: 'heart' },
+      visited: { title: 'Visited', description: 'Places I have been to', icon: 'check' },
+      wantToGo: { title: 'Want to Go', description: 'Places I want to try', icon: 'bookmark' }
     };
-    const HOME_REVIEW_SIGNAL_TABLES = {};
+    const HOME_DEFAULT_LIST_TABLES = {
+      movie: { table: 'movie_list_items', itemField: 'movie_id' },
+      tv: { table: 'tv_list_items', itemField: 'tv_id' },
+      anime: { table: 'anime_list_items', itemField: 'anime_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
+      book: { table: 'book_list_items', itemField: 'book_id' },
+      music: { table: 'music_list_items', itemField: 'track_id' },
+      travel: { table: 'travel_list_items', itemField: 'country_code' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
+    };
+    const HOME_REVIEW_SIGNAL_TABLES = {
+      movie: { table: 'movie_reviews', itemField: 'movie_id' },
+      tv: { table: 'tv_reviews', itemField: 'tv_id' },
+      anime: { table: 'anime_reviews', itemField: 'anime_id' },
+      ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
+      book: { table: 'book_reviews', itemField: 'book_id' },
+      music: { table: 'music_reviews', itemField: 'track_id' },
+      travel: { table: 'travel_reviews', itemField: 'country_code' }
+    };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v15';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
@@ -1883,28 +1907,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
+    function resolveRestaurantImage(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      if (/^https?:\/\//i.test(raw)) return toHttpsUrl(raw);
+      const normalized = raw.replace(/^\/+/, '');
+      if (/^images\//i.test(normalized)) return toHttpsUrl(normalized);
+      return toHttpsUrl(`images/${normalized}`);
+    }
+
     function resolveBrandLogo(row, mediaType) {
-      const logoUrl = String(row?.logo_url || row?.logo || '').trim();
-      if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
-        return logoUrl;
+      const logoValue = String(row?.logo_url || row?.logo || '').trim();
+      if (logoValue) {
+        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
+          return logoValue;
+        }
       }
       const typeKey = String(mediaType || '').toLowerCase();
-      const domain = String(row?.domain || '').trim();
-      const bucketType = typeKey === 'fashion' ? 'fashion_brands' : (typeKey === 'food' ? 'food_brands' : (typeKey === 'car' ? 'car_brands' : ''));
-      if (bucketType && domain) {
-        const slug = domain.replace(/^https?:\/\//i, '').replace(/^www\./i, '').replace(/\/.*/, '').replace(/\./g, '-');
-        const base = `https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/${bucketType}/${slug}`;
-        const logoUrl = String(row?.logo_url || row?.logo || '').trim();
-        if (/\.(jpe?g|png|gif|webp)$/i.test(logoUrl)) {
-          const ext = logoUrl.match(/\.([a-z0-9]+)$/i)?.[1] || 'png';
-          return `${base}.${ext}`;
-        }
-        return `${base}.svg`;
-      }
-      const logoValue = String(row?.logo_url || row?.logo || '').trim();
-      if (logoValue && (logoValue.startsWith('/') || logoValue.startsWith('data:'))) {
-        return logoValue;
-      }
+      // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.
       if (typeKey === 'fashion') return '/images/onboarding/onboard-fashion.svg';
       if (typeKey === 'food') return '/images/onboarding/onboard-food.svg';
       if (typeKey === 'car') return '/images/onboarding/onboard-interests.svg';
@@ -2106,6 +2126,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (type === 'music') return 'Music';
       if (type === 'travel') return 'Travel';
       if (type === 'sports') return 'Sports';
+      if (type === 'restaurant') return 'Restaurants';
       if (type === 'fashion') return 'Fashion';
       if (type === 'food') return 'Food';
       if (type === 'car') return 'Cars';
@@ -2119,97 +2140,125 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getMediaListConfig(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      const configs = {
-        movie: {
+      if (type === 'movie') {
+        return {
           customHref: 'movies.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        },
-        tv: {
+        };
+      }
+      if (type === 'tv') {
+        return {
           customHref: 'tvshows.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        },
-        anime: {
+        };
+      }
+      if (type === 'anime') {
+        return {
           customHref: 'animes.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Watched', icon: 'fas fa-eye' },
+            { key: 'watched', label: 'Watched', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
           ]
-        },
-        game: {
+        };
+      }
+      if (type === 'game') {
+        return {
           customHref: 'games.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Played', icon: 'fas fa-gamepad' },
-            { key: 'watchlist', label: 'Backlog', icon: 'fas fa-clock' }
+            { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
+            { key: 'watchlist', label: 'Backlog', icon: 'fas fa-bookmark' }
           ]
-        },
-        book: {
+        };
+      }
+      if (type === 'book') {
+        return {
           customHref: 'books.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Read', icon: 'fas fa-check' },
-            { key: 'watchlist', label: 'Reading List', icon: 'fas fa-book-open' }
+            { key: 'read', label: 'Read', icon: 'fas fa-eye' },
+            { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
           ]
-        },
-        music: {
+        };
+      }
+      if (type === 'music') {
+        return {
           customHref: 'music.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Listened', icon: 'fas fa-headphones' },
-            { key: 'watchlist', label: 'Listen Later', icon: 'fas fa-clock' }
+            { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
+            { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
           ]
-        },
-        travel: {
+        };
+      }
+      if (type === 'travel') {
+        return {
           customHref: 'travel.html',
           rows: [
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Visited', icon: 'fas fa-check' },
-            { key: 'watchlist', label: 'Bucket List', icon: 'fas fa-map-marker-alt' }
+            { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
+            { key: 'bucketlist', label: 'Bucket List', icon: 'fas fa-bookmark' }
           ]
-        },
-        sports: {
-          customHref: 'sports.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Following', icon: 'fas fa-eye' },
-            { key: 'watchlist', label: 'Watchlist', icon: 'fas fa-bookmark' }
-          ]
-        },
-        fashion: {
-          customHref: 'fashion.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Owned', icon: 'fas fa-check' },
-            { key: 'watchlist', label: 'Wishlist', icon: 'fas fa-cart-plus' }
-          ]
-        },
-        food: {
-          customHref: 'food.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Tried', icon: 'fas fa-utensils' },
-            { key: 'watchlist', label: 'Go List', icon: 'fas fa-utensils' }
-          ]
-        },
-        car: {
-          customHref: 'cars.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'completed', label: 'Owned', icon: 'fas fa-check' },
-            { key: 'watchlist', label: 'Wishlist', icon: 'fas fa-cart-plus' }
-          ]
+        };
+      }
+        if (type === 'sports') {
+          return {
+            customHref: 'sports.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
+            ]
+          };
         }
-      };
-      return configs[type] || null;
+        if (type === 'fashion') {
+          return {
+            customHref: 'fashion.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (type === 'food') {
+          return {
+            customHref: 'food.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'tried', label: 'Tried', icon: 'fas fa-check' },
+              { key: 'want_to_try', label: 'Want to Try', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (type === 'car') {
+          return {
+            customHref: 'cars.html',
+            rows: [
+              { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+              { key: 'owned', label: 'Owned', icon: 'fas fa-check' },
+              { key: 'wishlist', label: 'Wishlist', icon: 'fas fa-bookmark' }
+            ]
+          };
+        }
+        if (ENABLE_RESTAURANTS && type === 'restaurant') {
+          return {
+            customHref: 'restraunts.html',
+            rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'visited', label: 'Visited', icon: 'fas fa-eye' },
+            { key: 'wantToGo', label: 'Want to Go', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      return null;
     }
 
     function buildRailListMenuHtml(item) {
@@ -3263,46 +3312,34 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!userIds.length) return null;
 
       const fetchRowsForSignalTable = async (mediaType, cfg) => {
-        // Fetch default lists for these userIds and mediaType to map list_id to user_id/list_type
-        const { data: defaultLists } = await client
-          .from('user_lists')
-          .select('id, type, user_id')
+        const withCreatedAt = await client
+          .from(cfg.table)
+          .select(`${cfg.itemField}, user_id, list_type, created_at`)
           .in('user_id', userIds)
-          .eq('category', mediaType);
-
-        if (!defaultLists || !defaultLists.length) {
-          return { mediaType, itemField: 'media_id', rows: [] };
-        }
-
-        const defaultListTypeById = new Map();
-        const userIdByListId = new Map();
-        const listIds = [];
-        
-        defaultLists.forEach(dl => {
-          defaultListTypeById.set(dl.id, dl.type);
-          userIdByListId.set(dl.id, dl.user_id);
-          listIds.push(dl.id);
-        });
-
-        const { data, error } = await client
-          .from('list_items')
-          .select('external_id, list_id, added_at')
-          .in('list_id', listIds)
-          .order('added_at', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(220);
 
-        if (error || !data) {
-          return { mediaType, itemField: 'media_id', rows: [] };
+        if (!withCreatedAt?.error) {
+          return { mediaType, itemField: cfg.itemField, rows: Array.isArray(withCreatedAt?.data) ? withCreatedAt.data : [] };
         }
 
-        const rows = data.map((row) => ({
-          media_id: row.external_id,
-          external_id: row.external_id,
-          user_id: userIdByListId.get(row.list_id),
-          list_type: defaultListTypeById.get(row.list_id) || 'custom',
-          created_at: row.added_at
+        // Some deployments do not have created_at on media list tables.
+        const withoutCreatedAt = await client
+          .from(cfg.table)
+          .select(`${cfg.itemField}, user_id, list_type, id`)
+          .in('user_id', userIds)
+          .order('id', { ascending: false })
+          .limit(220);
+
+        if (withoutCreatedAt?.error) {
+          return { mediaType, itemField: cfg.itemField, rows: [] };
+        }
+
+        const rows = (Array.isArray(withoutCreatedAt?.data) ? withoutCreatedAt.data : []).map((row) => ({
+          ...row,
+          created_at: null
         }));
-        return { mediaType, itemField: 'media_id', rows };
+        return { mediaType, itemField: cfg.itemField, rows };
       };
 
       const queryTasks = Object.entries(HOME_DEFAULT_LIST_TABLES).map(([mediaType, cfg]) => {
@@ -3720,37 +3757,44 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [userListsRes] = await Promise.all([
-          client.from('user_lists').select('id, category').eq('user_id', homeCurrentUser.id)
+        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes, listRes] = await Promise.all([
+          client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            .then((res) => res)
+            .catch(() => ({ count: 0 })),
+          ENABLE_GAMES
+            ? client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            : Promise.resolve({ count: 0 }),
+          client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
+          client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            .then((res) => res)
+            .catch(() => ({ count: 0 })),
+          ENABLE_RESTAURANTS
+            ? client.from('lists').select('id').eq('user_id', homeCurrentUser.id)
+            : Promise.resolve({ data: [] })
         ]);
 
-        const listIdsByCategory = {};
-        (userListsRes?.data || []).forEach(l => {
-          if (!listIdsByCategory[l.category]) listIdsByCategory[l.category] = [];
-          listIdsByCategory[l.category].push(l.id);
-        });
-
-        const categoryCountEntries = await Promise.all(
-          Object.entries(listIdsByCategory).map(async ([cat, ids]) => {
-            const { count } = await client
-              .from('list_items')
-              .select('id', { count: 'exact', head: true })
-              .in('list_id', ids);
-            return [cat, Number(count || 0)];
-          })
-        );
-        const catCounts = Object.fromEntries(categoryCountEntries);
-
         const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
+        let restaurantCount = 0;
+        if (ENABLE_RESTAURANTS && listIds.length) {
+          const { count } = await client
+            .from('lists_restraunts')
+            .select('id', { count: 'exact', head: true })
+            .in('list_id', listIds);
+          restaurantCount = Number(count || 0);
+        }
 
         const counts = {
-          movie: catCounts.movie || 0,
-          tv: catCounts.tv || 0,
-          anime: catCounts.anime || 0,
-          ...(ENABLE_GAMES ? { game: catCounts.game || 0 } : {}),
-          book: catCounts.book || 0,
-          music: catCounts.music || 0,
-          travel: catCounts.travel || 0
+          movie: Number(movieRes?.count || 0),
+          tv: Number(tvRes?.count || 0),
+          anime: Number(animeRes?.count || 0),
+          ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
+          book: Number(bookRes?.count || 0),
+          music: Number(musicRes?.count || 0),
+          travel: Number(travelRes?.count || 0),
+          ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
         const interestProfile = await loadHomeInterestProfile(client);
         homeInterestProfile = interestProfile;
@@ -3917,6 +3961,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }, 90);
     }
 
+    async function ensureRestaurantList(userId, listType) {
+      if (!ENABLE_RESTAURANTS) return null;
+      const client = await ensureHomeSupabase();
+      if (!client) return null;
+      const conf = HOME_RESTAURANT_LIST_META[listType] || HOME_RESTAURANT_LIST_META.favorites;
+      const { data: existing } = await client
+        .from('lists')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('title', conf.title)
+        .limit(1)
+        .maybeSingle();
+      if (existing?.id) return existing.id;
+      const { data: created, error } = await client
+        .from('lists')
+        .insert({
+          user_id: userId,
+          title: conf.title,
+          description: conf.description,
+          icon: conf.icon
+        })
+        .select('id')
+        .single();
+      if (error) return null;
+      return created?.id || null;
+    }
+
     function getHomeDefaultListTable(mediaType) {
       const type = String(mediaType || '').toLowerCase();
       return HOME_DEFAULT_LIST_TABLES[type] || null;
@@ -3934,6 +4005,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       const text = String(itemId || '').trim();
       return text || null;
+    }
+
+    function normalizeHomeRestaurantId(itemId) {
+      if (!ENABLE_RESTAURANTS) return null;
+      const numericId = Number(itemId);
+      return Number.isFinite(numericId) ? numericId : null;
     }
 
     async function saveToListFromHome(payload) {
@@ -4083,28 +4160,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             showHomeToast('Could not update list', true);
             return result;
           }
-
-          // Ensure default list using the new ListUtils.ensureDefaultList helper
-          if (!window.ListUtils || typeof window.ListUtils.ensureDefaultList !== 'function') {
-            showHomeToast('List utility helper is not loaded yet', true);
-            return result;
-          }
-
-          const listObj = await window.ListUtils.ensureDefaultList(mediaType, listType);
-          const listId = listObj ? listObj.id : null;
-          if (!listId) {
-            showHomeToast('Could not prepare list', true);
-            return result;
-          }
-
-          const externalSrc = { movie: 'tmdb', tv: 'tmdb', anime: 'tmdb', game: 'igdb', book: 'openlibrary', music: 'spotify', travel: 'local_db', fashion: 'local_db', food: 'local_db', car: 'local_db' }[mediaType] || 'local_db';
+          const { table, itemField } = defaultListTable;
 
           if (nextSaved === false) {
             const { error: deleteError } = await client
-              .from('list_items')
+              .from(table)
               .delete()
-              .eq('list_id', listId)
-              .eq('external_id', String(itemId));
+              .eq('user_id', activeUser.id)
+              .eq(itemField, itemId)
+              .eq('list_type', listType);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4119,18 +4183,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (nextSaved === true) {
             const ensured = await ensureLinkedMediaRecord(itemId);
             if (!ensured) {
-              showHomeToast('Info is unavailable right now.', true);
+              showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const { error: insertError } = await client
-              .from('list_items')
-              .insert({
-                list_id: listId,
-                media_type: mediaType,
-                external_id: String(itemId),
-                external_source: externalSrc,
-                metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
-              });
+            const insertRow = { user_id: activeUser.id, list_type: listType };
+            insertRow[itemField] = itemId;
+            const { error: insertError } = await client.from(table).insert(insertRow);
             if (insertError && String(insertError.code || '') !== '23505') {
               showHomeToast('Could not add to list', true);
               return result;
@@ -4144,14 +4202,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { data: existing } = await client
-            .from('list_items')
+            .from(table)
             .select('id')
-            .eq('list_id', listId)
-            .eq('external_id', String(itemId))
+            .eq('user_id', activeUser.id)
+            .eq(itemField, itemId)
+            .eq('list_type', listType)
             .limit(1)
             .maybeSingle();
           if (existing?.id) {
-            const { error: deleteError } = await client.from('list_items').delete().eq('id', existing.id);
+            const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -4164,14 +4223,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const { error: insertError } = await client
-            .from('list_items')
-            .insert({
-              list_id: listId,
-              external_id: String(itemId),
-              external_source: externalSrc,
-              metadata: { title: payload.title || 'Untitled', poster_url: payload.image || null }
-            });
+          const insertRow = { user_id: activeUser.id, list_type: listType };
+          insertRow[itemField] = itemId;
+          const { error: insertError } = await client.from(table).insert(insertRow);
           if (insertError && String(insertError.code || '') !== '23505') {
             showHomeToast('Could not add to list', true);
             return result;
@@ -4184,6 +4238,84 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return result;
         }
 
+        if (ENABLE_RESTAURANTS && mediaType === 'restaurant') {
+          const restaurantId = normalizeHomeRestaurantId(payload.itemId);
+          if (restaurantId === null) {
+            showHomeToast('Could not update list', true);
+            return result;
+          }
+          const listId = await ensureRestaurantList(activeUser.id, listType);
+          if (!listId) {
+            showHomeToast('Could not prepare list', true);
+            return result;
+          }
+
+          if (nextSaved === false) {
+            const { error: deleteError } = await client
+              .from('lists_restraunts')
+              .delete()
+              .eq('list_id', listId)
+              .eq('restraunt_id', restaurantId);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return result;
+            }
+            showHomeToast('Removed from list');
+            result.ok = true;
+            result.saved = false;
+            invalidateActivitySignals();
+            return result;
+          }
+
+          if (nextSaved === true) {
+            const { error: insertError } = await client
+              .from('lists_restraunts')
+              .insert({ list_id: listId, restraunt_id: restaurantId });
+            if (insertError && String(insertError.code || '') !== '23505') {
+              showHomeToast('Could not add to list', true);
+              return result;
+            }
+            showHomeToast('Added to list');
+            result.ok = true;
+            result.saved = true;
+            markStartedHomeListFlow(activeUser.id);
+            invalidateActivitySignals();
+            return result;
+          }
+
+          const { data: existing } = await client
+            .from('lists_restraunts')
+            .select('id')
+            .eq('list_id', listId)
+            .eq('restraunt_id', restaurantId)
+            .limit(1)
+            .maybeSingle();
+          if (existing?.id) {
+            const { error: deleteError } = await client.from('lists_restraunts').delete().eq('id', existing.id);
+            if (deleteError) {
+              showHomeToast('Could not update list', true);
+              return result;
+            }
+            showHomeToast('Removed from list');
+            result.ok = true;
+            result.saved = false;
+            invalidateActivitySignals();
+            return result;
+          }
+          const { error: insertError } = await client
+            .from('lists_restraunts')
+            .insert({ list_id: listId, restraunt_id: restaurantId });
+          if (insertError && String(insertError.code || '') !== '23505') {
+            showHomeToast('Could not add to list', true);
+            return result;
+          }
+          showHomeToast('Added to list');
+          result.ok = true;
+          result.saved = true;
+          markStartedHomeListFlow(activeUser.id);
+          invalidateActivitySignals();
+          return result;
+        }
       } catch (_err) {
         showHomeToast('Could not add to list', true);
       }
@@ -4224,28 +4356,58 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (defaultListTable) {
           const normalizedItemId = normalizeHomeDefaultItemId(mediaType, itemId);
           if (normalizedItemId === null) return status;
-          const { data: lists } = await client
-            .from('user_lists')
-            .select('id, type')
+          const { table, itemField } = defaultListTable;
+          const { data } = await client
+            .from(table)
+            .select('list_type')
             .eq('user_id', activeUser.id)
-            .eq('category', mediaType);
-          if (lists && lists.length) {
-            const listIds = lists.map(l => l.id);
-            const typeById = {};
-            lists.forEach(l => { typeById[l.id] = l.type; });
-            const { data: items } = await client
-              .from('list_items')
-              .select('list_id')
-              .in('list_id', listIds)
-              .eq('external_id', String(normalizedItemId));
-            (items || []).forEach((row) => {
-              const key = typeById[row.list_id];
-              if (key in status) status[key] = true;
-            });
-          }
+            .eq(itemField, normalizedItemId)
+            .in('list_type', listKeys);
+          (data || []).forEach((row) => {
+            const key = String(row.list_type || '');
+            if (key in status) status[key] = true;
+          });
           return status;
         }
 
+        if (ENABLE_RESTAURANTS && mediaType === 'restaurant') {
+          const restaurantId = normalizeHomeRestaurantId(itemId);
+          if (restaurantId === null) return status;
+          const titleByKey = {};
+          listKeys.forEach((key) => {
+            const conf = HOME_RESTAURANT_LIST_META[key];
+            if (conf?.title) titleByKey[key] = conf.title;
+          });
+          const titles = Object.values(titleByKey);
+          if (!titles.length) return status;
+
+          const { data: lists } = await client
+            .from('lists')
+            .select('id,title')
+            .eq('user_id', activeUser.id)
+            .in('title', titles);
+
+          const listIdToKey = {};
+          Object.entries(titleByKey).forEach(([key, title]) => {
+            const match = (lists || []).find((row) => String(row.title || '').toLowerCase() === String(title).toLowerCase());
+            if (match?.id) listIdToKey[String(match.id)] = key;
+          });
+
+          const listIds = Object.keys(listIdToKey);
+          if (!listIds.length) return status;
+
+          const { data: links } = await client
+            .from('lists_restraunts')
+            .select('list_id')
+            .eq('restraunt_id', restaurantId)
+            .in('list_id', listIds);
+
+          (links || []).forEach((row) => {
+            const key = listIdToKey[String(row.list_id)];
+            if (key && key in status) status[key] = true;
+          });
+          return status;
+        }
       } catch (_err) {}
 
       return status;
@@ -4410,27 +4572,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         const defaultTable = getHomeDefaultListTable(type);
         if (defaultTable && visibleItemIds.length && listKeys.length) {
-          const { data: lists } = await client
-            .from('user_lists')
-            .select('id, type')
-            .eq('user_id', activeUser.id)
-            .eq('category', type);
-          if (!lists || !lists.length) return;
-          const listIds = lists.map(l => l.id);
-          const typeById = {};
-          lists.forEach(l => { typeById[l.id] = l.type; });
+          const { table, itemField } = defaultTable;
           const { data } = await client
-            .from('list_items')
-            .select('list_id, external_id')
-            .in('list_id', listIds)
-            .in('external_id', visibleItemIds.map(String));
+            .from(table)
+            .select(`${itemField},list_type`)
+            .eq('user_id', activeUser.id)
+            .in(itemField, visibleItemIds)
+            .in('list_type', listKeys);
           const grouped = new Map();
           visibleItemIds.forEach((id) => {
             grouped.set(String(id), buildHomeMenuBlankQuickStatus(quickRows));
           });
           (data || []).forEach((row) => {
-            const itemKey = String(row?.external_id || '');
-            const listType = typeById[row?.list_id] || '';
+            const itemKey = String(row?.[itemField] ?? '');
+            const listType = String(row?.list_type || '');
             const status = grouped.get(itemKey);
             if (!status || !(listType in status)) return;
             status[listType] = true;
@@ -4447,8 +4602,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         let customLists = readHomeMenuCustomListsCache(type);
         if (!customLists.length) {
-          const allLists = await ListUtils.getLists(type);
-          customLists = allLists.filter(l => l.type === 'custom');
+          customLists = await ListUtils.loadCustomLists(client, activeUser.id, type);
           writeHomeMenuCustomListsCache(type, customLists);
         }
 
@@ -4703,7 +4857,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
             <div class="menu-custom-left">
               ${window.ListUtils ? ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>'}
-              <span>${escapeHtml(list.name || 'Custom List')}</span>
+              <span>${escapeHtml(list.title || 'Custom List')}</span>
             </div>
             <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>
@@ -4776,7 +4930,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!client) return;
       const [statusMap, customLists] = await Promise.all([
         getHomeListStatusMap(item.mediaType, item.itemId, homeItemMenuState.quickRows.map((row) => row.key).filter(Boolean)),
-        ListUtils.getLists(item.mediaType).then(lists => lists.filter(l => l.type === 'custom'))
+        ListUtils.loadCustomLists(client, activeUserId, item.mediaType)
       ]);
       homeItemMenuState.quickStatus = statusMap;
       writeHomeMenuQuickStatusCache(item.mediaType, item.itemId, homeItemMenuState.quickStatus, homeItemMenuState.quickRows);
@@ -4937,7 +5091,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const isActive = homeCustomListState.selectedLists.has(list.id);
         item.className = `modal-list-item${isActive ? ' active' : ''}`;
         item.innerHTML = `
-          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.name}</span>
+          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.title}</span>
           <span class="modal-list-actions">
             <span>${isActive ? 'Saved' : 'Add'}</span>
             <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
@@ -5031,7 +5185,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!modal || !container) return;
       container.innerHTML = '<div class="chip">Loading...</div>';
       homeCustomListState.customLists = window.ListUtils
-        ? await ListUtils.getLists(homeCustomListState.mediaType).then(lists => lists.filter(l => l.type === 'custom'))
+        ? await ListUtils.loadCustomLists(client, activeUser.id, homeCustomListState.mediaType)
         : [];
       const listIds = homeCustomListState.customLists.map(l => l.id);
       homeCustomListState.selectedLists = window.ListUtils
@@ -5296,19 +5450,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       img.setAttribute('data-home-image-state', 'loading');
       img.removeAttribute('data-home-src');
-      img.onerror = function () {
-        if (this._fallbackSet) return;
-        this._fallbackSet = true;
-        var src = String(this.src || '');
-        if (src.includes('mzstatic.com') && /\/300x300bb\.jpg$/i.test(src)) {
-          this.src = src.replace(/\/300x300bb\.jpg$/i, '/100x100bb.jpg');
-          this._fallbackSet = false;
-          return;
-        }
-        this.removeAttribute('data-home-image-state');
-        this.alt = this.alt || '';
-        markHomeImageReady(this);
-      };
       img.src = nextSrc;
     }
 
@@ -5625,6 +5766,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }));
 
       return {
+        ...(ENABLE_RESTAURANTS ? {
+          restaurant: FALLBACK_RESTAURANTS.map((r, index) => ({
+            mediaType: 'restaurant',
+            itemId: `seed-restaurant-${index + 1}`,
+            title: r.name,
+            subtitle: `${r.category} | ${r.rating}/5`,
+            image: fallbackImage,
+            logo: '',
+            backgroundImage: fallbackImage,
+            spotlightImage: fallbackImage,
+            spotlightMediaImage: fallbackImage,
+            spotlightMediaFit: 'contain',
+            spotlightMediaShape: 'poster',
+            href: 'restraunts.html',
+            fallbackImage,
+            isPlaceholder: true
+          }))
+        } : {}),
         movie: [],
         tv: [],
         anime: [],
@@ -5726,6 +5885,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getHomeChannels() {
       const channels = [
+        ...(ENABLE_RESTAURANTS ? [{ key: 'restaurant', railId: 'restaurantsRail', loader: loadRestaurants, opts: { mediaType: 'restaurant', landscape: true, restaurantComposite: true } }] : []),
         { key: 'movie', railId: 'moviesRail', loader: loadMovies, opts: { mediaType: 'movie' } },
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
@@ -8740,6 +8900,98 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       document.body.style.overflow = 'hidden';
     }
 
+      async function loadRestaurants() {
+        if (!ENABLE_RESTAURANTS) return [];
+        const client = await ensureHomeSupabase();
+        if (!client) {
+          return FALLBACK_RESTAURANTS.map((r) => ({
+            mediaType: 'restaurant',
+          itemId: String(r.id),
+          title: r.name,
+          subtitle: `${r.category} | ${r.rating}/5`,
+          image: '',
+          logo: '',
+          backgroundImage: '',
+          spotlightImage: '',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'restraunts.html'
+        }));
+      }
+      const fetchLimit = Math.max(HOME_CHANNEL_TARGET_ITEMS * 2, HOME_CHANNEL_TARGET_ITEMS);
+      const { data, error } = await client
+        .from('restraunts')
+        .select('id,name,image,category,rating,slug,logo_url')
+        .order('rating', { ascending: false })
+        .limit(fetchLimit);
+      if (error || !data || !data.length) {
+        return FALLBACK_RESTAURANTS.map((r) => ({
+          mediaType: 'restaurant',
+          itemId: String(r.id),
+          title: r.name,
+          subtitle: `${r.category} | ${r.rating}/5`,
+          image: '',
+          logo: '',
+          backgroundImage: '',
+          spotlightImage: '',
+          spotlightMediaImage: '',
+          spotlightMediaFit: 'contain',
+          spotlightMediaShape: 'poster',
+          href: 'restraunts.html'
+        }));
+      }
+
+      const selectedRows = shuffleArray(data).slice(0, HOME_CHANNEL_TARGET_ITEMS);
+      const slugs = selectedRows.map((row) => String(row.slug || '').trim()).filter(Boolean);
+      const galleryBySlug = {};
+      if (slugs.length) {
+        const { data: galleryRows } = await client
+          .from('restaurant_gallery')
+          .select('restaurant_slug, image_url, image_type')
+          .in('restaurant_slug', slugs);
+        if (Array.isArray(galleryRows)) {
+          galleryRows.forEach((row) => {
+            const slug = String(row.restaurant_slug || '').trim();
+            const url = String(row.image_url || '').trim();
+            const imageType = String(row.image_type || '').trim().toLowerCase();
+            if (!slug || !url) return;
+            if (!galleryBySlug[slug]) {
+              galleryBySlug[slug] = {
+                cover: '',
+                logo: ''
+              };
+            }
+            if (imageType === 'cover' && !galleryBySlug[slug].cover) {
+              galleryBySlug[slug].cover = toHttpsUrl(url);
+            } else if (imageType === 'logo' && !galleryBySlug[slug].logo) {
+              galleryBySlug[slug].logo = toHttpsUrl(url);
+            }
+          });
+        }
+      }
+
+        return selectedRows.map((r) => {
+          const coverImage = galleryBySlug[r.slug]?.cover || resolveRestaurantImage(r.image);
+          const logoImage = galleryBySlug[r.slug]?.logo || resolveRestaurantImage(r.logo_url);
+          const hasLogo = String(logoImage || '').trim().length > 0;
+          return {
+            mediaType: 'restaurant',
+          itemId: String(r.id || ''),
+          title: r.name || 'Restaurant',
+          subtitle: `${r.category || 'Restaurant'}${r.rating ? ` | ${r.rating}/5` : ''}`,
+          image: coverImage || logoImage || '',
+          logo: logoImage || '',
+          backgroundImage: coverImage || '',
+          spotlightImage: coverImage || '',
+          spotlightMediaImage: hasLogo ? logoImage : (coverImage || ''),
+          spotlightMediaFit: hasLogo ? 'contain' : 'cover',
+          spotlightMediaShape: hasLogo ? 'square' : 'poster',
+            href: r.id ? `restaurant.html?id=${encodeURIComponent(r.id)}` : 'restraunts.html'
+          };
+        });
+      }
+
       async function loadFashionBrands() {
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
@@ -8785,18 +9037,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const client = await ensureHomeSupabase();
         const target = Math.max(1, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS));
         void ensureHomeBrandBackgroundManifest();
-        const fallbackItems = stableShuffleHomeItems(
-          HOME_CAR_FALLBACKS.map((row, index) => mapHomeBrandItem(row, 'car', index)),
-          'car:fallback'
-        ).slice(0, target);
-        if (!client) return fallbackItems;
+        if (!client) return [];
 
         const fetchLimit = Math.max(target * 4, target);
         const { data, error } = await client
           .from('car_brands')
           .select('id,name,slug,domain,logo_url,description,category,country,founded,tags')
           .limit(fetchLimit);
-        if (error || !data || !data.length) return fallbackItems;
+        if (error || !data || !data.length) return [];
         const items = dedupeHomeBrandRows(data || []).map((row, index) => mapHomeBrandItem(row, 'car', index));
         return stableShuffleHomeItems(items, 'car:home').slice(0, target);
       }
@@ -10505,7 +10753,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
       ]
     };
-    const LANDING_REVIEW_SOURCES = [];
+    const LANDING_REVIEW_SOURCES = [
+      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
+      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
+      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
+      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
+      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
+      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
+      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
+    ];
 
     function normalizeLandingImageUrl(value) {
       const raw = unwrapCloudflareImageUrl(String(value || '').trim());

@@ -18,9 +18,7 @@
   const host = String(global.location?.hostname || '').toLowerCase();
   if (host === 'localhost' || host === '127.0.0.1') {
     pushCandidate('/api/sportsdb');
-    if (global.location?.port === '5000') {
-      pushCandidate('http://localhost:5000/api/sportsdb');
-    }
+    pushCandidate('http://localhost:5000/api/sportsdb');
   }
   pushCandidate(normalizeBase(global.__ZO2Y_SPORTSDB_BASE));
   pushCandidate(normalizeBase(global.__ZO2Y_API_BASE));

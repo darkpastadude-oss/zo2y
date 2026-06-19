@@ -72,15 +72,6 @@
     if (!storage) return "denied";
     const value = String(storage.getItem(CONSENT_KEY) || "").trim();
     if (value === "granted" || value === "denied") return value;
-    // Check cookie consent system's analytics flag
-    try {
-      const raw = storage.getItem("zo2y-cookie-consent");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.analytics === true) return "granted";
-        if (parsed && parsed.decidedAt) return "denied";
-      }
-    } catch (_e) {}
     return "";
   }
 
@@ -318,23 +309,240 @@
     window.addEventListener("pagehide", sendVitals);
   }
 
-  function removeDuplicateCards(root) {
-    if (!root) return 0;
-    const cards = Array.from(root.querySelectorAll('[data-media-id], [data-id]'));
-    const seen = new Map();
-    let removed = 0;
-    cards.forEach(card => {
-      const key = card.getAttribute('data-media-id') || card.getAttribute('data-id');
-      if (!key) return;
-      const tag = card.tagName + ':' + (card.getAttribute('data-media-type') || '');
-      const mapKey = key + '|' + tag;
-      if (seen.has(mapKey)) {
-        card.remove();
-        removed++;
+  function renderConsentBanner() {
+    if (getConsent()) return;
+    const banner = document.createElement("aside");
+    banner.setAttribute("aria-label", "Analytics consent");
+    banner.style.position = "fixed";
+    banner.style.left = "16px";
+    banner.style.right = "16px";
+    banner.style.bottom = "16px";
+    banner.style.zIndex = "99999";
+    banner.style.background = "rgba(11,22,51,0.95)";
+    banner.style.border = "1px solid rgba(255,255,255,0.18)";
+    banner.style.borderRadius = "12px";
+    banner.style.padding = "12px";
+    banner.style.color = "#fff";
+    banner.style.backdropFilter = "blur(6px)";
+    banner.innerHTML = `
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+        <div style="font-size:13px;line-height:1.4;max-width:860px;">
+          We use anonymous analytics to improve feed quality and reliability.
+          See <a href="privacy.html" style="color:#f59e0b;">Privacy</a>.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" data-consent="deny" style="background:#132347;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 10px;border-radius:8px;cursor:pointer;">Decline</button>
+          <button type="button" data-consent="allow" style="background:#f59e0b;color:#0b1633;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;">Allow analytics</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(banner);
+
+    banner.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const action = target.getAttribute("data-consent");
+      if (!action) return;
+      if (action === "allow") {
+        setConsent("granted");
+        track("consent_granted", { source: "banner" }, { essential: true });
       } else {
-        seen.set(mapKey, card);
+        setConsent("denied");
       }
+      banner.remove();
     });
+  }
+
+  function setupFunnelTracking() {
+    const sessionStorage = getSessionStorage();
+    if (sessionStorage && !sessionStorage.getItem(SESSION_STARTED_KEY)) {
+      sessionStorage.setItem(SESSION_STARTED_KEY, "1");
+      track("session_start", { path: window.location.pathname }, { essential: true });
+    }
+
+    track("page_view", { path: window.location.pathname, title: document.title || "" }, { essential: true });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const tracked = target.closest("[data-track]");
+      if (!(tracked instanceof HTMLElement)) return;
+      const eventName = tracked.getAttribute("data-track");
+      if (!eventName) return;
+      const value = tracked.getAttribute("data-track-value") || tracked.textContent || "";
+      track(eventName, { value: String(value).trim().slice(0, 120) });
+    });
+
+    const signUpForm =
+      document.getElementById("signupForm") ||
+      document.getElementById("signUpForm") ||
+      document.querySelector("form[data-form='signup']");
+    if (signUpForm) {
+      signUpForm.addEventListener("submit", () => {
+        track("signup_submit", { path: window.location.pathname });
+      });
+    }
+
+    const loginForm =
+      document.getElementById("loginForm") ||
+      document.getElementById("authForm") ||
+      document.querySelector("form[data-form='login']");
+    if (loginForm) {
+      loginForm.addEventListener("submit", () => {
+        track("login_submit", { path: window.location.pathname });
+      });
+    }
+
+    const signupInputs = Array.from(document.querySelectorAll("#signupForm input, form[data-form='signup'] input"));
+    signupInputs.forEach((input) => {
+      input.addEventListener("focus", () => {
+        markFirstAction("signup_start", { path: window.location.pathname }, { essential: true });
+      }, { once: true });
+    });
+
+    const loginInputs = Array.from(document.querySelectorAll("#authForm input, #loginForm input, form[data-form='login'] input"));
+    loginInputs.forEach((input) => {
+      input.addEventListener("focus", () => {
+        markFirstAction("login_start", { path: window.location.pathname }, { essential: true });
+      }, { once: true });
+    });
+
+    document.getElementById("googleSignup")?.addEventListener("click", () => {
+      track("signup_google_start", { path: window.location.pathname });
+    });
+    document.getElementById("googleAuthBtn")?.addEventListener("click", () => {
+      track("login_google_start", { path: window.location.pathname });
+    });
+  }
+
+
+
+  function normalizeDedupeText(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+  }
+
+  function normalizeDedupeHref(rawHref) {
+    const href = String(rawHref || "").trim();
+    if (!href || href === "#") return "";
+    try {
+      const url = new URL(href, window.location.origin);
+      const base = `${url.origin}${url.pathname}`;
+      const params = new URLSearchParams(url.search || "");
+      const stableKeys = ["id", "track", "track_id", "album", "album_id", "movie", "tv", "game", "book", "q", "source"];
+      const stablePairs = [];
+      stableKeys.forEach((key) => {
+        const value = params.get(key);
+        if (value) stablePairs.push(`${key}=${value}`);
+      });
+      return stablePairs.length ? `${base}?${stablePairs.join("&")}` : base;
+    } catch (_err) {
+      return href;
+    }
+  }
+
+  function isDuplicateCardExcluded(node) {
+    if (!(node instanceof HTMLElement)) return true;
+    return !!node.closest(
+      [
+        "[data-dedupe-exempt='1']",
+        ".modal",
+        ".menu-modal",
+        ".rail-menu",
+        ".list-menu",
+        ".home-onboarding-card",
+        ".mini-card",
+        "#homeOnboardingOverlay",
+        "#itemMenuModal",
+        "#createListModal",
+        "#homeListsModal"
+      ].join(",")
+    );
+  }
+
+  function buildDuplicateCardKey(card) {
+    if (!(card instanceof HTMLElement)) return "";
+
+    const media = normalizeDedupeText(
+      card.getAttribute("data-media-type") ||
+      card.getAttribute("data-kind") ||
+      card.getAttribute("data-type") ||
+      ""
+    );
+
+    const idCandidates = [
+      card.getAttribute("data-item-id"),
+      card.getAttribute("data-id"),
+      card.getAttribute("data-track-id"),
+      card.getAttribute("data-album-id"),
+      card.getAttribute("data-movie-id"),
+      card.getAttribute("data-tv-id"),
+      card.getAttribute("data-game-id"),
+      card.getAttribute("data-book-id")
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+
+    if (idCandidates.length) {
+      return `id:${media}:${idCandidates[0].toLowerCase()}`;
+    }
+
+    const href =
+      card.getAttribute("data-href") ||
+      card.querySelector("a[href]")?.getAttribute("href") ||
+      "";
+    const normalizedHref = normalizeDedupeHref(href);
+    if (normalizedHref) {
+      return `href:${media}:${normalizedHref.toLowerCase()}`;
+    }
+
+    const title = normalizeDedupeText(
+      card.getAttribute("data-title") ||
+      card.querySelector(".card-title")?.textContent ||
+      card.querySelector(".card-name")?.textContent ||
+      card.querySelector("h2, h3, h4")?.textContent ||
+      ""
+    );
+    const subtitle = normalizeDedupeText(
+      card.getAttribute("data-subtitle") ||
+      card.querySelector(".card-sub")?.textContent ||
+      card.querySelector(".subtitle")?.textContent ||
+      ""
+    );
+
+    if (!title) return "";
+    return `text:${media}:${title}::${subtitle}`;
+  }
+
+  function removeDuplicateCards(scope = document) {
+    if (!(scope instanceof Document || scope instanceof HTMLElement)) return 0;
+    const selector = [
+      ".grid .card",
+      ".rail .card",
+      ".cards .card",
+      ".results .card",
+      "article.card[data-item-id]",
+      "article.card[data-id]"
+    ].join(",");
+    const cards = Array.from(scope.querySelectorAll(selector));
+    const seen = new Set();
+    let removed = 0;
+
+    cards.forEach((card) => {
+      if (!(card instanceof HTMLElement)) return;
+      if (isDuplicateCardExcluded(card)) return;
+      const key = buildDuplicateCardKey(card);
+      if (!key) return;
+      if (seen.has(key)) {
+        card.remove();
+        removed += 1;
+        return;
+      }
+      seen.add(key);
+    });
+
     return removed;
   }
 
@@ -401,7 +609,9 @@
   function init() {
     setupErrorObservers();
     setupWebVitals();
+    setupFunnelTracking();
     const runDeferredUiWork = () => {
+      renderConsentBanner();
       setupDuplicateCardCleanup();
     };
     if (typeof window.requestIdleCallback === "function") {

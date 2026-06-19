@@ -6,16 +6,16 @@ const REQUEST_CACHE_TTL_MS = 1000 * 60 * 10;
 const requestCache = new Map();
 
 const FALLBACK_TRACKS = [
-  { id: "1786885073", name: "Die With A Smile", artists: ["Lady Gaga", "Bruno Mars"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/die-with-a-smile/1786885073?i=1786885119", duration_ms: 251667 },
-  { id: "1776815963", name: "A Bar Song (Tipsy)", artists: ["Shaboozey"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/a-bar-song-tipsy/1776815963?i=1776816017", duration_ms: 174000 },
-  { id: "1746018235", name: "I Had Some Help", artists: ["Post Malone", "Morgan Wallen"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/i-had-some-help/1746018235?i=1746018238", duration_ms: 178000 },
-  { id: "1738258033", name: "Lose Control", artists: ["Teddy Swims"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/lose-control/1738258033?i=1738258035", duration_ms: 211000 },
-  { id: "1731742554", name: "Taste", artists: ["Sabrina Carpenter"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/taste/1731742554?i=1731742583", duration_ms: 157000 },
-  { id: "1727299764", name: "Espresso", artists: ["Sabrina Carpenter"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/espresso/1727299764?i=1727299766", duration_ms: 175000 },
-  { id: "1696313419", name: "Beautiful Things", artists: ["Benson Boone"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/beautiful-things/1696313419?i=1696313438", duration_ms: 180000 },
-  { id: "1741021439", name: "BIRDS OF A FEATHER", artists: ["Billie Eilish"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/birds-of-a-feather/1741021439?i=1741021472", duration_ms: 210000 },
-  { id: "1723506498", name: "Gata Only", artists: ["FloyyMenor", "Cris MJ"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/gata-only/1723506498?i=1723506499", duration_ms: 166000 },
-  { id: "1737234503", name: "Fortnight", artists: ["Taylor Swift", "Post Malone"], image: "", preview_url: "", external_url: "https://music.apple.com/us/album/fortnight/1737234503?i=1737234521", duration_ms: 228000 }
+  { id: "1786885073", name: "Die With A Smile", artists: ["Lady Gaga", "Bruno Mars"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/18/93/6a/18936a7f-238a-383e-960c-d76be7187e90/24UMGIM62253.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/die-with-a-smile/1786885073?i=1786885119", duration_ms: 251667 },
+  { id: "1776815963", name: "A Bar Song (Tipsy)", artists: ["Shaboozey"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/4e/62/00/4e6200e0-4a7b-cd5e-d1b7-9a36109c7c48/24UMGIM36640.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/a-bar-song-tipsy/1776815963?i=1776816017", duration_ms: 174000 },
+  { id: "1746018235", name: "I Had Some Help", artists: ["Post Malone", "Morgan Wallen"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/9d/35/98/9d35982a-6c9b-423d-b757-146e282d5863/24UMGIM02785.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/i-had-some-help/1746018235?i=1746018238", duration_ms: 178000 },
+  { id: "1738258033", name: "Lose Control", artists: ["Teddy Swims"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/2e/90/03/2e90035d-d588-ddf0-2e05-f83f0e8744af/23UM1IM45862.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/lose-control/1738258033?i=1738258035", duration_ms: 211000 },
+  { id: "1731742554", name: "Taste", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/38/82/06/38820667-e2c5-35b6-9004-43ab4b61f6fa/24UMGIM39301.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/taste/1731742554?i=1731742583", duration_ms: 157000 },
+  { id: "1727299764", name: "Espresso", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8d/38/54/8d38546f-e164-e34b-511b-a4b500bf4213/24UMGIM62688.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/espresso/1727299764?i=1727299766", duration_ms: 175000 },
+  { id: "1696313419", name: "Beautiful Things", artists: ["Benson Boone"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/65/82/90/65829058-f42c-3058-81e0-83a9c50616b0/24UMGIM54155.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/beautiful-things/1696313419?i=1696313438", duration_ms: 180000 },
+  { id: "1741021439", name: "BIRDS OF A FEATHER", artists: ["Billie Eilish"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/50/84/a4/5084a45b-9029-43ec-b7e5-f8a8f2e1330e/24UMGIM63520.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/birds-of-a-feather/1741021439?i=1741021472", duration_ms: 210000 },
+  { id: "1723506498", name: "Gata Only", artists: ["FloyyMenor", "Cris MJ"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/6a/35/3a/6a353a99-1f3e-7d93-476f-851e19e01e7f/24UMGIM37051.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/gata-only/1723506498?i=1723506499", duration_ms: 166000 },
+  { id: "1737234503", name: "Fortnight", artists: ["Taylor Swift", "Post Malone"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/35/34/00/3534002c-c012-26d8-d675-204b54e6abaa/24UMGIM62591.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/fortnight/1737234503?i=1737234521", duration_ms: 228000 }
 ];
 
 function getFallbackTracks(limit = 10, market = "US") {
@@ -42,15 +42,6 @@ function toHttpsUrl(value) {
   return raw;
 }
 
-function sanitizeArtworkUrl(url) {
-  const safe = toHttpsUrl(url);
-  if (!safe) return safe;
-  if (safe.includes("mzstatic.com") && /\/600x600bb\.jpg$/i.test(safe)) {
-    return safe.replace(/\/600x600bb\.jpg$/i, "/300x300bb.jpg");
-  }
-  return safe;
-}
-
 function normalizeMarket(value = "US") {
   return String(value || "US").trim().slice(0, 2).toUpperCase() || "US";
 }
@@ -75,7 +66,7 @@ function normalizeAlbumTypes(raw) {
 function normalizeItunesTrackRow(track) {
   const collectionType = String(track?.collectionType || "").trim().toLowerCase();
   const rawArtwork = String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim();
-  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "itunes",
     kind: "track",
@@ -105,7 +96,7 @@ function normalizeItunesTrackRow(track) {
 function normalizeItunesAlbumRow(album) {
   const artistName = String(album?.artistName || "").trim();
   const rawArtwork = String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim();
-  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "itunes",
     id: String(album?.collectionId || album?.id || ""),
@@ -132,7 +123,7 @@ function normalizeItunesAlbumRow(album) {
 
 function normalizeAppleChartTrackRow(track) {
   const rawArtwork = String(track?.artworkUrl100 || "").trim();
-  const hiResArtwork = sanitizeArtworkUrl(rawArtwork);
+  const hiResArtwork = toHttpsUrl(rawArtwork);
   return {
     source: "apple",
     kind: "track",

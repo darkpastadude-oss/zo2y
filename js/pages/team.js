@@ -230,7 +230,7 @@
   function initMenuBridge() {
     if (typeof window.initIndexStyleListMenu !== 'function') return;
     window.initIndexStyleListMenu({
-      mediaType: 'sport',
+      mediaType: 'team',
       getCurrentUser: () => state.currentUser,
       ensureClient: ensureSupabase,
       toggleDefaultList,

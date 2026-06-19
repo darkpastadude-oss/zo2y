@@ -30,9 +30,7 @@
   const host = String(global.location?.hostname || '').toLowerCase();
   if (host === 'localhost' || host === '127.0.0.1') {
     pushCandidate('/api/igdb');
-    if (global.location?.port === '5000') {
-      pushCandidate('http://localhost:5000/api/igdb');
-    }
+    pushCandidate('http://localhost:5000/api/igdb');
   }
   pushCandidate(toIgdbBase(global.__ZO2Y_IGDB_BASE, false));
   pushCandidate(toIgdbBase(global.__ZO2Y_API_BASE, true));

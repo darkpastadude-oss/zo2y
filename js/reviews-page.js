@@ -6,13 +6,13 @@
   const FALLBACK_IMAGE = "/newlogo.webp";
   const REVIEW_LIMIT = 70;
   const SOURCES = [
-    { mediaType: "movie", table: "movie_reviews", idField: "media_id", label: "Movie", icon: "fa-film" },
-    { mediaType: "tv", table: "tv_reviews", idField: "media_id", label: "TV", icon: "fa-tv" },
-    { mediaType: "anime", table: "anime_reviews", idField: "media_id", label: "Anime", icon: "fa-dragon" },
-    { mediaType: "game", table: "game_reviews", idField: "media_id", label: "Game", icon: "fa-gamepad" },
-    { mediaType: "book", table: "book_reviews", idField: "media_id", label: "Book", icon: "fa-book" },
-    { mediaType: "music", table: "music_reviews", idField: "media_id", label: "Music", icon: "fa-music" },
-    { mediaType: "travel", table: "travel_reviews", idField: "media_id", label: "Travel", icon: "fa-earth-americas" }
+    { mediaType: "movie", table: "movie_reviews", idField: "movie_id", label: "Movie", icon: "fa-film" },
+    { mediaType: "tv", table: "tv_reviews", idField: "tv_id", label: "TV", icon: "fa-tv" },
+    { mediaType: "anime", table: "anime_reviews", idField: "anime_id", label: "Anime", icon: "fa-dragon" },
+    { mediaType: "game", table: "game_reviews", idField: "game_id", label: "Game", icon: "fa-gamepad" },
+    { mediaType: "book", table: "book_reviews", idField: "book_id", label: "Book", icon: "fa-book" },
+    { mediaType: "music", table: "music_reviews", idField: "track_id", label: "Music", icon: "fa-music" },
+    { mediaType: "travel", table: "travel_reviews", idField: "country_code", label: "Travel", icon: "fa-earth-americas" }
   ];
   const LABEL_BY_MEDIA = Object.fromEntries(SOURCES.map((source) => [source.mediaType, source.label]));
   const ICON_BY_MEDIA = Object.fromEntries(SOURCES.map((source) => [source.mediaType, source.icon]));
@@ -201,7 +201,7 @@
     try {
       const { data, error } = await client
         .from(source.table)
-        .select(`id, user_id, rating, review_text, created_at, ${source.idField}`)
+        .select(`id, user_id, rating, comment, created_at, ${source.idField}`)
         .order("created_at", { ascending: false })
         .limit(REVIEW_LIMIT);
       if (error || !Array.isArray(data)) return [];
@@ -215,7 +215,7 @@
             itemId,
             userId: String(row?.user_id || "").trim(),
             rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
-            comment: String(row?.review_text || row?.comment || "").trim(),
+            comment: String(row?.comment || "").trim(),
             createdAt: row?.created_at || null
           };
         })
