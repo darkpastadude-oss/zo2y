@@ -28,7 +28,9 @@
   <script src="js/list-utils.js?v=20260619b" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260619b" defer></script>
   <script src="/js/lib/img-fallback.js?v=20260605a" defer></script>
-  <script src="js/books-discovery.js?v=20260614c" defer></script>
+  <script src="js/books-data-layer.js?v=20260619z" defer></script>
+  <script src="js/books-engine.js?v=20260619z" defer></script>
+  <script src="js/pages/books.js?v=20260619z" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260610c" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260610c"></noscript>
   <script src="js/shared-header.js?v=20260610c" defer></script>
@@ -87,9 +89,32 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, series..." autocomplete="off" inputmode="search" type="search">
+        <button class="books-clear-btn" id="booksClearSearchBtn" type="button" aria-label="Clear search" title="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
+      <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
     </section>
+    
+    <div class="control-modal" id="booksFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter books</div>
+          <button class="control-modal-close" id="booksFilterCloseBtn" type="button" aria-label="Close book filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <div class="filter-year-group">
+            <input type="number" id="year_from" placeholder="From year" min="1000" max="2026">
+            <input type="number" id="year_to" placeholder="To year" min="1000" max="2026">
+          </div>
+          <select id="sort">
+            <option value="relevance">Relevance</option>
+            <option value="newest">Newest First</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Apply Filters</button>
+        </div>
+      </div>
+    </div>
 
     <div class="books-genre-chips" id="booksGenreChips" role="tablist" aria-label="Genre filter" hidden></div>
 
@@ -109,18 +134,7 @@
     </section>
   </main>
 
-  <script>
-    (function () {
-      var check = function () {
-        if (window.Zo2ySimpleBooks && typeof window.Zo2ySimpleBooks.init === 'function') {
-          window.Zo2ySimpleBooks.init();
-        } else {
-          setTimeout(check, 200);
-        }
-      };
-      check();
-    })();
-  </script>
+
 <link rel="stylesheet" href="css/pages/legal.css?v=20260614a">
   <script src="js/legal-consent.js?v=20260614a" defer></script>
 
