@@ -4,7 +4,7 @@ begin;
 do $$ begin
   create type public.user_list_category as enum (
     'movie', 'tv', 'book', 'anime', 'game', 'sport', 'car',
-    'food', 'fashion', 'travel', 'music', 'restaurant'
+    'food', 'fashion', 'travel', 'music'
   );
 exception
   when duplicate_object then null;

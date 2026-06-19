@@ -20,8 +20,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     { mediaType: 'travel', table: 'travel_reviews', idField: 'media_id', label: 'Travel' }
   ].filter((source) => !GAMES_DISABLED || source.mediaType !== 'game');
 
-  const ENABLE_RESTAURANTS = false;
-  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', ...(ENABLE_RESTAURANTS ? ['restaurant'] : [])].filter(
+  const SIDEBAR_MEDIA_TYPES = ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel'].filter(
     (type) => !GAMES_DISABLED || type !== 'game'
   );
   const SIDEBAR_MEDIA_LABEL = {
@@ -31,8 +30,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     game: 'Games',
     book: 'Books',
     music: 'Music',
-    travel: 'Travel',
-    ...(ENABLE_RESTAURANTS ? { restaurant: 'Places' } : {})
+    travel: 'Travel'
   };
   const SIDEBAR_MEDIA_ROUTE = {
     movie: 'movies.html',
@@ -41,8 +39,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     game: 'games.html',
     book: 'books.html',
     music: 'music.html',
-    travel: 'travel.html',
-    ...(ENABLE_RESTAURANTS ? { restaurant: 'restaurants.html' } : {})
+    travel: 'travel.html'
   };
   const SIDEBAR_MEDIA_PROFILE_ROUTE = {
     movie: { tab: 'movies', collection: 'movie' },
@@ -51,8 +48,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     game: { tab: 'games', collection: 'game' },
     book: { tab: 'books', collection: 'book' },
     music: { tab: 'music', collection: 'music' },
-    travel: { tab: 'travel', collection: 'travel' },
-    ...(ENABLE_RESTAURANTS ? { restaurant: { tab: 'restaurants', collection: 'restaurant' } } : {})
+    travel: { tab: 'travel', collection: 'travel' }
   };
 
   if (GAMES_DISABLED) {

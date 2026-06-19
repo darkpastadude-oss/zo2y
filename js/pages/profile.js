@@ -40,7 +40,6 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
             const GAMES_DISABLED = false;
-            const ENABLE_RESTAURANTS = false;
             const DEFAULT_PROFILE_TAB = 'movies';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
             let currentPrimaryTab = 'lists';
@@ -720,7 +719,7 @@
             function getPreviewOrientationClass(contentType) {
                 const type = String(contentType || '').toLowerCase();
                 if (type === 'fashion' || type === 'food' || type === 'car') return 'is-square';
-                return (type === 'restaurant' || type === 'travel') ? 'is-landscape' : 'is-portrait';
+                return type === 'travel' ? 'is-landscape' : 'is-portrait';
             }
 
             function playProfileModalFlyUp(modal) {
@@ -1293,7 +1292,6 @@
             function updateTabTitlesForOtherUser(userName) {
                 const movieTabText = document.getElementById('movieTabText');
                 const journalTabText = document.getElementById('journalTabText');
-                const restaurantsTabText = document.getElementById('restaurantsTabText');
                 const tvTabText = document.getElementById('tvTabText');
                 const animeTabText = document.getElementById('animeTabText');
                 const gamesTabText = document.getElementById('gamesTabText');
@@ -1306,7 +1304,6 @@
                 const carsTabText = document.getElementById('carsTabText');
                 const moviesTitle = document.getElementById('moviesTitle');
                 const journalTitle = document.getElementById('journalTitle');
-                const restaurantsTitle = document.getElementById('restaurantsTitle');
                 const tvTitle = document.getElementById('tvTitle');
                 const animeTitle = document.getElementById('animeTitle');
                 const gamesTitle = document.getElementById('gamesTitle');
@@ -1319,7 +1316,6 @@
                 const carsTitle = document.getElementById('carsTitle');
                 const communityTitle = document.getElementById('communityTitle');
                 const journalSubtitle = document.getElementById('journalSubtitle');
-                const restaurantsSubtitle = document.getElementById('restaurantsSubtitle');
                 const moviesSubtitle = document.getElementById('moviesSubtitle');
                 const tvSubtitle = document.getElementById('tvSubtitle');
                 const animeSubtitle = document.getElementById('animeSubtitle');
@@ -1339,7 +1335,6 @@
                 
                 if (movieTabText) movieTabText.textContent = `${userName}'s Movies`;
                 if (journalTabText) journalTabText.textContent = `${userName}'s Journal`;
-                if (restaurantsTabText) restaurantsTabText.textContent = `${userName}'s Collections`;
                 if (tvTabText) tvTabText.textContent = `${userName}'s TV Shows`;
                 if (animeTabText) animeTabText.textContent = `${userName}'s Anime`;
                 if (gamesTabText) gamesTabText.textContent = `${userName}'s Games`;
@@ -1352,7 +1347,6 @@
                 if (carsTabText) carsTabText.textContent = `${userName}'s Cars`;
                 if (moviesTitle) moviesTitle.textContent = `${userName}'s Movies`;
                 if (journalTitle) journalTitle.textContent = `${userName}'s Food Journal`;
-                if (restaurantsTitle) restaurantsTitle.textContent = `${userName}'s Collections`;
                 if (tvTitle) tvTitle.textContent = `${userName}'s TV Shows`;
                 if (animeTitle) animeTitle.textContent = `${userName}'s Anime`;
                 if (gamesTitle) gamesTitle.textContent = `${userName}'s Games`;
@@ -1365,7 +1359,6 @@
                 if (carsTitle) carsTitle.textContent = `${userName}'s Cars`;
                 if (communityTitle) communityTitle.textContent = `${userName}'s Community`;
                 if (journalSubtitle) journalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (restaurantsSubtitle) restaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (moviesSubtitle) moviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (tvSubtitle) tvSubtitle.textContent = `${userName}'s favorite TV shows`;
                 if (animeSubtitle) animeSubtitle.textContent = `${userName}'s favorite anime`;
@@ -1386,7 +1379,6 @@
                 const mobileTabMovies = document.getElementById('mobileTabMovies');
                 const mobileJournalTabText = document.getElementById('mobileJournalTabText');
                 const mobileTabJournal = document.getElementById('mobileTabJournal');
-                const mobileTabRestaurants = document.getElementById('mobileTabRestaurants');
                 const mobileTabTv = document.getElementById('mobileTabTv');
                 const mobileTabAnime = document.getElementById('mobileTabAnime');
                 const mobileTabGames = document.getElementById('mobileTabGames');
@@ -1399,7 +1391,6 @@
                 const mobileTabCars = document.getElementById('mobileTabCars');
                 const mobileMoviesTitle = document.getElementById('mobileMoviesTitle');
                 const mobileJournalTitle = document.getElementById('mobileJournalTitle');
-                const mobileRestaurantsTitle = document.getElementById('mobileRestaurantsTitle');
                 const mobileAnimeTitle = document.getElementById('mobileAnimeTitle');
                 const mobileGamesTitle = document.getElementById('mobileGamesTitle');
                 const mobileBooksTitle = document.getElementById('mobileBooksTitle');
@@ -1411,7 +1402,6 @@
                 const mobileCarsTitle = document.getElementById('mobileCarsTitle');
                 const mobileCommunityTitle = document.getElementById('mobileCommunityTitle');
                 const mobileJournalSubtitle = document.getElementById('mobileJournalSubtitle');
-                const mobileRestaurantsSubtitle = document.getElementById('mobileRestaurantsSubtitle');
                 const mobileMoviesSubtitle = document.getElementById('mobileMoviesSubtitle');
                 const mobileAnimeSubtitle = document.getElementById('mobileAnimeSubtitle');
                 const mobileGamesSubtitle = document.getElementById('mobileGamesSubtitle');
@@ -1427,7 +1417,6 @@
                 if (mobileTabMovies) mobileTabMovies.textContent = `${userName}'s Movies`;
                 if (mobileJournalTabText) mobileJournalTabText.textContent = `${userName}'s Journal`;
                 if (mobileTabJournal) mobileTabJournal.textContent = `${userName}'s Journal`;
-                if (mobileTabRestaurants) mobileTabRestaurants.textContent = `${userName}'s Collections`;
                 if (mobileTabTv) mobileTabTv.textContent = `${userName}'s TV Shows`;
                 if (mobileTabAnime) mobileTabAnime.textContent = `${userName}'s Anime`;
                 if (mobileTabGames) mobileTabGames.textContent = `${userName}'s Games`;
@@ -1440,7 +1429,6 @@
                 if (mobileTabCars) mobileTabCars.textContent = `${userName}'s Cars`;
                 if (mobileMoviesTitle) mobileMoviesTitle.textContent = `${userName}'s Movies`;
                 if (mobileJournalTitle) mobileJournalTitle.textContent = `${userName}'s Food Journal`;
-                if (mobileRestaurantsTitle) mobileRestaurantsTitle.textContent = `${userName}'s Collections`;
                 if (mobileAnimeTitle) mobileAnimeTitle.textContent = `${userName}'s Anime`;
                 if (mobileGamesTitle) mobileGamesTitle.textContent = `${userName}'s Games`;
                 if (mobileBooksTitle) mobileBooksTitle.textContent = `${userName}'s Books`;
@@ -1452,7 +1440,6 @@
                 if (mobileCarsTitle) mobileCarsTitle.textContent = `${userName}'s Cars`;
                 if (mobileCommunityTitle) mobileCommunityTitle.textContent = `${userName}'s Community`;
                 if (mobileJournalSubtitle) mobileJournalSubtitle.textContent = `${userName}'s restaurant reviews and experiences`;
-                if (mobileRestaurantsSubtitle) mobileRestaurantsSubtitle.textContent = `${userName}'s featured collections`;
                 if (mobileMoviesSubtitle) mobileMoviesSubtitle.textContent = `${userName}'s favorite films`;
                 if (mobileAnimeSubtitle) mobileAnimeSubtitle.textContent = `${userName}'s favorite anime`;
                 if (mobileGamesSubtitle) mobileGamesSubtitle.textContent = `${userName}'s favorite games`;
@@ -2276,8 +2263,7 @@
                             anime: 'anime',
                             game: 'game',
                             book: 'book',
-                            music: 'track',
-                            restaurant: 'restaurant'
+                            music: 'track'
                         };
                         const mediaLabel = labelByMedia[String(mediaType || '').toLowerCase()] || 'item';
                         return `a ${mediaLabel}`;
@@ -2366,9 +2352,6 @@
                                 title: String(data.name || '').trim(),
                                 image: String(data.logo_url || '').trim() || '/newlogo.webp'
                             } : null;
-                        }
-                        if (safeType === 'restaurant') {
-                            return null;
                         }
                         return null;
                     },
@@ -3109,10 +3092,10 @@
                 
                 document.getElementById('listName').value = list.name || list.title || '';
                 document.getElementById('listDescription').value = list.description || '';
-                document.getElementById('selectedIcon').value = getDefaultListIconForContext('restaurant');
+                document.getElementById('selectedIcon').value = normalizeIconKey(list.icon, getDefaultListIconForContext(list.category || 'list'));
                 
                 document.querySelectorAll('.list-icon-option').forEach(icon => {
-                    const isSelected = icon.getAttribute('data-icon') === getDefaultListIconForContext('restaurant');
+                    const isSelected = icon.getAttribute('data-icon') === normalizeIconKey(list.icon, getDefaultListIconForContext(list.category || 'list'));
                     icon.classList.toggle('selected', isSelected);
                 });
                 
@@ -3128,21 +3111,20 @@
                 if (raw.includes('fa-heart')) return 'heart';
                 if (raw.includes('fa-check') || raw.includes('fa-eye')) return 'check';
                 if (raw.includes('fa-bookmark')) return 'bookmark';
-                if (raw.includes('fa-clapperboard')) return 'restaurant';
-                if (raw.includes('fa-utensils')) return 'restaurant';
+
                 if (raw.includes('fa-film')) return 'movie';
                 if (raw.includes('fa-book')) return 'book';
                 if (raw.includes('fa-user')) return 'user';
                 if (raw === '?') return 'check';
                 if (raw === '??') return 'list';
-                if (raw === '???') return 'restaurant';
+
                 if (raw.includes('fa-tv')) return 'tv';
                 if (raw.includes('fa-dragon')) return 'anime';
                 if (raw.includes('fa-gamepad')) return 'game';
                 if (raw.includes('fa-earth-americas') || raw.includes('fa-globe')) return 'travel';
                 if (raw.includes('fa-shirt')) return 'fashion';
                 if (raw.includes('fa-burger')) return 'food';
-                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'restaurant' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'travel' || raw === 'fashion' || raw === 'food' || raw === 'camera' || raw === 'soccer') return raw;
+                if (raw === 'heart' || raw === 'check' || raw === 'bookmark' || raw === 'movie' || raw === 'book' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'list' || raw === 'user' || raw === 'star' || raw === 'fire' || raw === 'sparkles' || raw === 'rocket' || raw === 'trophy' || raw === 'gift' || raw === 'music' || raw === 'travel' || raw === 'fashion' || raw === 'food' || raw === 'camera' || raw === 'soccer') return raw;
                 return raw;
             }
 
@@ -3152,7 +3134,6 @@
                     heart: 'fas fa-heart',
                     check: 'fas fa-check',
                     bookmark: 'fas fa-bookmark',
-                    restaurant: 'fas fa-clapperboard',
                     movie: 'fas fa-film',
                     tv: 'fas fa-tv',
                     anime: 'fas fa-dragon',
@@ -3189,7 +3170,6 @@
                     heart: 'H',
                     check: 'C',
                     bookmark: 'B',
-                    restaurant: 'R',
                     movie: 'M',
                     tv: 'T',
                     anime: 'A',
@@ -3302,7 +3282,6 @@
             function getCollectionItemLabel(contentType, count) {
                 const type = String(contentType || '').toLowerCase();
                 const singular = (
-                    type === 'restaurant' ? 'restaurant' :
                     type === 'movie' ? 'movie' :
                     type === 'tv' ? 'TV show' :
                     type === 'anime' ? 'anime' :
@@ -3692,9 +3671,6 @@
             }
 
             function resolveCollectionListType(contentType, list = null) {
-                if (contentType === 'restaurant') {
-                    return list?.is_default ? 'default' : 'custom';
-                }
                 const rawType = String(list?.type || '').trim().toLowerCase();
                 if (rawType === 'default' || rawType === 'custom') return rawType;
                 return 'custom';
@@ -4793,7 +4769,6 @@
             function getDefaultListIconForContext(type) {
                 const normalized = String(type || '').trim().toLowerCase();
                 const map = {
-                    restaurant: 'restaurant',
                     movie: 'movie',
                     tv: 'tv',
                     anime: 'anime',
@@ -4847,7 +4822,7 @@
                     if (!raw) return fallback;
                     if (raw === 'tier' || raw === 'tierlist' || raw === 'tier_list') return 'tier';
                     if (raw === 'standard' || raw === 'list' || raw === 'custom' || raw === 'default') return 'standard';
-                    if (raw === 'movie' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'travel' || raw === 'restaurant') {
+                    if (raw === 'movie' || raw === 'tv' || raw === 'anime' || raw === 'game' || raw === 'book' || raw === 'music' || raw === 'travel') {
                         return 'standard';
                     }
                     return fallback;
@@ -7630,9 +7605,7 @@
                 const normalizedType = contentType === 'cars' ? 'car' : contentType;
 
                                 let itemIds = [];
-                if (normalizedType === 'restaurant') {
-                    itemIds = list.restaurantIds || [];
-                } else if (normalizedType === 'movie') {
+                if (normalizedType === 'movie') {
                     itemIds = list.movieIds || [];
                 } else if (normalizedType === 'tv') {
                     itemIds = list.tvIds || [];
@@ -7655,7 +7628,7 @@
                     ownerUserId
                 });
                 const count = orderedIds.length;
-                const isCustom = normalizedType === 'restaurant' ? !list.is_default : list.type === 'custom';
+                const isCustom = list.type === 'custom';
                 const collabAccess = isCustom
                     ? getCollaborativeAccess(normalizedType, routeListId, list)
                     : { isOwner: true, canEdit: true, isCollaborative: false };
@@ -7690,9 +7663,7 @@
                     ? travelPreviewIds.slice(0, previewLimit)
                     : orderedIds.slice(0, previewLimit);
                 const previewOrientationClass = getPreviewOrientationClass(normalizedType);
-                const fallbackPreviewIcon = normalizedType === 'restaurant'
-                    ? 'restaurant'
-                    : normalizedType === 'movie'
+                const fallbackPreviewIcon = normalizedType === 'movie'
                         ? 'movie'
                         : normalizedType === 'tv'
                             ? 'tv'
@@ -7782,7 +7753,7 @@
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))))}</div>
+                            <div class="collection-card-icon">${iconGlyph(list.icon, normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music')))))))}</div>
                             <div class="collection-card-info">
                                 <div class="collection-card-title">${list.title}</div>
                                 <div class="collection-card-count">${countLabel}</div>
