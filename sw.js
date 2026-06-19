@@ -1,6 +1,6 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v260';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v261';
 const PAGE_CACHE = 'zo2y-pages-v210';
 const IMAGE_CACHE = 'zo2y-images-v54';
 const API_CACHE = 'zo2y-api-v35';
@@ -26,14 +26,14 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260601b',
   '/css/shared-header.css?v=20260610c',
   '/css/global-lowercase.css?v=20260601b',
-  '/js/pages/index.js?v=20260616d',
+  '/js/pages/index.js?v=20260619a',
   '/js/pages/index-home-heavy-loaders.js?v=20260614a',
   '/js/home-desktop-rebrand.js?v=20260601b',
   '/js/referral-utils.js?v=20260601b',
   '/js/shared-header.js?v=20260601b',
   '/js/review-interactions.js?v=20260613a',
-  '/js/list-utils.js?v=20260601b',
-  '/js/index-list-menu-adapter.js?v=20260601b',
+  '/js/list-utils.js?v=20260619a',
+  '/js/index-list-menu-adapter.js?v=20260619a',
   '/js/universal-search.js?v=20260601b',
   '/js/auth-gate.js?v=20260614a',
   '/js/books-discovery.js?v=20260614c',

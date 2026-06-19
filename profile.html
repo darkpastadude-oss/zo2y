@@ -5,15 +5,15 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<script src="/js/auth-gate.js?v=20260617f" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260617f" defer></script>
+<script src="/js/auth-gate.js?v=20260619z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260619z" defer></script>
   <meta name="robots" content="index,follow" />
     <title>Zo2y - Profile</title>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260617f" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260619z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
     <style>
 :root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,8 +21,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 @keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes zo2y-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <link rel="stylesheet" href="css/animations.css?v=20260617f">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260617f">
+    <link rel="stylesheet" href="css/animations.css?v=20260619z">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260619z">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -30,16 +30,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest?v=20260617f" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260619z" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260617f" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260617f"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260617f" defer></script>
-  <link rel="stylesheet" href="css/shared-header.css?v=20260617f" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260617f"></noscript>
-<script src="js/shared-header.js?v=20260617f" defer></script>
-  <link rel="stylesheet" href="css/global-lowercase.css?v=20260617f" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260617f"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260619z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260619z"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260619z" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260619z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260619z"></noscript>
+<script src="js/shared-header.js?v=20260619z" defer></script>
+  <link rel="stylesheet" href="css/global-lowercase.css?v=20260619z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/global-lowercase.css?v=20260619z"></noscript>
 
   </head>
 <body data-nav-page="profile">
@@ -2084,16 +2084,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260617f" defer></script>
-    <script src="js/referral-utils.js?v=20260617f" defer></script>
-    <script src="js/igdb-client.js?v=20260617f" defer></script>
-    <script src="js/taste_identity.js?v=20260617f" defer></script>
-    <script src="js/cover-cache.js?v=20260617f" defer></script>
-    <script src="js/pages/games-shared.js?v=20260617f" defer></script>
-    <script src="js/pages/profile.js?v=20260617f" defer></script>
-<link rel="stylesheet" href="css/pages/legal.css?v=20260617f">
-  <script src="js/legal-consent.js?v=20260617f" defer></script>
+    <script src="js/list-utils.js?v=20260619z" defer></script>
+    <script src="js/referral-utils.js?v=20260619z" defer></script>
+    <script src="js/igdb-client.js?v=20260619z" defer></script>
+    <script src="js/taste_identity.js?v=20260619z" defer></script>
+    <script src="js/cover-cache.js?v=20260619z" defer></script>
+    <script src="js/pages/games-shared.js?v=20260619z" defer></script>
+    <script src="js/pages/profile.js?v=20260619z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260619z">
+  <script src="js/legal-consent.js?v=20260619z" defer></script>
 
-  <script src="/js/shared-components.js?v=20260617f" defer></script>
+  <script src="/js/shared-components.js?v=20260619z" defer></script>
 </body>
 </html>
