@@ -27,8 +27,6 @@ DROP TABLE IF EXISTS list_tier_meta CASCADE;
 DROP TABLE IF EXISTS list_collaborators CASCADE;
 DROP TABLE IF EXISTS list_items CASCADE;
 DROP TABLE IF EXISTS user_lists CASCADE;
-DROP TYPE IF EXISTS user_list_category CASCADE;
-DROP TYPE IF EXISTS user_list_type CASCADE;
 
 -- ==========================================================================
 -- TABLES
@@ -56,6 +54,7 @@ CREATE INDEX user_lists_category_idx ON user_lists (user_id, category);
 CREATE TABLE list_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   list_id UUID NOT NULL REFERENCES user_lists(id) ON DELETE CASCADE,
+  media_type TEXT NOT NULL,
   external_id TEXT NOT NULL,
   external_source TEXT NOT NULL DEFAULT 'local_db',
   metadata JSONB DEFAULT '{}',
@@ -191,8 +190,8 @@ BEGIN
     DELETE FROM list_items WHERE id = v_item_id;
     RETURN jsonb_build_object('action', 'removed', 'list_id', v_list_id);
   ELSE
-    INSERT INTO list_items (list_id, external_id, external_source, metadata)
-    VALUES (v_list_id, p_external_id, p_external_source, p_metadata);
+    INSERT INTO list_items (list_id, media_type, external_id, external_source, metadata)
+    VALUES (v_list_id, p_category, p_external_id, p_external_source, p_metadata);
     RETURN jsonb_build_object('action', 'added', 'list_id', v_list_id);
   END IF;
 END;
@@ -325,8 +324,9 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'List not found or not owned');
   END IF;
 
-  INSERT INTO list_items (list_id, external_id, external_source, metadata)
-  VALUES (p_list_id, p_external_id, p_external_source, p_metadata)
+  INSERT INTO list_items (list_id, media_type, external_id, external_source, metadata)
+  SELECT p_list_id, ul.category, p_external_id, p_external_source, p_metadata
+  FROM user_lists ul WHERE ul.id = p_list_id
   ON CONFLICT (list_id, external_id) DO NOTHING;
 
   RETURN jsonb_build_object('success', true);

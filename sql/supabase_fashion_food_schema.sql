@@ -1,4 +1,4 @@
-﻿-- Supabase SQL schema for Fashion + Food brands, lists, and reviews.
+﻿-- Supabase SQL schema for Fashion + Food brands and reviews.
 -- Run in Supabase SQL editor.
 
 create extension if not exists "pgcrypto";
@@ -36,74 +36,6 @@ create table if not exists public.food_brands (
 
 create index if not exists idx_fashion_brands_name on public.fashion_brands(name);
 create index if not exists idx_food_brands_name on public.food_brands(name);
-
--- =========================
--- Lists
--- =========================
-create table if not exists public.fashion_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.food_lists (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  title text not null,
-  icon text,
-  description text,
-  created_at timestamptz default now()
-);
-
-create table if not exists public.fashion_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  brand_id uuid not null references public.fashion_brands(id) on delete cascade,
-  list_type text check (list_type in ('favorites', 'owned', 'wishlist')),
-  list_id uuid null references public.fashion_lists(id) on delete cascade,
-  created_at timestamptz default now(),
-  check (
-    list_id is not null
-    or list_type in ('favorites', 'owned', 'wishlist')
-  )
-);
-
-create table if not exists public.food_list_items (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  brand_id uuid not null references public.food_brands(id) on delete cascade,
-  list_type text check (list_type in ('favorites', 'tried', 'want_to_try')),
-  list_id uuid null references public.food_lists(id) on delete cascade,
-  created_at timestamptz default now(),
-  check (
-    list_id is not null
-    or list_type in ('favorites', 'tried', 'want_to_try')
-  )
-);
-
-create index if not exists idx_fashion_lists_user on public.fashion_lists(user_id);
-create index if not exists idx_food_lists_user on public.food_lists(user_id);
-create index if not exists idx_fashion_list_items_user on public.fashion_list_items(user_id);
-create index if not exists idx_food_list_items_user on public.food_list_items(user_id);
-create index if not exists idx_fashion_list_items_brand on public.fashion_list_items(brand_id);
-create index if not exists idx_food_list_items_brand on public.food_list_items(brand_id);
-
-create unique index if not exists ux_fashion_default_items_unique
-  on public.fashion_list_items (user_id, brand_id, list_type)
-  where list_id is null;
-create unique index if not exists ux_fashion_custom_items_unique
-  on public.fashion_list_items (list_id, brand_id)
-  where list_id is not null;
-
-create unique index if not exists ux_food_default_items_unique
-  on public.food_list_items (user_id, brand_id, list_type)
-  where list_id is null;
-create unique index if not exists ux_food_custom_items_unique
-  on public.food_list_items (list_id, brand_id)
-  where list_id is not null;
 
 -- =========================
 -- Reviews
@@ -163,38 +95,12 @@ execute function public.touch_brand_reviews_updated_at();
 -- =========================
 alter table public.fashion_brands enable row level security;
 alter table public.food_brands enable row level security;
-alter table public.fashion_lists enable row level security;
-alter table public.food_lists enable row level security;
-alter table public.fashion_list_items enable row level security;
-alter table public.food_list_items enable row level security;
 alter table public.fashion_reviews enable row level security;
 alter table public.food_reviews enable row level security;
 
 -- Brand catalogs: public read
 create policy "Public select on fashion_brands" on public.fashion_brands for select using (true);
 create policy "Public select on food_brands" on public.food_brands for select using (true);
-
--- Lists
-create policy "Public select on fashion_lists" on public.fashion_lists for select using (true);
-create policy "Insert own fashion_lists" on public.fashion_lists for insert with check (user_id = auth.uid());
-create policy "Update own fashion_lists" on public.fashion_lists for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "Delete own fashion_lists" on public.fashion_lists for delete using (user_id = auth.uid());
-
-create policy "Public select on food_lists" on public.food_lists for select using (true);
-create policy "Insert own food_lists" on public.food_lists for insert with check (user_id = auth.uid());
-create policy "Update own food_lists" on public.food_lists for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "Delete own food_lists" on public.food_lists for delete using (user_id = auth.uid());
-
--- List items
-create policy "Public select on fashion_list_items" on public.fashion_list_items for select using (true);
-create policy "Insert own fashion_list_items" on public.fashion_list_items for insert with check (user_id = auth.uid());
-create policy "Update own fashion_list_items" on public.fashion_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "Delete own fashion_list_items" on public.fashion_list_items for delete using (user_id = auth.uid());
-
-create policy "Public select on food_list_items" on public.food_list_items for select using (true);
-create policy "Insert own food_list_items" on public.food_list_items for insert with check (user_id = auth.uid());
-create policy "Update own food_list_items" on public.food_list_items for update using (user_id = auth.uid()) with check (user_id = auth.uid());
-create policy "Delete own food_list_items" on public.food_list_items for delete using (user_id = auth.uid());
 
 -- Reviews
 create policy "Public select on fashion_reviews" on public.fashion_reviews for select using (true);
@@ -241,4 +147,3 @@ values
   ('Wendy''s', 'wendys', 'wendys.com', 'https://logo.clearbit.com/wendys.com', 'Fast-food hamburger chain.', 'Fast Food', 'USA', '1969', array['burgers','fast food']),
   ('Shake Shack', 'shake-shack', 'shakeshack.com', 'https://logo.clearbit.com/shakeshack.com', 'Modern burger stand.', 'Fast Casual', 'USA', '2004', array['burgers','fast casual'])
 on conflict do nothing;
-

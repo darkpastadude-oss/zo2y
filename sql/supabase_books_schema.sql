@@ -1,12 +1,10 @@
--- Supabase SQL: drop old tables, create new schema for books and user lists
+-- Supabase SQL: schema for books catalog + book reviews
 -- Run this in Supabase SQL editor or psql connected to your Supabase DB.
 
 -- Enable UUID helper
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Drop old tables if present
-DROP TABLE IF EXISTS book_list_items CASCADE;
-DROP TABLE IF EXISTS book_lists CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
 
 -- Create books table
@@ -24,33 +22,9 @@ CREATE TABLE IF NOT EXISTS books (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Create book_lists (custom user lists)
-CREATE TABLE IF NOT EXISTS book_lists (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  title TEXT NOT NULL,
-  icon TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Create book_list_items to map users/books to lists or to quick lists
-CREATE TABLE IF NOT EXISTS book_list_items (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
-  list_type TEXT, -- e.g. 'favorites', 'read', 'readlist' or NULL if using list_id
-  list_id UUID NULL REFERENCES book_lists(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
 -- Helpful indexes
 CREATE INDEX IF NOT EXISTS idx_books_title ON books USING gin (to_tsvector('english', coalesce(title,'')));
 CREATE INDEX IF NOT EXISTS idx_books_authors ON books USING gin (to_tsvector('english', coalesce(authors,'')));
-CREATE INDEX IF NOT EXISTS idx_book_list_items_user ON book_list_items (user_id);
-CREATE INDEX IF NOT EXISTS idx_book_list_items_book ON book_list_items (book_id);
-
--- Prevent exact duplicate list rows per user/book/list_type/list_id
-CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_unique ON book_list_items (user_id, book_id, list_type, list_id);
 
 -- Example seed rows (replace with your own). Thumbnails use Open Library cover API when available.
 INSERT INTO books (id, title, authors, thumbnail, published_date, categories, description, page_count, publisher)
@@ -61,16 +35,6 @@ VALUES
 ('OL4W', 'Sapiens', 'Yuval Noah Harari', 'https://covers.openlibrary.org/b/isbn/9780062316097-M.jpg', '2011-01-01', ARRAY['History','Science'], 'A brief history of humankind.', 498, 'Harper'),
 ('OL5W', 'Atomic Habits', 'James Clear', 'https://covers.openlibrary.org/b/isbn/9780735211292-M.jpg', '2018-10-16', ARRAY['Self-Help','Business'], 'Tiny changes, remarkable results.', 320, 'Avery')
 ON CONFLICT (id) DO NOTHING;
-
--- Example: create a sample list for a demo user (replace USER_UUID with a real user UUID)
--- INSERT INTO book_lists (user_id, title, icon) VALUES ('USER_UUID', 'My Favorites', 'fas fa-heart');
--- Example: add a book to a quick list for the demo user
--- INSERT INTO book_list_items (user_id, book_id, list_type) VALUES ('USER_UUID', 'OL3W', 'favorites');
-
--- Notes:
--- - Replace 'USER_UUID' placeholders with actual user IDs from your auth.users table.
--- - The front-end uses book id values like the OpenLibrary work key stripped of "/works/". Match the ids you insert with the ids the front-end will use.
--- - If you prefer thumbnails to point to local files, set `thumbnail` to "/images/your-image.jpg" and upload those images into the site's `images/` folder or Supabase Storage.
 
 -- Optional: keep a materialized view or trigger to update `updated_at` on books
 CREATE OR REPLACE FUNCTION touch_updated_at()
@@ -107,26 +71,6 @@ ALTER TABLE books ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public select on books" ON books;
 CREATE POLICY "Public select on books" ON books FOR SELECT USING (true);
 
-ALTER TABLE book_lists ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public select on book_lists" ON book_lists;
-DROP POLICY IF EXISTS "Insert own book_lists" ON book_lists;
-DROP POLICY IF EXISTS "Update own book_lists" ON book_lists;
-DROP POLICY IF EXISTS "Delete own book_lists" ON book_lists;
-CREATE POLICY "Public select on book_lists" ON book_lists FOR SELECT USING (true);
-CREATE POLICY "Insert own book_lists" ON book_lists FOR INSERT WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Update own book_lists" ON book_lists FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Delete own book_lists" ON book_lists FOR DELETE USING (user_id = auth.uid());
-
-ALTER TABLE book_list_items ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public select on book_list_items" ON book_list_items;
-DROP POLICY IF EXISTS "Insert own book_list_items" ON book_list_items;
-DROP POLICY IF EXISTS "Update own book_list_items" ON book_list_items;
-DROP POLICY IF EXISTS "Delete own book_list_items" ON book_list_items;
-CREATE POLICY "Public select on book_list_items" ON book_list_items FOR SELECT USING (true);
-CREATE POLICY "Insert own book_list_items" ON book_list_items FOR INSERT WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Update own book_list_items" ON book_list_items FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-CREATE POLICY "Delete own book_list_items" ON book_list_items FOR DELETE USING (user_id = auth.uid());
-
 ALTER TABLE book_reviews ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public select on book_reviews" ON book_reviews;
 DROP POLICY IF EXISTS "Insert own book_reviews" ON book_reviews;
@@ -136,6 +80,3 @@ CREATE POLICY "Public select on book_reviews" ON book_reviews FOR SELECT USING (
 CREATE POLICY "Insert own book_reviews" ON book_reviews FOR INSERT WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Update own book_reviews" ON book_reviews FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 CREATE POLICY "Delete own book_reviews" ON book_reviews FOR DELETE USING (user_id = auth.uid());
-
--- Notes: Public SELECT policies make lists and reviews readable by anyone (anonymous).
--- If you prefer private lists, change the SELECT policies to restrict by user_id = auth.uid().

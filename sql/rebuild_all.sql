@@ -94,9 +94,6 @@ drop table if exists public.security_csrf cascade;
 drop table if exists public.security_lockout cascade;
 drop table if exists public.security_audit_log cascade;
 
-drop type if exists public.user_list_category cascade;
-drop type if exists public.user_list_type cascade;
-
 -- ============================================================================
 -- STEP 2: Create tables (dependency-safe order)
 -- ============================================================================
@@ -332,29 +329,12 @@ create table if not exists public.user_interest_profiles (
 );
 
 -- UNIFIED USER LISTS (replaces all per-category list tables)
-do $$ begin
-  create type public.user_list_category as enum (
-    'movie', 'tv', 'book', 'anime', 'game', 'sport', 'car',
-    'food', 'fashion', 'travel', 'music'
-  );
-exception
-  when duplicate_object then null;
-end $$;
-
-do $$ begin
-  create type public.user_list_type as enum (
-    'favorites', 'watchlist', 'completed', 'custom'
-  );
-exception
-  when duplicate_object then null;
-end $$;
-
 create table if not exists public.user_lists (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
-  category public.user_list_category not null,
-  type public.user_list_type not null,
+  category text not null,
+  type text not null default 'custom',
   icon text,
   description text default '',
   sort_order integer not null default 0,
@@ -366,9 +346,9 @@ create table if not exists public.user_lists (
 create table if not exists public.list_items (
   id uuid primary key default gen_random_uuid(),
   list_id uuid not null references public.user_lists(id) on delete cascade,
+  media_type text not null,
   external_id text not null,
   external_source text not null default 'local_db',
-  external_type public.user_list_category not null,
   metadata jsonb not null default '{}'::jsonb,
   added_at timestamptz not null default now(),
   unique(list_id, external_id)
@@ -578,43 +558,24 @@ create table if not exists public.user_activity_feed (
 -- ============================================================================
 
 create index if not exists idx_fashion_brands_name on public.fashion_brands(name);
-create index if not exists idx_fashion_lists_user on public.fashion_lists(user_id);
-create index if not exists idx_fashion_list_items_user on public.fashion_list_items(user_id);
-create index if not exists idx_fashion_list_items_brand on public.fashion_list_items(brand_id);
 create index if not exists idx_fashion_reviews_brand on public.fashion_reviews(brand_id);
 create index if not exists idx_fashion_reviews_user on public.fashion_reviews(user_id);
-create unique index if not exists ux_fashion_default_items_unique on public.fashion_list_items (user_id, brand_id, list_type) where list_id is null;
-create unique index if not exists ux_fashion_custom_items_unique on public.fashion_list_items (list_id, brand_id) where list_id is not null;
 create unique index if not exists ux_fashion_reviews_user_brand on public.fashion_reviews (user_id, brand_id);
 
 create index if not exists idx_food_brands_name on public.food_brands(name);
-create index if not exists idx_food_lists_user on public.food_lists(user_id);
-create index if not exists idx_food_list_items_user on public.food_list_items(user_id);
-create index if not exists idx_food_list_items_brand on public.food_list_items(brand_id);
 create index if not exists idx_food_reviews_brand on public.food_reviews(brand_id);
 create index if not exists idx_food_reviews_user on public.food_reviews(user_id);
-create unique index if not exists ux_food_default_items_unique on public.food_list_items (user_id, brand_id, list_type) where list_id is null;
-create unique index if not exists ux_food_custom_items_unique on public.food_list_items (list_id, brand_id) where list_id is not null;
 create unique index if not exists ux_food_reviews_user_brand on public.food_reviews (user_id, brand_id);
 
 create index if not exists idx_car_brands_name on public.car_brands(name);
-create index if not exists idx_car_lists_user on public.car_lists(user_id);
-create index if not exists idx_car_list_items_user on public.car_list_items(user_id);
-create index if not exists idx_car_list_items_brand on public.car_list_items(brand_id);
 create index if not exists idx_car_reviews_brand on public.car_reviews(brand_id);
 create index if not exists idx_car_reviews_user on public.car_reviews(user_id);
-create unique index if not exists ux_car_default_items_unique on public.car_list_items (user_id, brand_id, list_type) where list_id is null;
-create unique index if not exists ux_car_custom_items_unique on public.car_list_items (list_id, brand_id) where list_id is not null;
 create unique index if not exists ux_car_reviews_user_brand on public.car_reviews (user_id, brand_id);
 
 create index if not exists idx_tracks_name on public.tracks using gin (to_tsvector('english', coalesce(name, '')));
 create index if not exists idx_tracks_artists on public.tracks using gin (to_tsvector('english', coalesce(artists, '')));
-create index if not exists idx_music_lists_user on public.music_lists(user_id);
-create index if not exists idx_music_list_items_user on public.music_list_items(user_id);
-create index if not exists idx_music_list_items_track on public.music_list_items(track_id);
 create index if not exists idx_music_reviews_track on public.music_reviews(track_id);
 create index if not exists idx_music_reviews_user on public.music_reviews(user_id);
-create unique index if not exists ux_music_list_items_unique on public.music_list_items (user_id, track_id, list_type, list_id);
 
 create index if not exists idx_albums_name on public.albums using gin (to_tsvector('english', coalesce(name, '')));
 create index if not exists idx_albums_artist_name on public.albums using gin (to_tsvector('english', coalesce(artist_name, '')));
@@ -624,63 +585,31 @@ create index if not exists idx_album_reviews_album on public.user_album_reviews(
 create index if not exists idx_album_reviews_user on public.user_album_reviews(user_id);
 create unique index if not exists ux_user_album_reviews_unique on public.user_album_reviews(user_id, album_id);
 
-create index if not exists idx_game_lists_user on public.game_lists(user_id);
-create index if not exists idx_game_list_items_user on public.game_list_items(user_id);
-create index if not exists idx_game_list_items_game on public.game_list_items(game_id);
 create index if not exists idx_game_reviews_game on public.game_reviews(game_id);
 create index if not exists idx_game_reviews_user on public.game_reviews(user_id);
-create unique index if not exists ux_game_list_items_unique on public.game_list_items (user_id, game_id, list_type, list_id);
 
-create index if not exists idx_tv_lists_user on public.tv_lists(user_id);
-create index if not exists idx_tv_list_items_user on public.tv_list_items(user_id);
-create index if not exists idx_tv_list_items_tv on public.tv_list_items(tv_id);
 create index if not exists idx_tv_reviews_tv on public.tv_reviews(tv_id);
 create index if not exists idx_tv_reviews_user on public.tv_reviews(user_id);
-create unique index if not exists ux_tv_list_items_unique on public.tv_list_items (user_id, tv_id, list_type, list_id);
 
-create index if not exists idx_travel_lists_user on public.travel_lists(user_id);
-create index if not exists idx_travel_list_items_user on public.travel_list_items(user_id);
-create index if not exists idx_travel_list_items_country on public.travel_list_items(country_code);
 create index if not exists idx_travel_reviews_country on public.travel_reviews(country_code);
 create index if not exists idx_travel_reviews_user on public.travel_reviews(user_id);
 create index if not exists idx_travel_plans_user on public.travel_plans(user_id);
 create index if not exists idx_travel_plans_country on public.travel_plans(country_code);
-create unique index if not exists ux_travel_default_items_unique on public.travel_list_items (user_id, country_code, list_type) where list_id is null;
-create unique index if not exists ux_travel_custom_items_unique on public.travel_list_items (list_id, country_code) where list_id is not null;
 create unique index if not exists ux_travel_reviews_user_country on public.travel_reviews (user_id, country_code);
 create unique index if not exists ux_travel_plans_user_country on public.travel_plans (user_id, country_code);
 
 create index if not exists idx_books_title on public.books using gin (to_tsvector('english', coalesce(title, '')));
 create index if not exists idx_books_authors on public.books using gin (to_tsvector('english', coalesce(authors, '')));
-create index if not exists idx_book_list_items_user on public.book_list_items (user_id);
-create index if not exists idx_book_list_items_book on public.book_list_items (book_id);
 create index if not exists idx_book_reviews_book on public.book_reviews (book_id);
 create index if not exists idx_book_reviews_user on public.book_reviews (user_id);
-create unique index if not exists ux_book_list_items_unique on public.book_list_items (user_id, book_id, list_type, list_id);
 
-create index if not exists idx_movie_lists_user on public.movie_lists(user_id);
-create index if not exists idx_movie_list_items_user on public.movie_list_items(user_id);
-create index if not exists idx_movie_list_items_movie on public.movie_list_items(movie_id);
 create index if not exists idx_movie_reviews_movie on public.movie_reviews(movie_id);
 create index if not exists idx_movie_reviews_user on public.movie_reviews(user_id);
-create unique index if not exists ux_movie_lists_user_title_lower on public.movie_lists(user_id, lower(title));
-create unique index if not exists ux_movie_list_items_unique on public.movie_list_items (user_id, movie_id, coalesce(list_type, ''), coalesce(list_id::text, ''));
 
-create index if not exists idx_anime_lists_user on public.anime_lists(user_id);
-create index if not exists idx_anime_list_items_user on public.anime_list_items(user_id);
-create index if not exists idx_anime_list_items_anime on public.anime_list_items(anime_id);
-create index if not exists idx_anime_list_items_list_id on public.anime_list_items(list_id);
 create index if not exists idx_anime_reviews_anime on public.anime_reviews(anime_id);
 create index if not exists idx_anime_reviews_user on public.anime_reviews(user_id);
 create index if not exists idx_anime_reviews_created_at on public.anime_reviews(created_at desc);
-create unique index if not exists ux_anime_lists_user_title_lower on public.anime_lists(user_id, lower(title));
-create unique index if not exists ux_anime_list_items_unique on public.anime_list_items(user_id, anime_id, coalesce(list_type, ''), coalesce(list_id::text, ''));
 
-create index if not exists idx_sports_lists_user on public.sports_lists(user_id);
-create index if not exists idx_sports_list_items_user on public.sports_list_items(user_id);
-create index if not exists idx_sports_list_items_team on public.sports_list_items(team_id);
-create index if not exists idx_sports_list_items_list_id on public.sports_list_items(list_id);
-create unique index if not exists ux_sports_list_items_unique on public.sports_list_items (user_id, team_id, list_type, list_id);
 create index if not exists idx_teams_name on public.teams using gin (to_tsvector('english', coalesce(name, '')));
 create index if not exists idx_user_favorite_teams_user on public.user_favorite_teams(user_id);
 create index if not exists idx_user_favorite_teams_team on public.user_favorite_teams(team_id);
@@ -705,9 +634,7 @@ returns trigger language plpgsql as $$ begin new.updated_at = now(); return new;
 create or replace function public.touch_updated_at()
 returns trigger language plpgsql as $$ begin new.updated_at = now(); return new; end; $$;
 
-create trigger anime_lists_touch_updated_at before update on public.anime_lists for each row execute function public.touch_updated_at();
 create trigger anime_reviews_touch_updated_at before update on public.anime_reviews for each row execute function public.touch_updated_at();
-create trigger tv_lists_touch_updated_at before update on public.tv_lists for each row execute function public.touch_updated_at();
 create trigger tracks_touch_updated_at before update on public.tracks for each row execute function public.touch_updated_at();
 create trigger music_reviews_touch_updated_at before update on public.music_reviews for each row execute function public.touch_updated_at();
 create trigger albums_touch_updated_at before update on public.albums for each row execute function public.touch_updated_at();
@@ -715,7 +642,6 @@ create trigger user_album_reviews_touch_updated_at before update on public.user_
 create trigger game_reviews_touch_updated_at before update on public.game_reviews for each row execute function public.touch_updated_at();
 create trigger tv_reviews_touch_updated_at before update on public.tv_reviews for each row execute function public.touch_updated_at();
 create trigger travel_reviews_touch_updated_at before update on public.travel_reviews for each row execute function public.touch_updated_at();
-create trigger travel_lists_touch_updated_at before update on public.travel_lists for each row execute function public.touch_updated_at();
 create trigger travel_plans_touch_updated_at before update on public.travel_plans for each row execute function public.touch_updated_at();
 create trigger car_reviews_touch_updated_at before update on public.car_reviews for each row execute function public.touch_updated_at();
 create trigger fashion_reviews_touch_updated_at before update on public.fashion_reviews for each row execute function public.touch_updated_at();
@@ -724,7 +650,6 @@ create trigger teams_touch_updated_at before update on public.teams for each row
 create trigger books_touch_updated_at before update on public.books for each row execute function public.touch_updated_at();
 create trigger book_reviews_touch_updated_at before update on public.book_reviews for each row execute function public.touch_updated_at();
 create trigger movie_reviews_touch_updated_at before update on public.movie_reviews for each row execute function public.touch_updated_at();
-create trigger movie_lists_touch_updated_at before update on public.movie_lists for each row execute function public.touch_updated_at();
 create trigger support_tickets_set_updated_at before update on public.support_tickets for each row execute function public.zo2y_set_updated_at();
 create trigger user_profiles_touch_updated_at before update on public.user_profiles for each row execute function public.touch_updated_at();
 create trigger review_reactions_touch_updated_at before update on public.review_reactions for each row execute function public.touch_updated_at();
@@ -901,20 +826,6 @@ begin
       v_list_type := v_list.type::text;
       v_actor_id := v_list.user_id;
     end if;
-  else
-    v_media_type := case tg_table_name
-      when 'movie_list_items' then 'movie' when 'tv_list_items' then 'tv'
-      when 'anime_list_items' then 'anime' when 'game_list_items' then 'game'
-      when 'book_list_items' then 'book' when 'music_list_items' then 'music'
-      else null end;
-    v_item_id := case tg_table_name
-      when 'movie_list_items' then nullif(v_payload->>'movie_id', '') when 'tv_list_items' then nullif(v_payload->>'tv_id', '')
-      when 'anime_list_items' then nullif(v_payload->>'anime_id', '') when 'game_list_items' then nullif(v_payload->>'game_id', '')
-      when 'book_list_items' then nullif(v_payload->>'book_id', '') when 'music_list_items' then nullif(v_payload->>'track_id', '')
-      else null end;
-    v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
-    v_list_type := nullif(v_payload->>'list_type', '');
-    v_list_id := nullif(v_payload->>'list_id', '')::uuid;
   end if;
 
   if v_media_type is null or v_item_id is null or v_actor_id is null then return coalesce(new, old); end if;
@@ -940,16 +851,6 @@ begin
     v_list_id := nullif(v_payload->>'id', '')::uuid;
     v_list_title := nullif(trim(v_payload->>'name'), '');
     v_media_type := nullif(v_payload->>'category', '');
-  else
-    v_media_type := case tg_table_name
-      when 'movie_lists' then 'movie' when 'tv_lists' then 'tv'
-      when 'anime_lists' then 'anime' when 'game_lists' then 'game'
-      when 'book_lists' then 'book' when 'music_lists' then 'music'
-      else null end;
-    v_payload := case when tg_op = 'INSERT' then to_jsonb(new) when tg_op = 'DELETE' then to_jsonb(old) else '{}'::jsonb end;
-    v_actor_id := nullif(v_payload->>'user_id', '')::uuid;
-    v_list_id := nullif(v_payload->>'id', '')::uuid;
-    v_list_title := nullif(trim(v_payload->>'title'), '');
   end if;
 
   if v_media_type is null or v_actor_id is null or v_list_id is null then return coalesce(new, old); end if;
@@ -996,8 +897,12 @@ create or replace function public.ensure_activity_trigger(
   p_table_name text, p_trigger_name text, p_events text, p_function_name text
 )
 returns void language plpgsql as $$
+declare
+  v_relkind char;
 begin
   if to_regclass(format('public.%s', p_table_name)) is null then return; end if;
+  select relkind into v_relkind from pg_class where oid = format('public.%s', p_table_name)::regclass;
+  if v_relkind IS DISTINCT FROM 'r' then return; end if;
   execute format('drop trigger if exists %I on public.%I', p_trigger_name, p_table_name);
   execute format('create trigger %I after %s on public.%I for each row execute function %s()',
     p_trigger_name, p_events, p_table_name, p_function_name);
@@ -1096,7 +1001,7 @@ begin
              l.created_at, l.updated_at,
              false as is_collaborative, true as can_edit, l.user_id as list_owner_id
       from public.user_lists l
-      where l.user_id = auth.uid() and l.category = cat_map::public.user_list_category
+      where l.user_id = auth.uid() and l.category = cat_map
     ),
     shared_lists as (
       select l.id::text as id, l.user_id, l.name as title, l.description, l.icon,
@@ -1104,7 +1009,7 @@ begin
              true as is_collaborative, coalesce(lc.can_edit, false) as can_edit, lc.list_owner_id
       from public.user_lists l
       join public.list_collaborators lc on lc.media_type = safe_media_type and lc.list_id = l.id::text
-      where lc.collaborator_id = auth.uid() and l.category = cat_map::public.user_list_category
+      where lc.collaborator_id = auth.uid() and l.category = cat_map
     )
     select * from own_lists union all select * from shared_lists order by created_at desc nulls last;
 end;
