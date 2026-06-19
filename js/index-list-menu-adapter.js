@@ -83,7 +83,7 @@
   }
 
   function getMediaType() {
-    return normalizeMediaType(_bridge?.mediaType || STATE.currentItem?.mediaType || "");
+    return normalizeMediaType(STATE.currentItem?.mediaType || _bridge?.mediaType || "");
   }
 
   function escapeHtml(v) {
@@ -505,8 +505,6 @@
 
     _lastFocusedTrigger = card || null;
 
-    const mt = getMediaType();
-    STATE.quickRows = QUICK_ROWS_BY_TYPE[mt] || [];
     STATE.quickStatus = { favorites: false, completed: false, watchlist: false };
     STATE.pendingQuickKeys = new Set();
     STATE.pendingCustomListIds = new Set();
@@ -520,7 +518,7 @@
         const raw = card.getAttribute(attr);
         if (raw) {
           STATE.currentItem = {
-            mediaType: mt,
+            mediaType: normalizeMediaType(card.getAttribute("data-type") || card.getAttribute("data-media-type") || _bridge.mediaType || ""),
             itemId: raw,
             title: card.querySelector(".card-title, .card-name")?.textContent || "",
             subtitle: card.querySelector(".card-meta, .card-sub")?.textContent || "",
@@ -529,6 +527,9 @@
         }
       }
     }
+
+    const mt = getMediaType();
+    STATE.quickRows = QUICK_ROWS_BY_TYPE[mt] || [];
 
     const item = STATE.currentItem;
     if (!item || !item.itemId) return;
