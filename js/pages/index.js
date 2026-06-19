@@ -4851,12 +4851,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return;
       }
 
+      const mt = homeItemMenuState.currentItem?.mediaType || '';
+      const fb = ({movie:'fas fa-film',tv:'fas fa-tv',anime:'fas fa-dragon',game:'fas fa-gamepad',book:'fas fa-book',music:'fas fa-music',travel:'fas fa-earth-americas',fashion:'fas fa-shirt',food:'fas fa-burger',car:'fas fa-car',sports:'fas fa-futbol',restaurant:'fas fa-clapperboard'})[mt] || 'fas fa-list';
       customContainer.innerHTML = homeItemMenuState.customLists.map((list) => {
         const isActive = homeItemMenuState.selectedCustomLists.has(list.id);
         return `
           <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
             <div class="menu-custom-left">
-              ${window.ListUtils ? ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>'}
+              ${window.ListUtils ? ListUtils.renderListIcon(list.icon, fb) : '<i class="'+fb+'"></i>'}
               <span>${escapeHtml(list.title || 'Custom List')}</span>
             </div>
             <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>

@@ -93,6 +93,14 @@
     restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' }
   };
 
+  const MEDIA_LIST_ICONS = {
+    movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
+    game:'fas fa-gamepad', book:'fas fa-book', music:'fas fa-music',
+    travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
+    food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
+    restaurant:'fas fa-clapperboard'
+  };
+  function getMediaListFallbackIcon() { return MEDIA_LIST_ICONS[getMediaType()] || 'fas fa-list'; }
   function escapeHtml(v) {
     return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
@@ -371,7 +379,7 @@
     if(!customListsEnabled()){if(cs)cs.style.display='none';cc.innerHTML='';return}
     if(cs)cs.style.display='';if(!getCurrentUser()?.id){cc.innerHTML='<div class="menu-empty">Sign in to use custom lists.</div>';return}
     if(!STATE.customLists.length){cc.innerHTML='<div class="menu-empty">No custom lists yet. Create one.</div>';return}
-    cc.innerHTML=STATE.customLists.map(l=>{const a=STATE.selectedCustomLists.has(l.id);const b=STATE.pendingCustomListIds.has(String(l.id||'').trim());return `<div class="menu-custom-item ${a?'active':''}" data-list-id="${l.id}" aria-busy="${b?'true':'false'}"><div class="menu-custom-left">${window.ListUtils?ListUtils.renderListIcon(l.icon,'fas fa-list'):'<i class="fas fa-list"></i>'}<span>${escapeHtml(l.title||'Custom List')}</span></div><span class="menu-custom-state">${b?'Syncing':(a?'Saved':'Add')}</span></div>`}).join('');
+    const fb=getMediaListFallbackIcon();cc.innerHTML=STATE.customLists.map(l=>{const a=STATE.selectedCustomLists.has(l.id);const b=STATE.pendingCustomListIds.has(String(l.id||'').trim());return `<div class="menu-custom-item ${a?'active':''}" data-list-id="${l.id}" aria-busy="${b?'true':'false'}"><div class="menu-custom-left">${window.ListUtils?ListUtils.renderListIcon(l.icon,fb):'<i class="'+fb+'"></i>'}<span>${escapeHtml(l.title||'Custom List')}</span></div><span class="menu-custom-state">${b?'Syncing':(a?'Saved':'Add')}</span></div>`}).join('');
     cc.querySelectorAll('.menu-custom-item').forEach(n=>n.addEventListener('click',async()=>{const id=n.getAttribute('data-list-id');if(id)await toggleMenuCustomList(id)}));
   }
   async function refreshItemMenuQuickStatus() { const it=STATE.currentItem; if(!it) return; const lk=STATE.quickRows.map(r=>r.key).filter(Boolean); STATE.quickStatus=await getDefaultListStatusMap(it.itemId,lk); writeCachedQuickStatus(it.itemId,STATE.quickStatus,lk); }

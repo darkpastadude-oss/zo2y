@@ -191,6 +191,17 @@
     const fallback = fallbackIcon || 'fas fa-list';
     if (!raw) return `<i class="${fallback}"></i>`;
     if (raw.includes('fa-')) return `<i class="${raw}"></i>`;
+    const ICON_MAP = {
+      movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
+      game:'fas fa-gamepad', book:'fas fa-book', music:'fas fa-music',
+      travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
+      food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
+      restaurant:'fas fa-clapperboard', heart:'fas fa-heart',
+      check:'fas fa-check', bookmark:'fas fa-bookmark',
+      user:'fas fa-user', star:'fas fa-star', list:'fas fa-list'
+    };
+    const key = raw.toLowerCase().trim();
+    if (ICON_MAP[key]) return `<i class="${ICON_MAP[key]}"></i>`;
     return raw;
   }
 
@@ -1314,8 +1325,7 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      // Use upsert with onConflict to avoid 409 errors for duplicate entries
-      const conflictTarget = cfg.usesUserId ? `${cfg.itemIdField},list_id,user_id,list_type` : `${cfg.itemIdField},list_id,list_type`;
+      const conflictTarget = cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`;
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
         onConflict: conflictTarget,
         ignoreDuplicates: false
@@ -1334,36 +1344,39 @@
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
-
-    // Load ALL custom lists for this user/media type to preserve other memberships
-    const allLists = await loadCustomLists(client, userId, type);
-    const allListIds = allLists.map(l => l.id).filter(Boolean);
-
-    // Get current memberships for ALL lists
-    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
-    const currentIds = new Set(currentMemberships);
-    currentIds.add(listId);
-
-    await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), itemPayload);
-    return true;
+    if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return false;
+    if (userId) setTierSyncContext(client, userId);
+    if (type === 'book' && itemPayload) { await ensureBookRecord(client, itemPayload).catch(() => false); }
+    if (type === 'music' && itemPayload) { await ensureTrackRecord(client, itemPayload); }
+    const normalizedItemId = normalizeQueryableItemId(type, itemId);
+    if (normalizedItemId === null) return false;
+    let ownerId = userId;
+    if (cfg.usesUserId) {
+      const { data: ownerRows } = await client
+        .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
+      if (ownerRows?.user_id) ownerId = ownerRows.user_id;
+    }
+    const row = { list_id: listId, list_type: null };
+    row[cfg.itemIdField] = normalizedItemId;
+    if (cfg.usesUserId) row.user_id = ownerId;
+    const { error } = await client.from(cfg.itemsTable).insert(row);
+    if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
+    if (error && isConflictError(error)) return true;
+    return !error;
   }
 
   async function removeItemFromList(client, userId, type, itemId, listId) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
-
-    // Load ALL custom lists for this user/media type to preserve other memberships
-    const allLists = await loadCustomLists(client, userId, type);
-    const allListIds = allLists.map(l => l.id).filter(Boolean);
-
-    // Get current memberships for ALL lists
-    const currentMemberships = await loadCustomListMembership(client, userId, type, itemId, allListIds);
-    const currentIds = new Set(currentMemberships);
-    currentIds.delete(listId);
-
-    await saveCustomListChanges(client, userId, type, itemId, Array.from(currentIds), null);
-    return true;
+    if (missingItemTables.has(cfg.itemsTable)) return false;
+    const normalizedItemId = normalizeQueryableItemId(type, itemId);
+    if (normalizedItemId === null) return false;
+    let query = client.from(cfg.itemsTable).delete().eq(cfg.itemIdField, normalizedItemId).eq('list_id', listId);
+    if (cfg.usesUserId) query = query.eq('user_id', userId);
+    const { error } = await query;
+    if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
+    return !error;
   }
 
   async function createCustomList(client, userId, type, payload) {

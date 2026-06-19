@@ -876,8 +876,8 @@
     </div>
   </div>
 
-    <script src="js/list-utils.js?v=20260601b" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260612e" defer></script>
+    <script src="js/list-utils.js?v=20260619b" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260619b" defer></script>
     <script src="js/review-interactions.js?v=20260601b" defer></script>
     <script>
     (function () {
@@ -1247,7 +1247,8 @@
         if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-tv');
         if (!icon) return '<i class="fas fa-tv"></i>';
         if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
-        return icon;
+        const m = ({movie:'fas fa-film',tv:'fas fa-tv',anime:'fas fa-dragon',game:'fas fa-gamepad',book:'fas fa-book',music:'fas fa-music',travel:'fas fa-earth-americas',fashion:'fas fa-shirt',food:'fas fa-burger',car:'fas fa-car',sports:'fas fa-futbol',restaurant:'fas fa-clapperboard',heart:'fas fa-heart',check:'fas fa-check',bookmark:'fas fa-bookmark',user:'fas fa-user',star:'fas fa-star',list:'fas fa-list'})[icon.toLowerCase().trim()];
+        return m ? '<i class="'+m+'"></i>' : icon;
       }
 
       async function initSupabase() {
