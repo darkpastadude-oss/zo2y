@@ -4,7 +4,24 @@
 -- Three default lists per media category + unlimited custom lists
 -- ==========================================================================
 
--- Clean slate
+-- Clean slate: drop old functions first (return type conflicts)
+DROP FUNCTION IF EXISTS create_default_user_lists(UUID, TEXT);
+DROP FUNCTION IF EXISTS create_default_user_lists(UUID);
+DROP FUNCTION IF EXISTS toggle_list_item(UUID, TEXT, TEXT, TEXT, TEXT, JSONB);
+DROP FUNCTION IF EXISTS get_user_lists(UUID, TEXT);
+DROP FUNCTION IF EXISTS get_list_items(UUID, UUID);
+DROP FUNCTION IF EXISTS get_item_list_status(UUID, TEXT, TEXT);
+DROP FUNCTION IF EXISTS get_all_user_items(UUID, TEXT);
+DROP FUNCTION IF EXISTS add_item_to_list(UUID, UUID, TEXT, TEXT, JSONB);
+DROP FUNCTION IF EXISTS remove_item_from_list(UUID, UUID, TEXT);
+DROP FUNCTION IF EXISTS get_list_status(UUID, TEXT, TEXT);
+DROP FUNCTION IF EXISTS ensure_user_default_lists(UUID);
+DROP FUNCTION IF EXISTS zo2y_get_accessible_custom_lists(TEXT);
+DROP FUNCTION IF EXISTS _default_list_name(TEXT, TEXT);
+DROP FUNCTION IF EXISTS _default_list_icon(TEXT);
+DROP FUNCTION IF EXISTS _default_list_icon(TEXT, TEXT);
+
+-- Clean slate: drop old tables
 DROP TABLE IF EXISTS list_tier_ranks CASCADE;
 DROP TABLE IF EXISTS list_tier_meta CASCADE;
 DROP TABLE IF EXISTS list_collaborators CASCADE;
