@@ -8,11 +8,11 @@
   }
 
   // DOM Elements
+  const discoverContainer = document.getElementById('booksDiscover');
   const flatSection = document.getElementById('booksFlatSection');
   const grid = document.getElementById('booksGrid');
   const searchInput = document.getElementById('q');
   const searchBtn = document.getElementById('booksSearchBtn');
-  const clearSearchBtn = document.getElementById('booksClearSearchBtn');
   const filterBtn = document.getElementById('booksFilterBtn');
   const filterModal = document.getElementById('booksFilterModal');
   const filterCloseBtn = document.getElementById('booksFilterCloseBtn');
@@ -27,9 +27,9 @@
 
   let currentPage = 1;
   let currentSearchQuery = '';
-  let currentSection = 'popular';
+  let currentSection = '';
   let currentFilters = {};
-  let currentMode = 'flat'; // 'flat' or 'search'
+  let currentMode = 'discover'; // 'discover', 'flat', 'search'
 
   const GENRE_OPTIONS = [
     { value: '', label: 'All Genres' },
@@ -59,15 +59,11 @@
       searchInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') handleSearch();
       });
+      // Handle when the user manually clears the input (or clears via native button)
       searchInput.addEventListener('input', () => {
-        if (clearSearchBtn) clearSearchBtn.classList.toggle('show', !!searchInput.value.trim());
-      });
-    }
-    if (clearSearchBtn) {
-      clearSearchBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearSearchBtn.classList.remove('show');
-        handleSearch();
+        if (searchInput.value.trim() === '' && currentMode === 'search') {
+          handleSearch();
+        }
       });
     }
 
@@ -83,6 +79,43 @@
         applyFilters();
       });
     }
+
+    // Delegation for "See all" buttons on discover sections
+    if (discoverContainer) {
+      discoverContainer.addEventListener('click', e => {
+        const moreBtn = e.target.closest('.section-more-btn');
+        if (moreBtn) {
+          const sectionId = moreBtn.dataset.moreSection;
+          if (sectionId) loadFlatSection(sectionId);
+        }
+      });
+    }
+  }
+
+  async function loadDiscovery() {
+    currentMode = 'discover';
+    currentSection = '';
+    currentSearchQuery = '';
+
+    if (discoverContainer) {
+      discoverContainer.hidden = false;
+      discoverContainer.innerHTML = Engine.skeletonSectionsHtml(4);
+    }
+    if (flatSection) flatSection.hidden = true;
+
+    try {
+      const data = await Engine.fetchDiscovery();
+      if (!data || !data.sections || !data.sections.length) {
+        if (discoverContainer) discoverContainer.innerHTML = '<div class="empty">No books available.</div>';
+        return;
+      }
+      if (discoverContainer) {
+        discoverContainer.innerHTML = data.sections.map(s => Engine.renderSection(s)).join('');
+      }
+    } catch (err) {
+      console.error(err);
+      if (discoverContainer) discoverContainer.innerHTML = '<div class="empty">Failed to load books.</div>';
+    }
   }
 
   async function loadFlatSection(sectionId, page = 1) {
@@ -91,6 +124,7 @@
     currentSearchQuery = '';
     currentPage = page;
     
+    if (discoverContainer) discoverContainer.hidden = true;
     if (flatSection) flatSection.hidden = false;
     if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
     
@@ -99,8 +133,8 @@
     
     const allSections = (window.Zo2yBooksDataLayer && window.Zo2yBooksDataLayer.DISCOVERY_SECTIONS) || [];
     const secInfo = allSections.find(s => s.id === sectionId);
-    if (titleEl) titleEl.textContent = secInfo ? secInfo.label : 'popular books right now';
-    if (descEl) descEl.textContent = secInfo ? secInfo.desc : 'Trending fiction and non-fiction across Zo2y.';
+    if (titleEl) titleEl.textContent = secInfo ? secInfo.label : 'Popular Books';
+    if (descEl) descEl.textContent = secInfo ? secInfo.desc : 'Browsing section.';
 
     const opts = { section: sectionId, page: currentPage, limit: 24, ...currentFilters };
     try {
@@ -119,22 +153,24 @@
     currentFilters = {};
     
     if (!q) {
-      loadFlatSection('popular');
+      loadDiscovery();
       return;
     }
     
     currentMode = 'search';
     currentSearchQuery = q;
+    currentSection = '';
+    
+    if (discoverContainer) discoverContainer.hidden = true;
     if (flatSection) flatSection.hidden = false;
     if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
     
     const titleEl = document.getElementById('flatSectionTitle');
     const descEl = document.getElementById('flatSectionDesc');
-    if (titleEl) titleEl.textContent = `search results for "${q}"`;
+    if (titleEl) titleEl.textContent = `Search results for "${q}"`;
     if (descEl) descEl.textContent = '';
 
     try {
-      // Use Engine.search instead of fetchFlat for accurate keyword searches!
       const data = await Engine.search(q, { page: 1, limit: 24 });
       if (grid) Engine.renderGrid(grid, data.books);
       renderPagination(data.page || 1, data.books && data.books.length >= 24);
@@ -160,12 +196,13 @@
     currentSection = genre ? '' : 'popular'; 
     currentSearchQuery = searchInput ? searchInput.value.trim() : '';
     
+    if (discoverContainer) discoverContainer.hidden = true;
     if (flatSection) flatSection.hidden = false;
     if (grid) grid.innerHTML = Engine.skeletonSectionsHtml(1);
 
     const titleEl = document.getElementById('flatSectionTitle');
     const descEl = document.getElementById('flatSectionDesc');
-    if (titleEl) titleEl.textContent = currentSearchQuery ? `filtered search for "${currentSearchQuery}"` : (genre ? `${genre} books` : 'filtered books');
+    if (titleEl) titleEl.textContent = currentSearchQuery ? `Filtered search for "${currentSearchQuery}"` : (genre ? `${genre} Books` : 'Filtered Books');
     if (descEl) descEl.textContent = '';
 
     try {
@@ -177,7 +214,6 @@
         currentMode = 'flat';
         data = await Engine.fetchFlat({ q: genre || 'books', ...currentFilters, page: 1, limit: 24 });
       }
-      
       if (grid) Engine.renderGrid(grid, data.books);
       renderPagination(data.page || 1, data.books && data.books.length >= 24);
     } catch (err) {
@@ -288,7 +324,7 @@
     populateFilters();
     wireEvents();
     initMenuBridge();
-    loadFlatSection('popular');
+    loadDiscovery();
   }
 
   if (document.readyState === 'loading') {

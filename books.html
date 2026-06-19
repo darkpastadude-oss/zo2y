@@ -89,7 +89,6 @@
     <section class="controls">
       <div class="search-input-wrap">
         <input id="q" class="search-input" placeholder="Search books, authors, series..." autocomplete="off" inputmode="search" type="text">
-        <button class="books-clear-btn" id="booksClearSearchBtn" type="button" aria-label="Clear search" title="Clear search"><i class="fas fa-times"></i></button>
       </div>
       <button id="booksSearchBtn" class="control-icon-btn" type="button" aria-label="Search books"><i class="fas fa-search"></i></button>
       <button id="booksFilterBtn" class="control-icon-btn" type="button" aria-label="Open book filters"><i class="fas fa-sliders-h"></i></button>
@@ -118,8 +117,11 @@
 
     <div class="books-genre-chips" id="booksGenreChips" role="tablist" aria-label="Genre filter" hidden></div>
 
+    <!-- DISCOVER MODE: stacked sections -->
+    <div id="booksDiscover" class="books-discover-wrap"></div>
+
     <!-- BROWSE / SEARCH MODE: single section -->
-    <section id="booksFlatSection" class="section book-section">
+    <section id="booksFlatSection" class="section book-section" hidden>
       <div class="section-head">
         <div class="section-head-text">
           <h2 id="flatSectionTitle">popular books right now</h2>
