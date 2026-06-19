@@ -358,11 +358,11 @@
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v5';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v1';
+    const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v2';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v1';
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v2';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v1';
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v2';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
@@ -9414,8 +9414,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const pool = likelyCovers.length ? likelyCovers : cleaned;
       return pool.find((url) => /\/game-assets\/covers-official\//.test(url))
         || pool.find((url) => /\/game-assets\/covers\//.test(url))
-        || pool.find((url) => /wikimedia|wikipedia/.test(url))
         || pool.find((url) => /igdb|images\.igdb\.com/.test(url))
+        || pool.find((url) => /wikimedia|wikipedia/.test(url))
         || pool.find((url) => /\/game-assets\//.test(url))
         || pool.find((url) => /rawg|media\.rawg/.test(url))
         || pool[0]
@@ -10011,31 +10011,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         } catch (_err) { return []; }
       };
 
-      let trackRows = [], albumRows = [];
-
-      try {
-        const [tracksRes, albumsRes] = await Promise.allSettled([
-          fetch('/api/music/popular?limit=50&market=US', { signal }),
-          fetch('/api/music/popular-albums?limit=36&market=US&album_types=album', { signal })
-        ]);
-        if (tracksRes.status === 'fulfilled' && tracksRes.value.ok) {
-          const d = await tracksRes.value.json();
-          trackRows = safeArr(d?.results);
-        }
-        if (albumsRes.status === 'fulfilled' && albumsRes.value.ok) {
-          const d = await albumsRes.value.json();
-          albumRows = safeArr(d?.results);
-        }
-      } catch (_err) {}
-
-      if (!albumRows.length) {
-        albumRows = await fetchItunesAlbums(20);
-      }
-      if (!trackRows.length) {
-        trackRows = await fetchItunesTracks(30);
-      }
+      let trackRows = await fetchItunesTracks(50);
+      let albumRows = await fetchItunesAlbums(30);
 
       if (trackRows.length || albumRows.length) {
+        trackRows = shuffleArray(trackRows);
+        albumRows = shuffleArray(albumRows);
         const items = interleave(
           trackRows.map(mapTrack).filter((i) => i.itemId),
           albumRows.map(mapAlbum).filter((i) => i.itemId),

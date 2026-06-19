@@ -19,7 +19,7 @@
     </footer>`;
 
   const ITEM_MENU_MODAL_HTML = `
-    <div id="itemMenuModal" class="menu-modal authenticated-only" aria-hidden="true">
+    <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
       <div class="menu-modal-content">
         <div class="menu-modal-header">
           <h3 id="menuModalTitle">Add to List</h3>
