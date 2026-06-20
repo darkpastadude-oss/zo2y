@@ -406,10 +406,10 @@
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
-      { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
-      { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
+      { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
+      { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
@@ -10682,14 +10682,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     const LANDING_REVIEW_LIMIT = 6;
     const LANDING_WALL_SLOT_COUNT = 8;
     const LANDING_WALL_FALLBACK_GAMES = [
-      { title: 'Portal 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' },
-      { title: 'Persona 5', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/persona-5.jpg' },
-      { title: 'Titanfall 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg' },
-      { title: 'The Witcher 3: Wild Hunt', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { title: 'Red Dead Redemption 2', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { title: 'Resident Evil Village', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png' },
-      { title: 'Sifu', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/sifu.jpg' },
-      { title: 'Warframe', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/game-assets/covers-official/warframe.png' },
+      { title: 'Portal 2', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' },
+      { title: 'Persona 5', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/persona-5.jpg' },
+      { title: 'Titanfall 2', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/titanfall-2.jpg' },
+      { title: 'The Witcher 3: Wild Hunt', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { title: 'Red Dead Redemption 2', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { title: 'Resident Evil Village', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/resident-evil-village.png' },
+      { title: 'Sifu', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/sifu.jpg' },
+      { title: 'Warframe', image: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/warframe.png' },
       { title: 'Hades', image: 'https://upload.wikimedia.org/wikipedia/en/c/cc/Hades_cover_art.jpg' },
       { title: 'Cyberpunk 2077', image: 'https://upload.wikimedia.org/wikipedia/en/9/9f/Cyberpunk_2077_box_art.jpg' },
       { title: 'Elden Ring', image: 'https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg' },
@@ -10712,32 +10712,32 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'UFC', image: '/assets/sports/ufc-logo.svg' }
       ],
       food: [
-        { title: 'McDonald\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
-        { title: 'KFC', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
-        { title: 'Starbucks', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
-        { title: 'Taco Bell', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
-        { title: 'Burger King', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
-        { title: 'Domino\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
-        { title: 'Subway', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
-        { title: 'Chipotle', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
-        { title: 'Popeyes', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
-        { title: 'Wendy\'s', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
-        { title: 'Pizza Hut', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
-        { title: 'Shake Shack', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
+        { title: 'McDonald\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/mcdonalds-com.svg' },
+        { title: 'KFC', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/kfc-com.svg' },
+        { title: 'Starbucks', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/starbucks-com.png' },
+        { title: 'Taco Bell', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/tacobell-com.jpg' },
+        { title: 'Burger King', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
+        { title: 'Domino\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
+        { title: 'Subway', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
+        { title: 'Chipotle', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
+        { title: 'Popeyes', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
+        { title: 'Wendy\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
+        { title: 'Pizza Hut', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },
+        { title: 'Shake Shack', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/shakeshack-com.svg' }
       ],
       fashion: [
-        { title: 'Nike', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
-        { title: 'Adidas', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
-        { title: 'Zara', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
-        { title: 'Uniqlo', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
-        { title: 'H&M', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
-        { title: 'Gucci', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
-        { title: 'Louis Vuitton', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
-        { title: 'Prada', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
-        { title: 'Dior', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
-        { title: 'Chanel', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
-        { title: 'Burberry', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
-        { title: 'Supreme', image: 'https://gfkhjbztayjyojsgdpgk.supabase.co/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
+        { title: 'Nike', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/nike-com.svg' },
+        { title: 'Adidas', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/adidas-com.svg' },
+        { title: 'Zara', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/zara-com.jpeg' },
+        { title: 'Uniqlo', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/uniqlo-com.svg' },
+        { title: 'H&M', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/hm-com.svg' },
+        { title: 'Gucci', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/gucci-com.svg' },
+        { title: 'Louis Vuitton', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/louisvuitton-com.svg' },
+        { title: 'Prada', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/prada-com.svg' },
+        { title: 'Dior', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/dior-com.svg' },
+        { title: 'Chanel', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/chanel-com.svg' },
+        { title: 'Burberry', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/burberry-com.svg' },
+        { title: 'Supreme', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/fashion_brands/supremenewyork-com.svg' }
       ]
     };
     const LANDING_REVIEW_SOURCES = [
