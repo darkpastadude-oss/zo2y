@@ -1922,6 +1922,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
           return logoValue;
         }
+        return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${logoValue}`;
       }
       const typeKey = String(mediaType || '').toLowerCase();
       // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.
