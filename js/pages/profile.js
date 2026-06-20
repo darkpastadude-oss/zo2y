@@ -4650,7 +4650,15 @@
                             params.set('mode', 'logo');
                             return `/api/logo?${params.toString()}`;
                         })();
-                        const localLogo = toHttpsUrl(row?.logo_url || '');
+                        let rawLogoUrl = row?.logo_url || '';
+                            let localLogo = '';
+                            if (rawLogoUrl) {
+                                if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
+                                    localLogo = toHttpsUrl(rawLogoUrl);
+                                } else {
+                                    localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                                }
+                            }
                         const brand = {
                             id,
                             name,
@@ -8052,7 +8060,15 @@
                             const name = String(row?.name || '').trim();
                             const domain = String(row?.domain || '').trim();
                             let imageUrl = '';
-                            const localLogo = toHttpsUrl(row?.logo_url || '');
+                            let rawLogoUrl = row?.logo_url || '';
+                            let localLogo = '';
+                            if (rawLogoUrl) {
+                                if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
+                                    localLogo = toHttpsUrl(rawLogoUrl);
+                                } else {
+                                    localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                                }
+                            }
                             if (localLogo) {
                                 imageUrl = localLogo;
                             } else if (name) {

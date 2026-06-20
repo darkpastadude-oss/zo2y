@@ -1,113 +1,114 @@
 (() => {
-  const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-  const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-  const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-
   const params = new URLSearchParams(window.location.search);
-  const gameId = String(params.get('id') || '').trim();
-  const RAWG_API_KEY = ''; // Works without a key for basic endpoints
+  const id = params.get('id');
 
-  const dom = {
-    hero: document.getElementById('gameHero'),
-    posterFrame: document.getElementById('gamePosterFrame'),
-    logo: document.getElementById('gameLogo'),
-    backdrop: document.getElementById('gameBackdrop'),
+  const els = {
     name: document.getElementById('gameName'),
-    meta: document.getElementById('gameMeta'),
     desc: document.getElementById('gameDescription'),
-    saveBtn: document.getElementById('gameSaveBtn'),
-    toast: document.getElementById('gameToast'),
-    kickerLabel: document.getElementById('gameKickerLabel')
+    backdrop: document.getElementById('gameBackdrop'),
+    backdropBlur: document.getElementById('gameBackdropBlur'),
+    hero: document.getElementById('gameHero'),
+    meta: document.getElementById('gameMeta'),
+    tags: document.getElementById('gameTags'),
+    poster: document.getElementById('gameLogo'),
+    gallery: document.getElementById('gameGallery'),
+    gallerySec: document.getElementById('gameGallerySection'),
+    related: document.getElementById('gameRelated'),
+    relatedSec: document.getElementById('gameRelatedSection'),
+    kicker: document.getElementById('gameKickerLabel'),
+    aboutBody: document.getElementById('gameAboutBody')
   };
 
-  let supabaseClient = null;
-  let currentUser = null;
-
-  function ensureSupabase() {
-    if (supabaseClient) return supabaseClient;
-    if (window.__ZO2Y_SUPABASE_CLIENT) {
-      supabaseClient = window.__ZO2Y_SUPABASE_CLIENT;
-      return supabaseClient;
-    }
-    if (!window.supabase) return null;
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
-    });
-    window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
-    return supabaseClient;
-  }
-
-  function showToast(msg, level = 'info') {
-    if (dom.toast) {
-      dom.toast.textContent = msg;
-      dom.toast.className = `elevated-toast is-${level} show`;
-      setTimeout(() => dom.toast.classList.remove('show'), 2500);
-    } else {
-      console.log(msg);
-    }
-  }
-
-  async function toggleSave() {
-    const client = ensureSupabase();
-    if (!client) return showToast('Supabase not loaded', 'error');
-    if (!currentUser) return window.location.href = 'login.html';
-    
-    // We assume there's a game_list_items or media_lists table.
-    // For zo2y we use index-list-menu-adapter globally.
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu({
-        mediaType: 'game',
-        id: gameId,
-        title: dom.name.textContent,
-        cover_url: dom.logo.src
-      });
-    } else {
-      showToast('List feature not fully implemented', 'error');
-    }
-  }
-
   async function loadGame() {
-    if (!gameId) {
-      dom.name.textContent = 'Game Not Found';
+    if (!id) {
+      if (els.name) els.name.textContent = 'Game not found';
+      if (els.desc) els.desc.textContent = 'No game ID provided.';
       return;
     }
 
     try {
-      const res = await fetch(`https://api.rawg.io/api/games/${gameId}?key=${RAWG_API_KEY}`);
-      if (!res.ok) throw new Error('Failed to fetch from RAWG');
-      const data = await res.json();
-
-      dom.name.textContent = data.name || 'Unknown Game';
-      dom.kickerLabel.textContent = 'game spotlight';
+      const res = await fetch(`/api/igdb/games/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error('Game not found');
       
-      const year = data.released ? data.released.substring(0, 4) : '';
-      const playtime = data.playtime ? `${data.playtime} hours` : '';
-      dom.meta.textContent = [year, playtime, data.rating ? `★ ${data.rating}` : ''].filter(Boolean).join(' • ');
-
-      if (data.description_raw) {
-        dom.desc.textContent = data.description_raw;
+      const game = await res.json();
+      
+      if (els.name) els.name.textContent = game.name || 'Unknown Game';
+      
+      if (els.desc && game.description) {
+        els.desc.textContent = game.description;
+      } else if (els.desc) {
+        els.desc.textContent = 'Explore more details about this game.';
       }
-
-      if (data.background_image) {
-        dom.backdrop.style.backgroundImage = `url("${data.background_image}")`;
-        dom.logo.src = data.background_image;
-        dom.logo.style.objectFit = 'cover';
-        dom.logo.style.display = 'block';
+      
+      if (els.aboutBody && game.description) {
+        els.aboutBody.textContent = game.description;
       }
-
-      dom.hero.classList.remove('is-no-backdrop');
+      
+      if (els.meta) {
+        els.meta.innerHTML = `<span>${game.released ? game.released.substring(0, 4) : 'Unknown Year'}</span>`;
+      }
+      
+      if (els.poster && game.cover) {
+        els.poster.src = game.cover;
+        els.poster.onerror = function() { this.src = '/images/fallback/game.svg'; };
+      }
+      
+      if (game.background_image || game.hero) {
+        const bgImg = game.background_image || game.hero;
+        if (els.backdrop) els.backdrop.style.backgroundImage = `url("${bgImg}")`;
+        if (els.backdropBlur) els.backdropBlur.style.backgroundImage = `url("${bgImg}")`;
+        if (els.hero) els.hero.classList.remove('is-no-backdrop');
+      }
+      
+      if (els.tags && game.genres && game.genres.length > 0) {
+        els.tags.innerHTML = game.genres.map(g => `<span class="tag">${g.name || g}</span>`).join('');
+      } else if (els.tags) {
+        els.tags.innerHTML = '';
+      }
+      
+      // Populate quick facts grid
+      const infoGrid = document.getElementById('gameInfoGrid');
+      if (infoGrid) {
+        let factsHtml = '';
+        if (game.developers && game.developers.length > 0) {
+          factsHtml += `<div class="elevated-detail-item"><div class="elevated-detail-label">Developer</div><div class="elevated-detail-value">${game.developers.map(d=>d.name || d).join(', ')}</div></div>`;
+        }
+        if (game.publishers && game.publishers.length > 0) {
+          factsHtml += `<div class="elevated-detail-item"><div class="elevated-detail-label">Publisher</div><div class="elevated-detail-value">${game.publishers.map(p=>p.name || p).join(', ')}</div></div>`;
+        }
+        if (game.released) {
+          factsHtml += `<div class="elevated-detail-item"><div class="elevated-detail-label">Release Date</div><div class="elevated-detail-value">${game.released}</div></div>`;
+        }
+        infoGrid.innerHTML = factsHtml;
+      }
+      
+      // Populate screenshots gallery
+      if (game.screenshots && game.screenshots.length > 0) {
+        if (els.gallerySec) els.gallerySec.hidden = false;
+        if (els.gallery) {
+          els.gallery.innerHTML = game.screenshots.map(img => 
+            `<div class="elevated-gallery-item"><img src="${img.image || img}" loading="lazy" alt="Screenshot" onerror="this.style.display='none'"></div>`
+          ).join('');
+        }
+      }
+      
+      // Social links
+      const socialSec = document.getElementById('gameSocialSection');
+      const socialGrid = document.getElementById('gameSocial');
+      if (socialSec && socialGrid && (game.website || game.reddit_url)) {
+        socialSec.hidden = false;
+        let socialHtml = '';
+        if (game.website) socialHtml += `<a href="${game.website}" target="_blank" class="elevated-social-link"><i class="fa-solid fa-globe"></i> Official Website</a>`;
+        if (game.reddit_url) socialHtml += `<a href="${game.reddit_url}" target="_blank" class="elevated-social-link"><i class="fa-brands fa-reddit"></i> Reddit</a>`;
+        socialGrid.innerHTML = socialHtml;
+      }
+      
     } catch (e) {
       console.error(e);
-      dom.name.textContent = 'Error loading game';
-      showToast('Error loading game data', 'error');
+      if (els.desc && !els.desc.textContent) els.desc.textContent = 'Failed to load game details.';
+      if (els.name && !els.name.textContent) els.name.textContent = 'Game Error';
     }
   }
 
-  ensureSupabase()?.auth.getSession().then(({ data }) => {
-    currentUser = data?.session?.user || null;
-  });
-
-  if (dom.saveBtn) dom.saveBtn.addEventListener('click', toggleSave);
-  
-  loadGame();
+  document.addEventListener('DOMContentLoaded', loadGame);
 })();

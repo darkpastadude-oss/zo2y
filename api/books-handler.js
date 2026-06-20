@@ -94,35 +94,26 @@ export default async function booksHandler(req, res) {
     const orderBy = query.sort === 'newest' ? 'newest' : 'relevance';
 
     try {
-      const gbUrl = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
-      gbUrl.searchParams.set("q", q);
-      gbUrl.searchParams.set("maxResults", String(limit));
-      gbUrl.searchParams.set("startIndex", String(startIndex));
-      gbUrl.searchParams.set("orderBy", orderBy);
-      gbUrl.searchParams.set("printType", "books");
+      const olUrl = new URL(`https://openlibrary.org/search.json`);
+      olUrl.searchParams.set("q", q);
+      olUrl.searchParams.set("limit", String(limit));
+      olUrl.searchParams.set("offset", String(startIndex));
 
-      if (process.env.GOOGLE_BOOKS_API_KEY) {
-        gbUrl.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
-      }
-
-      const response = await fetch(gbUrl.toString());
-      if (!response.ok) throw new Error(`Google Books HTTP ${response.status}`);
+      const response = await fetch(olUrl.toString(), { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error(`OpenLibrary HTTP ${response.status}`);
       const data = await response.json();
 
-      const books = (data.items || []).map(item => {
-        const vol = item.volumeInfo || {};
-        const thumb = vol.imageLinks?.thumbnail || vol.imageLinks?.smallThumbnail || "";
-        const authors = vol.authors || [];
-        const year = vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4), 10) : null;
-        
+      const books = (data.docs || []).map(work => {
+        const coverId = Number(work.cover_i || 0);
+        const authors = work.author_name || [];
         return {
-          id: item.id,
-          title: vol.title || "Unknown Title",
+          id: String(work.key || '').replace(/^\/works\//, ''),
+          title: String(work.title || '').trim(),
           author: authors.length ? authors.join(", ") : "Unknown Author",
-          year: year,
-          cover: thumb ? toHttpsUrl(thumb).replace("zoom=1", "zoom=0").replace("&edge=curl", "") : "/images/fallback/book.svg",
-          description: vol.description || "",
-          _source: "google-books"
+          year: Number(work.first_publish_year || 0) || null,
+          cover: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "/images/fallback/book.svg",
+          description: "",
+          _source: "open-library"
         };
       });
 
