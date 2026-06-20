@@ -1,328 +1,311 @@
-(() => {
-  'use strict';
+const BOOKS_API_BASE = '/api/books';
+const BOOKS_PAGE_SIZE = 20;
 
-  const Engine = window.Zo2yBooks;
-  if (!Engine) {
-    console.error('Zo2yBooks engine not loaded.');
+let supabaseClient = null;
+let currentUser = null;
+
+const state = {
+  books: [],
+  search: '',
+  genre: 'fiction', // default trending genre
+  sort: 'relevance', // for search
+  page: 1,
+  totalPages: 1,
+  totalResults: 0,
+  listStatusMap: new Map()
+};
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function showToast(message, isError = false) {
+  const el = document.createElement('div');
+  el.style.position = 'fixed';
+  el.style.top = '16px';
+  el.style.right = '16px';
+  el.style.zIndex = '9999';
+  el.style.background = isError ? '#dc2626' : '#f59e0b';
+  el.style.color = '#fff';
+  el.style.padding = '10px 14px';
+  el.style.borderRadius = '10px';
+  el.style.fontSize = '13px';
+  el.textContent = message;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+let searchDebounceTimer = null;
+
+function computeGridPageSize() {
+  const grid = document.getElementById('booksGrid');
+  if (!grid) return 18;
+  try {
+    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+    const rows = 3;
+    let sz = cols * rows;
+    if (sz < 6) sz = 6;
+    if (sz > 40) sz = 40;
+    return sz;
+  } catch(e) {
+    return 18;
+  }
+}
+
+async function loadBooks() {
+  const grid = document.getElementById('booksGrid');
+  if (!grid) return;
+  
+  const limit = computeGridPageSize();
+  const offset = (state.page - 1) * limit;
+
+  // Render skeleton
+  grid.innerHTML = Array(limit).fill(`
+    <article class="card book-skeleton-card">
+      <div class="card-media skeleton-shimmer" style="padding-bottom: 140%;"></div>
+      <div class="card-meta">
+        <span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>
+        <span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>
+        <span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>
+      </div>
+    </article>
+  `).join('');
+
+  const query = state.search.trim();
+  let url = '';
+
+  if (query) {
+    url = `${BOOKS_API_BASE}/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}&sort=${state.sort}`;
+    document.getElementById('gridTitle').textContent = `Search results for "${query}"`;
+    document.getElementById('gridDesc').textContent = '';
+  } else {
+    url = `${BOOKS_API_BASE}/trending?genre=${encodeURIComponent(state.genre)}&limit=${limit}&offset=${offset}`;
+    document.getElementById('gridTitle').textContent = `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Bestsellers`;
+    document.getElementById('gridDesc').textContent = 'Trending books everyone is reading right now.';
+  }
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    
+    state.books = data.books || [];
+    state.totalResults = data.total || state.books.length;
+    state.totalPages = Math.max(1, Math.ceil(state.totalResults / limit));
+
+    renderGrid();
+    updatePagination();
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
+  }
+}
+
+function renderGrid() {
+  const grid = document.getElementById('booksGrid');
+  if (!grid) return;
+
+  if (!state.books.length) {
+    grid.innerHTML = '<div class="empty">No books found.</div>';
     return;
   }
 
-  // DOM Elements
-  const grid = document.getElementById('booksGrid');
+  const html = state.books.map(book => {
+    const coverUrl = book.cover || '/images/fallback/book.svg';
+    const author = book.author || 'Unknown Author';
+    const year = book.year ? String(book.year) : '';
+
+    return `
+      <article class="card" data-id="${escapeHtml(book.id)}" data-title="${escapeHtml(book.title)}" data-author="${escapeHtml(author)}">
+        <div class="card-media cover">
+          <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(book.title)}" loading="lazy" onerror="this.src='/images/fallback/book.svg'">
+        </div>
+        <div class="card-meta">
+          <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
+          <div class="card-meta-top"><p class="card-title">${escapeHtml(book.title)}</p></div>
+          <p class="card-sub">${escapeHtml(author)}</p>
+          <p class="card-extra">${escapeHtml(year)}</p>
+          <div class="card-actions">
+            <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  grid.innerHTML = html;
+  updateSpotlight(state.books[0]);
+}
+
+function updateSpotlight(book) {
+  const spotlightSec = document.getElementById('booksSpotlight');
+  if (!spotlightSec) return;
+  
+  if (!book) {
+    spotlightSec.hidden = true;
+    return;
+  }
+  
+  spotlightSec.hidden = false;
+  document.getElementById('booksSpotlightTitle').textContent = book.title || 'Unknown Title';
+  const year = book.year || '';
+  const author = book.author || 'Unknown Author';
+  document.getElementById('booksSpotlightMeta').textContent = year ? `${author} | ${year}` : author;
+  document.getElementById('booksSpotlightSummary').textContent = book.description || 'No description available.';
+  
+  const spotlightImg = document.getElementById('booksSpotlightImage');
+  const spotlightBg = document.getElementById('booksSpotlightBg');
+  const coverUrl = book.cover || '/images/fallback/book.svg';
+  
+  if (spotlightImg) {
+    spotlightImg.src = coverUrl;
+    spotlightImg.onerror = function() { this.src = '/images/fallback/book.svg'; };
+  }
+  if (spotlightBg) {
+    spotlightBg.style.backgroundImage = `url("${coverUrl}")`;
+  }
+}
+
+function updatePagination() {
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  const info = document.getElementById('pageInfo');
+  
+  if (prevBtn) prevBtn.disabled = state.page <= 1;
+  if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+  if (info) info.textContent = \`Page \${state.page} of \${state.totalPages}\`;
+}
+
+function wireEvents() {
   const searchInput = document.getElementById('q');
   const searchBtn = document.getElementById('booksSearchBtn');
   const filterBtn = document.getElementById('booksFilterBtn');
   const filterModal = document.getElementById('booksFilterModal');
-  const filterCloseBtn = document.getElementById('booksFilterCloseBtn');
-  const paginationContainer = document.querySelector('.pagination');
+  const filterClose = document.getElementById('booksFilterCloseBtn');
+  const refreshBtn = document.getElementById('refresh');
+  
   const prevBtn = document.getElementById('prevPageBtn');
   const nextBtn = document.getElementById('nextPageBtn');
-  const pageInfo = document.getElementById('pageInfo');
-  
-  // Spotlight
-  const spotlightSec = document.getElementById('booksSpotlight');
-  const spotlightBg = document.getElementById('booksSpotlightBg');
-  const spotlightTitle = document.getElementById('booksSpotlightTitle');
-  const spotlightMeta = document.getElementById('booksSpotlightMeta');
-  const spotlightSummary = document.getElementById('booksSpotlightSummary');
-  const spotlightImg = document.getElementById('booksSpotlightImage');
-  const spotlightCta = document.getElementById('booksSpotlightOpen');
 
-  // Filter DOM
-  const filterGenre = document.getElementById('genre');
-  const filterYearFrom = document.getElementById('year_from');
-  const filterYearTo = document.getElementById('year_to');
-  const filterSort = document.getElementById('sort');
-  const applyFiltersBtn = document.getElementById('refresh');
-
-  let currentPage = 1;
-  let currentSearchQuery = '';
-  let currentSection = 'popular';
-  let currentFilters = {};
-  let currentMode = 'flat'; // 'flat' or 'search'
-  
-  function getGridPageSize() {
-    if (!grid) return 24;
-    const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
-    const rows = 3;
-    return Math.max(18, cols * rows);
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        state.search = e.target.value.trim();
+        state.page = 1;
+        loadBooks();
+      }, 400);
+    });
   }
 
-  function renderGridSkeleton() {
-    if (!grid) return;
-    const count = getGridPageSize();
-    let cards = '';
-    for (let i = 0; i < count; i++) {
-      cards += '<article class="card book-skeleton-card"><div class="card-media skeleton-shimmer"></div>'
-            + '<div class="card-meta">'
-            + '<span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>'
-            + '<span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>'
-            + '<span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>'
-            + '</div></article>';
-    }
-    grid.innerHTML = cards;
-  }
-
-  const GENRE_OPTIONS = [
-    { value: '', label: 'All Genres' },
-    { value: 'fiction', label: 'Fiction' },
-    { value: 'fantasy', label: 'Fantasy' },
-    { value: 'science fiction', label: 'Sci-Fi' },
-    { value: 'mystery', label: 'Mystery' },
-    { value: 'thriller', label: 'Thriller' },
-    { value: 'romance', label: 'Romance' },
-    { value: 'horror', label: 'Horror' },
-    { value: 'young adult', label: 'Young Adult' },
-    { value: 'biography', label: 'Biography' },
-    { value: 'history', label: 'History' },
-    { value: 'self-help', label: 'Self-Help' },
-    { value: 'business', label: 'Business' }
-  ];
-
-  function populateFilters() {
-    if (filterGenre) {
-      filterGenre.innerHTML = GENRE_OPTIONS.map(g => `<option value="${g.value}">${g.label}</option>`).join('');
-    }
-  }
-
-  function updatePaginationUI(hasMore) {
-    if (pageInfo) pageInfo.textContent = `Page ${currentPage}`;
-    if (prevBtn) prevBtn.disabled = currentPage <= 1;
-    if (nextBtn) nextBtn.disabled = !hasMore;
-    if (paginationContainer) {
-      paginationContainer.style.display = (currentPage <= 1 && !hasMore) ? 'none' : 'flex';
-    }
-  }
-
-  function wireEvents() {
-    if (searchBtn) searchBtn.addEventListener('click', () => { currentPage = 1; executeSearch(); });
-    if (searchInput) {
-      searchInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') { currentPage = 1; executeSearch(); }
-      });
-      searchInput.addEventListener('input', () => {
-        if (searchInput.value.trim() === '' && currentMode === 'search') {
-          currentPage = 1;
-          executeSearch();
-        }
-      });
-    }
-
-    if (filterBtn && filterModal) {
-      filterBtn.addEventListener('click', () => filterModal.setAttribute('aria-hidden', 'false'));
-    }
-    if (filterCloseBtn && filterModal) {
-      filterCloseBtn.addEventListener('click', () => filterModal.setAttribute('aria-hidden', 'true'));
-    }
-    if (applyFiltersBtn) {
-      applyFiltersBtn.addEventListener('click', () => {
-        if (filterModal) filterModal.setAttribute('aria-hidden', 'true');
-        applyFilters();
-      });
-    }
-    
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-          currentPage--;
-          executeCurrentMode();
-        }
-      });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        currentPage++;
-        executeCurrentMode();
-      });
-    }
-  }
-
-  function updateSpotlight(book) {
-    if (!spotlightSec) return;
-    if (!book) {
-      spotlightSec.hidden = true;
-      return;
-    }
-    spotlightSec.hidden = false;
-    if (spotlightTitle) spotlightTitle.textContent = book.title || 'Unknown Title';
-    if (spotlightMeta) {
-      const year = book.first_publish_year || book.year || '';
-      const author = book.author || 'Unknown Author';
-      spotlightMeta.textContent = year ? `${author} | ${year}` : author;
-    }
-    if (spotlightSummary) spotlightSummary.textContent = book.description || 'No description available for this title.';
-    
-    let cover = book.cover || '/images/fallback/book.svg';
-    if (cover.startsWith('http:') || cover.startsWith('https:')) {
-       // Convert small covers to large for spotlight
-       cover = cover.replace('-M.jpg', '-L.jpg').replace('zoom=1', 'zoom=0');
-    }
-    
-    if (spotlightImg) {
-      spotlightImg.src = cover;
-      spotlightImg.onerror = function() { this.src = '/images/fallback/book.svg'; };
-    }
-    if (spotlightBg) {
-      spotlightBg.style.backgroundImage = `url("${cover}")`;
-    }
-    if (spotlightCta) {
-      spotlightCta.href = `javascript:window.openIndexStyleListMenu(document.querySelector('.card[data-id="${book.id}"]'))`;
-    }
-  }
-
-  async function executeCurrentMode() {
-    renderGridSkeleton();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    if (currentMode === 'search') {
-      await loadSearchData();
-    } else {
-      await loadFlatData();
-    }
-  }
-
-  async function loadFlatData() {
-    const limit = getGridPageSize();
-    const opts = { section: currentSection, page: currentPage, limit: limit, ...currentFilters };
-    try {
-      const data = await Engine.fetchFlat(opts);
-      if (grid) Engine.renderGrid(grid, data.books);
-      updatePaginationUI(data.books && data.books.length >= limit);
-      
-      if (currentPage === 1 && data.books && data.books.length > 0) {
-        updateSpotlight(data.books[0]);
-      } else if (currentPage > 1) {
-        updateSpotlight(null);
+  if (searchBtn) {
+    searchBtn.addEventListener('click', () => {
+      if (searchInput) {
+        state.search = searchInput.value.trim();
+        state.page = 1;
+        loadBooks();
       }
-    } catch (err) {
-      console.error(err);
-      if (grid) grid.innerHTML = '<div class="empty">Failed to load books.</div>';
-    }
+    });
   }
 
-  async function executeSearch() {
-    const q = searchInput ? searchInput.value.trim() : '';
-    currentFilters = {};
-    if (!q) {
-      currentMode = 'flat';
-      currentSection = 'popular';
-      document.getElementById('gridTitle').textContent = 'popular books right now';
-      document.getElementById('gridDesc').textContent = 'Trending fiction and non-fiction across Zo2y.';
-      await executeCurrentMode();
-      return;
-    }
-    
-    currentMode = 'search';
-    currentSearchQuery = q;
-    document.getElementById('gridTitle').textContent = `Search results for "${q}"`;
-    document.getElementById('gridDesc').textContent = '';
-    await executeCurrentMode();
+  if (filterBtn && filterModal) {
+    filterBtn.addEventListener('click', () => filterModal.setAttribute('aria-hidden', 'false'));
+  }
+  if (filterClose && filterModal) {
+    filterClose.addEventListener('click', () => filterModal.setAttribute('aria-hidden', 'true'));
+  }
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      const genreSelect = document.getElementById('genre');
+      const sortSelect = document.getElementById('sort');
+      if (genreSelect) state.genre = genreSelect.value || 'fiction';
+      if (sortSelect) state.sort = sortSelect.value || 'relevance';
+      state.page = 1;
+      if (filterModal) filterModal.setAttribute('aria-hidden', 'true');
+      loadBooks();
+    });
   }
 
-  async function loadSearchData() {
-    const limit = getGridPageSize();
-    try {
-      const data = await Engine.search(currentSearchQuery, { ...currentFilters, page: currentPage, limit: limit });
-      if (grid) Engine.renderGrid(grid, data.books);
-      updatePaginationUI(data.books && data.books.length >= limit);
-      updateSpotlight(null); // No spotlight for searches
-    } catch (err) {
-      console.error(err);
-      if (grid) grid.innerHTML = '<div class="empty">Search failed.</div>';
-    }
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (state.page > 1) {
+        state.page--;
+        loadBooks();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
-
-  async function applyFilters() {
-    const genre = filterGenre ? filterGenre.value : '';
-    const yFrom = filterYearFrom ? filterYearFrom.value : '';
-    const yTo = filterYearTo ? filterYearTo.value : '';
-    const sort = filterSort ? filterSort.value : '';
-
-    currentFilters = {};
-    if (genre) currentFilters.subject = genre;
-    if (yFrom) currentFilters.year_from = yFrom;
-    if (yTo) currentFilters.year_to = yTo;
-    if (sort) currentFilters.orderBy = sort;
-
-    currentPage = 1;
-    currentSection = genre ? '' : 'popular'; 
-    currentSearchQuery = searchInput ? searchInput.value.trim() : '';
-    
-    const titleEl = document.getElementById('gridTitle');
-    const descEl = document.getElementById('gridDesc');
-    if (titleEl) titleEl.textContent = currentSearchQuery ? `Filtered search for "${currentSearchQuery}"` : (genre ? `${genre} Books` : 'Filtered Books');
-    if (descEl) descEl.textContent = '';
-
-    if (currentSearchQuery) {
-      currentMode = 'search';
-    } else {
-      currentMode = 'flat';
-    }
-    
-    await executeCurrentMode();
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      if (state.page < state.totalPages) {
+        state.page++;
+        loadBooks();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   }
+}
 
-  function initMenuBridge() {
-    if (window.initIndexStyleListMenu && !window.__ZO2Y_BOOKS_LIST_BRIDGE) {
-      window.__ZO2Y_BOOKS_LIST_BRIDGE = true;
-      window.initIndexStyleListMenu({
-        mediaType: 'book',
-        itemIdAttr: 'data-id',
-        getItemFromCard: function (card) {
-          if (!card) return null;
-          return {
-            mediaType: 'book',
-            itemId: card.getAttribute('data-id') || '',
-            title: card.getAttribute('data-title') || '',
-            subtitle: card.getAttribute('data-author') || '',
-            image: card.querySelector('img')?.getAttribute('src') || ''
-          };
-        },
-        getVisibleItemIds: function () {
-          return Array.from(document.querySelectorAll('.card[data-id]'))
-            .map(c => c.getAttribute('data-id')).filter(Boolean);
-        },
-        ensureClient: async function () {
-          if (typeof window.ensureHomeSupabase === 'function') {
-            return await window.ensureHomeSupabase();
-          }
-          return window.__ZO2Y_SUPABASE_CLIENT || null;
-        },
-        getCurrentUser: function () { return window.homeCurrentUser || null; },
-        notify: function (message, isError) { 
-          if (typeof window.showHomeToast === 'function') {
-            window.showHomeToast(message, !!isError);
-          } else {
-            console.log(message);
-          }
+function initMenuBridge() {
+  if (window.initIndexStyleListMenu && !window.__ZO2Y_BOOKS_LIST_BRIDGE) {
+    window.__ZO2Y_BOOKS_LIST_BRIDGE = true;
+    window.initIndexStyleListMenu({
+      mediaType: 'book',
+      itemIdAttr: 'data-id',
+      getItemFromCard: function (card) {
+        if (!card) return null;
+        return {
+          mediaType: 'book',
+          itemId: card.getAttribute('data-id') || '',
+          title: card.getAttribute('data-title') || '',
+          subtitle: card.getAttribute('data-author') || '',
+          image: card.querySelector('img')?.getAttribute('src') || ''
+        };
+      },
+      getVisibleItemIds: function () {
+        return Array.from(document.querySelectorAll('.card[data-id]'))
+          .map(c => c.getAttribute('data-id')).filter(Boolean);
+      },
+      ensureClient: async function () {
+        if (typeof window.ensureHomeSupabase === 'function') {
+          return await window.ensureHomeSupabase();
         }
-      });
-      
-      document.body.addEventListener('click', e => {
-        const btn = e.target.closest('.menu-btn');
-        if (btn) {
-          e.preventDefault();
-          e.stopPropagation();
-          const card = btn.closest('.card');
-          if (card && window.openIndexStyleListMenu) {
-            window.openIndexStyleListMenu(card);
-          }
+        return window.__ZO2Y_SUPABASE_CLIENT || null;
+      },
+      getCurrentUser: function () { return window.homeCurrentUser || null; },
+      notify: function (message, isError) { 
+        showToast(message, !!isError);
+      }
+    });
+    
+    document.body.addEventListener('click', e => {
+      const btn = e.target.closest('.menu-btn');
+      if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = btn.closest('.card');
+        if (card && window.openIndexStyleListMenu) {
+          window.openIndexStyleListMenu(card);
         }
-      });
-    }
+      }
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Populate genres if select exists
+  const genreSelect = document.getElementById('genre');
+  if (genreSelect) {
+    const genres = ['fiction', 'fantasy', 'romance', 'thriller', 'mystery', 'science fiction', 'history', 'biography', 'poetry'];
+    genreSelect.innerHTML = genres.map(g => \`<option value="\${g}">\${g.charAt(0).toUpperCase() + g.slice(1)}</option>\`).join('');
   }
 
-  function boot() {
-    populateFilters();
-    wireEvents();
-    initMenuBridge();
-    executeCurrentMode();
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot, { once: true });
-  } else {
-    boot();
-  }
-
-})();
+  wireEvents();
+  initMenuBridge();
+  loadBooks();
+});
