@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
   const SUPABASE_URL = String(supabaseConfig.url || '').trim() || '__SUPABASE_URL__';
   const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
@@ -609,7 +609,7 @@
 
     card.innerHTML = `
       <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
-      <div class="card-media brand-cover is-loading-media">
+      <div class="card-media is-loading-media">
         <img
           src="${HOME_IMAGE_PLACEHOLDER}"
           data-home-src="${escapeHtml(badge)}"
