@@ -178,7 +178,7 @@ function updatePagination() {
   
   if (prevBtn) prevBtn.disabled = state.page <= 1;
   if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-  if (info) info.textContent = \`Page \${state.page} of \${state.totalPages}\`;
+  if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
 }
 
 function wireEvents() {
@@ -225,6 +225,13 @@ function wireEvents() {
       const sortSelect = document.getElementById('sort');
       if (genreSelect) state.genre = genreSelect.value || 'fiction';
       if (sortSelect) state.sort = sortSelect.value || 'relevance';
+      
+      const searchInput = document.getElementById('q');
+      if (searchInput) {
+        searchInput.value = '';
+        state.search = '';
+      }
+      
       state.page = 1;
       if (filterModal) filterModal.setAttribute('aria-hidden', 'true');
       loadBooks();
@@ -302,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const genreSelect = document.getElementById('genre');
   if (genreSelect) {
     const genres = ['fiction', 'fantasy', 'romance', 'thriller', 'mystery', 'science fiction', 'history', 'biography', 'poetry'];
-    genreSelect.innerHTML = genres.map(g => \`<option value="\${g}">\${g.charAt(0).toUpperCase() + g.slice(1)}</option>\`).join('');
+    genreSelect.innerHTML = genres.map(g => `<option value="${g}">${g.charAt(0).toUpperCase() + g.slice(1)}</option>`).join('');
   }
 
   wireEvents();
