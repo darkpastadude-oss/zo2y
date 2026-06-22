@@ -1,19 +1,4 @@
 /* Global lowercase enforcement - visible UI text */
-h1, h2, h3, h4, h5, h6,
-button, .btn, .nav-tab, .mobile-tab,
-.section-title, .section-subtitle,
-.empty-title, .empty-description,
-.collection-card-title, .collection-card-count,
-.collection-item-title, .collection-item-meta span,
-.mobile-section-title, .mobile-section-subtitle,
-.mobile-list-title, .mobile-empty-title, .mobile-empty-description,
-.cookie-banner-title,
-.elevated-btn, .elevated-readmore,
-.elevated-trailer-cta, .elevated-gallery-empty,
-.sidebar-link span, .rail-title a, .rail-title span,
-.profile-section-heading, .list-card-title, .list-card-description,
-.mobile-tab span, .nav-tab span,
-.toast-message, .confirm-modal-title,
-.profile-primary-tab-label, .profile-primary-tab-copy {
-  text-transform: lowercase;
+* {
+  text-transform: lowercase !important;
 }
