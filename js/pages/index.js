@@ -2625,7 +2625,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function buildNewReleasesFallback(feedMap = homeFeedState) {
-      const sourceOrder = ['movie', 'tv', 'anime', 'game', 'book', 'music'];
+      const sourceOrder = ['movie', 'tv', 'anime', 'game', 'book'];
       const seen = new Set();
       const fallback = [];
       sourceOrder.forEach((key) => {
@@ -9722,8 +9722,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const { data } = await client
               .from('games')
               .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
+              .order('release_date', { ascending: false, nullsFirst: false })
               .order('rating_count', { ascending: false, nullsFirst: false })
-              .order('rating', { ascending: false, nullsFirst: false })
               .limit(Math.min(Math.max(targetCount * 4, 80), 160));
             return Array.isArray(data) ? data : [];
           } catch (_err) {

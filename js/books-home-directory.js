@@ -97,10 +97,46 @@
     };
   }
 
+  const FALLBACK_BOOKS = [
+    {
+      id: "lotr", title: "The Lord of the Rings", authors: "J.R.R. Tolkien",
+      cover: "/images/fallback/book.svg", description: "An epic high-fantasy novel by the English author and scholar J. R. R. Tolkien.",
+      averageRating: 4.8, categories: ["Fantasy", "Adventure", "Classic"]
+    },
+    {
+      id: "1984", title: "1984", authors: "George Orwell",
+      cover: "/images/fallback/book.svg", description: "A dystopian social science fiction novel and cautionary tale.",
+      averageRating: 4.7, categories: ["Fiction", "Science Fiction"]
+    },
+    {
+      id: "pride", title: "Pride and Prejudice", authors: "Jane Austen",
+      cover: "/images/fallback/book.svg", description: "An 1813 romantic novel of manners written by Jane Austen.",
+      averageRating: 4.6, categories: ["Romance", "Classic"]
+    },
+    {
+      id: "gatsby", title: "The Great Gatsby", authors: "F. Scott Fitzgerald",
+      cover: "/images/fallback/book.svg", description: "A 1925 novel written by American author F. Scott Fitzgerald.",
+      averageRating: 4.4, categories: ["Fiction", "Classic"]
+    },
+    {
+      id: "mockingbird", title: "To Kill a Mockingbird", authors: "Harper Lee",
+      cover: "/images/fallback/book.svg", description: "A novel by Harper Lee published in 1960. It was immediately successful.",
+      averageRating: 4.9, categories: ["Fiction", "Classic"]
+    },
+    {
+      id: "dune", title: "Dune", authors: "Frank Herbert",
+      cover: "/images/fallback/book.svg", description: "A 1965 epic science fiction novel by American author Frank Herbert.",
+      averageRating: 4.7, categories: ["Science Fiction", "Adventure"]
+    }
+  ];
+
   async function fetchHomeBooksSection(section) {
     const books = await fetchServerBooks(section);
-    if (books.length) return books.map(serverBookToHomeItem).filter(Boolean);
-    return [];
+    if (books && books.length > 0) {
+      return books.map(serverBookToHomeItem).filter(Boolean);
+    }
+    // Return fallback books if API fails
+    return FALLBACK_BOOKS.map(b => ({ ...b })).sort(() => 0.5 - Math.random());
   }
 
   function renderBookCard(book) {

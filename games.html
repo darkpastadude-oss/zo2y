@@ -585,6 +585,29 @@
 
     }
 
+    .card-menu-wrap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 8px;
+    }
+    .card-menu-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(19, 35, 71, 0.92);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .card-menu-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
 
 
     .card-type {
@@ -2518,7 +2541,7 @@
 
               <div class="card-menu-wrap">
 
-                <button class="card-menu-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+                <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
 
               </div>
 
