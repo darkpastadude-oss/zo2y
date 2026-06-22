@@ -275,6 +275,8 @@
       const query = client
         .from('games')
         .select('id,title,release_date,description,cover_url,hero_url,rating,rating_count,extra,source,slug')
+        .gte('release_date', '2026-01-01')
+        .lte('release_date', '2026-12-31')
         .order('rating_count', { ascending: false, nullsFirst: false })
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(Math.max(limit * 10, 120));

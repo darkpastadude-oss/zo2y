@@ -74,6 +74,82 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+/*
+ * Zo2y · Elevated Detail Pages
+ *
+ * Reuses the .elevated-* design system from elevated-media.css but adds
+ * logo/badge-as-poster variants for individual-entity pages.
+ *
+ *   brand.html   — food / fashion / car brands
+ *   team.html    — sports teams
+ *
+ * Visual language: LinkedIn + Crunchbase + Wikipedia + ESPN + Strava
+ *   • wide hero with logo framed in a square "monogram" tile
+ *   • cinematic backdrop tinted with the brand's primary color
+ *   • dense info grid (HQ, founded, employees, stock, etc.)
+ *   • people/roster row (team squad, brand ambassadors)
+ *   • related entities row (sibling brands, rival teams)
+ */
+
+:root {
+  --dt-bg: #0b1633;
+  --dt-bg-2: #132347;
+  --dt-surface: rgba(14, 20, 44, 0.78);
+  --dt-surface-2: rgba(20, 28, 56, 0.62);
+  --dt-line: rgba(255, 255, 255, 0.08);
+  --dt-line-strong: rgba(255, 255, 255, 0.14);
+  --dt-text: #f4f7ff;
+  --dt-text-2: #b6c0d8;
+  --dt-text-3: #7d8aa6;
+  --dt-accent: #f59e0b;
+  --dt-accent-2: #ffb84d;
+  --dt-accent-soft: rgba(245, 158, 11, 0.16);
+  --dt-accent-line: rgba(245, 158, 11, 0.42);
+  --dt-success: #34d399;
+  --dt-radius-poster: 16px;
+  --dt-radius-card: 14px;
+  --dt-radius-pill: 999px;
+  --dt-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Per-page accent swatch — overridden per category */
+  --dt-glow-a: color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --dt-glow-b: rgba(99, 102, 241, 0.20);
+  --dt-fallback-c1: #0b1633;
+  --dt-fallback-c2: #132347;
+  --dt-fallback-c3: #0b1633;
+  --dt-fallback-initial: "?";
+  --dt-fallback-icon: "\f005";
+}
+
+/* ============================================================
+   PER-CATEGORY ACCENT SWATCH — all categories share orange
+   so the brand/team pages look consistent (movies.html theme)
+   ============================================================ */
+.elevated-detail-page[data-elevated-category="food"],
+.elevated-detail-page[data-elevated-category="fashion"],
+.elevated-detail-page[data-elevated-category="car"],
+.elevated-detail-page[data-elevated-category="team"] {
+  --dt-accent: #f59e0b;
+  --dt-accent-2: #ffb84d;
+  --dt-accent-soft: rgba(245, 158, 11, 0.16);
+  --dt-accent-line: rgba(245, 158, 11, 0.42);
+  --dt-glow-a: rgba(245, 158, 11, 0.26);
+  --dt-glow-b: rgba(239, 68, 68, 0.20);
+  --dt-fallback-c1: #1a0f04;
+  --dt-fallback-c2: #2a1606;
+  --dt-fallback-c3: #07091a;
+}
+
+/* ============================================================
+   PAGE SHELL
+   ============================================================ */
+.elevated-detail-page {
+  background: var(--dt-bg);
+  color: var(--dt-text);
+  font-feature-settings: "ss01", "cv11", "cv02";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overflow-x: clip;
   padding-bottom: 0;
 }
@@ -84,7 +160,7 @@
 .elevated-detail-page .elevated-hero {
   position: relative;
   width: 100%;
-  min-height: clamp(520px, 78vh, 720px);
+  min-height: clamp(520px, 78svh, 720px);
   isolation: isolate;
   overflow: hidden;
   background-color: var(--dt-bg-2);
@@ -92,15 +168,17 @@
 
 .elevated-detail-page .elevated-hero-backdrop {
   position: absolute;
-  inset: 0;
+  inset: -10%;
+  width: 120%;
+  height: 120%;
   z-index: 0;
   background-size: cover;
   background-position: center 20%;
   background-repeat: no-repeat;
   background-color: var(--dt-bg-2);
-  transform: scale(1.04);
+  transform: scale(1.0);
   transform-origin: center top;
-  filter: saturate(1.05) contrast(1.04);
+  filter: saturate(1.1) contrast(1.1) blur(15px) brightness(0.6);
   opacity: 0;
   transition: opacity 0.6s var(--dt-ease);
 }
@@ -309,7 +387,7 @@
    CENTERED HERO  —  like movies.html, logo centered with white card
    ============================================================ */
 .elevated-detail-page .elevated-hero.elevated-hero-centered {
-  min-height: clamp(560px, 86vh, 820px);
+  min-height: clamp(560px, 86svh, 820px);
 }
 .elevated-detail-page .elevated-hero.elevated-hero-centered .elevated-hero-foreground {
   grid-template-columns: 1fr;
@@ -2627,10 +2705,17 @@
    ============================================================ */
 @media (max-width: 768px) {
   .elevated-detail-page .elevated-gallery.has-multiple {
-    display: block;
+    display: flex;
+    justify-content: center;
+    width: 100%;
   }
   .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:not(:first-child) {
     display: none;
+  }
+  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
   }
   .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child::after {
     content: "+" attr(data-remaining);

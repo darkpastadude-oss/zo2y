@@ -9753,10 +9753,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           // Keep the same data source as the working commit, but reduce the request fanout so
           // the rail doesn't time out under "load everything immediately".
           const requests = [
-            { ...baseParams, page: 1, popularity_type: 1 },
-            { ...baseParams, page: 2, popularity_type: 1 },
-            { ...baseParams, page: 1, ordering: '-rating_count' },
-            { ...baseParams, page: 1, ordering: '-released' }
+            { ...baseParams, page: 1, popularity_type: 1, dates: '2026-01-01,2026-12-31' },
+            { ...baseParams, page: 2, popularity_type: 1, dates: '2026-01-01,2026-12-31' },
+            { ...baseParams, page: 1, ordering: '-rating_count', dates: '2026-01-01,2026-12-31' },
+            { ...baseParams, page: 1, ordering: '-released', dates: '2026-01-01,2026-12-31' }
           ];
           const merged = [];
           const seen = new Set();
