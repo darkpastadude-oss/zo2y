@@ -405,7 +405,7 @@
     })();
   </script>
       <script src="js/index-list-menu-adapter.js?v=20260620b" defer></script>
-        <script src="js/books-home-directory.js?v=20260620b" defer></script>
+
         <script src="js/pages/index.js?v=20260620b" defer></script>
     <script src="js/production-runtime.js?v=20260620b" defer></script>
     <script src="js/home-desktop-rebrand.js?v=20260620b" defer></script>
@@ -467,7 +467,11 @@
               })(href);
             }
             var img = document.createElement('img');
-            img.src = isStorageBucket ? (supa + item.image) : item.image;
+            var imgUrl = item.image;
+            if (isStorageBucket && !imgUrl.startsWith('http')) {
+              imgUrl = supa + imgUrl;
+            }
+            img.src = imgUrl;
             img.alt = item.title || '';
             var cap = document.createElement('figcaption');
             cap.textContent = item.title;

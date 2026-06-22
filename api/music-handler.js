@@ -433,8 +433,8 @@ export default async function handler(req, res) {
     const limit = clampInt(query.limit, 1, 100, 50);
     const market = normalizeMarket(query.market || "US");
     try {
-      const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
-      const searchRows = await searchItunesTracks({ q: `top songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const chartRows = await searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const searchRows = await searchItunesTracks({ q: `pop`, limit: Math.max(limit, 24), market }).catch(() => []);
       let results = dedupeTracks([...chartRows, ...searchRows]).slice(0, limit);
       if (!results.length) results = getFallbackTracks(limit, market);
       return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
@@ -449,9 +449,9 @@ export default async function handler(req, res) {
     const limit = clampInt(query.limit, 1, 100, 24);
     const market = normalizeMarket(query.market || "US");
     try {
-      const chartRows = await fetchAppleMostPlayedSongs({ market, limit: Math.max(50, limit) }).catch(() => []);
-      const popularRows = await searchItunesTracks({ q: `popular songs ${market}`, limit: Math.max(limit, 24), market }).catch(() => []);
-      const globalRows = await searchItunesTracks({ q: "top songs", limit: Math.max(limit, 24), market: "US" }).catch(() => []);
+      const chartRows = await searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const popularRows = await searchItunesTracks({ q: `pop`, limit: Math.max(limit, 24), market }).catch(() => []);
+      const globalRows = await searchItunesTracks({ q: "2026", limit: Math.max(limit, 24), market: "US" }).catch(() => []);
       let results = dedupeTracks([...chartRows, ...popularRows, ...globalRows]).slice(0, limit);
       if (!results.length) results = getFallbackTracks(limit, market);
       return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
@@ -468,7 +468,7 @@ export default async function handler(req, res) {
     const albumTypes = normalizeAlbumTypes(query.album_types || "album");
     const albumTypesKey = albumTypes.join(",") || "album";
     try {
-      const rows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market });
+      const rows = await searchItunesAlbums({ q: `2026`, limit: Math.max(limit * 2, 40), market });
       const results = filterAlbumsByType(rows, albumTypes).slice(0, limit);
       return res.json({
         count: results.length,
@@ -489,8 +489,8 @@ export default async function handler(req, res) {
     const albumTypes = normalizeAlbumTypes(query.album_types || "album");
     const albumTypesKey = albumTypes.join(",") || "album";
     try {
-      const newRows = await searchItunesAlbums({ q: `new albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
-      const trendingRows = await searchItunesAlbums({ q: `top albums ${market}`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
+      const newRows = await searchItunesAlbums({ q: `2026`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
+      const trendingRows = await searchItunesAlbums({ q: `hits`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
       const merged = dedupeAlbums([...newRows, ...trendingRows]);
       const results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
       return res.json({

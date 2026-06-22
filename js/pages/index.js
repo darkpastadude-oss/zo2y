@@ -9897,7 +9897,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           image: cover || '/images/fallback/book.svg',
           images: cover ? [{ url: cover }] : [],
           metadata: {
-            authors: Array.isArray(b.author_name) ? b.author_name : (b.authors || ['Unknown author']).split(', '),
+            authors: Array.isArray(b.author_name) ? b.author_name : (b.author ? b.author.split(', ') : (b.authors ? b.authors.split(', ') : ['Unknown author'])),
             year: b.first_publish_year || null
           },
           genres: Array.isArray(b.subject) ? b.subject.slice(0, 3) : [],

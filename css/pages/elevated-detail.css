@@ -459,8 +459,8 @@
    ============================================================ */
 .elevated-detail-page .elevated-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 .elevated-detail-page .elevated-gallery-item {
   position: relative;
