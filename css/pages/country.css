@@ -25,6 +25,7 @@
   border-radius: 12px;
   padding: 0;
   overflow: hidden;
+  aspect-ratio: auto;
 }
 
 .elevated-detail-page[data-elevated-category="travel"] .elevated-poster-frame.elevated-logo-card {
@@ -36,8 +37,9 @@
 
 .elevated-detail-page[data-elevated-category="travel"] .elevated-poster {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 160px;
+  object-fit: contain;
   display: block;
   border-radius: 12px;
   padding: 0;

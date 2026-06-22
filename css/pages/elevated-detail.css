@@ -1386,7 +1386,7 @@
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
@@ -2470,12 +2470,10 @@
   .elevated-detail-page .elevated-hero-backdrop,
   .elevated-detail-page .elevated-hero-blur,
   .elevated-detail-page .elevated-hero-collage {
-    position: fixed;
+    position: absolute;
     inset: 0;
     z-index: 0;
     transform: none;
-    background-attachment: fixed;
-    background-size: cover;
   }
   .elevated-detail-page .elevated-hero-backdrop {
     background-position: center 20%;
@@ -2485,11 +2483,11 @@
   }
   .elevated-detail-page .elevated-hero::before,
   .elevated-detail-page .elevated-hero::after {
-    position: fixed;
+    position: absolute;
     inset: 0;
   }
   .elevated-detail-page .elevated-hero-collage-track {
-    position: fixed;
+    position: absolute;
     inset: -50%;
     width: 200%;
     height: 200%;
@@ -2531,7 +2529,15 @@
   .elevated-detail-page .elevated-meta-item + .elevated-meta-item { padding-left: 10px; }
   .elevated-detail-page .elevated-tags { justify-content: center; }
   .elevated-detail-page .elevated-description { text-align: center; max-width: 100%; font-size: 0.95rem; }
-  .elevated-detail-page .elevated-description-wrap { max-width: 100%; padding: 12px 14px 10px; }
+  .elevated-detail-page .elevated-description-wrap { 
+    max-width: 100%; 
+    padding: 12px 0 10px; 
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   .elevated-detail-page .elevated-actions { justify-content: center; width: 100%; }
   .elevated-detail-page .elevated-content { width: calc(100% - 32px); }
   .elevated-detail-page .elevated-section + .elevated-section {
