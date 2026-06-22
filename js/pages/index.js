@@ -6675,7 +6675,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           `;
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${listImage}">
-            <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
             <div class="${mediaClasses.join(' ')}">
               ${mediaHtml}
             </div>
@@ -9918,7 +9917,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
 
       // Stage 1: Try server API
-      const data = await fetchJson(`/api/books/ol-popular?limit=${Math.max(40, targetCount * 2)}`);
+      const data = await fetchJson(`/api/books/trending?genre=fiction&limit=${Math.max(40, targetCount * 2)}`);
       if (data && data.books && data.books.length) {
         let booksList = safeArr(data.books);
         booksList = shuffleArray(booksList);
@@ -9985,15 +9984,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const fetchItunesTracks = async (limit = 30) => {
         try {
-          const r = await fetch(`https://itunes.apple.com/us/rss/topsongs/limit=${limit}/json`, { signal });
-          if (!r.ok) return [];
-          const j = await r.json();
-          return safeArr(j?.feed?.entry).map((t) => {
-            const linkObj = Array.isArray(t.link) ? t.link.find(l => l.attributes?.rel === 'enclosure') : t.link;
+          const j = await fetchJson(`/api/music/popular?limit=${limit}`);
+          return safeArr(j?.results).map((t) => {
             return {
-              id: String(t.id?.attributes?.['im:id'] || ''), name: t['im:name']?.label || 'Track',
-              artists: [t['im:artist']?.label || ''].filter(Boolean), image: (t['im:image'] && t['im:image'][2]?.label) || '',
-              collectionName: t['im:collection']?.['im:name']?.label || '', preview_url: linkObj?.attributes?.href || ''
+              id: String(t.id || ''), name: String(t.name || 'Track'),
+              artists: t.artists || [], image: String(t.image || ''),
+              collectionName: String(t.album?.name || ''), preview_url: String(t.preview_url || '')
             };
           });
         } catch (_err) { return []; }
@@ -10001,13 +9997,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const fetchItunesAlbums = async (limit = 20) => {
         try {
-          const r = await fetch(`https://itunes.apple.com/us/rss/topalbums/limit=${limit}/json`, { signal });
-          if (!r.ok) return [];
-          const j = await r.json();
-          return safeArr(j?.feed?.entry).map((a) => ({
-            id: String(a.id?.attributes?.['im:id'] || ''), name: a['im:name']?.label || 'Album',
-            artists: [a['im:artist']?.label || ''].filter(Boolean), image: (a['im:image'] && a['im:image'][2]?.label) || '',
-            release_date: (a['im:releaseDate']?.label || '').slice(0, 10)
+          const j = await fetchJson(`/api/music/popular-albums?limit=${limit}`);
+          return safeArr(j?.results).map((a) => ({
+            id: String(a.id || ''), name: String(a.name || 'Album'),
+            artists: a.artists || [], image: String(a.image || ''),
+            release_date: String(a.release_date || '')
           }));
         } catch (_err) { return []; }
       };

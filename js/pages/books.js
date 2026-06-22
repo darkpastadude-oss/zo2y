@@ -35,9 +35,6 @@ async function initAuthUi() {
 const BOOKS_API_BASE = '/api/books';
 const BOOKS_PAGE_SIZE = 20;
 
-let supabaseClient = null;
-let currentUser = null;
-
 const state = {
   books: [],
   search: '',

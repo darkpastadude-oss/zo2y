@@ -608,7 +608,6 @@
     const extra = team.sport ? team.sport.toLowerCase() : ' ';
 
     card.innerHTML = `
-      <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
       <div class="card-media is-loading-media">
         <img
           src="${HOME_IMAGE_PLACEHOLDER}"

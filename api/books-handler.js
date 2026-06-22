@@ -129,16 +129,43 @@ export default async function booksHandler(req, res) {
   // 3. FALLBACK PROXY (e.g. for fetching details by ID)
   // ==========================================
   try {
-    const relativePath = urlParts.slice(urlParts.indexOf("books") + 1).join("/");
+    let relativePath = urlParts.slice(urlParts.indexOf("books") + 1).join("/");
+    if (relativePath === "popular") relativePath = "volumes";
     const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
     Object.entries(query || {}).forEach(([k, v]) => url.searchParams.set(k, v));
     if (process.env.GOOGLE_BOOKS_API_KEY) url.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
 
     const response = await fetch(url.toString());
-    const text = await response.text();
-    res.status(response.status);
-    res.setHeader("content-type", response.headers.get("content-type") || "application/json");
-    return res.send(text);
+    
+    // If it's the popular proxy, it expects JSON books format
+    if (relativePath === "volumes") {
+      const data = await response.json();
+      if (!response.ok) return res.status(response.status).json(data);
+      
+      const books = (data.items || []).map(item => {
+        const vol = item.volumeInfo || {};
+        const authors = vol.authors || [];
+        const imageLinks = vol.imageLinks || {};
+        const cover = imageLinks.thumbnail || imageLinks.smallThumbnail || "/images/fallback/book.svg";
+        
+        return {
+          id: item.id,
+          title: vol.title || "Unknown Title",
+          author: authors.length ? authors.join(", ") : "Unknown Author",
+          year: vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4)) : null,
+          cover: cover.replace("http:", "https:"),
+          description: vol.description || "",
+          _source: "google-books"
+        };
+      });
+      res.setHeader("Cache-Control", "public, max-age=600");
+      return res.json({ ok: true, books, total: data.totalItems || books.length });
+    } else {
+      const text = await response.text();
+      res.status(response.status);
+      res.setHeader("content-type", response.headers.get("content-type") || "application/json");
+      return res.send(text);
+    }
   } catch (error) {
     return res.status(500).json({ ok: false, message: "Proxy error" });
   }
