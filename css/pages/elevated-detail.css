@@ -2621,3 +2621,112 @@
     width: calc(100% - 24px);
   }
 }
+
+/* ============================================================
+   LIGHTBOX & MOBILE GALLERY (WhatsApp-style)
+   ============================================================ */
+@media (max-width: 768px) {
+  .elevated-detail-page .elevated-gallery.has-multiple {
+    display: block;
+  }
+  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:not(:first-child) {
+    display: none;
+  }
+  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child::after {
+    content: "+" attr(data-remaining);
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2.2rem;
+    font-weight: 700;
+    z-index: 10;
+    pointer-events: none;
+  }
+}
+
+.lightbox-modal {
+  display: none;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  background: #000;
+  flex-direction: column;
+}
+.lightbox-modal.active {
+  display: flex;
+}
+.lightbox-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 16px;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+  pointer-events: none;
+}
+.lightbox-close {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.lightbox-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; /* Firefox */
+}
+.lightbox-track::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+.lightbox-slide {
+  flex: 0 0 100vw;
+  height: 100%;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.lightbox-slide img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.lightbox-slide-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 16px;
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+  pointer-events: none;
+}
+

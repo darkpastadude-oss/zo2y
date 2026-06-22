@@ -319,7 +319,7 @@
   function ensureMarkup() {
     if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals === 'function') { window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals(); return; }
     let m = document.getElementById('itemMenuModal');
-    if (!m) { m = document.createElement('div'); m.id = 'itemMenuModal'; m.className = 'menu-modal authenticated-only'; m.setAttribute('aria-hidden','true');
+    if (!m) { m = document.createElement('div'); m.id = 'itemMenuModal'; m.className = 'menu-modal'; m.setAttribute('aria-hidden','true');
       m.innerHTML = `<div class="menu-modal-content"><div class="menu-modal-header"><h3 id="menuModalTitle">Add to List</h3><button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button></div><div class="menu-modal-body" id="menuModalBody"><div class="menu-quick-lists" id="menuQuickLists"></div><div class="menu-custom-section"><div class="menu-custom-header"><span>Your Custom Lists</span></div><div class="menu-custom-lists" id="menuCustomLists"></div></div></div></div>`; document.body.appendChild(m); }
   }
   function syncMenuModalViewport(m) {

@@ -588,12 +588,19 @@
       if (kind === 'nature') return 'nature';
       return 'scenic';
     };
-    grid.innerHTML = list.map((entry) => `
-      <div class="elevated-gallery-item" data-kind="${escapeHtml(entry.kind)}">
+    grid.classList.toggle('has-multiple', list.length > 1);
+    grid.innerHTML = list.map((entry, i) => `
+      <div class="elevated-gallery-item" data-kind="${escapeHtml(entry.kind)}" data-index="${i}" ${i === 0 && list.length > 1 ? `data-remaining="${list.length - 1}"` : ''}>
         <img src="${escapeHtml(entry.url)}" alt="${escapeHtml(countryName)} ${escapeHtml(labelForKind(entry.kind))}" loading="lazy" onerror="this.onerror=null;this.closest('.elevated-gallery-item')?.remove();">
         <div class="elevated-gallery-item-caption">${escapeHtml(labelForKind(entry.kind))}</div>
       </div>
     `).join('');
+    grid.onclick = (e) => {
+      const item = e.target.closest('.elevated-gallery-item');
+      if (item && window.openGalleryLightbox) {
+        window.openGalleryLightbox(list.map(e => ({ url: e.url, caption: labelForKind(e.kind) })), parseInt(item.getAttribute('data-index') || '0', 10));
+      }
+    };
     if (ui.gallerySection) ui.gallerySection.hidden = false;
   }
 

@@ -1299,12 +1299,20 @@
             }
           });
           if (!images.length) return;
-          dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
-            <figure class="elevated-gallery-item">
+          const renderImgs1 = images.slice(0, 12);
+          dom.gallery.classList.toggle('has-multiple', renderImgs1.length > 1);
+          dom.gallery.innerHTML = renderImgs1.map((img, i) => `
+            <figure class="elevated-gallery-item" ${i === 0 && renderImgs1.length > 1 ? `data-remaining="${renderImgs1.length - 1}"` : ''} data-index="${i}">
               <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
               ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
             </figure>
           `).join('');
+          dom.gallery.onclick = (e) => {
+            const item = e.target.closest('.elevated-gallery-item');
+            if (item && window.openGalleryLightbox) {
+              window.openGalleryLightbox(renderImgs1, parseInt(item.getAttribute('data-index') || '0', 10));
+            }
+          };
         })
         .catch(() => {});
     }
@@ -1319,12 +1327,20 @@
       `;
       return;
     }
-    dom.gallery.innerHTML = images.slice(0, 12).map((img) => `
-      <figure class="elevated-gallery-item">
+    const renderImgs2 = images.slice(0, 12);
+    dom.gallery.classList.toggle('has-multiple', renderImgs2.length > 1);
+    dom.gallery.innerHTML = renderImgs2.map((img, i) => `
+      <figure class="elevated-gallery-item" ${i === 0 && renderImgs2.length > 1 ? `data-remaining="${renderImgs2.length - 1}"` : ''} data-index="${i}">
         <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || brand.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
         ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ''}
       </figure>
     `).join('');
+    dom.gallery.onclick = (e) => {
+      const item = e.target.closest('.elevated-gallery-item');
+      if (item && window.openGalleryLightbox) {
+        window.openGalleryLightbox(renderImgs2, parseInt(item.getAttribute('data-index') || '0', 10));
+      }
+    };
   }
 
   async function applyWikipediaBackdrop(brand) {

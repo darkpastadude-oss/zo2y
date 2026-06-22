@@ -86,9 +86,17 @@
       if (game.screenshots && game.screenshots.length > 0) {
         if (els.gallerySec) els.gallerySec.hidden = false;
         if (els.gallery) {
-          els.gallery.innerHTML = game.screenshots.map(img => 
-            `<div class="elevated-gallery-item"><img src="${img.image || img}" loading="lazy" alt="Screenshot" onerror="this.style.display='none'"></div>`
+          const renderImgs = game.screenshots;
+          els.gallery.classList.toggle('has-multiple', renderImgs.length > 1);
+          els.gallery.innerHTML = renderImgs.map((img, i) => 
+            `<div class="elevated-gallery-item" data-index="${i}" ${i === 0 && renderImgs.length > 1 ? `data-remaining="${renderImgs.length - 1}"` : ''}><img src="${img.image || img}" loading="lazy" alt="Screenshot" onerror="this.style.display='none'"></div>`
           ).join('');
+          els.gallery.onclick = (e) => {
+            const item = e.target.closest('.elevated-gallery-item');
+            if (item && window.openGalleryLightbox) {
+              window.openGalleryLightbox(renderImgs.map(i => ({ url: i.image || i, caption: '' })), parseInt(item.getAttribute('data-index') || '0', 10));
+            }
+          };
         }
       }
       

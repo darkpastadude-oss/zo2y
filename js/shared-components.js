@@ -73,10 +73,61 @@
     document.body.appendChild(toast.firstElementChild);
   }
 
+  const LIGHTBOX_MODAL_HTML = `
+    <div id="galleryLightbox" class="lightbox-modal" aria-hidden="true">
+      <div class="lightbox-header">
+        <button class="lightbox-close" id="lightboxCloseBtn" aria-label="Close lightbox">&times;</button>
+      </div>
+      <div class="lightbox-track" id="lightboxTrack"></div>
+    </div>`;
+
+  function injectLightboxModal() {
+    if (document.getElementById('galleryLightbox')) return;
+    const modal = document.createElement('div');
+    modal.innerHTML = LIGHTBOX_MODAL_HTML;
+    document.body.appendChild(modal.firstElementChild);
+
+    const lightbox = document.getElementById('galleryLightbox');
+    const closeBtn = document.getElementById('lightboxCloseBtn');
+    if (closeBtn && lightbox) {
+      closeBtn.addEventListener('click', () => {
+        lightbox.classList.remove('active');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      });
+    }
+  }
+
+  window.openGalleryLightbox = function(images, startIndex = 0) {
+    const lightbox = document.getElementById('galleryLightbox');
+    const track = document.getElementById('lightboxTrack');
+    if (!lightbox || !track || !images || !images.length) return;
+
+    track.innerHTML = images.map(img => `
+      <div class="lightbox-slide">
+        <img src="${img.url || img.src || img}" alt="Gallery image">
+        ${img.caption ? `<div class="lightbox-slide-caption">${img.caption}</div>` : ''}
+      </div>
+    `).join('');
+
+    lightbox.classList.add('active');
+    lightbox.removeAttribute('aria-hidden');
+    document.body.style.overflow = 'hidden';
+
+    // Scroll to the selected image
+    setTimeout(() => {
+      const slides = track.querySelectorAll('.lightbox-slide');
+      if (slides[startIndex]) {
+        slides[startIndex].scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'start' });
+      }
+    }, 10);
+  };
+
   function init() {
     injectFooter();
     injectItemMenuModal();
     injectToastContainer();
+    injectLightboxModal();
   }
 
   if (document.readyState === 'loading') {
@@ -85,5 +136,5 @@
     init();
   }
 
-  window.Zo2ySharedComponents = { injectFooter, injectItemMenuModal, injectToastContainer };
+  window.Zo2ySharedComponents = { injectFooter, injectItemMenuModal, injectToastContainer, injectLightboxModal };
 })();
