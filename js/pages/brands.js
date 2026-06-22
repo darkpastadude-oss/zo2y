@@ -13,38 +13,6 @@
     car: { table: 'car_list_items', itemField: 'brand_id' }
   };
 
-  const FALLBACKS = BRAND_TYPE === 'food'
-    ? [
-        { id: 'b5be652a-1f9b-498c-90c8-325cb9e2d887', name: "McDonald's", category: 'Fast Food', domain: 'mcdonalds.com', description: 'American fast-food chain.' },
-        { id: 'ae58f6af-fc0c-48bc-893b-22b8c9bea2f3', name: 'KFC', category: 'Fast Food', domain: 'kfc.com', description: 'Fried chicken specialists.' },
-        { id: 'e89ab03c-f3eb-4e8a-9ac6-7a78dd8cfebf', name: 'Burger King', category: 'Fast Food', domain: 'burgerking.com', description: 'Home of the Whopper.' },
-        { id: 'e43b76c1-9592-4451-a376-beb5cadaead0', name: 'Subway', category: 'Fast Food', domain: 'subway.com', description: 'Sandwich chain.' },
-        { id: 'dcbdebe1-e413-45f3-b73b-3680c7449687', name: 'Taco Bell', category: 'Fast Food', domain: 'tacobell.com', description: 'Mexican-inspired fast food.' },
-        { id: '212ce36e-df31-4c8e-a8f1-8640b5b47602', name: 'Starbucks', category: 'Coffee', domain: 'starbucks.com', description: 'Coffeehouse chain.' },
-        { id: '65836949-6f8c-4d12-9601-1b37030a8d4f', name: "Domino's", category: 'Pizza', domain: 'dominos.com', description: 'Pizza delivery chain.' },
-        { id: 'e2e4a465-c9e9-4124-b600-4e587e973b52', name: 'Pizza Hut', category: 'Pizza', domain: 'pizzahut.com', description: 'Pizza restaurant chain.' }
-      ]
-    : (BRAND_TYPE === 'car'
-      ? [
-          { id: 'b4bd539e-490f-406a-89b0-6d4c52043154', name: 'Toyota', category: 'Automaker', domain: 'toyota.com', description: 'Global automaker.' },
-          { id: '8d466b94-2cde-446b-b17f-05160ce9c92a', name: 'Honda', category: 'Automaker', domain: 'honda.com', description: 'Japanese automaker.' },
-          { id: '8a5091a6-a0b6-46ae-9adf-9ef96012fe1d', name: 'BMW', category: 'Luxury', domain: 'bmw.com', description: 'German luxury automaker.' },
-          { id: 'd569b2c2-8738-4f3a-b2aa-066d6b7a303d', name: 'Mercedes-Benz', category: 'Luxury', domain: 'mercedes-benz.com', description: 'German luxury automaker.' },
-          { id: '7125a959-48c6-458b-873f-3256ecba9813', name: 'Audi', category: 'Luxury', domain: 'audi.com', description: 'German luxury automaker.' },
-          { id: '163c6005-e94b-4b0d-ae95-b9210bd20571', name: 'Ford', category: 'Automaker', domain: 'ford.com', description: 'American automaker.' },
-          { id: 'c65e5725-4f9a-40ab-97b1-51b17ecfd52a', name: 'Chevrolet', category: 'Automaker', domain: 'chevrolet.com', description: 'American automaker.' },
-          { id: 'ae7822a8-c2cc-462b-84bc-16f70c256992', name: 'Tesla', category: 'EV', domain: 'tesla.com', description: 'Electric vehicle maker.' }
-        ]
-      : [
-          { id: 'fab6ce34-9e00-4d2a-a4ad-ebb69a8a318c', name: 'Nike', category: 'Sportswear', domain: 'nike.com', description: 'Global sportswear brand.' },
-          { id: '1982d6c7-716d-4f92-8529-039e03d83b72', name: 'Adidas', category: 'Sportswear', domain: 'adidas.com', description: 'Athletic apparel and footwear.' },
-          { id: '520d0db2-1e34-4076-9db7-06b7dccc9643', name: 'Zara', category: 'Fast Fashion', domain: 'zara.com', description: 'Spanish fashion retailer.' },
-          { id: '1d7003d5-dcce-4506-8cb3-2da40b6e8f24', name: 'Uniqlo', category: 'Basics', domain: 'uniqlo.com', description: 'Japanese casualwear brand.' },
-          { id: '6c5bbaa5-7007-4c62-b143-e5f89926b649', name: 'H&M', category: 'Fast Fashion', domain: 'hm.com', description: 'Global fashion retailer.' },
-          { id: 'a733512f-2667-4e87-9486-ec2be20fc557', name: 'Gucci', category: 'Luxury', domain: 'gucci.com', description: 'Italian luxury fashion.' },
-          { id: '0d44e575-c7d4-40fc-9489-1eaa69cb7663', name: 'Prada', category: 'Luxury', domain: 'prada.com', description: 'Luxury fashion house.' },
-          { id: 'dfe029f5-dee4-434a-bb6c-5015bc36c334', name: 'Louis Vuitton', category: 'Luxury', domain: 'louisvuitton.com', description: 'French luxury fashion.' }
-        ]);
 
   const BRAND_TYPO_MAP = {
     mac: ['mcdonalds', "mcdonald's"], macdonalds: ['mcdonalds', "mcdonald's"], mcdonald: ['mcdonalds', "mcdonald's"], mcd: ['mcdonalds', "mcdonald's"], mcdonalds: ['mcdonalds', "mcdonald's"], macd: ['mcdonalds', "mcdonald's"],
@@ -257,13 +225,21 @@
     return supabaseClient;
   }
 
+  const LOGO_CACHE_BUST = '20260622a';
+
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
     if (direct) {
+      let url;
       if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
-        return direct;
+        url = direct;
+      } else {
+        url = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
       }
-      return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
+      if (url.indexOf('data:') !== 0 && url.indexOf('?') === -1) {
+        url += '?v=' + LOGO_CACHE_BUST;
+      }
+      return url;
     }
     const title = String(name || '').trim();
     if (title) {
@@ -335,21 +311,28 @@
 
   function wireBrandImageState(scope) {
     const root = scope || document;
-    // Index-style card images (matches css/pages/index.css)
     root.querySelectorAll('img[data-home-image="1"]').forEach((img) => {
       const wrap = img.closest('.card-media');
       const markReady = () => {
         img.setAttribute('data-image-ready', '1');
         if (wrap) wrap.classList.remove('is-loading-media');
       };
+      const fallbackSrc = '/newlogo.webp?v=' + LOGO_CACHE_BUST;
       const handleError = () => {
-        const fallback = '/newlogo.webp';
-        if (img.src.endsWith(fallback)) {
+        if (img.src.endsWith(fallbackSrc) || img.src.endsWith('/newlogo.webp')) {
           markReady();
           return;
         }
+        const card = img.closest('.card');
+        const brandTitle = card?.querySelector('.card-name')?.textContent || '';
+        if (brandTitle) {
+          const apiFallback = '/api/logo?title=' + encodeURIComponent(brandTitle) + '&mode=logo';
+          img.removeAttribute('data-defer-src');
+          img.src = apiFallback;
+          return;
+        }
         img.removeAttribute('data-defer-src');
-        img.src = fallback;
+        img.src = fallbackSrc;
       };
       img.addEventListener('load', markReady);
       img.addEventListener('error', handleError);
@@ -813,7 +796,6 @@
     const label = BRAND_TYPE === 'food' ? 'Food' : (BRAND_TYPE === 'car' ? 'Cars' : 'Fashion');
 
     card.innerHTML = `
-      <div class="card-hover-cue"><i class="fas fa-arrow-up-right-from-square"></i> Open</div>
       <div class="card-media brand-cover is-loading-media">
         <img
           src="${BRAND_IMAGE_PLACEHOLDER}"
@@ -936,7 +918,7 @@
     grid.innerHTML = '<div class="empty-state">Loading brands...</div>';
     const client = ensureSupabase();
     if (!client) {
-      allBrands = FALLBACKS.map(normalizeBrand);
+      allBrands = [];
       renderCategories(allBrands);
       renderGrid();
       return;
@@ -948,8 +930,8 @@
       .order('name', { ascending: true })
       .limit(500);
 
-    if (error || !Array.isArray(data) || !data.length) {
-      allBrands = dedupeBrands(FALLBACKS.map(normalizeBrand));
+    if (error || !Array.isArray(data)) {
+      allBrands = [];
     } else {
       allBrands = dedupeBrands(data.map(normalizeBrand));
     }

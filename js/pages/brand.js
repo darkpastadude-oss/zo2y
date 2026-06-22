@@ -126,13 +126,21 @@
     }, 2400);
   }
 
+  const LOGO_CACHE_BUST = '20260622a';
+
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();
     if (direct) {
+      let url;
       if (/^https?:\/\//i.test(direct) || direct.startsWith('/') || direct.startsWith('data:')) {
-        return direct;
+        url = direct;
+      } else {
+        url = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
       }
-      return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
+      if (url.indexOf('data:') !== 0 && url.indexOf('?') === -1) {
+        url += '?v=' + LOGO_CACHE_BUST;
+      }
+      return url;
     }
     const title = String(name || '').trim();
     if (title) {
@@ -819,11 +827,11 @@
     }
 
     if (dom.logo) {
-      dom.logo.src = brand.logo || '/newlogo.webp';
+      dom.logo.src = brand.logo || '/newlogo.webp?v=' + LOGO_CACHE_BUST;
       dom.logo.alt = `${brand.name} logo`;
       dom.logo.onerror = () => {
         dom.logo.onerror = null;
-        dom.logo.src = '/newlogo.webp';
+        dom.logo.src = '/newlogo.webp?v=' + LOGO_CACHE_BUST;
         if (dom.posterFrame) dom.posterFrame.classList.add('is-missing');
       };
       if (!brand.logo) {
@@ -875,7 +883,7 @@
       dom.actionCard.querySelector('.card-title')?.replaceChildren(document.createTextNode(brand.name));
       dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || CATEGORY_LABEL));
       const img = dom.actionCard.querySelector('img');
-      if (img) img.src = brand.logo || '/newlogo.webp';
+      if (img) img.src = brand.logo || '/newlogo.webp?v=' + LOGO_CACHE_BUST;
     }
   }
 
