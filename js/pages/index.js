@@ -2935,10 +2935,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           )
           : Promise.resolve({ books: [] }),
         includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            '/api/music/top-50?limit=40&market=US',
-            { signal, cacheKey: 'music:new-releases:top-50-us-40' }
-          )
+          ? Promise.resolve({ results: [] }) // Removed top-50 from new releases to prevent old fallback tracks
           : Promise.resolve({ results: [] }),
         includeExtendedSources
           ? fetchJsonWithPerfCache(

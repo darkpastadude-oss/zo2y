@@ -94,26 +94,31 @@ export default async function booksHandler(req, res) {
     const orderBy = query.sort === 'newest' ? 'newest' : 'relevance';
 
     try {
-      const olUrl = new URL(`https://openlibrary.org/search.json`);
-      olUrl.searchParams.set("q", q);
-      olUrl.searchParams.set("limit", String(limit));
-      olUrl.searchParams.set("offset", String(startIndex));
+      const gbUrl = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
+      gbUrl.searchParams.set("q", q);
+      gbUrl.searchParams.set("maxResults", String(limit));
+      gbUrl.searchParams.set("startIndex", String(startIndex));
+      if (orderBy === 'newest') gbUrl.searchParams.set("orderBy", "newest");
+      if (process.env.GOOGLE_BOOKS_API_KEY) gbUrl.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
 
-      const response = await fetch(olUrl.toString(), { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error(`OpenLibrary HTTP ${response.status}`);
+      const response = await fetch(gbUrl.toString());
+      if (!response.ok) throw new Error(`Google Books HTTP ${response.status}`);
       const data = await response.json();
 
-      const books = (data.docs || []).map(work => {
-        const coverId = Number(work.cover_i || 0);
-        const authors = work.author_name || [];
+      const books = (data.items || []).map(item => {
+        const vol = item.volumeInfo || {};
+        const authors = vol.authors || [];
+        const imageLinks = vol.imageLinks || {};
+        const cover = imageLinks.thumbnail || imageLinks.smallThumbnail || "/images/fallback/book.svg";
+        
         return {
-          id: String(work.key || '').replace(/^\/works\//, ''),
-          title: String(work.title || '').trim(),
+          id: item.id,
+          title: vol.title || "Unknown Title",
           author: authors.length ? authors.join(", ") : "Unknown Author",
-          year: Number(work.first_publish_year || 0) || null,
-          cover: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "/images/fallback/book.svg",
-          description: "",
-          _source: "open-library"
+          year: vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4)) : null,
+          cover: cover.replace("http:", "https:"),
+          description: vol.description || "",
+          _source: "google-books"
         };
       });
 
