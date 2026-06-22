@@ -4,6 +4,8 @@ import {
   fetchWikipediaGamesList
 } from "../backend/lib/wiki-games-provider.js";
 
+import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
+
 function clampInt(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
@@ -102,17 +104,50 @@ export default async function handler(req, res) {
   }
 
   if (section === "games" && pathParts.length >= 2) {
-    const id = Number(pathParts[1]);
-    if (!Number.isFinite(id) || id <= 0) {
-      return res.status(400).json({ message: "Invalid game id." });
+    const rawId = String(pathParts[1]).trim();
+    let id = parseInt(rawId, 10);
+    
+    // First try the ID directly if it looks like a number.
+    let detail = null;
+    let detailError = null;
+    
+    if (Number.isFinite(id) && id > 0 && !rawId.includes(":")) {
+      try {
+        detail = await fetchWikipediaGameDetailsById(id);
+      } catch (e) {
+        detailError = e;
+      }
     }
-    try {
-      const detail = await fetchWikipediaGameDetailsById(id);
-      if (!detail) return res.status(404).json({ message: "Game not found." });
-      return res.json(detail);
-    } catch (error) {
-      return res.status(502).json({ message: "Game detail request failed.", detail: String(error?.message || error || "") });
+
+    // If direct fetch failed or it's a composite ID, try resolving the ID via Supabase title
+    if (!detail) {
+      try {
+        const client = await getSupabaseAdminClient();
+        if (client) {
+          const { data } = await client.from('games').select('title').eq('id', rawId).single();
+          if (data && data.title) {
+            const list = await fetchWikipediaGamesList({ search: data.title, pageSize: 1, titleOnly: true });
+            if (list && list.results && list.results.length > 0) {
+              const wikiId = list.results[0].id;
+              if (wikiId && wikiId !== id) {
+                detail = await fetchWikipediaGameDetailsById(wikiId);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore fallback failure
+      }
     }
+
+    if (!detail) {
+      if (detailError) {
+         return res.status(502).json({ message: "Game detail request failed.", detail: String(detailError?.message || detailError || "") });
+      }
+      return res.status(404).json({ message: "Game not found." });
+    }
+
+    return res.json(detail);
   }
 
   return res.status(404).json({ message: "Not found" });
