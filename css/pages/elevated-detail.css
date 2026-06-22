@@ -2701,36 +2701,34 @@
 }
 
 /* ============================================================
-   LIGHTBOX & MOBILE GALLERY (WhatsApp-style)
+   LIGHTBOX & GALLERY (WhatsApp-style stacked photos)
    ============================================================ */
-@media (max-width: 768px) {
-  .elevated-detail-page .elevated-gallery.has-multiple {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:not(:first-child) {
-    display: none;
-  }
-  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child {
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
-  }
-  .elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child::after {
-    content: "+" attr(data-remaining);
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 2.2rem;
-    font-weight: 700;
-    z-index: 10;
-    pointer-events: none;
-  }
+.elevated-detail-page .elevated-gallery.has-multiple {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:not(:first-child) {
+  display: none;
+}
+.elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.elevated-detail-page .elevated-gallery.has-multiple .elevated-gallery-item:first-child::after {
+  content: "+" attr(data-remaining);
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .lightbox-modal {

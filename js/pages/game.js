@@ -32,7 +32,7 @@
       
       const game = await res.json();
       
-      if (els.name) els.name.textContent = game.name || 'Unknown Game';
+      if (els.name) els.name.textContent = (game.name || 'Unknown Game').replace(/\s*\(video game\)/i, '');
       
       if (els.desc && game.description) {
         els.desc.textContent = game.description;

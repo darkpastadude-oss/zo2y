@@ -2851,13 +2851,13 @@
 
         card.addEventListener('click', (e) => {
 
-          if (e.target.closest('.menu-btn')) return;
+          if (e.target.closest('.card-menu-btn')) return;
 
-          const id = String(card.getAttribute('data-id') || '').trim();
+          const href = String(card.getAttribute('data-href') || '').trim();
 
-          if (!id) return;
+          if (!href) return;
 
-          window.location.href = `game.html?id=${encodeURIComponent(id)}`;
+          window.location.href = href;
 
         });
 
