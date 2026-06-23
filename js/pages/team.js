@@ -707,6 +707,9 @@
     const isLogoUrl = (url) => {
       if (!url) return false;
       const u = String(url).toLowerCase();
+      const teamBadge = String(team.badge || "").toLowerCase();
+      if (teamBadge && u.includes(teamBadge)) return true;
+      if (u === teamBadge) return true;
       return (
         /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
           u,
@@ -739,6 +742,8 @@
     );
     if (backdrop) {
       config.backdropUrl = backdrop;
+    } else {
+      config.backdropUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80";
     }
 
     if (team.league)

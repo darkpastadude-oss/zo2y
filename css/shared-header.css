@@ -10,6 +10,19 @@
   --zo2y-rail-expanded: 280px;
   --zo2y-rail-collapsed: 72px;
   --zo2y-rail-offset: 24px;
+
+  /* Global z-indexes */
+  --z-banner: 100;
+  --z-header: 1000;
+  --z-header-nav: 1010;
+  --z-drawer-backdrop: 2000;
+  --z-drawer: 2010;
+  --z-drawer-panel: 2020;
+  --z-modal-backdrop: 3000;
+  --z-modal: 3010;
+  --z-popover: 4000;
+  --z-toast: 5000;
+  --z-max: 99999;
 }
 
 /* Global UI chrome lowercase (keeps media/item titles untouched) */

@@ -29,7 +29,13 @@
         title: (game.name || "Unknown Game").replace(/\s*\(video game\)/i, ""),
         posterUrl: game.cover || "/images/fallback/game.svg",
         posterFit: "contain",
-        backdropUrl: game.background_image || game.hero || "",
+        backdropUrl: (() => {
+          let backdrop = game.background_image || game.hero || "";
+          if (!backdrop && game.screenshots && game.screenshots.length > 0) {
+            backdrop = game.screenshots[0].image || game.screenshots[0] || "";
+          }
+          return backdrop || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80";
+        })(),
         description:
           game.description || "Explore more details about this game.",
         metadata: [],

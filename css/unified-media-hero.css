@@ -77,17 +77,29 @@
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-frame,
 .elevated-detail-page[data-elevated-category="team"] .umh-poster-frame {
   aspect-ratio: 1 / 1;
-  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+  background: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 16px 32px rgba(0,0,0,0.6);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
 }
 
 .elevated-detail-page[data-elevated-category="food"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="fashion"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="team"] .umh-poster-contain {
-  background: transparent;
-  padding: 16px;
+  background: transparent !important;
+  padding: 0 !important;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
 }
 
 .umh-poster-fallback {

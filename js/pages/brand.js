@@ -820,16 +820,17 @@
       // Fallback: try Wikipedia commons category search
       if (!title) {
         try {
-          // Search for commons category with brand name
-          const categorySearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + " logo")}&srnamespace=6&format=json&origin=*&srlimit=5`;
+          // Search for commons category with brand name (prefer real photos, not logos)
+          const categorySearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&srnamespace=6&format=json&origin=*&srlimit=10`;
           const categoryRes = await fetch(categorySearchUrl);
           if (categoryRes.ok) {
             const categoryData = await categoryRes.json();
             const categoryResults = categoryData?.query?.search || [];
-            // Find first jpg/jpeg/webp image
+            // Find first jpg/jpeg/webp that isn't a logo
+            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat/i;
             for (const result of categoryResults) {
               const pageTitle = result.title || "";
-              if (/\.(jpg|jpeg|webp)$/i.test(pageTitle)) {
+              if (/\.(jpg|jpeg|webp)$/i.test(pageTitle) && !COMMONS_SKIP.test(pageTitle)) {
                 const fileName = pageTitle.replace(/^File:/, "");
                 const directUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=1600`;
                 const wikiResult = {
@@ -980,11 +981,52 @@
       actions: [],
     };
 
+    const isLogoUrl = (url) => {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      const brandLogo = String(brand.logo || "").toLowerCase();
+      if (brandLogo && u.includes(brandLogo)) return true;
+      if (u === brandLogo) return true;
+      return (
+        /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
+          u,
+        ) || /\.(svg)$/i.test(u)
+      );
+    };
+
+    const pickFirstNonLogo = (...candidates) => {
+      for (const c of candidates) {
+        if (!c) continue;
+        if (Array.isArray(c)) {
+          const found = c.find((x) => x && !isLogoUrl(x));
+          if (found) return found;
+        } else if (!isLogoUrl(c)) {
+          return c;
+        }
+      }
+      return null;
+    };
+
     if (wiki) {
-      const heroImg = wiki.photoImage || wiki.heroImage || wiki.thumbnail;
+      const heroImg = pickFirstNonLogo(
+        wiki.photoImage,
+        wiki.heroImage,
+        wiki.thumbnail,
+      );
       if (heroImg) {
         brandHeroConfig.backdropUrl = heroImg;
       }
+    }
+
+    const CATEGORY_FALLBACK_BACKDROPS = {
+      food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
+      fashion: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1600&q=80",
+      car: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80",
+      cars: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80"
+    };
+
+    if (!brandHeroConfig.backdropUrl) {
+      brandHeroConfig.backdropUrl = CATEGORY_FALLBACK_BACKDROPS[brandType] || "";
     }
 
     if (brand.category)

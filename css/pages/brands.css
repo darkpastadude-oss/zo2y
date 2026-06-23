@@ -316,12 +316,14 @@ main.container {
   overflow: hidden;
 }
 
-.brand-card-logo.is-loading {
+.brand-card-logo.is-loading,
+.brand-card-logo.is-loading-media {
   position: relative;
   overflow: hidden;
 }
 
-.brand-card-logo.is-loading::before {
+.brand-card-logo.is-loading::before,
+.brand-card-logo.is-loading-media::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -347,7 +349,8 @@ main.container {
   transition: opacity 220ms ease, filter 220ms ease;
 }
 
-.brand-card-logo img[data-ready="1"] {
+.brand-card-logo img[data-ready="1"],
+.brand-card-logo img[data-image-ready="1"] {
   opacity: 1;
   filter: blur(0);
 }
