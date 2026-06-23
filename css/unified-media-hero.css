@@ -76,8 +76,10 @@
 .elevated-detail-page[data-elevated-category="fashion"] .umh-poster-frame,
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-frame,
 .elevated-detail-page[data-elevated-category="team"] .umh-poster-frame {
+  aspect-ratio: 1 / 1;
   background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
   border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.6);
 }
 
 .elevated-detail-page[data-elevated-category="food"] .umh-poster-contain,
@@ -85,6 +87,7 @@
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="team"] .umh-poster-contain {
   background: transparent;
+  padding: 16px;
 }
 
 .umh-poster-fallback {
