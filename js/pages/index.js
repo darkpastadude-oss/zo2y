@@ -406,10 +406,10 @@
     const HOME_BOOKS_FETCH_TIMEOUT_MS = 2200;
     const HOME_LOCAL_FALLBACK_IMAGE = '/newlogo.webp';
     const HOME_GAMES_FALLBACK_ITEMS = [
-      { id: '12766', title: 'The Witcher 3: Wild Hunt', release: '2015-05-19', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
-      { id: '26192', title: 'Red Dead Redemption 2', release: '2018-10-26', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
-      { id: '1877', title: 'The Elder Scrolls V: Skyrim', release: '2011-11-11', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
-      { id: '7346', title: 'Portal 2', release: '2011-04-18', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
+      { id: '12766', title: 'Elden Ring: Shadow of the Erdtree', release: '2026-06-21', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/the-witcher-3-wild-hunt.jpg' },
+      { id: '26192', title: 'Hollow Knight: Silksong', release: '2026-02-14', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/red-dead-redemption-2.jpg' },
+      { id: '1877', title: 'Grand Theft Auto VI', release: '2026-11-09', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/skyrim.jpg' },
+      { id: '7346', title: 'Monster Hunter Wilds', release: '2026-03-15', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
     const HOME_CHANNEL_TARGET_ITEMS = 16;
