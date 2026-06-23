@@ -46,6 +46,8 @@
 
     <link rel="stylesheet" href="css/components.css?v=20260623z">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+    <link rel="stylesheet" href="css/unified-media-hero.css?v=2">
+    <script src="js/unified-media-hero.js?v=2" defer></script>
 </head>
 <body class="elevated-detail-page" data-elevated-category="travel">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -81,47 +83,8 @@
   </div>
 </header>
 
-  <section class="elevated-hero elevated-hero-centered is-no-backdrop" id="countryHero" aria-label="Country header">
-    <div class="elevated-hero-backdrop" id="countryBackdrop" aria-hidden="true"></div>
-    <div class="elevated-hero-blur" id="countryBackdropBlur" aria-hidden="true"></div>
-    <div class="elevated-hero-grain" aria-hidden="true"></div>
-    <div class="elevated-hero-watermark" aria-hidden="true">travel</div>
-    <div class="elevated-hero-foreground">
-      <div class="elevated-poster-frame elevated-logo-card" id="countryPosterFrame" aria-label="Country flag">
-        <img id="countryFlag" class="elevated-poster" src="/file.svg" alt="Country flag" loading="lazy" decoding="async">
-        <div class="elevated-poster-fallback" aria-hidden="true">
-          <i class="elevated-poster-fallback-icon fa-solid fa-earth-americas"></i>
-          <span class="elevated-poster-fallback-title" id="countryPosterFallbackTitle">Country</span>
-        </div>
-      </div>
-      <div class="elevated-info">
-        <span class="elevated-kicker" id="countryKicker">
-          <span class="elevated-kicker-dot"></span>
-          <i class="fa-solid fa-earth-americas"></i> <span id="countryKickerLabel">travel spotlight</span>
-        </span>
-        <div class="elevated-title-row">
-          <h1 class="elevated-title" id="countryName">Loading country.</h1>
-        </div>
-        <div id="countryMeta" class="elevated-meta" aria-label="Country metadata"></div>
-        <div id="countryTags" class="elevated-tags" aria-label="Country tags"></div>
-        <div class="elevated-description-wrap">
-          <p id="countryDescription" class="elevated-description is-clamped">Loading country details.</p>
-          <button class="elevated-readmore" id="countryDescriptionToggle" type="button" aria-expanded="false" aria-controls="countryDescription">
-            <span class="elevated-readmore-label">read more</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-        </div>
-        <div class="elevated-actions">
-          <button class="elevated-btn elevated-btn-primary" id="countrySaveBtn" type="button">
-            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
-          </button>
-          <a class="elevated-btn elevated-btn-secondary" id="countryMapBtn" href="#" target="_blank" rel="noopener">
-            <i class="fa-solid fa-map-location-dot"></i> open in maps
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- Unified Media Hero Container -->
+  <div id="unifiedHeroContainer"></div>
 
   <div class="elevated-content">
     <section class="elevated-section">
@@ -220,3 +183,4 @@
 <script src="/js/shared-components.js?v=20260623z" defer></script>
 </body>
 </html>
+

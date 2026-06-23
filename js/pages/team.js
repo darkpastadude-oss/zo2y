@@ -1390,3 +1390,4 @@
     showToast('Unable to load team details.', 'error');
   });
 })();
+

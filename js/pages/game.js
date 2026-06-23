@@ -37,11 +37,11 @@
         ]
       };
       
-      if (game.rating) config.metadata.push({ type: 'rating', value: Number(game.rating).toFixed(1) });
       if (game.released) config.metadata.push({ type: 'year', value: game.released.substring(0, 4) });
       if (game.platforms && game.platforms.length > 0) config.metadata.push({ type: 'platform', value: game.platforms.slice(0, 2).map(p => p.name || p).join(', ') + (game.platforms.length > 2 ? '...' : '') });
       if (game.developers && game.developers.length > 0) config.metadata.push({ type: 'developer', value: game.developers[0].name || game.developers[0] });
       if (game.genres && game.genres.length > 0) config.metadata.push({ type: 'genre', value: game.genres.slice(0, 2).map(g => g.name || g).join(', ') });
+      if (game.rating) config.metadata.push({ type: 'rating', value: Number(game.rating).toFixed(1) });
       
       if (game.website) config.actions.push({ id: 'gameWebsite', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Official Site', href: game.website });
       

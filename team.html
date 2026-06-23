@@ -39,9 +39,10 @@
   <script src="js/shared-header.js?v=20260623z" defer></script>
   <noscript></noscript>
 
-  
     <link rel="stylesheet" href="css/components.css?v=20260623z">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+    <link rel="stylesheet" href="css/unified-media-hero.css?v=2">
+    <script src="js/unified-media-hero.js?v=2" defer></script>
 </head>
 <body class="elevated-detail-page" data-elevated-category="team">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -74,47 +75,8 @@
   </div>
 </header>
 
-  <section class="elevated-hero elevated-hero-centered is-no-backdrop" id="teamHero" aria-label="Team header">
-    <div class="elevated-hero-backdrop" id="teamBackdrop" aria-hidden="true"></div>
-    <div class="elevated-hero-blur" id="teamBackdropBlur" aria-hidden="true"></div>
-    <div class="elevated-hero-grain" aria-hidden="true"></div>
-    <div class="elevated-hero-watermark" aria-hidden="true">team</div>
-    <div class="elevated-hero-foreground">
-      <div class="elevated-poster-frame elevated-logo-card is-missing" id="teamPosterFrame" aria-label="Team badge">
-        <img id="teamBadge" class="elevated-poster" src="/file.svg" alt="Team logo" loading="lazy" decoding="async">
-        <div class="elevated-poster-fallback" aria-hidden="true">
-          <i class="elevated-poster-fallback-icon fa-solid fa-shield-halved"></i>
-          <span class="elevated-poster-fallback-title" id="teamPosterFallbackTitle">Team</span>
-        </div>
-      </div>
-      <div class="elevated-info">
-        <span class="elevated-kicker">
-          <span class="elevated-kicker-dot"></span>
-          <i class="fa-solid fa-trophy"></i> <span id="teamKicker">team spotlight</span>
-        </span>
-        <div class="elevated-title-row">
-          <h1 class="elevated-title" id="teamName">Loading team...</h1>
-        </div>
-        <div id="teamMeta" class="elevated-meta" aria-label="Team metadata"></div>
-        <div id="teamTags" class="elevated-tags" aria-label="Team tags"></div>
-        <div class="elevated-description-wrap">
-          <p id="teamDescription" class="elevated-description is-clamped">Loading description...</p>
-          <button class="elevated-readmore" id="teamDescriptionToggle" type="button" aria-expanded="false" aria-controls="teamDescription">
-            <span class="elevated-readmore-label">read more</span>
-            <i class="fa-solid fa-chevron-down"></i>
-          </button>
-        </div>
-        <div class="elevated-actions">
-          <button class="elevated-btn elevated-btn-primary" id="teamSaveBtn" type="button">
-            <i class="fa-solid fa-bookmark"></i> <span>add to list</span>
-          </button>
-          <a class="elevated-btn elevated-btn-secondary" id="teamWebsite" href="#" target="_blank" rel="noopener" style="display:none;">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> official site
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- Unified Media Hero Container -->
+  <div id="unifiedHeroContainer"></div>
 
   <div class="elevated-content">
     <section class="elevated-section">
@@ -210,3 +172,4 @@
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 </body>
 </html>
+

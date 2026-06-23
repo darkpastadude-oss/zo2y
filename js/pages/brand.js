@@ -812,437 +812,64 @@
     return brand;
   }
 
+  let brandHeroConfig = null;
+
+  function renderBrandHeroConfig(brand, wiki) {
+    brandHeroConfig = {
+      type: brandType,
+      title: brand.name || "Brand",
+      description: brand.description || "",
+      posterUrl: brand.logo || "/newlogo.webp?v=" + LOGO_CACHE_BUST,
+      backdropUrl: "",
+      metadata: [],
+      tags: [],
+      actions: []
+    };
+
+    if (wiki) {
+      const heroImg = wiki.photoImage || wiki.heroImage || wiki.thumbnail;
+      if (heroImg) {
+        brandHeroConfig.backdropUrl = heroImg;
+      }
+    } else if (brand.logo) {
+      brandHeroConfig.backdropUrl = brand.logo;
+    }
+
+    if (brand.category) brandHeroConfig.metadata.push({ type: "genre", value: brand.category });
+    if (brand.country) brandHeroConfig.metadata.push({ type: "globe", value: brand.country, icon: "fa-solid fa-flag" });
+    if (brand.founded) brandHeroConfig.metadata.push({ type: "year", value: `founded ${brand.founded}`, icon: "fa-solid fa-calendar" });
+    if (brand.headquarters) brandHeroConfig.metadata.push({ type: "location", value: brand.headquarters, icon: "fa-solid fa-location-dot" });
+
+    if (Array.isArray(brand.tags)) {
+      brandHeroConfig.tags = brand.tags.slice(0, 8);
+    }
+
+    brandHeroConfig.actions.push({ id: "brandSaveBtn", icon: "fa-solid fa-bookmark", label: "save to list", primary: true });
+    if (brand.domain) {
+      brandHeroConfig.actions.push({ id: "brandWebsite", icon: "fa-solid fa-arrow-up-right-from-square", label: "visit website", href: `https://${brand.domain}` });
+    }
+
+    if (window.renderUnifiedMediaHero) {
+      window.renderUnifiedMediaHero(document.getElementById("unifiedHeroContainer"), brandHeroConfig);
+    }
+  }
+
   function updateHero(brand) {
     setCategoryAccent();
     document.body.dataset.navPage = brandType;
     document.title = `${brand.name} \u00B7 ${CATEGORY_LABEL} \u00B7 Zo2y`;
 
-    const initials = setBrandNameInitials(brand.name);
-    setFallbackInitial(initials);
-    if (dom.posterFallbackTitle) {
-      dom.posterFallbackTitle.textContent = brand.name;
-    }
-    if (dom.kickerLabel) {
-      dom.kickerLabel.textContent = `${brandType} spotlight`;
-    }
-
-    if (dom.logo) {
-      dom.logo.src = brand.logo || '/newlogo.webp?v=' + LOGO_CACHE_BUST;
-      dom.logo.alt = `${brand.name} logo`;
-      dom.logo.onerror = () => {
-        dom.logo.onerror = null;
-        dom.logo.src = '/newlogo.webp?v=' + LOGO_CACHE_BUST;
-        if (dom.posterFrame) dom.posterFrame.classList.add('is-missing');
-      };
-      if (!brand.logo) {
-        dom.posterFrame?.classList.add('is-missing');
-      } else {
-        dom.posterFrame?.classList.remove('is-missing');
-      }
-    }
-
     if (dom.name) dom.name.textContent = brand.name;
-
-    const metaItems = [];
-    if (brand.category) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid ${CATEGORY_ICON}"></i> ${escapeHtml(brand.category)}</span>`);
-    if (brand.country) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-flag"></i> ${escapeHtml(brand.country)}</span>`);
-    if (brand.founded) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-calendar"></i> founded ${escapeHtml(brand.founded)}</span>`);
-    if (brand.headquarters) metaItems.push(`<span class="elevated-meta-item"><i class="fa-solid fa-location-dot"></i> ${escapeHtml(brand.headquarters)}</span>`);
-    if (dom.meta) dom.meta.innerHTML = metaItems.join('');
-
-    renderTags(brand.tags);
-
     if (dom.desc) {
-      dom.desc.textContent = brand.description || 'No description yet.';
+      dom.desc.textContent = brand.description || "No description yet.";
       bindClampedDescription(dom.desc, dom.desc?.parentElement, dom.descToggle);
     }
-
     if (dom.about) {
-      dom.about.textContent = brand.description || 'This brand does not have a bio yet.';
+      dom.about.textContent = brand.description || "This brand does not have a bio yet.";
       bindClampedDescription(dom.about, dom.about?.parentElement, dom.aboutToggle);
     }
 
-    if (dom.website) {
-      if (brand.domain) {
-        dom.website.href = `https://${brand.domain}`;
-        dom.website.style.display = '';
-        if (dom.posterFrame) {
-          dom.posterFrame.href = `https://${brand.domain}`;
-        }
-      } else {
-        dom.website.style.display = 'none';
-        if (dom.posterFrame) {
-          dom.posterFrame.removeAttribute('href');
-        }
-      }
-    }
-
-    if (dom.actionCard) {
-      dom.actionCard.setAttribute('data-item-id', brand.id);
-      if (brand.logo) dom.actionCard.setAttribute('data-list-image', brand.logo);
-      dom.actionCard.querySelector('.card-title')?.replaceChildren(document.createTextNode(brand.name));
-      dom.actionCard.querySelector('.card-meta')?.replaceChildren(document.createTextNode(brand.category || CATEGORY_LABEL));
-      const img = dom.actionCard.querySelector('img');
-      if (img) img.src = brand.logo || '/newlogo.webp?v=' + LOGO_CACHE_BUST;
-    }
-  }
-
-  async function fetchBrand() {
-    if (!brandIdParam) return null;
-    const client = ensureSupabase();
-    if (!client) return null;
-    try {
-      let query = client.from(brandTable).select('id,name,slug,domain,logo_url,description,category,country,founded,tags').limit(1);
-      if (isUuid(brandIdParam)) {
-        query = query.eq('id', brandIdParam);
-      } else {
-        const safe = resolveLegacyBrandLookup(brandIdParam).replace(/,/g, '');
-        query = query.or(`slug.eq.${safe},domain.eq.${safe},name.ilike.%${safe}%`);
-      }
-      const { data, error } = await query;
-      if (error || !data || !data.length) return null;
-      return normalizeBrand(data[0]);
-    } catch (_err) {
-      // Supabase offline / network error — page will fall back to Wikipedia-only
-      return null;
-    }
-  }
-
-  function renderStarRating(rating, options = {}) {
-    const raw = Number(rating || 0);
-    const safe = Number.isFinite(raw) ? Math.max(0, Math.min(5, raw)) : 0;
-    const filled = Math.round(safe);
-    const wrapper = options.wrapper !== false;
-    let html = wrapper ? `<span class="elevated-review-big-stars" aria-label="${safe.toFixed(1)}/5">` : '';
-    for (let i = 0; i < 5; i += 1) {
-      html += `<i class="${i < filled ? 'fa-solid' : 'fa-regular'} fa-star" aria-hidden="true"></i>`;
-    }
-    if (wrapper) html += '</span>';
-    return html;
-  }
-
-  function updateStarDisplay() {
-    const stars = dom.reviewStars ? dom.reviewStars.querySelectorAll('.elevated-star') : [];
-    stars.forEach((star) => {
-      const starRating = parseInt(star.dataset.rating, 10);
-      star.classList.toggle('is-active', starRating <= currentRating);
-    });
-    const ratingTexts = ['select your rating', 'poor', 'fair', 'good', 'very good', 'excellent'];
-    if (dom.ratingText) dom.ratingText.textContent = ratingTexts[currentRating] || ratingTexts[0];
-  }
-
-  function renderReviewForm() {
-    if (!dom.reviewForm || !dom.authPrompt) return;
-    if (!currentUser) {
-      dom.reviewForm.style.display = 'none';
-      dom.authPrompt.style.display = '';
-    } else {
-      dom.reviewForm.style.display = '';
-      dom.authPrompt.style.display = 'none';
-    }
-  }
-
-  function renderReviewSummary() {
-    if (!dom.reviewsStats) return;
-    if (!reviews.length) {
-      dom.reviewsStats.innerHTML = `
-        <div class="elevated-review-big">
-          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
-          <div class="elevated-review-big-stars" aria-hidden="true">
-            <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
-          </div>
-          <div class="elevated-review-big-count">be the first to review</div>
-        </div>
-        <div class="elevated-review-bars">
-          <div class="elevated-review-bar-row"><span class="label">5â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">4â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">3â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">2â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-          <div class="elevated-review-bar-row"><span class="label">1â˜…</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>
-        </div>
-      `;
-      if (dom.reviewsCount) dom.reviewsCount.textContent = 'no reviews yet';
-      return;
-    }
-
-    const totalReviews = reviews.length;
-    const average = reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews;
-    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    reviews.forEach((r) => {
-      if (distribution[r.rating] !== undefined) distribution[r.rating] += 1;
-    });
-    const fivePct = Math.round((distribution[5] / totalReviews) * 100);
-
-    dom.reviewsStats.innerHTML = `
-      <div class="elevated-review-big">
-        <div class="elevated-review-big-value">${average.toFixed(1)}<span class="elevated-review-big-denom">/5</span></div>
-        ${renderStarRating(average)}
-        <div class="elevated-review-big-count">${totalReviews} review${totalReviews === 1 ? '' : 's'} \u00B7 ${fivePct}% 5\u2605</div>
-      </div>
-      <div class="elevated-review-bars">
-        ${[5, 4, 3, 2, 1].map((stars) => `
-          <div class="elevated-review-bar-row">
-            <span class="label">${stars}â˜…</span>
-            <div class="elevated-review-bar">
-              <div class="elevated-review-bar-fill" style="width:${(distribution[stars] / totalReviews) * 100}%"></div>
-            </div>
-            <span class="count">${distribution[stars]}</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    if (dom.reviewsCount) {
-      dom.reviewsCount.textContent = `${totalReviews} review${totalReviews === 1 ? '' : 's'} \u00B7 ${average.toFixed(1)}/5 average`;
-    }
-  }
-
-  async function loadReviews() {
-    if (!dom.reviewsList || !dom.reviewsStats || !brandData) return;
-    const client = ensureSupabase();
-    if (!client) return;
-    dom.reviewsList.innerHTML = '<div class="elevated-review-loading">Loading reviews…</div>';
-    const { data, error } = await client
-      .from(reviewTable)
-      .select('*')
-      .eq('brand_id', brandData.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Error loading reviews.</div>';
-      renderReviewSummary();
-      return;
-    }
-
-    reviews = data || [];
-    renderReviewSummary();
-    if (dom.reviewsSortControls) dom.reviewsSortControls.style.display = reviews.length ? 'flex' : 'none';
-    sortAndRenderReviews();
-  }
-
-  function sortAndRenderReviews() {
-    if (!reviews || !reviews.length) return;
-    let sorted = [...reviews];
-    if (currentSort === 'highest') sorted.sort((a, b) => b.rating - a.rating);
-    if (currentSort === 'lowest') sorted.sort((a, b) => a.rating - b.rating);
-    displayReviews(sorted);
-  }
-
-  async function displayReviews(reviewsToDisplay) {
-    if (!dom.reviewsList) return;
-    if (!reviewsToDisplay || !reviewsToDisplay.length) {
-      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet — be the first to share your thoughts!</div>';
-      return;
-    }
-
-    const userIds = [...new Set(reviewsToDisplay.map((r) => r.user_id))];
-    let userMap = {};
-    if (userIds.length && supabaseClient) {
-      const { data } = await supabaseClient
-        .from('user_profiles')
-        .select('id, username, full_name')
-        .in('id', userIds);
-      (data || []).forEach((user) => {
-        userMap[user.id] = user;
-      });
-    }
-
-    dom.reviewsList.innerHTML = reviewsToDisplay.map((review) => {
-      const user = userMap[review.user_id];
-      const reviewUsernameRaw = String(review?.username || review?.user_name || '').trim();
-      const isAutoUsername = /^user-[a-f0-9]{6,}$/i.test(reviewUsernameRaw);
-      const reviewUsername = isAutoUsername ? '' : reviewUsernameRaw;
-      const username = String(user?.username || reviewUsername).trim();
-      const fallbackName = String(user?.full_name || '').trim();
-      const displayName = username ? `@${username}` : (fallbackName || 'User');
-      const initialsBase = username || fallbackName || 'User';
-      const initials = initialsBase.split(/\s+/).map((n) => n[0]).slice(0, 2).join('').toUpperCase();
-      const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
-      const canEditDelete = currentUser && currentUser.id === review.user_id;
-      const comment = review.comment || review.review_text || '';
-      return `
-        <div class="elevated-review-card" id="review-${review.id}" data-review-id="${review.id}">
-          <a class="elevated-reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View ${escapeHtml(displayName)} profile">${escapeHtml(initials)}</a>
-          <div>
-            <a class="elevated-reviewer-name reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a>
-            <div class="elevated-review-date">${new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
-          </div>
-          <div class="elevated-review-rating">${renderStarRating(review.rating)}</div>
-          <p class="elevated-review-comment">${escapeHtml(comment)}</p>
-          ${canEditDelete ? `
-            <div class="elevated-review-actions">
-              <button class="review-edit" onclick="editReview('${review.id}')">edit</button>
-              <button class="review-delete danger" onclick="deleteReview('${review.id}')">delete</button>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }).join('');
-
-    if (window.ZO2Y_REVIEW_INTERACTIONS && supabaseClient) {
-      await window.ZO2Y_REVIEW_INTERACTIONS.mount({
-        container: dom.reviewsList,
-        reviews: reviewsToDisplay,
-        reviewSource: reviewTable,
-        mediaType: brandType,
-        currentUser,
-        supabaseClient,
-        notify: (message, level) => showToast(message, level || 'info'),
-        cardSelector: '.elevated-review-card',
-        reviewIdAttribute: 'data-review-id'
-      });
-    }
-  }
-
-  async function submitReview(e) {
-    e.preventDefault();
-    if (!currentUser) {
-      showToast('Please sign in to submit a review', 'info');
-      return;
-    }
-    const comment = dom.commentInput ? dom.commentInput.value.trim() : '';
-    if (!currentRating) {
-      showToast('Please select a rating', 'info');
-      return;
-    }
-    const payload = {
-      brand_id: brandData.id,
-      user_id: currentUser.id,
-      rating: currentRating,
-      review_text: comment
-    };
-    let error = null;
-    if (editingReviewId) {
-      const { error: updateError } = await supabaseClient
-        .from(reviewTable)
-        .update(payload)
-        .eq('id', editingReviewId);
-      error = updateError;
-    } else {
-      const { error: insertError } = await supabaseClient
-        .from(reviewTable)
-        .insert(payload);
-      error = insertError;
-    }
-    if (error) {
-      showToast('Error submitting review', 'error');
-      return;
-    }
-    const wasEditing = !!editingReviewId;
-    resetReviewForm();
-    await loadReviews();
-    if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.track === 'function') {
-      window.ZO2Y_ANALYTICS.track('review_saved', { media_type: brandType, is_edit: wasEditing }, { essential: true });
-    }
-    if (window.ZO2Y_ANALYTICS && typeof window.ZO2Y_ANALYTICS.markFirstAction === 'function') {
-      window.ZO2Y_ANALYTICS.markFirstAction('first_review_saved', {}, { essential: true });
-    }
-    showToast('Review saved', 'success');
-  }
-
-  window.editReview = async function (reviewId) {
-    if (!supabaseClient) return;
-    const { data: review } = await supabaseClient
-      .from(reviewTable)
-      .select('*')
-      .eq('id', reviewId)
-      .single();
-    if (!review) return;
-    editingReviewId = reviewId;
-    currentRating = review.rating;
-    if (dom.commentInput) dom.commentInput.value = review.comment || review.review_text || '';
-    updateStarDisplay();
-    const submitText = document.querySelector('.submit-review-btn .btn-text, .elevated-form-actions .btn-text');
-    if (submitText) submitText.textContent = 'Update Review';
-    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = '';
-  };
-
-  window.deleteReview = async function (reviewId) {
-    if (!currentUser) {
-      showToast('Please sign in to delete reviews', 'info');
-      return;
-    }
-    if (!window.ProfileManager) return;
-    ProfileManager.showConfirmModal('Delete Review', 'Delete this review?', async function() {
-    const { error } = await supabaseClient
-      .from(reviewTable)
-      .delete()
-      .eq('id', reviewId);
-    if (error) {
-      showToast('Error deleting review', 'error');
-      return;
-    }
-    await loadReviews();
-    showToast('Review deleted', 'success');
-    });
-  };
-
-  function resetReviewForm() {
-    editingReviewId = null;
-    currentRating = 0;
-    if (dom.reviewForm) dom.reviewForm.reset();
-    updateStarDisplay();
-    const submitText = document.querySelector('.submit-review-btn .btn-text, .elevated-form-actions .btn-text');
-    if (submitText) submitText.textContent = 'Submit Review';
-    if (dom.cancelEditBtn) dom.cancelEditBtn.style.display = 'none';
-  }
-
-  async function initReviewSystem() {
-    if (!supabaseClient || !brandData) return;
-    if (dom.sortSelect) {
-      dom.sortSelect.addEventListener('change', (e) => {
-        currentSort = e.target.value;
-        sortAndRenderReviews();
-      });
-    }
-    if (dom.reviewForm) {
-      dom.reviewForm.addEventListener('submit', submitReview);
-    }
-    if (dom.cancelEditBtn) {
-      dom.cancelEditBtn.addEventListener('click', () => resetReviewForm());
-    }
-    if (dom.commentInput) {
-      dom.commentInput.addEventListener('input', () => {
-        const count = dom.commentInput.value.length;
-        if (dom.charCount) dom.charCount.textContent = String(count);
-      });
-    }
-    if (dom.reviewStars) {
-      dom.reviewStars.querySelectorAll('.elevated-star').forEach((star) => {
-        star.addEventListener('click', () => {
-          currentRating = parseInt(star.dataset.rating, 10);
-          updateStarDisplay();
-        });
-      });
-    }
-    await loadReviews();
-  }
-  function searchYouTubeForBrand(query) {
-    if (!query) return null;
-    try {
-      const q = encodeURIComponent(String(query));
-      return `https://www.youtube.com/results?search_query=${q}`;
-    } catch (_e) { return null; }
-  }
-
-  function loadTrailer(brand) {
-    if (!dom.trailer || !dom.trailerSection) return;
-    if (!brand || !brand.name) {
-      dom.trailerSection.hidden = true;
-      return;
-    }
-    const query = `${brand.name} ${CATEGORY_LABEL} brand`.trim();
-    const searchUrl = searchYouTubeForBrand(query);
-    if (dom.trailerSub) dom.trailerSub.textContent = `Watch trailers and videos about ${brand.name}`;
-    dom.trailerSection.hidden = false;
-    dom.trailer.innerHTML = `
-      <div class="elevated-trailer-empty">
-        <i class="fa-brands fa-youtube"></i>
-        <span>no embedded video available for this brand</span>
-        <a class="elevated-trailer-cta" href="${escapeHtml(searchUrl || '#')}" target="_blank" rel="noopener">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube
-        </a>
-      </div>
-    `;
+    renderBrandHeroConfig(brand, null);
   }
 
   function loadGallery(brand) {
@@ -1499,3 +1126,4 @@
     boot();
   }
 })();
+
