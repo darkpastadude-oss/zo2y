@@ -27,7 +27,6 @@
 
     const {
       type = 'media',
-      typeLabel = 'Spotlight',
       title = 'Unknown Title',
       posterUrl = '',
       backdropUrl = '',
@@ -35,18 +34,6 @@
       metadata = [],
       actions = []
     } = config;
-
-    let typeIcon = 'fa-solid fa-star';
-    if (type === 'game') typeIcon = 'fa-solid fa-gamepad';
-    if (type === 'movie') typeIcon = 'fa-solid fa-film';
-    if (type === 'tv') typeIcon = 'fa-solid fa-tv';
-
-    const kickerHtml = `
-      <span class="umh-kicker">
-        <i class="${typeIcon}"></i>
-        ${escapeHtml(typeLabel)}
-      </span>
-    `;
 
     const metaHtml = metadata.filter(m => m && m.value).map(m => {
       const icon = TYPE_ICONS[m.type] || 'fa-solid fa-circle-info';
@@ -79,12 +66,24 @@
               <span>No Poster</span>
             </div>
           </div>
-          <div class="umh-info">
-            ${kickerHtml}
+          
+          <div class="umh-title-meta">
             <h1 class="umh-title">${escapeHtml(title)}</h1>
             <div class="umh-meta-row">${metaHtml}</div>
+          </div>
+
+          <div class="umh-actions-desc">
             <div class="umh-actions-bar">${actionsHtml}</div>
-            <div class="umh-description">${escapeHtml(description)}</div>
+            
+            ${description ? `
+            <div class="umh-description-wrap">
+              <div class="umh-description is-clamped" id="umhDesc">${escapeHtml(description)}</div>
+              <button class="umh-readmore" onclick="const d = document.getElementById('umhDesc'); d.classList.toggle('is-clamped'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up'); this.querySelector('span').textContent = d.classList.contains('is-clamped') ? 'read more' : 'read less';">
+                <span>read more</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+            </div>
+            ` : ''}
           </div>
         </div>
       </div>
