@@ -249,7 +249,7 @@
   function initMenuBridge() {
     if (typeof window.initIndexStyleListMenu !== "function") return;
     window.initIndexStyleListMenu({
-      mediaType: "team",
+      mediaType: "sports",
       getCurrentUser: () => state.currentUser,
       ensureClient: ensureSupabase,
       toggleDefaultList,
@@ -985,12 +985,17 @@
     if (!saveBtn || !window.initIndexStyleListMenu) return;
 
     window.initIndexStyleListMenu({
-      mediaType: "team",
+      mediaType: "sports",
       itemIdAttr: "data-item-id",
       getVisibleItemIds: () => team.id ? [team.id] : [],
       getQuickStatusForItem: () => null,
+      getCurrentUser: () => state.currentUser,
+      ensureClient: ensureSupabase,
+      toggleDefaultList,
+      notify: (message, isError) =>
+        showToast(message, isError ? "error" : "success"),
       getItemFromCard: () => ({
-        mediaType: "team",
+        mediaType: "sports",
         itemId: team.id,
         title: config.title,
         subtitle: "",

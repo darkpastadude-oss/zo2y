@@ -69,8 +69,22 @@
 
 .umh-poster-contain {
   object-fit: contain !important;
-  background: rgba(255, 255, 255, 0.05);
   padding: 12px;
+}
+
+.elevated-detail-page[data-elevated-category="food"] .umh-poster-frame,
+.elevated-detail-page[data-elevated-category="fashion"] .umh-poster-frame,
+.elevated-detail-page[data-elevated-category="car"] .umh-poster-frame,
+.elevated-detail-page[data-elevated-category="team"] .umh-poster-frame {
+  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.elevated-detail-page[data-elevated-category="food"] .umh-poster-contain,
+.elevated-detail-page[data-elevated-category="fashion"] .umh-poster-contain,
+.elevated-detail-page[data-elevated-category="car"] .umh-poster-contain,
+.elevated-detail-page[data-elevated-category="team"] .umh-poster-contain {
+  background: transparent;
 }
 
 .umh-poster-fallback {

@@ -985,8 +985,6 @@
       if (heroImg) {
         brandHeroConfig.backdropUrl = heroImg;
       }
-    } else if (brand.logo) {
-      brandHeroConfig.backdropUrl = brand.logo;
     }
 
     if (brand.category)
@@ -1043,12 +1041,17 @@
     if (!saveBtn || !window.initIndexStyleListMenu) return;
 
     window.initIndexStyleListMenu({
-      mediaType: "brand",
+      mediaType: brandType,
       itemIdAttr: "data-item-id",
       getVisibleItemIds: () => brand.id ? [brand.id] : [],
       getQuickStatusForItem: () => null,
+      getCurrentUser: () => currentUser,
+      ensureClient: ensureSupabase,
+      toggleDefaultList,
+      notify: (message, isError) =>
+        showToast(message, isError ? "error" : "success"),
       getItemFromCard: () => ({
-        mediaType: "brand",
+        mediaType: brandType,
         itemId: brand.id,
         title: config.title,
         subtitle: "",
@@ -1528,20 +1531,10 @@
       if (dom.aboutSource) {
         dom.aboutSource.innerHTML = `Source: <a href="${escapeHtml(wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>`;
       }
-      const heroImg = wiki.photoImage || wiki.heroImage || wiki.thumbnail;
-      if (heroImg) applyBackdrop(heroImg);
+      // Re-render hero with wiki data for backdrop image
+      renderBrandHeroConfig(brand, wiki);
       renderInfoGrid(brand, wiki);
       renderSocial(brand, wiki);
-    }
-
-    // Fallback: if no Wikipedia backdrop was found, use the brand logo
-    if (!dom.hero?.classList.contains("is-loaded") && brand.logo) {
-      applyBackdrop(brand.logo);
-    }
-
-    // Final fallback: animated collage if no backdrop at all
-    if (!dom.hero?.classList.contains("is-loaded")) {
-      applyCollageFallback(brand);
     }
 
     // Related brands — non-blocking
