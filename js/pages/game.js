@@ -94,6 +94,7 @@
           document.getElementById("unifiedHeroContainer"),
           config,
         );
+        bindUnifiedListMenu(game, config);
       }
 
       if (els.aboutBody && game.description) {
@@ -159,6 +160,30 @@
       if (els.name && !els.name.textContent)
         els.name.textContent = "Game Error";
     }
+  }
+
+  function bindUnifiedListMenu(game, config) {
+    const saveBtn = document.getElementById("gameSaveBtn");
+    if (!saveBtn || !window.initIndexStyleListMenu) return;
+
+    window.initIndexStyleListMenu({
+      mediaType: "game",
+      itemIdAttr: "data-item-id",
+      getVisibleItemIds: () => id ? [id] : [],
+      getQuickStatusForItem: () => null,
+      getItemFromCard: () => ({
+        mediaType: "game",
+        itemId: id,
+        title: config.title,
+        subtitle: "",
+        posterUrl: config.posterUrl
+      })
+    });
+
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openIndexStyleListMenu(saveBtn);
+    });
   }
 
   document.addEventListener("DOMContentLoaded", loadGame);

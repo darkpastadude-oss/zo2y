@@ -976,20 +976,32 @@
         document.getElementById("unifiedHeroContainer"),
         config,
       );
-
-      // Re-bind save button logic after render
-      ui.saveBtn = document.getElementById("teamSaveBtn");
-      if (ui.saveBtn) {
-        ui.saveBtn.addEventListener("click", () => {
-          if (!state.currentUser) {
-            window.location.href = "login.html";
-            return;
-          }
-          toggleDefaultList(team);
-        });
-        updateSaveButton(state.favorites.has(team.id));
-      }
+      bindUnifiedListMenu(team, config);
     }
+  }
+
+  function bindUnifiedListMenu(team, config) {
+    const saveBtn = document.getElementById("teamSaveBtn");
+    if (!saveBtn || !window.initIndexStyleListMenu) return;
+
+    window.initIndexStyleListMenu({
+      mediaType: "team",
+      itemIdAttr: "data-item-id",
+      getVisibleItemIds: () => team.id ? [team.id] : [],
+      getQuickStatusForItem: () => null,
+      getItemFromCard: () => ({
+        mediaType: "team",
+        itemId: team.id,
+        title: config.title,
+        subtitle: "",
+        posterUrl: config.posterUrl
+      })
+    });
+
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openIndexStyleListMenu(saveBtn);
+    });
   }
 
   function setHero(team, wiki) {

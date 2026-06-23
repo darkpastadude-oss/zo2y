@@ -131,6 +131,18 @@ export default async function booksHandler(req, res) {
   // ==========================================
   try {
     let relativePath = urlParts.slice(urlParts.indexOf("books") + 1).join("/");
+    
+    if (relativePath === "cover") {
+      const targetUrl = query.url;
+      if (!targetUrl) return res.status(400).json({ error: "Missing url parameter" });
+      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-worker/1.0" }});
+      if (!proxyRes.ok) return res.status(proxyRes.status).end();
+      const buffer = await proxyRes.arrayBuffer();
+      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
+      return res.end(new Uint8Array(buffer));
+    }
+
     if (relativePath === "popular") relativePath = "volumes";
     const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
     Object.entries(query || {}).forEach(([k, v]) => url.searchParams.set(k, v));

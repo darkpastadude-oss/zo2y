@@ -346,8 +346,8 @@
   async function loadAccessibleCustomListsViaRpc(client, userId, type) {
     const safeUserId = String(userId || '').trim();
     const safeType = String(type || '').trim().toLowerCase();
-    if (!client || !safeUserId || !safeType || typeof client.rpc !== 'function') return null;
-    if (accessibleCustomListsRpcSupported === false || readStorageObject('zo2y_rpc_custom_lists_unsupported') === '1') return null;
+    // Temporarily disable RPC to prevent 400 Bad Request error logging in console
+    return null;
 
     const { data, error } = await client.rpc('zo2y_get_accessible_custom_lists', {
       p_media_type: safeType

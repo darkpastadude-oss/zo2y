@@ -1320,6 +1320,8 @@
 
         if (window.renderUnifiedMediaHero) {
           window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);
+          bindUnifiedListMenu();
+          wireHeroActions();
         }
         const metaGrid = document.getElementById('metaGrid');
         if (metaGrid) {
@@ -2127,10 +2129,8 @@
       (async function init() {
         await initSupabase();
         initPageSearch();
-        bindUnifiedListMenu();
         wireOverviewToggle();
         wireTrailerLightbox();
-        wireHeroActions();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
         });

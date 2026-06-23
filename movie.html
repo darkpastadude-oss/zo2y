@@ -1307,6 +1307,8 @@
 
         if (window.renderUnifiedMediaHero) {
           window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);
+          bindUnifiedListMenu();
+          wireHeroActions();
         }
 
         const tags = document.getElementById('tags');
@@ -2121,10 +2123,8 @@ const url = new URL('movies.html', window.location.href);
       (async function init() {
         await initSupabase();
         initPageSearch();
-        bindUnifiedListMenu();
         wireOverviewToggle();
         wireTrailerLightbox();
-        wireHeroActions();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();
         });

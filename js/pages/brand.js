@@ -1034,7 +1034,32 @@
         document.getElementById("unifiedHeroContainer"),
         brandHeroConfig,
       );
+      bindUnifiedListMenu(brand, brandHeroConfig);
     }
+  }
+
+  function bindUnifiedListMenu(brand, config) {
+    const saveBtn = document.getElementById("brandSaveBtn");
+    if (!saveBtn || !window.initIndexStyleListMenu) return;
+
+    window.initIndexStyleListMenu({
+      mediaType: "brand",
+      itemIdAttr: "data-item-id",
+      getVisibleItemIds: () => brand.id ? [brand.id] : [],
+      getQuickStatusForItem: () => null,
+      getItemFromCard: () => ({
+        mediaType: "brand",
+        itemId: brand.id,
+        title: config.title,
+        subtitle: "",
+        posterUrl: config.posterUrl
+      })
+    });
+
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openIndexStyleListMenu(saveBtn);
+    });
   }
 
   function updateHero(brand) {

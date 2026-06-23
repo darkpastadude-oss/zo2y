@@ -10711,7 +10711,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { title: 'Burger King', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/burgerking-com.svg' },
         { title: 'Domino\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/dominos-com.svg' },
         { title: 'Subway', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/subway-com.svg' },
-        { title: 'Chipotle', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/chipotle-com.svg' },
+        { title: 'Chipotle', image: 'https://upload.wikimedia.org/wikipedia/en/3/3b/Chipotle_Mexican_Grill_logo.svg' },
         { title: 'Popeyes', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/popeyes-com.svg' },
         { title: 'Wendy\'s', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/wendys-com.svg' },
         { title: 'Pizza Hut', image: SUPABASE_URL + '/storage/v1/object/public/brand-logos/food_brands/pizzahut-com.svg' },

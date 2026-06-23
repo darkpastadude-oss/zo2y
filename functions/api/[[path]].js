@@ -52,7 +52,7 @@ const ROUTE_HANDLERS = new Map([
 ]);
 
 const READ_RATE_BUCKETS = new Map();
-const READ_RATE_DEFAULTS = { windowMs: 60_000, max: 120 };
+const READ_RATE_DEFAULTS = { windowMs: 60_000, max: 1000 };
 
 const WRITE_ROUTE_PREFIXES = new Set(["analytics", "auth", "emails", "support"]);
 const WRITE_RATE_BUCKETS = new Map();

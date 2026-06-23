@@ -1323,8 +1323,8 @@
   }
 
   function openListMenuFromCard() {
-    if (ui.actionCard && window.openIndexStyleListMenu) {
-      window.openIndexStyleListMenu(ui.actionCard);
+    if (ui.saveBtn && window.openIndexStyleListMenu) {
+      window.openIndexStyleListMenu(ui.saveBtn);
     }
   }
 
