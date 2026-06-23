@@ -682,9 +682,10 @@
   <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260623z">
 
 
-  
-    <link rel="stylesheet" href="css/components.css?v=20260623z">
-    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+      <link rel="stylesheet" href="css/components.css?v=20260623z">
+      <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+      <link rel="stylesheet" href="css/unified-media-hero.css">
+      <script src="js/unified-media-hero.js" defer></script>
 </head>
 <body class="elevated-media-page">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -716,40 +717,8 @@
   </div>
 </header>
 
-  <!-- Hero section with background image -->
-  <div class="elevated-hero" id="heroBackground">
-    <div class="elevated-hero-backdrop" id="heroBackdrop" aria-hidden="true"></div>
-    <div class="elevated-hero-blur" id="heroBackdropBlur" aria-hidden="true"></div>
-    <div class="elevated-hero-grain" aria-hidden="true"></div>
-    <div class="elevated-hero-foreground">
-      <div class="elevated-poster-frame" id="posterFrame" aria-label="Media poster">
-        <img id="poster" class="elevated-poster" src="images/placeholder.jpg" alt="Poster" loading="lazy" decoding="async">
-        <div class="elevated-poster-fallback" aria-hidden="true">
-          <i class="fas fa-image"></i>
-          no poster
-        </div>
-      </div>
-      <div class="elevated-info">
-        <div class="elevated-title-row">
-          <h1 id="title" class="elevated-title">Loading...</h1>
-        </div>
-        <p id="tagline" class="elevated-tagline" hidden></p>
-        <div id="meta" class="elevated-meta" aria-label="Media metadata"></div>
-        <div id="tags" class="elevated-tags" aria-label="Genres"></div>
-        <div class="elevated-description-wrap">
-          <p id="overview" class="elevated-description is-clamped"></p>
-          <button class="elevated-readmore" id="overviewToggle" type="button" aria-expanded="false" aria-controls="overview">
-            <span class="elevated-readmore-label">read more</span>
-            <i class="fas fa-chevron-down" aria-hidden="true"></i>
-          </button>
-        </div>
-        <div class="elevated-actions">
-          <button class="elevated-btn elevated-btn-primary" id="watchTrailerBtn" type="button"><i class="fas fa-play"></i> Watch Trailer</button>
-          <button class="elevated-btn elevated-btn-secondary" id="addWatchlistBtn" type="button"><i class="fas fa-bookmark"></i> Add to list</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- Unified Media Hero Container -->
+    <div id="unifiedHeroContainer"></div>
 
   <!-- Quick facts grid -->
   <div class="elevated-content">
@@ -1306,80 +1275,39 @@
         const keywords = payload?.keywords || {};
         const externals = payload?.external_ids || {};
         const imagesObj = payload?.images || {};
-        document.getElementById('title').textContent = data.title || 'Untitled';
-        const taglineEl = document.getElementById('tagline');
-        if (taglineEl) {
-          if (data.tagline && String(data.tagline).trim()) {
-            taglineEl.textContent = data.tagline.trim();
-            taglineEl.hidden = false;
-          } else {
-            taglineEl.hidden = true;
-          }
-        }
-        document.getElementById('overview').textContent = data.overview || 'No description available.';
+        const config = {
+          type: 'movie',
+          typeLabel: 'Movie Spotlight',
+          title: data.title || 'Untitled',
+          posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '/images/placeholder.jpg',
+          backdropUrl: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
+          description: data.overview || 'No description available.',
+          metadata: [],
+          actions: [
+            { id: 'watchTrailerBtn', icon: 'fa-solid fa-play', label: 'Watch Trailer', primary: true },
+            { id: 'addWatchlistBtn', icon: 'fa-solid fa-bookmark', label: 'Add to list' }
+          ]
+        };
 
-        // Set elevated meta with icons
-        const metaEl = document.getElementById('meta');
-        if (metaEl) {
-          const metaItems = [];
-          if (data.release_date) {
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-calendar"></i> ${data.release_date.slice(0, 4)}</div>`);
-          }
-          if (data.runtime) {
-            const hours = Math.floor(data.runtime / 60);
-            const mins = data.runtime % 60;
-            const dur = hours > 0 ? `${hours}h ${mins}m` : `${mins} min`;
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-clock"></i> ${dur}</div>`);
-          }
-          if (data.vote_average) {
-            const votes = data.vote_count ? `<span class="elevated-meta-votes">(${formatCount(data.vote_count)})</span>` : '';
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-star"></i> <span class="elevated-meta-rating">${data.vote_average.toFixed(1)}</span>${votes}</div>`);
-          }
-          if (data.status) {
-            const released = String(data.status).toLowerCase() === 'released';
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-circle" style="color:${released ? 'var(--md-success)' : 'var(--md-text-3)'};font-size:0.6em;"></i> ${escapeHtml(data.status)}</div>`);
-          }
-          if (Array.isArray(data.genres) && data.genres[0]) {
-            const primary = data.genres[0].name;
-            metaItems.push(`<div class="elevated-meta-item"><i class="fas fa-masks-theater"></i> ${escapeHtml(primary)}</div>`);
-          }
-          metaEl.innerHTML = metaItems.join('');
+        if (data.release_date) {
+          config.metadata.push({ type: 'year', value: data.release_date.slice(0, 4) });
+        }
+        if (data.runtime) {
+          const hours = Math.floor(data.runtime / 60);
+          const mins = data.runtime % 60;
+          const dur = hours > 0 ? `${hours}h ${mins}m` : `${mins} min`;
+          config.metadata.push({ type: 'runtime', value: dur });
+        }
+        if (data.vote_average) {
+          config.metadata.push({ type: 'rating', value: data.vote_average.toFixed(1) });
+        }
+        if (Array.isArray(data.genres) && data.genres[0]) {
+          config.metadata.push({ type: 'genre', value: data.genres[0].name });
         }
 
-        // Pick a backdrop that is visually distinct from the poster.
-        // Priority:
-        //   1. data.backdrop_path (the media's "primary" backdrop)
-        //   2. any other backdrop from images.backdrops (skip the one that
-        //      matches the primary; if all are the same pick the next one)
-        //   3. nothing n++ render a stronger hero gradient with the poster only.
-        const hero = document.getElementById('heroBackground');
-        const posterPath = data.poster_path || '';
-        const isSameAsPoster = (p) => !!p && !!posterPath && p === posterPath;
-        const backdrops = Array.isArray(imagesObj.backdrops) ? imagesObj.backdrops : [];
-        let backdropPath = '';
-        if (data.backdrop_path && !isSameAsPoster(data.backdrop_path)) {
-          backdropPath = data.backdrop_path;
-        } else {
-          const alt = backdrops
-            .map((b) => b?.file_path)
-            .filter((p) => p && !isSameAsPoster(p))
-            .find(Boolean);
-          if (alt) backdropPath = alt;
+        if (window.renderUnifiedMediaHero) {
+          window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);
         }
-        if (backdropPath) {
-          if (hero) hero.classList.remove('is-no-backdrop');
-          setHeroBackdrop(backdropPath);
-        } else {
-          if (hero) hero.classList.add('is-no-backdrop');
-          // Clear any leftover inline backdrop image so it doesn't bleed through.
-          const backdropEl = document.getElementById('heroBackdrop');
-          const blurEl = document.getElementById('heroBackdropBlur');
-          if (backdropEl) backdropEl.style.backgroundImage = '';
-          if (blurEl) blurEl.style.backgroundImage = '';
-        }
-
-        // Set poster with responsive srcset
-        setPosterImage(data.poster_path);
 
         const tags = document.getElementById('tags');
         if (tags && Array.isArray(data.genres)) {
@@ -2235,6 +2163,7 @@ const url = new URL('movies.html', window.location.href);
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 </body>
 </html>
+
 
 
 

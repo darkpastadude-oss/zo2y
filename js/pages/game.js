@@ -3,19 +3,10 @@
   const id = params.get('id');
 
   const els = {
-    name: document.getElementById('gameName'),
-    desc: document.getElementById('gameDescription'),
-    backdrop: document.getElementById('gameBackdrop'),
-    backdropBlur: document.getElementById('gameBackdropBlur'),
-    hero: document.getElementById('gameHero'),
-    meta: document.getElementById('gameMeta'),
-    tags: document.getElementById('gameTags'),
-    poster: document.getElementById('gameLogo'),
     gallery: document.getElementById('gameGallery'),
     gallerySec: document.getElementById('gameGallerySection'),
     related: document.getElementById('gameRelated'),
     relatedSec: document.getElementById('gameRelatedSection'),
-    kicker: document.getElementById('gameKickerLabel'),
     aboutBody: document.getElementById('gameAboutBody')
   };
 
@@ -32,38 +23,34 @@
       
       const game = await res.json();
       
-      if (els.name) els.name.textContent = (game.name || 'Unknown Game').replace(/\s*\(video game\)/i, '');
+      const config = {
+        type: 'game',
+        typeLabel: 'Game Spotlight',
+        title: (game.name || 'Unknown Game').replace(/\s*\(video game\)/i, ''),
+        posterUrl: game.cover || '/images/fallback/game.svg',
+        backdropUrl: game.background_image || game.hero || '',
+        description: game.description || 'Explore more details about this game.',
+        metadata: [],
+        actions: [
+          { id: 'gameSaveBtn', icon: 'fa-solid fa-bookmark', label: 'Add to List', primary: true },
+          { id: 'gameFavoriteBtn', icon: 'fa-solid fa-heart', label: 'Favorite' }
+        ]
+      };
       
-      if (els.desc && game.description) {
-        els.desc.textContent = game.description;
-      } else if (els.desc) {
-        els.desc.textContent = 'Explore more details about this game.';
+      if (game.rating) config.metadata.push({ type: 'rating', value: Number(game.rating).toFixed(1) });
+      if (game.released) config.metadata.push({ type: 'year', value: game.released.substring(0, 4) });
+      if (game.platforms && game.platforms.length > 0) config.metadata.push({ type: 'platform', value: game.platforms.slice(0, 2).map(p => p.name || p).join(', ') + (game.platforms.length > 2 ? '...' : '') });
+      if (game.developers && game.developers.length > 0) config.metadata.push({ type: 'developer', value: game.developers[0].name || game.developers[0] });
+      if (game.genres && game.genres.length > 0) config.metadata.push({ type: 'genre', value: game.genres.slice(0, 2).map(g => g.name || g).join(', ') });
+      
+      if (game.website) config.actions.push({ id: 'gameWebsite', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Official Site', href: game.website });
+      
+      if (window.renderUnifiedMediaHero) {
+        window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);
       }
       
       if (els.aboutBody && game.description) {
         els.aboutBody.textContent = game.description;
-      }
-      
-      if (els.meta) {
-        els.meta.innerHTML = `<span>${game.released ? game.released.substring(0, 4) : 'Unknown Year'}</span>`;
-      }
-      
-      if (els.poster && game.cover) {
-        els.poster.src = game.cover;
-        els.poster.onerror = function() { this.src = '/images/fallback/game.svg'; };
-      }
-      
-      if (game.background_image || game.hero) {
-        const bgImg = game.background_image || game.hero;
-        if (els.backdrop) els.backdrop.style.backgroundImage = `url("${bgImg}")`;
-        if (els.backdropBlur) els.backdropBlur.style.backgroundImage = `url("${bgImg}")`;
-        if (els.hero) els.hero.classList.remove('is-no-backdrop');
-      }
-      
-      if (els.tags && game.genres && game.genres.length > 0) {
-        els.tags.innerHTML = game.genres.map(g => `<span class="tag">${g.name || g}</span>`).join('');
-      } else if (els.tags) {
-        els.tags.innerHTML = '';
       }
       
       // Populate quick facts grid
