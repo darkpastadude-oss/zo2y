@@ -1,4 +1,4 @@
-﻿import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL ||
@@ -277,4 +277,5 @@ export default async function handler(req, res) {
     counts
   });
 }
+
 

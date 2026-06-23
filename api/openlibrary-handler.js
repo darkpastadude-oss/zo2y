@@ -93,3 +93,4 @@ export default async function handler(req, res) {
     return res.status(502).json({ message: error?.message || "Open Library proxy failed" });
   }
 }
+

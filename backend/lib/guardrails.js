@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { getSupabaseAdminClient } from "./supabase-admin.js";
 
 const rateLimitBuckets = new Map();
@@ -980,4 +980,5 @@ export function jsonErrorHandler(error, req, res, _next) {
     request_id: req.requestId || null
   });
 }
+
 

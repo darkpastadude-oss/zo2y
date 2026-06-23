@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import {
   emailConfigured,
   sendReminderEmail,
@@ -7,8 +6,6 @@ import {
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 import { timingSafeStringCompare, redactQuery, hashValue, getClientIp, writeAuditLog } from "../backend/lib/guardrails.js";
 
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
 
 function getHeader(req, name) {
   const key = String(name || "").toLowerCase();
@@ -330,3 +327,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

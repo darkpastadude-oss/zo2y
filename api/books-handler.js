@@ -1,10 +1,6 @@
-import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
-dotenv.config({ path: "backend/authRoutes/.env" });
 
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 
@@ -175,3 +171,4 @@ export default async function booksHandler(req, res) {
     return res.status(500).json({ ok: false, message: "Proxy error" });
   }
 }
+

@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
 
 const SPORTSDB_BASE = "https://www.thesportsdb.com/api/v1/json";
 
@@ -101,3 +98,4 @@ export default async function handler(req, res) {
     return res.status(502).json({ message: error?.message || "SportsDB proxy failed" });
   }
 }
+

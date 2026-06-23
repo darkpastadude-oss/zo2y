@@ -1,7 +1,4 @@
-import dotenv from "dotenv";
 
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
 
 const TMDB_BASE = "https://api.themoviedb.org/3";
 
@@ -150,3 +147,4 @@ export default async function handler(req, res) {
     });
   }
 }
+

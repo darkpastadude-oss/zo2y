@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 import {
   getClientIp,
@@ -8,8 +7,6 @@ import {
   writeAuditLog
 } from "../backend/lib/guardrails.js";
 
-dotenv.config();
-dotenv.config({ path: "backend/.env" });
 
 const SUPPORT_STATUSES = new Set(["open", "triaged", "in_progress", "resolved", "closed", "spam"]);
 const SUPPORT_CATEGORIES = new Set(["bug", "billing", "account", "feature", "abuse", "other"]);
@@ -301,3 +298,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
