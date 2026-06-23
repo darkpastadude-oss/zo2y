@@ -18,7 +18,8 @@
 }
 
 /* === Flag in center, no white background — match brand.css style === */
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster-frame {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
@@ -28,7 +29,8 @@
   aspect-ratio: auto;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
@@ -36,7 +38,8 @@
   border-radius: 10px;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster {
   width: 100%;
   height: auto;
   object-fit: cover;
@@ -46,13 +49,15 @@
   background: transparent;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster-fallback {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-fallback,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster-fallback {
   background: linear-gradient(135deg, var(--dt-fallback-c1), var(--dt-fallback-c2));
   border-radius: 12px;
 }
 
 /* === Travel category accent — orange === */
-.elevated-detail-page[data-elevated-category="travel"] {
+.elevated-detail-page[data-elevated-category="travel"],
+.elevated-media-page[data-elevated-category="travel"] {
   --dt-accent: #f59e0b;
   --dt-accent-2: #ffb84d;
   --dt-accent-soft: rgba(245, 158, 11, 0.16);

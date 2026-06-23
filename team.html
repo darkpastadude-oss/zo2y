@@ -22,11 +22,7 @@
       sizes="192x192"
       href="/images/icon-192.png"
     />
-    <link
-      rel="preconnect"
-      href="https://gfkhjbztayjyojsgdpgk.supabase.co"
-      crossorigin
-    />
+    <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin />
     <link rel="preconnect" href="https://www.thesportsdb.com" crossorigin />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
@@ -59,8 +55,10 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
     /></noscript>
-    <link rel="stylesheet" href="css/animations.css?v=20260623z" />
-    <link rel="stylesheet" href="css/pages/elevated-detail.css?v=20260623z" />
+    <link rel="stylesheet" href="/css/animations.css?v=20260623z" />
+    <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260623z" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260623z" /></noscript>
+    <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260623z" />
     <meta name="theme-color" content="#0b1633" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -77,29 +75,25 @@
       media="print"
       onload="this.media = 'all'"
     />
-    <noscript
-      ><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"
-    /></noscript>
+    <noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" /></noscript>
     <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
     <link
       rel="stylesheet"
-      href="css/shared-header.css?v=20260623z"
+      href="/css/shared-header.css?v=20260624a"
       media="print"
       onload="this.media = 'all'"
     />
-    <noscript
-      ><link rel="stylesheet" href="css/shared-header.css?v=20260623z"
-    /></noscript>
-    <script src="js/wiki-cache.js?v=20260623z" defer></script>
-    <script src="js/shared-header.js?v=20260623z" defer></script>
+    <noscript><link rel="stylesheet" href="/css/shared-header.css?v=20260624a" /></noscript>
+    <script src="/js/wiki-cache.js?v=20260623z" defer></script>
+    <script src="/js/shared-header.js?v=20260624a" defer></script>
     <noscript></noscript>
 
-    <link rel="stylesheet" href="css/components.css?v=20260623z" />
-    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z" />
-    <link rel="stylesheet" href="css/unified-media-hero.css?v=4" />
-    <script src="js/unified-media-hero.js?v=3" defer></script>
+    <link rel="stylesheet" href="/css/components.css?v=20260623z" />
+    <link rel="stylesheet" href="/css/global-lowercase.css?v=20260623z" />
+    <link rel="stylesheet" href="/css/unified-media-hero.css?v=20260623z" />
+    <script src="/js/unified-media-hero.js?v=20260623z" defer></script>
   </head>
-  <body class="elevated-detail-page" data-elevated-category="team">
+  <body class="elevated-media-page" data-elevated-category="team">
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
       <div class="zo2y-shared-header-inner">
         <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -127,42 +121,16 @@
           ></div>
         </div>
         <nav class="zo2y-shared-nav" aria-label="Primary navigation">
-          <a class="zo2y-shared-pill" data-nav-page="index" href="index.html"
-            >Home</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html"
-            >Movies</a
-          >
-          <a
-            class="zo2y-shared-pill"
-            data-nav-page="tvshows"
-            href="tvshows.html"
-            >TV</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html"
-            >Anime</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="games" href="games.html"
-            >Games</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="books" href="books.html"
-            >Books</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="music" href="music.html"
-            >Music</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html"
-            >Travel</a
-          >
-          <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html"
-            >Sports</a
-          >
-          <a
-            class="zo2y-shared-pill"
-            data-nav-page="reviews"
-            href="reviews.html"
-            >Reviews</a
-          >
+          <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+          <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+          <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+          <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+          <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+          <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+          <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+          <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+          <a class="zo2y-shared-pill" data-nav-page="sports" href="sports.html">Sports</a>
+          <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
         </nav>
         <div class="zo2y-shared-auth">
           <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
@@ -246,8 +214,8 @@
 
     <p class="elevated-footnote">
       <span
-        ><i class="fa-solid fa-circle-info"></i> sources: TheSportsDB n++
-        Wikipedia n++ local team manifest.
+        ><i class="fa-solid fa-circle-info"></i> sources: TheSportsDB &middot;
+        Wikipedia &middot; local team manifest.
         <a href="credits.html">all credits</a></span
       >
     </p>
@@ -265,12 +233,12 @@
       <img src="" alt="" loading="lazy" />
     </div>
 
-    <script src="js/sportsdb-client.js?v=20260623z" defer></script>
-    <script src="js/index-list-menu-adapter.js?v=20260623z" defer></script>
-    <script src="js/pages/team.js?v=20260623z" defer></script>
-    <link rel="stylesheet" href="css/pages/legal.css?v=20260623z" />
-    <script src="js/legal-consent.js?v=20260623z" defer></script>
-
+    <script src="/js/sportsdb-client.js?v=20260623z" defer></script>
+    <script src="/js/list-utils.js?v=20260623z" defer></script>
+    <script src="/js/index-list-menu-adapter.js?v=20260623z" defer></script>
+    <script src="/js/pages/team.js?v=20260623z" defer></script>
+    <link rel="stylesheet" href="/css/pages/legal.css?v=20260623z" />
+    <script src="/js/legal-consent.js?v=20260623z" defer></script>
     <script src="/js/shared-components.js?v=20260623z" defer></script>
   </body>
 </html>

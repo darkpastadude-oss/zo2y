@@ -94,7 +94,11 @@
 .elevated-detail-page[data-elevated-category="food"] .umh-poster-frame,
 .elevated-detail-page[data-elevated-category="fashion"] .umh-poster-frame,
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-frame,
-.elevated-detail-page[data-elevated-category="team"] .umh-poster-frame {
+.elevated-detail-page[data-elevated-category="team"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="food"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="fashion"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="car"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="team"] .umh-poster-frame {
   aspect-ratio: 1 / 1;
   background: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -109,7 +113,11 @@
 .elevated-detail-page[data-elevated-category="food"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="fashion"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-contain,
-.elevated-detail-page[data-elevated-category="team"] .umh-poster-contain {
+.elevated-detail-page[data-elevated-category="team"] .umh-poster-contain,
+.elevated-media-page[data-elevated-category="food"] .umh-poster-contain,
+.elevated-media-page[data-elevated-category="fashion"] .umh-poster-contain,
+.elevated-media-page[data-elevated-category="car"] .umh-poster-contain,
+.elevated-media-page[data-elevated-category="team"] .umh-poster-contain {
   background: transparent !important;
   padding: 0 !important;
   position: static !important;

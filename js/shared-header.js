@@ -892,24 +892,41 @@ const HEADER_HTML = `
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
     let drawerTransitioning = false;
+    let pendingState = null;
+
+    const preventScroll = (e) => {
+      if (document.body.classList.contains('zo2y-mobile-menu-open')) {
+        e.preventDefault();
+      }
+    };
 
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
       document.body.dataset.zo2yMenuScrollLock = '1';
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${window.scrollY}px`;
+      document.body.style.width = '100%';
+      document.addEventListener('touchmove', preventScroll, { passive: false });
     };
 
     const unlockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock !== '1') return;
+      const scrollY = document.body.style.top;
       delete document.body.dataset.zo2yMenuScrollLock;
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.removeEventListener('touchmove', preventScroll);
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
+      }
     };
 
-    const setDrawerState = (isOpen) => {
-      if (drawerTransitioning) return;
-      drawerTransitioning = true;
+    const applyDrawerState = (isOpen) => {
       drawer.classList.toggle('open', isOpen);
       backdrop.classList.toggle('active', isOpen);
       drawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -921,10 +938,28 @@ const HEADER_HTML = `
         lockBodyScrollForMenu();
         drawer.scrollTop = 0;
       }
-      setTimeout(() => {
+    };
+
+    const setDrawerState = (isOpen) => {
+      if (drawerTransitioning) {
+        pendingState = isOpen;
+        return;
+      }
+      drawerTransitioning = true;
+      applyDrawerState(isOpen);
+
+      const onTransitionEnd = () => {
         drawerTransitioning = false;
         if (!isOpen) unlockBodyScrollForMenu();
-      }, 260);
+        if (pendingState !== null) {
+          const next = pendingState;
+          pendingState = null;
+          setDrawerState(next);
+        }
+      };
+
+      drawer.addEventListener('transitionend', onTransitionEnd, { once: true });
+      setTimeout(onTransitionEnd, 300);
     };
 
     const closeDrawer = () => setDrawerState(false);

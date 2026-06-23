@@ -1028,6 +1028,9 @@
   }
 
   async function fetchSportsDB(endpoint, params = {}, timeoutMs = 10000) {
+    if (window.ZO2Y_SPORTSDB && typeof window.ZO2Y_SPORTSDB.request === 'function') {
+      return await window.ZO2Y_SPORTSDB.request(endpoint, params, timeoutMs);
+    }
     const url = new URL(`${SPORTSDB_BASE}/${endpoint}`);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== "") {

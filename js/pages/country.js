@@ -46,20 +46,6 @@
 
   const ui = {
     body: document.body,
-    hero: document.getElementById("countryHero"),
-    backdrop: document.getElementById("countryBackdrop"),
-    backdropBlur: document.getElementById("countryBackdropBlur"),
-    posterFrame: document.getElementById("countryPosterFrame"),
-    posterFallbackTitle: document.getElementById("countryPosterFallbackTitle"),
-    flag: document.getElementById("countryFlag"),
-    name: document.getElementById("countryName"),
-    kicker: document.getElementById("countryKicker"),
-    meta: document.getElementById("countryMeta"),
-    tags: document.getElementById("countryTags"),
-    description: document.getElementById("countryDescription"),
-    descriptionToggle: document.getElementById("countryDescriptionToggle"),
-    saveBtn: document.getElementById("countrySaveBtn"),
-    mapBtn: document.getElementById("countryMapBtn"),
     infoGrid: document.getElementById("countryInfoGrid"),
     guideSection: document.getElementById("countryGuideSection"),
     guideGrid: document.getElementById("countryGuideGrid"),
@@ -209,46 +195,6 @@
     }, 2400);
   }
 
-  function applyBackdrop(url) {
-    if (!url || !ui.backdrop) return;
-    const safeUrl = String(url).replace(/"/g, '\\"');
-    const style = `url("${safeUrl}") center 20% / cover no-repeat`;
-    ui.backdrop.style.background = style;
-    if (ui.backdropBlur) ui.backdropBlur.style.background = style;
-    if (ui.hero) {
-      ui.hero.classList.remove("is-no-backdrop");
-      ui.hero.classList.add("is-loaded");
-    }
-  }
-
-  function applyRegionFallbackBackground() {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
-      <defs>
-        <radialGradient id="g" cx="50%" cy="50%" r="60%">
-          <stop offset="0%" stop-color="#1e3a5f"/>
-          <stop offset="100%" stop-color="#0b1633"/>
-        </radialGradient>
-        <pattern id="p" width="60" height="60" patternUnits="userSpaceOnUse">
-          <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
-          <circle cx="30" cy="30" r="10" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.05"/>
-        </pattern>
-      </defs>
-      <rect width="800" height="400" fill="url(#g)"/>
-      <rect width="800" height="400" fill="url(#p)"/>
-    </svg>`;
-    const bg = `data:image/svg+xml,${encodeURIComponent(svg)}`;
-    if (ui.backdrop) {
-      ui.backdrop.style.background = `url("${bg}") center / cover no-repeat`;
-      ui.backdrop.style.opacity = "0.7";
-    }
-    if (ui.backdropBlur)
-      ui.backdropBlur.style.background = `url("${bg}") center / cover no-repeat`;
-    if (ui.hero) {
-      ui.hero.classList.remove("is-no-backdrop");
-      ui.hero.classList.add("is-loaded");
-    }
-  }
-
   async function ensureSupabase() {
     if (state.supabase) return state.supabase;
     const authRuntime = window.ZO2Y_AUTH || null;
@@ -303,27 +249,6 @@
     sb.auth.onAuthStateChange((_event, session) => {
       state.currentUser = session && session.user ? session.user : null;
       syncReviewFormVisibility();
-    });
-  }
-
-  /* ---------- Description toggle (read more) ---------- */
-  function wireDescriptionToggle() {
-    if (!ui.descriptionToggle || !ui.description) return;
-    ui.descriptionToggle.addEventListener("click", () => {
-      const expanded =
-        ui.descriptionToggle.getAttribute("aria-expanded") === "true";
-      const next = !expanded;
-      ui.descriptionToggle.setAttribute(
-        "aria-expanded",
-        next ? "true" : "false",
-      );
-      ui.description.classList.toggle("is-clamped", !next);
-      const label = ui.descriptionToggle.querySelector(
-        ".elevated-readmore-label",
-      );
-      if (label) label.textContent = next ? "show less" : "read more";
-      const icon = ui.descriptionToggle.querySelector("i");
-      if (icon) icon.style.transform = next ? "rotate(180deg)" : "rotate(0)";
     });
   }
 
@@ -1362,38 +1287,13 @@
 
   /* ---------- Country loading ---------- */
   function showMissingCodeView() {
-    if (ui.name) ui.name.textContent = "Choose a country";
-    if (ui.kicker) ui.kicker.textContent = "travel spotlight";
-    if (ui.posterFallbackTitle) ui.posterFallbackTitle.textContent = "Country";
-    if (ui.meta) ui.meta.innerHTML = "";
-    if (ui.tags) ui.tags.innerHTML = "";
-    if (ui.description) {
-      ui.description.textContent =
-        "Pick a destination from the travel page to see details, photos, and reviews here.";
-    }
-    if (ui.flag) {
-      ui.flag.removeAttribute("src");
-      ui.flag.alt = "No country selected";
-    }
-    if (ui.posterFrame) ui.posterFrame.classList.add("is-missing");
-    if (ui.saveBtn) ui.saveBtn.disabled = true;
-    if (ui.mapBtn) {
-      ui.mapBtn.setAttribute("href", "travel.html");
-      ui.mapBtn.removeAttribute("target");
-      ui.mapBtn.removeAttribute("rel");
-    }
-    [
-      ui.guideSection,
-      ui.gallerySection,
-      ui.relatedSection,
-      ui.reviewsSection,
-    ].forEach((s) => {
-      if (s) s.hidden = true;
-    });
+    if (ui.guideSection) ui.guideSection.hidden = true;
+    if (ui.gallerySection) ui.gallerySection.hidden = true;
+    if (ui.relatedSection) ui.relatedSection.hidden = true;
+    if (ui.reviewsSection) ui.reviewsSection.hidden = true;
     if (ui.infoGrid)
       ui.infoGrid.innerHTML =
         '<div class="country-fact"><i class="fa-solid fa-earth-americas"></i><div class="country-fact-body"><span class="country-fact-label">Browse</span><span class="country-fact-value">Open the travel page to pick a country</span></div></div>';
-    applyRegionFallbackBackground();
   }
 
   async function loadCountry() {
@@ -1418,17 +1318,10 @@
             await new Promise((r) => setTimeout(r, 1000));
             continue;
           }
-          if (ui.name) ui.name.textContent = "Country unavailable";
-          if (ui.description)
-            ui.description.textContent =
-              "We could not load this country right now. Please try again later.";
           return;
         }
         const payload = await response.json();
         if (Array.isArray(payload) && !payload.length) {
-          if (ui.name) ui.name.textContent = "Country not found";
-          if (ui.description)
-            ui.description.textContent = `No data found for country code "${state.code}".`;
           return;
         }
         const row = Array.isArray(payload) ? payload[0] : payload;
@@ -1487,10 +1380,6 @@
       }
     }
     if (!fetchOk) {
-      if (ui.name) ui.name.textContent = "Country unavailable";
-      if (ui.description)
-        ui.description.textContent =
-          "We could not load this country right now. Please try again later.";
       return;
     }
     try {
@@ -1565,10 +1454,7 @@
         });
       }
 
-      if (ui.name) ui.name.textContent = state.name;
-
       if (window.renderUnifiedMediaHero) {
-        // Apply backdrop temporarily via the config to avoid duplicate calls, we update it later in the file
         const fallbackPhoto = buildCountryPhotoUrl(state.name, state.code);
         if (fallbackPhoto) {
           config.backdropUrl = fallbackPhoto;
@@ -1590,22 +1476,12 @@
       ensureActionCard();
       updateSaveButton(false);
 
-      const fallbackPhoto = buildCountryPhotoUrl(state.name, state.code);
-      if (fallbackPhoto) {
-        applyBackdrop(fallbackPhoto);
-      } else {
-        applyRegionFallbackBackground();
-      }
       renderGallery(countryGalleryCache.get(state.code) || [], state.name);
 
       void fetchCommonsCountryGallery(state.name, state.code, state.capital)
         .then((images) => {
           const list = Array.isArray(images) ? images : [];
           renderGallery(list, state.name);
-          const heroEntry = list
-            .map((value) => normalizeGalleryItem(value))
-            .filter(Boolean)[0];
-          if (heroEntry && heroEntry.url) applyBackdrop(heroEntry.url);
         })
         .catch(() => {});
 
@@ -1649,7 +1525,6 @@
         } catch (_e) {}
       }
 
-      wireDescriptionToggle();
       wireReviewEvents();
       wireSaveButton();
       drawRatingStars();
@@ -1661,10 +1536,6 @@
       void loadReviews();
     } catch (err) {
       console.error("Country page init failed:", err);
-      if (ui.name) ui.name.textContent = "Error loading country";
-      if (ui.description)
-        ui.description.textContent =
-          "An unexpected error occurred. Please try again.";
       showToast("Unable to load country details.", "error");
     }
   }
