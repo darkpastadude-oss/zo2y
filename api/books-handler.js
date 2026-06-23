@@ -87,7 +87,7 @@ export default async function booksHandler(req, res) {
     
     const limit = Math.min(Number(query.limit) || 20, 40);
     const startIndex = Math.min(Number(query.offset) || 0, 1000);
-    const orderBy = query.sort === 'newest' ? 'newest' : 'relevance';
+    const orderBy = (query.sort === 'newest' || query.orderBy === 'newest') ? 'newest' : 'relevance';
 
     try {
       const gbUrl = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
@@ -135,12 +135,22 @@ export default async function booksHandler(req, res) {
     if (relativePath === "cover") {
       const targetUrl = query.url;
       if (!targetUrl) return res.status(400).json({ error: "Missing url parameter" });
-      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-worker/1.0" }});
-      if (!proxyRes.ok) return res.status(proxyRes.status).end();
-      const buffer = await proxyRes.arrayBuffer();
-      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
-      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
-      return res.end(new Uint8Array(buffer));
+      try {
+        const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-worker/1.0" }});
+        if (!proxyRes.ok) {
+          res.setHeader("Content-Type", "image/svg+xml");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
+        }
+        const buffer = await proxyRes.arrayBuffer();
+        res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
+        return res.end(new Uint8Array(buffer));
+      } catch (_err) {
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
+      }
     }
 
     if (relativePath === "popular") relativePath = "volumes";

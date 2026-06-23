@@ -471,6 +471,7 @@
             }
             img.src = imgUrl;
             img.alt = item.title || '';
+            img.onerror = function() { this.style.display = 'none'; };
             var cap = document.createElement('figcaption');
             cap.textContent = item.title;
             fig.appendChild(img);

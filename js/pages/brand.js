@@ -1067,11 +1067,6 @@
     document.body.dataset.navPage = brandType;
     document.title = `${brand.name} \u00B7 ${CATEGORY_LABEL} \u00B7 Zo2y`;
 
-    if (dom.name) dom.name.textContent = brand.name;
-    if (dom.desc) {
-      dom.desc.textContent = brand.description || "No description yet.";
-      bindClampedDescription(dom.desc, dom.desc?.parentElement, dom.descToggle);
-    }
     if (dom.about) {
       dom.about.textContent =
         brand.description || "This brand does not have a bio yet.";
@@ -1266,6 +1261,200 @@
         openListMenuFromCard();
       });
     }
+  }
+
+  async function fetchBrand() {
+    const client = ensureSupabase();
+    if (!client) return null;
+    const idParam = brandIdParam;
+    if (!idParam) return null;
+    try {
+      let query = client
+        .from(brandTable)
+        .select("*")
+        .limit(1);
+      if (isUuid(idParam)) {
+        query = query.eq("id", idParam);
+      } else {
+        query = query.or(
+          `id.eq.${idParam},slug.eq.${idParam},domain.eq.${idParam},name.ilike.${idParam}`,
+        );
+      }
+      const { data, error } = await query;
+      if (error || !data || !data.length) {
+        const legacy = resolveLegacyBrandLookup(idParam);
+        if (legacy && legacy !== idParam) {
+          const { data: retry } = await client
+            .from(brandTable)
+            .select("*")
+            .or(`id.eq.${legacy},slug.eq.${legacy},domain.eq.${legacy},name.ilike.${legacy}`)
+            .limit(1);
+          if (retry && retry.length) return normalizeBrand(retry[0]);
+        }
+        return null;
+      }
+      return normalizeBrand(data[0]);
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function renderReviewForm() {
+    if (!dom.reviewForm || !dom.authPrompt) return;
+    if (currentUser) {
+      dom.reviewForm.classList.remove("hidden");
+      dom.authPrompt.style.display = "none";
+    } else {
+      dom.reviewForm.classList.add("hidden");
+      dom.authPrompt.style.display = "";
+    }
+  }
+
+  async function initReviewSystem() {
+    if (!dom.reviewsList) return;
+    dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Loading reviews...</div>';
+    const client = ensureSupabase();
+    if (!client || !brandData) {
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Review service unavailable.</div>';
+      return;
+    }
+    try {
+      const { data, error } = await client
+        .from(reviewTable)
+        .select("id,user_id,rating,comment,created_at")
+        .eq("brand_id", brandData.id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Could not load reviews.</div>';
+        return;
+      }
+      reviews = Array.isArray(data) ? data : [];
+      renderReviewsList();
+      renderReviewsStats();
+    } catch (_err) {
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Could not load reviews.</div>';
+    }
+  }
+
+  function renderReviewsStats() {
+    if (!dom.reviewsStats) return;
+    const count = reviews.length;
+    if (!count) {
+      dom.reviewsStats.innerHTML = `
+        <div class="elevated-review-big">
+          <div class="elevated-review-big-value">—<span class="elevated-review-big-denom">/5</span></div>
+          <div class="elevated-review-big-stars"><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i></div>
+          <div class="elevated-review-big-count">be the first to review</div>
+        </div>
+        <div class="elevated-review-bars">
+          ${[5,4,3,2,1].map(n => `<div class="elevated-review-bar-row"><span class="label">${n}?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:0%"></div></div><span class="count">0</span></div>`).join("")}
+        </div>`;
+      return;
+    }
+    const avg = reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / count;
+    const full = Math.round(avg);
+    let stars = "";
+    for (let i = 1; i <= 5; i++) stars += i <= full ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+    const buckets = [0,0,0,0,0];
+    reviews.forEach(r => { const n = Math.max(1, Math.min(5, Number(r.rating || 0))); buckets[n-1]++; });
+    dom.reviewsStats.innerHTML = `
+      <div class="elevated-review-big">
+        <div class="elevated-review-big-value">${avg.toFixed(1)}<span class="elevated-review-big-denom">/5</span></div>
+        <div class="elevated-review-big-stars">${stars}</div>
+        <div class="elevated-review-big-count">${count} review${count !== 1 ? "s" : ""}</div>
+      </div>
+      <div class="elevated-review-bars">
+        ${[5,4,3,2,1].map((n, i) => `<div class="elevated-review-bar-row"><span class="label">${n}?</span><div class="elevated-review-bar"><div class="elevated-review-bar-fill" style="width:${count ? (buckets[5-n]/count*100) : 0}%"></div></div><span class="count">${buckets[5-n]}</span></div>`).join("")}
+      </div>`;
+  }
+
+  function renderReviewsList() {
+    if (!dom.reviewsList) return;
+    if (!reviews.length) {
+      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">No reviews yet. Be the first to share your thoughts.</div>';
+      return;
+    }
+    dom.reviewsList.innerHTML = reviews.map(r => {
+      const mine = currentUser && String(currentUser.id) === String(r.user_id);
+      const d = new Date(r.created_at || "");
+      const dateText = Number.isFinite(d.getTime()) ? d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "";
+      let starHtml = "";
+      const rating = Math.max(1, Math.min(5, Number(r.rating || 0)));
+      for (let i = 1; i <= 5; i++) starHtml += i <= rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+      return `<div class="elevated-review-card" data-review-id="${escapeHtml(r.id)}">
+        <div class="elevated-reviewer-avatar">${String(r.user_id || "U").slice(0,2).toUpperCase()}</div>
+        <div><div class="elevated-reviewer-name">User</div><div class="elevated-review-date">${escapeHtml(dateText)}</div><div class="elevated-review-comment">${escapeHtml(r.comment || "")}</div>
+          ${mine ? `<div class="elevated-review-actions"><button type="button" class="elevated-review-delete danger" data-id="${escapeHtml(r.id)}">delete</button></div>` : ""}
+        </div>
+        <div class="elevated-review-rating">${starHtml}</div>
+      </div>`;
+    }).join("");
+    dom.reviewsList.querySelectorAll(".elevated-review-delete").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        if (!id || !currentUser) return;
+        const client = ensureSupabase();
+        if (!client) return;
+        await client.from(reviewTable).delete().eq("id", id).eq("user_id", currentUser.id);
+        await initReviewSystem();
+        showToast("Review deleted", "success");
+      });
+    });
+  }
+
+  if (dom.reviewForm) {
+    dom.reviewForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!currentUser) { window.location.href = "login.html"; return; }
+      if (!currentRating) { showToast("Select a rating", "error"); return; }
+      const comment = dom.commentInput ? dom.commentInput.value.trim() : "";
+      const client = ensureSupabase();
+      if (!client || !brandData) return;
+      if (editingReviewId) {
+        await client.from(reviewTable).update({ rating: currentRating, comment }).eq("id", editingReviewId);
+        editingReviewId = null;
+        showToast("Review updated", "success");
+      } else {
+        await client.from(reviewTable).insert({ brand_id: brandData.id, user_id: currentUser.id, rating: currentRating, comment });
+        showToast("Review submitted", "success");
+      }
+      dom.commentInput.value = "";
+      currentRating = 0;
+      renderStarRating();
+      await initReviewSystem();
+    });
+  }
+
+  if (dom.reviewStars) {
+    dom.reviewStars.addEventListener("click", (e) => {
+      const star = e.target.closest("[data-rating]");
+      if (!star) return;
+      currentRating = Number(star.dataset.rating || 0);
+      renderStarRating();
+    });
+  }
+
+  function renderStarRating() {
+    if (!dom.reviewStars) return;
+    dom.reviewStars.querySelectorAll("[data-rating]").forEach(s => {
+      s.classList.toggle("is-active", Number(s.dataset.rating) <= currentRating);
+    });
+    if (dom.ratingText) dom.ratingText.textContent = currentRating ? `${currentRating}/5` : "select your rating";
+  }
+
+  if (dom.charCount && dom.commentInput) {
+    dom.commentInput.addEventListener("input", () => {
+      dom.charCount.textContent = dom.commentInput.value.length;
+    });
+  }
+
+  function loadTrailer(brand) {
+    if (!dom.trailer || !dom.trailerSection) return;
+    const name = brand ? brand.name : "";
+    if (!name) { dom.trailerSection.hidden = true; return; }
+    dom.trailerSection.hidden = false;
+    const query = encodeURIComponent(name + " official");
+    dom.trailer.innerHTML = `<div class="elevated-trailer-empty"><i class="fa-brands fa-youtube"></i><span>Search YouTube for "${escapeHtml(name)}" trailers</span><a class="elevated-trailer-cta" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube</a></div>`;
   }
 
   function applyCollageFallback(brand) {

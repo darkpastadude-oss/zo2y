@@ -73,7 +73,29 @@
       return Array.isArray(json.books) ? json.books : [];
     } catch (err) {
       clearTimeout(timeoutId);
-      console.error('Books server API error:', err);
+    }
+    // Fallback to trending (OpenLibrary) when search fails
+    try {
+      const genre = (section.query || 'fiction').split(' ')[0].toLowerCase();
+      const trendingParams = new URLSearchParams({ genre, limit: section.limit || 16 });
+      const res2 = await fetch('/api/books/trending?' + trendingParams.toString());
+      if (!res2.ok) return [];
+      const json2 = await res2.json();
+      const books = Array.isArray(json2.books) ? json2.books : [];
+      return books.map(b => ({
+        title: b.title,
+        author_name: b.author ? [b.author] : [],
+        coverImage: b.cover || '',
+        id: b.id,
+        description: b.description || '',
+        rating: 0,
+        ratingCount: 0,
+        subject: [],
+        pageCount: 0,
+        publisher: '',
+        publishedDate: b.year ? String(b.year) : ''
+      }));
+    } catch (_err2) {
       return [];
     }
   }
