@@ -891,21 +891,12 @@ const HEADER_HTML = `
     if (!menuBtn || !closeBtn || !drawer || !backdrop) return;
     if (menuBtn.dataset.wired === '1') return;
     menuBtn.dataset.wired = '1';
-    let lockedScrollY = 0;
     let drawerTransitioning = false;
 
     const lockBodyScrollForMenu = () => {
       if (document.body.dataset.zo2yMenuScrollLock === '1') return;
       document.body.dataset.zo2yMenuScrollLock = '1';
-      lockedScrollY = window.scrollY || window.pageYOffset || 0;
       document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.overscrollBehavior = 'none';
-      document.body.style.overscrollBehavior = 'none';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${lockedScrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
     };
 
@@ -913,15 +904,7 @@ const HEADER_HTML = `
       if (document.body.dataset.zo2yMenuScrollLock !== '1') return;
       delete document.body.dataset.zo2yMenuScrollLock;
       document.documentElement.style.overflow = '';
-      document.documentElement.style.overscrollBehavior = '';
-      document.body.style.overscrollBehavior = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
       document.body.style.overflow = '';
-      window.scrollTo(0, lockedScrollY);
     };
 
     const setDrawerState = (isOpen) => {

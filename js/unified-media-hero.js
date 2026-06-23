@@ -53,15 +53,20 @@
       </${tag}>`;
     }).join('');
 
+    const hasPoster = !!posterUrl;
+    const frameClass = hasPoster ? 'umh-poster-frame is-missing' : 'umh-poster-frame is-missing';
+
     const html = `
-      <div class="umh-container">
+      <div class="umh-container ${backdropUrl ? '' : 'is-loaded'}">
         <div class="umh-backdrop-wrap">
           <div class="umh-backdrop" style="background-image: url('${escapeHtml(backdropUrl)}')"></div>
           <div class="umh-backdrop-overlay"></div>
         </div>
         <div class="umh-content-wrapper">
-          <div class="umh-poster-frame">
-            <img class="umh-poster ${posterFit === 'contain' ? 'umh-poster-contain' : ''}" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" onerror="this.style.display='none'">
+          <div class="umh-poster-frame ${posterUrl ? 'is-missing' : ''}">
+            ${posterUrl ? `
+              <img class="umh-poster ${posterFit === 'contain' ? 'umh-poster-contain' : ''}" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" onload="this.closest('.umh-poster-frame').classList.remove('is-missing')" onerror="this.style.display='none'; this.closest('.umh-poster-frame').classList.add('is-missing')">
+            ` : ''}
             <div class="umh-poster-fallback">
               <i class="fa-solid fa-image fa-2x"></i>
               <span>No Poster</span>
@@ -91,6 +96,19 @@
     `;
 
     container.innerHTML = html;
+
+    if (backdropUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const wrap = container.querySelector('.umh-container');
+        if (wrap) wrap.classList.add('is-loaded');
+      };
+      img.onerror = () => {
+        const wrap = container.querySelector('.umh-container');
+        if (wrap) wrap.classList.add('is-loaded');
+      };
+      img.src = backdropUrl;
+    }
   }
 
   window.renderUnifiedMediaHero = renderUnifiedMediaHero;

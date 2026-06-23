@@ -708,8 +708,18 @@
       if (!url) return false;
       const u = String(url).toLowerCase();
       const teamBadge = String(team.badge || "").toLowerCase();
-      if (teamBadge && u.includes(teamBadge)) return true;
-      if (u === teamBadge) return true;
+      if (teamBadge && (u.includes(teamBadge) || teamBadge.includes(u))) return true;
+
+      const getBaseFilename = (urlStr) => {
+        const parts = urlStr.split('/');
+        const last = parts[parts.length - 1] || "";
+        return last.replace(/^\d+px-/, "").split('?')[0];
+      };
+
+      const uFile = getBaseFilename(u);
+      const badgeFile = teamBadge ? getBaseFilename(teamBadge) : "";
+      if (badgeFile && uFile === badgeFile) return true;
+
       return (
         /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
           u,
@@ -1340,11 +1350,12 @@
     }
 
     // Wikipedia for description + logo + cover
+    let wikiData = null;
     if (
       (!remoteTeam?.description || remoteTeam.description.length < 80) &&
       teamName
     ) {
-      const wikiData = await fetchWikipedia(teamName);
+      wikiData = await fetchWikipedia(teamName);
       if (wikiData) {
         remoteTeam = remoteTeam || { ...localTeam };
         if (wikiData.description) {
@@ -1355,8 +1366,13 @@
         if (!remoteTeam.website && wikiData.url)
           remoteTeam.website = wikiData.url;
         if (wikiData.thumbnail && !remoteTeam.fanart) {
-          remoteTeam.fanart = wikiData.thumbnail;
-          remoteTeam.fanarts = [wikiData.thumbnail];
+          const lowerThumb = String(wikiData.thumbnail).toLowerCase();
+          const isLogo = /logo|crest|badge|seal|emblem|icon|flag/.test(lowerThumb) || 
+                         (remoteTeam.badge && lowerThumb.includes(String(remoteTeam.badge).toLowerCase()));
+          if (!isLogo) {
+            remoteTeam.fanart = wikiData.thumbnail;
+            remoteTeam.fanarts = [wikiData.thumbnail];
+          }
         }
         if (wikiData.wikiSource) remoteTeam.wikiTitle = wikiData.wikiSource;
         if (wikiData.heroImage) remoteTeam.wikiHero = wikiData.heroImage;

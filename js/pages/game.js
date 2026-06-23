@@ -30,11 +30,20 @@
         posterUrl: game.cover || "/images/fallback/game.svg",
         posterFit: "contain",
         backdropUrl: (() => {
-          let backdrop = game.background_image || game.hero || "";
-          if (!backdrop && game.screenshots && game.screenshots.length > 0) {
-            backdrop = game.screenshots[0].image || game.screenshots[0] || "";
-          }
-          return backdrop || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80";
+          const coverUrl = String(game.cover || "").trim();
+          const candidates = [
+            game.background_image,
+            game.hero,
+            ...(game.screenshots || []).map(s => s?.image || s)
+          ].filter(url => {
+            if (!url) return false;
+            const u = String(url).trim();
+            if (!u) return false;
+            if (coverUrl && u === coverUrl) return false;
+            const lower = u.toLowerCase();
+            return !(/logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram/.test(lower));
+          });
+          return candidates[0] || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80";
         })(),
         description:
           game.description || "Explore more details about this game.",

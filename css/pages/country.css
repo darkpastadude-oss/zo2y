@@ -18,35 +18,35 @@
 }
 
 /* === Flag in center, no white background — match brand.css style === */
-.elevated-detail-page[data-elevated-category="travel"] .elevated-poster-frame {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
   background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
   padding: 0;
   overflow: hidden;
   aspect-ratio: auto;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .elevated-poster-frame.elevated-logo-card {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card {
   background: transparent;
-  border: none;
-  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
   padding: 0;
+  border-radius: 10px;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .elevated-poster {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster {
   width: 100%;
   height: auto;
-  max-height: 160px;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 0;
   background: transparent;
 }
 
-.elevated-detail-page[data-elevated-category="travel"] .elevated-poster-fallback {
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-fallback {
   background: linear-gradient(135deg, var(--dt-fallback-c1), var(--dt-fallback-c2));
   border-radius: 12px;
 }
