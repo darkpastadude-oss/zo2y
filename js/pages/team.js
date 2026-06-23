@@ -202,7 +202,7 @@
         raw.strDescriptionEN || raw.strDescription || "",
       ).trim(),
       manager: String(raw.strManager || "").trim(),
-      badge: "",
+      badge: String(raw.strBadge || raw.strTeamBadge || "").trim(),
       banner: String(raw.strBanner || "").trim(),
       fanart: String(raw.strFanart1 || "").trim(),
       fanarts: [
