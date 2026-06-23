@@ -67,6 +67,12 @@
   display: block;
 }
 
+.umh-poster-contain {
+  object-fit: contain !important;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+}
+
 .umh-poster-fallback {
   position: absolute;
   inset: 0;

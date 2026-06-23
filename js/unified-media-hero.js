@@ -31,6 +31,7 @@
       posterUrl = '',
       backdropUrl = '',
       description = '',
+      posterFit = '',
       metadata = [],
       actions = []
     } = config;
@@ -60,7 +61,7 @@
         </div>
         <div class="umh-content-wrapper">
           <div class="umh-poster-frame">
-            <img class="umh-poster" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" onerror="this.style.display='none'">
+            <img class="umh-poster ${posterFit === 'contain' ? 'umh-poster-contain' : ''}" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" onerror="this.style.display='none'">
             <div class="umh-poster-fallback">
               <i class="fa-solid fa-image fa-2x"></i>
               <span>No Poster</span>
