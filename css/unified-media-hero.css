@@ -118,7 +118,7 @@
   padding: 0 !important;
   box-sizing: border-box !important;
   align-self: center;
-  margin-top: 80px;
+  margin-top: 40px;
 }
 
 .elevated-media-page[data-elevated-category="games"] .umh-poster-frame,
@@ -338,7 +338,7 @@
   }
 
   .elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
-    margin-top: 48px;
+    margin-top: 24px;
   }
   
   .umh-actions-desc {
