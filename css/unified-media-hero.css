@@ -376,27 +376,29 @@
 
   .elevated-media-page[data-elevated-category="games"] .umh-content-wrapper,
   .elevated-detail-page[data-elevated-category="games"] .umh-content-wrapper {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "poster"
-      "title-meta"
-      "actions-desc";
-    justify-items: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-items: center !important;
     text-align: center;
     gap: 12px;
     margin-top: -120px;
+    width: min(1280px, 100% - 32px) !important;
+    padding: 0 16px !important;
   }
 
   .elevated-media-page[data-elevated-category="games"] .umh-poster-frame,
   .elevated-detail-page[data-elevated-category="games"] .umh-poster-frame {
-    width: 160px;
-    max-width: 160px;
-    aspect-ratio: 2/3;
+    width: 180px !important;
+    max-width: 180px !important;
+    aspect-ratio: 2/3 !important;
     border-radius: 14px !important;
     box-shadow: none !important;
     border: none !important;
     background: none !important;
-    margin: 0 auto;
+    margin: 0 auto !important;
+    justify-self: center !important;
+    grid-area: unset !important;
   }
 
   .elevated-media-page[data-elevated-category="games"] .umh-poster,
@@ -408,17 +410,24 @@
 
   .elevated-media-page[data-elevated-category="games"] .umh-title-meta,
   .elevated-detail-page[data-elevated-category="games"] .umh-title-meta {
-    align-self: center;
-    padding-top: 8px;
+    align-self: center !important;
+    padding-top: 8px !important;
+    width: 100% !important;
   }
 
   .elevated-media-page[data-elevated-category="games"] .umh-meta-row,
   .elevated-detail-page[data-elevated-category="games"] .umh-meta-row {
-    justify-content: center;
+    justify-content: center !important;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-actions-desc,
+  .elevated-detail-page[data-elevated-category="games"] .umh-actions-desc {
+    width: 100% !important;
+    grid-area: unset !important;
   }
 
   .elevated-media-page[data-elevated-category="games"] .umh-actions-bar,
   .elevated-detail-page[data-elevated-category="games"] .umh-actions-bar {
-    justify-content: center;
+    justify-content: center !important;
   }
 }

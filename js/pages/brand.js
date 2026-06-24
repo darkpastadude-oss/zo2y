@@ -63,9 +63,6 @@
     related: document.getElementById("brandRelated"),
     relatedSection: document.getElementById("brandRelatedSection"),
     relatedSub: document.getElementById("brandRelatedSub"),
-    trailer: document.getElementById("brandTrailer"),
-    trailerSection: document.getElementById("brandTrailerSection"),
-    trailerSub: document.getElementById("brandTrailerSub"),
     saveBtn: document.getElementById("brandSaveBtn"),
     website: document.getElementById("brandWebsite"),
     reviewsList: document.getElementById("reviewsList"),
@@ -1427,11 +1424,18 @@
       </div>`;
   }
 
-  function renderReviewsList() {
+  async function renderReviewsList() {
     if (!dom.reviewsList) return;
     if (!reviews.length) {
       dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts.</div>';
       return;
+    }
+    const client = ensureSupabase();
+    const userIds = [...new Set(reviews.map(r => r.user_id).filter(Boolean))];
+    let userMap = {};
+    if (userIds.length && client) {
+      const { data: users } = await client.from('user_profiles').select('id, username, full_name').in('id', userIds);
+      (users || []).forEach(u => { if (u.id) userMap[u.id] = u; });
     }
     dom.reviewsList.innerHTML = reviews.map(r => {
       const mine = currentUser && String(currentUser.id) === String(r.user_id);
@@ -1440,10 +1444,17 @@
       let starHtml = "";
       const rating = Math.max(1, Math.min(5, Number(r.rating || 0)));
       for (let i = 0; i < 5; i++) starHtml += i < rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+      const u = userMap[r.user_id];
+      const username = String(u?.username || "").trim();
+      const fallbackName = String(u?.full_name || "").trim();
+      const displayName = username ? `@${username}` : (fallbackName || "User");
+      const initialsBase = username || fallbackName || "User";
+      const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase();
+      const profileHref = `profile.html?id=${encodeURIComponent(r.user_id)}`;
       return `<article class="review-card" data-review-id="${escapeHtml(r.id)}">
-        <div class="review-head"><div><div class="review-user">User</div><div class="review-date">${escapeHtml(dateText)}</div></div><div class="review-stars-display">${starHtml}</div></div>
-        <div class="review-comment">${escapeHtml(r.comment || "")}</div>
-        ${mine ? `<div class="review-actions"><button type="button" data-act="del" data-id="${escapeHtml(r.id)}">Delete</button></div>` : ""}
+        <div class="review-header"><div class="reviewer-info"><a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View profile">${escapeHtml(initials)}</a><div><div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a></div><div class="review-date">${escapeHtml(dateText)}</div></div></div><div class="review-rating"><span class="rating-stars">${starHtml}</span></div></div>
+        <p class="review-comment">${escapeHtml(r.comment || "")}</p>
+        ${mine ? `<div class="review-actions"><button type="button" class="review-edit" data-act="edit" data-id="${escapeHtml(r.id)}">Edit</button><button type="button" class="review-delete" data-act="del" data-id="${escapeHtml(r.id)}">Delete</button></div>` : ""}
       </article>`;
     }).join("");
     dom.reviewsList.querySelectorAll("[data-act='del']").forEach(btn => {
@@ -1503,15 +1514,6 @@
     dom.commentInput.addEventListener("input", () => {
       dom.charCount.textContent = dom.commentInput.value.length;
     });
-  }
-
-  function loadTrailer(brand) {
-    if (!dom.trailer || !dom.trailerSection) return;
-    const name = brand ? brand.name : "";
-    if (!name) { dom.trailerSection.hidden = true; return; }
-    dom.trailerSection.hidden = false;
-    const query = encodeURIComponent(name + " official");
-    dom.trailer.innerHTML = `<div class="elevated-trailer-empty"><i class="fa-brands fa-youtube"></i><span>Search YouTube for "${escapeHtml(name)}" trailers</span><a class="elevated-trailer-cta" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube</a></div>`;
   }
 
   function applyCollageFallback(brand) {
@@ -1593,9 +1595,6 @@
 
     // Related brands — non-blocking
     fetchRelatedBrands(brand).catch(() => {});
-
-    // Trailer (YouTube search fallback)
-    loadTrailer(brand);
 
     if (supabaseClient?.auth?.onAuthStateChange) {
       supabaseClient.auth.onAuthStateChange((_event, session) => {

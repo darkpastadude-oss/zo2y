@@ -123,7 +123,10 @@
       if (game.platforms && game.platforms.length > 0) {
         config.metadata.push({
           type: "platform",
-          value: game.platforms.slice(0, 2).map((p) => p.platform?.name || p.name || String(p)).join(", ") + (game.platforms.length > 2 ? "..." : "")
+          value: game.platforms.slice(0, 2).map((p) => {
+            if (typeof p === 'string') return p;
+            return p?.platform?.name || p?.name || (typeof p?.platform === 'string' ? p.platform : '') || '';
+          }).filter(Boolean).join(", ") + (game.platforms.length > 2 ? "..." : "")
         });
       }
       if (game.developers && game.developers.length > 0) {

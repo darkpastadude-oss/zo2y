@@ -1072,22 +1072,29 @@
               })
             : "Unknown date";
 
+          const displayName = escapeHtml(resolveUsername(review.user_id));
+          const initials = displayName.replace(/^@/, "").split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase();
+          const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
+
           return `
           <article class="review-card" data-review-id="${escapeHtml(review.id)}">
-            <div class="review-head">
-              <div>
-                <div class="review-user">${escapeHtml(resolveUsername(review.user_id))}</div>
-                <div class="review-date">${escapeHtml(dateText)}</div>
+            <div class="review-header">
+              <div class="reviewer-info">
+                <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View profile">${initials}</a>
+                <div>
+                  <div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${displayName}</a></div>
+                  <div class="review-date">${escapeHtml(dateText)}</div>
+                </div>
               </div>
-              <div class="review-stars-display">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</div>
+              <div class="review-rating"><span class="rating-stars">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</span></div>
             </div>
-            <div class="review-comment">${escapeHtml(review.comment || "No comment.")}</div>
+            <p class="review-comment">${escapeHtml(review.comment || "No comment.")}</p>
             ${
               mine
                 ? `
               <div class="review-actions">
-                <button type="button" data-act="edit" data-id="${escapeHtml(review.id)}">Edit</button>
-                <button type="button" data-act="del" data-id="${escapeHtml(review.id)}">Delete</button>
+                <button type="button" class="review-edit" data-act="edit" data-id="${escapeHtml(review.id)}">Edit</button>
+                <button type="button" class="review-delete" data-act="del" data-id="${escapeHtml(review.id)}">Delete</button>
               </div>
             `
                 : ""

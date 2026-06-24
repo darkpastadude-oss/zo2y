@@ -179,79 +179,7 @@
   word-break: break-word;
 }
 
-/* === Review styles (country-specific overrides) === */
-.country-review {
-  padding: 16px 18px;
-  border-radius: var(--country-radius-card);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--country-border);
-  transition: all 0.2s var(--country-ease);
-}
-
-.country-review:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--country-border-strong);
-}
-
-.country-review-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.country-review-user {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--country-text);
-}
-
-.country-review-date {
-  font-size: 0.74rem;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 2px;
-}
-
-.country-review-stars-display {
-  color: var(--country-accent);
-  font-size: 0.85rem;
-  white-space: nowrap;
-  letter-spacing: 1px;
-}
-
-.country-review-comment {
-  margin-top: 10px;
-  font-size: 0.9rem;
-  line-height: 1.55;
-  color: var(--country-muted);
-}
-
-.country-review-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.country-review-actions button {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--country-border);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.78rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  text-transform: lowercase;
-  transition: all 0.2s var(--country-ease);
-  font-family: inherit;
-}
-
-.country-review-actions button:hover {
-  background: var(--dt-accent-soft);
-  border-color: var(--dt-accent-line);
-  color: var(--country-accent-2);
-}
-
+/* === Review empty state (also used by facts grid fallback) === */
 .country-review-empty {
   padding: 24px 18px;
   text-align: center;
@@ -261,38 +189,6 @@
   border: 1px dashed var(--country-border-strong);
   border-radius: var(--country-radius-card);
   background: rgba(255, 255, 255, 0.02);
-}
-
-/* === Star rating (country review form) === */
-.country-review .elevated-stars .star,
-#countryReviewStars .star {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--country-border);
-  color: rgba(255, 255, 255, 0.35);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 0.95rem;
-  transition: all 0.2s var(--country-ease);
-}
-
-.country-review .elevated-stars .star.on,
-#countryReviewStars .star.on {
-  background: var(--dt-accent-soft);
-  border-color: var(--dt-accent-line);
-  color: var(--country-accent);
-  transform: scale(1.05);
-}
-
-.country-review .elevated-stars .star:hover,
-#countryReviewStars .star:hover {
-  background: var(--dt-accent-soft);
-  border-color: var(--dt-accent-line);
-  color: var(--country-accent);
 }
 
 /* === Mobile === */
