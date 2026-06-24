@@ -6,11 +6,6 @@
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
   const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
-  const HOME_IMAGE_PLACEHOLDER = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'>
-        <rect width='24' height='24' fill='#10224a'/>
-      </svg>
-    `)}`;
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
@@ -311,7 +306,6 @@
   let logoMapping = {};
   let logoMappingLower = {};
   let favorites = new Set();
-  let imageObserver = null;
 
   function normalize(v) {
     return String(v || '').toLowerCase().trim();
@@ -535,60 +529,6 @@
     showToast._t = setTimeout(() => el.classList.remove('show'), 2800);
   }
 
-  function getImageObserver() {
-    if (imageObserver) return imageObserver;
-    if (typeof window.IntersectionObserver !== 'function') return null;
-    imageObserver = new IntersectionObserver((entries, observer) => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const img = entry.target;
-        observer.unobserve(img);
-        const src = img.getAttribute('data-home-src');
-        if (src) {
-          img.removeAttribute('data-home-src');
-          img.src = src;
-        }
-      });
-    }, { rootMargin: '300px 0px', threshold: 0.01 });
-    return imageObserver;
-  }
-
-  function primeImages(scope) {
-    const root = scope || document;
-    const images = Array.from(root.querySelectorAll('img[data-home-src]'));
-    if (!images.length) return;
-    const observer = getImageObserver();
-    if (!observer) {
-      images.forEach(img => {
-        const src = img.getAttribute('data-home-src');
-        if (src) { img.removeAttribute('data-home-src'); img.src = src; }
-      });
-      return;
-    }
-    images.forEach(img => observer.observe(img));
-  }
-
-  function wireImageState(scope) {
-    const root = scope || document;
-    root.querySelectorAll('img[data-home-image="1"]').forEach(img => {
-      const wrap = img.closest('.card-media');
-      const markReady = () => {
-        img.setAttribute('data-image-ready', '1');
-        if (wrap) wrap.classList.remove('is-loading-media');
-      };
-      const handleError = () => {
-        const fallback = img.getAttribute('data-fallback-image');
-        if (fallback && !img.src.endsWith(fallback)) {
-          img.src = fallback;
-        }
-        markReady();
-      };
-      img.addEventListener('load', markReady);
-      img.addEventListener('error', handleError);
-      if (img.complete && !img.hasAttribute('data-home-src')) markReady();
-    });
-  }
-
   function createCard(team) {
     const badge = getBadge(team);
     const card = document.createElement('article');
@@ -608,17 +548,15 @@
     const extra = team.sport ? team.sport.toLowerCase() : ' ';
 
     card.innerHTML = `
-      <div class="card-media is-loading-media">
+      <div class="card-media">
         <img
-          src="${HOME_IMAGE_PLACEHOLDER}"
-          data-home-src="${escapeHtml(badge)}"
+          src="${escapeHtml(badge)}"
           data-fallback-image="${FALLBACK_BADGE}"
-          data-home-image="1"
-          data-image-ready="0"
           alt="${escapeHtml(title)} badge"
           loading="lazy"
           decoding="async"
           referrerpolicy="no-referrer"
+          onerror="this.onerror=null;this.src='${FALLBACK_BADGE}';"
         />
       </div>
       <div class="card-meta">
@@ -724,8 +662,6 @@
     const fragment = document.createDocumentFragment();
     sorted.forEach(t => fragment.appendChild(createCard(t)));
     grid.appendChild(fragment);
-    wireImageState(grid);
-    primeImages(grid);
   }
 
   function populateFilters() {

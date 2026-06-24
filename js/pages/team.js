@@ -21,9 +21,6 @@
     infoGrid: document.getElementById("teamInfoGrid"),
     social: document.getElementById("teamSocial"),
     socialSection: document.getElementById("teamSocialSection"),
-    mediaGrid: document.getElementById("teamMediaGrid"),
-    mediaEmpty: document.getElementById("teamMediaEmpty"),
-    mediaSection: document.getElementById("teamMediaSection"),
     roster: document.getElementById("teamRoster"),
     rosterSection: document.getElementById("teamRosterSection"),
     related: document.getElementById("teamRelated"),
@@ -369,42 +366,6 @@
       .join("");
   }
 
-  function renderMedia(team) {
-    if (!ui.mediaGrid || !ui.mediaEmpty) return;
-    const items = [];
-    const seen = new Set();
-    const addMedia = (url, contain = false, label = "") => {
-      const safeUrl = String(url || "").trim();
-      if (!safeUrl || seen.has(safeUrl)) return;
-      seen.add(safeUrl);
-      items.push({ url: safeUrl, contain, label });
-    };
-
-    addMedia(team.fanart, false, "Fanart");
-    (team.fanarts || [])
-      .slice(1)
-      .forEach((url) => addMedia(url, false, "Fanart"));
-    addMedia(team.stadiumThumb, false, "Stadium");
-    addMedia(team.banner, true, "Banner");
-    addMedia(team.jersey, true, "Kit");
-    addMedia(team.badge, true, "Badge");
-
-    ui.mediaGrid.innerHTML = "";
-    if (!items.length) {
-      ui.mediaEmpty.hidden = false;
-      return;
-    }
-    ui.mediaEmpty.hidden = true;
-    const fragment = document.createDocumentFragment();
-    items.forEach((item) => {
-      const card = document.createElement("div");
-      card.className = `elevated-media-item${item.contain ? " contain" : ""}`;
-      card.innerHTML = `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.label || "Team media")}" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}';" />${item.label ? `<span class="elevated-media-label">${escapeHtml(item.label)}</span>` : ""}`;
-      fragment.appendChild(card);
-    });
-    ui.mediaGrid.appendChild(fragment);
-  }
-
   function extractRoster(raw) {
     if (!raw || typeof raw !== "object") return [];
     const players = [];
@@ -696,7 +657,6 @@
 
     renderInfoGrid(team);
     renderSocialLinks(team);
-    renderMedia(team);
     renderRoster();
     renderRelated();
   }

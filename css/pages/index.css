@@ -741,12 +741,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background:
-        linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.12) 48%, rgba(255,255,255,0.02) 100%),
-        linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-      background-size: 220px 100%, 100% 100%;
-      background-repeat: no-repeat;
-      animation: homeImageShimmer 1.15s linear infinite;
+      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
       z-index: 0;
       pointer-events: none;
     }
@@ -762,13 +757,11 @@
       position: relative;
       z-index: 1;
       opacity: 0;
-      filter: blur(10px);
-      transition: opacity 220ms ease, filter 220ms ease;
+      transition: opacity 120ms ease-out;
     }
 
     img[data-home-image="1"][data-image-ready="1"] {
       opacity: 1;
-      filter: blur(0);
     }
 
     .card-media.cover img {
