@@ -13,6 +13,52 @@ function toHttpsUrl(url) {
   return str.replace(/^http:/i, 'https:');
 }
 
+const POPULAR_BOOK_QUERIES = [
+  'subject:bestsellers+fiction',
+  'inauthor:colleen+hoover',
+  'inauthor:renee+jones',
+  'subject:self+help+popular',
+  'inauthor:stephen+king+2024',
+  'inauthor:sally+rooney',
+  'subject:romance+bestseller',
+  'inauthor:rachel+hawkins',
+  'subject:psychology+popular',
+  'inauthor:hannah+grace',
+  'inauthor:fredrik+backman',
+  'subject:thriller+bestseller',
+  'inauthor:alex+michaelides',
+  'inauthor:emily+henry',
+  'subject:nonfiction+popular+2024'
+];
+
+const FALLBACK_POPULAR_BOOKS = [
+  { id: 'ol_fallback_atomic_habits', title: 'Atomic Habits', author: 'James Clear', year: 2018, cover: 'https://books.google.com/books/content?id=9Ie0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_surrounded_idiots', title: 'Surrounded by Idiots', author: 'Thomas Erikson', year: 2019, cover: 'https://books.google.com/books/content?id=QlO5DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_ittw', title: 'It Ends with Us', author: 'Colleen Hoover', year: 2016, cover: 'https://books.google.com/books/content?id=S5WtDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_da_vinci', title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019, cover: 'https://books.google.com/books/content?id=jjKEDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_tkam', title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023, cover: 'https://books.google.com/books/content?id=sgrTEAAAMBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_memoirs', title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023, cover: 'https://books.google.com/books/content?id=KmGJEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_dune', title: 'Happy Place', author: 'Emily Henry', year: 2023, cover: 'https://books.google.com/books/content?id=J1OZ0AEACAAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_1984', title: 'It Ends with Us', author: 'Colleen Hoover', year: 2016, cover: 'https://books.google.com/books/content?id=S5WtDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_harry', title: 'Verity', author: 'Colleen Hoover', year: 2018, cover: 'https://books.google.com/books/content?id=yVZbDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_perks', title: 'A Court of Thorns and Roses', author: 'Sarah J. Maas', year: 2015, cover: 'https://books.google.com/books/content?id=z3O0DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_gone', title: 'The Housemaid', author: 'Freida McFadden', year: 2022, cover: 'https://books.google.com/books/content?id=dC-fEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_fault', title: 'Beach Read', author: 'Emily Henry', year: 2020, cover: 'https://books.google.com/books/content?id=cWVxDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_maze', title: 'Normal People', author: 'Sally Rooney', year: 2018, cover: 'https://books.google.com/books/content?id=OjCuDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_thg', title: 'Lessons in Chemistry', author: 'Bonnie Garmus', year: 2022, cover: 'https://books.google.com/books/content?id=pCp4DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_mocking', title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', year: 2017, cover: 'https://books.google.com/books/content?id=U5iCDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' },
+  { id: 'ol_fallback_catch', title: 'Piranesi', author: 'Susanna Clarke', year: 2020, cover: 'https://books.google.com/books/content?id=kA4OEAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api' }
+];
+
+function shuffleArray(arr) {
+  const a = [...(Array.isArray(arr) ? arr : [])];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default async function booksHandler(req, res) {
   const method = req.method;
   if (method === "OPTIONS") {
@@ -29,14 +75,13 @@ export default async function booksHandler(req, res) {
   const query = req.query || {};
 
   // ==========================================
-  // 1. TRENDING (OpenLibrary Subjects API)
+  // 1. TRENDING (Google Books API - popular queries)
   // ==========================================
   if (section === "trending") {
     const genre = String(query.genre || 'fiction').trim().toLowerCase();
     const limit = Math.min(Number(query.limit) || 20, 50);
-    const offset = Math.min(Number(query.offset) || 0, 1000);
 
-    const cacheKey = `trending:${genre}:${limit}:${offset}`;
+    const cacheKey = `trending-v2:${genre}:${limit}`;
     const now = Date.now();
     const cached = DISCOVERY_CACHE.get(cacheKey);
     if (cached && (now - cached.t) < DISCOVERY_CACHE_TTL_MS) {
@@ -45,36 +90,59 @@ export default async function booksHandler(req, res) {
     }
 
     try {
-      const olUrl = new URL(`https://openlibrary.org/subjects/${encodeURIComponent(genre)}.json`);
-      olUrl.searchParams.set("limit", String(limit));
-      olUrl.searchParams.set("offset", String(offset));
+      const allBooks = [];
+      const seenIds = new Set();
+      const queries = shuffleArray(POPULAR_BOOK_QUERIES).slice(0, 5);
 
-      const response = await fetch(olUrl.toString(), { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error(`OpenLibrary HTTP ${response.status}`);
-      const data = await response.json();
+      for (const q of queries) {
+        if (allBooks.length >= limit * 2) break;
+        try {
+          const gbUrl = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
+          gbUrl.searchParams.set("q", q);
+          gbUrl.searchParams.set("maxResults", "10");
+          gbUrl.searchParams.set("orderBy", "relevance");
+          if (process.env.GOOGLE_BOOKS_API_KEY) gbUrl.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
 
-      const books = (data.works || []).map(work => {
-        const coverId = Number(work.cover_id || 0);
-        const authors = (work.authors || []).map(a => String(a.name || '').trim()).filter(Boolean);
-        return {
-          id: String(work.key || '').replace(/^\/works\//, ''),
-          title: String(work.title || '').trim(),
-          author: authors.length ? authors.join(", ") : "Unknown Author",
-          year: Number(work.first_publish_year || 0) || null,
-          cover: coverId > 0 ? `https://covers.openlibrary.org/b/id/${coverId}-L.jpg` : "/images/fallback/book.svg",
-          description: "", // Subjects API rarely returns desc, could fetch later if needed
-          _source: "open-library"
-        };
-      }).filter(b => b.title);
+          const response = await fetch(gbUrl.toString(), { signal: AbortSignal.timeout(5000) });
+          if (!response.ok) continue;
+          const data = await response.json();
 
-      const payload = { ok: true, books, total: data.work_count || books.length };
+          for (const item of (data.items || [])) {
+            const vol = item.volumeInfo || {};
+            if (seenIds.has(item.id)) continue;
+            seenIds.add(item.id);
+            const authors = vol.authors || [];
+            const imageLinks = vol.imageLinks || {};
+            let cover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
+            cover = cover.replace("http:", "https:");
+            if (!cover) continue;
+            const year = vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4)) : null;
+            if (year && year < 1990) continue;
+            allBooks.push({
+              id: item.id,
+              title: vol.title || "Unknown Title",
+              author: authors.length ? authors.join(", ") : "Unknown Author",
+              year,
+              cover,
+              description: vol.description || "",
+              _source: "google-books"
+            });
+          }
+        } catch (_err) { continue; }
+      }
+
+      let books = shuffleArray(allBooks).slice(0, limit);
+      if (!books.length) books = shuffleArray(FALLBACK_POPULAR_BOOKS).slice(0, limit);
+
+      const payload = { ok: true, books, total: books.length };
       DISCOVERY_CACHE.set(cacheKey, { v: payload, t: now });
-      
+
       res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
       return res.json(payload);
     } catch (error) {
       console.error("[Books API] Trending error:", error);
-      return res.status(502).json({ ok: false, message: "Trending fetch failed" });
+      const fallback = shuffleArray(FALLBACK_POPULAR_BOOKS).slice(0, limit);
+      return res.json({ ok: true, books: fallback, total: fallback.length });
     }
   }
 
