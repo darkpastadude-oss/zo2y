@@ -869,7 +869,11 @@
     .card-media.brand-cover {
       aspect-ratio: 1/1;
       padding: 10px;
-      background: linear-gradient(180deg, rgba(14, 30, 62, 0.98), rgba(19, 35, 71, 0.96));
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+    }
+
+    .card-media.card-media--light {
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
     }
 
     .card-media.brand-cover img {

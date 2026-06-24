@@ -548,7 +548,7 @@
     const extra = team.sport ? team.sport.toLowerCase() : ' ';
 
     card.innerHTML = `
-      <div class="card-media">
+      <div class="card-media card-media--light">
         <img
           src="${escapeHtml(badge)}"
           data-fallback-image="${FALLBACK_BADGE}"
