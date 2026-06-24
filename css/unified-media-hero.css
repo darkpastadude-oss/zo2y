@@ -304,6 +304,11 @@
     padding-bottom: 0;
   }
   
+  .umh-title-meta {
+    align-self: center;
+    padding-top: 12px;
+  }
+  
   .umh-title {
     font-size: 1.6rem;
   }
