@@ -97,6 +97,11 @@
     container.innerHTML = html;
 
     requestAnimationFrame(() => {
+      const desc = container.querySelector('.umh-description');
+      const btn = container.querySelector('.umh-readmore');
+      if (desc && btn && desc.scrollHeight <= desc.clientHeight) {
+        btn.style.display = 'none';
+      }
       const wrap = container.querySelector('.umh-container');
       if (wrap) wrap.classList.add('is-loaded');
     });
