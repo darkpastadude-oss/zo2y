@@ -28,8 +28,6 @@
     rosterSection: document.getElementById("teamRosterSection"),
     related: document.getElementById("teamRelated"),
     relatedSection: document.getElementById("teamRelatedSection"),
-    trailer: document.getElementById("teamTrailer"),
-    trailerSection: document.getElementById("teamTrailerSection"),
     toast: document.getElementById("teamToast"),
     actionCard: document.getElementById("teamActionCard"),
   };
@@ -536,37 +534,6 @@
     }
   }
 
-  function searchYouTubeForTeam(query) {
-    if (!query) return null;
-    try {
-      const q = encodeURIComponent(String(query));
-      return `https://www.youtube.com/results?search_query=${q}`;
-    } catch (_e) {
-      return null;
-    }
-  }
-
-  function loadTeamTrailer(team) {
-    if (!ui.trailer || !ui.trailerSection) return;
-    if (!team || !team.name) {
-      ui.trailerSection.hidden = true;
-      return;
-    }
-    const sport = team.sport ? ` ${team.sport}` : "";
-    const query = `${team.name}${sport} highlights`.trim();
-    const searchUrl = searchYouTubeForTeam(query);
-    ui.trailerSection.hidden = false;
-    ui.trailer.innerHTML = `
-      <div class="elevated-trailer-empty">
-        <i class="fa-brands fa-youtube"></i>
-        <span>no embedded video available for this team</span>
-        <a class="elevated-trailer-cta" href="${escapeHtml(searchUrl || "#")}" target="_blank" rel="noopener">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> search youtube
-        </a>
-      </div>
-    `;
-  }
-
   function renderTeamHeroConfig(team, wiki) {
     const container = document.getElementById("unifiedHeroContainer");
     if (!container) return;
@@ -623,7 +590,7 @@
       "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1461896836934-bd45ba8a002c?auto=format&fit=crop&w=1920&q=80",
     ];
-    const sportFallback = SPORT_BACKDROPS[Math.abs(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
+    const sportFallback = SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
 
     config.backdropUrl =
       backdrop || sportFallback;
@@ -1182,14 +1149,12 @@
     let sportsdbRaw = null;
     if (teamName) {
       let payload = null;
-      try {
-        if (teamId) {
-          payload = await fetchSportsDB("lookupteam.php", { id: teamId });
-        }
-        if (!payload?.teams?.length) {
-          payload = await fetchSportsDB("searchteams.php", { t: teamName });
-        }
-      } catch (_e) { payload = null; }
+      if (teamId) {
+        payload = await fetchSportsDB("lookupteam.php", { id: teamId });
+      }
+      if (!payload?.teams?.length) {
+        payload = await fetchSportsDB("searchteams.php", { t: teamName });
+      }
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
@@ -1243,7 +1208,7 @@
 
     let wikiData = null;
     if (teamName) {
-      try { wikiData = await fetchWikipedia(teamName); } catch (_e) { wikiData = null; }
+      wikiData = await fetchWikipedia(teamName);
       if (wikiData && localTeam) {
         if (wikiData.description) {
           localTeam.description = localTeam.description
@@ -1270,22 +1235,14 @@
     }
 
     state.team = team;
-    try {
-      setHero(team, wikiData);
-    } catch (_e) { console.warn("[team.js] setHero failed:", _e); }
+    setHero(team, wikiData);
 
     state.roster = extractRoster(sportsdbRaw);
-    try {
-      renderRoster();
-    } catch (_e) { console.warn("[team.js] renderRoster failed:", _e); }
+    renderRoster();
 
     fetchRelatedTeams(team)
       .then(() => renderRelated())
       .catch(() => {});
-
-    try {
-      loadTeamTrailer(team);
-    } catch (_e) { console.warn("[team.js] loadTeamTrailer failed:", _e); }
 
     if (state.supabase && localTeam) {
       try {
@@ -1323,9 +1280,9 @@
 
   async function init() {
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
-    try { await ensureSupabase(); } catch (_e) { console.warn("[team.js] ensureSupabase failed:", _e); }
-    try { await initAuth(); } catch (_e) { console.warn("[team.js] initAuth failed:", _e); }
-    try { initMenuBridge(); } catch (_e) { console.warn("[team.js] initMenuBridge failed:", _e); }
+    await ensureSupabase();
+    await initAuth();
+    initMenuBridge();
     const saveBtn = document.getElementById("teamSaveBtn");
     if (saveBtn) {
       saveBtn.addEventListener("click", (event) => {
@@ -1336,8 +1293,7 @@
     await loadTeam();
   }
 
-  init().catch((err) => {
-    console.error("[team.js] init failed:", err);
+  init().catch(() => {
     showToast("Unable to load team details.", "error");
   });
 })();
