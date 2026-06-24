@@ -148,6 +148,26 @@ function normalizeAppleChartTrackRow(track) {
   };
 }
 
+function normalizeAppleChartAlbumRow(album) {
+  const rawArtwork = String(album?.artworkUrl100 || "").trim();
+  const hiResArtwork = toHttpsUrl(rawArtwork);
+  return {
+    source: "apple",
+    kind: "album",
+    id: String(album?.id || album?.url || ""),
+    name: String(album?.name || "Album"),
+    artists: [String(album?.artistName || "").trim()].filter(Boolean),
+    artist_ids: [],
+    album_type: "album",
+    release_date: String(album?.releaseDate || "").trim().slice(0, 10),
+    total_tracks: Number(album?.trackCount || 0),
+    image: hiResArtwork,
+    preview_url: "",
+    external_url: String(album?.url || "").trim(),
+    popularity: 0
+  };
+}
+
 function dedupeByKey(rows = [], keyBuilder) {
   const seen = new Set();
   const output = [];
@@ -295,11 +315,23 @@ async function fetchAppleMostPlayedSongs({ market = "US", limit = 50 }) {
   const safeLimit = clampInt(limit, 1, 100, 50);
   const url = `${APPLE_MARKETING_API_BASE}/${encodeURIComponent(country)}/music/most-played/${safeLimit}/songs.json`;
   const json = await fetchJson(url, {
-    cacheKey: `apple:chart:most-played:${country}:${safeLimit}`,
+    cacheKey: `apple:chart:most-played:songs:${country}:${safeLimit}`,
     ttlMs: 1000 * 60 * 8
   });
   const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
   return dedupeTracks(rows.map(normalizeAppleChartTrackRow).filter((row) => !!row.id));
+}
+
+async function fetchAppleMostPlayedAlbums({ market = "US", limit = 30 }) {
+  const country = normalizeMarket(market).toLowerCase();
+  const safeLimit = clampInt(limit, 1, 100, 30);
+  const url = `${APPLE_MARKETING_API_BASE}/${encodeURIComponent(country)}/music/most-played/${safeLimit}/albums.json`;
+  const json = await fetchJson(url, {
+    cacheKey: `apple:chart:most-played:albums:${country}:${safeLimit}`,
+    ttlMs: 1000 * 60 * 8
+  });
+  const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
+  return dedupeAlbums(rows.map(normalizeAppleChartAlbumRow).filter((row) => !!row.id));
 }
 
 async function fetchItunesAlbumDetails(id, { market = "US", limit = 120 } = {}) {
@@ -449,11 +481,14 @@ export default async function handler(req, res) {
     const limit = clampInt(query.limit, 1, 100, 24);
     const market = normalizeMarket(query.market || "US");
     try {
-      const [chartRows, popularRows] = await Promise.all([
-        searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []),
-        searchItunesTracks({ q: `pop 2026`, limit: Math.max(limit, 24), market }).catch(() => [])
-      ]);
-      let results = dedupeTracks([...chartRows, ...popularRows]).slice(0, limit);
+      let results = await fetchAppleMostPlayedSongs({ market, limit: Math.max(limit, 24) }).catch(() => []);
+      if (!results.length) {
+        const [chartRows, popRows] = await Promise.all([
+          searchItunesTracks({ q: "top songs", limit: Math.max(limit, 24), market }).catch(() => []),
+          searchItunesTracks({ q: "new music 2026", limit: Math.max(limit, 24), market }).catch(() => [])
+        ]);
+        results = dedupeTracks([...chartRows, ...popRows]).slice(0, limit);
+      }
       if (!results.length) results = getFallbackTracks(limit, market);
       return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
     } catch (_error) {
@@ -469,13 +504,20 @@ export default async function handler(req, res) {
     const albumTypes = normalizeAlbumTypes(query.album_types || "album");
     const albumTypesKey = albumTypes.join(",") || "album";
     try {
-      const rows = await searchItunesAlbums({ q: `2026`, limit: Math.max(limit * 2, 40), market });
-      const results = filterAlbumsByType(rows, albumTypes).slice(0, limit);
+      let results = await fetchAppleMostPlayedAlbums({ market, limit: Math.max(limit, 24) }).catch(() => []);
+      if (!results.length) {
+        const [topAlbums, newAlbums] = await Promise.all([
+          searchItunesAlbums({ q: "top albums", limit: Math.max(limit * 2, 40), market }).catch(() => []),
+          searchItunesAlbums({ q: "new album", limit: Math.max(limit * 2, 40), market }).catch(() => [])
+        ]);
+        const merged = dedupeAlbums([...topAlbums, ...newAlbums]);
+        results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
+      }
       return res.json({
         count: results.length,
         limit,
         album_types: albumTypesKey,
-        source: "itunes-fallback",
+        source: results.length ? (results[0]?.source || "itunes") : "unavailable",
         results
       });
     } catch (_error) {
