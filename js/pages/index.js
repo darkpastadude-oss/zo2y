@@ -344,6 +344,8 @@
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_home_feed_cache_v15';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
+    const HOME_SESSION_LOADED_KEY = 'zo2y_home_session_loaded';
+    const HOME_SESSION_LOADED_MAX_AGE_MS = 1000 * 60 * 60;
     const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_MOVIES_ITEMS_CACHE_KEY = 'zo2y_home_movies_items_v1';
@@ -412,13 +414,13 @@
       { id: '7346', title: 'Monster Hunter Wilds', release: '2026-03-15', cover: SUPABASE_URL + '/storage/v1/object/public/game-assets/covers-official/portal-2.jpg' }
     ];
     const SPOTLIGHT_ROTATE_MS = 5000;
-    const HOME_CHANNEL_TARGET_ITEMS = 16;
+    const HOME_CHANNEL_TARGET_ITEMS = 10;
     const HOME_SPOTLIGHT_POOL_SIZE = 20;
-    const HOME_NEW_RELEASES_TARGET_ITEMS = 16;
+    const HOME_NEW_RELEASES_TARGET_ITEMS = 10;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
-const HOME_EAGER_IMAGE_COUNT = 4;
-const HOME_HIGH_PRIORITY_IMAGE_COUNT = 2;
+const HOME_EAGER_IMAGE_COUNT = 2;
+const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
     const HOME_PRELOAD_PER_CHANNEL = 3;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
@@ -5513,9 +5515,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const actualSrc = String(src || '');
       const fallbackSrc = String(fallbackImage || '');
       const shouldDefer = shouldDeferHomeImageLoad(loading);
-      // Optional ordered list of URLs to try before falling back to `fallbackImage`.
-      // Used by books to walk through OpenLibrary cover URLs when the primary
-      // Google Books thumbnail 404s.
       const chainRaw = Array.isArray(extra?.fallbackChain) ? extra.fallbackChain : [];
       const fallbackChain = chainRaw
         .map((entry) => String(entry || '').trim())
@@ -5523,6 +5522,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const chainJson = fallbackChain.length
         ? JSON.stringify(fallbackChain).replace(/"/g, '&quot;')
         : '';
+      const imgWidth = extra.imgWidth || 300;
+      const imgHeight = extra.imgHeight || 450;
       const attrs = [
         `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
         shouldDefer ? `data-home-src="${actualSrc}"` : '',
@@ -5530,6 +5531,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         `fetchpriority="${shouldDefer ? 'low' : priority}"`,
         'decoding="async"',
         'referrerpolicy="no-referrer"',
+        `width="${imgWidth}"`,
+        `height="${imgHeight}"`,
         'data-home-image="1"',
         `data-home-image-state="${shouldDefer ? 'deferred' : 'loading'}"`,
         'data-image-ready="0"',
@@ -10443,6 +10446,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         });
       }
 
+    function hasExistingRealItemsInFeed() {
+      return Object.values(homeFeedState).some((items) => homeHasRealItems(items));
+    }
+
     async function initUniversalHome(options = {}) {
       const now = Date.now();
       const force = !!options.force;
@@ -10495,12 +10502,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       ];
       const hasExistingRealItems = Object.values(homeFeedState).some((items) => homeHasRealItems(items));
       const hasCriticalMissing = criticalKeys.some((key) => !homeHasRealItems(homeFeedState?.[key]));
+      const sessionLoadedAt = Number(sessionStorage.getItem(HOME_SESSION_LOADED_KEY) || 0);
+      const sessionFresh = sessionLoadedAt && (now - sessionLoadedAt) < HOME_SESSION_LOADED_MAX_AGE_MS;
       if (
         !force
         && hasExistingRealItems
         && !hasCriticalMissing
-        && homeLastGoodFeedAt
-        && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS
+        && ((homeLastGoodFeedAt && (now - homeLastGoodFeedAt) < HOME_RESUME_REFRESH_THROTTLE_MS) || sessionFresh)
       ) {
         resetSpotlightTimer(true);
         return;
@@ -10644,6 +10652,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return;
       }
       homeLastGoodFeedAt = Date.now();
+      try { sessionStorage.setItem(HOME_SESSION_LOADED_KEY, String(homeLastGoodFeedAt)); } catch (_e) {}
 
       const freshActiveChannels = freshLoadedKeys.size;
       if (freshActiveChannels > 0) {
@@ -12076,6 +12085,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (window.visualViewport) {
         window.visualViewport.addEventListener('scroll', syncModalViewportOnViewportChange);
         window.visualViewport.addEventListener('resize', syncModalViewportOnViewportChange);
+      }
+    });
+
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        const sessionLoadedAt = Number(sessionStorage.getItem(HOME_SESSION_LOADED_KEY) || 0);
+        const sessionFresh = sessionLoadedAt && (Date.now() - sessionLoadedAt) < HOME_SESSION_LOADED_MAX_AGE_MS;
+        if (sessionFresh && hasExistingRealItemsInFeed()) {
+          resetSpotlightTimer(true);
+          return;
+        }
       }
     });
 
