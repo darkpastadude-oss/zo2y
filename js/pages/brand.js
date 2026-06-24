@@ -882,17 +882,22 @@
           // Also exclude buildings/factories/headquarters/plants/people/CEO for car brands
           // so we prefer actual product photos (the cars themselves).
           const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic/i;
+            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay/i;
           const candidates = titles.filter(
             (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
           );
-          // For car brands, prefer images that look like product shots (car model names,
-          // front/side/rear view, studio shots, press photos). We boost those to the top.
+          // For food brands, prefer images that look like actual food
+          const isFoodBrand = /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(brandType + " " + (brand.name || ""));
+          const FOOD_BOOST = /food|dish|meal|plate|cuisine|restaurant|cafe|coffee|burger|pizza|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|menu|chef|kitchen|cooking|grill|fry|bake|oven|stove|fresh|organic|fruit|vegetable|meat|seafood|recipe/i;
           const PRODUCT_BOOST =
             /front|side|rear|view|press|show|model|sedan|coupe|suv|truck|hatch|wagon|roadster|convertible|hybrid|electric|gt|racing|race|track|motor|auto|vehicle|\b\d{4}\b/i;
           const ranked = candidates.slice().sort((a, b) => {
-            const aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
-            const bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
+            let aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
+            let bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
+            if (isFoodBrand) {
+              aScore = FOOD_BOOST.test(a) ? 0 : (aScore === 0 ? 1 : 2);
+              bScore = FOOD_BOOST.test(b) ? 0 : (bScore === 0 ? 1 : 2);
+            }
             return aScore - bScore;
           });
           // Resolve the first 8 candidates to URLs
@@ -1016,10 +1021,10 @@
     }
 
     const CATEGORY_FALLBACK_BACKDROPS = {
-      food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=80",
-      fashion: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1600&q=80",
-      car: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80",
-      cars: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80"
+      food: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
+      fashion: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1920&q=80",
+      car: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
+      cars: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80"
     };
 
     if (!brandHeroConfig.backdropUrl) {
