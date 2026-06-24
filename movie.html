@@ -1275,12 +1275,21 @@
         const keywords = payload?.keywords || {};
         const externals = payload?.external_ids || {};
         const imagesObj = payload?.images || {};
+        const backdrops = Array.isArray(imagesObj.backdrops) ? imagesObj.backdrops : [];
+        let backdropPath = data.backdrop_path || '';
+        if (backdropPath && data.poster_path && backdropPath === data.poster_path) {
+          backdropPath = backdrops.map(b => b?.file_path).find(p => p && p !== data.poster_path) || '';
+        }
+        if (!backdropPath && backdrops.length > 0) {
+          backdropPath = backdrops.find(b => b?.file_path && b.file_path !== data.poster_path)?.file_path || backdrops[0].file_path || '';
+        }
+
         const config = {
           type: 'movie',
           typeLabel: 'Movie Spotlight',
           title: data.title || 'Untitled',
           posterUrl: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '/images/placeholder.jpg',
-          backdropUrl: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '',
+          backdropUrl: backdropPath ? `https://image.tmdb.org/t/p/original${backdropPath}` : '',
           description: data.overview || 'No description available.',
           metadata: [],
           actions: [

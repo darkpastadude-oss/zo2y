@@ -1292,6 +1292,9 @@
         if (backdropPath && data.poster_path && backdropPath === data.poster_path) {
           backdropPath = backdrops.map(b => b?.file_path).find(p => p && p !== data.poster_path) || '';
         }
+        if (!backdropPath && backdrops.length > 0) {
+          backdropPath = backdrops.find(b => b?.file_path && b.file_path !== data.poster_path)?.file_path || backdrops[0].file_path || '';
+        }
         if (backdropPath) {
           config.backdropUrl = buildBackdropUrl(backdropPath, 'original');
         }
