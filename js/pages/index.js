@@ -5436,10 +5436,17 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function markHomeImageReady(img) {
       if (!img) return;
-      img.setAttribute('data-image-ready', '1');
-      img.setAttribute('data-home-image-state', 'ready');
-      const wrapper = getHomeImageWrapper(img);
-      if (wrapper) wrapper.classList.remove('is-loading-media');
+      const show = () => {
+        img.setAttribute('data-image-ready', '1');
+        img.setAttribute('data-home-image-state', 'ready');
+        const wrapper = getHomeImageWrapper(img);
+        if (wrapper) wrapper.classList.remove('is-loading-media');
+      };
+      if (img.decode && img.complete && img.naturalWidth > 0) {
+        img.decode().then(show).catch(show);
+      } else {
+        show();
+      }
     }
 
     function loadHomeDeferredImage(img) {
@@ -6801,11 +6808,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             img.src = fallback;
             return;
           }
-          img.setAttribute('data-image-ready', '1');
-          img.setAttribute('data-home-image-state', 'ready');
           img.src = HOME_LOCAL_FALLBACK_IMAGE;
-          const wrapper = getHomeImageWrapper(img);
-          if (wrapper) wrapper.classList.remove('is-loading-media');
+          markHomeImageReady(img);
         };
 
         const handleLoaded = () => {
@@ -9958,6 +9962,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
 
       const safeArt = (url) => String(url || '').trim();
+
+      const fetchJson = async (url) => {
+        try {
+          const r = await fetch(url, { signal });
+          if (!r.ok) return null;
+          return await r.json();
+        } catch { return null; }
+      };
 
       const mapTrack = (track) => {
         const arts = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : String(track?.artistName || track?.subtitle || 'Artist').trim();
