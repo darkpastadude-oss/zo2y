@@ -2674,7 +2674,7 @@
 .stat-label { font-size: 0.85rem; color: var(--dt-text-2); margin-top: 5px; }
 .rating-breakdown { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
 .rating-row { display: flex; align-items: center; gap: 10px; }
-.rating-stars { color: #FF9800; font-size: 0.9rem; width: 60px; }
+.rating-stars { color: #FF9800; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; line-height: 1; }
 .rating-bar { flex: 1; height: 8px; background: var(--dt-line); border-radius: 4px; overflow: hidden; }
 .rating-fill { height: 100%; background: #FF9800; border-radius: 4px; transition: width 0.5s ease; }
 .rating-count { font-size: 0.8rem; color: var(--dt-text-2); width: 30px; text-align: right; }
@@ -2715,7 +2715,6 @@
 .review-date { font-size: 0.8rem; color: var(--dt-text-3); }
 .review-rating { color: #FF9800; font-size: 1.1rem; white-space: nowrap; display: inline-flex; align-items: center; }
 .review-stars-display { color: #FF9800; font-size: 1.1rem; white-space: nowrap; display: inline-flex; align-items: center; }
-.rating-stars { display: inline-flex; align-items: center; gap: 4px; font-size: 0.9rem; line-height: 1; }
 .rating-star {
   width: 1em;
   height: 1em;

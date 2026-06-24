@@ -108,7 +108,7 @@
       if (teamSport === sportNeedle) score += 2;
       else if (
         teamSport.includes(sportNeedle) ||
-        sportNeedle.includes(sportNeedle)
+        sportNeedle.includes(teamSport)
       )
         score += 1;
     }
@@ -118,7 +118,7 @@
       if (teamCountry === countryNeedle) score += 2;
       else if (
         teamCountry.includes(countryNeedle) ||
-        countryNeedle.includes(countryNeedle)
+        countryNeedle.includes(teamCountry)
       )
         score += 1;
     }
@@ -1306,7 +1306,7 @@
       }
     }
 
-    await loadFavoriteStatus();
+    await loadFavoriteStatus().catch(() => {});
   }
 
   /* ---------- Reviews ---------- */
