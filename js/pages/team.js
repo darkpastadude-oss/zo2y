@@ -511,7 +511,7 @@
     try {
       let query = supabase
         .from("teams")
-        .select("id,name,sport,league,logo_url")
+        .select("id,name,sport,league,country,logo_url")
         .ilike("sport", team.sport)
         .neq("id", team.id);
       if (team.league) {
@@ -527,7 +527,8 @@
         name: row.name,
         sport: row.sport || team.sport,
         league: row.league || "",
-        badge: row.logo_url || "",
+        country: row.country || "",
+        badge: getLocalBadge(row.name) || row.logo_url || "",
       }));
     } catch (_err) {
       state.related = [];
@@ -1032,9 +1033,20 @@
 
   function getLocalBadge(teamName) {
     if (!teamName) return "";
+    const map = state.localBadgeMap;
+    if (!Object.keys(map).length) return "";
+    if (map[teamName]) return map[teamName];
     const nameKey = teamName.toLowerCase().trim();
-    if (state.localBadgeMap[teamName]) return state.localBadgeMap[teamName];
-    if (state.localBadgeMap[nameKey]) return state.localBadgeMap[nameKey];
+    if (map[nameKey]) return map[nameKey];
+    const keys = Object.keys(map);
+    const match = keys.find((k) => k.toLowerCase() === nameKey);
+    if (match) return map[match];
+    const stripped = nameKey.replace(/^(fc|cf|sc|ac|rc|sl|sv|ss|cd|ud|as|sk|kv|fk|bk|if|il|ii)\s+/i, "").trim();
+    const partial = keys.find((k) => {
+      const kl = k.toLowerCase();
+      return kl === stripped || kl.includes(stripped) || stripped.includes(kl);
+    });
+    if (partial) return map[partial];
     return "";
   }
 
