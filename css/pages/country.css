@@ -17,34 +17,25 @@
   --country-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* === Flag in center, no white background — match brand.css style === */
+/* === Flag — no white box, just the flag === */
 .elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame,
 .elevated-media-page[data-elevated-category="travel"] .umh-poster-frame {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+  background: transparent !important;
+  border: none !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   border-radius: 10px;
-  padding: 0;
+  padding: 0 !important;
   overflow: hidden;
   aspect-ratio: auto;
-}
-
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card,
-.elevated-media-page[data-elevated-category="travel"] .umh-poster-frame.elevated-logo-card {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
-  padding: 0;
-  border-radius: 10px;
 }
 
 .elevated-detail-page[data-elevated-category="travel"] .umh-poster,
 .elevated-media-page[data-elevated-category="travel"] .umh-poster {
   width: 100%;
   height: auto;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 0;
   background: transparent;
 }

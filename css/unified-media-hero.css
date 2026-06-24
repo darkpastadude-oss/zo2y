@@ -98,8 +98,7 @@
 .elevated-media-page[data-elevated-category="food"] .umh-poster-frame,
 .elevated-media-page[data-elevated-category="fashion"] .umh-poster-frame,
 .elevated-media-page[data-elevated-category="car"] .umh-poster-frame,
-.elevated-media-page[data-elevated-category="team"] .umh-poster-frame,
-.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
+.elevated-media-page[data-elevated-category="team"] .umh-poster-frame {
   aspect-ratio: 1 / 1;
   background: #ffffff !important;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -108,6 +107,15 @@
   align-items: center !important;
   justify-content: center !important;
   padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.6);
+  aspect-ratio: auto;
+  padding: 0 !important;
   box-sizing: border-box !important;
 }
 
@@ -149,6 +157,11 @@
   max-height: 100% !important;
   object-fit: contain !important;
   object-position: center !important;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-contain {
+  object-fit: contain !important;
+  padding: 0 !important;
 }
 
 .umh-poster-fallback {
