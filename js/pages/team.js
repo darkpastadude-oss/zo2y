@@ -3,7 +3,6 @@
   const SUPABASE_URL =
     String(supabaseConfig.url || "").trim() || "__SUPABASE_URL__";
   const SUPABASE_KEY = String(supabaseConfig.key || "").trim();
-  const SPORTSDB_BASE = "/api/sportsdb";
   const FALLBACK_BADGE = "/file.svg";
   const FALLBACK_IMAGE = "/newlogo.webp";
 
@@ -121,7 +120,7 @@
       if (teamCountry === countryNeedle) score += 2;
       else if (
         teamCountry.includes(countryNeedle) ||
-        countryNeedle.includes(teamCountry)
+        countryNeedle.includes(countryNeedle)
       )
         score += 1;
     }
@@ -583,19 +582,14 @@
       seen.add(src);
       images.push({ src, caption });
     };
-    // 1) Real photo (stadium, players, kit) from Wikipedia page images
     if (team.wikiPhoto) pushImage(team.wikiPhoto, "stadium");
-    // 2) Wikipedia hero image — often the lead photo
     if (team.wikiHero) pushImage(team.wikiHero, team.name);
-    // 3) Existing media from TheSportsDB
     if (team.fanart) pushImage(team.fanart, team.name);
     if (team.banner) pushImage(team.banner, team.name);
     if (team.stadiumThumb) pushImage(team.stadiumThumb, "stadium");
     if (team.jersey) pushImage(team.jersey, "kit");
-    // 4) Team badge / crest as last fallback
     if (team.badge) pushImage(team.badge, "crest");
 
-    // 5) Fetch extra photos from the Wikipedia page
     if (team.wikiTitle) {
       const imagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(team.wikiTitle)}&prop=images&imlimit=30&format=json&origin=*`;
       fetch(imagesUrl)
@@ -692,12 +686,9 @@
   }
 
   function renderTeamHeroConfig(team, wiki) {
-    console.log("[team-debug] renderTeamHeroConfig called", {
-      hasRenderUnified: !!window.renderUnifiedMediaHero,
-      container: !!document.getElementById("unifiedHeroContainer"),
-      teamName: team?.name,
-      badge: team?.badge,
-    });
+    const container = document.getElementById("unifiedHeroContainer");
+    if (!container) return;
+
     const config = {
       type: "team",
       title: team.name || "Team",
@@ -713,18 +704,8 @@
       if (!url) return false;
       const u = String(url).toLowerCase();
       const teamBadge = String(team.badge || "").toLowerCase();
-      if (teamBadge && (u.includes(teamBadge) || teamBadge.includes(u))) return true;
-
-      const getBaseFilename = (urlStr) => {
-        const parts = urlStr.split('/');
-        const last = parts[parts.length - 1] || "";
-        return last.replace(/^\d+px-/, "").split('?')[0];
-      };
-
-      const uFile = getBaseFilename(u);
-      const badgeFile = teamBadge ? getBaseFilename(teamBadge) : "";
-      if (badgeFile && uFile === badgeFile) return true;
-
+      if (teamBadge && (u.includes(teamBadge) || teamBadge.includes(u)))
+        return true;
       return (
         /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
           u,
@@ -746,20 +727,16 @@
     };
 
     const backdrop = pickFirstNonLogo(
-      wiki ? wiki.photoImage || wiki.heroImage || wiki.thumbnail : null,
+      team.banner,
+      team.fanart,
+      team.stadiumThumb,
       team.wikiPhoto,
       team.wikiHero,
-      team.fanart,
-      team.fanarts,
-      team.banner,
-      team.stadiumThumb,
-      team.jersey,
+      wiki ? wiki.photoImage || wiki.heroImage || wiki.thumbnail : null,
     );
-    if (backdrop) {
-      config.backdropUrl = backdrop;
-    } else {
-      config.backdropUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80";
-    }
+    config.backdropUrl =
+      backdrop ||
+      "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80";
 
     if (team.league)
       config.metadata.push({
@@ -802,20 +779,8 @@
     }
 
     if (window.renderUnifiedMediaHero) {
-      console.log("[team-debug] calling renderUnifiedMediaHero", {
-        containerEl: document.getElementById("unifiedHeroContainer"),
-        configTitle: config.title,
-        posterUrl: config.posterUrl,
-        backdropUrl: config.backdropUrl?.substring(0, 80),
-      });
-      window.renderUnifiedMediaHero(
-        document.getElementById("unifiedHeroContainer"),
-        config,
-      );
-      console.log("[team-debug] hero HTML after render:", document.getElementById("unifiedHeroContainer")?.innerHTML?.substring(0, 200));
+      window.renderUnifiedMediaHero(container, config);
       bindUnifiedListMenu(team, config);
-    } else {
-      console.log("[team-debug] renderUnifiedMediaHero NOT available on window");
     }
   }
 
@@ -826,7 +791,7 @@
     window.initIndexStyleListMenu({
       mediaType: "sports",
       itemIdAttr: "data-item-id",
-      getVisibleItemIds: () => team.id ? [team.id] : [],
+      getVisibleItemIds: () => (team.id ? [team.id] : []),
       getQuickStatusForItem: () => null,
       getCurrentUser: () => state.currentUser,
       ensureClient: ensureSupabase,
@@ -838,8 +803,8 @@
         itemId: team.id,
         title: config.title,
         subtitle: "",
-        posterUrl: config.posterUrl
-      })
+        posterUrl: config.posterUrl,
+      }),
     });
 
     saveBtn.addEventListener("click", (e) => {
@@ -853,7 +818,6 @@
     document.body.dataset.navPage = "sports";
     document.title = `Zo2y - ${team.name}`;
 
-    // Populate hidden action card so the list-menu modal can read team data
     if (ui.actionCard) {
       ui.actionCard.setAttribute("data-item-id", team.id || "");
       ui.actionCard.setAttribute("data-title", team.name || "");
@@ -1042,9 +1006,13 @@
   }
 
   async function fetchSportsDB(endpoint, params = {}, timeoutMs = 10000) {
-    if (window.ZO2Y_SPORTSDB && typeof window.ZO2Y_SPORTSDB.request === 'function') {
+    if (
+      window.ZO2Y_SPORTSDB &&
+      typeof window.ZO2Y_SPORTSDB.request === "function"
+    ) {
       return await window.ZO2Y_SPORTSDB.request(endpoint, params, timeoutMs);
     }
+    const SPORTSDB_BASE = "/api/sportsdb";
     const url = new URL(`${SPORTSDB_BASE}/${endpoint}`, window.location.origin);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== "") {
@@ -1077,12 +1045,10 @@
     }
     try {
       let title = "";
-      // Try just the team name first (works for all sports)
       const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName)}&format=json&origin=*&srlimit=3`;
       const searchRes = await fetch(searchUrl);
       const searchData = await searchRes.json();
       const results = searchData?.query?.search || [];
-      // Pick the best result — prefer exact or close title match
       if (results.length) {
         const normalized = teamName.toLowerCase();
         const exact = results.find(
@@ -1090,7 +1056,6 @@
         );
         title = exact ? exact.title : results[0].title;
       }
-      // Fallback: try with " football club" if first search found nothing relevant
       if (!title) {
         const fbUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(teamName + " football club")}&format=json&origin=*&srlimit=1`;
         const fbRes = await fetch(fbUrl);
@@ -1103,7 +1068,6 @@
       const summaryRes = await fetch(summaryUrl);
       const summaryData = await summaryRes.json();
 
-      // Try to find a "logo" image from Wikipedia page images
       let logoImage = "";
       try {
         const pageImagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=original|thumbnail&pithumbsize=400&format=json&origin=*`;
@@ -1120,7 +1084,6 @@
         }
       } catch (_e) {}
 
-      // Look for a real photo (stadium, players, kit) from the page's image list
       let photoImage = "";
       try {
         const imagesRes = await fetch(
@@ -1135,14 +1098,12 @@
           pages.forEach((p) =>
             (p.images || []).forEach((img) => titles.push(img.title || "")),
           );
-          // Filter out logos, icons, wordmarks, and also buildings/people/executives
-          // so we prefer stadium shots, team photos, kits, and action shots.
           const SKIP =
             /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem|building|headquarters|factory|office|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|chart|graph|diagram/i;
           const candidates = titles.filter(
-            (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
+            (t) =>
+              /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
           );
-          // Boost stadium/team/kit/player photos to the top
           const PRODUCT_BOOST =
             /stadium|arena|ground|pitch|field|court|kit|jersey|shirt|uniform|players?|team|lineup|squad|training|match|game|action|celebration|trophy|\b\d{4}\b/i;
           const ranked = candidates.slice().sort((a, b) => {
@@ -1170,9 +1131,7 @@
             }
           }
         }
-      } catch (_e) {
-        /* photo lookup is best-effort */
-      }
+      } catch (_e) {}
 
       const result = {
         title: summaryData.title || title,
@@ -1235,7 +1194,6 @@
     await loadLocalManifest();
 
     let localTeam = null;
-    let remoteTeam = null;
 
     const localBadge = getLocalBadge(teamName);
 
@@ -1324,7 +1282,6 @@
       };
     }
 
-    // TheSportsDB — fetch full data including images
     let sportsdbRaw = null;
     if (teamName) {
       let payload = null;
@@ -1337,72 +1294,76 @@
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
-        const mapped = mapTeam(best || teams[0]);
         sportsdbRaw = best || teams[0];
-        remoteTeam = {
-          id: localTeam?.id || mapped.id,
-          name: localTeam?.name || mapped.name,
-          sport: localTeam?.sport || mapped.sport,
-          league: localTeam?.league || mapped.league,
-          country: mapped.country || localTeam?.country || "",
-          formedYear: mapped.formedYear || "",
-          stadium: localTeam?.stadium || mapped.stadium,
-          stadiumLocation: mapped.stadiumLocation || "",
-          stadiumCapacity: mapped.stadiumCapacity || "",
-          description: mapped.description || "",
-          manager: mapped.manager || "",
-          badge: localTeam?.badge || mapped.badge,
-          banner: mapped.banner,
-          fanart: mapped.fanart,
-          fanarts: mapped.fanarts,
-          stadiumThumb: mapped.stadiumThumb,
-          jersey: mapped.jersey,
-          website: mapped.website || "",
-          facebook: mapped.facebook || "",
-          twitter: mapped.twitter || "",
-          instagram: mapped.instagram || "",
-          youtube: mapped.youtube || "",
-        };
+        const mapped = mapTeam(sportsdbRaw);
+        if (mapped && !localTeam) {
+          localTeam = {
+            id: mapped.id,
+            name: mapped.name,
+            sport: mapped.sport,
+            league: mapped.league,
+            country: mapped.country,
+            formedYear: mapped.formedYear,
+            stadium: mapped.stadium,
+            stadiumLocation: mapped.stadiumLocation,
+            stadiumCapacity: mapped.stadiumCapacity,
+            description: mapped.description,
+            manager: mapped.manager,
+            badge: mapped.badge,
+            banner: "",
+            fanart: "",
+            fanarts: mapped.fanarts,
+            stadiumThumb: mapped.stadiumThumb,
+            jersey: mapped.jersey,
+            website: mapped.website,
+            facebook: mapped.facebook,
+            twitter: mapped.twitter,
+            instagram: mapped.instagram,
+            youtube: mapped.youtube,
+          };
+        } else if (mapped && localTeam) {
+          if (!localTeam.badge) localTeam.badge = mapped.badge;
+          if (!localTeam.stadium) localTeam.stadium = mapped.stadium;
+          if (!localTeam.stadiumLocation)
+            localTeam.stadiumLocation = mapped.stadiumLocation;
+          if (!localTeam.stadiumCapacity)
+            localTeam.stadiumCapacity = mapped.stadiumCapacity;
+          if (!localTeam.description) localTeam.description = mapped.description;
+          if (!localTeam.manager) localTeam.manager = mapped.manager;
+          if (!localTeam.formedYear) localTeam.formedYear = mapped.formedYear;
+          if (!localTeam.website) localTeam.website = mapped.website;
+          if (!localTeam.facebook) localTeam.facebook = mapped.facebook;
+          if (!localTeam.twitter) localTeam.twitter = mapped.twitter;
+          if (!localTeam.instagram) localTeam.instagram = mapped.instagram;
+          if (!localTeam.youtube) localTeam.youtube = mapped.youtube;
+          if (!localTeam.fanarts?.length) localTeam.fanarts = mapped.fanarts;
+          if (!localTeam.jersey) localTeam.jersey = mapped.jersey;
+        }
       }
     }
 
-    // Wikipedia for description + logo + cover
     let wikiData = null;
-    if (
-      (!remoteTeam?.description || remoteTeam.description.length < 80) &&
-      teamName
-    ) {
+    if (teamName) {
       wikiData = await fetchWikipedia(teamName);
-      if (wikiData) {
-        remoteTeam = remoteTeam || { ...localTeam };
+      if (wikiData && localTeam) {
         if (wikiData.description) {
-          remoteTeam.description = remoteTeam.description
-            ? `${remoteTeam.description}\n\n${wikiData.description}`
+          localTeam.description = localTeam.description
+            ? `${localTeam.description}\n\n${wikiData.description}`
             : wikiData.description;
         }
-        if (!remoteTeam.website && wikiData.url)
-          remoteTeam.website = wikiData.url;
-        if (wikiData.thumbnail && !remoteTeam.fanart) {
-          const lowerThumb = String(wikiData.thumbnail).toLowerCase();
-          const isLogo = /logo|crest|badge|seal|emblem|icon|flag/.test(lowerThumb) || 
-                         (remoteTeam.badge && lowerThumb.includes(String(remoteTeam.badge).toLowerCase()));
-          if (!isLogo) {
-            remoteTeam.fanart = wikiData.thumbnail;
-            remoteTeam.fanarts = [wikiData.thumbnail];
-          }
-        }
-        if (wikiData.wikiSource) remoteTeam.wikiTitle = wikiData.wikiSource;
-        if (wikiData.heroImage) remoteTeam.wikiHero = wikiData.heroImage;
-        if (wikiData.photoImage) remoteTeam.wikiPhoto = wikiData.photoImage;
-        if (!remoteTeam.fanart && wikiData.heroImage)
-          remoteTeam.fanart = wikiData.heroImage;
-        // Wikipedia logo image (or thumbnail) can serve as a fallback badge
-        if (!remoteTeam.badge)
-          remoteTeam.badge = wikiData.logoImage || wikiData.thumbnail;
+        if (!localTeam.website && wikiData.url)
+          localTeam.website = wikiData.url;
+        if (!localTeam.badge && wikiData.logoImage)
+          localTeam.badge = wikiData.logoImage;
+        if (!localTeam.badge && wikiData.thumbnail)
+          localTeam.badge = wikiData.thumbnail;
+        if (wikiData.photoImage) localTeam.wikiPhoto = wikiData.photoImage;
+        if (wikiData.heroImage) localTeam.wikiHero = wikiData.heroImage;
+        if (wikiData.wikiSource) localTeam.wikiTitle = wikiData.wikiSource;
       }
     }
 
-    const team = remoteTeam || localTeam;
+    const team = localTeam;
 
     if (!team) {
       document.title = "Zo2y - Team not found";
@@ -1412,21 +1373,17 @@
     state.team = team;
     setHero(team, wikiData);
 
-    // Extract roster from the raw TheSportsDB payload
     state.roster = extractRoster(sportsdbRaw);
     renderRoster();
 
-    // Related teams (non-blocking)
     fetchRelatedTeams(team)
       .then(() => renderRelated())
       .catch(() => {});
 
-    // Trailer (YouTube search fallback) + Gallery (team visuals)
     loadTeamTrailer(team);
     loadTeamGallery(team);
 
-    // Save enriched data back to Supabase
-    if (state.supabase && remoteTeam) {
+    if (state.supabase && localTeam) {
       try {
         let saveId = team.id;
         const { data: existingRow } = await state.supabase
