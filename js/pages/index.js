@@ -5883,6 +5883,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           extra: row.sport || ''
         }));
       }
+      if (key === 'music') {
+        return [
+          { title: 'Today\'s Top Hits', subtitle: 'Apple Music', extra: 'Playlist' },
+          { title: 'Rap Life', subtitle: 'Apple Music', extra: 'Playlist' },
+          { title: 'Pop Hits 2026', subtitle: 'Apple Music', extra: 'Playlist' },
+          { title: 'New Music Daily', subtitle: 'Apple Music', extra: 'Playlist' },
+          { title: 'A-List Pop', subtitle: 'Apple Music', extra: 'Playlist' },
+          { title: 'Hot Tracks', subtitle: 'Apple Music', extra: 'Playlist' }
+        ].slice(0, Math.max(3, Math.min(targetCount, 6))).map((row, index) => ({
+          mediaType: 'music', itemId: `seed-music-${index + 1}`, title: row.title,
+          subtitle: row.subtitle, extra: row.extra,
+          image: HOME_LOCAL_FALLBACK_IMAGE, backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
+          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
+          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
+          href: 'music.html', isPlaceholder: true
+        }));
+      }
       return [];
     }
 
@@ -5894,7 +5912,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 5000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -10003,8 +10021,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         } catch (_err) { return []; }
       };
 
-      let trackRows = await fetchItunesTracks(50);
-      let albumRows = await fetchItunesAlbums(30);
+      const [trackRows, albumRows] = await Promise.all([
+        fetchItunesTracks(50),
+        fetchItunesAlbums(30)
+      ]);
 
       if (trackRows.length || albumRows.length) {
         trackRows = shuffleArray(trackRows);

@@ -449,10 +449,11 @@ export default async function handler(req, res) {
     const limit = clampInt(query.limit, 1, 100, 24);
     const market = normalizeMarket(query.market || "US");
     try {
-      const chartRows = await searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []);
-      const popularRows = await searchItunesTracks({ q: `pop`, limit: Math.max(limit, 24), market }).catch(() => []);
-      const globalRows = await searchItunesTracks({ q: "2026", limit: Math.max(limit, 24), market: "US" }).catch(() => []);
-      let results = dedupeTracks([...chartRows, ...popularRows, ...globalRows]).slice(0, limit);
+      const [chartRows, popularRows] = await Promise.all([
+        searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []),
+        searchItunesTracks({ q: `pop 2026`, limit: Math.max(limit, 24), market }).catch(() => [])
+      ]);
+      let results = dedupeTracks([...chartRows, ...popularRows]).slice(0, limit);
       if (!results.length) results = getFallbackTracks(limit, market);
       return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
     } catch (_error) {
