@@ -110,6 +110,19 @@
   box-sizing: border-box !important;
 }
 
+.elevated-media-page[data-elevated-category="games"] .umh-poster-frame,
+.elevated-detail-page[data-elevated-category="games"] .umh-poster-frame {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.85), 0 8px 24px -6px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 14px !important;
+}
+
+.elevated-media-page[data-elevated-category="games"] .umh-poster,
+.elevated-detail-page[data-elevated-category="games"] .umh-poster {
+  border-radius: 14px !important;
+}
+
 .elevated-detail-page[data-elevated-category="food"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="fashion"] .umh-poster-contain,
 .elevated-detail-page[data-elevated-category="car"] .umh-poster-contain,

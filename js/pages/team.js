@@ -30,8 +30,6 @@
     relatedSection: document.getElementById("teamRelatedSection"),
     trailer: document.getElementById("teamTrailer"),
     trailerSection: document.getElementById("teamTrailerSection"),
-    gallery: document.getElementById("teamGallery"),
-    gallerySection: document.getElementById("teamGallerySection"),
     toast: document.getElementById("teamToast"),
     actionCard: document.getElementById("teamActionCard"),
   };
@@ -569,122 +567,6 @@
     `;
   }
 
-  function loadTeamGallery(team) {
-    if (!ui.gallery || !ui.gallerySection) return;
-    if (!team || !team.name) {
-      ui.gallerySection.hidden = true;
-      return;
-    }
-    const images = [];
-    const seen = new Set();
-    const pushImage = (src, caption) => {
-      if (!src || seen.has(src)) return;
-      seen.add(src);
-      images.push({ src, caption });
-    };
-    if (team.wikiPhoto) pushImage(team.wikiPhoto, "stadium");
-    if (team.wikiHero) pushImage(team.wikiHero, team.name);
-    if (team.fanart) pushImage(team.fanart, team.name);
-    if (team.banner) pushImage(team.banner, team.name);
-    if (team.stadiumThumb) pushImage(team.stadiumThumb, "stadium");
-    if (team.jersey) pushImage(team.jersey, "kit");
-    if (team.badge) pushImage(team.badge, "crest");
-
-    if (team.wikiTitle) {
-      const imagesUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(team.wikiTitle)}&prop=images&imlimit=30&format=json&origin=*`;
-      fetch(imagesUrl)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (!data || !data.query || !data.query.pages) return;
-          const pages = Object.values(data.query.pages);
-          const titles = [];
-          pages.forEach((p) =>
-            (p.images || []).forEach((img) => titles.push(img.title || "")),
-          );
-          const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem/i;
-          const candidates = titles.filter(
-            (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
-          );
-          const slice = candidates.slice(0, 8);
-          if (!slice.length) return;
-          return fetch(
-            `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join("|")}&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`,
-          );
-        })
-        .then((r) => (r && r.ok ? r.json() : null))
-        .then((urlsData) => {
-          if (!urlsData || !urlsData.query || !urlsData.query.pages) return;
-          const urlPages = Object.values(urlsData.query.pages);
-          urlPages.forEach((p) => {
-            const info = p.imageinfo && p.imageinfo[0];
-            if (info && info.url && info.width >= 400) {
-              pushImage(
-                info.url,
-                p.title
-                  ? p.title.replace(/^File:/, "").replace(/\.[^.]+$/, "")
-                  : team.name,
-              );
-            }
-          });
-          if (!images.length) return;
-          const renderImgs1 = images.slice(0, 12);
-          ui.gallery.classList.toggle("has-multiple", renderImgs1.length > 1);
-          ui.gallery.innerHTML = renderImgs1
-            .map(
-              (img, i) => `
-            <figure class="elevated-gallery-item" ${i === 0 && renderImgs1.length > 1 ? `data-remaining="${renderImgs1.length - 1}"` : ""} data-index="${i}">
-              <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
-              ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ""}
-            </figure>
-          `,
-            )
-            .join("");
-          ui.gallery.onclick = (e) => {
-            const item = e.target.closest(".elevated-gallery-item");
-            if (item && window.openGalleryLightbox) {
-              window.openGalleryLightbox(
-                renderImgs1,
-                parseInt(item.getAttribute("data-index") || "0", 10),
-              );
-            }
-          };
-        })
-        .catch(() => {});
-    }
-    ui.gallerySection.hidden = false;
-    if (!images.length) {
-      ui.gallery.innerHTML = `
-        <div class="elevated-gallery-empty">
-          <i class="fa-regular fa-image"></i>
-          no photos available for this team yet
-        </div>
-      `;
-      return;
-    }
-    const renderImgs2 = images.slice(0, 12);
-    ui.gallery.classList.toggle("has-multiple", renderImgs2.length > 1);
-    ui.gallery.innerHTML = renderImgs2
-      .map(
-        (img, i) => `
-      <figure class="elevated-gallery-item" ${i === 0 && renderImgs2.length > 1 ? `data-remaining="${renderImgs2.length - 1}"` : ""} data-index="${i}">
-        <img src="${escapeHtml(img.src)}" alt="${escapeHtml(img.caption || team.name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentElement.remove();" />
-        ${img.caption ? `<figcaption class="elevated-gallery-item-caption">${escapeHtml(img.caption)}</figcaption>` : ""}
-      </figure>
-    `,
-      )
-      .join("");
-    ui.gallery.onclick = (e) => {
-      const item = e.target.closest(".elevated-gallery-item");
-      if (item && window.openGalleryLightbox) {
-        window.openGalleryLightbox(
-          renderImgs2,
-          parseInt(item.getAttribute("data-index") || "0", 10),
-        );
-      }
-    };
-  }
-
   function renderTeamHeroConfig(team, wiki) {
     const container = document.getElementById("unifiedHeroContainer");
     if (!container) return;
@@ -734,9 +616,17 @@
       team.wikiHero,
       wiki ? wiki.photoImage || wiki.heroImage || wiki.thumbnail : null,
     );
+    const SPORT_BACKDROPS = [
+      "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1461896836934-bd45ba8a002c?auto=format&fit=crop&w=1920&q=80",
+    ];
+    const sportFallback = SPORT_BACKDROPS[Math.abs(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
+
     config.backdropUrl =
-      backdrop ||
-      "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1600&q=80";
+      backdrop || sportFallback;
 
     if (team.league)
       config.metadata.push({
@@ -1114,20 +1004,23 @@
           const slice = ranked.slice(0, 8);
           if (slice.length) {
             const urlsRes = await fetch(
-              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join("|")}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`,
+              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join("|")}&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1920&format=json&origin=*`,
             );
             if (urlsRes.ok) {
               const urlsData = await urlsRes.json();
               const urlPages = urlsData?.query?.pages
                 ? Object.values(urlsData.query.pages)
                 : [];
+              let bestPhoto = null;
+              let bestWidth = 0;
               for (const p of urlPages) {
                 const info = p.imageinfo && p.imageinfo[0];
-                if (info && info.url && info.width >= 400) {
-                  photoImage = info.url;
-                  break;
+                if (info && info.url && info.width >= 400 && info.width > bestWidth) {
+                  bestWidth = info.width;
+                  bestPhoto = info.url;
                 }
               }
+              if (bestPhoto) photoImage = bestPhoto;
             }
           }
         }
@@ -1381,7 +1274,6 @@
       .catch(() => {});
 
     loadTeamTrailer(team);
-    loadTeamGallery(team);
 
     if (state.supabase && localTeam) {
       try {
@@ -1417,11 +1309,247 @@
     await loadFavoriteStatus();
   }
 
+  /* ---------- Reviews ---------- */
+  let currentRating = 0;
+  let editingReviewId = null;
+  let reviews = [];
+  let currentSort = 'latest';
+
+  function renderReviewStats() {
+    const statsEl = document.getElementById('reviewsStats');
+    if (!statsEl) return;
+    const count = reviews.length;
+    if (!count) {
+      statsEl.innerHTML = `
+        <div class="reviews-big">
+          <div class="reviews-big-value">—<span class="reviews-big-denom">/5</span></div>
+          <div class="reviews-big-stars" aria-hidden="true">
+            <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+          </div>
+          <div class="reviews-big-count">be the first to review</div>
+        </div>`;
+      return;
+    }
+    const avg = reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / count;
+    const dist = {5:0,4:0,3:0,2:0,1:0};
+    reviews.forEach(r => { const rt = Math.max(1,Math.min(5,Number(r.rating||0))); dist[rt]++; });
+    const fullStars = Math.round(avg);
+    let starsHtml = '';
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) starsHtml += '<i class="fa-solid fa-star"></i>';
+      else if (i === fullStars && avg % 1 >= 0.75) starsHtml += '<i class="fa-solid fa-star"></i>';
+      else if (i === fullStars && avg % 1 >= 0.25) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+      else starsHtml += '<i class="fa-regular fa-star"></i>';
+    }
+    statsEl.innerHTML = `
+      <div class="reviews-big">
+        <div class="reviews-big-value">${avg.toFixed(1)}<span class="reviews-big-denom">/5</span></div>
+        <div class="reviews-big-stars" aria-hidden="true">${starsHtml}</div>
+        <div class="reviews-big-count">${count} review${count !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="reviews-bars">
+        ${[5,4,3,2,1].map(n => {
+          const pct = count ? Math.round((dist[n]/count)*100) : 0;
+          return `<div class="reviews-bar-row"><span class="label">${n}★</span><div class="reviews-bar"><div class="reviews-bar-fill" style="width:${pct}%"></div></div><span class="count">${dist[n]}</span></div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  function renderReviewCards() {
+    const list = document.getElementById('reviewsList');
+    if (!list) return;
+    if (!reviews.length) {
+      list.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts!</div>';
+      return;
+    }
+    const sorted = [...reviews].sort((a, b) => {
+      if (currentSort === 'highest') return Number(b.rating||0) - Number(a.rating||0);
+      if (currentSort === 'lowest') return Number(a.rating||0) - Number(b.rating||0);
+      return new Date(b.created_at||0) - new Date(a.created_at||0);
+    });
+    list.innerHTML = sorted.map(r => {
+      const mine = state.currentUser && String(state.currentUser.id) === String(r.user_id);
+      const d = new Date(r.created_at || '');
+      const dateText = Number.isFinite(d.getTime()) ? d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : '';
+      const stars = Array.from({length:5},(_,i) => i < Number(r.rating||0) ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>').join('');
+      return `<article class="review-card" data-review-id="${escapeHtml(r.id)}">
+        <div class="review-head"><div><div class="review-user">${escapeHtml(r.user_display_name || 'User')}</div><div class="review-date">${escapeHtml(dateText)}</div></div><div class="review-stars-display">${stars}</div></div>
+        <div class="review-comment">${escapeHtml(r.comment || 'No comment.')}</div>
+        ${mine ? `<div class="review-actions"><button type="button" data-act="edit" data-id="${escapeHtml(r.id)}">Edit</button><button type="button" data-act="del" data-id="${escapeHtml(r.id)}">Delete</button></div>` : ''}
+      </article>`;
+    }).join('');
+  }
+
+  function updateStarDisplay() {
+    const stars = document.querySelectorAll('.stars-rating .star');
+    stars.forEach(star => {
+      const r = Number(star.dataset.rating || 0);
+      star.classList.toggle('on', r <= currentRating);
+    });
+    const label = document.getElementById('ratingText');
+    if (label) {
+      const labels = ['','Poor','Fair','Good','Very Good','Excellent'];
+      label.textContent = currentRating ? labels[currentRating] : 'Select your rating';
+    }
+  }
+
+  function resetReviewForm() {
+    editingReviewId = null;
+    currentRating = 0;
+    updateStarDisplay();
+    const ta = document.getElementById('review-comment');
+    if (ta) ta.value = '';
+    const cc = document.getElementById('charCount');
+    if (cc) cc.textContent = '0';
+    const cancelBtn = document.querySelector('.cancel-edit-btn');
+    if (cancelBtn) cancelBtn.classList.add('hidden');
+    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    if (submitText) submitText.textContent = 'Submit Review';
+  }
+
+  function syncReviewFormVisibility() {
+    const form = document.getElementById('review-form');
+    const prompt = document.getElementById('auth-prompt');
+    const section = document.getElementById('reviews-section');
+    if (!form || !prompt) return;
+    if (state.currentUser) {
+      form.classList.remove('hidden');
+      prompt.classList.add('hidden');
+      if (section) section.hidden = false;
+    } else {
+      form.classList.add('hidden');
+      prompt.classList.remove('hidden');
+      if (reviews.length === 0 && section) section.hidden = true;
+    }
+  }
+
+  async function loadReviews() {
+    const list = document.getElementById('reviewsList');
+    const stats = document.getElementById('reviewsStats');
+    const section = document.getElementById('reviews-section');
+    if (!list || !stats) return;
+    list.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+    if (!state.supabase || !state.team) return;
+    try {
+      const { data, error } = await state.supabase
+        .from('team_reviews')
+        .select('*')
+        .eq('team_name', state.team.name)
+        .order('created_at', { ascending: false });
+      if (error) {
+        list.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
+        return;
+      }
+      reviews = data || [];
+      if (!reviews.length && !state.currentUser) {
+        if (section) section.hidden = true;
+        return;
+      }
+      if (section) section.hidden = false;
+      renderReviewStats();
+      renderReviewCards();
+    } catch (_e) {
+      list.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
+    }
+  }
+
+  async function submitReview(event) {
+    event.preventDefault();
+    if (!state.currentUser || !state.team) return;
+    if (!currentRating) { showToast('Please select a rating', 'error'); return; }
+    const ta = document.getElementById('review-comment');
+    const comment = ta ? ta.value.trim() : '';
+    const submitText = document.querySelector('.submit-review-btn .btn-text');
+    if (submitText) submitText.textContent = 'Saving...';
+    try {
+      if (editingReviewId) {
+        const { error } = await state.supabase.from('team_reviews').update({ rating: currentRating, comment, updated_at: new Date().toISOString() }).eq('id', editingReviewId);
+        if (error) throw error;
+      } else {
+        const { error } = await state.supabase.from('team_reviews').upsert({
+          team_name: state.team.name,
+          user_id: state.currentUser.id,
+          user_display_name: state.currentUser.user_metadata?.username || state.currentUser.email || 'User',
+          rating: currentRating,
+          comment,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,team_name' });
+        if (error) throw error;
+      }
+    } catch (e) {
+      showToast('Could not save review', 'error');
+      if (submitText) submitText.textContent = 'Submit Review';
+      return;
+    }
+    resetReviewForm();
+    await loadReviews();
+    showToast(editingReviewId ? 'Review updated' : 'Review submitted', 'success');
+  }
+
+  function wireReviewEvents() {
+    const form = document.getElementById('review-form');
+    if (form) form.addEventListener('submit', submitReview);
+    const cancelBtn = document.querySelector('.cancel-edit-btn');
+    if (cancelBtn) cancelBtn.addEventListener('click', resetReviewForm);
+    const starsEl = document.querySelector('.stars-rating');
+    if (starsEl) {
+      starsEl.addEventListener('click', e => {
+        const star = e.target.closest('.star');
+        if (!star) return;
+        currentRating = Number(star.dataset.rating || 0);
+        updateStarDisplay();
+      });
+    }
+    const ta = document.getElementById('review-comment');
+    if (ta) {
+      ta.addEventListener('input', () => {
+        const cc = document.getElementById('charCount');
+        if (cc) cc.textContent = String(ta.value.length);
+      });
+    }
+    const sortSel = document.getElementById('sortSelect');
+    if (sortSel) {
+      sortSel.addEventListener('change', e => {
+        currentSort = e.target.value;
+        renderReviewCards();
+      });
+    }
+    const list = document.getElementById('reviewsList');
+    if (list) {
+      list.addEventListener('click', async e => {
+        const btn = e.target.closest('button[data-act]');
+        if (!btn || !list.contains(btn)) return;
+        const id = btn.dataset.id;
+        const act = btn.dataset.act;
+        if (act === 'edit') {
+          const review = reviews.find(r => String(r.id) === String(id));
+          if (!review) return;
+          editingReviewId = id;
+          currentRating = Number(review.rating || 0);
+          updateStarDisplay();
+          const textarea = document.getElementById('review-comment');
+          if (textarea) textarea.value = review.comment || '';
+          const submitText = document.querySelector('.submit-review-btn .btn-text');
+          if (submitText) submitText.textContent = 'Update Review';
+          if (cancelBtn) cancelBtn.classList.remove('hidden');
+        }
+        if (act === 'del') {
+          if (!window.confirm('Delete this review?')) return;
+          const { error } = await state.supabase.from('team_reviews').delete().eq('id', id).eq('user_id', state.currentUser.id);
+          if (!error) { await loadReviews(); showToast('Review deleted', 'success'); }
+        }
+      });
+    }
+  }
+
   async function init() {
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
     await ensureSupabase();
     await initAuth();
     initMenuBridge();
+    wireReviewEvents();
+    syncReviewFormVisibility();
     const saveBtn = document.getElementById("teamSaveBtn");
     if (saveBtn) {
       saveBtn.addEventListener("click", (event) => {
@@ -1430,6 +1558,7 @@
       });
     }
     await loadTeam();
+    await loadReviews();
   }
 
   init().catch(() => {

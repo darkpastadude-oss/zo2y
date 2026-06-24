@@ -15,8 +15,6 @@
   const pendingListOps = new Set();
 
   const els = {
-    gallery: document.getElementById("gameGallery"),
-    gallerySec: document.getElementById("gameGallerySection"),
     related: document.getElementById("gameRelated"),
     relatedSec: document.getElementById("gameRelatedSection"),
     aboutBody: document.getElementById("gameAboutBody"),
@@ -200,30 +198,6 @@
           factsHtml += `<div class="elevated-detail-card"><div class="elevated-detail-title"><i class="fa-solid fa-star"></i> IGDB Rating</div><div class="elevated-detail-value">${Number(game.rating).toFixed(1)}</div></div>`;
         }
         infoGrid.innerHTML = factsHtml;
-      }
-
-      // Populate screenshots gallery
-      if (game.screenshots && game.screenshots.length > 0) {
-        if (els.gallerySec) els.gallerySec.hidden = false;
-        if (els.gallery) {
-          const renderImgs = game.screenshots;
-          els.gallery.classList.toggle("has-multiple", renderImgs.length > 1);
-          els.gallery.innerHTML = renderImgs
-            .map(
-              (img, i) =>
-                `<div class="elevated-gallery-item" data-index="${i}" ${i === 0 && renderImgs.length > 1 ? `data-remaining="${renderImgs.length - 1}"` : ""}><img src="${img.image || img}" loading="lazy" alt="Screenshot" onerror="this.style.display='none'"></div>`,
-            )
-            .join("");
-          els.gallery.onclick = (e) => {
-            const item = e.target.closest(".elevated-gallery-item");
-            if (item && window.openGalleryLightbox) {
-              window.openGalleryLightbox(
-                renderImgs.map((i) => ({ url: i.image || i, caption: "" })),
-                parseInt(item.getAttribute("data-index") || "0", 10),
-              );
-            }
-          };
-        }
       }
 
       // Social links
@@ -446,7 +420,7 @@
         if (count) count.textContent = String(commentTextarea.value.length);
       });
     }
-    document.querySelectorAll('.elevated-star').forEach(star => {
+    document.querySelectorAll('.star').forEach(star => {
       star.addEventListener('click', () => {
         currentRating = parseInt(star.dataset.rating, 10);
         updateStarDisplay();
@@ -458,19 +432,23 @@
   function renderReviewFormVisibility() {
     const form = document.getElementById('review-form');
     const prompt = document.getElementById('auth-prompt');
+    const reviewsSection = document.getElementById('reviews-section');
     if (!form || !prompt) return;
     if (currentUser) {
       form.classList.remove('hidden');
       prompt.classList.add('hidden');
+      if (reviewsSection) reviewsSection.hidden = false;
     } else {
       form.classList.add('hidden');
       prompt.classList.remove('hidden');
+      if (reviews.length === 0 && reviewsSection) reviewsSection.hidden = true;
     }
   }
 
   async function loadReviews() {
     const container = document.getElementById('reviewsList');
     const statsContainer = document.getElementById('reviewsStats');
+    const reviewsSection = document.getElementById('reviews-section');
     if (!container || !statsContainer || !supabaseClient) return;
     container.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
 
@@ -486,6 +464,11 @@
       return;
     }
     reviews = data || [];
+    if (reviews.length === 0 && !currentUser) {
+      if (reviewsSection) reviewsSection.hidden = true;
+      return;
+    }
+    if (reviewsSection) reviewsSection.hidden = false;
     if (reviews.length === 0) {
       container.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts!</div>';
       statsContainer.innerHTML = `
@@ -628,7 +611,7 @@
   }
 
   function updateStarDisplay() {
-    const stars = document.querySelectorAll('.elevated-star');
+    const stars = document.querySelectorAll('.star');
     const ratingText = document.getElementById('ratingText');
     stars.forEach(star => {
       const starRating = parseInt(star.dataset.rating, 10);

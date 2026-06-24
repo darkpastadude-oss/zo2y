@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="/css/animations.css?v=20260623z" />
     <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260623z" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260623z"></noscript>
-    <link rel="stylesheet" href="/css/pages/elevated-media.css?v=20260623z" />
+    <link rel="stylesheet" href="/css/pages/elevated-detail.css?v=20260623z" />
     <link
       rel="stylesheet"
       href="/css/shared-header.css?v=20260624a"
@@ -99,7 +99,7 @@
     <link rel="stylesheet" href="/css/global-lowercase.css?v=20260623z" />
     <link rel="stylesheet" href="/css/unified-media-hero.css?v=20260624b" />
   </head>
-  <body class="elevated-media-page" data-elevated-category="games">
+  <body class="elevated-detail-page" data-elevated-category="games">
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
       <div class="zo2y-shared-header-inner">
         <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -198,13 +198,6 @@
         <div id="gameTrailer" class="elevated-trailer-frame"></div>
       </div>
 
-      <div class="elevated-section" id="gameGallerySection" hidden>
-        <div class="elevated-section-head">
-          <h3 class="elevated-section-title">Gallery</h3>
-        </div>
-        <div id="gameGallery" class="elevated-gallery"></div>
-      </div>
-
       <div
         class="elevated-section elevated-section-rail"
         id="gameRelatedSection"
@@ -216,158 +209,53 @@
         <div id="gameRelated" class="elevated-related"></div>
       </div>
 
-      <div id="reviews-section" class="elevated-section">
-        <div class="elevated-section-head">
-          <h3 class="elevated-section-title">Reviews</h3>
-        </div>
-        <div id="reviewsStats" class="elevated-review-summary">
-          <div class="elevated-review-big">
-            <div class="elevated-review-big-value">
-              —<span class="elevated-review-big-denom">/5</span>
-            </div>
-            <div class="elevated-review-big-stars" aria-hidden="true">
-              <i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i
-              ><i class="fa-regular fa-star"></i
-              ><i class="fa-regular fa-star"></i
-              ><i class="fa-regular fa-star"></i>
-            </div>
-            <div class="elevated-review-big-count">be the first to review</div>
-          </div>
-          <div class="elevated-review-bars">
-            <div class="elevated-review-bar-row">
-              <span class="label">5★</span>
-              <div class="elevated-review-bar">
-                <div class="elevated-review-bar-fill" style="width: 0%"></div>
-              </div>
-              <span class="count">0</span>
-            </div>
-            <div class="elevated-review-bar-row">
-              <span class="label">4★</span>
-              <div class="elevated-review-bar">
-                <div class="elevated-review-bar-fill" style="width: 0%"></div>
-              </div>
-              <span class="count">0</span>
-            </div>
-            <div class="elevated-review-bar-row">
-              <span class="label">3★</span>
-              <div class="elevated-review-bar">
-                <div class="elevated-review-bar-fill" style="width: 0%"></div>
-              </div>
-              <span class="count">0</span>
-            </div>
-            <div class="elevated-review-bar-row">
-              <span class="label">2★</span>
-              <div class="elevated-review-bar">
-                <div class="elevated-review-bar-fill" style="width: 0%"></div>
-              </div>
-              <span class="count">0</span>
-            </div>
-            <div class="elevated-review-bar-row">
-              <span class="label">1★</span>
-              <div class="elevated-review-bar">
-                <div class="elevated-review-bar-fill" style="width: 0%"></div>
-              </div>
-              <span class="count">0</span>
-            </div>
-          </div>
-        </div>
-        <div class="elevated-review-sort hidden" id="reviewsSortControls">
-          <label for="sortSelect">sort by:</label>
-          <select id="sortSelect">
-            <option value="latest">latest</option>
-            <option value="highest">highest rated</option>
-            <option value="lowest">lowest rated</option>
+      <section id="reviews-section" class="section reviews">
+        <h2>Game Reviews</h2>
+        <div class="reviews-sort-controls hidden" id="reviewsSortControls">
+          <span class="sort-label">Sort by:</span>
+          <select class="sort-select" id="sortSelect">
+            <option value="latest">Latest</option>
+            <option value="highest">Highest Rated</option>
+            <option value="lowest">Lowest Rated</option>
           </select>
         </div>
-        <div id="reviewsList" class="elevated-review-list"></div>
-
-        <form id="review-form" class="elevated-review-form hidden">
-          <div class="elevated-review-form-head">
-            <h3 class="elevated-review-form-title">
-              <i class="fa-solid fa-pen-to-square"></i> share your thoughts
-            </h3>
-          </div>
-          <div>
-            <div
-              class="elevated-stars"
-              id="reviewStars"
-              role="radiogroup"
-              aria-label="Your rating"
-            >
-              <button
-                type="button"
-                class="elevated-star"
-                data-rating="1"
-                aria-label="1 star"
-              >
-                <i class="fa-solid fa-star"></i>
-              </button>
-              <button
-                type="button"
-                class="elevated-star"
-                data-rating="2"
-                aria-label="2 stars"
-              >
-                <i class="fa-solid fa-star"></i>
-              </button>
-              <button
-                type="button"
-                class="elevated-star"
-                data-rating="3"
-                aria-label="3 stars"
-              >
-                <i class="fa-solid fa-star"></i>
-              </button>
-              <button
-                type="button"
-                class="elevated-star"
-                data-rating="4"
-                aria-label="4 stars"
-              >
-                <i class="fa-solid fa-star"></i>
-              </button>
-              <button
-                type="button"
-                class="elevated-star"
-                data-rating="5"
-                aria-label="5 stars"
-              >
-                <i class="fa-solid fa-star"></i>
-              </button>
-              <span class="elevated-rating-label" id="ratingText"
-                >select your rating</span
-              >
-            </div>
-          </div>
-          <div>
-            <textarea
-              id="review-comment"
-              class="elevated-comment"
-              placeholder="What did you think of this game?"
-              maxlength="500"
-            ></textarea>
-            <div class="elevated-char-count">
-              <span id="charCount">0</span>/500
-            </div>
-          </div>
-          <div class="elevated-form-actions">
-            <button type="submit" class="elevated-btn elevated-btn-primary">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span class="btn-text">submit review</span>
-            </button>
-            <button
-              type="button"
-              class="elevated-cancel cancel-edit-btn hidden"
-            >
-              cancel edit
-            </button>
-          </div>
-        </form>
-        <div id="auth-prompt" class="elevated-auth-prompt">
-          <i class="fa-solid fa-lock"></i>
-          <span>please <a href="login.html">sign in</a> to review games</span>
+        <div class="reviews-stats" id="reviewsStats">
+          <div class="reviews-loading">Loading reviews...</div>
         </div>
-      </div>
+        <div class="reviews-container" id="reviewsList"></div>
+        <div class="review-form-section">
+          <h3>Share Your Thoughts</h3>
+          <form id="review-form" class="hidden">
+            <div class="rating-input">
+              <label>Your Rating:</label>
+              <div class="stars-rating">
+                <span class="star" data-rating="1"></span>
+                <span class="star" data-rating="2"></span>
+                <span class="star" data-rating="3"></span>
+                <span class="star" data-rating="4"></span>
+                <span class="star" data-rating="5"></span>
+              </div>
+              <span class="rating-text" id="ratingText">Select your rating</span>
+            </div>
+            <div class="comment-input">
+              <textarea id="review-comment" placeholder="What did you think of this game?" rows="4" maxlength="500"></textarea>
+              <div class="char-count">
+                <span id="charCount">0</span>/500 characters
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn submit-review-btn">
+                <span class="btn-text">Submit Review</span>
+              </button>
+              <button type="button" class="btn secondary cancel-edit-btn hidden">Cancel Edit</button>
+            </div>
+          </form>
+          <div id="auth-prompt" class="auth-prompt">
+            <div class="auth-icon"><i class="fas fa-lock"></i></div>
+            <p>Please <a href="login.html" class="auth-link">sign in</a> to review games</p>
+          </div>
+        </div>
+      </section>
     </div>
 
     <p class="elevated-footnote">

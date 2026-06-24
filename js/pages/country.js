@@ -49,23 +49,22 @@
     infoGrid: document.getElementById("countryInfoGrid"),
     guideSection: document.getElementById("countryGuideSection"),
     guideGrid: document.getElementById("countryGuideGrid"),
-    gallery: document.getElementById("countryGallery"),
-    gallerySection: document.getElementById("countryGallerySection"),
-    gallerySub: document.getElementById("countryGallerySub"),
     related: document.getElementById("countryRelated"),
     relatedSection: document.getElementById("countryRelatedSection"),
     relatedSub: document.getElementById("countryRelatedSub"),
-    reviewsSection: document.getElementById("countryReviewsSection"),
-    reviewsSub: document.getElementById("countryReviewsSub"),
-    reviewsAvg: document.getElementById("countryReviewsAvg"),
-    reviewsCount: document.getElementById("countryReviewsCount"),
-    reviewList: document.getElementById("countryReviewList"),
-    reviewForm: document.getElementById("countryReviewForm"),
-    reviewAuth: document.getElementById("countryReviewAuth"),
-    reviewStars: document.getElementById("countryReviewStars"),
-    reviewComment: document.getElementById("countryReviewComment"),
-    reviewSaveBtn: document.getElementById("countryReviewSaveBtn"),
-    reviewCancelBtn: document.getElementById("countryReviewCancelBtn"),
+    reviewsSection: document.getElementById("reviews-section"),
+    reviewsStats: document.getElementById("reviewsStats"),
+    reviewsSortControls: document.getElementById("reviewsSortControls"),
+    reviewList: document.getElementById("reviewsList"),
+    reviewForm: document.getElementById("review-form"),
+    reviewAuth: document.getElementById("auth-prompt"),
+    reviewStars: document.querySelector(".stars-rating"),
+    reviewComment: document.getElementById("review-comment"),
+    reviewSaveBtn: document.querySelector(".submit-review-btn"),
+    reviewCancelBtn: document.querySelector(".cancel-edit-btn"),
+    ratingText: document.getElementById("ratingText"),
+    charCount: document.getElementById("charCount"),
+    sortSelect: document.getElementById("sortSelect"),
     toast: document.getElementById("countryToast"),
     actionCard: document.getElementById("countryActionCard"),
   };
@@ -935,8 +934,20 @@
   }
 
   function syncReviewFormVisibility() {
-    if (ui.reviewForm) ui.reviewForm.hidden = !state.currentUser;
-    if (ui.reviewAuth) ui.reviewAuth.hidden = !!state.currentUser;
+    const form = ui.reviewForm;
+    const prompt = ui.reviewAuth;
+    const section = ui.reviewsSection;
+    if (form) {
+      if (state.currentUser) {
+        form.classList.remove('hidden');
+        if (prompt) prompt.classList.add('hidden');
+        if (section) section.hidden = false;
+      } else {
+        form.classList.add('hidden');
+        if (prompt) prompt.classList.remove('hidden');
+        if (section && state.reviews.length === 0) section.hidden = true;
+      }
+    }
   }
 
   async function loadUsers(userIds) {
@@ -969,11 +980,11 @@
   async function loadReviews() {
     if (!ui.reviewList) return;
     ui.reviewList.innerHTML =
-      '<div class="country-review-empty">Loading reviews…</div>';
+      '<div class="reviews-loading">Loading reviews…</div>';
     const sb = await ensureSupabase();
     if (!sb) {
       ui.reviewList.innerHTML =
-        '<div class="country-review-empty">Review service unavailable.</div>';
+        '<div class="reviews-empty">Review service unavailable.</div>';
       return;
     }
     try {
@@ -984,7 +995,7 @@
         .order("created_at", { ascending: false });
       if (error) {
         ui.reviewList.innerHTML =
-          '<div class="country-review-empty">Could not load reviews.</div>';
+          '<div class="reviews-empty">Could not load reviews.</div>';
         return;
       }
       state.reviews = Array.isArray(data) ? data : [];
@@ -1004,13 +1015,46 @@
             0,
           ) / count
         : 0;
-      if (ui.reviewsCount) ui.reviewsCount.textContent = String(count);
-      if (ui.reviewsAvg)
-        ui.reviewsAvg.textContent = count ? avg.toFixed(1) : "-";
+
+      if (ui.reviewsStats) {
+        if (!count) {
+          ui.reviewsStats.innerHTML = `
+            <div class="reviews-big">
+              <div class="reviews-big-value">—<span class="reviews-big-denom">/5</span></div>
+              <div class="reviews-big-stars" aria-hidden="true">
+                <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
+              </div>
+              <div class="reviews-big-count">be the first to review</div>
+            </div>`;
+        } else {
+          const dist = {5:0,4:0,3:0,2:0,1:0};
+          state.reviews.forEach(r => { const rt = Math.max(1,Math.min(5,Number(r.rating||0))); dist[rt]++; });
+          const fullStars = Math.round(avg);
+          let starsHtml = '';
+          for (let i = 0; i < 5; i++) {
+            if (i < fullStars) starsHtml += '<i class="fa-solid fa-star"></i>';
+            else if (i === fullStars && avg % 1 >= 0.25 && avg % 1 < 0.75) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+            else if (i === fullStars && avg % 1 >= 0.75) starsHtml += '<i class="fa-solid fa-star"></i>';
+            else starsHtml += '<i class="fa-regular fa-star"></i>';
+          }
+          ui.reviewsStats.innerHTML = `
+            <div class="reviews-big">
+              <div class="reviews-big-value">${avg.toFixed(1)}<span class="reviews-big-denom">/5</span></div>
+              <div class="reviews-big-stars" aria-hidden="true">${starsHtml}</div>
+              <div class="reviews-big-count">${count} review${count !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="reviews-bars">
+              ${[5,4,3,2,1].map(n => {
+                const pct = count ? Math.round((dist[n]/count)*100) : 0;
+                return `<div class="reviews-bar-row"><span class="label">${n}★</span><div class="reviews-bar"><div class="reviews-bar-fill" style="width:${pct}%"></div></div><span class="count">${dist[n]}</span></div>`;
+              }).join('')}
+            </div>`;
+        }
+      }
 
       if (!count) {
         ui.reviewList.innerHTML =
-          '<div class="country-review-empty">No reviews yet. Be the first to share your experience.</div>';
+          '<div class="reviews-empty">No reviews yet. Be the first to share your experience.</div>';
         return;
       }
 
@@ -1029,19 +1073,19 @@
             : "Unknown date";
 
           return `
-          <article class="country-review" data-review-id="${escapeHtml(review.id)}">
-            <div class="country-review-head">
+          <article class="review-card" data-review-id="${escapeHtml(review.id)}">
+            <div class="review-head">
               <div>
-                <div class="country-review-user">${escapeHtml(resolveUsername(review.user_id))}</div>
-                <div class="country-review-date">${escapeHtml(dateText)}</div>
+                <div class="review-user">${escapeHtml(resolveUsername(review.user_id))}</div>
+                <div class="review-date">${escapeHtml(dateText)}</div>
               </div>
-              <div class="country-review-stars-display">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</div>
+              <div class="review-stars-display">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</div>
             </div>
-            <div class="country-review-comment">${escapeHtml(review.comment || "No comment.")}</div>
+            <div class="review-comment">${escapeHtml(review.comment || "No comment.")}</div>
             ${
               mine
                 ? `
-              <div class="country-review-actions">
+              <div class="review-actions">
                 <button type="button" data-act="edit" data-id="${escapeHtml(review.id)}">Edit</button>
                 <button type="button" data-act="del" data-id="${escapeHtml(review.id)}">Delete</button>
               </div>
