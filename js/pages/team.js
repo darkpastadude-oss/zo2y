@@ -3,8 +3,7 @@
   const SUPABASE_URL =
     String(supabaseConfig.url || "").trim() || "__SUPABASE_URL__";
   const SUPABASE_KEY = String(supabaseConfig.key || "").trim();
-  const SPORTSDB_KEY = "3";
-  const SPORTSDB_BASE = `https://www.thesportsdb.com/api/v1/json/${SPORTSDB_KEY}`;
+  const SPORTSDB_BASE = "/api/sportsdb";
   const FALLBACK_BADGE = "/file.svg";
   const FALLBACK_IMAGE = "/newlogo.webp";
 
@@ -1031,7 +1030,7 @@
     if (window.ZO2Y_SPORTSDB && typeof window.ZO2Y_SPORTSDB.request === 'function') {
       return await window.ZO2Y_SPORTSDB.request(endpoint, params, timeoutMs);
     }
-    const url = new URL(`${SPORTSDB_BASE}/${endpoint}`);
+    const url = new URL(`${SPORTSDB_BASE}/${endpoint}`, window.location.origin);
     Object.entries(params || {}).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== "") {
         url.searchParams.set(key, value);
