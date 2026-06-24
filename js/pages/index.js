@@ -10036,7 +10036,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         } catch (_err) { return []; }
       };
 
-      const [trackRows, albumRows] = await Promise.all([
+      let [trackRows, albumRows] = await Promise.all([
         fetchItunesTracks(50),
         fetchItunesAlbums(30)
       ]);

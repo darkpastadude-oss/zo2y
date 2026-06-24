@@ -20,32 +20,32 @@
   const HOME_BOOKS_LIMIT = 24;
   const HOME_SECTIONS = [
     {
-      id: 'bestsellers',
-      label: 'Bestsellers',
-      desc: 'Current top-selling titles across all genres.',
-      query: 'bestseller fiction novel',
+      id: 'trending-fiction',
+      label: 'Trending Fiction',
+      desc: 'The most-read novels right now across BookTok and mainstream readers.',
+      query: 'inauthor:colleen hoover OR inauthor:emily henry OR inauthor:taylor jenkins reid fiction',
+      limit: 12
+    },
+    {
+      id: 'booktok-trending',
+      label: 'BookTok Trending',
+      desc: 'The titles everyone is reading and recommending on BookTok.',
+      query: 'inauthor:rebecca yarros OR inauthor:freida mcfadden OR inauthor:ali hazelwood romantasy romance',
+      limit: 12
+    },
+    {
+      id: 'popular-nonfiction',
+      label: 'Popular Non-Fiction',
+      desc: 'Best-selling self-help, finance, and memoir titles.',
+      query: 'inauthor:james clear OR inauthor:morgan housel OR inauthor:david goggins nonfiction',
       limit: 12
     },
     {
       id: 'new-releases',
       label: 'New Releases',
       desc: 'The latest English-language fiction and non-fiction.',
-      query: 'new release fiction novel 2026',
+      query: 'new release popular contemporary fiction 2024 2025',
       orderBy: 'newest',
-      limit: 12
-    },
-    {
-      id: 'editor-picks',
-      label: "Editor's Picks",
-      desc: 'Hand-selected favorites from our editorial team.',
-      query: 'acclaimed literary fiction contemporary',
-      limit: 12
-    },
-    {
-      id: 'booktok-trending',
-      label: 'BookTok Trending',
-      desc: 'The titles everyone is reading on BookTok.',
-      query: 'booktok viral romanticasy contemporary',
       limit: 12
     }
   ];
@@ -121,34 +121,64 @@
 
   const FALLBACK_BOOKS = [
     {
-      id: "lotr", title: "The Lord of the Rings", authors: "J.R.R. Tolkien",
-      cover: "/images/fallback/book.svg", description: "An epic high-fantasy novel by the English author and scholar J. R. R. Tolkien.",
-      averageRating: 4.8, categories: ["Fantasy", "Adventure", "Classic"]
+      id: "gb_atomic_habits", title: "Atomic Habits", authors: "James Clear",
+      cover: "/images/fallback/book.svg", description: "Tiny changes, remarkable results. The definitive guide to building good habits.",
+      averageRating: 4.8, categories: ["Self-Help", "Productivity", "Non-Fiction"]
     },
     {
-      id: "1984", title: "1984", authors: "George Orwell",
-      cover: "/images/fallback/book.svg", description: "A dystopian social science fiction novel and cautionary tale.",
-      averageRating: 4.7, categories: ["Fiction", "Science Fiction"]
+      id: "gb_fourth_wing", title: "Fourth Wing", authors: "Rebecca Yarros",
+      cover: "/images/fallback/book.svg", description: "A dragon rider fantasy epic set in a war college.",
+      averageRating: 4.7, categories: ["Fantasy", "Romance", "BookTok"]
     },
     {
-      id: "pride", title: "Pride and Prejudice", authors: "Jane Austen",
-      cover: "/images/fallback/book.svg", description: "An 1813 romantic novel of manners written by Jane Austen.",
-      averageRating: 4.6, categories: ["Romance", "Classic"]
+      id: "gb_seven_husbands", title: "The Seven Husbands of Evelyn Hugo", authors: "Taylor Jenkins Reid",
+      cover: "/images/fallback/book.svg", description: "A reclusive Hollywood icon finally tells her scandalous story.",
+      averageRating: 4.7, categories: ["Historical Fiction", "Romance", "BookTok"]
     },
     {
-      id: "gatsby", title: "The Great Gatsby", authors: "F. Scott Fitzgerald",
-      cover: "/images/fallback/book.svg", description: "A 1925 novel written by American author F. Scott Fitzgerald.",
-      averageRating: 4.4, categories: ["Fiction", "Classic"]
+      id: "gb_silent_patient", title: "The Silent Patient", authors: "Alex Michaelides",
+      cover: "/images/fallback/book.svg", description: "A famous painter shoots her husband and then never speaks another word.",
+      averageRating: 4.5, categories: ["Thriller", "Mystery", "Fiction"]
     },
     {
-      id: "mockingbird", title: "To Kill a Mockingbird", authors: "Harper Lee",
-      cover: "/images/fallback/book.svg", description: "A novel by Harper Lee published in 1960. It was immediately successful.",
-      averageRating: 4.9, categories: ["Fiction", "Classic"]
+      id: "gb_ittw", title: "It Ends with Us", authors: "Colleen Hoover",
+      cover: "/images/fallback/book.svg", description: "A brave and heartbreaking story of love, loss, and strength.",
+      averageRating: 4.5, categories: ["Romance", "Fiction", "BookTok"]
     },
     {
-      id: "dune", title: "Dune", authors: "Frank Herbert",
-      cover: "/images/fallback/book.svg", description: "A 1965 epic science fiction novel by American author Frank Herbert.",
-      averageRating: 4.7, categories: ["Science Fiction", "Adventure"]
+      id: "gb_cant_hurt_me", title: "Can't Hurt Me", authors: "David Goggins",
+      cover: "/images/fallback/book.svg", description: "Master your mind and defy the odds.",
+      averageRating: 4.8, categories: ["Self-Help", "Memoir", "Non-Fiction"]
+    },
+    {
+      id: "gb_psychology_money", title: "The Psychology of Money", authors: "Morgan Housel",
+      cover: "/images/fallback/book.svg", description: "Timeless lessons on wealth, greed, and happiness.",
+      averageRating: 4.7, categories: ["Finance", "Non-Fiction", "Self-Help"]
+    },
+    {
+      id: "gb_surrounded_idiots", title: "Surrounded by Idiots", authors: "Thomas Erikson",
+      cover: "/images/fallback/book.svg", description: "The four types of human behaviour and how to effectively communicate with each in your daily life.",
+      averageRating: 4.3, categories: ["Self-Help", "Psychology", "Non-Fiction"]
+    },
+    {
+      id: "gb_iron_flame", title: "Iron Flame", authors: "Rebecca Yarros",
+      cover: "/images/fallback/book.svg", description: "The sequel to Fourth Wing — the war is far from over.",
+      averageRating: 4.6, categories: ["Fantasy", "Romance", "BookTok"]
+    },
+    {
+      id: "gb_housemaid", title: "The Housemaid", authors: "Freida McFadden",
+      cover: "/images/fallback/book.svg", description: "She's the perfect housemaid... until you make her angry.",
+      averageRating: 4.4, categories: ["Thriller", "Mystery", "Fiction"]
+    },
+    {
+      id: "gb_verity", title: "Verity", authors: "Colleen Hoover",
+      cover: "/images/fallback/book.svg", description: "A darkly twisted psychological thriller from the queen of BookTok.",
+      averageRating: 4.5, categories: ["Thriller", "Romance", "BookTok"]
+    },
+    {
+      id: "gb_midnight_library", title: "The Midnight Library", authors: "Matt Haig",
+      cover: "/images/fallback/book.svg", description: "Between life and death there is a library with infinite books of lives unlived.",
+      averageRating: 4.4, categories: ["Fiction", "Fantasy", "Self-Help"]
     }
   ];
 

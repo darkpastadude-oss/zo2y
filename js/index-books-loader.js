@@ -9,76 +9,76 @@
 
   const BOOKS_MOCK_DATA = [
     {
-      id: 'book-1',
-      title: 'The Great Gatsby',
-      authors: 'F. Scott Fitzgerald',
-      publishedDate: '1925',
-      description: 'A mysterious, rich aristocrat",
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/bWYesAAQBAJ?v=3',
-      publisher: 'Charles Scribner"
+      id: 'gb_atomic_habits',
+      title: 'Atomic Habits',
+      authors: 'James Clear',
+      publishedDate: '2018',
+      description: 'Tiny changes, remarkable results. The definitive guide to building good habits.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/XfFvDwAAQBAJ?fife=w400-h600',
+      publisher: 'Avery'
     },
     {
-      id: 'book-2',
-      title: 'To Kill a Mockingbird',
-      authors: 'Harper Lee',
-      publishedDate: '1960',
-      description: 'The story of racial injustice and the destruction of innocence',
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/j6M0DwAAQBAJ?v=3',
-      publisher: 'J.B. Lippincott & Co"
+      id: 'gb_fourth_wing',
+      title: 'Fourth Wing',
+      authors: 'Rebecca Yarros',
+      publishedDate: '2023',
+      description: 'A dragon rider fantasy epic set in a war college.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/PN2OEAAAQBAJ?fife=w400-h600',
+      publisher: 'Red Tower Books'
     },
     {
-      id: 'book-3',
-      title: '1984',
-      authors: 'George Orwell',
-      publishedDate: '1949',
-      description: 'A dystopian social science fiction novel',
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/16m-DwAAQBAJ?v=5',
-      publisher: 'Secker & Warburg"
+      id: 'gb_seven_husbands',
+      title: 'The Seven Husbands of Evelyn Hugo',
+      authors: 'Taylor Jenkins Reid',
+      publishedDate: '2017',
+      description: 'A reclusive Hollywood icon finally tells her scandalous story.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/VqFrDwAAQBAJ?fife=w400-h600',
+      publisher: 'Atria Books'
     },
     {
-      id: 'book-4',
-      title: 'Pride and Prejudice',
-      authors: 'Jane Austen',
-      publishedDate: '1813',
-      description: 'A classic romantic novel',
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/QKCIAAAAQBAJ?v=5',
-      publisher: 'T. Egerton, Whitehall"
+      id: 'gb_silent_patient',
+      title: 'The Silent Patient',
+      authors: 'Alex Michaelides',
+      publishedDate: '2019',
+      description: 'A famous painter shoots her husband and then never speaks another word.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/S5F3DwAAQBAJ?fife=w400-h600',
+      publisher: 'Celadon Books'
     },
     {
-      id: 'book-5',
-      title: 'The Catcher in the Rye',
-      authors: 'J.D. Salinger',
-      publishedDate: '1951',
-      description: 'The story of Holden Caulfield",
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/1bBxz37jfrIC?v=4',
-      publisher: 'Little, Brown and Company"
+      id: 'gb_ittw',
+      title: 'It Ends with Us',
+      authors: 'Colleen Hoover',
+      publishedDate: '2016',
+      description: 'A brave and heartbreaking story of love, loss, and strength.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/Ry4BBAAAQBAJ?fife=w400-h600',
+      publisher: 'Atria Books'
     },
     {
-      id: 'book-6',
-      title: 'The Hobbit',
-      authors: 'J.R.R. Tolkien',
-      publishedDate: '1937',
-      description: 'A fantasy novel',
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/7lmkBgAAQBAJ?v=3',
-      publisher: 'George Allen & Unwin"
+      id: 'gb_cant_hurt_me',
+      title: "Can't Hurt Me",
+      authors: 'David Goggins',
+      publishedDate: '2018',
+      description: 'Master your mind and defy the odds.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/VZl3DwAAQBAJ?fife=w400-h600',
+      publisher: 'Lioncrest Publishing'
     },
     {
-      id: 'book-7',
-      title: 'Don Quixote',
-      authors: 'Miguel de Cervantes',
-      publishedDate: '1605',
-      description: 'The most famous novel in the Spanish language',
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/d2J3AwAAQBAJ?v=1',
-      publisher: 'Francisco de Robles"
+      id: 'gb_psychology_money',
+      title: 'The Psychology of Money',
+      authors: 'Morgan Housel',
+      publishedDate: '2020',
+      description: 'Timeless lessons on wealth, greed, and happiness.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/TnrrDwAAQBAJ?fife=w400-h600',
+      publisher: 'Harriman House'
     },
     {
-      id: 'book-8',
-      title: 'Ulysses',
-      authors: 'James Joyce',
-      publishedDate: '1922',
-      description: 'A modernist novel",
-      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/1l94AAAAQBAJ?v=5',
-      publisher: 'Sylvia Beach"
+      id: 'gb_surrounded_idiots',
+      title: 'Surrounded by Idiots',
+      authors: 'Thomas Erikson',
+      publishedDate: '2019',
+      description: 'The four types of human behaviour and how to effectively communicate with each.',
+      thumbnail: 'https://books.google.com/books/publisher/content/images/frontcover/aJGSDwAAQBAJ?fife=w400-h600',
+      publisher: 'St. Martin\'s Essentials'
     }
   ];
 
