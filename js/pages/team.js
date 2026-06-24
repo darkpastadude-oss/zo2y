@@ -692,6 +692,12 @@
   }
 
   function renderTeamHeroConfig(team, wiki) {
+    console.log("[team-debug] renderTeamHeroConfig called", {
+      hasRenderUnified: !!window.renderUnifiedMediaHero,
+      container: !!document.getElementById("unifiedHeroContainer"),
+      teamName: team?.name,
+      badge: team?.badge,
+    });
     const config = {
       type: "team",
       title: team.name || "Team",
@@ -796,11 +802,20 @@
     }
 
     if (window.renderUnifiedMediaHero) {
+      console.log("[team-debug] calling renderUnifiedMediaHero", {
+        containerEl: document.getElementById("unifiedHeroContainer"),
+        configTitle: config.title,
+        posterUrl: config.posterUrl,
+        backdropUrl: config.backdropUrl?.substring(0, 80),
+      });
       window.renderUnifiedMediaHero(
         document.getElementById("unifiedHeroContainer"),
         config,
       );
+      console.log("[team-debug] hero HTML after render:", document.getElementById("unifiedHeroContainer")?.innerHTML?.substring(0, 200));
       bindUnifiedListMenu(team, config);
+    } else {
+      console.log("[team-debug] renderUnifiedMediaHero NOT available on window");
     }
   }
 
