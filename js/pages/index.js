@@ -362,7 +362,7 @@
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v2';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v2';
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v2';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -9919,13 +9919,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           image: cover || '/images/fallback/book.svg',
           images: cover ? [{ url: cover }] : [],
           metadata: {
-            authors: Array.isArray(b.author_name) ? b.author_name : (b.author ? b.author.split(', ') : (b.authors ? b.authors.split(', ') : ['Unknown author'])),
-            year: b.first_publish_year || null
+            authors: Array.isArray(b.author_name) ? b.author_name : (b.author ? (typeof b.author === 'string' ? b.author.split(', ') : [b.author]) : (b.authors ? (typeof b.authors === 'string' ? b.authors.split(', ') : Array.isArray(b.authors) ? b.authors : ['Unknown author']) : ['Unknown author'])),
+            year: b.year || b.first_publish_year || null
           },
           genres: Array.isArray(b.subject) ? b.subject.slice(0, 3) : [],
           externalUrl: b.id ? `https://openlibrary.org/works/${b.id}` : '',
           mediaType: 'book',
-          year: b.first_publish_year || null
+          year: b.year || b.first_publish_year || null
         };
       };
 

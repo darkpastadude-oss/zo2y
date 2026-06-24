@@ -18,6 +18,18 @@ const FALLBACK_TRACKS = [
   { id: "1737234503", name: "Fortnight", artists: ["Taylor Swift", "Post Malone"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/35/34/00/3534002c-c012-26d8-d675-204b54e6abaa/24UMGIM62591.rgb.jpg/600x600bb.jpg", preview_url: "", external_url: "https://music.apple.com/us/album/fortnight/1737234503?i=1737234521", duration_ms: 228000 }
 ];
 
+const FALLBACK_ALBUMS = [
+  { id: "6769568449", name: "ICEMAN", artists: ["Drake"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/35/b9/06/35b90629-a873-14f8-4789-ffc324960038/26UMGIM63614.rgb.jpg/600x600bb.jpg", release_date: "2026-05-15" },
+  { id: "1889992111", name: "you seem pretty sad for a girl so in love", artists: ["Olivia Rodrigo"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1d/1b/f9/1d1bf9b1-44c6-9a6c-6ffb-c158488c06ce/26UMGIM39303.rgb.jpg/600x600bb.jpg", release_date: "2026-06-12" },
+  { id: "6769551464", name: "HABIBTI", artists: ["Drake"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/c4/3b/89/c43b8964-a24e-b396-bd65-e5b45cabe039/26UMGIM63616.rgb.jpg/600x600bb.jpg", release_date: "2026-05-15" },
+  { id: "1737234503", name: "THE TORTURED POETS DEPARTMENT", artists: ["Taylor Swift"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/35/34/00/3534002c-c012-26d8-d675-204b54e6abaa/24UMGIM62591.rgb.jpg/600x600bb.jpg", release_date: "2024-04-19" },
+  { id: "1731742554", name: "Short n' Sweet", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/38/82/06/38820667-e2c5-35b6-9004-43ab4b61f6fa/24UMGIM39301.rgb.jpg/600x600bb.jpg", release_date: "2024-08-23" },
+  { id: "1741021439", name: "HIT ME HARD AND SOFT", artists: ["Billie Eilish"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/50/84/a4/5084a45b-9029-43ec-b7e5-f8a8f2e1330e/24UMGIM63520.rgb.jpg/600x600bb.jpg", release_date: "2024-05-17" },
+  { id: "1696313419", name: "Fireworks & Rollerblades", artists: ["Benson Boone"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/65/82/90/65829058-f42c-3058-81e0-83a9c50616b0/24UMGIM54155.rgb.jpg/600x600bb.jpg", release_date: "2024-02-16" },
+  { id: "1727299764", name: "Espresso", artists: ["Sabrina Carpenter"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/8d/38/54/8d38546f-e164-e34b-511b-a4b500bf4213/24UMGIM62688.rgb.jpg/600x600bb.jpg", release_date: "2024-04-12" },
+  { id: "1776815963", name: "Where I've Been, Isn't Where I'm Going", artists: ["Shaboozey"], image: "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/4e/62/00/4e6200e0-4a7b-cd5e-d1b7-9a36109c7c48/24UMGIM36640.rgb.jpg/600x600bb.jpg", release_date: "2024-05-31" }
+];
+
 function getFallbackTracks(limit = 10, market = "US") {
   return FALLBACK_TRACKS.slice(0, Math.max(1, Math.min(limit, FALLBACK_TRACKS.length)));
 }
@@ -328,7 +340,9 @@ async function fetchAppleMostPlayedAlbums({ market = "US", limit = 30 }) {
   const url = `${APPLE_MARKETING_API_BASE}/${encodeURIComponent(country)}/music/most-played/${safeLimit}/albums.json`;
   const json = await fetchJson(url, {
     cacheKey: `apple:chart:most-played:albums:${country}:${safeLimit}`,
-    ttlMs: 1000 * 60 * 8
+    ttlMs: 1000 * 60 * 8,
+    timeoutMs: 12000,
+    maxRetries: 2
   });
   const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
   return dedupeAlbums(rows.map(normalizeAppleChartAlbumRow).filter((row) => !!row.id));
@@ -501,27 +515,53 @@ export default async function handler(req, res) {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = clampInt(query.limit, 1, 60, 24);
     const market = normalizeMarket(query.market || "US");
-    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
-    const albumTypesKey = albumTypes.join(",") || "album";
     try {
       let results = await fetchAppleMostPlayedAlbums({ market, limit: Math.max(limit, 24) }).catch(() => []);
       if (!results.length) {
         const [topAlbums, newAlbums] = await Promise.all([
-          searchItunesAlbums({ q: "top albums", limit: Math.max(limit * 2, 40), market }).catch(() => []),
-          searchItunesAlbums({ q: "new album", limit: Math.max(limit * 2, 40), market }).catch(() => [])
+          searchItunesAlbums({ q: "top albums 2024", limit: Math.max(limit * 2, 40), market }).catch(() => []),
+          searchItunesAlbums({ q: "new album 2024", limit: Math.max(limit * 2, 40), market }).catch(() => [])
         ]);
-        const merged = dedupeAlbums([...topAlbums, ...newAlbums]);
-        results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
+        results = dedupeAlbums([...topAlbums, ...newAlbums]).slice(0, limit);
+      }
+      if (!results.length) {
+        results = FALLBACK_ALBUMS.slice(0, limit).map(a => ({
+          source: "hardcoded",
+          id: a.id,
+          kind: "album",
+          name: a.name,
+          artists: a.artists,
+          artist_ids: [],
+          album_type: "album",
+          release_date: a.release_date || "",
+          image: a.image,
+          preview_url: "",
+          external_url: `https://music.apple.com/us/album/${a.id}`,
+          popularity: 0
+        }));
       }
       return res.json({
         count: results.length,
         limit,
-        album_types: albumTypesKey,
         source: results.length ? (results[0]?.source || "itunes") : "unavailable",
         results
       });
     } catch (_error) {
-      return res.json({ count: 0, limit, album_types: albumTypesKey, source: "unavailable", results: [] });
+      const fallback = FALLBACK_ALBUMS.slice(0, limit).map(a => ({
+        source: "hardcoded",
+        id: a.id,
+        kind: "album",
+        name: a.name,
+        artists: a.artists,
+        artist_ids: [],
+        album_type: "album",
+        release_date: a.release_date || "",
+        image: a.image,
+        preview_url: "",
+        external_url: `https://music.apple.com/us/album/${a.id}`,
+        popularity: 0
+      }));
+      return res.json({ count: fallback.length, limit, source: "hardcoded-fallback", results: fallback });
     }
   }
 
