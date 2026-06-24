@@ -57,7 +57,7 @@
     const frameClass = hasPoster ? 'umh-poster-frame is-missing' : 'umh-poster-frame is-missing';
 
     const html = `
-      <div class="umh-container ${backdropUrl ? '' : 'is-loaded'}">
+      <div class="umh-container">
         <div class="umh-backdrop-wrap">
           <div class="umh-backdrop" style="background-image: url('${escapeHtml(backdropUrl)}')"></div>
           <div class="umh-backdrop-overlay"></div>
@@ -97,18 +97,10 @@
 
     container.innerHTML = html;
 
-    if (backdropUrl) {
-      const img = new Image();
-      img.onload = () => {
-        const wrap = container.querySelector('.umh-container');
-        if (wrap) wrap.classList.add('is-loaded');
-      };
-      img.onerror = () => {
-        const wrap = container.querySelector('.umh-container');
-        if (wrap) wrap.classList.add('is-loaded');
-      };
-      img.src = backdropUrl;
-    }
+    requestAnimationFrame(() => {
+      const wrap = container.querySelector('.umh-container');
+      if (wrap) wrap.classList.add('is-loaded');
+    });
   }
 
   window.renderUnifiedMediaHero = renderUnifiedMediaHero;
