@@ -14,6 +14,9 @@
     if (/covers\.openlibrary\.org/i.test(s)) {
       return '/api/books/cover?url=' + encodeURIComponent(s);
     }
+    if (/books\.google(?:usercontent)?\.com/i.test(s)) {
+      return '/api/books/cover?url=' + encodeURIComponent(s);
+    }
     if (/\/images\/fallback\//i.test(s)) return FALLBACK_COVER;
     return s;
   }

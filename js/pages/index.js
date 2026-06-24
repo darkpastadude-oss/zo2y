@@ -9907,6 +9907,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         var s = String(url || '').trim();
         if (!s || /\/images\/fallback\//i.test(s)) return '/images/fallback/book.svg';
         if (/covers\.openlibrary\.org/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        if (/books\.google(?:usercontent)?\.com/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
         return s;
       };
       const mapBook = (b) => {
