@@ -101,21 +101,7 @@
         title: (game.name || "Unknown Game").replace(/\s*\(video game\)/i, ""),
         posterUrl: game.cover || "/images/fallback/game.svg",
         posterFit: "contain",
-        backdropUrl: (() => {
-          const coverUrl = String(game.cover || "").trim();
-          const candidates = [
-            game.background_image,
-            game.hero,
-            ...(game.screenshots || []).map(s => s?.image || s)
-          ].filter(url => {
-            if (!url) return false;
-            const u = String(url).trim();
-            if (coverUrl && u === coverUrl) return false;
-            const lower = u.toLowerCase();
-            return !(/logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram/.test(lower));
-          });
-          return candidates[0] || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80";
-        })(),
+        backdropUrl: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80",
         description: game.description || "Explore more details about this game.",
         metadata: [],
         actions: [
@@ -137,7 +123,7 @@
       if (game.platforms && game.platforms.length > 0) {
         config.metadata.push({
           type: "platform",
-          value: game.platforms.slice(0, 2).map((p) => p.name || p).join(", ") + (game.platforms.length > 2 ? "..." : "")
+          value: game.platforms.slice(0, 2).map((p) => p.platform?.name || p.name || String(p)).join(", ") + (game.platforms.length > 2 ? "..." : "")
         });
       }
       if (game.developers && game.developers.length > 0) {

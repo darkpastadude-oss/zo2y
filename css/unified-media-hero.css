@@ -373,4 +373,52 @@
   .umh-description {
     font-size: 0.9rem;
   }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-content-wrapper,
+  .elevated-detail-page[data-elevated-category="games"] .umh-content-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "poster"
+      "title-meta"
+      "actions-desc";
+    justify-items: center;
+    text-align: center;
+    gap: 12px;
+    margin-top: -120px;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-poster-frame,
+  .elevated-detail-page[data-elevated-category="games"] .umh-poster-frame {
+    width: 160px;
+    max-width: 160px;
+    aspect-ratio: 2/3;
+    border-radius: 14px !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: none !important;
+    margin: 0 auto;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-poster,
+  .elevated-detail-page[data-elevated-category="games"] .umh-poster {
+    border-radius: 14px !important;
+    image-rendering: auto;
+    background: transparent !important;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-title-meta,
+  .elevated-detail-page[data-elevated-category="games"] .umh-title-meta {
+    align-self: center;
+    padding-top: 8px;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-meta-row,
+  .elevated-detail-page[data-elevated-category="games"] .umh-meta-row {
+    justify-content: center;
+  }
+
+  .elevated-media-page[data-elevated-category="games"] .umh-actions-bar,
+  .elevated-detail-page[data-elevated-category="games"] .umh-actions-bar {
+    justify-content: center;
+  }
 }
