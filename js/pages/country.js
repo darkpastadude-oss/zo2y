@@ -34,10 +34,6 @@
     currencies: [],
     flag: "",
     mapsUrl: "",
-    reviews: [],
-    users: new Map(),
-    rating: 0,
-    editId: null,
   };
 
   const sharedTravelPhotoCache = new Map();
@@ -52,19 +48,6 @@
     related: document.getElementById("countryRelated"),
     relatedSection: document.getElementById("countryRelatedSection"),
     relatedSub: document.getElementById("countryRelatedSub"),
-    reviewsSection: document.getElementById("reviews-section"),
-    reviewsStats: document.getElementById("reviewsStats"),
-    reviewsSortControls: document.getElementById("reviewsSortControls"),
-    reviewList: document.getElementById("reviewsList"),
-    reviewForm: document.getElementById("review-form"),
-    reviewAuth: document.getElementById("auth-prompt"),
-    reviewStars: document.querySelector(".stars-rating"),
-    reviewComment: document.getElementById("review-comment"),
-    reviewSaveBtn: document.querySelector(".submit-review-btn"),
-    reviewCancelBtn: document.querySelector(".cancel-edit-btn"),
-    ratingText: document.getElementById("ratingText"),
-    charCount: document.getElementById("charCount"),
-    sortSelect: document.getElementById("sortSelect"),
     toast: document.getElementById("countryToast"),
     actionCard: document.getElementById("countryActionCard"),
   };
@@ -247,7 +230,6 @@
     }
     sb.auth.onAuthStateChange((_event, session) => {
       state.currentUser = session && session.user ? session.user : null;
-      syncReviewFormVisibility();
     });
   }
 
@@ -894,338 +876,6 @@
     return out;
   }
 
-  /* ---------- Reviews ---------- */
-  function renderStars(ratingValue) {
-    const safe = Math.max(1, Math.min(5, Number(ratingValue || 0)));
-    const fullStars = Math.floor(safe);
-    const hasHalf = safe % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
-    let stars = "";
-    for (let i = 0; i < fullStars; i++)
-      stars += '<i class="fa-solid fa-star"></i>';
-    if (hasHalf) stars += '<i class="fa-solid fa-star-half-stroke"></i>';
-    for (let i = 0; i < emptyStars; i++)
-      stars += '<i class="fa-regular fa-star"></i>';
-    return stars;
-  }
-
-  function drawRatingStars() {
-    if (!ui.reviewStars) return;
-    ui.reviewStars.innerHTML = "";
-    for (let i = 1; i <= 5; i += 1) {
-      const star = document.createElement("span");
-      star.className = `star${i <= state.rating ? " on" : ""}`;
-      star.innerHTML = '<i class="fa-solid fa-star"></i>';
-      star.dataset.v = String(i);
-      ui.reviewStars.appendChild(star);
-    }
-  }
-
-  function resetReviewForm() {
-    state.editId = null;
-    state.rating = 0;
-    drawRatingStars();
-    if (ui.reviewComment) ui.reviewComment.value = "";
-    if (ui.reviewSaveBtn) {
-      ui.reviewSaveBtn.innerHTML =
-        '<i class="fa-solid fa-paper-plane"></i> submit review';
-    }
-    if (ui.reviewCancelBtn) ui.reviewCancelBtn.hidden = true;
-  }
-
-  function syncReviewFormVisibility() {
-    const form = ui.reviewForm;
-    const prompt = ui.reviewAuth;
-    const section = ui.reviewsSection;
-    if (form) {
-      if (state.currentUser) {
-        form.classList.remove('hidden');
-        if (prompt) prompt.classList.add('hidden');
-        if (section) section.hidden = false;
-      } else {
-        form.classList.add('hidden');
-        if (prompt) prompt.classList.remove('hidden');
-        if (section && state.reviews.length === 0) section.hidden = true;
-      }
-    }
-  }
-
-  async function loadUsers(userIds) {
-    const sb = await ensureSupabase();
-    if (!sb || !Array.isArray(userIds) || !userIds.length) return;
-    try {
-      const { data, error } = await sb
-        .from("user_profiles")
-        .select("id,username,full_name")
-        .in("id", userIds);
-      if (error || !Array.isArray(data)) return;
-      data.forEach((row) => {
-        const id = String((row && row.id) || "").trim();
-        if (!id) return;
-        state.users.set(id, {
-          username: String((row && row.username) || "").trim(),
-          fullName: String((row && row.full_name) || "").trim(),
-        });
-      });
-    } catch (_e) {}
-  }
-
-  function resolveUsername(userId) {
-    const record = state.users.get(String(userId || "").trim());
-    if (!record) return "User";
-    if (record.username) return `@${record.username}`;
-    return record.fullName || "User";
-  }
-
-  async function loadReviews() {
-    if (!ui.reviewList) return;
-    ui.reviewList.innerHTML =
-      '<div class="reviews-loading">Loading reviews…</div>';
-    const sb = await ensureSupabase();
-    if (!sb) {
-      ui.reviewList.innerHTML =
-        '<div class="reviews-empty">Review service unavailable.</div>';
-      return;
-    }
-    try {
-      const { data, error } = await sb
-        .from("travel_reviews")
-        .select("id,user_id,rating,comment,created_at")
-        .eq("country_code", state.code)
-        .order("created_at", { ascending: false });
-      if (error) {
-        ui.reviewList.innerHTML =
-          '<div class="reviews-empty">Could not load reviews.</div>';
-        return;
-      }
-      state.reviews = Array.isArray(data) ? data : [];
-      const userIds = [
-        ...new Set(
-          state.reviews
-            .map((row) => String((row && row.user_id) || "").trim())
-            .filter(Boolean),
-        ),
-      ];
-      await loadUsers(userIds);
-
-      const count = state.reviews.length;
-      const avg = count
-        ? state.reviews.reduce(
-            (acc, row) => acc + Number((row && row.rating) || 0),
-            0,
-          ) / count
-        : 0;
-
-      if (ui.reviewsStats) {
-        if (!count) {
-          ui.reviewsStats.innerHTML = `
-            <div class="reviews-big">
-              <div class="reviews-big-value">—<span class="reviews-big-denom">/5</span></div>
-              <div class="reviews-big-stars" aria-hidden="true">
-                <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
-              </div>
-              <div class="reviews-big-count">be the first to review</div>
-            </div>`;
-        } else {
-          const dist = {5:0,4:0,3:0,2:0,1:0};
-          state.reviews.forEach(r => { const rt = Math.max(1,Math.min(5,Number(r.rating||0))); dist[rt]++; });
-          const fullStars = Math.round(avg);
-          let starsHtml = '';
-          for (let i = 0; i < 5; i++) {
-            if (i < fullStars) starsHtml += '<i class="fa-solid fa-star"></i>';
-            else if (i === fullStars && avg % 1 >= 0.25 && avg % 1 < 0.75) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
-            else if (i === fullStars && avg % 1 >= 0.75) starsHtml += '<i class="fa-solid fa-star"></i>';
-            else starsHtml += '<i class="fa-regular fa-star"></i>';
-          }
-          ui.reviewsStats.innerHTML = `
-            <div class="reviews-big">
-              <div class="reviews-big-value">${avg.toFixed(1)}<span class="reviews-big-denom">/5</span></div>
-              <div class="reviews-big-stars" aria-hidden="true">${starsHtml}</div>
-              <div class="reviews-big-count">${count} review${count !== 1 ? 's' : ''}</div>
-            </div>
-            <div class="reviews-bars">
-              ${[5,4,3,2,1].map(n => {
-                const pct = count ? Math.round((dist[n]/count)*100) : 0;
-                return `<div class="reviews-bar-row"><span class="label">${n}★</span><div class="reviews-bar"><div class="reviews-bar-fill" style="width:${pct}%"></div></div><span class="count">${dist[n]}</span></div>`;
-              }).join('')}
-            </div>`;
-        }
-      }
-
-      if (!count) {
-        ui.reviewList.innerHTML =
-          '<div class="reviews-empty">No reviews yet. Be the first to share your experience.</div>';
-        return;
-      }
-
-      ui.reviewList.innerHTML = state.reviews
-        .map((review) => {
-          const mine =
-            state.currentUser &&
-            String(state.currentUser.id) === String(review && review.user_id);
-          const createdAt = new Date((review && review.created_at) || "");
-          const dateText = Number.isFinite(createdAt.getTime())
-            ? createdAt.toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })
-            : "Unknown date";
-
-          const displayName = escapeHtml(resolveUsername(review.user_id));
-          const initials = displayName.replace(/^@/, "").split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase();
-          const profileHref = `profile.html?id=${encodeURIComponent(review.user_id)}`;
-
-          return `
-          <article class="review-card" data-review-id="${escapeHtml(review.id)}">
-            <div class="review-header">
-              <div class="reviewer-info">
-                <a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View profile">${initials}</a>
-                <div>
-                  <div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${displayName}</a></div>
-                  <div class="review-date">${escapeHtml(dateText)}</div>
-                </div>
-              </div>
-              <div class="review-rating"><span class="rating-stars">${renderStars(Math.max(1, Math.min(5, Number(review.rating || 0))))}</span></div>
-            </div>
-            <p class="review-comment">${escapeHtml(review.comment || "No comment.")}</p>
-            ${
-              mine
-                ? `
-              <div class="review-actions">
-                <button type="button" class="review-edit" data-act="edit" data-id="${escapeHtml(review.id)}">Edit</button>
-                <button type="button" class="review-delete" data-act="del" data-id="${escapeHtml(review.id)}">Delete</button>
-              </div>
-            `
-                : ""
-            }
-          </article>
-        `;
-        })
-        .join("");
-    } catch (_e) {
-      ui.reviewList.innerHTML =
-        '<div class="country-review-empty">Could not load reviews.</div>';
-    }
-  }
-
-  async function saveReview(event) {
-    event.preventDefault();
-    if (!state.currentUser || !state.currentUser.id) {
-      showToast("Please sign in", "error");
-      return;
-    }
-    if (!state.rating) {
-      showToast("Select rating", "error");
-      return;
-    }
-    const sb = await ensureSupabase();
-    if (!sb) return;
-    const comment = ui.reviewComment ? ui.reviewComment.value.trim() : "";
-
-    let error = null;
-    try {
-      if (state.editId) {
-        const result = await sb
-          .from("travel_reviews")
-          .update({
-            rating: state.rating,
-            comment,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", state.editId);
-        error = result.error;
-      } else {
-        const result = await sb.from("travel_reviews").upsert(
-          {
-            country_code: state.code,
-            user_id: state.currentUser.id,
-            rating: state.rating,
-            comment,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id,country_code" },
-        );
-        error = result.error;
-      }
-    } catch (e) {
-      error = e;
-    }
-
-    if (error) {
-      showToast("Could not save review", "error");
-      return;
-    }
-    resetReviewForm();
-    await loadReviews();
-    showToast("Review saved", "success");
-  }
-
-  function editReview(id) {
-    const review = state.reviews.find(
-      (row) => String(row && row.id) === String(id),
-    );
-    if (!review) return;
-    state.editId = id;
-    state.rating = Math.max(1, Math.min(5, Number(review.rating || 0)));
-    drawRatingStars();
-    if (ui.reviewComment) ui.reviewComment.value = String(review.comment || "");
-    if (ui.reviewSaveBtn)
-      ui.reviewSaveBtn.innerHTML =
-        '<i class="fa-solid fa-floppy-disk"></i> update review';
-    if (ui.reviewCancelBtn) ui.reviewCancelBtn.hidden = false;
-    if (ui.reviewComment) ui.reviewComment.focus();
-  }
-
-  async function deleteReview(id) {
-    if (!state.currentUser || !state.currentUser.id) return;
-    if (!window.confirm("Delete this review?")) return;
-    const sb = await ensureSupabase();
-    if (!sb) return;
-    const { error } = await sb
-      .from("travel_reviews")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", state.currentUser.id);
-    if (error) {
-      showToast("Could not delete review", "error");
-      return;
-    }
-    await loadReviews();
-    showToast("Review deleted", "success");
-  }
-
-  function wireReviewEvents() {
-    if (ui.reviewForm)
-      ui.reviewForm.addEventListener("submit", (event) => {
-        void saveReview(event);
-      });
-    if (ui.reviewCancelBtn)
-      ui.reviewCancelBtn.addEventListener("click", resetReviewForm);
-    if (ui.reviewStars) {
-      ui.reviewStars.addEventListener("click", (event) => {
-        const star =
-          event.target && event.target.closest && event.target.closest(".star");
-        if (!star) return;
-        state.rating = Number(star.dataset.v || 0) || 0;
-        drawRatingStars();
-      });
-    }
-    if (ui.reviewList) {
-      ui.reviewList.addEventListener("click", (event) => {
-        const button =
-          event.target &&
-          event.target.closest &&
-          event.target.closest("button[data-act]");
-        if (!button) return;
-        const id = button.getAttribute("data-id");
-        const action = button.getAttribute("data-act");
-        if (action === "edit") editReview(id);
-        if (action === "del") void deleteReview(id);
-      });
-    }
-  }
-
   /* ---------- Related (other countries in same region) ---------- */
   function renderRelated(otherCountries) {
     if (!ui.related) return;
@@ -1341,7 +991,6 @@
     if (ui.guideSection) ui.guideSection.hidden = true;
     if (ui.gallerySection) ui.gallerySection.hidden = true;
     if (ui.relatedSection) ui.relatedSection.hidden = true;
-    if (ui.reviewsSection) ui.reviewsSection.hidden = true;
     if (ui.infoGrid)
       ui.infoGrid.innerHTML =
         '<div class="country-fact"><i class="fa-solid fa-earth-americas"></i><div class="country-fact-body"><span class="country-fact-label">Browse</span><span class="country-fact-value">Open the travel page to pick a country</span></div></div>';
@@ -1576,15 +1225,11 @@
         } catch (_e) {}
       }
 
-      wireReviewEvents();
       wireSaveButton();
-      drawRatingStars();
 
       await loadCountry();
       await initAuth();
       initMenuBridge();
-      syncReviewFormVisibility();
-      void loadReviews();
     } catch (err) {
       console.error("Country page init failed:", err);
       showToast("Unable to load country details.", "error");

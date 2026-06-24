@@ -90,7 +90,6 @@
     ></script>
     <script src="js/list-utils.js?v=20260623z" defer></script>
     <script src="js/index-list-menu-adapter.js?v=20260623z" defer></script>
-    <script src="js/review-interactions.js?v=20260623z" defer></script>
     <script src="js/wiki-cache.js?v=20260623z" defer></script>
     <script src="js/shared-header.js?v=20260624a" defer></script>
     <script src="js/pages/brand.js?v=20260624b" defer></script>
@@ -241,54 +240,6 @@
         </div>
         <div id="brandRelated" class="elevated-related"></div>
       </div>
-
-      <section id="reviews-section" class="section reviews">
-        <h2>Brand Reviews</h2>
-        <div class="reviews-sort-controls hidden" id="reviewsSortControls">
-          <span class="sort-label">Sort by:</span>
-          <select class="sort-select" id="sortSelect">
-            <option value="latest">Latest</option>
-            <option value="highest">Highest Rated</option>
-            <option value="lowest">Lowest Rated</option>
-          </select>
-        </div>
-        <div class="reviews-stats" id="reviewsStats">
-          <div class="reviews-loading">Loading reviews...</div>
-        </div>
-        <div class="reviews-container" id="reviewsList"></div>
-        <div class="review-form-section">
-          <h3>Share Your Thoughts</h3>
-          <form id="review-form" class="hidden">
-            <div class="rating-input">
-              <label>Your Rating:</label>
-              <div class="stars-rating">
-                <span class="star" data-rating="1"></span>
-                <span class="star" data-rating="2"></span>
-                <span class="star" data-rating="3"></span>
-                <span class="star" data-rating="4"></span>
-                <span class="star" data-rating="5"></span>
-              </div>
-              <span class="rating-text" id="ratingText">Select your rating</span>
-            </div>
-            <div class="comment-input">
-              <textarea id="review-comment" placeholder="What did you think of this brand?" rows="4" maxlength="500"></textarea>
-              <div class="char-count">
-                <span id="charCount">0</span>/500 characters
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn submit-review-btn">
-                <span class="btn-text">Submit Review</span>
-              </button>
-              <button type="button" class="btn secondary cancel-edit-btn hidden">Cancel Edit</button>
-            </div>
-          </form>
-          <div id="auth-prompt" class="auth-prompt">
-            <div class="auth-icon"><i class="fas fa-lock"></i></div>
-            <p>Please <a href="login.html" class="auth-link">sign in</a> to review brands</p>
-          </div>
-        </div>
-      </section>
     </div>
 
     <p class="elevated-footnote">

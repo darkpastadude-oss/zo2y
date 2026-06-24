@@ -13,12 +13,6 @@
       : brandType === "car"
         ? "car_brands"
         : "fashion_brands";
-  const reviewTable =
-    brandType === "food"
-      ? "food_reviews"
-      : brandType === "car"
-        ? "car_reviews"
-        : "fashion_reviews";
 
   // Apply theme immediately to prevent flash of pink (fashion default)
   if (document.body) {
@@ -65,18 +59,7 @@
     relatedSub: document.getElementById("brandRelatedSub"),
     saveBtn: document.getElementById("brandSaveBtn"),
     website: document.getElementById("brandWebsite"),
-    reviewsList: document.getElementById("reviewsList"),
-    reviewsStats: document.getElementById("reviewsStats"),
-    reviewsCount: document.getElementById("reviewsCount"),
-    reviewForm: document.getElementById("review-form"),
-    authPrompt: document.getElementById("auth-prompt"),
-    sortSelect: document.getElementById("sortSelect"),
-    reviewsSortControls: document.getElementById("reviewsSortControls"),
-    ratingText: document.getElementById("ratingText"),
-    reviewStars: document.querySelector(".stars-rating"),
-    commentInput: document.getElementById("review-comment"),
-    charCount: document.getElementById("charCount"),
-    cancelEditBtn: document.querySelector(".cancel-edit-btn"),
+
     actionCard: document.getElementById("brandActionCard"),
     toast: document.getElementById("brandToast"),
   };
@@ -84,10 +67,7 @@
   let supabaseClient = null;
   let currentUser = null;
   let brandData = null;
-  let currentRating = 0;
-  let editingReviewId = null;
-  let reviews = [];
-  let currentSort = "latest";
+
   let wikipediaCache = new Map();
   let socialGuessesLoaded = false;
 
@@ -1343,179 +1323,6 @@
     }
   }
 
-  function renderReviewForm() {
-    const form = dom.reviewForm;
-    const prompt = dom.authPrompt;
-    const section = document.getElementById('reviews-section');
-    if (!form || !prompt) return;
-    if (currentUser) {
-      form.classList.remove("hidden");
-      prompt.classList.add("hidden");
-      if (section) section.hidden = false;
-    } else {
-      form.classList.add("hidden");
-      prompt.classList.remove("hidden");
-      if (reviews.length === 0 && section) section.hidden = true;
-    }
-  }
-
-  async function initReviewSystem() {
-    if (!dom.reviewsList) return;
-    dom.reviewsList.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
-    const client = ensureSupabase();
-    if (!client || !brandData) {
-      dom.reviewsList.innerHTML = '<div class="reviews-empty">Review service unavailable.</div>';
-      return;
-    }
-    try {
-      const { data, error } = await client
-        .from(reviewTable)
-        .select("id,user_id,rating,comment,created_at")
-        .eq("brand_id", brandData.id)
-        .order("created_at", { ascending: false });
-      if (error) {
-        dom.reviewsList.innerHTML = '<div class="reviews-empty">Could not load reviews.</div>';
-        return;
-      }
-      reviews = Array.isArray(data) ? data : [];
-      renderReviewsList();
-      renderReviewsStats();
-    } catch (_err) {
-      dom.reviewsList.innerHTML = '<div class="elevated-review-empty">Could not load reviews.</div>';
-    }
-  }
-
-  function renderReviewsStats() {
-    if (!dom.reviewsStats) return;
-    const count = reviews.length;
-    if (!count) {
-      dom.reviewsStats.innerHTML = `
-        <div class="reviews-big">
-          <div class="reviews-big-value">—<span class="reviews-big-denom">/5</span></div>
-          <div class="reviews-big-stars" aria-hidden="true">
-            <i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>
-          </div>
-          <div class="reviews-big-count">be the first to review</div>
-        </div>`;
-      return;
-    }
-    const avg = reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / count;
-    const full = Math.round(avg);
-    let stars = "";
-    for (let i = 0; i < 5; i++) {
-      if (i < full) stars += '<i class="fa-solid fa-star"></i>';
-      else if (i === full && avg % 1 >= 0.75) stars += '<i class="fa-solid fa-star"></i>';
-      else if (i === full && avg % 1 >= 0.25) stars += '<i class="fa-solid fa-star-half-stroke"></i>';
-      else stars += '<i class="fa-regular fa-star"></i>';
-    }
-    const buckets = [0,0,0,0,0];
-    reviews.forEach(r => { const n = Math.max(1, Math.min(5, Number(r.rating || 0))); buckets[n-1]++; });
-    dom.reviewsStats.innerHTML = `
-      <div class="reviews-big">
-        <div class="reviews-big-value">${avg.toFixed(1)}<span class="reviews-big-denom">/5</span></div>
-        <div class="reviews-big-stars" aria-hidden="true">${stars}</div>
-        <div class="reviews-big-count">${count} review${count !== 1 ? "s" : ""}</div>
-      </div>
-      <div class="reviews-bars">
-        ${[5,4,3,2,1].map((n, i) => {
-          const pct = count ? Math.round((buckets[5-n]/count)*100) : 0;
-          return `<div class="reviews-bar-row"><span class="label">${n}★</span><div class="reviews-bar"><div class="reviews-bar-fill" style="width:${pct}%"></div></div><span class="count">${buckets[5-n]}</span></div>`;
-        }).join("")}
-      </div>`;
-  }
-
-  async function renderReviewsList() {
-    if (!dom.reviewsList) return;
-    if (!reviews.length) {
-      dom.reviewsList.innerHTML = '<div class="reviews-empty">No reviews yet. Be the first to share your thoughts.</div>';
-      return;
-    }
-    const client = ensureSupabase();
-    const userIds = [...new Set(reviews.map(r => r.user_id).filter(Boolean))];
-    let userMap = {};
-    if (userIds.length && client) {
-      const { data: users } = await client.from('user_profiles').select('id, username, full_name').in('id', userIds);
-      (users || []).forEach(u => { if (u.id) userMap[u.id] = u; });
-    }
-    dom.reviewsList.innerHTML = reviews.map(r => {
-      const mine = currentUser && String(currentUser.id) === String(r.user_id);
-      const d = new Date(r.created_at || "");
-      const dateText = Number.isFinite(d.getTime()) ? d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "";
-      let starHtml = "";
-      const rating = Math.max(1, Math.min(5, Number(r.rating || 0)));
-      for (let i = 0; i < 5; i++) starHtml += i < rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
-      const u = userMap[r.user_id];
-      const username = String(u?.username || "").trim();
-      const fallbackName = String(u?.full_name || "").trim();
-      const displayName = username ? `@${username}` : (fallbackName || "User");
-      const initialsBase = username || fallbackName || "User";
-      const initials = initialsBase.split(/\s+/).map(n => n[0]).slice(0, 2).join("").toUpperCase();
-      const profileHref = `profile.html?id=${encodeURIComponent(r.user_id)}`;
-      return `<article class="review-card" data-review-id="${escapeHtml(r.id)}">
-        <div class="review-header"><div class="reviewer-info"><a class="reviewer-avatar reviewer-link" href="${profileHref}" aria-label="View profile">${escapeHtml(initials)}</a><div><div class="reviewer-name"><a class="reviewer-link" href="${profileHref}">${escapeHtml(displayName)}</a></div><div class="review-date">${escapeHtml(dateText)}</div></div></div><div class="review-rating"><span class="rating-stars">${starHtml}</span></div></div>
-        <p class="review-comment">${escapeHtml(r.comment || "")}</p>
-        ${mine ? `<div class="review-actions"><button type="button" class="review-edit" data-act="edit" data-id="${escapeHtml(r.id)}">Edit</button><button type="button" class="review-delete" data-act="del" data-id="${escapeHtml(r.id)}">Delete</button></div>` : ""}
-      </article>`;
-    }).join("");
-    dom.reviewsList.querySelectorAll("[data-act='del']").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const id = btn.getAttribute("data-id");
-        if (!id || !currentUser) return;
-        const client = ensureSupabase();
-        if (!client) return;
-        await client.from(reviewTable).delete().eq("id", id).eq("user_id", currentUser.id);
-        await initReviewSystem();
-        showToast("Review deleted", "success");
-      });
-    });
-  }
-
-  if (dom.reviewForm) {
-    dom.reviewForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!currentUser) { window.location.href = "login.html"; return; }
-      if (!currentRating) { showToast("Select a rating", "error"); return; }
-      const comment = dom.commentInput ? dom.commentInput.value.trim() : "";
-      const client = ensureSupabase();
-      if (!client || !brandData) return;
-      if (editingReviewId) {
-        await client.from(reviewTable).update({ rating: currentRating, comment }).eq("id", editingReviewId);
-        editingReviewId = null;
-        showToast("Review updated", "success");
-      } else {
-        await client.from(reviewTable).insert({ brand_id: brandData.id, user_id: currentUser.id, rating: currentRating, comment });
-        showToast("Review submitted", "success");
-      }
-      dom.commentInput.value = "";
-      currentRating = 0;
-      renderStarRating();
-      await initReviewSystem();
-    });
-  }
-
-  if (dom.reviewStars) {
-    dom.reviewStars.addEventListener("click", (e) => {
-      const star = e.target.closest("[data-rating]");
-      if (!star) return;
-      currentRating = Number(star.dataset.rating || 0);
-      renderStarRating();
-    });
-  }
-
-  function renderStarRating() {
-    if (!dom.reviewStars) return;
-    dom.reviewStars.querySelectorAll("[data-rating]").forEach(s => {
-      s.classList.toggle("on", Number(s.dataset.rating) <= currentRating);
-    });
-    if (dom.ratingText) dom.ratingText.textContent = currentRating ? `${currentRating}/5` : "select your rating";
-  }
-
-  if (dom.charCount && dom.commentInput) {
-    dom.commentInput.addEventListener("input", () => {
-      dom.charCount.textContent = dom.commentInput.value.length;
-    });
-  }
-
   function applyCollageFallback(brand) {
     if (!dom.hero) return;
 
@@ -1569,8 +1376,6 @@
     updateHero(brand);
     renderInfoGrid(brand, null);
     renderSocial(brand, null);
-    renderReviewForm();
-    await initReviewSystem();
 
     // Fetch Wikipedia in the background — populate about/info if it returns more
     const wiki = await fetchWikipedia(brand);
@@ -1599,7 +1404,6 @@
     if (supabaseClient?.auth?.onAuthStateChange) {
       supabaseClient.auth.onAuthStateChange((_event, session) => {
         currentUser = session?.user || null;
-        renderReviewForm();
       });
     }
   }
