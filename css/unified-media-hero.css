@@ -117,6 +117,8 @@
   aspect-ratio: auto;
   padding: 0 !important;
   box-sizing: border-box !important;
+  align-self: center;
+  margin-top: 40px;
 }
 
 .elevated-media-page[data-elevated-category="games"] .umh-poster-frame,
@@ -333,6 +335,10 @@
   .umh-poster-frame {
     width: 100%;
     margin: 0;
+  }
+
+  .elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame {
+    margin-top: 24px;
   }
   
   .umh-actions-desc {
