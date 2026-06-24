@@ -1182,12 +1182,14 @@
     let sportsdbRaw = null;
     if (teamName) {
       let payload = null;
-      if (teamId) {
-        payload = await fetchSportsDB("lookupteam.php", { id: teamId });
-      }
-      if (!payload?.teams?.length) {
-        payload = await fetchSportsDB("searchteams.php", { t: teamName });
-      }
+      try {
+        if (teamId) {
+          payload = await fetchSportsDB("lookupteam.php", { id: teamId });
+        }
+        if (!payload?.teams?.length) {
+          payload = await fetchSportsDB("searchteams.php", { t: teamName });
+        }
+      } catch (_e) { payload = null; }
       const teams = Array.isArray(payload?.teams) ? payload.teams : [];
       if (teams.length) {
         const best = pickBestTeamMatch(teams, criteria);
@@ -1241,7 +1243,7 @@
 
     let wikiData = null;
     if (teamName) {
-      wikiData = await fetchWikipedia(teamName);
+      try { wikiData = await fetchWikipedia(teamName); } catch (_e) { wikiData = null; }
       if (wikiData && localTeam) {
         if (wikiData.description) {
           localTeam.description = localTeam.description
@@ -1268,16 +1270,22 @@
     }
 
     state.team = team;
-    setHero(team, wikiData);
+    try {
+      setHero(team, wikiData);
+    } catch (_e) { console.warn("[team.js] setHero failed:", _e); }
 
     state.roster = extractRoster(sportsdbRaw);
-    renderRoster();
+    try {
+      renderRoster();
+    } catch (_e) { console.warn("[team.js] renderRoster failed:", _e); }
 
     fetchRelatedTeams(team)
       .then(() => renderRelated())
       .catch(() => {});
 
-    loadTeamTrailer(team);
+    try {
+      loadTeamTrailer(team);
+    } catch (_e) { console.warn("[team.js] loadTeamTrailer failed:", _e); }
 
     if (state.supabase && localTeam) {
       try {
@@ -1315,9 +1323,9 @@
 
   async function init() {
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
-    await ensureSupabase();
-    await initAuth();
-    initMenuBridge();
+    try { await ensureSupabase(); } catch (_e) { console.warn("[team.js] ensureSupabase failed:", _e); }
+    try { await initAuth(); } catch (_e) { console.warn("[team.js] initAuth failed:", _e); }
+    try { initMenuBridge(); } catch (_e) { console.warn("[team.js] initMenuBridge failed:", _e); }
     const saveBtn = document.getElementById("teamSaveBtn");
     if (saveBtn) {
       saveBtn.addEventListener("click", (event) => {
@@ -1328,7 +1336,8 @@
     await loadTeam();
   }
 
-  init().catch(() => {
+  init().catch((err) => {
+    console.error("[team.js] init failed:", err);
     showToast("Unable to load team details.", "error");
   });
 })();
