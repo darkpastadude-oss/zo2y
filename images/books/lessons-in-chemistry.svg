@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ea580c"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bg)"/>
+  <rect x="0" y="0" width="200" height="6" fill="#fed7aa" opacity="0.8"/>
+  <rect x="0" y="294" width="200" height="6" fill="#fed7aa" opacity="0.8"/>
+  <text x="100" y="110" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="Georgia, serif">
+    <tspan x="100" dy="0">Lessons</tspan>
+    <tspan x="100" dy="22">in</tspan>
+    <tspan x="100" dy="22">Chemistry</tspan>
+  </text>
+  <line x1="60" y1="195" x2="140" y2="195" stroke="#fed7aa" stroke-width="1.5" opacity="0.6"/>
+  <text x="100" y="220" text-anchor="middle" fill="#fed7aa" font-size="12" font-family="Georgia, serif" opacity="0.9">
+    Bonnie Garmus
+  </text>
+</svg>
