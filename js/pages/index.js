@@ -3703,6 +3703,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function hydrateSpotlightFromPool(pool) {
       const safePool = filterHomeSafeItems(Array.isArray(pool) ? pool : []).filter((item) => canUseHomeSpotlightItem(item));
+      const spotlightSection = document.getElementById('spotlightSection');
+      if (spotlightSection) spotlightSection.classList.remove('spotlight-loading');
       if (!safePool.length) {
         homeSpotlightItems = [];
         resetSpotlightTimer(false);
@@ -6071,6 +6073,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const rail = document.getElementById(String(railId || '').trim());
       if (!rail) return;
       if (rail.getAttribute('data-home-deferred-render') === '1') return;
+      rail.classList.remove('rail-loading');
       rail.setAttribute('data-home-deferred-render', '1');
       rail.innerHTML = buildHomeRailDeferredMarkup(isHomeCompactViewport() ? 3 : 4);
     }
@@ -6192,6 +6195,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function renderOrDeferHomeRail(railId, items, opts) {
       const key = String(railId || '').trim();
       if (!key) return;
+      // Skip if rail already has real content (prevents flash from late loaders)
+      const existing = document.getElementById(key);
+      if (existing && !existing.classList.contains('rail-loading') && existing.children.length > 0) {
+        return;
+      }
       const normalizedItems = getHomeRailShuffleItems(key, items);
       const renderOpts = opts || {};
       if (!normalizedItems.length && renderOpts.allowEmptyState !== true) {
@@ -6577,7 +6585,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function renderRail(railId, items, opts) {
       const rail = document.getElementById(railId);
       if (!rail) return;
-      rail.classList.remove('games-rail');
+      rail.classList.remove('games-rail', 'rail-loading');
 
       if (!items || !items.length) {
         if (railId === 'booksRail') {
@@ -9887,7 +9895,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260625b';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260625a';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});

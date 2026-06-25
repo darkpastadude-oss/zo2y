@@ -252,17 +252,64 @@
 }
 
 /* === PAGE LOAD FADE-IN === */
-/* Starts invisible (animation overrides body opacity), fades in once CSS is ready.
-   CSS-only — no JS dependency, no blue screen risk.
-   animations.css loads synchronously before body renders, so first paint is invisible
-   and fades in. If CSS fails to load, body defaults to opacity:1 (safe fallback). */
-@keyframes pageFadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
+/* Content opacity is controlled via inline CSS + .app-ready class.
+   This prevents flash of placeholder cards before JS renders content. */
+
+/* === RAIL CONTENT FADE-IN === */
+/* Cards within rails fade in smoothly instead of popping in */
+.rail {
+    opacity: 1;
+    transition: opacity 0.25s ease-out;
 }
-body {
-    animation: pageFadeIn 0.25s ease forwards;
+.rail.rail-loading {
+    opacity: 0;
 }
+.rail-card {
+    animation: smoothFadeInScale 0.3s ease-out both;
+}
+.rail-card:nth-child(1) { animation-delay: 0ms; }
+.rail-card:nth-child(2) { animation-delay: 40ms; }
+.rail-card:nth-child(3) { animation-delay: 80ms; }
+.rail-card:nth-child(4) { animation-delay: 120ms; }
+.rail-card:nth-child(5) { animation-delay: 160ms; }
+.rail-card:nth-child(n+6) { animation-delay: 200ms; }
+
+/* Spotlight fade transition */
+.spotlight {
+    transition: opacity 0.3s ease-out;
+}
+.spotlight.spotlight-loading {
+    opacity: 0;
+}
+
+/* Landing wall tiles - fade in sequence to avoid pop-in */
+.landing-v4-wall {
+    opacity: 0;
+    animation: smoothFadeIn 0.4s ease-out forwards;
+    will-change: opacity;
+}
+.landing-v4-wall .landing-v4-tile {
+    transition: opacity 0.25s ease-out;
+    will-change: opacity;
+}
+.landing-v4-wall .landing-v4-tile img {
+    transition: opacity 0.25s ease-out;
+}
+.landing-v4-tile img[src*="landing-wall-poster"] {
+    opacity: 0.5;
+    filter: blur(4px);
+}
+
+/* Desktop sections fade in on load */
+.section {
+    opacity: 0;
+    animation: smoothFadeIn 0.35s ease-out forwards;
+}
+.section:nth-child(1) { animation-delay: 50ms; }
+.section:nth-child(2) { animation-delay: 100ms; }
+.section:nth-child(3) { animation-delay: 150ms; }
+.section:nth-child(4) { animation-delay: 200ms; }
+.section:nth-child(5) { animation-delay: 250ms; }
 
 /* === TAB CONTENT SWITCHING === */
 .tab-content {
