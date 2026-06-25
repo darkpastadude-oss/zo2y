@@ -946,7 +946,16 @@
                     }
                 } catch (_err) {}
 
-                // 8. Replace history entry and navigate to login.
+                // 8. Clear service worker caches for cache busting.
+                try {
+                    if (window.caches) {
+                        caches.keys().then(function(keys) {
+                            keys.forEach(function(key) { caches.delete(key); });
+                        }).catch(function() {});
+                    }
+                } catch (_err) {}
+
+                // 9. Replace history entry and navigate to login.
                 window.location.replace('login.html');
             }
 
