@@ -6,7 +6,7 @@
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v7';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v8';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
 const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
   ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
@@ -2013,9 +2013,17 @@ async function loadBooks(signal) {
         } catch (_error) {}
       };
 
-      const BOOKS_CACHE_BUSTER = '20260325a';
+      const BOOKS_CACHE_BUSTER = '20260625b';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/images/landing-wall-poster.svg';
+
+      function proxyBookCover(url) {
+        var s = String(url || '').trim();
+        if (!s || /\/images\/fallback\//i.test(s) || s === FALLBACK_BOOK_IMAGE) return FALLBACK_BOOK_IMAGE;
+        if (/covers\.openlibrary\.org/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        if (/books\.google(?:usercontent)?\.com/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        return s;
+      }
 
       function normalizeBookSeedText(value) {
         return String(value || '')
@@ -2150,9 +2158,12 @@ async function loadBooks(signal) {
         const results = await Promise.allSettled(pool.map(async (seed) => {
           let docs = [];
           try {
+            const searchParts = [];
+            if (seed.title) searchParts.push(seed.title);
+            if (seed.author) searchParts.push(seed.author);
+            const q = searchParts.join(' ') || seed.title || '';
             const payload = await booksFetch('/search', Object.assign({
-              title: seed.title,
-              author: seed.author,
+              q,
               limit: 5,
               page: 1
             }, seed?.year ? { first_publish_year: seed.year } : {}));
@@ -2241,12 +2252,12 @@ async function loadBooks(signal) {
         if (!item || String(item?.mediaType || '').trim().toLowerCase() !== 'book') return null;
         const title = String(item?.title || '').trim();
         const itemId = String(item?.itemId || '').trim();
-        const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
+        const image = proxyBookCover(toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim()));
         if (!title || !itemId || !image) return null;
         const rawChain = Array.isArray(item?.fallbackChain) ? item.fallbackChain : [];
         const seenChain = new Set([image]);
         const fallbackChain = rawChain
-          .map((url) => toHttpsUrl(String(url || '').trim()))
+          .map((url) => proxyBookCover(toHttpsUrl(String(url || '').trim())))
           .filter((url) => {
             if (!url || seenChain.has(url)) return false;
             seenChain.add(url);
@@ -2260,9 +2271,9 @@ async function loadBooks(signal) {
           subtitle: String(item?.subtitle || '').trim(),
           image,
           listImage: image,
-          backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
-          spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
-          spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          backgroundImage: proxyBookCover(toHttpsUrl(String(item?.backgroundImage || image).trim())) || image,
+          spotlightImage: proxyBookCover(toHttpsUrl(String(item?.spotlightImage || image).trim())) || image,
+          spotlightMediaImage: proxyBookCover(toHttpsUrl(String(item?.spotlightMediaImage || image).trim())) || image,
           fallbackChain,
           isbn: String(item?.isbn || '').replace(/[^0-9Xx]/g, ''),
           coverId: Number(item?.coverId || 0) || 0,
@@ -2289,7 +2300,7 @@ async function loadBooks(signal) {
           if (!title) return null;
           const author = String(book?.author || '').trim() || 'Unknown author';
           const year = Number(book?.year || 0) || 0;
-          const cover = toHttpsUrl(book?.cover || '') || FALLBACK_BOOK_IMAGE;
+          const cover = proxyBookCover(toHttpsUrl(book?.cover || '')) || FALLBACK_BOOK_IMAGE;
           const itemId = getBookEntryId(book, idx);
           const titleParam = encodeURIComponent(title);
           const authorParam = encodeURIComponent(author);
@@ -2302,12 +2313,12 @@ async function loadBooks(signal) {
           const coverId = Number(book?.cover_i || book?.coverId || 0) || 0;
           const fallbackChain = [];
           isbnList.forEach((isbn) => {
-            fallbackChain.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`);
-            fallbackChain.push(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-M.jpg`);
+            fallbackChain.push(proxyBookCover(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-L.jpg`));
+            fallbackChain.push(proxyBookCover(`https://covers.openlibrary.org/b/isbn/${encodeURIComponent(isbn)}-M.jpg`));
           });
           if (coverId > 0) {
-            fallbackChain.push(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`);
-            fallbackChain.push(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-M.jpg`);
+            fallbackChain.push(proxyBookCover(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg`));
+            fallbackChain.push(proxyBookCover(`https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-M.jpg`));
           }
           return sanitizeHomeBookItem({
             mediaType: 'book',
