@@ -437,7 +437,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isMediaApiRequest(url)) {
-    if (url.pathname.startsWith('/api/books')) {
+    if (url.pathname.startsWith('/api/books') || url.pathname.startsWith('/api/music')) {
       event.respondWith(fetch(request, { cache: 'no-store' }).catch(() => offlineAssetResponse()));
       return;
     }

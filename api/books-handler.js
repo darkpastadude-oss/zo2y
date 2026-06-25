@@ -219,7 +219,44 @@ export default async function booksHandler(req, res) {
       }
     }
 
-    if (relativePath === "popular") relativePath = "volumes";
+    if (relativePath === "popular") {
+      const q = String(query.q || 'subject:fiction').trim();
+      const limit = Math.min(Number(query.limit) || 20, 50);
+      const page = Math.max(1, Number(query.page) || 1);
+      const startIndex = (page - 1) * limit;
+      try {
+        const gbUrl = new URL(`${GOOGLE_BOOKS_BASE}/volumes`);
+        gbUrl.searchParams.set("q", q);
+        gbUrl.searchParams.set("maxResults", String(limit));
+        gbUrl.searchParams.set("startIndex", String(startIndex));
+        if (process.env.GOOGLE_BOOKS_API_KEY) gbUrl.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
+
+        const response = await fetch(gbUrl.toString(), { signal: AbortSignal.timeout(8000) });
+        const data = await response.json();
+        if (!response.ok) return res.status(response.status).json(data);
+
+        const books = (data.items || []).map(item => {
+          const vol = item.volumeInfo || {};
+          const authors = vol.authors || [];
+          const imageLinks = vol.imageLinks || {};
+          const cover = imageLinks.thumbnail || imageLinks.smallThumbnail || "/images/fallback/book.svg";
+          return {
+            id: item.id,
+            title: vol.title || "Unknown Title",
+            author: authors.length ? authors.join(", ") : "Unknown Author",
+            year: vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4)) : null,
+            cover: cover.replace("http:", "https:"),
+            description: vol.description || "",
+            _source: "google-books"
+          };
+        });
+        res.setHeader("Cache-Control", "public, max-age=600");
+        return res.json({ ok: true, books, total: data.totalItems || books.length });
+      } catch (err) {
+        return res.status(502).json({ ok: false, message: "Popular books fetch failed" });
+      }
+    }
+
     const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
     Object.entries(query || {}).forEach(([k, v]) => url.searchParams.set(k, v));
     if (process.env.GOOGLE_BOOKS_API_KEY) url.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
