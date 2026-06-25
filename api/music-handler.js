@@ -5,6 +5,38 @@ const REQUEST_CACHE_TTL_MS = 1000 * 60 * 10;
 
 const requestCache = new Map();
 
+const MUSIC_COVERS_BUCKET = 'music-covers';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+
+function musicCoverUrl(filename) {
+  if (!SUPABASE_URL) return '';
+  return `${SUPABASE_URL}/storage/v1/object/public/${MUSIC_COVERS_BUCKET}/${filename}`;
+}
+
+const MUSIC_CATALOG = [
+  { id: '1786885073', name: 'Die With A Smile', artists: ['Lady Gaga', 'Bruno Mars'], image: musicCoverUrl('die-with-a-smile.jpg'), album_name: 'Die With A Smile', preview_url: '' },
+  { id: '1776815963', name: 'A Bar Song (Tipsy)', artists: ['Shaboozey'], image: musicCoverUrl('bar-song-tipsy.jpg'), album_name: 'Where I\'ve Been, Isn\'t Where I\'m Going', preview_url: '' },
+  { id: '1746018235', name: 'I Had Some Help', artists: ['Post Malone', 'Morgan Wallen'], image: musicCoverUrl('i-had-some-help.jpg'), album_name: 'I Had Some Help', preview_url: '' },
+  { id: '1738258033', name: 'Lose Control', artists: ['Teddy Swims'], image: musicCoverUrl('lose-control.jpg'), album_name: 'I\'ve Tried Everything But Therapy', preview_url: '' },
+  { id: '1731742554', name: 'Taste', artists: ['Sabrina Carpenter'], image: musicCoverUrl('taste.jpg'), album_name: 'Short n\' Sweet', preview_url: '' },
+  { id: '1727299764', name: 'Espresso', artists: ['Sabrina Carpenter'], image: musicCoverUrl('espresso.jpg'), album_name: 'Short n\' Sweet', preview_url: '' },
+  { id: '1696313419', name: 'Beautiful Things', artists: ['Benson Boone'], image: musicCoverUrl('beautiful-things.jpg'), album_name: 'Fireworks & Rollerblades', preview_url: '' },
+  { id: '1741021439', name: 'BIRDS OF A FEATHER', artists: ['Billie Eilish'], image: musicCoverUrl('birds-of-a-feather.jpg'), album_name: 'HIT ME HARD AND SOFT', preview_url: '' },
+  { id: '1723506498', name: 'Gata Only', artists: ['FloyyMenor', 'Cris MJ'], image: musicCoverUrl('gata-only.jpg'), album_name: 'Gata Only', preview_url: '' },
+  { id: '1737234503', name: 'Fortnight', artists: ['Taylor Swift', 'Post Malone'], image: musicCoverUrl('fortnight.jpg'), album_name: 'THE TORTURED POETS DEPARTMENT', preview_url: '' }
+];
+
+const MUSIC_ALBUMS_CATALOG = [
+  { id: '6769568449', name: 'ICEMAN', artists: ['Drake'], image: musicCoverUrl('iceman.jpg'), release_date: '2026-05-15' },
+  { id: '1889992111', name: 'you seem pretty sad for a girl so in love', artists: ['Olivia Rodrigo'], image: musicCoverUrl('olivia-rodrigo.jpg'), release_date: '2026-06-12' },
+  { id: '1737234503', name: 'THE TORTURED POETS DEPARTMENT', artists: ['Taylor Swift'], image: musicCoverUrl('ttpd.jpg'), release_date: '2024-04-19' },
+  { id: '1731742554', name: 'Short n\' Sweet', artists: ['Sabrina Carpenter'], image: musicCoverUrl('short-n-sweet.jpg'), release_date: '2024-08-23' },
+  { id: '1741021439', name: 'HIT ME HARD AND SOFT', artists: ['Billie Eilish'], image: musicCoverUrl('hit-me-hard.jpg'), release_date: '2024-05-17' },
+  { id: '1696313419', name: 'Fireworks & Rollerblades', artists: ['Benson Boone'], image: musicCoverUrl('fireworks.jpg'), release_date: '2024-02-16' },
+  { id: '1727299764', name: 'Espresso', artists: ['Sabrina Carpenter'], image: musicCoverUrl('espresso-album.jpg'), release_date: '2024-04-12' },
+  { id: '1776815963', name: 'Where I\'ve Been, Isn\'t Where I\'m Going', artists: ['Shaboozey'], image: musicCoverUrl('shaboozey.jpg'), release_date: '2024-05-31' }
+];
+
 function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
   const age = Math.max(0, Math.floor(Number(maxAge) || 0));
   const swr = Math.max(0, Math.floor(Number(staleWhileRevalidate) || 0));
@@ -15,6 +47,15 @@ function clampInt(value, min, max, fallback) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(min, Math.min(max, Math.floor(n)));
+}
+
+function shuffleArray(arr) {
+  const a = [...(Array.isArray(arr) ? arr : [])];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 function toHttpsUrl(value) {
@@ -486,44 +527,43 @@ export default async function handler(req, res) {
   if (section === "popular") {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = clampInt(query.limit, 1, 100, 24);
-    const market = normalizeMarket(query.market || "US");
-    try {
-      let results = await fetchAppleMostPlayedSongs({ market, limit: Math.max(limit, 24) }).catch(() => []);
-      if (!results.length) {
-        const [chartRows, popRows] = await Promise.all([
-          searchItunesTracks({ q: "top songs", limit: Math.max(limit, 24), market }).catch(() => []),
-          searchItunesTracks({ q: "new music 2026", limit: Math.max(limit, 24), market }).catch(() => [])
-        ]);
-        results = dedupeTracks([...chartRows, ...popRows]).slice(0, limit);
-      }
-      return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
-    } catch (_error) {
-      return res.json({ count: 0, limit, offset: 0, source: "unavailable", results: [] });
-    }
+    const results = shuffleArray([...MUSIC_CATALOG]).slice(0, limit).map((track) => ({
+      source: "local",
+      kind: "track",
+      id: track.id,
+      name: track.name,
+      artists: track.artists,
+      artist_ids: [],
+      album: { id: track.id, name: track.album_name || track.name, album_type: "single", release_date: "", total_tracks: 1, images: track.image ? [{ url: track.image, width: 600, height: 600 }] : [] },
+      image: track.image,
+      preview_url: track.preview_url || "",
+      external_url: "",
+      popularity: 0,
+      duration_ms: 0,
+      explicit: false
+    }));
+    return res.json({ count: results.length, limit, offset: 0, source: "local-catalog", results });
   }
 
   if (section === "popular-albums") {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = clampInt(query.limit, 1, 60, 24);
-    const market = normalizeMarket(query.market || "US");
-    try {
-      let results = await fetchAppleMostPlayedAlbums({ market, limit: Math.max(limit, 24) }).catch(() => []);
-      if (!results.length) {
-        const [topAlbums, newAlbums] = await Promise.all([
-          searchItunesAlbums({ q: "top albums 2024", limit: Math.max(limit * 2, 40), market }).catch(() => []),
-          searchItunesAlbums({ q: "new album 2024", limit: Math.max(limit * 2, 40), market }).catch(() => [])
-        ]);
-        results = dedupeAlbums([...topAlbums, ...newAlbums]).slice(0, limit);
-      }
-      return res.json({
-        count: results.length,
-        limit,
-        source: results.length ? (results[0]?.source || "itunes") : "unavailable",
-        results
-      });
-    } catch (_error) {
-      return res.json({ count: 0, limit, source: "unavailable", results: [] });
-    }
+    const results = shuffleArray([...MUSIC_ALBUMS_CATALOG]).slice(0, limit).map((album) => ({
+      source: "local",
+      kind: "album",
+      id: album.id,
+      name: album.name,
+      artists: album.artists,
+      artist_ids: [],
+      album_type: "album",
+      release_date: album.release_date || "",
+      image: album.image,
+      preview_url: "",
+      external_url: `https://music.apple.com/us/album/${album.id}`,
+      popularity: 0
+    }));
+    return res.json({ count: results.length, limit, source: "local-catalog", results });
+  }
   }
 
   if (section === "new-releases") {
