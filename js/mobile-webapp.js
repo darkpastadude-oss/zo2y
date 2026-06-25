@@ -1,5 +1,5 @@
 (() => {
-const APP_RUNTIME_VERSION = '20260625a';
+const APP_RUNTIME_VERSION = '20260612c';
   const isLocalhostRuntime = (() => {
     const hostname = String(window.location.hostname || '').trim().toLowerCase();
     return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]';
@@ -601,12 +601,17 @@ const APP_RUNTIME_VERSION = '20260625a';
 
   window.addEventListener('DOMContentLoaded', () => {
     document.body.classList.remove('app-booting');
-    document.body.classList.remove('app-loading');
     document.body.classList.add('app-ready');
     initListPopupShell();
     releaseStalePopupLock();
+    window.setTimeout(() => document.body.classList.remove('app-loading'), 180);
     ensureHeaderInstallButton();
   });
+
+  window.setTimeout(() => {
+    document.body?.classList.remove('app-booting');
+    document.body?.classList.add('app-ready');
+  }, 5000);
 
   window.addEventListener('beforeinstallprompt', (event) => {
     deferredInstallPrompt = event;
@@ -715,7 +720,7 @@ const APP_RUNTIME_VERSION = '20260625a';
         return;
       }
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260625a').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260614a').catch(() => {
         // silent fail to avoid runtime noise
         });
       });
