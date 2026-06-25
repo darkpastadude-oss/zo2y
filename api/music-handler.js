@@ -564,7 +564,6 @@ export default async function handler(req, res) {
     }));
     return res.json({ count: results.length, limit, source: "local-catalog", results });
   }
-  }
 
   if (section === "new-releases") {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
