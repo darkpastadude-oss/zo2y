@@ -364,7 +364,7 @@
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v2';
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v3';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
@@ -9887,7 +9887,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }
         const script = document.createElement('script');
       // Keep this in sync with `sw.js` precache list to avoid refresh loading stale home loaders.
-      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260625a';
+      script.src = 'js/pages/index-home-heavy-loaders.js?v=20260625b';
       script.defer = true;
         script.setAttribute('data-home-heavy-loaders', '1');
         script.onload = () => resolve(window.__zo2yHomeHeavyLoaders || {});
@@ -9964,6 +9964,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const safeArt = (url) => String(url || '').trim();
 
+      function proxyMusicCover(url) {
+        var s = String(url || '').trim();
+        if (!s) return '';
+        if (/\/api\/(books|music)\/cover\?url=/i.test(s)) return s;
+        if (/mzstatic\.com/i.test(s) || /apple\.com\/(music|cdn-cgi)/i.test(s)) return '/api/music/cover?url=' + encodeURIComponent(s);
+        return s;
+      }
+
       const fetchJson = async (url) => {
         try {
           const r = await fetch(url, { signal });
@@ -9974,7 +9982,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const mapTrack = (track) => {
         const arts = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : String(track?.artistName || track?.subtitle || 'Artist').trim();
-        const img = safeArt(track?.image || track?.artworkUrl100 || '');
+        const img = proxyMusicCover(safeArt(track?.image || track?.artworkUrl100 || ''));
         const id = String(track?.id || track?.trackId || track?.collectionId || '');
         return {
           mediaType: 'music', itemId: id, title: String(track?.name || track?.trackName || 'Track').trim(),
@@ -9988,7 +9996,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const mapAlbum = (album) => {
         const arts = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : String(album?.artistName || album?.subtitle || 'Artist').trim();
-        const img = safeArt(album?.image || album?.artworkUrl100 || '');
+        const img = proxyMusicCover(safeArt(album?.image || album?.artworkUrl100 || ''));
         const id = String(album?.id || album?.collectionId || '');
         const releaseDate = String(album?.release_date || '').slice(0, 10);
         return {

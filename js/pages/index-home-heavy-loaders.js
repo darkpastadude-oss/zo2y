@@ -6,7 +6,7 @@
   const HOME_LOCAL_FALLBACK_IMAGE = String(window.HOME_LOCAL_FALLBACK_IMAGE || '').trim();
   const HOME_SPORTS_SEEDS = Array.isArray(window.ZO2Y_HOME_SPORTS_SEEDS) ? window.ZO2Y_HOME_SPORTS_SEEDS : [];
 
-const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v8';
+const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v9';
 const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
 const CURRENT_TOP_BOOK_SEEDS = Array.isArray(window.ZO2Y_CURATED_BOOK_SEEDS) && window.ZO2Y_CURATED_BOOK_SEEDS.length
   ? window.ZO2Y_CURATED_BOOK_SEEDS.slice()
@@ -221,12 +221,12 @@ async function loadBooks(signal) {
         if (!item || String(item?.mediaType || '').trim().toLowerCase() !== 'book') return null;
         const title = String(item?.title || '').trim();
         const itemId = String(item?.itemId || '').trim();
-        const image = toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim());
+        const image = proxyBookCover(toHttpsUrl(String(item?.image || item?.listImage || item?.spotlightImage || '').trim()));
         if (!title || !itemId || !image) return null;
         const rawChain = Array.isArray(item?.fallbackChain) ? item.fallbackChain : [];
         const seenChain = new Set([image]);
         const fallbackChain = rawChain
-          .map((url) => toHttpsUrl(String(url || '').trim()))
+          .map((url) => proxyBookCover(toHttpsUrl(String(url || '').trim())))
           .filter((url) => {
             if (!url || seenChain.has(url)) return false;
             seenChain.add(url);
@@ -240,9 +240,9 @@ async function loadBooks(signal) {
           subtitle: String(item?.subtitle || '').trim(),
           image,
           listImage: image,
-          backgroundImage: toHttpsUrl(String(item?.backgroundImage || image).trim()) || image,
-          spotlightImage: toHttpsUrl(String(item?.spotlightImage || image).trim()) || image,
-          spotlightMediaImage: toHttpsUrl(String(item?.spotlightMediaImage || image).trim()) || image,
+          backgroundImage: proxyBookCover(toHttpsUrl(String(item?.backgroundImage || image).trim())) || image,
+          spotlightImage: proxyBookCover(toHttpsUrl(String(item?.spotlightImage || image).trim())) || image,
+          spotlightMediaImage: proxyBookCover(toHttpsUrl(String(item?.spotlightMediaImage || image).trim())) || image,
           fallbackChain,
           isbn: String(item?.isbn || '').replace(/[^0-9Xx]/g, ''),
           coverId: Number(item?.coverId || 0) || 0,
@@ -457,6 +457,14 @@ async function loadBooks(signal) {
         if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
         return 'Album';
       };
+      function proxyMusicCover(url) {
+        var s = String(url || '').trim();
+        if (!s) return '';
+        if (/\/api\/(books|music)\/cover\?url=/i.test(s)) return s;
+        if (/mzstatic\.com/i.test(s) || /apple\.com\/(music|cdn-cgi)/i.test(s)) return '/api/music/cover?url=' + encodeURIComponent(s);
+        return s;
+      }
+
       const mapTracksToHomeItems = (tracks = []) => tracks.map((track) => {
         if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
         const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : 'Artist';
@@ -464,7 +472,7 @@ async function loadBooks(signal) {
         const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
         const containerLabel = getTrackContainerLabel(track);
         const popularity = Number(track?.popularity || 0);
-        const image = String(track?.image || '').trim();
+        const image = proxyMusicCover(String(track?.image || '').trim());
         return {
           mediaType: 'music',
           itemId: String(track?.id || ''),
@@ -491,7 +499,7 @@ async function loadBooks(signal) {
         if (!albumId) return null;
         const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
         const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : 'Artist';
-        const image = String(album?.image || '').trim();
+        const image = proxyMusicCover(String(album?.image || '').trim());
         const releaseDate = String(album?.release_date || '').trim();
         const totalTracks = Number(album?.total_tracks || 0);
         const detail = [
@@ -2013,7 +2021,7 @@ async function loadBooks(signal) {
         } catch (_error) {}
       };
 
-      const BOOKS_CACHE_BUSTER = '20260625b';
+      const BOOKS_CACHE_BUSTER = '20260625c';
       const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
       const FALLBACK_BOOK_IMAGE = '/images/landing-wall-poster.svg';
 
@@ -2021,7 +2029,8 @@ async function loadBooks(signal) {
         var s = String(url || '').trim();
         if (!s || /\/images\/fallback\//i.test(s) || s === FALLBACK_BOOK_IMAGE) return FALLBACK_BOOK_IMAGE;
         if (/covers\.openlibrary\.org/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
-        if (/books\.google(?:usercontent)?\.com/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        if (/books\.google(?:usercontent|apis)?\.com/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
+        if (/^https?:\/\/books\./i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
         return s;
       }
 
@@ -2115,6 +2124,7 @@ async function loadBooks(signal) {
 
       async function fetchPopularBooks(page = 1, limit = BOOKS_PER_PAGE) {
         return booksFetch('/popular', {
+          q: 'subject:fiction',
           page,
           limit,
           subject: 'fiction',

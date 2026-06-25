@@ -465,6 +465,30 @@ export default async function handler(req, res) {
     });
   }
 
+  if (section === "cover") {
+    const targetUrl = String(query.url || "").trim();
+    if (!targetUrl) return res.status(400).json({ error: "Missing url parameter" });
+    try {
+      const proxyRes = await fetch(targetUrl, {
+        headers: { "User-Agent": "zo2y-music/1.0" },
+        redirect: "follow"
+      });
+      if (!proxyRes.ok) {
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#1a1a2e"/><text x="150" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
+      }
+      const buffer = await proxyRes.arrayBuffer();
+      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
+      return res.end(new Uint8Array(buffer));
+    } catch (_err) {
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#1a1a2e"/><text x="150" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
+    }
+  }
+
   if (section === "health") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     return res.json({
