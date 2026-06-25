@@ -451,6 +451,13 @@
                 return false;
             }
 
+            function profileUsernameWithSuffix(base, suffix) {
+                const normalizedBase = normalizeProfileUsername(base || 'user');
+                const normalizedSuffix = (normalizeProfileUsername(suffix || 'user') || 'user').slice(0, 8);
+                const limit = Math.max(3, 30 - normalizedSuffix.length - 1);
+                return (normalizedBase.slice(0, limit) + '_' + normalizedSuffix).slice(0, 30);
+            }
+
             function buildProfileUsernameCandidates(seed, userId) {
                 const rawBaseSeed = normalizeProfileUsername(seed) || 'user';
                 const baseSeed = RESERVED_PROFILE_USERNAMES.has(rawBaseSeed.replace(/_/g, ''))
@@ -488,7 +495,17 @@
             }
 
             function maybeRedirectUsernameOnboarding() {
-                // Onboarding disabled - username popup will be shown instead
+                const auth = window.ZO2Y_AUTH;
+                if (!auth || !currentUser || !currentUser.id) return false;
+                const profileUsername = (userProfile && userProfile.username) || '';
+                if (!profileUsername || isPlaceholderUsername(profileUsername)) {
+                    try {
+                        auth.redirectToOnboarding('profile.html', currentUser.id);
+                    } catch (_e) {
+                        window.location.replace('onboarding.html?onboarding=1&next=' + encodeURIComponent('profile.html'));
+                    }
+                    return true;
+                }
                 return false;
             }
 

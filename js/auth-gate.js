@@ -2125,6 +2125,7 @@
       markOnboardingPending: markOnboardingPending,
       clearOnboardingPending: clearOnboardingPending,
       normalizeUsername: normalizeProfileUsername,
+      profileUsernameWithSuffix: profileUsernameWithSuffix,
       isPlaceholderUsername: isPlaceholderProfileUsername,
       isValidUsername: isValidProfileUsername,
       ensureUsernameAvailable: ensureUsernameAvailable,
