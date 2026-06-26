@@ -6411,6 +6411,69 @@
                 if (safeTab !== 'community' && hasFreshTabRender(safeTab)) {
                     return Promise.resolve();
                 }
+
+                // SPA INJECTION: Dynamically create the wrapper HTML before rendering
+                const isMobile = window.innerWidth <= 768;
+                const desktopContainer = document.getElementById('spaViewAllContainer');
+                const mobileContainer = document.getElementById('mobileSpaViewAllContainer');
+
+                const MEDIA_CONFIG = {
+                    movies: { icon: 'film', title: 'Movies', tab: 'movies', url: 'movies.html', subtitle: 'Organize your favorite films' },
+                    tv: { icon: 'tv', title: 'TV Shows', tab: 'tv', url: 'tvshows.html', subtitle: 'Organize your favorite series' },
+                    anime: { icon: 'dragon', title: 'Anime', tab: 'anime', url: 'animes.html', subtitle: 'Organize your favorite anime' },
+                    games: { icon: 'gamepad', title: 'Games', tab: 'games', url: 'games.html', subtitle: 'Organize your favorite games' },
+                    books: { icon: 'book', title: 'Books', tab: 'books', url: 'books.html', subtitle: 'Organize your favorite books' },
+                    music: { icon: 'music', title: 'Music', tab: 'music', url: 'music.html', subtitle: 'Organize your favorite tracks' },
+                    sports: { icon: 'futbol', title: 'Favorite Teams', tab: 'sports', url: 'sports.html', subtitle: 'Teams you follow across leagues' },
+                    travel: { icon: 'earth-americas', title: 'My Travel', tab: 'travel', url: 'travel.html', subtitle: 'Organize countries you want to explore' },
+                    fashion: { icon: 'shirt', title: 'My Fashion', tab: 'fashion', url: 'fashion.html', subtitle: 'Organize brands you wear, love, or want to try' },
+                    food: { icon: 'burger', title: 'My Food', tab: 'food', url: 'food.html', subtitle: 'Track fast food and chains you love' },
+                    cars: { icon: 'car', title: 'My Cars', tab: 'cars', url: 'cars.html', subtitle: 'Organize car brands you love or want to try' }
+                };
+
+                const cfg = MEDIA_CONFIG[safeTab];
+
+                if (cfg && safeTab !== 'community') {
+                    if (desktopContainer && !isMobile) {
+                        desktopContainer.innerHTML = `
+                            <div class="tab-content active" id="${safeTab}-tab">
+                                <div class="section">
+                                    <div class="section-header">
+                                        <div>
+                                            <h2 class="section-title">${cfg.title}</h2>
+                                            <p class="section-subtitle">${cfg.subtitle}</p>
+                                        </div>
+                                        <div class="section-actions">
+                                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.create${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}List && ProfileManager.create${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}List()"><i class="fas fa-plus"></i></button>
+                                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='${cfg.url}'"><i class="fas fa-${cfg.icon}"></i> Browse ${cfg.title}</button>
+                                        </div>
+                                    </div>
+                                    <div class="collection-grid" id="${safeTab}Grid"></div>
+                                </div>
+                            </div>
+                        `;
+                        desktopContainer.style.display = '';
+                    }
+
+                    if (mobileContainer && isMobile) {
+                        const capitalizedTab = safeTab.charAt(0).toUpperCase() + safeTab.slice(1);
+                        mobileContainer.innerHTML = `
+                            <div class="mobile-section active" id="mobile${capitalizedTab}Section">
+                                <div class="mobile-section-title">
+                                    <span>${cfg.title}</span>
+                                    <div class="d-flex gap-sm">
+                                        <button class="mobile-action-btn btn-base mb-0" onclick="ProfileManager.create${capitalizedTab}List && ProfileManager.create${capitalizedTab}List()"><i class="fas fa-plus"></i></button>
+                                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='${cfg.url}'"><i class="fas fa-${cfg.icon}"></i> Browse</button>
+                                    </div>
+                                </div>
+                                <div class="mobile-section-subtitle">${cfg.subtitle}</div>
+                                <div class="collection-grid" id="mobile${capitalizedTab}Grid"></div>
+                            </div>
+                        `;
+                        mobileContainer.style.display = '';
+                    }
+                }
+
                 const handlers = {
                     movies: () => renderMovies(),
                     ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
@@ -6432,25 +6495,15 @@
                         if (requestToken !== tabSwitchToken) return;
                         console.error(`Tab render failed (${safeTab}):`, error);
                         showToast('Could not load this tab right now', 'error');
-                        // Paint an error state into the grid so the section is never
-                        // empty when the user looks at it.
                         try {
-                            const isMobile = window.innerWidth <= 768;
-                            const gridId = isMobile
-                                ? `mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Grid`
-                                : `${safeTab}Grid`;
+                            const gridId = isMobile ? `mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Grid` : `${safeTab}Grid`;
                             const grid = document.getElementById(gridId);
                             if (grid && !grid.querySelector('.collection-card')) {
-                                grid.innerHTML = `
-                                    <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                        <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                        <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Couldn’t load this tab</h3>
-                                        <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Tap the tab again to retry.</p>
-                                    </div>
-                                `;
+                                grid.innerHTML = `<div class="empty-state"><h3 class="empty-title">Couldn't load this tab</h3></div>`;
                             }
-                        } catch (_) { /* never let a fallback paint throw */ }
+                        } catch (_) {}
                     });
+            });
             }
 
             function ensureTabSectionVisible(safeTab, isMobile) {
@@ -10942,6 +10995,63 @@
                     }
                 } catch (_e) {}
 
+                // Sort based on showcaseConfig display_order if it exists
+                let sortedTypes = [...SHOWCASE_MEDIA_TYPES];
+                if (showcaseConfig && showcaseConfig.length > 0) {
+                    sortedTypes.sort((a, b) => {
+                        const entryA = showcaseConfig.find(s => s.media_type === a.key);
+                        const entryB = showcaseConfig.find(s => s.media_type === b.key);
+                        const orderA = entryA ? entryA.display_order : 999;
+                        const orderB = entryB ? entryB.display_order : 999;
+                        return orderA - orderB;
+                    });
+                }
+
+                let html = '';
+                for (const mt of sortedTypes) {
+                    const allLists = ProfileShowcase
+                        ? await ProfileShowcase.getAllListsForType(mt.key, userId)
+                        : [];
+                    const currentEntry = (showcaseConfig || []).find(s => s.media_type === mt.key);
+                    const currentListId = currentEntry?.list_id || 'favorites';
+                    const isHidden = currentEntry?.is_hidden || false;
+
+                    html += '<div class="showcase-item" data-media="' + mt.key + '" style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;display:flex;align-items:center;gap:12px;">';
+                    html += '<div class="drag-handle" style="cursor:grab;color:rgba(255,255,255,0.3);padding:8px;"><i class="fas fa-grip-vertical"></i></div>';
+                    html += '<div style="flex:1;">';
+                    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+                    html += '<i class="fas ' + mt.icon + '" style="color:rgba(255,255,255,0.5);font-size:13px;"></i>';
+                    html += '<span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">' + mt.label + '</span>';
+                    html += '</div>';
+                    html += '<select class="form-input" style="font-size:13px;padding:6px 10px;margin-bottom:6px;width:100%;" ';
+                    html += 'onchange="ProfileManager.setShowcaseList(\'' + mt.key + '\', this.value)">';
+                    for (const list of allLists) {
+                        const selected = list.id === currentListId ? ' selected' : '';
+                        const label = (list.is_default ? '' : '') + list.title + (list.count !== undefined ? ' (' + list.count + ')' : '');
+                        html += '<option value="' + list.id + '"' + selected + '>' + label + '</option>';
+                    }
+                    html += '</select>';
+                    html += '</div></div>';
+                }
+
+                container.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:13px;">No media categories available.</div>';
+
+                if (typeof Sortable !== 'undefined') {
+                    Sortable.create(container, {
+                        animation: 150,
+                        handle: '.drag-handle',
+                        onEnd: function() {
+                            const items = container.querySelectorAll('.showcase-item');
+                            items.forEach((item, index) => {
+                                const mediaType = item.getAttribute('data-media');
+                                ProfileManager.setShowcaseOrder(mediaType, index);
+                            });
+                        }
+                    });
+                }
+            }
+                } catch (_e) {}
+
                 let html = '';
                 for (const mt of SHOWCASE_MEDIA_TYPES) {
                     const allLists = ProfileShowcase
@@ -10968,6 +11078,19 @@
                 }
 
                 container.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:13px;">No media categories available.</div>';
+            }
+
+            async function setShowcaseOrder(mediaType, displayOrder) {
+                const userId = currentUser?.id;
+                if (!userId || !ProfileShowcase) return;
+                const entry = showcaseConfig.find(s => s.media_type === mediaType);
+                const listId = entry ? entry.list_id : 'favorites';
+                await ProfileShowcase.setProfileShowcase(userId, mediaType, listId, { display_order: displayOrder });
+                if (entry) {
+                    entry.display_order = displayOrder;
+                } else {
+                    showcaseConfig.push({ user_id: userId, media_type: mediaType, list_id: listId, display_order: displayOrder, is_hidden: false });
+                }
             }
 
             async function setShowcaseList(mediaType, listId) {
@@ -11321,6 +11444,7 @@
                 getShowcaseListId: getShowcaseListId,
                 getShowcaseListTitle: getShowcaseListTitle,
                 setShowcaseList: setShowcaseList,
+                setShowcaseOrder: setShowcaseOrder,
                 backToProfile: backToProfile,
                 reorderList: reorderList
             };
