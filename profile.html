@@ -93,8 +93,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <div class="pv2-hero">
                 <!-- Cinematic banner — JS populates background via ProfileManager.renderBanner() -->
                 <div class="pv2-banner" id="profileBanner">
+                    <div class="pv2-banner-backdrops" id="bannerBackdrops"></div>
                     <div class="pv2-banner-overlay"></div>
-                    <div class="pv2-banner-posters" id="bannerPosters"></div>
+                    <div class="pv2-banner-vignette"></div>
                 </div>
 
                 <div class="pv2-hero-body">
@@ -1131,77 +1132,209 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </button>
         </div>
 
-        <!-- Mobile Profile Header -->
-        <div class="mobile-profile-header">
-            <div class="mobile-profile-banner"></div>
-            <div class="mobile-profile-topbar">
-                <button class="mobile-menu-btn mobile-profile-menu-btn" onclick="ProfileManager.showMobileMenu()">
+        <!-- Mobile Identity Card (pv2 design) -->
+        <div class="mph2-card" id="mobileIdentityCard">
+
+            <!-- Cinematic banner -->
+            <div class="mph2-banner" id="mobileBanner">
+                <div class="mph2-banner-backdrops" id="mobileBannerBackdrops"></div>
+                <div class="mph2-banner-overlay"></div>
+                <div class="mph2-banner-vignette"></div>
+            </div>
+
+            <!-- Topbar: menu + edit -->
+            <div class="mph2-topbar">
+                <button class="mph2-menu-btn" onclick="ProfileManager.showMobileMenu()" aria-label="Menu">
                     <i class="fas fa-bars"></i>
                 </button>
-            </div>
-            <div class="mobile-profile-hero">
-                <div class="mobile-avatar-container">
-                    <div class="mobile-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()">
-                        @
-                    </div>
-                </div>
-                <div class="mobile-profile-main">
-                    <div class="mobile-profile-name" id="mobileProfileName">Loading...</div>
-                    <div class="mobile-profile-username" id="mobileProfileUsername">@username</div>
-                    <div class="mobile-profile-bio" id="mobileProfileBio">
-                        No bio yet. Tap edit to add one!
-                    </div>
-                    <div class="mobile-profile-inline-stats">
-                        <div class="mobile-inline-stat">
-                            <span class="mobile-inline-stat-number" id="mobileVisitedCount">0</span>
-                            <span class="mobile-inline-stat-label">saved</span>
-                        </div>
-                        <div class="mobile-inline-stat">
-                            <span class="mobile-inline-stat-number" id="mobileFollowersCount">0</span>
-                            <span class="mobile-inline-stat-label">followers</span>
-                        </div>
-                        <div class="mobile-inline-stat">
-                            <span class="mobile-inline-stat-number" id="mobileListsCount">0</span>
-                            <span class="mobile-inline-stat-label">lists</span>
-                        </div>
-                        <div class="mobile-inline-stat">
-                            <span class="mobile-inline-stat-number" id="mobileReviewsCount">0</span>
-                            <span class="mobile-inline-stat-label">reviews</span>
-                        </div>
-                    </div>
+                <div class="mph2-topbar-actions">
+                    <button class="mph2-edit-pill" onclick="ProfileManager.showModal('editProfileModal')" id="mobileEditBtn">
+                        <i class="fas fa-pen"></i> edit
+                    </button>
+                    <button class="mph2-follow-pill d-none" id="mobileFollowButton">follow</button>
                 </div>
             </div>
-            <div class="profile-badges mobile-profile-badges" id="mobileProfileBadges"></div>
-            <div class="mobile-profile-divider"></div>
-        </div>
 
-        <div class="mobile-profile-primary-nav-shell">
-            <div class="mobile-profile-primary-nav" role="tablist" aria-label="Profile sections">
-                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
-                    <span>Lists</span>
-                </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                    <span>Community</span>
-                </button>
+            <!-- Hero body: avatar + identity -->
+            <div class="mph2-hero-body">
+                <div class="mph2-avatar-wrap">
+                    <div class="mph2-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()" aria-label="Change avatar">@</div>
+                </div>
+                <div class="mph2-identity">
+                    <div class="mph2-name" id="mobileProfileName">Loading...</div>
+                    <div class="mph2-username" id="mobileProfileUsername">@username</div>
+                    <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
+                    <div class="mph2-meta" id="mobileProfileMeta">
+                        <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">—</span></span>
+                    </div>
+                </div>
             </div>
+
+            <!-- Compact stat row -->
+            <div class="mph2-stats">
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileVisitedCount">0</span>
+                    <span class="mph2-stat-label">saved</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileFollowersCount">0</span>
+                    <span class="mph2-stat-label">followers</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileListsCount">0</span>
+                    <span class="mph2-stat-label">lists</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileReviewsCount">0</span>
+                    <span class="mph2-stat-label">reviews</span>
+                </div>
+            </div>
+
+            <!-- Badges (hidden by default — JS shows when present) -->
+            <div class="profile-badges mph2-badges" id="mobileProfileBadges"></div>
         </div>
 
         <!-- Mobile Content Area -->
-        <div class="mobile-content">
-            <section class="mobile-primary-panel" data-panel="overview"></section>
+        <div class="mobile-content mph2-content">
 
-            <section class="mobile-primary-panel" data-panel="lists">
-            <!-- Mobile Tabs Navigation -->
-            <div class="mobile-tabs">
-                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
-                    <span>Media</span>
-                    <i class="fas fa-chevron-down"></i>
+            <!-- === MOBILE OVERVIEW SHOWCASE (new primary) === -->
+            <section class="mobile-primary-panel mph2-overview-panel" id="mobileOverviewPanel">
+
+                <!-- Premium light-switch toggle: Media / Lifestyle -->
+                <div class="mph2-toggle-wrap">
+                    <div class="mph2-toggle" id="mph2Toggle" role="tablist" aria-label="Content mode">
+                        <button class="mph2-toggle-opt active" id="mph2ToggleMedia" role="tab" aria-selected="true" onclick="ProfileV2Mobile.setMode('media')">
+                            <i class="fas fa-play-circle"></i>
+                            <span>media</span>
+                        </button>
+                        <button class="mph2-toggle-opt" id="mph2ToggleLifestyle" role="tab" aria-selected="false" onclick="ProfileV2Mobile.setMode('lifestyle')">
+                            <i class="fas fa-compass"></i>
+                            <span>lifestyle</span>
+                        </button>
+                        <!-- Physical-switch thumb -->
+                        <div class="mph2-toggle-thumb" id="mph2ToggleThumb" aria-hidden="true"></div>
+                    </div>
+                </div>
+
+                <!-- === MEDIA MODE === -->
+                <div class="mph2-mode-panel" id="mph2MobileMediaPanel">
+                    <!-- Movies row -->
+                    <div class="mph2-row" id="mph2RowMovies">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-film"></i> movies</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('movies'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackMovies"></div>
+                    </div>
+                    <!-- TV Shows row -->
+                    <div class="mph2-row" id="mph2RowTv">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-tv"></i> tv shows</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackTv"></div>
+                    </div>
+                    <!-- Anime row -->
+                    <div class="mph2-row" id="mph2RowAnime">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-dragon"></i> anime</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackAnime"></div>
+                    </div>
+                    <!-- Games row -->
+                    <div class="mph2-row" id="mph2RowGames">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-gamepad"></i> games</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('games'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackGames"></div>
+                    </div>
+                    <!-- Books row -->
+                    <div class="mph2-row" id="mph2RowBooks">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-book"></i> books</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('books'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackBooks"></div>
+                    </div>
+                    <!-- Music row -->
+                    <div class="mph2-row" id="mph2RowMusic">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-music"></i> music</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackMusic"></div>
+                    </div>
+                </div>
+
+                <!-- === LIFESTYLE MODE === -->
+                <div class="mph2-mode-panel" id="mph2MobileLifestylePanel" style="display:none">
+                    <!-- Sports row -->
+                    <div class="mph2-row" id="mph2RowSports">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-futbol"></i> sports</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackSports"></div>
+                    </div>
+                    <!-- Cars row -->
+                    <div class="mph2-row" id="mph2RowCars">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-car"></i> cars</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('cars'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackCars"></div>
+                    </div>
+                    <!-- Travel row -->
+                    <div class="mph2-row" id="mph2RowTravel">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-earth-americas"></i> travel</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackTravel"></div>
+                    </div>
+                    <!-- Food row -->
+                    <div class="mph2-row" id="mph2RowFood">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-burger"></i> food</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackFood"></div>
+                    </div>
+                    <!-- Fashion row -->
+                    <div class="mph2-row" id="mph2RowFashion">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-shirt"></i> fashion</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackFashion"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- === LEGACY LISTS PANEL (detail drilldown, hidden by default) === -->
+            <section class="mobile-primary-panel mph2-lists-panel" id="mobileListsPanel" style="display:none">
+
+            <!-- Back to overview -->
+            <div class="mph2-back-bar">
+                <button class="mph2-back-btn" onclick="ProfileV2Mobile.backToOverview()">
+                    <i class="fas fa-arrow-left"></i> overview
                 </button>
-                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
-                    <span>Lifestyle</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
+                <div class="mobile-tabs">
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                        <span>Media</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                        <span>Lifestyle</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
                 <div class="profile-tab-group-row mobile" data-group="media">
                     <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="mobileTabMovies">Movies</span></div>
                     <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
@@ -1210,16 +1343,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
                     <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
                 </div>
-            <div class="profile-tab-group-row mobile" data-group="lifestyle">
-                <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
-                <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
-                <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
-                <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
-                <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
-            </div>
-            <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
-                <div class="mobile-tabs-swipe-pill"></div>
-                <span>Swipe tabs</span>
+                <div class="profile-tab-group-row mobile" data-group="lifestyle">
+                    <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
+                    <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
+                    <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
+                    <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
+                    <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
+                </div>
+                <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
+                    <div class="mobile-tabs-swipe-pill"></div>
+                    <span>Swipe tabs</span>
+                </div>
             </div>
 
             <!-- Movies Section -->
@@ -1768,9 +1902,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
                 <div class="mobile-section-subtitle" id="mobileListDetailDescription"></div>
             </div>
-            </section>
+            </div><!-- /mobileListsPanel list detail -->
+            </section><!-- /mobileListsPanel -->
 
-            <section class="mobile-primary-panel" data-panel="activity">
+            <section class="mobile-primary-panel mph2-community-panel" id="mobileCommunityPanel" style="display:none">
+
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
@@ -2301,21 +2437,44 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       indicator.style.transform = 'translateX(0)';
     }
 
-    // === Cinematic banner ===
-    function buildBanner(items) {
-      var container = document.getElementById('bannerPosters');
-      if (!container) return;
-      container.innerHTML = '';
-      var shuffled = items.slice().sort(function() { return Math.random() - 0.5; });
-      var toShow = shuffled.slice(0, 12);
-      toShow.forEach(function(src) {
-        var img = document.createElement('img');
-        img.src = src;
-        img.alt = '';
-        img.loading = 'eager';
-        img.decoding = 'async';
-        container.appendChild(img);
-      });
+    // === Cinematic backdrop banner ===
+    function buildBanner(backdropUrls) {
+      var container = document.getElementById('bannerBackdrops');
+      var mobileContainer = document.getElementById('mobileBannerBackdrops');
+      if (!container && !mobileContainer) return;
+
+      var shuffled = backdropUrls.slice().sort(function() { return Math.random() - 0.5; });
+      var maxItems = Math.min(shuffled.length, 5);
+      var toShow = shuffled.slice(0, maxItems);
+
+      function renderInto(target) {
+        if (!target) return;
+        target.innerHTML = '';
+        target.className = target.id === 'mobileBannerBackdrops' ? 'mph2-banner-backdrops' : 'pv2-banner-backdrops';
+        if (toShow.length === 0) {
+          target.classList.add('is-empty');
+          return;
+        }
+        if (toShow.length === 1) target.classList.add('count-1');
+        else if (toShow.length === 2) target.classList.add('count-2');
+        else if (toShow.length === 3) target.classList.add('count-3');
+        else target.classList.add('count-4+');
+
+        toShow.forEach(function(src) {
+          var panel = document.createElement('div');
+          panel.className = 'pv2-backdrop-panel';
+          var img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.loading = 'eager';
+          img.decoding = 'async';
+          panel.appendChild(img);
+          target.appendChild(panel);
+        });
+      }
+
+      renderInto(container);
+      renderInto(mobileContainer);
     }
 
     // === Poster rail renderer ===
@@ -2512,29 +2671,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         var PM = window.ProfileManager;
         if (!PM) { if (attempts > 60) clearInterval(poller); return; }
 
-        // Try to populate banner from movie/tv/anime favorites
-        if (PM._bannerBuilt) { clearInterval(poller); return; }
-
-        var bannerItems = [];
-
-        // Collect poster URLs from collection grids (already-rendered items)
-        function collectPostersFromGrid(gridId) {
-          var grid = document.getElementById(gridId);
-          if (!grid) return;
-          var imgs = grid.querySelectorAll('.collection-preview-item img');
-          imgs.forEach(function(img) {
-            if (img.src && !img.src.includes('data:') && bannerItems.length < 24) {
-              bannerItems.push(img.src);
-            }
-          });
-        }
-
-        // Also check collection cards for movie/tv/anime/game
-        ['moviesGrid','tvGrid','animeGrid','gamesGrid','musicGrid','booksGrid'].forEach(collectPostersFromGrid);
-
-        if (bannerItems.length >= 3) {
-          buildBanner(bannerItems);
-          PM._bannerBuilt = true;
+        // Try to populate banner from favorites backdrop images
+        if (PM._bannerBuilt) { /* continue rails */ }
+        else if (PM.getFavoriteBackdropUrls) {
+          var favIds = PM.favoriteIds || {};
+          var totalFavs = (favIds.movie || []).length + (favIds.tv || []).length + (favIds.anime || []).length + (favIds.game || []).length;
+          if (totalFavs > 0) {
+            PM._bannerBuilt = true;
+            PM.getFavoriteBackdropUrls().then(function(urls) {
+              if (urls && urls.length) buildBanner(urls);
+            }).catch(function() {});
+          } else if (attempts > 20) {
+            PM._bannerBuilt = true;
+          }
         }
 
         // Populate rails from collection cards in each grid

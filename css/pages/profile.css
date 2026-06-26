@@ -6269,7 +6269,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   margin-bottom: 0;
 }
 
-/* === Cinematic banner === */
+/* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
   height: 200px;
@@ -6277,42 +6277,137 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   background: #0a1428;
 }
 
+.pv2-banner-backdrops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  gap: 0;
+}
+
+.pv2-banner-backdrops .pv2-backdrop-panel {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.pv2-banner-backdrops .pv2-backdrop-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(28px) saturate(0.7) brightness(0.55);
+  transform: scale(1.12);
+  animation: backdropZoom 12s ease-in-out infinite alternate;
+}
+
+@keyframes backdropZoom {
+  0% { transform: scale(1.12); }
+  100% { transform: scale(1.15); }
+}
+
+/* Layout: 1 favorite */
+.pv2-banner-backdrops.count-1 .pv2-backdrop-panel {
+  flex: 1;
+}
+
+/* Layout: 2 favorites — equal panels */
+.pv2-banner-backdrops.count-2 .pv2-backdrop-panel {
+  flex: 1;
+}
+
+.pv2-banner-backdrops.count-2 .pv2-backdrop-panel:first-child {
+  mask-image: linear-gradient(to right, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
+}
+
+.pv2-banner-backdrops.count-2 .pv2-backdrop-panel:last-child {
+  mask-image: linear-gradient(to left, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 70%, transparent 100%);
+}
+
+/* Layout: 3 favorites — one featured, two supporting */
+.pv2-banner-backdrops.count-3 .pv2-backdrop-panel:first-child {
+  flex: 1.6;
+}
+
+.pv2-banner-backdrops.count-3 .pv2-backdrop-panel:nth-child(2) {
+  flex: 1;
+}
+
+.pv2-banner-backdrops.count-3 .pv2-backdrop-panel:last-child {
+  flex: 0.8;
+}
+
+.pv2-banner-backdrops.count-3 .pv2-backdrop-panel:first-child {
+  mask-image: linear-gradient(to right, black 75%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+}
+
+.pv2-banner-backdrops.count-3 .pv2-backdrop-panel:last-child {
+  mask-image: linear-gradient(to left, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 80%, transparent 100%);
+}
+
+/* Layout: 4+ favorites — tasteful collage */
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:first-child {
+  flex: 1.4;
+}
+
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:nth-child(2) {
+  flex: 1;
+}
+
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:nth-child(3) {
+  flex: 0.8;
+}
+
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:last-child {
+  flex: 0.6;
+}
+
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:first-child {
+  mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+}
+
+.pv2-banner-backdrops.count-4\+ .pv2-backdrop-panel:last-child {
+  mask-image: linear-gradient(to left, black 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 80%, transparent 100%);
+}
+
+/* Gradient overlay — content readability */
 .pv2-banner-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(10,20,40,0.45) 0%,
-    rgba(10,20,40,0.72) 60%,
-    rgba(11,22,51,0.96) 100%
+    rgba(10,20,40,0.5) 0%,
+    rgba(10,20,40,0.72) 55%,
+    rgba(11,22,51,0.97) 100%
   );
   z-index: 2;
+  pointer-events: none;
 }
 
-.pv2-banner-posters {
+/* Vignette */
+.pv2-banner-vignette {
   position: absolute;
   inset: 0;
-  display: flex;
-  gap: 3px;
-  z-index: 1;
-  /* JS fills this with poster <img> tiles */
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(10,20,40,0.6) 100%);
+  z-index: 3;
+  pointer-events: none;
 }
 
-.pv2-banner-posters img {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(1px) saturate(0.85);
-  opacity: 0.72;
-  transform: scale(1.04);
-  transition: opacity 0.4s ease;
+/* Fallback: no backdrops — show default gradient */
+.pv2-banner-backdrops.is-empty {
+  background: linear-gradient(135deg, #0a1428 0%, #162850 50%, #0f1e40 100%);
 }
 
 /* === Hero body (avatar + identity + actions) === */
 .pv2-hero-body {
   position: relative;
-  z-index: 3;
+  z-index: 4;
   display: grid;
   grid-template-columns: auto minmax(0,1fr) auto;
   align-items: flex-start;
@@ -7118,4 +7213,711 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   .pv2-content-wrap {
     display: none;
   }
+}
+
+
+/* ============================================================
+   MPH2 — Mobile Profile v2 Design System
+   Identity card + showcase rails, intentionally crafted for phone.
+   Hidden on desktop (>768px), shown on mobile only.
+   ============================================================ */
+
+/* Only show on mobile */
+.mph2-card,
+.mph2-content,
+#mobileOverviewPanel,
+#mobileListsPanel,
+#mobileCommunityPanel {
+  display: block; /* JS will manage visibility */
+}
+
+@media (min-width: 769px) {
+  .mph2-card,
+  .mph2-content {
+    display: none !important;
+  }
+}
+
+/* === Identity card === */
+.mph2-card {
+  position: relative;
+  background: #0f1e40;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+/* === Cinematic backdrop banner (mobile) === */
+.mph2-banner {
+  position: relative;
+  height: 130px;
+  overflow: hidden;
+  background: #0a1428;
+}
+
+.mph2-banner-backdrops {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  gap: 0;
+}
+
+.mph2-banner-backdrops .pv2-backdrop-panel {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+
+.mph2-banner-backdrops .pv2-backdrop-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(24px) saturate(0.65) brightness(0.5);
+  transform: scale(1.15);
+  animation: backdropZoom 12s ease-in-out infinite alternate;
+}
+
+.mph2-banner-backdrops.count-2 .pv2-backdrop-panel:first-child {
+  mask-image: linear-gradient(to right, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
+}
+
+.mph2-banner-backdrops.count-2 .pv2-backdrop-panel:last-child {
+  mask-image: linear-gradient(to left, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 70%, transparent 100%);
+}
+
+.mph2-banner-backdrops.count-3 .pv2-backdrop-panel:first-child { flex: 1.5; }
+.mph2-banner-backdrops.count-3 .pv2-backdrop-panel:last-child { flex: 0.7; }
+
+.mph2-banner-backdrops.count-4\+ .pv2-backdrop-panel:first-child { flex: 1.3; }
+.mph2-banner-backdrops.count-4\+ .pv2-backdrop-panel:last-child { flex: 0.5; }
+
+.mph2-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(9,18,38,0.4) 0%,
+    rgba(9,18,38,0.68) 55%,
+    rgba(11,22,51,0.97) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mph2-banner-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(10,20,40,0.55) 100%);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.mph2-banner-backdrops.is-empty {
+  background: linear-gradient(135deg, #0a1428 0%, #162850 50%, #0f1e40 100%);
+}
+
+/* === Topbar (menu + edit pill) === */
+.mph2-topbar {
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  right: 14px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mph2-menu-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(11,22,51,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mph2-menu-btn:active {
+  background: rgba(255,255,255,0.10);
+}
+
+.mph2-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mph2-edit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(11,22,51,0.58);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  font-family: inherit;
+}
+
+.mph2-edit-pill:active {
+  background: rgba(255,255,255,0.12);
+}
+
+.mph2-edit-pill i {
+  font-size: 0.68rem;
+}
+
+.mph2-follow-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(11,22,51,0.58);
+  backdrop-filter: blur(10px);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* === Hero body: avatar + identity === */
+.mph2-hero-body {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: flex-start;
+  padding: 0 14px 14px;
+}
+
+.mph2-avatar-wrap {
+  margin-top: -32px;
+  position: relative;
+  z-index: 5;
+}
+
+.mph2-avatar {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 3px solid #0f1e40;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  background: var(--color-accent);
+  color: #0b1633;
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mph2-avatar:active {
+  transform: scale(0.96);
+}
+
+.mph2-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* === Identity text === */
+.mph2-identity {
+  padding-top: 10px;
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mph2-name {
+  font-size: 1.42rem;
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mph2-username {
+  font-size: 0.82rem;
+  color: rgba(203,213,225,0.62);
+  font-weight: 500;
+}
+
+.mph2-bio {
+  font-size: 0.84rem;
+  color: rgba(203,213,225,0.78);
+  line-height: 1.45;
+  margin-top: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mph2-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.mph2-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: rgba(203,213,225,0.48);
+}
+
+.mph2-meta-item i {
+  font-size: 0.68rem;
+}
+
+/* === Compact stats row === */
+.mph2-stats {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  gap: 0;
+}
+
+.mph2-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding-right: 12px;
+}
+
+.mph2-stat-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.mph2-stat-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(203,213,225,0.46);
+}
+
+.mph2-stat-sep {
+  width: 1px;
+  height: 14px;
+  background: rgba(255,255,255,0.10);
+  margin: 0 12px 0 0;
+  flex-shrink: 0;
+}
+
+/* === Badges (under stats) === */
+.mph2-badges {
+  padding: 0 14px 10px;
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+
+.mph2-badges:empty {
+  display: none;
+}
+
+/* === Content area === */
+.mph2-content {
+  padding: 0 0 96px; /* room for bottom nav */
+}
+
+/* === Overview panel === */
+#mobileOverviewPanel {
+  padding: 0;
+}
+
+/* === Premium light-switch toggle === */
+.mph2-toggle-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px 12px;
+}
+
+.mph2-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px;
+  padding: 4px;
+  gap: 0;
+  /* Fixed width so thumb can slide precisely */
+  width: 220px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.25), inset 0 -1px 0 rgba(255,255,255,0.04);
+}
+
+/* The sliding "thumb" — the physical switch knob */
+.mph2-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  width: calc(50% - 4px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.06) 100%);
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.09);
+  transition: transform 0.24s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Lifestyle active: thumb slides right */
+.mph2-toggle.lifestyle .mph2-toggle-thumb {
+  transform: translateX(calc(100% + 0px));
+}
+
+/* Momentary press feedback */
+.mph2-toggle-thumb.pressing {
+  transform: scaleY(0.94);
+}
+
+.mph2-toggle-opt {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  color: rgba(203,213,225,0.46);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 12px;
+}
+
+.mph2-toggle-opt i {
+  font-size: 0.75rem;
+  transition: color 0.2s ease;
+}
+
+.mph2-toggle-opt.active {
+  color: #fff;
+}
+
+.mph2-toggle-opt.active i {
+  color: var(--color-accent);
+}
+
+/* Micro-haptic tap feedback */
+.mph2-toggle-opt:active {
+  transform: scale(0.96);
+}
+
+/* === Mode panels (crossfade) === */
+.mph2-mode-panel {
+  animation: mph2FadeIn 0.22s ease both;
+}
+
+@keyframes mph2FadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* === Category row === */
+.mph2-row {
+  padding: 0 0 20px;
+}
+
+.mph2-row-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 10px;
+}
+
+.mph2-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: rgba(203,213,225,0.52);
+}
+
+.mph2-row-label i {
+  font-size: 0.66rem;
+  color: var(--color-accent);
+}
+
+.mph2-row-viewall {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(203,213,225,0.38);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
+  padding: 4px 0 4px 12px; /* generous tap target */
+  transition: color 0.15s ease;
+}
+
+.mph2-row-viewall i {
+  font-size: 0.6rem;
+  transition: transform 0.16s ease;
+}
+
+.mph2-row-viewall:active {
+  color: var(--color-accent);
+}
+
+.mph2-row-viewall:active i {
+  transform: translateX(3px);
+}
+
+/* === Row poster track (horizontal scroll) === */
+.mph2-row-track {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0 16px 4px;
+  align-items: flex-start;
+  /* Scroll snap for satisfying feel */
+  scroll-snap-type: x proximity;
+}
+
+.mph2-row-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Individual poster card (mobile) === */
+.mph2-poster {
+  flex-shrink: 0;
+  width: 94px;
+  position: relative;
+  cursor: pointer;
+  scroll-snap-align: start;
+  animation: mph2PosterIn 0.28s cubic-bezier(0.2,0.9,0.2,1) both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mph2-poster:nth-child(1) { animation-delay: 0ms; }
+.mph2-poster:nth-child(2) { animation-delay: 35ms; }
+.mph2-poster:nth-child(3) { animation-delay: 70ms; }
+.mph2-poster:nth-child(4) { animation-delay: 105ms; }
+.mph2-poster:nth-child(5) { animation-delay: 140ms; }
+
+@keyframes mph2PosterIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.mph2-poster-img-wrap {
+  position: relative;
+  border-radius: 9px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  aspect-ratio: 2 / 3;
+  transition: transform 0.18s cubic-bezier(0.2,0.9,0.2,1), box-shadow 0.18s ease;
+}
+
+.mph2-poster.is-square .mph2-poster-img-wrap  { aspect-ratio: 1 / 1; }
+.mph2-poster.is-landscape .mph2-poster-img-wrap { aspect-ratio: 4 / 3; width: 120px; }
+.mph2-poster.is-brand .mph2-poster-img-wrap {
+  background: linear-gradient(180deg, rgba(245,247,252,0.98), rgba(226,232,244,0.96));
+}
+
+.mph2-poster:active .mph2-poster-img-wrap {
+  transform: scale(0.96);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+}
+
+.mph2-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mph2-poster.is-brand .mph2-poster-img {
+  object-fit: contain;
+  padding: 12px;
+}
+
+.mph2-poster-label {
+  margin-top: 6px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: rgba(203,213,225,0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.25;
+}
+
+/* +N more chip (mobile) */
+.mph2-more-chip {
+  flex-shrink: 0;
+  align-self: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  text-decoration: none;
+  scroll-snap-align: start;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mph2-more-chip:active {
+  background: rgba(255,255,255,0.07);
+}
+
+.mph2-more-chip-count {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.mph2-more-chip-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(203,213,225,0.42);
+}
+
+/* Row empty state (mobile) */
+.mph2-row-empty {
+  margin: 0 16px;
+  height: 100px;
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(203,213,225,0.28);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.mph2-row-empty i {
+  font-size: 0.9rem;
+  color: rgba(203,213,225,0.18);
+}
+
+/* === Back bar (from detail drilldown) === */
+.mph2-back-bar {
+  padding: 12px 16px 0;
+}
+
+.mph2-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  color: rgba(203,213,225,0.72);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 14px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.14s ease;
+}
+
+.mph2-back-btn:active {
+  background: rgba(255,255,255,0.08);
+}
+
+.mph2-back-btn i {
+  font-size: 0.72rem;
+}
+
+/* ============================================================
+   MPH2 JS compatibility: mirror old IDs for ProfileManager
+   ============================================================ */
+
+/* Hide the old mobile header completely (replaced by mph2-card) */
+.mobile-profile-header,
+.mobile-profile-primary-nav-shell {
+  display: none !important;
+}
+
+/* Ensure bottom nav stays above content */
+.mobile-bottom-nav {
+  z-index: 50;
+}
+
+/* ============================================================
+   MPH2 small phone overrides (< 390px)
+   ============================================================ */
+
+@media (max-width: 389px) {
+  .mph2-banner { height: 110px; }
+  .mph2-avatar { width: 78px; height: 78px; font-size: 32px; }
+  .mph2-avatar-wrap { margin-top: -28px; }
+  .mph2-name { font-size: 1.28rem; }
+  .mph2-toggle { width: 200px; }
+  .mph2-poster { width: 82px; }
 }

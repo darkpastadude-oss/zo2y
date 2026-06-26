@@ -88,6 +88,7 @@
             const tabRenderCache = new Map();
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
             const previewAssetCache = new Map();
+            const favoriteIds = { movie: [], tv: [], anime: [], game: [] };
 
             function clearLegacyProfileBookCaches() {
                 try {
@@ -6612,6 +6613,7 @@
                                 .filter(Boolean)
                         ));
                     }
+                    favoriteIds.movie = defaultLists.find(l => l.id === 'favorites')?.movieIds || [];
 
                     for (const list of customLists) {
                         list.movieIds = Array.from(new Set(
@@ -6708,6 +6710,7 @@
                                 .filter(Boolean)
                         ));
                     }
+                    favoriteIds.tv = defaultLists.find(l => l.id === 'favorites')?.tvIds || [];
 
                     for (const list of customLists) {
                         list.tvIds = Array.from(new Set(
@@ -6804,6 +6807,7 @@
                                 .filter(Boolean)
                         ));
                     }
+                    favoriteIds.anime = defaultLists.find(l => l.id === 'favorites')?.animeIds || [];
 
                     for (const list of customLists) {
                         list.animeIds = Array.from(new Set(
@@ -6891,6 +6895,7 @@
                                 .filter((id) => String(id || '').trim() !== '')
                         ));
                     }
+                    favoriteIds.game = defaultLists.find(l => l.id === 'favorites')?.gameIds || [];
 
                     for (const list of customLists) {
                         list.gameIds = Array.from(new Set(
@@ -10960,6 +10965,62 @@
                 console.log('=== END CHECK ===');
             };
 
+            // ===== BACKDROP URL RESOLVER =====
+            const TMDB_BACKDROP = 'https://image.tmdb.org/t/p/w1280';
+
+            async function getFavoriteBackdropUrls() {
+                const TMDB_PROXY = '/api/tmdb';
+                const allIds = [];
+                const seen = new Set();
+
+                function addIds(ids, type) {
+                    (ids || []).forEach(function(id) {
+                        const key = type + ':' + id;
+                        if (!seen.has(key)) { seen.add(key); allIds.push({ id: id, type: type }); }
+                    });
+                }
+
+                addIds(favoriteIds.movie, 'movie');
+                addIds(favoriteIds.tv, 'tv');
+                addIds(favoriteIds.anime, 'anime');
+                addIds(favoriteIds.game, 'game');
+
+                if (!allIds.length) return [];
+
+                var urls = [];
+                var batches = [];
+                for (var i = 0; i < allIds.length; i += 8) {
+                    batches.push(allIds.slice(i, i + 8));
+                }
+
+                for (var b = 0; b < batches.length; b++) {
+                    var results = await Promise.all(batches[b].map(async function(entry) {
+                        try {
+                            if (entry.type === 'game') {
+                                var res = await supabase.from('games').select('hero_url,cover_url').eq('id', entry.id).maybeSingle();
+                                var data = res && res.data;
+                                if (data && data.hero_url) return data.hero_url;
+                                if (data && data.cover_url) return data.cover_url;
+                                return null;
+                            }
+                            var endpoint = entry.type === 'movie' ? 'movie' : 'tv';
+                            var res = await fetch(TMDB_PROXY + '/' + endpoint + '/' + entry.id + '?language=en');
+                            if (!res.ok) return null;
+                            var data = await res.json();
+                            if (data && data.backdrop_path) return TMDB_BACKDROP + data.backdrop_path;
+                            if (data && data.poster_path) return TMDB_POSTER + data.poster_path;
+                            return null;
+                        } catch (_e) { return null; }
+                    }));
+                    results.forEach(function(url) { if (url) urls.push(url); });
+                }
+
+                var unique = [];
+                var urlSeen = new Set();
+                urls.forEach(function(u) { if (!urlSeen.has(u)) { urlSeen.add(u); unique.push(u); } });
+                return unique;
+            }
+
             // ===== PUBLIC API =====
             return {
                 initialize,
@@ -11041,7 +11102,9 @@
                 showCreateListTypeModal,
                 createListForType,
                 logout,
-                escapeHtml
+                escapeHtml,
+                getFavoriteBackdropUrls: getFavoriteBackdropUrls,
+                favoriteIds: favoriteIds
             };
         })();
 
