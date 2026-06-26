@@ -869,7 +869,13 @@
     .card-media.brand-cover {
       aspect-ratio: 1/1;
       padding: 10px;
-      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+    }
+
+    /* Prevent the dark shimmer ::before from covering the white background on brand logos */
+    .card-media.brand-cover::before,
+    .card-media.brand-cover.is-loading-media::before {
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
     }
 
     .card-media.card-media--light {
@@ -1088,7 +1094,12 @@
       aspect-ratio: 1/1;
       height: 180px;
       padding: 6px;
-      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+    }
+
+    .rail.unified-rail .card-media.brand-cover::before,
+    .rail.unified-rail .card-media.brand-cover.is-loading-media::before {
+      background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
     }
 
     .rail.unified-rail .card-media.brand-cover img {
@@ -3129,6 +3140,12 @@
         aspect-ratio: 1 / 1 !important;
         height: 180px !important;
         padding: 6px !important;
+        background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
+      }
+
+      /* Prevent dark shimmer from covering white logo background on mobile */
+      .rail .card-media.brand-cover::before,
+      .rail .card-media.brand-cover.is-loading-media::before {
         background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
       }
 
