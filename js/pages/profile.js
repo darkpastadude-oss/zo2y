@@ -7190,6 +7190,16 @@
                         ));
                     }
 
+                    const showcaseListId = getShowcaseListId('book');
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.book = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.bookIds || showcaseList?.items || []
+                    };
+
                     const allLists = applyPinnedListSorting('book', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
                         grid.innerHTML = `
@@ -7283,6 +7293,16 @@
                                 .filter(Boolean)
                         ));
                     }
+
+                    const showcaseListId = getShowcaseListId('music');
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.music = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.trackIds || showcaseList?.items || []
+                    };
 
                     const allLists = applyPinnedListSorting('music', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
@@ -8043,6 +8063,14 @@
                 ` : '';
 
                 card.innerHTML = `
+                    <div class="collection-card-reorder">
+                        <button class="reorder-btn reorder-up" onclick="event.stopPropagation(); ProfileManager.reorderList('${normalizedType}', '${safeListId}', 'up')" title="Move up">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                        <button class="reorder-btn reorder-down" onclick="event.stopPropagation(); ProfileManager.reorderList('${normalizedType}', '${safeListId}', 'down')" title="Move down">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
                     ${kebabHtml}
                     <div class="collection-card-header">
                         <div class="collection-card-title-group">
@@ -10185,6 +10213,53 @@
             function hideAnimeDetail() { hideDetailByType('anime'); }
             function hideGameDetail() { hideDetailByType('game'); }
 
+            function backToProfile() {
+                currentMediaDetail = null;
+                const isMobile = window.innerWidth <= 768;
+                document.querySelectorAll('.tab-content').forEach(el => {
+                    el.classList.remove('active', 'rendered');
+                    el.style.display = 'none';
+                });
+                if (isMobile) {
+                    document.querySelectorAll('.mobile-section').forEach(el => {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
+                    });
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    closeProfileTabGroups();
+                }
+                const overview = document.getElementById('pv2Overview');
+                const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                if (overview) overview.style.display = '';
+                if (listsPanel) listsPanel.style.display = 'none';
+                currentTab = DEFAULT_PROFILE_TAB;
+                const nextUrl = buildProfileUrl({});
+                history.pushState({}, '', nextUrl);
+            }
+
+            async function reorderList(mediaType, listId, direction) {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId || !window.ProfileShowcase) return;
+                const normalizedType = mediaType === 'cars' ? 'car' : mediaType;
+                try {
+                    const allLists = await ProfileShowcase.getAllListsForType(normalizedType, userId);
+                    if (!allLists || allLists.length < 2) return;
+                    const currentOrder = allLists.map(l => l.id);
+                    const idx = currentOrder.indexOf(listId);
+                    if (idx === -1) return;
+                    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+                    if (swapIdx < 0 || swapIdx >= currentOrder.length) return;
+                    [currentOrder[idx], currentOrder[swapIdx]] = [currentOrder[swapIdx], currentOrder[idx]];
+                    await ProfileShowcase.reorderLists(normalizedType, userId, currentOrder);
+                    const renderFn = { movie: renderMovies, tv: renderTvShows, anime: renderAnimeShows, game: renderGames, book: renderBooks, music: renderMusic, travel: renderTravel, fashion: renderFashion, food: renderFood, car: renderCars, sports: renderSports }[normalizedType];
+                    if (renderFn) await renderFn();
+                } catch (err) {
+                    console.error('reorderList error:', err);
+                }
+            }
+
             function toggleCollectionMenu(id, type) {
                 const dropdown = document.getElementById(`collection-${type}-${id}`);
                 if (!dropdown) return;
@@ -11245,7 +11320,9 @@
                 showcaseConfig: showcaseConfig,
                 getShowcaseListId: getShowcaseListId,
                 getShowcaseListTitle: getShowcaseListTitle,
-                setShowcaseList: setShowcaseList
+                setShowcaseList: setShowcaseList,
+                backToProfile: backToProfile,
+                reorderList: reorderList
             };
         })();
 
