@@ -52,7 +52,7 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/css/pages/sports-page.css?v=20260601b',
-  '/js/pages/sports.js?v=20260601b',
+  '/js/pages/sports.js?v=20260626b',
   '/fashion.html',
   '/food.html',
   '/cars.html',

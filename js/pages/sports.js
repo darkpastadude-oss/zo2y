@@ -6,12 +6,13 @@
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
   const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
+  const LOGO_CACHE_BUST = '20260626a';
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
     'psg': '/assets/logos/football/french-ligue-1/psg.png',
     'paris saint germain': '/assets/logos/football/french-ligue-1/psg.png',
-    'sao paulo': '/assets/logos/football/brazilian-serie-a/saopaulo.svg',
+    'sao paulo': '/assets/logos/football/brazilian-serie-a/saopaulo.png',
     'al hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
     'al-hilal': '/assets/logos/football/saudi-pro-league/alhilal.png',
     'al nassr': '/assets/logos/football/saudi-pro-league/alnassr.png',
@@ -380,7 +381,6 @@
     return stripDiacritics(s).toLowerCase().replace(/[^a-z0-9]/g, '');
   }
   function getBadge(team) {
-    if (team.logo_url && team.logo_url !== '/file.svg') return team.logo_url;
     const nameKey = normalize(team.name);
     if (BADGE_OVERRIDES[nameKey]) return BADGE_OVERRIDES[nameKey];
     if (logoMapping[team.name]) return logoMapping[team.name];
@@ -397,6 +397,7 @@
         return localBadgeMapLower[key];
       }
     }
+    if (team.logo_url && team.logo_url !== '/file.svg') return team.logo_url;
     return FALLBACK_BADGE;
   }
 
@@ -531,6 +532,7 @@
 
   function createCard(team) {
     const badge = getBadge(team);
+    const badgeUrl = badge.includes('?') ? badge : `${badge}?v=${LOGO_CACHE_BUST}`;
     const card = document.createElement('article');
     card.className = 'card';
     card.dataset.teamId = team.id;
@@ -550,7 +552,7 @@
     card.innerHTML = `
       <div class="card-media card-media--light">
         <img
-          src="${escapeHtml(badge)}"
+          src="${escapeHtml(badgeUrl)}"
           data-fallback-image="${FALLBACK_BADGE}"
           alt="${escapeHtml(title)} badge"
           loading="lazy"
