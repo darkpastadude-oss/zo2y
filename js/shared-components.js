@@ -144,15 +144,8 @@
   if (window.setupDescriptionTruncation) return;
 
   /**
-   * Sets up visual-overflow detection for a clamped description element.
-   *
-   * @param {Object} opts
-   * @param {HTMLElement} opts.desc      - The description <p> / <div> (gets .is-clamped)
-   * @param {HTMLElement} opts.toggle    - The read-more button
-   * @param {HTMLElement} [opts.wrap]    - Optional wrapper that also gets .is-clamped
-   * @param {string} [opts.collapsedLabel] - Text when collapsed (default "read more")
-   * @param {string} [opts.expandedLabel]  - Text when expanded  (default "show less")
-   * @returns {Function} cleanup - call to remove listeners
+   * 3-line rule: if description is 4+ rendered lines → show "Read more".
+   * Otherwise → hide it.  Re-checks on font load, resize, and mutation.
    */
   window.setupDescriptionTruncation = function (opts) {
     const {
@@ -171,6 +164,7 @@
 
     let isExpanded = false;
 
+    /* ── core measurement ── */
     const measure = () => {
       if (isExpanded) {
         desc.classList.remove('is-clamped');
@@ -181,17 +175,19 @@
         return;
       }
 
-      desc.classList.add('is-clamped');
-      if (wrap) wrap.classList.add('is-clamped');
-      void desc.offsetHeight;
-      const clampedHeight = desc.clientHeight;
-
+      /* Remove clamp so we see the full content */
       desc.classList.remove('is-clamped');
       if (wrap) wrap.classList.remove('is-clamped');
       void desc.offsetHeight;
-      const naturalHeight = desc.scrollHeight;
 
-      const truncated = naturalHeight > clampedHeight + 2;
+      /* Compute line-height from computed style */
+      const cs = window.getComputedStyle(desc);
+      const lineHeight = parseFloat(cs.lineHeight) ||
+        (parseFloat(cs.fontSize) * 1.5);
+      const maxLines = 3;
+
+      const naturalHeight = desc.scrollHeight;
+      const truncated = naturalHeight > lineHeight * maxLines + 1;
 
       if (truncated) {
         desc.classList.add('is-clamped');
@@ -206,14 +202,23 @@
       }
     };
 
+    /* ── scheduled measurements at increasing delays ── */
+    const scheduleChecks = () => {
+      requestAnimationFrame(() => requestAnimationFrame(measure));
+      setTimeout(measure, 0);
+      setTimeout(measure, 150);
+      setTimeout(measure, 400);
+      setTimeout(measure, 800);
+      setTimeout(measure, 1500);
+    };
+
+    /* Wait for fonts then kick off checks */
     const fontsReady = document.fonts && document.fonts.ready
       ? document.fonts.ready
       : Promise.resolve();
+    fontsReady.then(scheduleChecks);
 
-    fontsReady.then(() => {
-      requestAnimationFrame(() => requestAnimationFrame(measure));
-    });
-
+    /* ── resize handling ── */
     let resizeRaf = 0;
     const onResize = () => {
       cancelAnimationFrame(resizeRaf);
@@ -221,12 +226,23 @@
     };
     window.addEventListener('resize', onResize);
 
+    /* ── ResizeObserver (fires when desc content changes size) ── */
     let ro = null;
     if (typeof ResizeObserver !== 'undefined') {
       ro = new ResizeObserver(onResize);
       ro.observe(desc);
     }
 
+    /* ── MutationObserver (fires when desc text content changes) ── */
+    let mo = null;
+    if (typeof MutationObserver !== 'undefined') {
+      mo = new MutationObserver(() => {
+        requestAnimationFrame(measure);
+      });
+      mo.observe(desc, { childList: true, characterData: true, subtree: true });
+    }
+
+    /* ── toggle click ── */
     const onClick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -239,6 +255,7 @@
       cancelAnimationFrame(resizeRaf);
       window.removeEventListener('resize', onResize);
       if (ro) ro.disconnect();
+      if (mo) mo.disconnect();
       toggle.removeEventListener('click', onClick);
     };
   };
