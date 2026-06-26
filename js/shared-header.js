@@ -895,9 +895,10 @@ const HEADER_HTML = `
     let pendingState = null;
 
     const preventScroll = (e) => {
-      if (document.body.classList.contains('zo2y-mobile-menu-open')) {
-        e.preventDefault();
-      }
+      if (!document.body.classList.contains('zo2y-mobile-menu-open')) return;
+      const target = e.target;
+      if (drawer && drawer.contains(target)) return;
+      e.preventDefault();
     };
 
     const lockBodyScrollForMenu = () => {

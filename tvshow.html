@@ -972,68 +972,17 @@
         const overview = document.getElementById('overview');
         const toggle = document.getElementById('overviewToggle');
         const wrap = document.querySelector('.elevated-description-wrap');
-        const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
         if (!overview || !toggle) return;
 
-        let isExpanded = false;
-
-        const measureAndSync = () => {
-          // Step 1: force the clamp ON so the box collapses to its visible size.
-          overview.classList.add('is-clamped');
-          if (wrap) wrap.classList.add('is-clamped');
-          // Force a synchronous reflow so clientHeight reflects the clamped box.
-          void overview.offsetHeight;
-          const visibleHeight = overview.clientHeight;
-
-          // Step 2: remove the clamp so the box expands to its natural size.
-          overview.classList.remove('is-clamped');
-          if (wrap) wrap.classList.remove('is-clamped');
-          // Force another reflow so scrollHeight reflects the unclamped box.
-          void overview.offsetHeight;
-          const naturalHeight = overview.scrollHeight;
-
-          // Step 3: decide whether the clamp should be visible.
-          //   - If the user expanded it, never clamp.
-          //   - Otherwise clamp only when natural > visible (text overflows).
-          const shouldClamp = isExpanded ? false : (naturalHeight > visibleHeight + 2);
-          overview.classList.toggle('is-clamped', shouldClamp);
-          if (wrap) wrap.classList.toggle('is-clamped', shouldClamp);
-
-          // Step 4: hide the button entirely if the text fits in 3 lines.
-          if (naturalHeight <= visibleHeight + 2) {
-            toggle.hidden = true;
-            return;
-          }
-          toggle.hidden = false;
-          toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-          if (label) label.textContent = isExpanded ? 'show less' : 'read more';
-        };
-
-        toggle.addEventListener('click', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          isExpanded = !isExpanded;
-          measureAndSync();
-        });
-
-        let resizeRaf = 0;
-        window.addEventListener('resize', () => {
-          cancelAnimationFrame(resizeRaf);
-          resizeRaf = requestAnimationFrame(measureAndSync);
-        });
-
-        // Re-measure whenever the overview text is replaced (e.g. by load()).
-        const observer = new MutationObserver(() => {
-          requestAnimationFrame(measureAndSync);
-        });
-        observer.observe(overview, { childList: true, characterData: true, subtree: true });
-
-        // Initial measurement. The overview text is injected by load() after
-        // this function runs, so we schedule a chain of rAFs and a delayed
-        // fallback so we always land AFTER load() finishes writing text.
-        requestAnimationFrame(() => requestAnimationFrame(measureAndSync));
-        setTimeout(measureAndSync, 600);
-        setTimeout(measureAndSync, 1500);
+        if (typeof window.setupDescriptionTruncation === 'function') {
+          window.setupDescriptionTruncation({
+            desc: overview,
+            toggle,
+            wrap,
+            collapsedLabel: 'read more',
+            expandedLabel: 'show less'
+          });
+        }
       }
 
       function openTrailerLightbox(key) {

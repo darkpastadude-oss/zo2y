@@ -218,50 +218,17 @@
     const overview = els.aboutBody;
     const toggle = els.aboutToggle;
     const wrap = document.querySelector('.elevated-description-wrap');
-    const label = toggle ? toggle.querySelector('.elevated-readmore-label') : null;
     if (!overview || !toggle) return;
 
-    let isExpanded = false;
-
-    const measureAndSync = () => {
-      overview.classList.add('is-clamped');
-      if (wrap) wrap.classList.add('is-clamped');
-      void overview.offsetHeight;
-      const visibleHeight = overview.clientHeight;
-
-      overview.classList.remove('is-clamped');
-      if (wrap) wrap.classList.remove('is-clamped');
-      void overview.offsetHeight;
-      const naturalHeight = overview.scrollHeight;
-
-      const shouldClamp = isExpanded ? false : (naturalHeight > visibleHeight + 2);
-      overview.classList.toggle('is-clamped', shouldClamp);
-      if (wrap) wrap.classList.toggle('is-clamped', shouldClamp);
-
-      if (naturalHeight <= visibleHeight + 2) {
-        toggle.hidden = true;
-        return;
-      }
-      toggle.hidden = false;
-      toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
-      if (label) label.textContent = isExpanded ? 'show less' : 'read more';
-    };
-
-    toggle.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      isExpanded = !isExpanded;
-      measureAndSync();
-    });
-
-    let resizeRaf = 0;
-    window.addEventListener('resize', () => {
-      cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(measureAndSync);
-    });
-
-    requestAnimationFrame(() => requestAnimationFrame(measureAndSync));
-    setTimeout(measureAndSync, 600);
+    if (typeof window.setupDescriptionTruncation === 'function') {
+      window.setupDescriptionTruncation({
+        desc: overview,
+        toggle,
+        wrap,
+        collapsedLabel: 'read more',
+        expandedLabel: 'show less'
+      });
+    }
   }
 
   /* ---------- List Adapter ---------- */

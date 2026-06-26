@@ -83,7 +83,7 @@
             ${description ? `
             <div class="umh-description-wrap">
               <div class="umh-description is-clamped" id="umhDesc">${escapeHtml(description)}</div>
-              <button class="umh-readmore" onclick="const d = document.getElementById('umhDesc'); d.classList.toggle('is-clamped'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up'); this.querySelector('span').textContent = d.classList.contains('is-clamped') ? 'read more' : 'read less';">
+              <button class="umh-readmore" type="button">
                 <span>read more</span>
                 <i class="fa-solid fa-chevron-down"></i>
               </button>
@@ -96,15 +96,24 @@
 
     container.innerHTML = html;
 
-    requestAnimationFrame(() => {
-      const desc = container.querySelector('.umh-description');
-      const btn = container.querySelector('.umh-readmore');
-      if (desc && btn && desc.scrollHeight <= desc.clientHeight) {
+    const desc = container.querySelector('.umh-description');
+    const btn = container.querySelector('.umh-readmore');
+    const wrap = container.querySelector('.umh-description-wrap');
+    if (desc && btn) {
+      if (typeof window.setupDescriptionTruncation === 'function') {
+        window.setupDescriptionTruncation({
+          desc,
+          toggle: btn,
+          wrap: wrap,
+          collapsedLabel: 'read more',
+          expandedLabel: 'read less'
+        });
+      } else if (desc.scrollHeight <= desc.clientHeight) {
         btn.style.display = 'none';
       }
-      const wrap = container.querySelector('.umh-container');
-      if (wrap) wrap.classList.add('is-loaded');
-    });
+    }
+    const loaded = container.querySelector('.umh-container');
+    if (loaded) loaded.classList.add('is-loaded');
   }
 
   window.renderUnifiedMediaHero = renderUnifiedMediaHero;

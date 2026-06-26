@@ -302,7 +302,15 @@ const MANUAL_LOGO_OVERRIDES = new Map([
   ['domain:culichitown.com', 'https://d2gqo3h0psesgi.cloudfront.net/auto/culichi-town-restaurant-z7mnsplj-logo.png'],
   ['title:zoe\'s kitchen', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg'],
   ['title:zoes kitchen', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg'],
-  ['domain:zoeskitchen.com', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg']
+  ['domain:zoeskitchen.com', 'https://upload.wikimedia.org/wikipedia/commons/5/57/Zoeslogo.jpg'],
+  ['title:taco bell', '/assets/manual-logos/taco-bell.svg'],
+  ['domain:tacobell.com', '/assets/manual-logos/taco-bell.svg'],
+  ['title:canada goose', 'Canada Goose 2023 logo.svg'],
+  ['title:canada goose (clothing)', 'Canada Goose 2023 logo.svg'],
+  ['domain:canadagoose.com', 'Canada Goose 2023 logo.svg'],
+  ['domain:canadagoose.ca', 'Canada Goose 2023 logo.svg'],
+  ['title:panda express', '/assets/manual-logos/panda-express.png'],
+  ['domain:pandaexpress.com', '/assets/manual-logos/panda-express.png']
 ]);
 
 function normalizeCommonsLogo(value, size) {

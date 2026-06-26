@@ -449,33 +449,13 @@
 
   function bindClampedDescription(pEl, wrapEl, toggleEl) {
     if (!pEl || !wrapEl) return;
-    const labelEl = toggleEl
-      ? toggleEl.querySelector(".elevated-readmore-label")
-      : null;
-    const apply = () => {
-      const overflows = pEl.scrollHeight - pEl.clientHeight > 4;
-      if (overflows) {
-        pEl.classList.add("is-clamped");
-        wrapEl.classList.add("is-clamped");
-        if (toggleEl) toggleEl.style.display = "";
-        if (labelEl) labelEl.textContent = "read more";
-        if (toggleEl) toggleEl.setAttribute("aria-expanded", "false");
-      } else {
-        pEl.classList.remove("is-clamped");
-        wrapEl.classList.remove("is-clamped");
-        if (toggleEl) toggleEl.style.display = "none";
-      }
-    };
-    requestAnimationFrame(apply);
-    window.addEventListener("resize", apply);
-    if (toggleEl) {
-      toggleEl.addEventListener("click", () => {
-        const expanded = toggleEl.getAttribute("aria-expanded") === "true";
-        const next = !expanded;
-        toggleEl.setAttribute("aria-expanded", next ? "true" : "false");
-        pEl.classList.toggle("is-clamped", !next);
-        wrapEl.classList.toggle("is-clamped", !next);
-        if (labelEl) labelEl.textContent = next ? "read less" : "read more";
+    if (typeof window.setupDescriptionTruncation === 'function') {
+      window.setupDescriptionTruncation({
+        desc: pEl,
+        toggle: toggleEl,
+        wrap: wrapEl,
+        collapsedLabel: 'read more',
+        expandedLabel: 'read less'
       });
     }
   }

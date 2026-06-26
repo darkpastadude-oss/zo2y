@@ -548,6 +548,7 @@
   top: 0;
   left: 0;
   height: 100dvh;
+  height: 100svh;
   width: min(88vw, 320px);
   background: var(--zo2y-header-bg);
   border-right: 1px solid var(--zo2y-header-border);
@@ -558,8 +559,9 @@
   visibility: hidden;
   pointer-events: none;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -567,8 +569,9 @@
 }
 
 body.zo2y-mobile-menu-open .zo2y-mobile-drawer {
-  overflow-y: auto !important;
+  overflow-y: scroll !important;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   touch-action: pan-y;
 }
 

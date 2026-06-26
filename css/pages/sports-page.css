@@ -138,6 +138,22 @@
   border-color: var(--accent);
 }
 
+.sports-grid .card-media {
+  padding: 12%;
+  box-sizing: border-box;
+}
+
+.sports-grid .card-media img {
+  width: 76%;
+  height: 76%;
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.10));
+}
+
 @media (max-width: 768px) {
   .controls-meta {
     justify-content: center;
@@ -151,6 +167,17 @@
   .sports-grid .card {
     min-width: 0 !important;
     max-width: none !important;
+  }
+
+  .sports-grid .card-media {
+    padding: 10%;
+  }
+
+  .sports-grid .card-media img {
+    width: 80%;
+    height: 80%;
+    max-width: 80px;
+    max-height: 80px;
   }
 
   .sports-grid .card-meta {
