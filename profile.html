@@ -494,11 +494,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <!-- Premium light-switch toggle: Media / Lifestyle -->
                 <div class="mph2-toggle-wrap">
                     <div class="mph2-toggle" id="mph2Toggle" role="tablist" aria-label="Content mode">
-                        <button class="mph2-toggle-opt active" id="mph2ToggleMedia" role="tab" aria-selected="true" onclick="ProfileV2Mobile.setMode('media')">
+                        <button class="mph2-toggle-opt active" id="mph2ToggleMedia" role="tab" aria-selected="true" onclick="ProfileManager.setMobileOverviewMode('media')">
                             <i class="fas fa-play-circle"></i>
                             <span>media</span>
                         </button>
-                        <button class="mph2-toggle-opt" id="mph2ToggleLifestyle" role="tab" aria-selected="false" onclick="ProfileV2Mobile.setMode('lifestyle')">
+                        <button class="mph2-toggle-opt" id="mph2ToggleLifestyle" role="tab" aria-selected="false" onclick="ProfileManager.setMobileOverviewMode('lifestyle')">
                             <i class="fas fa-compass"></i>
                             <span>lifestyle</span>
                         </button>
@@ -513,7 +513,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowMovies">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-film"></i> movies</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('movies'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackMovies"></div>
                     </div>
@@ -521,7 +521,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowTv">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-tv"></i> tv shows</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackTv"></div>
                     </div>
@@ -529,7 +529,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowAnime">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-dragon"></i> anime</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackAnime"></div>
                     </div>
@@ -537,7 +537,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowGames">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-gamepad"></i> games</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('games'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackGames"></div>
                     </div>
@@ -545,7 +545,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowBooks">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-book"></i> books</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('books'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackBooks"></div>
                     </div>
@@ -553,7 +553,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowMusic">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-music"></i> music</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackMusic"></div>
                     </div>
@@ -565,7 +565,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowSports">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-futbol"></i> sports</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackSports"></div>
                     </div>
@@ -573,7 +573,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowCars">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-car"></i> cars</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('cars'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackCars"></div>
                     </div>
@@ -581,7 +581,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowTravel">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-earth-americas"></i> travel</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackTravel"></div>
                     </div>
@@ -589,7 +589,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowFood">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-burger"></i> food</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackFood"></div>
                     </div>
@@ -597,7 +597,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowFashion">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-shirt"></i> fashion</span>
-                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackFashion"></div>
                     </div>
@@ -1514,6 +1514,32 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     // Expose to global scope so inline onclick attrs work
     if (!window.ProfileManager) window.ProfileManager = {};
     window.ProfileManager.setOverviewMode    = setOverviewMode;
+
+    function setMobileOverviewMode(mode) {
+      var mediaPanel   = document.getElementById('mph2MobileMediaPanel');
+      var lifestylePanel = document.getElementById('mph2MobileLifestylePanel');
+      var mediaBtn     = document.getElementById('mph2ToggleMedia');
+      var lifestyleBtn = document.getElementById('mph2ToggleLifestyle');
+      var thumb        = document.getElementById('mph2ToggleThumb');
+
+      if (!mediaPanel || !lifestylePanel) return;
+
+      if (mode === 'media') {
+        mediaPanel.style.display   = '';
+        lifestylePanel.style.display = 'none';
+        if (mediaBtn) { mediaBtn.classList.add('active'); mediaBtn.setAttribute('aria-selected', 'true'); }
+        if (lifestyleBtn) { lifestyleBtn.classList.remove('active'); lifestyleBtn.setAttribute('aria-selected', 'false'); }
+        if (thumb) { thumb.style.transform = 'translateX(0)'; }
+      } else {
+        mediaPanel.style.display   = 'none';
+        lifestylePanel.style.display = '';
+        if (mediaBtn) { mediaBtn.classList.remove('active'); mediaBtn.setAttribute('aria-selected', 'false'); }
+        if (lifestyleBtn) { lifestyleBtn.classList.add('active'); lifestyleBtn.setAttribute('aria-selected', 'true'); }
+        if (thumb) { thumb.style.transform = 'translateX(100%)'; }
+      }
+    }
+    window.ProfileManager.setMobileOverviewMode = setMobileOverviewMode;
+
     window.ProfileManager.toggleOverflowMenu = toggleOverflowMenu;
     window.ProfileManager.closeOverflowMenu  = closeOverflowMenu;
   })();

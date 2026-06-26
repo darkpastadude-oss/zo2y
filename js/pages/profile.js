@@ -979,6 +979,107 @@
             }
 
             // ===== PROFILE MANAGEMENT =====
+            async function renderProfileOverview() {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+
+                let config = [];
+                if (window.ProfileShowcase) {
+                    try {
+                        config = await window.ProfileShowcase.getProfileShowcase(userId);
+                    } catch(e) {}
+                }
+
+                // Make sure rows are ordered
+                const mphContainer = document.getElementById('mph2MobileMediaPanel');
+                if (mphContainer && config && config.length > 0) {
+                    const sortedTypes = [...SHOWCASE_MEDIA_TYPES].sort((a, b) => {
+                        const ea = config.find(s => s.media_type === a.key);
+                        const eb = config.find(s => s.media_type === b.key);
+                        const oa = ea ? ea.display_order : 999;
+                        const ob = eb ? eb.display_order : 999;
+                        return oa - ob;
+                    });
+                    
+                    for (const mt of sortedTypes) {
+                        const row = document.getElementById(`mph2Row${mt.key.charAt(0).toUpperCase() + mt.key.slice(1)}`);
+                        if (row) mphContainer.appendChild(row);
+                    }
+                }
+
+                // Render each showcase row
+                for (const mt of SHOWCASE_MEDIA_TYPES) {
+                    const capitalized = mt.key.charAt(0).toUpperCase() + mt.key.slice(1);
+                    const trackMobile = document.getElementById(`mph2Track${capitalized}`);
+                    if (!trackMobile) continue;
+
+                    trackMobile.innerHTML = '<div style="padding:10px;color:rgba(255,255,255,0.4);font-size:12px;">Loading...</div>';
+
+                    try {
+                        const cfg = config.find(s => s.media_type === mt.key);
+                        const listId = cfg ? cfg.list_id : 'favorites';
+                        const isCustom = listId !== 'favorites' && listId !== 'watched' && listId !== 'watchlist' && listId !== 'read' && listId !== 'readlist' && listId !== 'listened' && listId !== 'listenlist' && listId !== 'visited' && listId !== 'bucketlist' && listId !== 'owned' && listId !== 'tried' && listId !== 'want_to_try';
+                        
+                        const items = await loadMediaListItems(mt.key, userId, isCustom ? [listId] : []);
+                        
+                        let listItems = items.filter(i => isCustom ? String(i.list_id) === String(listId) : i.list_type === listId);
+                        
+                        const idFieldMap = { movie: 'movie_id', tv: 'tv_id', anime: 'anime_id', games: 'game_id', books: 'book_id', music: 'track_id', travel: 'country_code', fashion: 'brand_id', cars: 'brand_id', food: 'brand_id' };
+                        let idField = idFieldMap[mt.key] || 'id';
+                        if (mt.key === 'movies') idField = 'movie_id';
+
+                        let ids = listItems.map(i => i[idField]).filter(Boolean);
+                        
+                        const fakeList = { id: listId, type: isCustom ? 'custom' : 'default' };
+                        const { orderedIds } = await resolveTierOrderedIds(mt.key, fakeList, listId, ids, { listType: isCustom ? 'custom' : listId, ownerUserId: userId });
+
+                        const topIds = orderedIds.slice(0, 15);
+                        if (topIds.length === 0) {
+                            trackMobile.innerHTML = '<div style="padding:10px;color:rgba(255,255,255,0.3);font-size:13px;">Nothing here yet</div>';
+                            continue;
+                        }
+
+                        let html = '';
+                        for (const id of topIds) {
+                            let imgUrl = 'images/placeholder.jpg';
+                            let title = '';
+                            try {
+                                if (mt.key === 'movies' || mt.key === 'movie') {
+                                    const d = await fetchMovieDetails(id);
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
+                                    title = d ? d.title : '';
+                                } else if (mt.key === 'tv') {
+                                    const d = await fetchTvDetails(id);
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
+                                    title = d ? d.name : '';
+                                } else if (mt.key === 'anime') {
+                                    const d = await fetchAnimeDetails(id);
+                                    imgUrl = d && d.poster_path ? TMDB_POSTER + d.poster_path : imgUrl;
+                                    title = d ? d.title : '';
+                                } else if (mt.key === 'games') {
+                                    const d = await fetchGameDetails(id);
+                                    imgUrl = d && d.cover_url ? d.cover_url : imgUrl;
+                                    title = d ? d.name : '';
+                                } else if (mt.key === 'books') {
+                                    const d = await fetchBookDetails(id);
+                                    imgUrl = d && d.cover_url ? d.cover_url : imgUrl;
+                                    title = d ? d.title : '';
+                                }
+                            } catch (e) {}
+
+                            html += `<div style="display:inline-block; width:100px; margin-right:10px; vertical-align:top; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05); aspect-ratio: 2/3;">
+                                <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
+                            </div>`;
+                        }
+                        
+                        trackMobile.innerHTML = `<div style="white-space: nowrap; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">${html}</div>`;
+
+                    } catch(e) {
+                        trackMobile.innerHTML = '<div style="padding:10px;color:#ff4444;font-size:12px;">Failed to load</div>';
+                    }
+                }
+            }
+
             async function loadProfile() {
                 tabRenderCache.clear();
                 pinnedListsMap = new Map();
@@ -1305,6 +1406,7 @@
                     profile.profile_badges = [...manualProfileBadges];
                 }
                 renderProfileBadges(profile);
+                renderProfileOverview();
                 
                 const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
                 const primaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '@user';
@@ -6436,7 +6538,7 @@
                 if (cfg && safeTab !== 'community') {
                     if (desktopContainer && !isMobile) {
                         desktopContainer.innerHTML = `
-                            <div class="tab-content active" id="${safeTab}-tab">
+                            <div class="tab-content active rendered" id="${safeTab}-tab">
                                 <div class="section">
                                     <div class="section-header">
                                         <div>
@@ -6458,7 +6560,7 @@
                     if (mobileContainer && isMobile) {
                         const capitalizedTab = safeTab.charAt(0).toUpperCase() + safeTab.slice(1);
                         mobileContainer.innerHTML = `
-                            <div class="mobile-section active" id="mobile${capitalizedTab}Section">
+                            <div class="mobile-section active rendered" id="mobile${capitalizedTab}Section">
                                 <div class="mobile-section-title">
                                     <span>${cfg.title}</span>
                                     <div class="d-flex gap-sm">
@@ -6503,7 +6605,6 @@
                             }
                         } catch (_) {}
                     });
-            });
             }
 
             function ensureTabSectionVisible(safeTab, isMobile) {
@@ -11050,35 +11151,6 @@
                     });
                 }
             }
-                } catch (_e) {}
-
-                let html = '';
-                for (const mt of SHOWCASE_MEDIA_TYPES) {
-                    const allLists = ProfileShowcase
-                        ? await ProfileShowcase.getAllListsForType(mt.key, userId)
-                        : [];
-                    const currentEntry = (showcaseConfig || []).find(s => s.media_type === mt.key);
-                    const currentListId = currentEntry?.list_id || 'favorites';
-                    const isHidden = currentEntry?.is_hidden || false;
-
-                    html += '<div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;">';
-                    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-                    html += '<i class="fas ' + mt.icon + '" style="color:rgba(255,255,255,0.5);font-size:13px;"></i>';
-                    html += '<span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">' + mt.label + '</span>';
-                    html += '</div>';
-                    html += '<select class="form-input" style="font-size:13px;padding:6px 10px;margin-bottom:6px;" ';
-                    html += 'onchange="ProfileManager.setShowcaseList(\'' + mt.key + '\', this.value)">';
-                    for (const list of allLists) {
-                        const selected = list.id === currentListId ? ' selected' : '';
-                        const label = (list.is_default ? '' : '') + list.title + (list.count !== undefined ? ' (' + list.count + ')' : '');
-                        html += '<option value="' + list.id + '"' + selected + '>' + label + '</option>';
-                    }
-                    html += '</select>';
-                    html += '</div>';
-                }
-
-                container.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:13px;">No media categories available.</div>';
-            }
 
             async function setShowcaseOrder(mediaType, displayOrder) {
                 const userId = currentUser?.id;
@@ -11444,6 +11516,7 @@
                 getShowcaseListId: getShowcaseListId,
                 getShowcaseListTitle: getShowcaseListTitle,
                 setShowcaseList: setShowcaseList,
+                setShowcaseOrder: setShowcaseOrder,
                 setShowcaseOrder: setShowcaseOrder,
                 backToProfile: backToProfile,
                 reorderList: reorderList
