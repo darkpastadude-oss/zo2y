@@ -89,6 +89,21 @@
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
             const previewAssetCache = new Map();
             const favoriteIds = { movie: [], tv: [], anime: [], game: [] };
+            const showcaseData = {};
+            let showcaseConfig = [];
+
+            function getShowcaseListId(mediaType) {
+                const entry = (showcaseConfig || []).find(function(s) { return s.media_type === mediaType && !s.is_hidden; });
+                return entry ? entry.list_id : 'favorites';
+            }
+
+            function getShowcaseListTitle(mediaType) {
+                const listId = getShowcaseListId(mediaType);
+                if (ProfileShowcase && ProfileShowcase.getDefaultListTitle) {
+                    return ProfileShowcase.getDefaultListTitle(listId);
+                }
+                return listId === 'favorites' ? 'Favorites' : listId;
+            }
 
             function clearLegacyProfileBookCaches() {
                 try {
@@ -280,6 +295,9 @@
                     currentUser = user;
                     if (window.ListUtils && typeof ListUtils.setTierSyncContext === 'function') {
                         ListUtils.setTierSyncContext(supabase, currentUser.id);
+                    }
+                    if (window.ProfileShowcase && typeof ProfileShowcase.init === 'function') {
+                        ProfileShowcase.init(supabase);
                     }
 
                     disableGameFeatures();
@@ -976,6 +994,13 @@
                 }
                 const pinOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 await ensurePinnedCollectionsLoaded(pinOwnerId);
+
+                const showcaseOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (showcaseOwnerId && window.ProfileShowcase) {
+                    try {
+                        showcaseConfig = await ProfileShowcase.getProfileShowcase(showcaseOwnerId);
+                    } catch (_e) { showcaseConfig = []; }
+                }
                 const statsOwnerId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (statsOwnerId) {
                     setupStatsRealtimeSubscriptions(statsOwnerId).catch((error) => {
@@ -6592,6 +6617,7 @@
                         ensurePinnedCollectionsLoaded(userId),
                         loadCollaborativeCustomLists('movie', userId)
                     ]);
+                    const showcaseListId = getShowcaseListId('movie');
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Movies you watched', type: 'default' },
@@ -6614,6 +6640,15 @@
                         ));
                     }
                     favoriteIds.movie = defaultLists.find(l => l.id === 'favorites')?.movieIds || [];
+
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.movie = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.movieIds || showcaseList?.items || []
+                    };
 
                     for (const list of customLists) {
                         list.movieIds = Array.from(new Set(
@@ -6689,6 +6724,7 @@
                         ensurePinnedCollectionsLoaded(userId),
                         loadCollaborativeCustomLists('tv', userId)
                     ]);
+                    const showcaseListId = getShowcaseListId('tv');
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
@@ -6711,6 +6747,15 @@
                         ));
                     }
                     favoriteIds.tv = defaultLists.find(l => l.id === 'favorites')?.tvIds || [];
+
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.tv = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.tvIds || showcaseList?.items || []
+                    };
 
                     for (const list of customLists) {
                         list.tvIds = Array.from(new Set(
@@ -6786,6 +6831,7 @@
                         ensurePinnedCollectionsLoaded(userId),
                         loadCollaborativeCustomLists('anime', userId)
                     ]);
+                    const showcaseListId = getShowcaseListId('anime');
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
                         { id: 'watched', title: 'Watched', icon: 'check', description: 'Anime you watched', type: 'default' },
@@ -6808,6 +6854,15 @@
                         ));
                     }
                     favoriteIds.anime = defaultLists.find(l => l.id === 'favorites')?.animeIds || [];
+
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.anime = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.animeIds || showcaseList?.items || []
+                    };
 
                     for (const list of customLists) {
                         list.animeIds = Array.from(new Set(
@@ -6874,6 +6929,7 @@
 
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
+                    const showcaseListId = getShowcaseListId('game');
                     const defaultLists = [
                         { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Games you love', type: 'default' },
                         { id: 'watched', title: 'Played', icon: 'check', description: 'Games you played', type: 'default' },
@@ -6896,6 +6952,15 @@
                         ));
                     }
                     favoriteIds.game = defaultLists.find(l => l.id === 'favorites')?.gameIds || [];
+
+                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
+                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
+                    const showcaseList = showcaseCustom || showcaseDefault;
+                    showcaseData.game = {
+                        title: showcaseList?.title || showcaseListId,
+                        listId: showcaseListId,
+                        items: showcaseList?.gameIds || showcaseList?.items || []
+                    };
 
                     for (const list of customLists) {
                         list.gameIds = Array.from(new Set(
@@ -10336,6 +10401,7 @@
                         const badgesInput = document.getElementById('editCustomBadges');
                         if (badgesInput) badgesInput.value = normalizeProfileBadges(userProfile.profile_badges || []).join(', ');
                         document.getElementById('editIsPrivate').checked = userProfile.is_private || false;
+                        populateShowcaseSettings();
                     }
 
                     if (modalId === 'accountSettingsModal' && currentUser) {
@@ -10777,6 +10843,76 @@
                 });
             }
 
+            // ===== PROFILE SHOWCASE SETTINGS =====
+            const SHOWCASE_MEDIA_TYPES = [
+                { key: 'movie', label: 'Movies', icon: 'fa-film' },
+                { key: 'tv', label: 'TV Shows', icon: 'fa-tv' },
+                { key: 'anime', label: 'Anime', icon: 'fa-dragon' },
+                { key: 'game', label: 'Games', icon: 'fa-gamepad' },
+                { key: 'book', label: 'Books', icon: 'fa-book' },
+                { key: 'music', label: 'Music', icon: 'fa-music' }
+            ];
+
+            async function populateShowcaseSettings() {
+                const container = document.getElementById('showcaseSettingsList');
+                if (!container) return;
+                const userId = currentUser?.id;
+                if (!userId) return;
+
+                container.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);">Loading...</div>';
+
+                try {
+                    if (ProfileShowcase) {
+                        showcaseConfig = await ProfileShowcase.getProfileShowcase(userId);
+                    }
+                } catch (_e) {}
+
+                let html = '';
+                for (const mt of SHOWCASE_MEDIA_TYPES) {
+                    const allLists = ProfileShowcase
+                        ? await ProfileShowcase.getAllListsForType(mt.key, userId)
+                        : [];
+                    const currentEntry = (showcaseConfig || []).find(s => s.media_type === mt.key);
+                    const currentListId = currentEntry?.list_id || 'favorites';
+                    const isHidden = currentEntry?.is_hidden || false;
+
+                    html += '<div style="margin-bottom:14px;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:8px;">';
+                    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
+                    html += '<i class="fas ' + mt.icon + '" style="color:rgba(255,255,255,0.5);font-size:13px;"></i>';
+                    html += '<span style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">' + mt.label + '</span>';
+                    html += '</div>';
+                    html += '<select class="form-input" style="font-size:13px;padding:6px 10px;margin-bottom:6px;" ';
+                    html += 'onchange="ProfileManager.setShowcaseList(\'' + mt.key + '\', this.value)">';
+                    for (const list of allLists) {
+                        const selected = list.id === currentListId ? ' selected' : '';
+                        const label = (list.is_default ? '' : '') + list.title + (list.count !== undefined ? ' (' + list.count + ')' : '');
+                        html += '<option value="' + list.id + '"' + selected + '>' + label + '</option>';
+                    }
+                    html += '</select>';
+                    html += '</div>';
+                }
+
+                container.innerHTML = html || '<div style="color:rgba(255,255,255,0.4);font-size:13px;">No media categories available.</div>';
+            }
+
+            async function setShowcaseList(mediaType, listId) {
+                const userId = currentUser?.id;
+                if (!userId || !ProfileShowcase) return;
+                await ProfileShowcase.setProfileShowcase(userId, mediaType, listId);
+                const entry = showcaseConfig.find(s => s.media_type === mediaType);
+                if (entry) {
+                    entry.list_id = listId;
+                } else {
+                    showcaseConfig.push({ user_id: userId, media_type: mediaType, list_id: listId, is_hidden: false });
+                }
+                if (ProfileShowcase.getListTitle) {
+                    const title = await ProfileShowcase.getListTitle(mediaType, listId, userId);
+                    if (title && showcaseData[mediaType]) {
+                        showcaseData[mediaType].title = title;
+                    }
+                }
+            }
+
             // ===== SAVE PROFILE CHANGES =====
             async function saveProfileChanges() {
                 const rawUsername = String(document.getElementById('editUsername')?.value || '').trim();
@@ -11104,7 +11240,12 @@
                 logout,
                 escapeHtml,
                 getFavoriteBackdropUrls: getFavoriteBackdropUrls,
-                favoriteIds: favoriteIds
+                favoriteIds: favoriteIds,
+                showcaseData: showcaseData,
+                showcaseConfig: showcaseConfig,
+                getShowcaseListId: getShowcaseListId,
+                getShowcaseListTitle: getShowcaseListTitle,
+                setShowcaseList: setShowcaseList
             };
         })();
 

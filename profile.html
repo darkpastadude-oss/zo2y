@@ -2038,6 +2038,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </label>
                         <small class="text-muted d-block mt-4">Private accounts require approval for followers</small>
                     </div>
+
+                    <!-- Profile Showcase Settings -->
+                    <div class="form-group" id="showcaseSettingsGroup">
+                        <label class="form-label" style="font-size:14px;font-weight:600;margin-bottom:10px;display:block;">Profile Showcase</label>
+                        <small class="text-muted d-block" style="margin-bottom:12px;">Choose which list appears on your profile for each category.</small>
+                        <div id="showcaseSettingsList"></div>
+                    </div>
                     
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
@@ -2350,6 +2357,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <script src="js/list-utils.js?v=20260623z" defer></script>
+    <script src="js/profile-showcase.js?v=20260626z" defer></script>
     <script src="js/referral-utils.js?v=20260623z" defer></script>
     <script src="js/igdb-client.js?v=20260623z" defer></script>
     <script src="js/taste_identity.js?v=20260623z" defer></script>
@@ -2663,17 +2671,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       initModeIndicator();
       attachToProfileManager();
 
-      // Watch for ProfileManager to expose data so we can populate rails
-      // ProfileManager fires a custom event or we can poll briefly
       var attempts = 0;
       var poller = setInterval(function() {
         attempts++;
         var PM = window.ProfileManager;
         if (!PM) { if (attempts > 60) clearInterval(poller); return; }
 
-        // Try to populate banner from favorites backdrop images
-        if (PM._bannerBuilt) { /* continue rails */ }
-        else if (PM.getFavoriteBackdropUrls) {
+        // === Banner ===
+        if (!PM._bannerBuilt && PM.getFavoriteBackdropUrls) {
           var favIds = PM.favoriteIds || {};
           var totalFavs = (favIds.movie || []).length + (favIds.tv || []).length + (favIds.anime || []).length + (favIds.game || []).length;
           if (totalFavs > 0) {
@@ -2686,62 +2691,101 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           }
         }
 
-        // Populate rails from collection cards in each grid
-        function buildRailFromGrid(gridId, trackId, opts) {
-          var grid = document.getElementById(gridId);
-          if (!grid) return;
-          var cards = grid.querySelectorAll('.collection-card');
-          if (!cards || cards.length === 0) return;
-
-          // Find the favorites card
-          var favCard = null;
-          cards.forEach(function(c) {
-            var title = c.querySelector('.collection-card-title');
-            if (title && title.textContent && title.textContent.toLowerCase().includes('favorit')) {
-              if (!favCard) favCard = c;
+        // === Update rail headings from showcase data ===
+        if (!PM._headingsUpdated) {
+          var sd = PM.showcaseData || {};
+          var headingMap = {
+            movies: { rail: 'pv2RailMovies', icon: 'fa-film', type: 'movie' },
+            tv:     { rail: 'pv2RailTv',     icon: 'fa-tv',   type: 'tv' },
+            anime:  { rail: 'pv2RailAnime',  icon: 'fa-dragon', type: 'anime' },
+            games:  { rail: 'pv2RailGames',  icon: 'fa-gamepad', type: 'game' }
+          };
+          var anyReady = false;
+          Object.keys(headingMap).forEach(function(key) {
+            var info = headingMap[key];
+            var data = sd[key];
+            var rail = document.getElementById(info.rail);
+            if (!rail) return;
+            var titleEl = rail.querySelector('.pv2-rail-title');
+            if (!titleEl) return;
+            if (data && data.title) {
+              titleEl.innerHTML = '<i class="fas ' + info.icon + '"></i> ' + data.title.toLowerCase();
+              anyReady = true;
             }
           });
-          var useCard = favCard || cards[0];
-          if (!useCard) return;
-
-          // Extract preview images from the card
-          var imgs = useCard.querySelectorAll('.collection-preview-item img');
-          var totalCount = parseInt(useCard.querySelector('.collection-card-count') && useCard.querySelector('.collection-card-count').textContent) || 0;
-
-          var items = [];
-          imgs.forEach(function(img) {
-            if (img.src && !img.src.includes('data:')) {
-              items.push({ poster: img.src, title: '', url: '' });
-            }
-          });
-
-          if (items.length > 0) {
-            opts = opts || {};
-            opts.onMore = function() {
-              var PM = window.ProfileManager;
-              if (PM && PM.showTab) PM.showTab(opts.tabKey || 'movies');
-            };
-            // Show extra count properly
-            var extra = Math.max(0, totalCount - items.length);
-            var inflatedItems = items.concat(new Array(extra));
-            renderRail(trackId, items, opts);
-          }
+          if (anyReady || attempts > 30) PM._headingsUpdated = true;
         }
 
-        buildRailFromGrid('moviesGrid',  'pv2MoviesTrack', { tabKey:'movies' });
-        buildRailFromGrid('tvGrid',      'pv2TvTrack',     { tabKey:'tv' });
-        buildRailFromGrid('animeGrid',   'pv2AnimeTrack',  { tabKey:'anime' });
-        buildRailFromGrid('gamesGrid',   'pv2GamesTrack',  { tabKey:'games', isSquare: false });
-        buildRailFromGrid('booksGrid',   'pv2BooksTrack',  { tabKey:'books' });
-        buildRailFromGrid('musicGrid',   'pv2MusicTrack',  { tabKey:'music', isSquare: true });
-        buildRailFromGrid('sportsGrid',  'pv2SportsTrack', { tabKey:'sports', isSquare: true, isBrand: true });
-        buildRailFromGrid('carsGrid',    'pv2CarsTrack',   { tabKey:'cars',   isLandscape: true, isBrand: true });
-        buildRailFromGrid('travelGrid',  'pv2TravelTrack', { tabKey:'travel', isLandscape: true });
-        buildRailFromGrid('fashionGrid', 'pv2FashionTrack',{ tabKey:'fashion', isSquare: true, isBrand: true });
-        buildRailFromGrid('foodGrid',    'pv2FoodTrack',   { tabKey:'food',   isSquare: true, isBrand: true });
+        // === Build rails from DOM (fallback) ===
+        if (!PM._railsBuilt) {
+          function buildRailFromGrid(gridId, trackId, opts) {
+            var grid = document.getElementById(gridId);
+            if (!grid) return;
+            var cards = grid.querySelectorAll('.collection-card');
+            if (!cards || cards.length === 0) return;
 
+            var targetCard = null;
+            cards.forEach(function(c) {
+              var title = c.querySelector('.collection-card-title');
+              if (title && title.textContent && title.textContent.toLowerCase().includes('favorit')) {
+                if (!targetCard) targetCard = c;
+              }
+            });
+            targetCard = targetCard || cards[0];
+            if (!targetCard) return;
+
+            var imgs = targetCard.querySelectorAll('.collection-preview-item img');
+            var totalCount = parseInt(targetCard.querySelector('.collection-card-count') && targetCard.querySelector('.collection-card-count').textContent) || 0;
+
+            var items = [];
+            imgs.forEach(function(img) {
+              if (img.src && !img.src.includes('data:')) {
+                items.push({ poster: img.src, title: '', url: '' });
+              }
+            });
+
+            if (items.length > 0) {
+              opts = opts || {};
+              opts.onMore = function() {
+                var PM = window.ProfileManager;
+                if (PM && PM.showTab) PM.showTab(opts.tabKey || 'movies');
+              };
+              renderRail(trackId, items, opts);
+            }
+          }
+
+          var railConfigs = [
+            ['moviesGrid',  'pv2MoviesTrack', { tabKey:'movies' }],
+            ['tvGrid',      'pv2TvTrack',     { tabKey:'tv' }],
+            ['animeGrid',   'pv2AnimeTrack',  { tabKey:'anime' }],
+            ['gamesGrid',   'pv2GamesTrack',  { tabKey:'games', isSquare: false }],
+            ['booksGrid',   'pv2BooksTrack',  { tabKey:'books' }],
+            ['musicGrid',   'pv2MusicTrack',  { tabKey:'music', isSquare: true }],
+            ['sportsGrid',  'pv2SportsTrack', { tabKey:'sports', isSquare: true, isBrand: true }],
+            ['carsGrid',    'pv2CarsTrack',   { tabKey:'cars',   isLandscape: true, isBrand: true }],
+            ['travelGrid',  'pv2TravelTrack', { tabKey:'travel', isLandscape: true }],
+            ['fashionGrid', 'pv2FashionTrack',{ tabKey:'fashion', isSquare: true, isBrand: true }],
+            ['foodGrid',    'pv2FoodTrack',   { tabKey:'food',   isSquare: true, isBrand: true }]
+          ];
+
+          var anyRailBuilt = false;
+          railConfigs.forEach(function(cfg) {
+            var grid = document.getElementById(cfg[0]);
+            if (grid && grid.querySelector('.collection-card')) {
+              buildRailFromGrid(cfg[0], cfg[1], cfg[2]);
+              anyRailBuilt = true;
+            }
+          });
+
+          if (anyRailBuilt) PM._railsBuilt = true;
+          if (attempts > 40) PM._railsBuilt = true;
+        }
+
+        if (PM._bannerBuilt && PM._railsBuilt && PM._headingsUpdated) {
+          clearInterval(poller);
+        }
         if (attempts > 60) clearInterval(poller);
-      }, 500);
+      }, 400);
     }
 
     // Run after DOM + scripts loaded

@@ -5779,30 +5779,79 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 .collection-detail-header,
 .list-detail-header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
+  display: flex;
+  align-items: center;
   gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 20px;
 }
 
-.collection-detail-title-group,
-.list-detail-content {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: 8px;
-  text-align: center;
+.collection-detail-back .btn {
+  border-radius: 8px;
+}
+
+.collection-detail-title-group {
+  flex: 1;
   min-width: 0;
 }
 
-.collection-detail-title,
-.list-detail-title {
-  justify-content: center;
+.collection-detail-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.collection-detail-title [id$="DetailIcon"],
-.list-detail-title [id$="Icon"] {
-  margin-right: 10px;
+.collection-detail-title [id$="DetailIcon"] {
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+.collection-detail-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin: 4px 0 0;
+}
+
+.collection-detail-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.collection-detail-actions.hidden {
+  display: none;
+}
+
+.collection-view-toggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.collection-view-toggle-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.collection-view-toggle-btn.active,
+.collection-view-toggle-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
