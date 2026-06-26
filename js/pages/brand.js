@@ -447,19 +447,6 @@
     }
   }
 
-  function bindClampedDescription(pEl, wrapEl, toggleEl) {
-    if (!pEl || !wrapEl) return;
-    if (typeof window.setupDescriptionTruncation === 'function') {
-      window.setupDescriptionTruncation({
-        desc: pEl,
-        toggle: toggleEl,
-        wrap: wrapEl,
-        collapsedLabel: 'read more',
-        expandedLabel: 'read less'
-      });
-    }
-  }
-
   function renderTags(tags) {
     if (!dom.tags) return;
     const list = (Array.isArray(tags) ? tags : [])
@@ -1074,11 +1061,6 @@
     if (dom.about) {
       dom.about.textContent =
         brand.description || "This brand does not have a bio yet.";
-      bindClampedDescription(
-        dom.about,
-        dom.about?.parentElement,
-        dom.aboutToggle,
-      );
     }
 
     renderBrandHeroConfig(brand, null);
@@ -1363,11 +1345,6 @@
       mergeWikiIntoBrand(brand, wiki);
       if (dom.about) {
         dom.about.textContent = wiki.description || brand.description;
-        bindClampedDescription(
-          dom.about,
-          dom.about?.parentElement,
-          dom.aboutToggle,
-        );
       }
       if (dom.aboutSource) {
         dom.aboutSource.innerHTML = `Source: <a href="${escapeHtml(wiki.url)}" target="_blank" rel="noopener">Wikipedia</a>`;

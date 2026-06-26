@@ -82,11 +82,7 @@
             
             ${description ? `
             <div class="umh-description-wrap">
-              <div class="umh-description is-clamped" id="umhDesc">${escapeHtml(description)}</div>
-              <button class="umh-readmore" type="button">
-                <span>read more</span>
-                <i class="fa-solid fa-chevron-down"></i>
-              </button>
+              <div class="umh-description">${escapeHtml(description)}</div>
             </div>
             ` : ''}
           </div>
@@ -96,22 +92,6 @@
 
     container.innerHTML = html;
 
-    const desc = container.querySelector('.umh-description');
-    const btn = container.querySelector('.umh-readmore');
-    const wrap = container.querySelector('.umh-description-wrap');
-    if (desc && btn) {
-      if (typeof window.setupDescriptionTruncation === 'function') {
-        window.setupDescriptionTruncation({
-          desc,
-          toggle: btn,
-          wrap: wrap,
-          collapsedLabel: 'read more',
-          expandedLabel: 'read less'
-        });
-      } else if (desc.scrollHeight <= desc.clientHeight) {
-        btn.style.display = 'none';
-      }
-    }
     const loaded = container.querySelector('.umh-container');
     if (loaded) loaded.classList.add('is-loaded');
   }

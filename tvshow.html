@@ -968,23 +968,6 @@
         }, { once: true });
       }
 
-      function wireOverviewToggle() {
-        const overview = document.getElementById('overview');
-        const toggle = document.getElementById('overviewToggle');
-        const wrap = document.querySelector('.elevated-description-wrap');
-        if (!overview || !toggle) return;
-
-        if (typeof window.setupDescriptionTruncation === 'function') {
-          window.setupDescriptionTruncation({
-            desc: overview,
-            toggle,
-            wrap,
-            collapsedLabel: 'read more',
-            expandedLabel: 'show less'
-          });
-        }
-      }
-
       function openTrailerLightbox(key) {
         if (!key) return;
         const modal = document.getElementById('trailerModal');
@@ -2081,7 +2064,6 @@
       (async function init() {
         await initSupabase();
         initPageSearch();
-        wireOverviewToggle();
         wireTrailerLightbox();
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') closeAllListMenus();

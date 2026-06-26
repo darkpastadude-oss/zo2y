@@ -160,7 +160,6 @@
 
       if (els.aboutBody) {
         els.aboutBody.textContent = game.description || "Explore more details about this game.";
-        wireOverviewToggle();
       }
 
       // Populate quick facts grid
@@ -211,23 +210,6 @@
     } catch (e) {
       console.error(e);
       if (els.aboutBody) els.aboutBody.textContent = "Failed to load game details.";
-    }
-  }
-
-  function wireOverviewToggle() {
-    const overview = els.aboutBody;
-    const toggle = els.aboutToggle;
-    const wrap = document.querySelector('.elevated-description-wrap');
-    if (!overview || !toggle) return;
-
-    if (typeof window.setupDescriptionTruncation === 'function') {
-      window.setupDescriptionTruncation({
-        desc: overview,
-        toggle,
-        wrap,
-        collapsedLabel: 'read more',
-        expandedLabel: 'show less'
-      });
     }
   }
 
