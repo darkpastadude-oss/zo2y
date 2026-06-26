@@ -6253,3 +6253,869 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+
+/* ============================================================
+   PV2 — Profile v2 Design System
+   Identity card layout: cinematic banner, showcase rails,
+   compact stats, mode switch. Desktop-first.
+   ============================================================ */
+
+/* === Hero wrapper === */
+.pv2-hero {
+  position: relative;
+  background: #0f1e40;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 0;
+}
+
+/* === Cinematic banner === */
+.pv2-banner {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background: #0a1428;
+}
+
+.pv2-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10,20,40,0.45) 0%,
+    rgba(10,20,40,0.72) 60%,
+    rgba(11,22,51,0.96) 100%
+  );
+  z-index: 2;
+}
+
+.pv2-banner-posters {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 3px;
+  z-index: 1;
+  /* JS fills this with poster <img> tiles */
+}
+
+.pv2-banner-posters img {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(1px) saturate(0.85);
+  opacity: 0.72;
+  transform: scale(1.04);
+  transition: opacity 0.4s ease;
+}
+
+/* === Hero body (avatar + identity + actions) === */
+.pv2-hero-body {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 0 32px 20px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* === Avatar === */
+.pv2-avatar-wrap {
+  margin-top: -52px;
+  flex-shrink: 0;
+}
+
+.pv2-avatar {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  border: 4px solid #0f1e40;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  background: var(--color-accent);
+  color: #0b1633;
+  font-size: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  user-select: none;
+  overflow: hidden;
+}
+
+.pv2-avatar:hover {
+  transform: scale(1.04);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 0 0 2px color-mix(in srgb, var(--color-accent) 60%, transparent);
+}
+
+.pv2-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* === Identity block === */
+.pv2-identity {
+  padding-top: 12px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pv2-name {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pv2-username {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(203,213,225,0.65);
+  letter-spacing: 0.01em;
+}
+
+.pv2-bio {
+  font-size: 0.95rem;
+  color: rgba(203,213,225,0.82);
+  line-height: 1.5;
+  max-width: 52ch;
+  margin-top: 2px;
+}
+
+.pv2-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.pv2-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: rgba(203,213,225,0.58);
+}
+
+.pv2-meta-item i {
+  font-size: 0.75rem;
+  color: rgba(203,213,225,0.40);
+}
+
+.pv2-meta-sep {
+  color: rgba(203,213,225,0.25);
+  font-size: 0.78rem;
+}
+
+/* === Compact action buttons === */
+.pv2-actions {
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pv2-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.88);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.pv2-edit-btn:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+.pv2-follow-btn {
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* === Overflow menu === */
+.pv2-overflow-wrap {
+  position: relative;
+}
+
+.pv2-overflow-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.pv2-overflow-btn:hover {
+  background: rgba(255,255,255,0.10);
+  color: #fff;
+}
+
+.pv2-overflow-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #142446;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  min-width: 150px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  overflow: hidden;
+  display: none;
+  z-index: 200;
+  animation: pv2DropIn 0.16s cubic-bezier(0.2,0.9,0.2,1) both;
+}
+
+.pv2-overflow-menu.open {
+  display: block;
+}
+
+@keyframes pv2DropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pv2-overflow-item {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.82);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease;
+  font-family: inherit;
+}
+
+.pv2-overflow-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+}
+
+.pv2-overflow-item i {
+  width: 14px;
+  text-align: center;
+  color: rgba(255,255,255,0.45);
+}
+
+.pv2-overflow-danger {
+  color: rgba(239,68,68,0.85);
+}
+
+.pv2-overflow-danger:hover {
+  background: rgba(239,68,68,0.10);
+  color: #f87171;
+}
+
+.pv2-overflow-danger i {
+  color: rgba(239,68,68,0.55);
+}
+
+/* === Compact stats strip === */
+.pv2-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 14px 32px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.pv2-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 0 20px 0 0;
+}
+
+.pv2-stat:first-child {
+  padding-left: 0;
+}
+
+.pv2-stat-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.pv2-stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(203,213,225,0.5);
+}
+
+.pv2-stat-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255,255,255,0.1);
+  margin: 0 20px 0 0;
+  flex-shrink: 0;
+}
+
+/* === Content wrap (constrains showcase area) === */
+.pv2-content-wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px 32px 48px;
+}
+
+/* === Overview section === */
+.pv2-overview {
+  display: grid;
+  gap: 0;
+}
+
+/* === Mode bar (Media / Lifestyle switch) === */
+.pv2-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.pv2-mode-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.pv2-mode-indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  background: rgba(255,255,255,0.09);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), width 0.22s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+  z-index: 0;
+  /* Width/transform set by JS */
+}
+
+.pv2-mode-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(203,213,225,0.55);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.18s ease;
+  font-family: inherit;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.pv2-mode-btn i {
+  font-size: 0.8rem;
+  transition: color 0.18s ease;
+}
+
+.pv2-mode-btn:hover {
+  color: rgba(255,255,255,0.85);
+}
+
+.pv2-mode-btn.active {
+  color: #fff;
+}
+
+.pv2-mode-btn.active i {
+  color: var(--color-accent);
+}
+
+.pv2-activity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(203,213,225,0.5);
+  text-decoration: none;
+  transition: color 0.16s ease;
+  letter-spacing: 0.01em;
+}
+
+.pv2-activity-link i {
+  font-size: 0.75rem;
+  color: var(--color-accent);
+}
+
+.pv2-activity-link:hover {
+  color: rgba(255,255,255,0.9);
+}
+
+/* === Mode panels (animated crossfade) === */
+.pv2-mode-panel {
+  display: grid;
+  gap: 36px;
+  animation: pv2PanelFadeIn 0.22s ease both;
+}
+
+@keyframes pv2PanelFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* === Showcase rail === */
+.pv2-rail {
+  display: grid;
+  gap: 14px;
+}
+
+.pv2-rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pv2-rail-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: rgba(203,213,225,0.55);
+}
+
+.pv2-rail-title i {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+}
+
+.pv2-rail-viewall {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(203,213,225,0.42);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.16s ease;
+}
+
+.pv2-rail-viewall i {
+  font-size: 0.68rem;
+  transition: transform 0.16s ease;
+}
+
+.pv2-rail-viewall:hover {
+  color: var(--color-accent);
+}
+
+.pv2-rail-viewall:hover i {
+  transform: translateX(3px);
+}
+
+/* === Rail track (horizontal scroll of poster cards) === */
+.pv2-rail-track {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+  align-items: flex-start;
+}
+
+.pv2-rail-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Individual poster card === */
+.pv2-poster {
+  flex-shrink: 0;
+  width: 136px;
+  position: relative;
+  cursor: pointer;
+  animation: pv2PosterIn 0.32s cubic-bezier(0.2,0.9,0.2,1) both;
+}
+
+.pv2-poster:nth-child(1) { animation-delay: 0ms; }
+.pv2-poster:nth-child(2) { animation-delay: 40ms; }
+.pv2-poster:nth-child(3) { animation-delay: 80ms; }
+.pv2-poster:nth-child(4) { animation-delay: 120ms; }
+.pv2-poster:nth-child(5) { animation-delay: 160ms; }
+.pv2-poster:nth-child(6) { animation-delay: 200ms; }
+.pv2-poster:nth-child(7) { animation-delay: 240ms; }
+
+@keyframes pv2PosterIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.pv2-poster-img-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  aspect-ratio: 2 / 3;
+  transition: transform 0.22s cubic-bezier(0.2,0.9,0.2,1),
+              box-shadow 0.22s ease,
+              border-color 0.22s ease;
+}
+
+/* Square aspect for music, sports logos, brand logos */
+.pv2-poster.is-square .pv2-poster-img-wrap {
+  aspect-ratio: 1 / 1;
+}
+
+/* Landscape for travel flags/country images */
+.pv2-poster.is-landscape .pv2-poster-img-wrap {
+  aspect-ratio: 4 / 3;
+  width: 160px;
+}
+
+.pv2-poster:hover .pv2-poster-img-wrap {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.55);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.pv2-poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.22s ease;
+}
+
+.pv2-poster:hover .pv2-poster-img {
+  filter: brightness(1.06);
+}
+
+/* Brand/logo white background stage */
+.pv2-poster.is-brand .pv2-poster-img-wrap {
+  background: linear-gradient(180deg,rgba(245,247,252,0.98),rgba(226,232,244,0.96));
+}
+
+.pv2-poster.is-brand .pv2-poster-img {
+  object-fit: contain;
+  padding: 16px;
+}
+
+/* Hover title overlay */
+.pv2-poster-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 55%);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px;
+}
+
+.pv2-poster:hover .pv2-poster-overlay {
+  opacity: 1;
+}
+
+.pv2-poster-overlay-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Visible label below poster */
+.pv2-poster-label {
+  margin-top: 7px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgba(203,213,225,0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.3;
+}
+
+/* +N more chip at end of rail */
+.pv2-more-chip {
+  flex-shrink: 0;
+  align-self: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.pv2-more-chip:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.22);
+}
+
+.pv2-more-chip-count {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.pv2-more-chip-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(203,213,225,0.45);
+}
+
+/* Rail empty state */
+.pv2-rail-empty {
+  width: 100%;
+  height: 180px;
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: rgba(203,213,225,0.3);
+}
+
+.pv2-rail-empty i {
+  font-size: 1.4rem;
+  color: rgba(203,213,225,0.18);
+}
+
+.pv2-rail-empty-text {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+/* === Compact Activity Feed === */
+.pv2-activity {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.pv2-activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.pv2-activity-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: rgba(203,213,225,0.5);
+}
+
+.pv2-activity-view {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(203,213,225,0.38);
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.pv2-activity-view:hover {
+  color: var(--color-accent);
+}
+
+.pv2-activity-feed {
+  display: grid;
+  gap: 2px;
+}
+
+.pv2-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.14s ease;
+  text-decoration: none;
+}
+
+.pv2-activity-item:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.pv2-activity-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.06);
+}
+
+.pv2-activity-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pv2-activity-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.pv2-activity-desc {
+  font-size: 0.85rem;
+  color: rgba(203,213,225,0.78);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pv2-activity-desc strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.pv2-activity-time {
+  font-size: 0.72rem;
+  color: rgba(203,213,225,0.38);
+  margin-top: 2px;
+}
+
+.pv2-activity-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+.pv2-activity-empty {
+  font-size: 0.85rem;
+  color: rgba(203,213,225,0.3);
+  padding: 10px 12px;
+}
+
+/* ============================================================
+   PV2 Responsive overrides
+   ============================================================ */
+
+@media (max-width: 1280px) {
+  .pv2-hero-body,
+  .pv2-stats,
+  .pv2-content-wrap {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .pv2-poster {
+    width: 120px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pv2-banner {
+    height: 160px;
+  }
+
+  .pv2-avatar {
+    width: 108px;
+    height: 108px;
+    font-size: 44px;
+  }
+
+  .pv2-avatar-wrap {
+    margin-top: -40px;
+  }
+
+  .pv2-hero-body {
+    grid-template-columns: auto minmax(0,1fr);
+  }
+
+  .pv2-actions {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+
+  .pv2-poster {
+    width: 110px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* On mobile, the pv2 hero hides — mobile-profile-header handles it */
+  .pv2-hero {
+    display: none;
+  }
+
+  .pv2-content-wrap {
+    display: none;
+  }
+}

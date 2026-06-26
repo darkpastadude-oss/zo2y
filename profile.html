@@ -90,99 +90,226 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
         <!-- Profile Header -->
         <div class="profile-header">
-            <div class="container">
-                <div class="profile-hero-card">
-                    <div class="profile-banner"></div>
-                    <div class="profile-header-body">
-                        <div class="profile-top">
-                            <div class="avatar-container">
-                                <div class="profile-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar">
-                                    @
-                                </div>
-                            </div>
+            <div class="pv2-hero">
+                <!-- Cinematic banner — JS populates background via ProfileManager.renderBanner() -->
+                <div class="pv2-banner" id="profileBanner">
+                    <div class="pv2-banner-overlay"></div>
+                    <div class="pv2-banner-posters" id="bannerPosters"></div>
+                </div>
 
-                            <div class="profile-info">
-                                <div class="profile-name" id="profileName">
-                                    Loading...
-                                </div>
-                                <div class="profile-username" id="profileUsername">@username</div>
-                                <div class="profile-bio" id="profileBio">
-                                    No bio yet. Click edit to add one!
-                                </div>
-                                <div class="profile-meta">
-                                    <div class="meta-item">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        <span id="profileLocation">Location not set</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-calendar"></i>
-                                        <span id="memberSince">Member since 2023</span>
-                                    </div>
-                                    <div class="meta-item">
-                                        <i class="fas fa-bookmark"></i>
-                                        <span id="visitedCountMeta">0 saved items</span>
-                                    </div>
-                                </div>
-                                <div class="profile-badges" id="profileBadges"></div>
-                            </div>
+                <div class="pv2-hero-body">
+                    <!-- Avatar -->
+                    <div class="pv2-avatar-wrap">
+                        <div class="pv2-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar" aria-label="Change avatar">@</div>
+                    </div>
 
-                            <div class="profile-actions">
-                                <div class="profile-actions-label">Quick actions</div>
-                                <div class="profile-actions-grid">
-                                    <button class="btn btn-outline" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                                        <i class="fas fa-edit"></i> Edit Profile
-                                    </button>
-                                    <button class="btn btn-secondary d-none" id="followButton">
-                                        Follow
-                                    </button>
-                                    <button class="btn btn-secondary" id="settingsBtn" onclick="ProfileManager.showModal('accountSettingsModal')">
-                                        <i class="fas fa-cog"></i> Settings
-                                    </button>
-                                    <button class="btn btn-secondary profile-logout-btn" onclick="ProfileManager.logout()" id="logoutActionBtn">
-                                        <i class="fas fa-sign-out-alt"></i> Logout
-                                    </button>
-                                </div>
-                            </div>
+                    <!-- Identity -->
+                    <div class="pv2-identity">
+                        <div class="pv2-name" id="profileName">Loading...</div>
+                        <div class="pv2-username" id="profileUsername">@username</div>
+                        <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                        <div class="pv2-meta">
+                            <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
+                            <span class="pv2-meta-sep">·</span>
+                            <span class="pv2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="memberSince">Member since 2023</span></span>
                         </div>
+                        <div class="profile-badges" id="profileBadges"></div>
+                    </div>
 
-                        <div class="profile-stat-row" aria-label="Profile stats">
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="visitedCount">0</span>
-                                <span class="profile-stat-key">Saved</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="listsCount">0</span>
-                                <span class="profile-stat-key">Lists</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="reviewsCount">0</span>
-                                <span class="profile-stat-key">Reviews</span>
-                            </div>
-                            <div class="profile-stat-pill">
-                                <span class="profile-stat-value" id="followersCount">0</span>
-                                <span class="profile-stat-key">Followers</span>
+                    <!-- Actions (compact: edit + overflow) -->
+                    <div class="pv2-actions">
+                        <button class="pv2-edit-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-pen"></i> edit profile
+                        </button>
+                        <button class="btn btn-secondary d-none pv2-follow-btn" id="followButton">follow</button>
+                        <div class="pv2-overflow-wrap">
+                            <button class="pv2-overflow-btn" id="profileOverflowBtn" aria-label="More options" onclick="ProfileManager.toggleOverflowMenu()">
+                                <i class="fas fa-ellipsis"></i>
+                            </button>
+                            <div class="pv2-overflow-menu" id="profileOverflowMenu">
+                                <button class="pv2-overflow-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeOverflowMenu()" id="settingsBtn">
+                                    <i class="fas fa-cog"></i> settings
+                                </button>
+                                <button class="pv2-overflow-item pv2-overflow-danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                                    <i class="fas fa-sign-out-alt"></i> log out
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="container">
-            <div class="profile-primary-nav-shell">
-                <div class="profile-primary-nav" role="tablist" aria-label="Profile sections">
-                    <button class="profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
-                        <span class="profile-primary-tab-label">Lists</span>
-                        <span class="profile-primary-tab-copy">Media and lifestyle</span>
-                    </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                        <span class="profile-primary-tab-label">Community</span>
-                        <span class="profile-primary-tab-copy">Followers and activity</span>
-                    </button>
+                <!-- Compact stats strip -->
+                <div class="pv2-stats" aria-label="Profile stats">
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="visitedCount">0</span>
+                        <span class="pv2-stat-label">saved</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="listsCount">0</span>
+                        <span class="pv2-stat-label">lists</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="reviewsCount">0</span>
+                        <span class="pv2-stat-label">reviews</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="followersCount">0</span>
+                        <span class="pv2-stat-label">followers</span>
+                    </div>
                 </div>
             </div>
+        </div>
+        <!-- Hidden legacy meta for JS compatibility -->
+        <span id="visitedCountMeta" style="display:none"></span>
 
-            <section class="profile-primary-panel" data-panel="lists">
+        <div class="pv2-content-wrap">
+
+            <!-- === OVERVIEW SHOWCASE (new primary view) === -->
+            <div class="pv2-overview" id="pv2Overview">
+
+                <!-- Mode Switch: Media / Lifestyle -->
+                <div class="pv2-mode-bar">
+                    <div class="pv2-mode-switch" role="tablist" aria-label="Content mode">
+                        <button class="pv2-mode-btn active" id="pv2ModeMedia" role="tab" aria-selected="true" onclick="ProfileManager.setOverviewMode('media')">
+                            <i class="fas fa-play-circle"></i> media
+                        </button>
+                        <button class="pv2-mode-btn" id="pv2ModeLifestyle" role="tab" aria-selected="false" onclick="ProfileManager.setOverviewMode('lifestyle')">
+                            <i class="fas fa-compass"></i> lifestyle
+                        </button>
+                        <div class="pv2-mode-indicator" id="pv2ModeIndicator"></div>
+                    </div>
+                    <a class="pv2-activity-link" href="#" onclick="ProfileManager.showPrimaryTab('activity'); return false;" id="pv2ActivityLink">
+                        <i class="fas fa-bolt"></i> recent activity
+                    </a>
+                </div>
+
+                <!-- Media Mode Showcase -->
+                <div class="pv2-mode-panel" id="pv2MediaPanel">
+
+                    <!-- Movies Rail -->
+                    <div class="pv2-rail" id="pv2RailMovies">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-film"></i> movies</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2MoviesTrack"></div>
+                    </div>
+
+                    <!-- TV Shows Rail -->
+                    <div class="pv2-rail" id="pv2RailTv">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-tv"></i> tv shows</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2TvTrack"></div>
+                    </div>
+
+                    <!-- Anime Rail -->
+                    <div class="pv2-rail" id="pv2RailAnime">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-dragon"></i> anime</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2AnimeTrack"></div>
+                    </div>
+
+                    <!-- Games Rail -->
+                    <div class="pv2-rail" id="pv2RailGames">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-gamepad"></i> games</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2GamesTrack"></div>
+                    </div>
+
+                    <!-- Books Rail -->
+                    <div class="pv2-rail" id="pv2RailBooks">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-book"></i> books</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2BooksTrack"></div>
+                    </div>
+
+                    <!-- Music Rail -->
+                    <div class="pv2-rail" id="pv2RailMusic">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-music"></i> music</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2MusicTrack"></div>
+                    </div>
+
+                </div>
+
+                <!-- Lifestyle Mode Showcase -->
+                <div class="pv2-mode-panel" id="pv2LifestylePanel" style="display:none">
+
+                    <!-- Sports Rail -->
+                    <div class="pv2-rail" id="pv2RailSports">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-futbol"></i> sports</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2SportsTrack"></div>
+                    </div>
+
+                    <!-- Cars Rail -->
+                    <div class="pv2-rail" id="pv2RailCars">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-car"></i> cars</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2CarsTrack"></div>
+                    </div>
+
+                    <!-- Travel Rail -->
+                    <div class="pv2-rail" id="pv2RailTravel">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-earth-americas"></i> travel</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2TravelTrack"></div>
+                    </div>
+
+                    <!-- Food Rail -->
+                    <div class="pv2-rail" id="pv2RailFood">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-burger"></i> food</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2FoodTrack"></div>
+                    </div>
+
+                    <!-- Fashion Rail -->
+                    <div class="pv2-rail" id="pv2RailFashion">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-shirt"></i> fashion</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2FashionTrack"></div>
+                    </div>
+
+                </div>
+
+                <!-- Compact Recent Activity -->
+                <div class="pv2-activity" id="pv2Activity">
+                    <div class="pv2-activity-header">
+                        <span class="pv2-activity-title">recent activity</span>
+                        <a class="pv2-activity-view" href="#" onclick="ProfileManager.showPrimaryTab('activity'); return false;">view all</a>
+                    </div>
+                    <div class="pv2-activity-feed" id="pv2ActivityFeed">
+                        <div class="pv2-activity-empty">no recent activity yet</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- === LEGACY LISTS PANEL (existing collection management, now secondary) === -->
+            <section class="profile-primary-panel" data-panel="lists" style="display:none">
             <!-- Navigation Tabs -->
             <div class="profile-section-shell profile-nav-shell">
                 <div class="profile-section-intro profile-section-intro-compact">
@@ -987,9 +1114,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
             </section>
 
-        </div>
+        </div><!-- /pv2-content-wrap -->
         
-    </div>
+    </div><!-- /desktop-only -->
 
     <!-- Mobile View -->
     <div class="mobile-only">
@@ -2097,5 +2224,397 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <script src="js/legal-consent.js?v=20260623z" defer></script>
 
   <script src="/js/shared-components.js?v=20260623z" defer></script>
+
+  <!-- ============================================================
+       ProfileV2 — Overview, Banner, Rails, Mode Switch
+       ============================================================ -->
+  <script>
+  (function() {
+    'use strict';
+
+    // === Overflow menu ===
+    function toggleOverflowMenu() {
+      var menu = document.getElementById('profileOverflowMenu');
+      if (!menu) return;
+      menu.classList.toggle('open');
+    }
+
+    function closeOverflowMenu() {
+      var menu = document.getElementById('profileOverflowMenu');
+      if (menu) menu.classList.remove('open');
+    }
+
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+      var btn = document.getElementById('profileOverflowBtn');
+      var menu = document.getElementById('profileOverflowMenu');
+      if (!menu || !btn) return;
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    });
+
+    // === Mode switch (Media / Lifestyle) ===
+    var currentMode = 'media';
+
+    function setOverviewMode(mode) {
+      currentMode = mode;
+      var mediaPanel   = document.getElementById('pv2MediaPanel');
+      var lifestylePanel = document.getElementById('pv2LifestylePanel');
+      var mediaBtn     = document.getElementById('pv2ModeMedia');
+      var lifestyleBtn = document.getElementById('pv2ModeLifestyle');
+      var indicator    = document.getElementById('pv2ModeIndicator');
+
+      if (!mediaPanel || !lifestylePanel) return;
+
+      if (mode === 'media') {
+        mediaPanel.style.display   = '';
+        lifestylePanel.style.display = 'none';
+        mediaBtn.classList.add('active');
+        lifestyleBtn.classList.remove('active');
+        mediaBtn.setAttribute('aria-selected', 'true');
+        lifestyleBtn.setAttribute('aria-selected', 'false');
+        if (indicator) {
+          indicator.style.width     = mediaBtn.offsetWidth + 'px';
+          indicator.style.transform = 'translateX(0)';
+        }
+      } else {
+        mediaPanel.style.display   = 'none';
+        lifestylePanel.style.display = '';
+        lifestyleBtn.classList.add('active');
+        mediaBtn.classList.remove('active');
+        lifestyleBtn.setAttribute('aria-selected', 'true');
+        mediaBtn.setAttribute('aria-selected', 'false');
+        if (indicator) {
+          indicator.style.width     = lifestyleBtn.offsetWidth + 'px';
+          indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
+        }
+      }
+    }
+
+    // Init indicator position once fonts settle
+    function initModeIndicator() {
+      var mediaBtn  = document.getElementById('pv2ModeMedia');
+      var indicator = document.getElementById('pv2ModeIndicator');
+      if (!mediaBtn || !indicator) return;
+      indicator.style.width     = mediaBtn.offsetWidth + 'px';
+      indicator.style.transform = 'translateX(0)';
+    }
+
+    // === Cinematic banner ===
+    function buildBanner(items) {
+      var container = document.getElementById('bannerPosters');
+      if (!container) return;
+      container.innerHTML = '';
+      var shuffled = items.slice().sort(function() { return Math.random() - 0.5; });
+      var toShow = shuffled.slice(0, 12);
+      toShow.forEach(function(src) {
+        var img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.loading = 'eager';
+        img.decoding = 'async';
+        container.appendChild(img);
+      });
+    }
+
+    // === Poster rail renderer ===
+    function renderRail(trackId, items, opts) {
+      var track = document.getElementById(trackId);
+      if (!track) return;
+      var railEl = track.closest('.pv2-rail');
+      opts = opts || {};
+      var maxVisible   = opts.maxVisible || 7;
+      var isSquare     = !!opts.isSquare;
+      var isLandscape  = !!opts.isLandscape;
+      var isBrand      = !!opts.isBrand;
+      var onClickBase  = opts.onClickBase || '';
+
+      track.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        // Show rail as empty (subtle dashed placeholder)
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'pv2-rail-empty';
+        emptyEl.innerHTML = '<i class="fas fa-plus"></i><span class="pv2-rail-empty-text">nothing here yet</span>';
+        track.appendChild(emptyEl);
+        if (railEl) railEl.style.display = '';
+        return;
+      }
+
+      if (railEl) railEl.style.display = '';
+
+      var visible = items.slice(0, maxVisible);
+      var extra   = items.length - visible.length;
+
+      visible.forEach(function(item, i) {
+        var poster = document.createElement('div');
+        var classes = 'pv2-poster';
+        if (isSquare)    classes += ' is-square';
+        if (isLandscape) classes += ' is-landscape';
+        if (isBrand)     classes += ' is-brand';
+        poster.className = classes;
+        poster.style.animationDelay = (i * 40) + 'ms';
+
+        var imgSrc = item.poster || item.image || item.cover || item.logo || item.flag || '';
+        var title  = item.title || item.name || '';
+
+        poster.innerHTML =
+          '<div class="pv2-poster-img-wrap">' +
+            (imgSrc ? '<img class="pv2-poster-img" src="' + imgSrc + '" alt="' + title.replace(/"/g,'&quot;') + '" loading="lazy" decoding="async">' : '') +
+            '<div class="pv2-poster-overlay"><span class="pv2-poster-overlay-title">' + title + '</span></div>' +
+          '</div>' +
+          '<div class="pv2-poster-label">' + title + '</div>';
+
+        if (item.url || onClickBase) {
+          poster.style.cursor = 'pointer';
+          poster.addEventListener('click', function() {
+            var dest = item.url || (onClickBase + encodeURIComponent(item.id || ''));
+            if (dest) window.location.href = dest;
+          });
+        }
+
+        track.appendChild(poster);
+      });
+
+      if (extra > 0) {
+        var chip = document.createElement('a');
+        chip.className = 'pv2-more-chip';
+        chip.href = '#';
+        chip.innerHTML =
+          '<span class="pv2-more-chip-count">+' + extra + '</span>' +
+          '<span class="pv2-more-chip-label">more</span>';
+        chip.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Navigate to the lists tab for this category
+          if (opts.onMore) opts.onMore();
+        });
+        track.appendChild(chip);
+      }
+    }
+
+    // === Extract favorites from ProfileManager's loaded data ===
+    function extractFavorites(collections) {
+      // collections is an array of {name, items[]}
+      // Find the "Favorites" collection (first match on name)
+      if (!collections || !collections.length) return [];
+      var fav = collections.find(function(c) {
+        return c.name && c.name.toLowerCase().includes('favorit');
+      });
+      if (fav && fav.items && fav.items.length) return fav.items;
+      // Fallback: combine all items, prefer top 10
+      var all = [];
+      collections.forEach(function(c) { if (c.items) all = all.concat(c.items); });
+      return all.slice(0, 20);
+    }
+
+    // === Render compact activity feed ===
+    function renderActivityFeed(activities) {
+      var feed = document.getElementById('pv2ActivityFeed');
+      if (!feed) return;
+      feed.innerHTML = '';
+
+      if (!activities || activities.length === 0) {
+        feed.innerHTML = '<div class="pv2-activity-empty">no recent activity yet</div>';
+        return;
+      }
+
+      var toShow = activities.slice(0, 5);
+      var now = Date.now();
+
+      toShow.forEach(function(act) {
+        var item = document.createElement('div');
+        item.className = 'pv2-activity-item';
+
+        var thumbHtml = '';
+        if (act.image || act.poster) {
+          thumbHtml = '<div class="pv2-activity-thumb"><img src="' + (act.image || act.poster) + '" alt="" loading="lazy"></div>';
+        } else {
+          thumbHtml = '<div class="pv2-activity-thumb"></div>';
+        }
+
+        var timeAgo = '';
+        if (act.created_at) {
+          var diff = now - new Date(act.created_at).getTime();
+          if (diff < 3600000)      timeAgo = Math.round(diff/60000) + 'm ago';
+          else if (diff < 86400000) timeAgo = Math.round(diff/3600000) + 'h ago';
+          else                      timeAgo = Math.round(diff/86400000) + 'd ago';
+        }
+
+        var isNew = act.created_at && (now - new Date(act.created_at).getTime()) < 86400000;
+        var dotHtml = isNew ? '<div class="pv2-activity-dot"></div>' : '';
+
+        item.innerHTML =
+          thumbHtml +
+          '<div class="pv2-activity-text">' +
+            '<div class="pv2-activity-desc">' + (act.description || act.action || '') + '</div>' +
+            (timeAgo ? '<div class="pv2-activity-time">' + timeAgo + '</div>' : '') +
+          '</div>' +
+          dotHtml;
+
+        feed.appendChild(item);
+      });
+    }
+
+    // === Wire into ProfileManager after it loads ===
+    function attachToProfileManager() {
+      var PM = window.ProfileManager;
+      if (!PM) return;
+
+      // Patch: expose overview API on ProfileManager
+      PM.setOverviewMode = setOverviewMode;
+      PM.toggleOverflowMenu = toggleOverflowMenu;
+      PM.closeOverflowMenu  = closeOverflowMenu;
+
+      // Patch: override showPrimaryTab to also show/hide pv2 overview
+      var _origShowPrimaryTab = PM.showPrimaryTab && PM.showPrimaryTab.bind(PM);
+      PM.showPrimaryTab = function(tab) {
+        var overview = document.getElementById('pv2Overview');
+        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+        var activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
+
+        if (tab === 'lists' || tab === undefined) {
+          if (overview) overview.style.display = '';
+          if (listsPanel) listsPanel.style.display = 'none';
+          if (activityPanel) activityPanel.style.display = 'none';
+        } else if (tab === 'activity') {
+          if (overview) overview.style.display = 'none';
+          if (listsPanel) listsPanel.style.display = 'none';
+          if (activityPanel) {
+            activityPanel.style.display = '';
+            activityPanel.style.removeProperty('display');
+          }
+          if (_origShowPrimaryTab) _origShowPrimaryTab('activity');
+        }
+      };
+
+      // Override showTab to show the lists panel instead of the overview
+      var _origShowTab = PM.showTab && PM.showTab.bind(PM);
+      PM.showTab = function(tab) {
+        var overview = document.getElementById('pv2Overview');
+        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+        if (overview) overview.style.display = 'none';
+        if (listsPanel) listsPanel.style.removeProperty('display');
+        if (_origShowTab) _origShowTab(tab);
+      };
+    }
+
+    // === Boot sequence ===
+    function boot() {
+      initModeIndicator();
+      attachToProfileManager();
+
+      // Watch for ProfileManager to expose data so we can populate rails
+      // ProfileManager fires a custom event or we can poll briefly
+      var attempts = 0;
+      var poller = setInterval(function() {
+        attempts++;
+        var PM = window.ProfileManager;
+        if (!PM) { if (attempts > 60) clearInterval(poller); return; }
+
+        // Try to populate banner from movie/tv/anime favorites
+        if (PM._bannerBuilt) { clearInterval(poller); return; }
+
+        var bannerItems = [];
+
+        // Collect poster URLs from collection grids (already-rendered items)
+        function collectPostersFromGrid(gridId) {
+          var grid = document.getElementById(gridId);
+          if (!grid) return;
+          var imgs = grid.querySelectorAll('.collection-preview-item img');
+          imgs.forEach(function(img) {
+            if (img.src && !img.src.includes('data:') && bannerItems.length < 24) {
+              bannerItems.push(img.src);
+            }
+          });
+        }
+
+        // Also check collection cards for movie/tv/anime/game
+        ['moviesGrid','tvGrid','animeGrid','gamesGrid','musicGrid','booksGrid'].forEach(collectPostersFromGrid);
+
+        if (bannerItems.length >= 3) {
+          buildBanner(bannerItems);
+          PM._bannerBuilt = true;
+        }
+
+        // Populate rails from collection cards in each grid
+        function buildRailFromGrid(gridId, trackId, opts) {
+          var grid = document.getElementById(gridId);
+          if (!grid) return;
+          var cards = grid.querySelectorAll('.collection-card');
+          if (!cards || cards.length === 0) return;
+
+          // Find the favorites card
+          var favCard = null;
+          cards.forEach(function(c) {
+            var title = c.querySelector('.collection-card-title');
+            if (title && title.textContent && title.textContent.toLowerCase().includes('favorit')) {
+              if (!favCard) favCard = c;
+            }
+          });
+          var useCard = favCard || cards[0];
+          if (!useCard) return;
+
+          // Extract preview images from the card
+          var imgs = useCard.querySelectorAll('.collection-preview-item img');
+          var totalCount = parseInt(useCard.querySelector('.collection-card-count') && useCard.querySelector('.collection-card-count').textContent) || 0;
+
+          var items = [];
+          imgs.forEach(function(img) {
+            if (img.src && !img.src.includes('data:')) {
+              items.push({ poster: img.src, title: '', url: '' });
+            }
+          });
+
+          if (items.length > 0) {
+            opts = opts || {};
+            opts.onMore = function() {
+              var PM = window.ProfileManager;
+              if (PM && PM.showTab) PM.showTab(opts.tabKey || 'movies');
+            };
+            // Show extra count properly
+            var extra = Math.max(0, totalCount - items.length);
+            var inflatedItems = items.concat(new Array(extra));
+            renderRail(trackId, items, opts);
+          }
+        }
+
+        buildRailFromGrid('moviesGrid',  'pv2MoviesTrack', { tabKey:'movies' });
+        buildRailFromGrid('tvGrid',      'pv2TvTrack',     { tabKey:'tv' });
+        buildRailFromGrid('animeGrid',   'pv2AnimeTrack',  { tabKey:'anime' });
+        buildRailFromGrid('gamesGrid',   'pv2GamesTrack',  { tabKey:'games', isSquare: false });
+        buildRailFromGrid('booksGrid',   'pv2BooksTrack',  { tabKey:'books' });
+        buildRailFromGrid('musicGrid',   'pv2MusicTrack',  { tabKey:'music', isSquare: true });
+        buildRailFromGrid('sportsGrid',  'pv2SportsTrack', { tabKey:'sports', isSquare: true, isBrand: true });
+        buildRailFromGrid('carsGrid',    'pv2CarsTrack',   { tabKey:'cars',   isLandscape: true, isBrand: true });
+        buildRailFromGrid('travelGrid',  'pv2TravelTrack', { tabKey:'travel', isLandscape: true });
+        buildRailFromGrid('fashionGrid', 'pv2FashionTrack',{ tabKey:'fashion', isSquare: true, isBrand: true });
+        buildRailFromGrid('foodGrid',    'pv2FoodTrack',   { tabKey:'food',   isSquare: true, isBrand: true });
+
+        if (attempts > 60) clearInterval(poller);
+      }, 500);
+    }
+
+    // Run after DOM + scripts loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      // Scripts are deferred so wait a tick
+      setTimeout(boot, 0);
+    }
+
+    // Also re-run on window load (deferred scripts may have settled)
+    window.addEventListener('load', function() {
+      initModeIndicator();
+      attachToProfileManager();
+    });
+
+    // Expose to global scope so inline onclick attrs work
+    if (!window.ProfileManager) window.ProfileManager = {};
+    window.ProfileManager.setOverviewMode    = setOverviewMode;
+    window.ProfileManager.toggleOverflowMenu = toggleOverflowMenu;
+    window.ProfileManager.closeOverflowMenu  = closeOverflowMenu;
+  })();
+  </script>
 </body>
 </html>
