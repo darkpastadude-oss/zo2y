@@ -6514,68 +6514,6 @@
                     return Promise.resolve();
                 }
 
-                // SPA INJECTION: Dynamically create the wrapper HTML before rendering
-                const isMobile = window.innerWidth <= 768;
-                const desktopContainer = document.getElementById('spaViewAllContainer');
-                const mobileContainer = document.getElementById('mobileSpaViewAllContainer');
-
-                const MEDIA_CONFIG = {
-                    movies: { icon: 'film', title: 'Movies', tab: 'movies', url: 'movies.html', subtitle: 'Organize your favorite films' },
-                    tv: { icon: 'tv', title: 'TV Shows', tab: 'tv', url: 'tvshows.html', subtitle: 'Organize your favorite series' },
-                    anime: { icon: 'dragon', title: 'Anime', tab: 'anime', url: 'animes.html', subtitle: 'Organize your favorite anime' },
-                    games: { icon: 'gamepad', title: 'Games', tab: 'games', url: 'games.html', subtitle: 'Organize your favorite games' },
-                    books: { icon: 'book', title: 'Books', tab: 'books', url: 'books.html', subtitle: 'Organize your favorite books' },
-                    music: { icon: 'music', title: 'Music', tab: 'music', url: 'music.html', subtitle: 'Organize your favorite tracks' },
-                    sports: { icon: 'futbol', title: 'Favorite Teams', tab: 'sports', url: 'sports.html', subtitle: 'Teams you follow across leagues' },
-                    travel: { icon: 'earth-americas', title: 'My Travel', tab: 'travel', url: 'travel.html', subtitle: 'Organize countries you want to explore' },
-                    fashion: { icon: 'shirt', title: 'My Fashion', tab: 'fashion', url: 'fashion.html', subtitle: 'Organize brands you wear, love, or want to try' },
-                    food: { icon: 'burger', title: 'My Food', tab: 'food', url: 'food.html', subtitle: 'Track fast food and chains you love' },
-                    cars: { icon: 'car', title: 'My Cars', tab: 'cars', url: 'cars.html', subtitle: 'Organize car brands you love or want to try' }
-                };
-
-                const cfg = MEDIA_CONFIG[safeTab];
-
-                if (cfg && safeTab !== 'community') {
-                    if (desktopContainer && !isMobile) {
-                        desktopContainer.innerHTML = `
-                            <div class="tab-content active rendered" id="${safeTab}-tab">
-                                <div class="section">
-                                    <div class="section-header">
-                                        <div>
-                                            <h2 class="section-title">${cfg.title}</h2>
-                                            <p class="section-subtitle">${cfg.subtitle}</p>
-                                        </div>
-                                        <div class="section-actions">
-                                            <button class="btn btn-primary btn-sm" onclick="ProfileManager.create${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}List && ProfileManager.create${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}List()"><i class="fas fa-plus"></i></button>
-                                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='${cfg.url}'"><i class="fas fa-${cfg.icon}"></i> Browse ${cfg.title}</button>
-                                        </div>
-                                    </div>
-                                    <div class="collection-grid" id="${safeTab}Grid"></div>
-                                </div>
-                            </div>
-                        `;
-                        desktopContainer.style.display = '';
-                    }
-
-                    if (mobileContainer && isMobile) {
-                        const capitalizedTab = safeTab.charAt(0).toUpperCase() + safeTab.slice(1);
-                        mobileContainer.innerHTML = `
-                            <div class="mobile-section active rendered" id="mobile${capitalizedTab}Section">
-                                <div class="mobile-section-title">
-                                    <span>${cfg.title}</span>
-                                    <div class="d-flex gap-sm">
-                                        <button class="mobile-action-btn btn-base mb-0" onclick="ProfileManager.create${capitalizedTab}List && ProfileManager.create${capitalizedTab}List()"><i class="fas fa-plus"></i></button>
-                                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='${cfg.url}'"><i class="fas fa-${cfg.icon}"></i> Browse</button>
-                                    </div>
-                                </div>
-                                <div class="mobile-section-subtitle">${cfg.subtitle}</div>
-                                <div class="collection-grid" id="mobile${capitalizedTab}Grid"></div>
-                            </div>
-                        `;
-                        mobileContainer.style.display = '';
-                    }
-                }
-
                 const handlers = {
                     movies: () => renderMovies(),
                     ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
@@ -6590,32 +6528,11 @@
                     cars: () => renderCars(),
                     community: () => showCommunitySection('followers')
                 };
+
                 const handler = handlers[safeTab] || handlers[DEFAULT_PROFILE_TAB] || handlers.movies;
                 return Promise.resolve()
-                    .then(() => handler())
-                    .catch((error) => {
-                        if (requestToken !== tabSwitchToken) return;
-                        console.error(`Tab render failed (${safeTab}):`, error);
-                        showToast('Could not load this tab right now', 'error');
-                        try {
-                            const gridId = isMobile ? `mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Grid` : `${safeTab}Grid`;
-                            const grid = document.getElementById(gridId);
-                            if (grid && !grid.querySelector('.collection-card')) {
-                                grid.innerHTML = `<div class="empty-state"><h3 class="empty-title">Couldn't load this tab</h3></div>`;
-                            }
-                        } catch (_) {}
-                    });
-            }
-
-            function ensureTabSectionVisible(safeTab, isMobile) {
-                const section = isMobile
-                    ? document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`)
-                    : document.getElementById(`${safeTab}-tab`);
-                if (!section) return;
-                if (section.classList.contains('rendered')) return;
-                requestAnimationFrame(() => {
-                    section.classList.add('rendered');
-                });
+                    .then(handler)
+                    .catch(err => console.error('[Profile] Error rendering tab:', safeTab, err));
             }
 
             async function showTab(tabName, options = {}) {
@@ -11523,7 +11440,7 @@
             };
         })();
 
-        window.ProfileManager = ProfileManager;
+        window.ProfileManager = Object.assign(window.ProfileManager || {}, ProfileManager);
 
         // ===== INITIALIZE WHEN DOM IS LOADED =====
         document.addEventListener('DOMContentLoaded', function() {
