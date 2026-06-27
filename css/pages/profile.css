@@ -8079,3 +8079,36 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   .mph2-toggle { width: 200px; }
   .mph2-poster { width: 82px; }
 }
+
+/* ============================================================
+   MOBILE DETAIL VIEW
+   ============================================================ */
+.mobile-section-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 6px 0;
+}
+
+.mobile-section-back:hover {
+  opacity: 0.85;
+}
+
+.mobile-detail-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 4px;
+  padding: 0 16px;
+}
+
+.mobile-detail-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  padding: 0 16px;
+}

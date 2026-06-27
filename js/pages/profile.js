@@ -215,6 +215,7 @@
                 game: { route: 'games', mobileDetail: 'mobileGameDetailSection', mobileMain: 'mobileGamesSection', desktopDetail: 'game-detail-view', desktopTab: 'games-tab' },
                 book: { route: 'books', mobileDetail: 'mobileBookDetailSection', mobileMain: 'mobileBooksSection', desktopDetail: 'book-detail-view', desktopTab: 'books-tab' },
                 music: { route: 'music', mobileDetail: 'mobileMusicDetailSection', mobileMain: 'mobileMusicSection', desktopDetail: 'music-detail-view', desktopTab: 'music-tab' },
+                sports: { route: 'sports', mobileDetail: 'mobileSportsDetailSection', mobileMain: 'mobileSportsSection', desktopDetail: 'sports-detail-view', desktopTab: 'sports-tab' },
                 travel: { route: 'travel', mobileDetail: 'mobileTravelDetailSection', mobileMain: 'mobileTravelSection', desktopDetail: 'travel-detail-view', desktopTab: 'travel-tab' },
                 fashion: { route: 'fashion', mobileDetail: 'mobileFashionDetailSection', mobileMain: 'mobileFashionSection', desktopDetail: 'fashion-detail-view', desktopTab: 'fashion-tab' },
                 food: { route: 'food', mobileDetail: 'mobileFoodDetailSection', mobileMain: 'mobileFoodSection', desktopDetail: 'food-detail-view', desktopTab: 'food-tab' },
@@ -4252,6 +4253,20 @@
                 return false;
             }
 
+            async function showRailShowcaseDetail(tabName) {
+                const safeTab = normalizeProfileTab(tabName);
+                const type = SPA_TYPE_MAP[safeTab] || safeTab;
+                if (!VALID_COLLECTION_TYPES.has(type)) return;
+                if (type === 'sports') {
+                    await showTab(safeTab);
+                    return;
+                }
+                const showcaseListId = getShowcaseListId(type);
+                const isCustom = showcaseListId !== 'favorites' && showcaseListId !== 'watched' && showcaseListId !== 'watchlist' && showcaseListId !== 'read' && showcaseListId !== 'readlist' && showcaseListId !== 'listened' && showcaseListId !== 'listenlist' && showcaseListId !== 'visited' && showcaseListId !== 'bucketlist' && showcaseListId !== 'owned' && showcaseListId !== 'tried' && showcaseListId !== 'want_to_try';
+                const listType = isCustom ? 'custom' : 'default';
+                await openCollectionPage(showcaseListId, type, listType);
+            }
+
             async function openCollectionPage(listId, contentType, listType = null) {
                 const normalizedType = String(contentType || '').toLowerCase();
                 if (!VALID_COLLECTION_TYPES.has(normalizedType)) return;
@@ -6627,7 +6642,7 @@
                     if (communityPanel) communityPanel.style.display = 'none';
                     if (mediaToggle) mediaToggle.style.display = 'none';
 
-                    if (spaContainer) {
+                    if (!options.skipRender && spaContainer) {
                         spaContainer.innerHTML = '';
                         renderShowcaseTab(safeTab);
                     }
@@ -6646,7 +6661,7 @@
                     }
                 } else {
                     const spaContainer = document.getElementById('spaViewAllContainer');
-                    if (spaContainer) {
+                    if (!options.skipRender && spaContainer) {
                         spaContainer.innerHTML = '';
                         renderShowcaseTab(safeTab);
                     }
@@ -8570,6 +8585,14 @@
 
             async function showCollectionDetail(listId, contentType, listType) {
                 const isMobile = window.innerWidth <= 768;
+
+                if (isMobile) {
+                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                    if (spaContainer) spaContainer.style.display = 'none';
+                } else {
+                    const spaContainer = document.getElementById('spaViewAllContainer');
+                    if (spaContainer) spaContainer.style.display = 'none';
+                }
 
                 if (contentType === 'movie') {
                     await showMovieDetail(listId, listType, isMobile);
@@ -10512,16 +10535,33 @@
                 if (isMobile) {
                     const detailSection = document.getElementById(cfg.mobileDetail);
                     const mainSection = document.getElementById(cfg.mobileMain);
+                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
                     if (detailSection) { detailSection.style.display = 'none'; detailSection.classList.remove('active', 'rendered'); }
-                    if (mainSection) { mainSection.style.display = 'block'; mainSection.classList.add('active'); }
+                    if (mainSection && mainSection.style) { mainSection.style.display = 'block'; mainSection.classList.add('active'); }
+                    if (spaContainer && (!mainSection || !mainSection.style)) {
+                        spaContainer.style.display = 'block';
+                        if (!spaContainer.children.length) {
+                            renderShowcaseTab(cfg.route);
+                            requestTabRender(cfg.route, ++tabSwitchToken).catch(() => {});
+                        }
+                    }
                 } else {
                     const detailView = document.getElementById(cfg.desktopDetail);
                     const mainTab = document.getElementById(cfg.desktopTab);
+                    const spaContainer = document.getElementById('spaViewAllContainer');
                     if (detailView) { detailView.style.display = 'none'; detailView.classList.remove('active', 'rendered'); }
-                    if (mainTab) { mainTab.style.display = 'block'; mainTab.classList.add('active'); }
+                    if (mainTab && mainTab.style) { mainTab.style.display = 'block'; mainTab.classList.add('active'); }
+                    if (spaContainer && (!mainTab || !mainTab.style)) {
+                        spaContainer.style.display = 'block';
+                        if (!spaContainer.children.length) {
+                            renderShowcaseTab(cfg.route);
+                            requestTabRender(cfg.route, ++tabSwitchToken).catch(() => {});
+                        }
+                    }
                 }
             }
             function hideMovieDetail() { hideDetailByType('movie'); }
+            function hideSportsDetail() { hideDetailByType('sports'); }
             function hideMusicDetail() { hideDetailByType('music'); }
             function hideTravelDetail() { hideDetailByType('travel'); }
             function hideFashionDetail() { hideDetailByType('fashion'); }
@@ -11602,6 +11642,7 @@
                 initialize,
                 showTab,
                 showPrimaryTab,
+                showRailShowcaseDetail,
                 goToMyProfile,
                 showCommunitySection,
                 viewUserProfile,
