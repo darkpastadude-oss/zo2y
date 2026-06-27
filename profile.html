@@ -175,10 +175,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <!-- Mode Switch: Media / Lifestyle -->
                 <div class="pv2-mode-bar">
                     <div class="pv2-mode-switch" role="tablist" aria-label="Content mode">
-                        <button class="pv2-mode-btn active" id="pv2ModeMedia" role="tab" aria-selected="true" onclick="ProfileManager.setOverviewMode('media')">
+                        <button class="pv2-mode-btn active" id="pv2ModeMedia" role="tab" aria-selected="true" onclick="window.ProfileManager.setOverviewMode('media')">
                             <i class="fas fa-play-circle"></i> media
                         </button>
-                        <button class="pv2-mode-btn" id="pv2ModeLifestyle" role="tab" aria-selected="false" onclick="ProfileManager.setOverviewMode('lifestyle')">
+                        <button class="pv2-mode-btn" id="pv2ModeLifestyle" role="tab" aria-selected="false" onclick="window.ProfileManager.setOverviewMode('lifestyle')">
                             <i class="fas fa-compass"></i> lifestyle
                         </button>
                         <div class="pv2-mode-indicator" id="pv2ModeIndicator"></div>
