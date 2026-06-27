@@ -6844,276 +6844,88 @@
                     { track: mobileTrack, isMobile: true }
                 ].forEach(({ track, isMobile }) => {
                     if (!track) return;
-                    track.innerHTML = '';
-
-                    const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
-
-                    if (!previewUrls || !previewUrls.length) {
-                        const emptyEl = document.createElement('div');
-                        emptyEl.className = isMobile ? 'mph2-rail-empty-custom' : 'pv2-rail-empty';
-                        const iconMap = {
-                            movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon',
-                            game: 'fa-gamepad', book: 'fa-book', music: 'fa-music',
-                            sports: 'fa-futbol', travel: 'fa-earth-americas',
-                            fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
-                        };
-                        const icon = iconMap[mediaType] || 'fa-plus';
-                        emptyEl.innerHTML = `<i class="fas ${icon}"></i><span class="${isMobile ? 'mph2-rail-empty-text' : 'pv2-rail-empty-text'}">nothing here yet</span>`;
-                        
-                        if (isMobile) {
-                            emptyEl.style.display = 'flex';
-                            emptyEl.style.alignItems = 'center';
-                            emptyEl.style.justifyContent = 'center';
-                            emptyEl.style.gap = '8px';
-                            emptyEl.style.padding = '20px 16px';
-                            emptyEl.style.color = 'rgba(255,255,255,0.25)';
-                            emptyEl.style.fontSize = '0.8rem';
-                            emptyEl.style.border = '1px dashed rgba(255,255,255,0.1)';
-                            emptyEl.style.borderRadius = '10px';
-                            emptyEl.style.width = '100%';
-                        }
-                        
-                        track.appendChild(emptyEl);
-                        if (railEl) railEl.style.display = '';
-                        return;
-                    }
-
-                    if (railEl) railEl.style.display = '';
-
-                    const maxVisible = isMobile ? 3 : 5;
-                    const visible = previewUrls.slice(0, maxVisible);
-                    const total = typeof totalItemCount === 'number' ? totalItemCount : previewUrls.length;
-                    const extra = total - visible.length;
-
-                    visible.forEach((url, i) => {
-                        const card = document.createElement('a');
-                        card.href = page;
-                        
-                        let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
-                        if (opts.isSquare) baseClass += ' is-square';
-                        if (opts.isLandscape) baseClass += ' is-landscape';
-                        if (opts.isBrand) baseClass += ' is-brand';
-                        card.className = baseClass;
-                        card.style.animationDelay = (i * 40) + 'ms';
-
-                        const imgWrap = document.createElement('div');
-                        imgWrap.className = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
-
-                        const img = document.createElement('img');
-                        img.className = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
-                        img.src = url;
-                        img.alt = '';
-                        img.loading = 'lazy';
-                        img.decoding = 'async';
-                        img.onerror = function() { this.onerror = null; this.src = '/newlogo.webp'; };
-
-                        imgWrap.appendChild(img);
-                        card.appendChild(imgWrap);
-                        
-                        track.appendChild(card);
-                    });
-
-                    if (extra > 0) {
-                        const chip = document.createElement('a');
-                        chip.className = isMobile ? 'mph2-more-chip' : 'pv2-more-chip';
-                        chip.href = '#';
-                        chip.innerHTML = `
-                            <span class="${isMobile ? 'mph2-more-chip-count' : 'pv2-more-chip-count'}">+${extra}</span>
-                            <span class="${isMobile ? 'mph2-more-chip-label' : 'pv2-more-chip-label'}">more</span>
-                        `;
-                        chip.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            showShowcaseDetail(mediaType);
-                        });
-                        track.appendChild(chip);
-                    }
+                    populateRailElement(track, isMobile, mediaType, previewUrls, totalItemCount, opts, page);
                 });
             }
 
-            const MEDIA_CONFIGS = {
-                movie: {
-                    explorePage: 'movies.html',
-                    exploreIcon: 'fa-film',
-                    exploreLabel: 'Movies',
-                    iconName: 'movie',
-                    fallbackIcon: 'fa-film'
-                },
-                tv: {
-                    explorePage: 'tvshows.html',
-                    exploreIcon: 'fa-tv',
-                    exploreLabel: 'TV Shows',
-                    iconName: 'tv',
-                    fallbackIcon: 'fa-tv'
-                },
-                anime: {
-                    explorePage: 'animes.html',
-                    exploreIcon: 'fa-dragon',
-                    exploreLabel: 'Anime',
-                    iconName: 'anime',
-                    fallbackIcon: 'fa-dragon'
-                },
-                game: {
-                    explorePage: 'games.html',
-                    exploreIcon: 'fa-gamepad',
-                    exploreLabel: 'Games',
-                    iconName: 'game',
-                    fallbackIcon: 'fa-gamepad'
-                },
-                book: {
-                    explorePage: 'books.html',
-                    exploreIcon: 'fa-book',
-                    exploreLabel: 'Books',
-                    iconName: 'book',
-                    fallbackIcon: 'fa-book'
-                },
-                music: {
-                    explorePage: 'music.html',
-                    exploreIcon: 'fa-music',
-                    exploreLabel: 'Music',
-                    iconName: 'music',
-                    fallbackIcon: 'fa-music'
-                },
-                travel: {
-                    explorePage: 'travel.html',
-                    exploreIcon: 'fa-earth-americas',
-                    exploreLabel: 'Places',
-                    iconName: 'travel',
-                    fallbackIcon: 'fa-earth-americas'
-                },
-                fashion: {
-                    explorePage: 'fashion.html',
-                    exploreIcon: 'fa-shirt',
-                    exploreLabel: 'Fashion',
-                    iconName: 'fashion',
-                    fallbackIcon: 'fa-shirt'
-                },
-                food: {
-                    explorePage: 'food.html',
-                    exploreIcon: 'fa-burger',
-                    exploreLabel: 'Food',
-                    iconName: 'food',
-                    fallbackIcon: 'fa-burger'
-                },
-                car: {
-                    explorePage: 'cars.html',
-                    exploreIcon: 'fa-car',
-                    exploreLabel: 'Cars',
-                    iconName: 'car',
-                    fallbackIcon: 'fa-car'
-                }
-            };
+            function populateRailElement(track, isMobile, mediaType, previewUrls, totalItemCount, opts, page) {
+                if (!opts) opts = getRailOptions(mediaType);
+                if (!page) page = TAB_PAGE_MAP[mediaType] || '#';
 
-            async function renderCategoryGrid(contentType, userId, checkToken) {
-                const isMobile = window.innerWidth <= 768;
-                const tabName = SPA_TYPE_REVERSE[contentType] || contentType;
-                const gridId = isMobile ? `mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Grid` : `${tabName}Grid`;
-                const grid = document.getElementById(gridId);
-                if (!grid) return [];
+                track.innerHTML = '';
+                const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
 
-                const cfg = MEDIA_CONFIGS[contentType];
-                if (!cfg) return [];
+                if (!previewUrls || !previewUrls.length) {
+                    const emptyEl = document.createElement('div');
+                    const iconMap = {
+                        movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon',
+                        game: 'fa-gamepad', book: 'fa-book', music: 'fa-music',
+                        sports: 'fa-futbol', travel: 'fa-earth-americas',
+                        fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
+                    };
+                    const icon = iconMap[mediaType] || 'fa-plus';
+                    emptyEl.innerHTML = `<i class="fas ${icon}"></i> No items yet`;
+                    
+                    emptyEl.style.padding = '16px';
+                    emptyEl.style.color = 'rgba(255,255,255,0.3)';
+                    emptyEl.style.fontSize = '0.85rem';
+                    emptyEl.style.fontWeight = '500';
+                    emptyEl.style.display = 'flex';
+                    emptyEl.style.alignItems = 'center';
+                    emptyEl.style.justifyContent = 'center';
+                    emptyEl.style.gap = '8px';
+                    emptyEl.style.width = '100%';
 
-                await ensurePinnedCollectionsLoaded(userId);
-                if (!checkToken()) return [];
-
-                const customLists = await loadCollaborativeCustomLists(contentType, userId);
-                if (!checkToken()) return [];
-
-                const items = await ListService.loadMediaListItems(supabase, userId, contentType);
-                if (!checkToken()) return [];
-
-                const defaultListsConfig = ProfileShowcase.getDefaultListsForType(contentType);
-                const defaultLists = defaultListsConfig.map(l => ({
-                    ...l,
-                    description: l.title === 'Favorites' 
-                        ? `${cfg.exploreLabel} you love` 
-                        : `${cfg.exploreLabel} list`,
-                    type: 'default'
-                }));
-
-                const listConfig = ListService.getListConfig(contentType);
-                const itemIdField = listConfig?.itemIdField || 'item_id';
-
-                for (const list of defaultLists) {
-                    list.itemIds = Array.from(new Set(
-                        items
-                            .filter(i => i.list_type === list.id)
-                            .map(i => String(i[itemIdField] || i.item_id || '').trim())
-                            .filter(Boolean)
-                    ));
-                    if (contentType === 'movie') list.movieIds = list.itemIds;
-                    else if (contentType === 'tv') list.tvIds = list.itemIds;
-                    else if (contentType === 'anime') list.animeIds = list.itemIds;
-                    else if (contentType === 'game') list.gameIds = list.itemIds;
-                    else if (contentType === 'book') list.bookIds = list.itemIds;
-                    else if (contentType === 'music') list.trackIds = list.itemIds;
-                    else if (contentType === 'travel') list.countryCodes = list.itemIds;
-                    else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
-                        list.brandIds = list.itemIds;
-                    }
+                    track.appendChild(emptyEl);
+                    if (railEl) railEl.style.display = '';
+                    return;
                 }
 
-                if (contentType === 'movie') favoriteIds.movie = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
-                else if (contentType === 'tv') favoriteIds.tv = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
-                else if (contentType === 'anime') favoriteIds.anime = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
-                else if (contentType === 'game') favoriteIds.game = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
+                if (railEl) railEl.style.display = '';
 
-                for (const list of customLists) {
-                    list.itemIds = Array.from(new Set(
-                        items
-                            .filter(i => String(i.list_id || '') === String(list.id || ''))
-                            .map(i => String(i[itemIdField] || i.item_id || '').trim())
-                            .filter(Boolean)
-                    ));
-                    list.type = 'custom';
-                    if (contentType === 'movie') list.movieIds = list.itemIds;
-                    else if (contentType === 'tv') list.tvIds = list.itemIds;
-                    else if (contentType === 'anime') list.animeIds = list.itemIds;
-                    else if (contentType === 'game') list.gameIds = list.itemIds;
-                    else if (contentType === 'book') list.bookIds = list.itemIds;
-                    else if (contentType === 'music') list.trackIds = list.itemIds;
-                    else if (contentType === 'travel') list.countryCodes = list.itemIds;
-                    else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
-                        list.brandIds = list.itemIds;
-                    }
-                }
+                const maxVisible = isMobile ? 5 : 8; // Increased limit for category rails
+                const visible = previewUrls.slice(0, maxVisible);
+                const total = typeof totalItemCount === 'number' ? totalItemCount : previewUrls.length;
+                const extra = total - visible.length;
 
-                const allLists = applyPinnedListSorting(contentType, [...defaultLists, ...customLists]);
+                visible.forEach((url, i) => {
+                    const card = document.createElement('div');
+                    
+                    let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
+                    if (opts.isSquare) baseClass += ' is-square';
+                    if (opts.isLandscape) baseClass += ' is-landscape';
+                    if (opts.isBrand) baseClass += ' is-brand';
+                    card.className = baseClass;
+                    card.style.animationDelay = (i * 40) + 'ms';
 
-                grid.innerHTML = '';
-                if (allLists.length === 0) {
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No ${cfg.exploreLabel} Yet</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save items to see them here.</p>
-                            <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='${cfg.explorePage}'">
-                                <i class="fas ${cfg.exploreIcon}"></i> Explore ${cfg.exploreLabel}
-                            </button>
+                    const imgWrap = document.createElement('div');
+                    imgWrap.className = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
+
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'Poster';
+                    img.loading = 'lazy';
+                    img.onerror = () => { img.src = '/newlogo.webp'; };
+
+                    imgWrap.appendChild(img);
+                    card.appendChild(imgWrap);
+                    track.appendChild(card);
+                });
+
+                if (extra > 0) {
+                    const more = document.createElement('div');
+                    more.className = isMobile ? 'mph2-poster is-more' : 'pv2-poster is-more';
+                    if (opts.isSquare) more.classList.add('is-square');
+                    if (opts.isLandscape) more.classList.add('is-landscape');
+                    if (opts.isBrand) more.classList.add('is-brand');
+                    
+                    more.innerHTML = `
+                        <div class="${isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap'}">
+                            <div class="${isMobile ? 'mph2-more-overlay' : 'pv2-more-overlay'}">+${extra}</div>
                         </div>
                     `;
-                    return allLists;
+                    track.appendChild(more);
                 }
-
-                const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                    list,
-                    contentType,
-                    isMobile,
-                    String(list?.user_id || userId || '').trim() || userId
-                )));
-                const fragment = document.createDocumentFragment();
-                cards.forEach(card => fragment.appendChild(card));
-                grid.appendChild(fragment);
-
-                const allPreviewIds = new Set();
-                allLists.forEach(list => {
-                    (list.itemIds || []).slice(0, 3).forEach(id => allPreviewIds.add(id));
-                });
-                if (allPreviewIds.size > 0) {
-                    await getPreviewItems(Array.from(allPreviewIds), contentType).catch(() => {});
-                }
-
-                return allLists;
             }
 
             async function resolveShowcaseList(userId, contentType) {

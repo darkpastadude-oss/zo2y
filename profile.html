@@ -312,42 +312,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <section class="profile-primary-panel" data-panel="lists" style="display:none">
             <!-- Navigation Tabs -->
-            <div class="profile-section-shell profile-nav-shell">
-                <div class="profile-section-intro profile-section-intro-compact">
-                    <span class="profile-section-kicker">Browse</span>
-                    <h2 class="profile-section-heading">Collections and lists</h2>
-                </div>
-            <div class="nav-tabs">
-                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
-                    <span>Media</span> <i class="fas fa-chevron-down"></i>
-                </button>
-                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
-                    <span>Lifestyle</span> <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
-            <div class="profile-tab-group-row" data-group="media">
-                <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="movieTabText">Movies</span></div>
-                <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span></div>
-                <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span></div>
-                <div class="nav-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="gamesTabText">Games</span></div>
-                <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="booksTabText">Books</span></div>
-                <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="musicTabText">Music</span></div>
-            </div>
-            <div class="profile-tab-group-row" data-group="lifestyle">
-                <div class="nav-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span></div>
-                <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span></div>
-                <div class="nav-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span></div>
-                <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
-                <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
-            </div>
-            </div>
-
             <div id="lists-tab">
             <!-- Movies Tab Content -->
             <div class="tab-content" id="movies-tab">
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="moviesTitle">My Movies</h2>
                             <p class="section-subtitle" id="moviesSubtitle">Organize your favorite films</p>
                         </div>
@@ -411,6 +382,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="tvTitle">My TV Shows</h2>
                             <p class="section-subtitle" id="tvSubtitle">Organize your favorite series</p>
                         </div>
@@ -474,6 +446,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="animeTitle">My Anime</h2>
                             <p class="section-subtitle" id="animeSubtitle">Organize your favorite anime</p>
                         </div>
@@ -537,6 +510,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="gamesTitle">My Games</h2>
                             <p class="section-subtitle" id="gamesSubtitle">Organize your favorite games</p>
                         </div>
@@ -600,6 +574,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="booksTitle">My Books</h2>
                             <p class="section-subtitle" id="booksSubtitle">Organize your favorite books</p>
                         </div>
@@ -662,6 +637,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="musicTitle">My Music</h2>
                             <p class="section-subtitle" id="musicSubtitle">Organize your favorite tracks</p>
                         </div>
@@ -725,6 +701,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
                             <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
                         </div>
@@ -752,6 +729,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="travelTitle">My Travel</h2>
                             <p class="section-subtitle" id="travelSubtitle">Organize countries you want to explore</p>
                         </div>
@@ -815,6 +793,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="fashionTitle">My Fashion</h2>
                             <p class="section-subtitle" id="fashionSubtitle">Organize brands you wear, love, or want to try</p>
                         </div>
@@ -878,6 +857,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="carsTitle">My Cars</h2>
                             <p class="section-subtitle" id="carsSubtitle">Organize car brands you love or want to try</p>
                         </div>
@@ -941,6 +921,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="section-header">
                         <div>
+                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
                             <h2 class="section-title" id="foodTitle">My Food</h2>
                             <p class="section-subtitle" id="foodSubtitle">Track fast food and chains you love</p>
                         </div>
@@ -1360,6 +1341,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Movies Section -->
             <div class="mobile-section active" id="mobileMoviesSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileMoviesTitle">My Movies</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMovieListBtn" onclick="ProfileManager.createMovieList()">
@@ -1462,6 +1444,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Anime Section -->
             <div class="mobile-section" id="mobileAnimeSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileAnimeTitle">My Anime</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateAnimeListBtn" onclick="ProfileManager.createAnimeList()">
@@ -1513,6 +1496,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Games Section -->
             <div class="mobile-section" id="mobileGamesSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileGamesTitle">My Games</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateGameListBtn" onclick="ProfileManager.createGameList()">
@@ -1564,6 +1548,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Books Section -->
             <div class="mobile-section" id="mobileBooksSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileBooksTitle">My Books</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateBookListBtn" onclick="ProfileManager.createBookList()">
@@ -1614,6 +1599,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Music Section -->
             <div class="mobile-section" id="mobileMusicSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileMusicTitle">My Music</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMusicListBtn" onclick="ProfileManager.createMusicList()">
@@ -1665,6 +1651,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Sports Section -->
             <div class="mobile-section" id="mobileSportsSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileSportsTitle">Favorite Teams</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='sports.html'">
@@ -1689,6 +1676,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Travel Section -->
             <div class="mobile-section" id="mobileTravelSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileTravelTitle">My Travel</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateTravelListBtn" onclick="ProfileManager.createTravelList()">
@@ -1740,6 +1728,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Fashion Section -->
             <div class="mobile-section" id="mobileFashionSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileFashionTitle">My Fashion</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFashionListBtn" onclick="ProfileManager.createFashionList()">
@@ -1791,6 +1780,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Cars Section -->
             <div class="mobile-section" id="mobileCarsSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileCarsTitle">My Cars</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateCarsListBtn" onclick="ProfileManager.createCarList()">
@@ -1842,6 +1832,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Food Section -->
             <div class="mobile-section" id="mobileFoodSection">
                 <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
                     <span id="mobileFoodTitle">My Food</span>
                     <div class="d-flex gap-sm">
                         <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
