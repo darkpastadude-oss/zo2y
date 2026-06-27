@@ -7128,46 +7128,12 @@
                 return await ListService.loadList(supabase, userId, contentType, showcaseListId);
             }
 
-            function renderDeletedShowcaseRail(mediaType, isMobile) {
-                const desktopTrackId = getRailTrackId(mediaType, false);
-                const mobileTrackId = getRailTrackId(mediaType, true);
-                const desktopTrack = desktopTrackId ? document.getElementById(desktopTrackId) : null;
-                const mobileTrack = mobileTrackId ? document.getElementById(mobileTrackId) : null;
-
-                [
-                    { track: desktopTrack, isMobile: false },
-                    { track: mobileTrack, isMobile: true }
-                ].forEach(({ track, isMobile }) => {
-                    if (!track) return;
-                    track.innerHTML = '';
-
-                    const emptyEl = document.createElement('div');
-                    emptyEl.className = isMobile ? 'mph2-rail-empty-custom' : 'pv2-rail-empty';
-                    emptyEl.innerHTML = `<i class="fas fa-exclamation-circle"></i><span class="${isMobile ? 'mph2-rail-empty-text' : 'pv2-rail-empty-text'}">Choose a list to feature</span>`;
-
-                    if (isMobile) {
-                        emptyEl.style.display = 'flex';
-                        emptyEl.style.alignItems = 'center';
-                        emptyEl.style.justifyContent = 'center';
-                        emptyEl.style.gap = '8px';
-                        emptyEl.style.padding = '20px 16px';
-                        emptyEl.style.color = 'rgba(255,255,255,0.35)';
-                        emptyEl.style.fontSize = '0.8rem';
-                        emptyEl.style.border = '1px dashed rgba(255,255,255,0.15)';
-                        emptyEl.style.borderRadius = '10px';
-                        emptyEl.style.width = '100%';
-                    }
-                    track.appendChild(emptyEl);
-                });
-                markTabRendered(mediaType);
-            }
-
             async function renderShowcaseRail(contentType, userId) {
                 const listData = await resolveShowcaseList(userId, contentType);
                 const isMobile = window.innerWidth <= 768;
 
-                if (!listData) {
-                    renderDeletedShowcaseRail(contentType, isMobile);
+                if (!listData || !listData.items || listData.items.length === 0) {
+                    populateRailTrack(contentType, [], 0);
                     return;
                 }
 
