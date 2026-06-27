@@ -335,7 +335,16 @@
                     updateCollectionViewToggleButtons();
 
                     if (!isCollectionRouteActive()) {
-                        renderMovies().catch(() => {});
+                        const renderers = [
+                            renderMovies, renderTvShows, renderAnimeShows, renderGames,
+                            renderBooks, renderMusic, renderSports, renderTravel,
+                            renderFashion, renderFood, renderCars
+                        ];
+                        renderers.forEach(fn => {
+                            if (typeof fn === 'function') {
+                                fn().catch(() => {});
+                            }
+                        });
                     }
                     
                     document.addEventListener('click', (e) => {
@@ -6514,6 +6523,7 @@
                     ['games-tab', 'game-detail-view'],
                     ['books-tab', 'book-detail-view'],
                     ['music-tab', 'music-detail-view'],
+                    ['sports-tab', ''],
                     ['travel-tab', 'travel-detail-view'],
                     ['fashion-tab', 'fashion-detail-view'],
                     ['food-tab', 'food-detail-view'],
@@ -6521,7 +6531,7 @@
                 ];
                 desktopPairs.forEach(([mainId, detailId]) => {
                     const main = document.getElementById(mainId);
-                    const detail = document.getElementById(detailId);
+                    const detail = detailId ? document.getElementById(detailId) : null;
                     if (main) main.style.display = '';
                     if (detail) {
                         detail.style.display = 'none';
@@ -6536,6 +6546,7 @@
                     { main: 'mobileGamesSection', detail: 'mobileGameDetailSection', grid: 'mobileGamesGrid' },
                     { main: 'mobileBooksSection', detail: 'mobileBookDetailSection', grid: 'mobileBooksGrid' },
                     { main: 'mobileMusicSection', detail: 'mobileMusicDetailSection', grid: 'mobileMusicGrid' },
+                    { main: 'mobileSportsSection', detail: '', grid: 'mobileSportsGrid' },
                     { main: 'mobileTravelSection', detail: 'mobileTravelDetailSection', grid: 'mobileTravelGrid' },
                     { main: 'mobileFashionSection', detail: 'mobileFashionDetailSection', grid: 'mobileFashionGrid' },
                     { main: 'mobileFoodSection', detail: 'mobileFoodDetailSection', grid: 'mobileFoodGrid' },
@@ -6598,19 +6609,25 @@
                 // Even on repeat clicks, make sure the section is visible.
                 if (safeTab === currentTab && alreadyActive) {
                     if (isMobile) {
-                        const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                        const overviewPanel = document.getElementById('mobileOverviewPanel');
                         const listsPanel = document.getElementById('mobileListsPanel');
-                        if (spaContainer && spaContainer.children.length === 0 && safeTab !== 'community') {
-                            renderShowcaseTab(safeTab);
-                        }
+                        if (overviewPanel) overviewPanel.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'block';
+                    } else {
+                        const overview = document.getElementById('pv2Overview');
+                        const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                        if (overview) overview.style.display = 'none';
+                        if (listsPanel) {
+                            listsPanel.style.display = 'block';
+                            listsPanel.style.removeProperty('display');
+                        }
                     }
                     return;
                 }
 
                 if (!options.skipDetailReset) {
-                resetDetailPanels();
-                currentMediaDetail = null;
+                    resetDetailPanels();
+                    currentMediaDetail = null;
                 }
 
                 if (!options.skipPrimarySync) {
@@ -6634,7 +6651,6 @@
                     const overviewPanel = document.getElementById('mobileOverviewPanel');
                     const listsPanel = document.getElementById('mobileListsPanel');
                     const communityPanel = document.getElementById('mobileCommunityPanel');
-                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
                     const mediaToggle = document.querySelector('.mobile-media-toggle');
 
                     if (overviewPanel) overviewPanel.style.display = 'none';
@@ -6642,15 +6658,43 @@
                     if (communityPanel) communityPanel.style.display = 'none';
                     if (mediaToggle) mediaToggle.style.display = 'none';
 
-                    if (!options.skipRender && spaContainer) {
-                        spaContainer.innerHTML = '';
-                        renderShowcaseTab(safeTab);
+                    document.querySelectorAll('.mobile-section').forEach(section => {
+                        if (options.skipDetailReset) {
+                            const detailSection = section.querySelector('[id*="DetailSection"]');
+                            if (detailSection && detailSection.style.display === 'block') {
+                                return;
+                            }
+                        }
+                        section.style.display = 'none';
+                        section.classList.remove('active', 'rendered');
+                    });
+
+                    document.querySelectorAll('.mobile-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    closeProfileTabGroups();
+
+                    const activeSection =
+                        document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
+                        document.getElementById(`mobile${DEFAULT_PROFILE_TAB.charAt(0).toUpperCase() + DEFAULT_PROFILE_TAB.slice(1)}Section`) ||
+                        document.getElementById('mobileMoviesSection');
+                    if (activeSection) {
+                        activeSection.style.display = 'block';
+                        activeSection.classList.add('active');
+                        activeSection.classList.remove('rendered');
                     }
 
                     const activeTab = document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`);
                     if (activeTab) {
                         activeTab.classList.add('active');
+                    } else if (safeTab !== 'community') {
+                        const fallbackTab = document.querySelector(`.mobile-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
+                        if (fallbackTab) fallbackTab.classList.add('active');
                     }
+                    ensureProfileGroupRowVisible(safeTab);
+                    scrollActiveMobileTabIntoView(safeTab);
+                    const swipeHint = document.getElementById('mobileTabsSwipeHint');
+                    if (swipeHint) swipeHint.classList.add('hidden');
 
                     currentTab = safeTab;
                     if (!options.skipRender) {
@@ -6660,12 +6704,27 @@
                         }
                     }
                 } else {
-                    const spaContainer = document.getElementById('spaViewAllContainer');
-                    if (!options.skipRender && spaContainer) {
-                        spaContainer.innerHTML = '';
-                        renderShowcaseTab(safeTab);
+                    const overview = document.getElementById('pv2Overview');
+                    const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (overview) overview.style.display = 'none';
+                    if (listsPanel) {
+                        listsPanel.style.display = 'block';
+                        listsPanel.style.removeProperty('display');
                     }
 
+                    document.querySelectorAll('.tab-content').forEach(tab => {
+                        tab.classList.remove('active', 'rendered');
+                    });
+
+                    const tabElement =
+                        document.getElementById(`${safeTab}-tab`) ||
+                        document.getElementById(`${DEFAULT_PROFILE_TAB}-tab`) ||
+                        document.getElementById('movies-tab');
+                    if (tabElement) {
+                        tabElement.classList.add('active');
+                        tabElement.classList.remove('rendered');
+                    }
+                    
                     document.querySelectorAll('.nav-tab').forEach(btn => {
                         btn.classList.remove('active');
                     });
@@ -6675,6 +6734,7 @@
                     if (activeButton) {
                         activeButton.classList.add('active');
                     }
+                    ensureProfileGroupRowVisible(safeTab);
 
                     currentTab = safeTab;
                     if (!options.skipRender) {
@@ -6687,12 +6747,6 @@
             }
 
             // ===== UNIFIED COLLECTION RENDERING =====
-            const RAIL_TRACK_MAP = {
-                movie: 'mph2TrackMovies', tv: 'mph2TrackTv', anime: 'mph2TrackAnime',
-                game: 'mph2TrackGames', book: 'mph2TrackBooks', music: 'mph2TrackMusic',
-                sports: 'mph2TrackSports', travel: 'mph2TrackTravel', fashion: 'mph2TrackFashion',
-                food: 'mph2TrackFood', car: 'mph2TrackCars'
-            };
             const TAB_PAGE_MAP = {
                 movie: 'movies.html', tv: 'tv.html', anime: 'anime.html',
                 game: 'games.html', book: 'books.html', music: 'music.html',
@@ -6709,6 +6763,34 @@
                 book: 'books', music: 'music', sports: 'sports', travel: 'travel',
                 fashion: 'fashion', food: 'food', car: 'cars'
             };
+
+            function getRailTrackId(mediaType, isMobile) {
+                if (isMobile) {
+                    const map = {
+                        movie: 'mph2TrackMovies', tv: 'mph2TrackTv', anime: 'mph2TrackAnime',
+                        game: 'mph2TrackGames', book: 'mph2TrackBooks', music: 'mph2TrackMusic',
+                        sports: 'mph2TrackSports', travel: 'mph2TrackTravel', fashion: 'mph2TrackFashion',
+                        food: 'mph2TrackFood', car: 'mph2TrackCars'
+                    };
+                    return map[mediaType];
+                } else {
+                    const map = {
+                        movie: 'pv2MoviesTrack', tv: 'pv2TvTrack', anime: 'pv2AnimeTrack',
+                        game: 'pv2GamesTrack', book: 'pv2BooksTrack', music: 'pv2MusicTrack',
+                        sports: 'pv2SportsTrack', travel: 'pv2TravelTrack', fashion: 'pv2FashionTrack',
+                        food: 'pv2FoodTrack', car: 'pv2CarsTrack'
+                    };
+                    return map[mediaType];
+                }
+            }
+
+            function getRailOptions(mediaType) {
+                return {
+                    isSquare: ['music', 'sports', 'fashion', 'food'].includes(mediaType),
+                    isLandscape: ['travel', 'car'].includes(mediaType),
+                    isBrand: ['sports', 'fashion', 'food', 'car'].includes(mediaType)
+                };
+            }
 
             function renderShowcaseTab(tabName) {
                 const spaContainer = document.getElementById('mobileSpaViewAllContainer');
@@ -6741,28 +6823,102 @@
             }
 
             function populateRailTrack(mediaType, previewUrls) {
-                const trackId = RAIL_TRACK_MAP[mediaType];
-                if (!trackId) return;
-                const track = document.getElementById(trackId);
-                if (!track) return;
-                track.innerHTML = '';
-                if (!previewUrls || !previewUrls.length) {
-                    track.innerHTML = '<div class="mph2-track-empty">Nothing saved yet</div>';
-                    return;
-                }
+                const desktopTrackId = getRailTrackId(mediaType, false);
+                const mobileTrackId = getRailTrackId(mediaType, true);
+
+                const desktopTrack = desktopTrackId ? document.getElementById(desktopTrackId) : null;
+                const mobileTrack = mobileTrackId ? document.getElementById(mobileTrackId) : null;
+
+                const opts = getRailOptions(mediaType);
                 const page = TAB_PAGE_MAP[mediaType] || '#';
-                previewUrls.forEach(url => {
-                    const a = document.createElement('a');
-                    a.className = 'mph2-poster-card';
-                    a.href = page;
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = '';
-                    img.loading = 'lazy';
-                    img.decoding = 'async';
-                    img.onerror = function() { this.onerror = null; this.src = '/newlogo.webp'; };
-                    a.appendChild(img);
-                    track.appendChild(a);
+
+                [
+                    { track: desktopTrack, isMobile: false },
+                    { track: mobileTrack, isMobile: true }
+                ].forEach(({ track, isMobile }) => {
+                    if (!track) return;
+                    track.innerHTML = '';
+
+                    const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
+
+                    if (!previewUrls || !previewUrls.length) {
+                        const emptyEl = document.createElement('div');
+                        emptyEl.className = isMobile ? 'mph2-rail-empty-custom' : 'pv2-rail-empty';
+                        const iconMap = {
+                            movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon',
+                            game: 'fa-gamepad', book: 'fa-book', music: 'fa-music',
+                            sports: 'fa-futbol', travel: 'fa-earth-americas',
+                            fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
+                        };
+                        const icon = iconMap[mediaType] || 'fa-plus';
+                        emptyEl.innerHTML = `<i class="fas ${icon}"></i><span class="${isMobile ? 'mph2-rail-empty-text' : 'pv2-rail-empty-text'}">nothing here yet</span>`;
+                        
+                        if (isMobile) {
+                            emptyEl.style.display = 'flex';
+                            emptyEl.style.alignItems = 'center';
+                            emptyEl.style.justifyContent = 'center';
+                            emptyEl.style.gap = '8px';
+                            emptyEl.style.padding = '20px 16px';
+                            emptyEl.style.color = 'rgba(255,255,255,0.25)';
+                            emptyEl.style.fontSize = '0.8rem';
+                            emptyEl.style.border = '1px dashed rgba(255,255,255,0.1)';
+                            emptyEl.style.borderRadius = '10px';
+                            emptyEl.style.width = '100%';
+                        }
+                        
+                        track.appendChild(emptyEl);
+                        if (railEl) railEl.style.display = '';
+                        return;
+                    }
+
+                    if (railEl) railEl.style.display = '';
+
+                    const maxVisible = isMobile ? 10 : 7;
+                    const visible = previewUrls.slice(0, maxVisible);
+                    const extra = previewUrls.length - visible.length;
+
+                    visible.forEach((url, i) => {
+                        const card = document.createElement('a');
+                        card.href = page;
+                        
+                        let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
+                        if (opts.isSquare) baseClass += ' is-square';
+                        if (opts.isLandscape) baseClass += ' is-landscape';
+                        if (opts.isBrand) baseClass += ' is-brand';
+                        card.className = baseClass;
+                        card.style.animationDelay = (i * 40) + 'ms';
+
+                        const imgWrap = document.createElement('div');
+                        imgWrap.className = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
+
+                        const img = document.createElement('img');
+                        img.className = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
+                        img.src = url;
+                        img.alt = '';
+                        img.loading = 'lazy';
+                        img.decoding = 'async';
+                        img.onerror = function() { this.onerror = null; this.src = '/newlogo.webp'; };
+
+                        imgWrap.appendChild(img);
+                        card.appendChild(imgWrap);
+                        
+                        track.appendChild(card);
+                    });
+
+                    if (extra > 0) {
+                        const chip = document.createElement('a');
+                        chip.className = isMobile ? 'mph2-more-chip' : 'pv2-more-chip';
+                        chip.href = '#';
+                        chip.innerHTML = `
+                            <span class="${isMobile ? 'mph2-more-chip-count' : 'pv2-more-chip-count'}">+${extra}</span>
+                            <span class="${isMobile ? 'mph2-more-chip-label' : 'pv2-more-chip-label'}">more</span>
+                        `;
+                        chip.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            showShowcaseDetail(mediaType);
+                        });
+                        track.appendChild(chip);
+                    }
                 });
             }
 
@@ -10572,6 +10728,7 @@
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
+                resetDetailPanels();
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 document.querySelectorAll('.tab-content').forEach(el => {
@@ -10602,6 +10759,72 @@
                 const nextUrl = buildProfileUrl({});
                 history.pushState({}, '', nextUrl);
             }
+
+            function showShowcaseDetail(type) {
+                const listId = getShowcaseListId(type);
+                const listType = (listId === 'favorites' || listId === 'watched' || listId === 'watchlist' || listId === 'read' || listId === 'readlist' || listId === 'currently_reading' || listId === 'played' || listId === 'wishlist' || listId === 'visited') ? 'default' : 'custom';
+                const isMobile = window.innerWidth <= 768;
+                
+                // Hide the Overview Panels
+                const overview = document.getElementById('pv2Overview');
+                if (overview) overview.style.display = 'none';
+                const mobileOverview = document.getElementById('mobileOverviewPanel');
+                if (mobileOverview) mobileOverview.style.display = 'none';
+
+                // Show the lists panel wrappers (parents of the detail views)
+                const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                if (listsPanel) {
+                    listsPanel.style.display = 'block';
+                    listsPanel.style.removeProperty('display');
+                }
+                const mobileListsPanel = document.getElementById('mobileListsPanel');
+                if (mobileListsPanel) {
+                    mobileListsPanel.style.display = 'block';
+                }
+
+                // Hide all general tab contents on desktop first to avoid conflicts
+                if (!isMobile) {
+                    document.querySelectorAll('.tab-content').forEach(tc => {
+                        tc.style.display = 'none';
+                        tc.classList.remove('active', 'rendered');
+                    });
+                }
+
+                if (type === 'sports') {
+                    if (isMobile) {
+                        const mainSection = document.getElementById('mobileSportsSection');
+                        if (mainSection) {
+                            mainSection.style.display = 'block';
+                            mainSection.classList.add('active');
+                        }
+                    } else {
+                        const mainTab = document.getElementById('sports-tab');
+                        if (mainTab) {
+                            mainTab.style.display = 'block';
+                            mainTab.classList.add('active');
+                        }
+                    }
+                    return;
+                }
+
+                const detailFn = {
+                    movie: showMovieDetail,
+                    tv: showTvDetail,
+                    anime: showAnimeDetail,
+                    game: showGameDetail,
+                    book: showBookDetail,
+                    music: showMusicDetail,
+                    travel: showTravelDetail,
+                    fashion: showFashionDetail,
+                    food: showFoodDetail,
+                    car: showCarDetail
+                }[type];
+
+                if (detailFn) {
+                    detailFn(listId, listType, isMobile);
+                }
+            }
+            window.showShowcaseDetail = showShowcaseDetail;
 
             async function reorderList(mediaType, listId, direction) {
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
@@ -11730,6 +11953,7 @@
                 setShowcaseOrder: setShowcaseOrder,
                 setShowcaseOrder: setShowcaseOrder,
                 backToProfile: backToProfile,
+                showShowcaseDetail: showShowcaseDetail,
                 reorderList: reorderList
             };
         })();

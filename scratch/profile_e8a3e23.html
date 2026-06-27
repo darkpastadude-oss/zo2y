@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -91,7 +91,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="pv2-hero">
-                <!-- Cinematic banner — JS populates background via ProfileManager.renderBanner() -->
+                <!-- Cinematic banner ΓÇö JS populates background via ProfileManager.renderBanner() -->
                 <div class="pv2-banner" id="profileBanner">
                     <div class="pv2-banner-backdrops" id="bannerBackdrops"></div>
                     <div class="pv2-banner-overlay"></div>
@@ -110,11 +110,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <div class="pv2-username" id="profileUsername">@username</div>
                         <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
                         <div class="pv2-meta">
-                            <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
-                            <span class="pv2-meta-sep">·</span>
+                            <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">ΓÇö</span></span>
+                            <span class="pv2-meta-sep">┬╖</span>
                             <span class="pv2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="memberSince">Member since 2023</span></span>
-                            <!-- Hidden legacy meta for JS compatibility -->
-                            <span id="visitedCountMeta" style="display:none"></span>
                         </div>
                         <div class="profile-badges" id="profileBadges"></div>
                     </div>
@@ -165,20 +163,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
         </div>
+        <!-- Hidden legacy meta for JS compatibility -->
+        <span id="visitedCountMeta" style="display:none"></span>
 
-        <div class="container">
-            <div class="profile-primary-nav-shell">
-                <div class="profile-primary-nav" role="tablist" aria-label="Profile sections">
-                    <button class="profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
-                        <span class="profile-primary-tab-label">Lists</span>
-                        <span class="profile-primary-tab-copy">Media and lifestyle</span>
-                    </button>
-                    <button class="profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                        <span class="profile-primary-tab-label">Community</span>
-                        <span class="profile-primary-tab-copy">Followers and activity</span>
-                    </button>
-                </div>
-            </div>
+        <div class="pv2-content-wrap">
 
             <!-- === OVERVIEW SHOWCASE (new primary view) === -->
             <div class="pv2-overview" id="pv2Overview">
@@ -206,7 +194,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailMovies">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-film"></i> movies</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('movie'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MoviesTrack"></div>
                     </div>
@@ -215,7 +203,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailTv">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-tv"></i> tv shows</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TvTrack"></div>
                     </div>
@@ -224,7 +212,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailAnime">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-dragon"></i> anime</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2AnimeTrack"></div>
                     </div>
@@ -233,7 +221,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailGames">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-gamepad"></i> games</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('game'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2GamesTrack"></div>
                     </div>
@@ -242,7 +230,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailBooks">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-book"></i> books</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('book'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2BooksTrack"></div>
                     </div>
@@ -251,7 +239,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailMusic">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-music"></i> music</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MusicTrack"></div>
                     </div>
@@ -265,7 +253,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailSports">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-futbol"></i> sports</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2SportsTrack"></div>
                     </div>
@@ -274,7 +262,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailCars">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-car"></i> cars</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('car'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2CarsTrack"></div>
                     </div>
@@ -283,7 +271,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailTravel">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-earth-americas"></i> travel</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TravelTrack"></div>
                     </div>
@@ -292,7 +280,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailFood">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-burger"></i> food</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FoodTrack"></div>
                     </div>
@@ -301,7 +289,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="pv2-rail" id="pv2RailFashion">
                         <div class="pv2-rail-header">
                             <div class="pv2-rail-title"><i class="fas fa-shirt"></i> fashion</div>
-                            <a class="pv2-rail-viewall" href="#" onclick="showShowcaseDetail('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FashionTrack"></div>
                     </div>
@@ -321,6 +309,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             </div>
 
+            <!-- === LEGACY LISTS PANEL (existing collection management, now secondary) === -->
             <section class="profile-primary-panel" data-panel="lists" style="display:none">
             <!-- Navigation Tabs -->
             <div class="profile-section-shell profile-nav-shell">
@@ -389,7 +378,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMovieDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -452,7 +441,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTvDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -515,7 +504,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideAnimeDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -578,7 +567,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideGameDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -641,7 +630,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideBookDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -703,7 +692,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMusicDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -793,7 +782,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTravelDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -856,7 +845,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFashionDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -919,7 +908,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideCarDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -982,7 +971,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFoodDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -1016,7 +1005,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="section">
                     <div class="collection-detail-header">
                         <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
                         </div>
@@ -1126,9 +1115,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </div>
             </section>
 
-        </div>
+        </div><!-- /pv2-content-wrap -->
         
-    </div>
+    </div><!-- /desktop-only -->
 
     <!-- Mobile View -->
     <div class="mobile-only">
@@ -1176,7 +1165,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-username" id="mobileProfileUsername">@username</div>
                     <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
                     <div class="mph2-meta" id="mobileProfileMeta">
-                        <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">—</span></span>
+                        <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">ΓÇö</span></span>
                     </div>
                 </div>
             </div>
@@ -1204,23 +1193,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-            <!-- Badges (hidden by default — JS shows when present) -->
+            <!-- Badges (hidden by default ΓÇö JS shows when present) -->
             <div class="profile-badges mph2-badges" id="mobileProfileBadges"></div>
         </div>
 
-        <div class="mobile-profile-primary-nav-shell">
-            <div class="mobile-profile-primary-nav" role="tablist" aria-label="Profile sections">
-                <button class="mobile-profile-primary-tab active" type="button" data-primary-tab="lists" onclick="ProfileManager.showPrimaryTab('lists')">
-                    <span>Lists</span>
-                </button>
-                <button class="mobile-profile-primary-tab" type="button" data-primary-tab="activity" onclick="ProfileManager.showPrimaryTab('activity')">
-                    <span>Community</span>
-                </button>
-            </div>
-        </div>
-
         <!-- Mobile Content Area -->
-        <div class="mobile-content">
+        <div class="mobile-content mph2-content">
+
             <!-- === MOBILE OVERVIEW SHOWCASE (new primary) === -->
             <section class="mobile-primary-panel mph2-overview-panel" id="mobileOverviewPanel">
 
@@ -1246,7 +1225,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowMovies">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-film"></i> movies</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('movie'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('movies'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackMovies"></div>
                     </div>
@@ -1254,7 +1233,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowTv">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-tv"></i> tv shows</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackTv"></div>
                     </div>
@@ -1262,7 +1241,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowAnime">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-dragon"></i> anime</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackAnime"></div>
                     </div>
@@ -1270,7 +1249,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowGames">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-gamepad"></i> games</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('game'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('games'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackGames"></div>
                     </div>
@@ -1278,7 +1257,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowBooks">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-book"></i> books</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('book'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('books'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackBooks"></div>
                     </div>
@@ -1286,7 +1265,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowMusic">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-music"></i> music</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackMusic"></div>
                     </div>
@@ -1298,7 +1277,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowSports">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-futbol"></i> sports</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackSports"></div>
                     </div>
@@ -1306,7 +1285,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowCars">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-car"></i> cars</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('car'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('cars'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackCars"></div>
                     </div>
@@ -1314,7 +1293,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowTravel">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-earth-americas"></i> travel</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackTravel"></div>
                     </div>
@@ -1322,7 +1301,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowFood">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-burger"></i> food</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackFood"></div>
                     </div>
@@ -1330,7 +1309,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mph2-row" id="mph2RowFashion">
                         <div class="mph2-row-hd">
                             <span class="mph2-row-label"><i class="fas fa-shirt"></i> fashion</span>
-                            <a class="mph2-row-viewall" href="#" onclick="showShowcaseDetail('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="mph2TrackFashion"></div>
                     </div>
@@ -1339,24 +1318,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             </section>
 
             <!-- === LEGACY LISTS PANEL (detail drilldown, hidden by default) === -->
-            <section class="mobile-primary-panel mph2-lists-panel" id="mobileListsPanel" data-panel="lists" style="display:none">
-                <!-- Back to overview -->
-                <div class="mph2-back-bar">
-                    <button class="mph2-back-btn" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> overview
+            <section class="mobile-primary-panel mph2-lists-panel" id="mobileListsPanel" style="display:none">
+
+            <!-- Back to overview -->
+            <div class="mph2-back-bar">
+                <button class="mph2-back-btn" onclick="ProfileV2Mobile.backToOverview()">
+                    <i class="fas fa-arrow-left"></i> overview
+                </button>
+                <div class="mobile-tabs">
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                        <span>Media</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                        <span>Lifestyle</span>
+                        <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
-            <!-- Mobile Tabs Navigation -->
-            <div class="mobile-tabs">
-                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
-                    <span>Media</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
-                    <span>Lifestyle</span>
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-            </div>
                 <div class="profile-tab-group-row mobile" data-group="media">
                     <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="mobileTabMovies">Movies</span></div>
                     <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
@@ -1365,16 +1343,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
                     <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
                 </div>
-            <div class="profile-tab-group-row mobile" data-group="lifestyle">
-                <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
-                <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
-                <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
-                <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
-                <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
-            </div>
-            <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
-                <div class="mobile-tabs-swipe-pill"></div>
-                <span>Swipe tabs</span>
+                <div class="profile-tab-group-row mobile" data-group="lifestyle">
+                    <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
+                    <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
+                    <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
+                    <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
+                    <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
+                </div>
+                <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
+                    <div class="mobile-tabs-swipe-pill"></div>
+                    <span>Swipe tabs</span>
+                </div>
             </div>
 
             <!-- Movies Section -->
@@ -1407,7 +1386,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Movie Detail View -->
             <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMovieDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileMovieDetailTitle">Collection</span>
@@ -1458,7 +1437,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- TV Detail View -->
             <div class="mobile-section" id="mobileTvDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTvDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileTvDetailTitle">Collection</span>
@@ -1509,7 +1488,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Anime Detail View -->
             <div class="mobile-section" id="mobileAnimeDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideAnimeDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileAnimeDetailTitle">Collection</span>
@@ -1560,7 +1539,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Games Detail View -->
             <div class="mobile-section" id="mobileGameDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideGameDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileGameDetailTitle">Collection</span>
@@ -1611,7 +1590,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Books Detail View -->
             <div class="mobile-section" id="mobileBookDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideBookDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileBookDetailTitle">Collection</span>
@@ -1661,7 +1640,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Music Detail View -->
             <div class="mobile-section" id="mobileMusicDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMusicDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileMusicDetailTitle">Collection</span>
@@ -1736,7 +1715,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Travel Detail View -->
             <div class="mobile-section" id="mobileTravelDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTravelDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileTravelDetailTitle">Collection</span>
@@ -1787,7 +1766,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Fashion Detail View -->
             <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileFashionDetailTitle">Collection</span>
@@ -1838,7 +1817,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Cars Detail View -->
             <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileCarsDetailTitle">Collection</span>
@@ -1889,7 +1868,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Food Detail View -->
             <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
                         <i class="fas fa-arrow-left"></i> Back
                     </button>
                     <span id="mobileFoodDetailTitle">Collection</span>
@@ -1913,7 +1892,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Mobile List Detail Section -->
             <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
                 <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.backToProfile()">
+                    <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.hideListDetail()">
                         <i class="fas fa-arrow-left"></i>
                     </button>
                     <span id="mobileListDetailTitle">List</span>
@@ -1923,9 +1902,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
                 <div class="mobile-section-subtitle" id="mobileListDetailDescription"></div>
             </div>
-            </section>
+            </div><!-- /mobileListsPanel list detail -->
+            </section><!-- /mobileListsPanel -->
 
-            <section class="mobile-primary-panel" data-panel="activity">
+            <section class="mobile-primary-panel mph2-community-panel" id="mobileCommunityPanel" style="display:none">
+
             <!-- Community Section -->
             <div class="mobile-section" id="mobileCommunitySection">
                 <div class="mobile-section-title">
@@ -2056,6 +2037,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <input type="checkbox" id="editIsPrivate"> Private Account
                         </label>
                         <small class="text-muted d-block mt-4">Private accounts require approval for followers</small>
+                    </div>
+
+                    <!-- Profile Showcase Settings -->
+                    <div class="form-group" id="showcaseSettingsGroup">
+                        <label class="form-label" style="font-size:14px;font-weight:600;margin-bottom:10px;display:block;">Profile Showcase</label>
+                        <small class="text-muted d-block" style="margin-bottom:12px;">Choose which list appears on your profile for each category.</small>
+                        <div id="showcaseSettingsList"></div>
                     </div>
                     
                     <div class="form-actions">
@@ -2382,7 +2370,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 
   <!-- ============================================================
-       ProfileV2 — Overview, Banner, Rails, Mode Switch
+       ProfileV2 ΓÇö Overview, Banner, Rails, Mode Switch
        ============================================================ -->
   <script>
   (function() {
@@ -2395,6 +2383,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       menu.classList.toggle('open');
     }
 
+    function closeOverflowMenu() {
+      var menu = document.getElementById('profileOverflowMenu');
+      if (menu) menu.classList.remove('open');
+    }
+
     // Close on outside click
     document.addEventListener('click', function(e) {
       var btn = document.getElementById('profileOverflowBtn');
@@ -2404,11 +2397,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         menu.classList.remove('open');
       }
     });
-
-    function closeOverflowMenu() {
-      var menu = document.getElementById('profileOverflowMenu');
-      if (menu) menu.classList.remove('open');
-    }
 
     // === Mode switch (Media / Lifestyle) ===
     var currentMode = 'media';
@@ -2457,56 +2445,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       indicator.style.transform = 'translateX(0)';
     }
 
-    // === Mobile V2 Switch ===
-    var ProfileV2Mobile = {
-      setMode: function(mode) {
-        var mediaPanel = document.getElementById('mph2MobileMediaPanel');
-        var lifestylePanel = document.getElementById('mph2MobileLifestylePanel');
-        var mediaBtn = document.getElementById('mph2ToggleMedia');
-        var lifestyleBtn = document.getElementById('mph2ToggleLifestyle');
-        var thumb = document.getElementById('mph2ToggleThumb');
-
-        if (!mediaPanel || !lifestylePanel) return;
-
-        if (mode === 'media') {
-          mediaPanel.style.display = '';
-          lifestylePanel.style.display = 'none';
-          if (mediaBtn) {
-            mediaBtn.classList.add('active');
-            mediaBtn.setAttribute('aria-selected', 'true');
-          }
-          if (lifestyleBtn) {
-            lifestyleBtn.classList.remove('active');
-            lifestyleBtn.setAttribute('aria-selected', 'false');
-          }
-          if (thumb) {
-            thumb.style.transform = 'translateX(0)';
-          }
-        } else {
-          mediaPanel.style.display = 'none';
-          lifestylePanel.style.display = '';
-          if (lifestyleBtn) {
-            lifestyleBtn.classList.add('active');
-            lifestyleBtn.setAttribute('aria-selected', 'true');
-          }
-          if (mediaBtn) {
-            mediaBtn.classList.remove('active');
-            mediaBtn.setAttribute('aria-selected', 'false');
-          }
-          if (thumb && lifestyleBtn && mediaBtn) {
-            var offset = lifestyleBtn.offsetLeft - mediaBtn.offsetLeft;
-            thumb.style.transform = 'translateX(' + offset + 'px)';
-          }
-        }
-      },
-      backToOverview: function() {
-        if (window.ProfileManager && window.ProfileManager.backToProfile) {
-          window.ProfileManager.backToProfile();
-        }
-      }
-    };
-    window.ProfileV2Mobile = ProfileV2Mobile;
-
     // === Cinematic backdrop banner ===
     function buildBanner(backdropUrls) {
       var container = document.getElementById('bannerBackdrops');
@@ -2547,6 +2485,144 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       renderInto(mobileContainer);
     }
 
+    // === Poster rail renderer ===
+    function renderRail(trackId, items, opts) {
+      var track = document.getElementById(trackId);
+      if (!track) return;
+      var railEl = track.closest('.pv2-rail');
+      opts = opts || {};
+      var maxVisible   = opts.maxVisible || 7;
+      var isSquare     = !!opts.isSquare;
+      var isLandscape  = !!opts.isLandscape;
+      var isBrand      = !!opts.isBrand;
+      var onClickBase  = opts.onClickBase || '';
+
+      track.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        // Show rail as empty (subtle dashed placeholder)
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'pv2-rail-empty';
+        emptyEl.innerHTML = '<i class="fas fa-plus"></i><span class="pv2-rail-empty-text">nothing here yet</span>';
+        track.appendChild(emptyEl);
+        if (railEl) railEl.style.display = '';
+        return;
+      }
+
+      if (railEl) railEl.style.display = '';
+
+      var visible = items.slice(0, maxVisible);
+      var extra   = items.length - visible.length;
+
+      visible.forEach(function(item, i) {
+        var poster = document.createElement('div');
+        var classes = 'pv2-poster';
+        if (isSquare)    classes += ' is-square';
+        if (isLandscape) classes += ' is-landscape';
+        if (isBrand)     classes += ' is-brand';
+        poster.className = classes;
+        poster.style.animationDelay = (i * 40) + 'ms';
+
+        var imgSrc = item.poster || item.image || item.cover || item.logo || item.flag || '';
+        var title  = item.title || item.name || '';
+
+        poster.innerHTML =
+          '<div class="pv2-poster-img-wrap">' +
+            (imgSrc ? '<img class="pv2-poster-img" src="' + imgSrc + '" alt="' + title.replace(/"/g,'&quot;') + '" loading="lazy" decoding="async">' : '') +
+            '<div class="pv2-poster-overlay"><span class="pv2-poster-overlay-title">' + title + '</span></div>' +
+          '</div>' +
+          '<div class="pv2-poster-label">' + title + '</div>';
+
+        if (item.url || onClickBase) {
+          poster.style.cursor = 'pointer';
+          poster.addEventListener('click', function() {
+            var dest = item.url || (onClickBase + encodeURIComponent(item.id || ''));
+            if (dest) window.location.href = dest;
+          });
+        }
+
+        track.appendChild(poster);
+      });
+
+      if (extra > 0) {
+        var chip = document.createElement('a');
+        chip.className = 'pv2-more-chip';
+        chip.href = '#';
+        chip.innerHTML =
+          '<span class="pv2-more-chip-count">+' + extra + '</span>' +
+          '<span class="pv2-more-chip-label">more</span>';
+        chip.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Navigate to the lists tab for this category
+          if (opts.onMore) opts.onMore();
+        });
+        track.appendChild(chip);
+      }
+    }
+
+    // === Extract favorites from ProfileManager's loaded data ===
+    function extractFavorites(collections) {
+      // collections is an array of {name, items[]}
+      // Find the "Favorites" collection (first match on name)
+      if (!collections || !collections.length) return [];
+      var fav = collections.find(function(c) {
+        return c.name && c.name.toLowerCase().includes('favorit');
+      });
+      if (fav && fav.items && fav.items.length) return fav.items;
+      // Fallback: combine all items, prefer top 10
+      var all = [];
+      collections.forEach(function(c) { if (c.items) all = all.concat(c.items); });
+      return all.slice(0, 20);
+    }
+
+    // === Render compact activity feed ===
+    function renderActivityFeed(activities) {
+      var feed = document.getElementById('pv2ActivityFeed');
+      if (!feed) return;
+      feed.innerHTML = '';
+
+      if (!activities || activities.length === 0) {
+        feed.innerHTML = '<div class="pv2-activity-empty">no recent activity yet</div>';
+        return;
+      }
+
+      var toShow = activities.slice(0, 5);
+      var now = Date.now();
+
+      toShow.forEach(function(act) {
+        var item = document.createElement('div');
+        item.className = 'pv2-activity-item';
+
+        var thumbHtml = '';
+        if (act.image || act.poster) {
+          thumbHtml = '<div class="pv2-activity-thumb"><img src="' + (act.image || act.poster) + '" alt="" loading="lazy"></div>';
+        } else {
+          thumbHtml = '<div class="pv2-activity-thumb"></div>';
+        }
+
+        var timeAgo = '';
+        if (act.created_at) {
+          var diff = now - new Date(act.created_at).getTime();
+          if (diff < 3600000)      timeAgo = Math.round(diff/60000) + 'm ago';
+          else if (diff < 86400000) timeAgo = Math.round(diff/3600000) + 'h ago';
+          else                      timeAgo = Math.round(diff/86400000) + 'd ago';
+        }
+
+        var isNew = act.created_at && (now - new Date(act.created_at).getTime()) < 86400000;
+        var dotHtml = isNew ? '<div class="pv2-activity-dot"></div>' : '';
+
+        item.innerHTML =
+          thumbHtml +
+          '<div class="pv2-activity-text">' +
+            '<div class="pv2-activity-desc">' + (act.description || act.action || '') + '</div>' +
+            (timeAgo ? '<div class="pv2-activity-time">' + timeAgo + '</div>' : '') +
+          '</div>' +
+          dotHtml;
+
+        feed.appendChild(item);
+      });
+    }
+
     // === Wire into ProfileManager after it loads ===
     function attachToProfileManager() {
       var PM = window.ProfileManager;
@@ -2563,31 +2639,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         var overview = document.getElementById('pv2Overview');
         var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
         var activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
-        var mobileOverview = document.getElementById('mobileOverviewPanel');
-        var mobileLists = document.getElementById('mobileListsPanel');
-        var mobileCommunity = document.getElementById('mobileCommunityPanel');
 
         if (tab === 'lists' || tab === undefined) {
           if (overview) overview.style.display = '';
           if (listsPanel) listsPanel.style.display = 'none';
           if (activityPanel) activityPanel.style.display = 'none';
-          
-          if (mobileOverview) mobileOverview.style.display = '';
-          if (mobileLists) mobileLists.style.display = 'none';
-          if (mobileCommunity) mobileCommunity.style.display = 'none';
         } else if (tab === 'activity') {
           if (overview) overview.style.display = 'none';
           if (listsPanel) listsPanel.style.display = 'none';
           if (activityPanel) {
             activityPanel.style.display = '';
             activityPanel.style.removeProperty('display');
-          }
-
-          if (mobileOverview) mobileOverview.style.display = 'none';
-          if (mobileLists) mobileLists.style.display = 'none';
-          if (mobileCommunity) {
-            mobileCommunity.style.display = '';
-            mobileCommunity.style.removeProperty('display');
           }
           if (_origShowPrimaryTab) _origShowPrimaryTab('activity');
         }
@@ -2598,17 +2660,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       PM.showTab = function(tab) {
         var overview = document.getElementById('pv2Overview');
         var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-        var mobileOverview = document.getElementById('mobileOverviewPanel');
-        var mobileLists = document.getElementById('mobileListsPanel');
-
         if (overview) overview.style.display = 'none';
-        if (listsPanel) listsPanel.style.display = 'block';
         if (listsPanel) listsPanel.style.removeProperty('display');
-
-        if (mobileOverview) mobileOverview.style.display = 'none';
-        if (mobileLists) mobileLists.style.display = 'block';
-        if (mobileLists) mobileLists.style.removeProperty('display');
-
         if (_origShowTab) _origShowTab(tab);
       };
     }
@@ -2663,7 +2716,72 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
           if (anyReady || attempts > 30) PM._headingsUpdated = true;
         }
 
-        if (PM._bannerBuilt && PM._headingsUpdated) {
+        // === Build rails from DOM (fallback) ===
+        if (!PM._railsBuilt) {
+          function buildRailFromGrid(gridId, trackId, opts) {
+            var grid = document.getElementById(gridId);
+            if (!grid) return;
+            var cards = grid.querySelectorAll('.collection-card');
+            if (!cards || cards.length === 0) return;
+
+            var targetCard = null;
+            cards.forEach(function(c) {
+              var title = c.querySelector('.collection-card-title');
+              if (title && title.textContent && title.textContent.toLowerCase().includes('favorit')) {
+                if (!targetCard) targetCard = c;
+              }
+            });
+            targetCard = targetCard || cards[0];
+            if (!targetCard) return;
+
+            var imgs = targetCard.querySelectorAll('.collection-preview-item img');
+            var totalCount = parseInt(targetCard.querySelector('.collection-card-count') && targetCard.querySelector('.collection-card-count').textContent) || 0;
+
+            var items = [];
+            imgs.forEach(function(img) {
+              if (img.src && !img.src.includes('data:')) {
+                items.push({ poster: img.src, title: '', url: '' });
+              }
+            });
+
+            if (items.length > 0) {
+              opts = opts || {};
+              opts.onMore = function() {
+                var PM = window.ProfileManager;
+                if (PM && PM.showTab) PM.showTab(opts.tabKey || 'movies');
+              };
+              renderRail(trackId, items, opts);
+            }
+          }
+
+          var railConfigs = [
+            ['moviesGrid',  'pv2MoviesTrack', { tabKey:'movies' }],
+            ['tvGrid',      'pv2TvTrack',     { tabKey:'tv' }],
+            ['animeGrid',   'pv2AnimeTrack',  { tabKey:'anime' }],
+            ['gamesGrid',   'pv2GamesTrack',  { tabKey:'games', isSquare: false }],
+            ['booksGrid',   'pv2BooksTrack',  { tabKey:'books' }],
+            ['musicGrid',   'pv2MusicTrack',  { tabKey:'music', isSquare: true }],
+            ['sportsGrid',  'pv2SportsTrack', { tabKey:'sports', isSquare: true, isBrand: true }],
+            ['carsGrid',    'pv2CarsTrack',   { tabKey:'cars',   isLandscape: true, isBrand: true }],
+            ['travelGrid',  'pv2TravelTrack', { tabKey:'travel', isLandscape: true }],
+            ['fashionGrid', 'pv2FashionTrack',{ tabKey:'fashion', isSquare: true, isBrand: true }],
+            ['foodGrid',    'pv2FoodTrack',   { tabKey:'food',   isSquare: true, isBrand: true }]
+          ];
+
+          var anyRailBuilt = false;
+          railConfigs.forEach(function(cfg) {
+            var grid = document.getElementById(cfg[0]);
+            if (grid && grid.querySelector('.collection-card')) {
+              buildRailFromGrid(cfg[0], cfg[1], cfg[2]);
+              anyRailBuilt = true;
+            }
+          });
+
+          if (anyRailBuilt) PM._railsBuilt = true;
+          if (attempts > 40) PM._railsBuilt = true;
+        }
+
+        if (PM._bannerBuilt && PM._railsBuilt && PM._headingsUpdated) {
           clearInterval(poller);
         }
         if (attempts > 60) clearInterval(poller);
@@ -2674,14 +2792,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', boot);
     } else {
+      // Scripts are deferred so wait a tick
       setTimeout(boot, 0);
     }
 
+    // Also re-run on window load (deferred scripts may have settled)
     window.addEventListener('load', function() {
       initModeIndicator();
       attachToProfileManager();
     });
 
+    // Expose to global scope so inline onclick attrs work
     if (!window.ProfileManager) window.ProfileManager = {};
     window.ProfileManager.setOverviewMode    = setOverviewMode;
     window.ProfileManager.toggleOverflowMenu = toggleOverflowMenu;
