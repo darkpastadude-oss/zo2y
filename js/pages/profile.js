@@ -7021,10 +7021,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach(card => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.movieIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'movie');
+                        const showcaseIds = showcaseList?.movieIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'movie') : [];
                         populateRailTrack('movie', previewUrls);
                     }
                     movieAllLists = allLists;
@@ -7145,10 +7143,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach(card => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.tvIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'tv');
+                        const showcaseIds = showcaseList?.tvIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'tv') : [];
                         populateRailTrack('tv', previewUrls);
                     }
                     tvAllLists = allLists;
@@ -7269,10 +7265,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach(card => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.animeIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'anime');
+                        const showcaseIds = showcaseList?.animeIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'anime') : [];
                         populateRailTrack('anime', previewUrls);
                     }
                     animeAllLists = allLists;
@@ -7382,10 +7376,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach(card => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.gameIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'game');
+                        const showcaseIds = showcaseList?.gameIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'game') : [];
                         populateRailTrack('game', previewUrls);
                     }
                     gameAllLists = allLists;
@@ -7621,10 +7613,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach(card => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.bookIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'book');
+                        const showcaseIds = showcaseList?.bookIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'book') : [];
                         populateRailTrack('book', previewUrls);
                     }
                     bookAllLists = allLists;
@@ -7752,10 +7742,8 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach((card) => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseIds = showcaseList?.trackIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'music');
+                        const showcaseIds = showcaseList?.trackIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'music') : [];
                         populateRailTrack('music', previewUrls);
                     }
                     musicAllLists = allLists;
@@ -8057,11 +8045,9 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach((card) => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                    const showcaseCodes = showcaseList?.countryCodes || [];
-                    if (showcaseCodes.length) {
-                        const flagUrls = showcaseCodes.slice(0, 10).map(code => countryFlagFromCode(code)).filter(Boolean);
+                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                        const showcaseCodes = showcaseList?.countryCodes || [];
+                        const flagUrls = showcaseCodes.length ? showcaseCodes.slice(0, 10).map(code => countryFlagFromCode(code)).filter(Boolean) : [];
                         populateRailTrack('travel', flagUrls);
                     }
                     markTabRendered('travel');
@@ -8163,11 +8149,9 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach((card) => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                    const showcaseIds = showcaseList?.brandIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'fashion');
+                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                        const showcaseIds = showcaseList?.brandIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'fashion') : [];
                         populateRailTrack('fashion', previewUrls);
                     }
                     markTabRendered('fashion');
@@ -8269,11 +8253,9 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach((card) => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                    const showcaseIds = showcaseList?.brandIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'car');
+                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                        const showcaseIds = showcaseList?.brandIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'car') : [];
                         populateRailTrack('car', previewUrls);
                     }
                     markTabRendered('cars');
@@ -8375,11 +8357,9 @@
                         const fragment = document.createDocumentFragment();
                         cards.forEach((card) => fragment.appendChild(card));
                         grid.appendChild(fragment);
-                    }
-                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                    const showcaseIds = showcaseList?.brandIds || [];
-                    if (showcaseIds.length) {
-                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'food');
+                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                        const showcaseIds = showcaseList?.brandIds || [];
+                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'food') : [];
                         populateRailTrack('food', previewUrls);
                     }
                     markTabRendered('food');
@@ -8392,7 +8372,8 @@
                                 <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Food</h3>
                                 <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your food lists</p>
                             </div>
-                    `;
+                        `;
+                    }
                 }
             }
 
