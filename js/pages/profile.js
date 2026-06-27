@@ -1030,16 +1030,11 @@
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
 
-                let config = [];
-                if (window.ProfileShowcase) {
-                    try {
-                        config = await window.ProfileShowcase.getProfileShowcase(userId);
-                    } catch(e) {}
-                }
+                const config = showcaseConfig || [];
 
                 // Make sure rows are ordered
                 const mphContainer = document.getElementById('mph2MobileMediaPanel');
-                if (mphContainer && config && config.length > 0) {
+                if (mphContainer && config.length > 0) {
                     const sortedTypes = [...SHOWCASE_MEDIA_TYPES].sort((a, b) => {
                         const ea = config.find(s => s.media_type === a.key);
                         const eb = config.find(s => s.media_type === b.key);
@@ -4411,29 +4406,41 @@
 
             async function fetchMovieDetails(movieId) {
                 if (movieCache.has(movieId)) return movieCache.get(movieId);
-                const res = await fetch(`${TMDB_PROXY_BASE}/movie/${movieId}?language=en`);
-                if (!res.ok) return null;
-                const data = await res.json();
-                movieCache.set(movieId, data);
-                return data;
+                try {
+                    const res = await fetch(`${TMDB_PROXY_BASE}/movie/${movieId}?language=en`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    movieCache.set(movieId, data);
+                    return data;
+                } catch (_err) {
+                    return null;
+                }
             }
 
             async function fetchTvDetails(tvId) {
                 if (tvCache.has(tvId)) return tvCache.get(tvId);
-                const res = await fetch(`${TMDB_PROXY_BASE}/tv/${tvId}?language=en`);
-                if (!res.ok) return null;
-                const data = await res.json();
-                tvCache.set(tvId, data);
-                return data;
+                try {
+                    const res = await fetch(`${TMDB_PROXY_BASE}/tv/${tvId}?language=en`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    tvCache.set(tvId, data);
+                    return data;
+                } catch (_err) {
+                    return null;
+                }
             }
 
             async function fetchAnimeDetails(animeId) {
                 if (animeCache.has(animeId)) return animeCache.get(animeId);
-                const res = await fetch(`${TMDB_PROXY_BASE}/tv/${animeId}?language=en`);
-                if (!res.ok) return null;
-                const data = await res.json();
-                animeCache.set(animeId, data);
-                return data;
+                try {
+                    const res = await fetch(`${TMDB_PROXY_BASE}/tv/${animeId}?language=en`);
+                    if (!res.ok) return null;
+                    const data = await res.json();
+                    animeCache.set(animeId, data);
+                    return data;
+                } catch (_err) {
+                    return null;
+                }
             }
 
             function normalizeGameImageUrl(url) {
@@ -6822,7 +6829,7 @@
                 renderer();
             }
 
-            function populateRailTrack(mediaType, previewUrls) {
+            function populateRailTrack(mediaType, previewUrls, totalItemCount) {
                 const desktopTrackId = getRailTrackId(mediaType, false);
                 const mobileTrackId = getRailTrackId(mediaType, true);
 
@@ -6873,9 +6880,10 @@
 
                     if (railEl) railEl.style.display = '';
 
-                    const maxVisible = isMobile ? 10 : 7;
+                    const maxVisible = isMobile ? 3 : 5;
                     const visible = previewUrls.slice(0, maxVisible);
-                    const extra = previewUrls.length - visible.length;
+                    const total = typeof totalItemCount === 'number' ? totalItemCount : previewUrls.length;
+                    const extra = total - visible.length;
 
                     visible.forEach((url, i) => {
                         const card = document.createElement('a');
@@ -6922,123 +6930,275 @@
                 });
             }
 
-            async function renderMovies() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileMoviesGrid') : document.getElementById('moviesGrid');
-                const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+            const MEDIA_CONFIGS = {
+                movie: {
+                    explorePage: 'movies.html',
+                    exploreIcon: 'fa-film',
+                    exploreLabel: 'Movies',
+                    iconName: 'movie',
+                    fallbackIcon: 'fa-film'
+                },
+                tv: {
+                    explorePage: 'tvshows.html',
+                    exploreIcon: 'fa-tv',
+                    exploreLabel: 'TV Shows',
+                    iconName: 'tv',
+                    fallbackIcon: 'fa-tv'
+                },
+                anime: {
+                    explorePage: 'animes.html',
+                    exploreIcon: 'fa-dragon',
+                    exploreLabel: 'Anime',
+                    iconName: 'anime',
+                    fallbackIcon: 'fa-dragon'
+                },
+                game: {
+                    explorePage: 'games.html',
+                    exploreIcon: 'fa-gamepad',
+                    exploreLabel: 'Games',
+                    iconName: 'game',
+                    fallbackIcon: 'fa-gamepad'
+                },
+                book: {
+                    explorePage: 'books.html',
+                    exploreIcon: 'fa-book',
+                    exploreLabel: 'Books',
+                    iconName: 'book',
+                    fallbackIcon: 'fa-book'
+                },
+                music: {
+                    explorePage: 'music.html',
+                    exploreIcon: 'fa-music',
+                    exploreLabel: 'Music',
+                    iconName: 'music',
+                    fallbackIcon: 'fa-music'
+                },
+                travel: {
+                    explorePage: 'travel.html',
+                    exploreIcon: 'fa-earth-americas',
+                    exploreLabel: 'Places',
+                    iconName: 'travel',
+                    fallbackIcon: 'fa-earth-americas'
+                },
+                fashion: {
+                    explorePage: 'fashion.html',
+                    exploreIcon: 'fa-shirt',
+                    exploreLabel: 'Fashion',
+                    iconName: 'fashion',
+                    fallbackIcon: 'fa-shirt'
+                },
+                food: {
+                    explorePage: 'food.html',
+                    exploreIcon: 'fa-burger',
+                    exploreLabel: 'Food',
+                    iconName: 'food',
+                    fallbackIcon: 'fa-burger'
+                },
+                car: {
+                    explorePage: 'cars.html',
+                    exploreIcon: 'fa-car',
+                    exploreLabel: 'Cars',
+                    iconName: 'car',
+                    fallbackIcon: 'fa-car'
+                }
+            };
 
-                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
-                if (!userId) return;
-                const renderToken = ++renderMoviesToken;
-                if (grid) {
-                    const hasCards = !!grid.querySelector('.collection-card');
-                    if (!hasCards) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('movie')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Movies...</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                            </div>
-                        `;
+            async function renderCategoryGrid(contentType, userId, checkToken) {
+                const isMobile = window.innerWidth <= 768;
+                const tabName = SPA_TYPE_REVERSE[contentType] || contentType;
+                const gridId = isMobile ? `mobile${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Grid` : `${tabName}Grid`;
+                const grid = document.getElementById(gridId);
+                if (!grid) return [];
+
+                const cfg = MEDIA_CONFIGS[contentType];
+                if (!cfg) return [];
+
+                await ensurePinnedCollectionsLoaded(userId);
+                if (!checkToken()) return [];
+
+                const customLists = await loadCollaborativeCustomLists(contentType, userId);
+                if (!checkToken()) return [];
+
+                const items = await ListService.loadMediaListItems(supabase, userId, contentType);
+                if (!checkToken()) return [];
+
+                const defaultListsConfig = ProfileShowcase.getDefaultListsForType(contentType);
+                const defaultLists = defaultListsConfig.map(l => ({
+                    ...l,
+                    description: l.title === 'Favorites' 
+                        ? `${cfg.exploreLabel} you love` 
+                        : `${cfg.exploreLabel} list`,
+                    type: 'default'
+                }));
+
+                const listConfig = ListService.getListConfig(contentType);
+                const itemIdField = listConfig?.itemIdField || 'item_id';
+
+                for (const list of defaultLists) {
+                    list.itemIds = Array.from(new Set(
+                        items
+                            .filter(i => i.list_type === list.id)
+                            .map(i => String(i[itemIdField] || i.item_id || '').trim())
+                            .filter(Boolean)
+                    ));
+                    if (contentType === 'movie') list.movieIds = list.itemIds;
+                    else if (contentType === 'tv') list.tvIds = list.itemIds;
+                    else if (contentType === 'anime') list.animeIds = list.itemIds;
+                    else if (contentType === 'game') list.gameIds = list.itemIds;
+                    else if (contentType === 'book') list.bookIds = list.itemIds;
+                    else if (contentType === 'music') list.trackIds = list.itemIds;
+                    else if (contentType === 'travel') list.countryCodes = list.itemIds;
+                    else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                        list.brandIds = list.itemIds;
                     }
                 }
 
+                if (contentType === 'movie') favoriteIds.movie = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
+                else if (contentType === 'tv') favoriteIds.tv = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
+                else if (contentType === 'anime') favoriteIds.anime = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
+                else if (contentType === 'game') favoriteIds.game = defaultLists.find(l => l.id === 'favorites')?.itemIds || [];
+
+                for (const list of customLists) {
+                    list.itemIds = Array.from(new Set(
+                        items
+                            .filter(i => String(i.list_id || '') === String(list.id || ''))
+                            .map(i => String(i[itemIdField] || i.item_id || '').trim())
+                            .filter(Boolean)
+                    ));
+                    list.type = 'custom';
+                    if (contentType === 'movie') list.movieIds = list.itemIds;
+                    else if (contentType === 'tv') list.tvIds = list.itemIds;
+                    else if (contentType === 'anime') list.animeIds = list.itemIds;
+                    else if (contentType === 'game') list.gameIds = list.itemIds;
+                    else if (contentType === 'book') list.bookIds = list.itemIds;
+                    else if (contentType === 'music') list.trackIds = list.itemIds;
+                    else if (contentType === 'travel') list.countryCodes = list.itemIds;
+                    else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                        list.brandIds = list.itemIds;
+                    }
+                }
+
+                const allLists = applyPinnedListSorting(contentType, [...defaultLists, ...customLists]);
+
+                grid.innerHTML = '';
+                if (allLists.length === 0) {
+                    grid.innerHTML = `
+                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No ${cfg.exploreLabel} Yet</h3>
+                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save items to see them here.</p>
+                            <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='${cfg.explorePage}'">
+                                <i class="fas ${cfg.exploreIcon}"></i> Explore ${cfg.exploreLabel}
+                            </button>
+                        </div>
+                    `;
+                    return allLists;
+                }
+
+                const cards = await Promise.all(allLists.map((list) => createCollectionCard(
+                    list,
+                    contentType,
+                    isMobile,
+                    String(list?.user_id || userId || '').trim() || userId
+                )));
+                const fragment = document.createDocumentFragment();
+                cards.forEach(card => fragment.appendChild(card));
+                grid.appendChild(fragment);
+
+                const allPreviewIds = new Set();
+                allLists.forEach(list => {
+                    (list.itemIds || []).slice(0, 3).forEach(id => allPreviewIds.add(id));
+                });
+                if (allPreviewIds.size > 0) {
+                    await getPreviewItems(Array.from(allPreviewIds), contentType).catch(() => {});
+                }
+
+                return allLists;
+            }
+
+            async function resolveShowcaseList(userId, contentType) {
+                const config = showcaseConfig || [];
+                const hasEntry = config.some(e => e.media_type === contentType);
+
+                if (!hasEntry) {
+                    return await ListService.loadList(supabase, userId, contentType, 'favorites');
+                }
+
+                const showcaseListId = getShowcaseListId(contentType);
+                return await ListService.loadList(supabase, userId, contentType, showcaseListId);
+            }
+
+            function renderDeletedShowcaseRail(mediaType, isMobile) {
+                const desktopTrackId = getRailTrackId(mediaType, false);
+                const mobileTrackId = getRailTrackId(mediaType, true);
+                const desktopTrack = desktopTrackId ? document.getElementById(desktopTrackId) : null;
+                const mobileTrack = mobileTrackId ? document.getElementById(mobileTrackId) : null;
+
+                [
+                    { track: desktopTrack, isMobile: false },
+                    { track: mobileTrack, isMobile: true }
+                ].forEach(({ track, isMobile }) => {
+                    if (!track) return;
+                    track.innerHTML = '';
+
+                    const emptyEl = document.createElement('div');
+                    emptyEl.className = isMobile ? 'mph2-rail-empty-custom' : 'pv2-rail-empty';
+                    emptyEl.innerHTML = `<i class="fas fa-exclamation-circle"></i><span class="${isMobile ? 'mph2-rail-empty-text' : 'pv2-rail-empty-text'}">Choose a list to feature</span>`;
+
+                    if (isMobile) {
+                        emptyEl.style.display = 'flex';
+                        emptyEl.style.alignItems = 'center';
+                        emptyEl.style.justifyContent = 'center';
+                        emptyEl.style.gap = '8px';
+                        emptyEl.style.padding = '20px 16px';
+                        emptyEl.style.color = 'rgba(255,255,255,0.35)';
+                        emptyEl.style.fontSize = '0.8rem';
+                        emptyEl.style.border = '1px dashed rgba(255,255,255,0.15)';
+                        emptyEl.style.borderRadius = '10px';
+                        emptyEl.style.width = '100%';
+                    }
+                    track.appendChild(emptyEl);
+                });
+                markTabRendered(mediaType);
+            }
+
+            async function renderShowcaseRail(contentType, userId) {
+                const listData = await resolveShowcaseList(userId, contentType);
+                const isMobile = window.innerWidth <= 768;
+
+                if (!listData) {
+                    renderDeletedShowcaseRail(contentType, isMobile);
+                    return;
+                }
+
+                const totalItemCount = listData.items.length;
+                const previewLimit = isMobile ? 3 : 5;
+                const itemIds = listData.items.slice(0, previewLimit).map(i => i.item_id);
+                const previewUrls = itemIds.length ? await getPreviewItems(itemIds, contentType).catch(() => []) : [];
+
+                populateRailTrack(contentType, previewUrls, totalItemCount);
+            }
+
+            async function renderMovies() {
+                const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                if (!userId) return;
+                const renderToken = ++renderMoviesToken;
+                const checkToken = () => renderToken === renderMoviesToken;
+
                 try {
-                    const [_, loadedCustomLists] = await Promise.all([
-                        ensurePinnedCollectionsLoaded(userId),
-                        loadCollaborativeCustomLists('movie', userId)
-                    ]);
+                    const allLists = await renderCategoryGrid('movie', userId, checkToken);
+                    if (!checkToken()) return;
+
+                    await renderShowcaseRail('movie', userId);
+                    if (!checkToken()) return;
+
+                    movieAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('movie');
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Movies you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Movies you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Movies to watch', type: 'default' }
-                    ];
-
-                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
-                    if (renderToken !== renderMoviesToken) return;
-                    customLists = await hydrateListMetaByOwner('movie', customLists, userId);
-                    if (renderToken !== renderMoviesToken) return;
-
-                    const items = await loadMediaListItems('movie', userId, customLists.map((list) => list.id));
-
-                    for (const list of defaultLists) {
-                        list.movieIds = Array.from(new Set(
-                            items
-                                .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.movie_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    favoriteIds.movie = defaultLists.find(l => l.id === 'favorites')?.movieIds || [];
-
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.movie = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.movieIds || showcaseList?.items || []
-                    };
-
-                    for (const list of customLists) {
-                        list.movieIds = Array.from(new Set(
-                            items
-                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.movie_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                        list.type = 'custom';
-                    }
-
-                    const allLists = applyPinnedListSorting('movie', [...defaultLists, ...customLists]);
-
-                    if (allLists.length === 0) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Movies Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save movies to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='movies.html'">
-                                        <i class="fas fa-film"></i> Explore Movies
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('movies');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'movie',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach(card => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.movieIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'movie') : [];
-                        populateRailTrack('movie', previewUrls);
-                    }
-                    movieAllLists = allLists;
+                    const showcaseList = movieAllLists.find(l => l.id === showcaseListId) || movieAllLists.find(l => l.id === 'favorites');
                     movieShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('movies');
                 } catch (error) {
-                    console.error('Error loading movies:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Movies</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your movies</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering movies:', error);
                 }
             }
 
@@ -7046,121 +7206,25 @@
             let movieShowcaseData = {};
 
             async function renderTvShows() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileTvGrid') : document.getElementById('tvGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderTvToken;
-                if (grid) {
-                    const hasCards = !!grid.querySelector('.collection-card');
-                    if (!hasCards) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('tv')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading TV Shows...</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                            </div>
-                        `;
-                    }
-                }
+                const checkToken = () => renderToken === renderTvToken;
 
                 try {
-                    const [_, loadedCustomLists] = await Promise.all([
-                        ensurePinnedCollectionsLoaded(userId),
-                        loadCollaborativeCustomLists('tv', userId)
-                    ]);
+                    const allLists = await renderCategoryGrid('tv', userId, checkToken);
+                    if (!checkToken()) return;
+
+                    await renderShowcaseRail('tv', userId);
+                    if (!checkToken()) return;
+
+                    tvAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('tv');
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Shows you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Shows you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Shows to watch', type: 'default' }
-                    ];
-
-                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
-                    if (renderToken !== renderTvToken) return;
-                    customLists = await hydrateListMetaByOwner('tv', customLists, userId);
-                    if (renderToken !== renderTvToken) return;
-
-                    const items = await loadMediaListItems('tv', userId, customLists.map((list) => list.id));
-
-                    for (const list of defaultLists) {
-                        list.tvIds = Array.from(new Set(
-                            items
-                                .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.tv_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    favoriteIds.tv = defaultLists.find(l => l.id === 'favorites')?.tvIds || [];
-
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.tv = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.tvIds || showcaseList?.items || []
-                    };
-
-                    for (const list of customLists) {
-                        list.tvIds = Array.from(new Set(
-                            items
-                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.tv_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                        list.type = 'custom';
-                    }
-
-                    const allLists = applyPinnedListSorting('tv', [...defaultLists, ...customLists]);
-
-                    if (allLists.length === 0) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No TV Shows Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save TV shows to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='tvshows.html'">
-                                        <i class="fas fa-tv"></i> Explore TV Shows
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('tv');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'tv',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach(card => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.tvIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'tv') : [];
-                        populateRailTrack('tv', previewUrls);
-                    }
-                    tvAllLists = allLists;
+                    const showcaseList = tvAllLists.find(l => l.id === showcaseListId) || tvAllLists.find(l => l.id === 'favorites');
                     tvShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('tv');
                 } catch (error) {
-                    console.error('Error loading TV shows:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading TV Shows</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your TV shows</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering tv:', error);
                 }
             }
 
@@ -7168,121 +7232,25 @@
             let tvShowcaseData = {};
 
             async function renderAnimeShows() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileAnimeGrid') : document.getElementById('animeGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderAnimeToken;
-                if (grid) {
-                    const hasCards = !!grid.querySelector('.collection-card');
-                    if (!hasCards) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('anime')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Anime...</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                            </div>
-                        `;
-                    }
-                }
+                const checkToken = () => renderToken === renderAnimeToken;
 
                 try {
-                    const [_, loadedCustomLists] = await Promise.all([
-                        ensurePinnedCollectionsLoaded(userId),
-                        loadCollaborativeCustomLists('anime', userId)
-                    ]);
+                    const allLists = await renderCategoryGrid('anime', userId, checkToken);
+                    if (!checkToken()) return;
+
+                    await renderShowcaseRail('anime', userId);
+                    if (!checkToken()) return;
+
+                    animeAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('anime');
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Anime you love', type: 'default' },
-                        { id: 'watched', title: 'Watched', icon: 'check', description: 'Anime you watched', type: 'default' },
-                        { id: 'watchlist', title: 'Watchlist', icon: 'bookmark', description: 'Anime to watch', type: 'default' }
-                    ];
-
-                    let customLists = Array.isArray(loadedCustomLists) ? loadedCustomLists : [];
-                    if (renderToken !== renderAnimeToken) return;
-                    customLists = await hydrateListMetaByOwner('anime', customLists, userId);
-                    if (renderToken !== renderAnimeToken) return;
-
-                    const items = await loadMediaListItems('anime', userId, customLists.map((list) => list.id));
-
-                    for (const list of defaultLists) {
-                        list.animeIds = Array.from(new Set(
-                            items
-                                .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.anime_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    favoriteIds.anime = defaultLists.find(l => l.id === 'favorites')?.animeIds || [];
-
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.anime = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.animeIds || showcaseList?.items || []
-                    };
-
-                    for (const list of customLists) {
-                        list.animeIds = Array.from(new Set(
-                            items
-                                .filter((i) => String(i.list_id || '') === String(list.id || ''))
-                                .map((i) => String(i.anime_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                        list.type = 'custom';
-                    }
-
-                    const allLists = applyPinnedListSorting('anime', [...defaultLists, ...customLists]);
-
-                    if (allLists.length === 0) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Anime Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save anime to see it here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='animes.html'">
-                                        <i class="fas fa-dragon"></i> Explore Anime
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('anime');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'anime',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach(card => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.animeIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'anime') : [];
-                        populateRailTrack('anime', previewUrls);
-                    }
-                    animeAllLists = allLists;
+                    const showcaseList = animeAllLists.find(l => l.id === showcaseListId) || animeAllLists.find(l => l.id === 'favorites');
                     animeShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('anime');
                 } catch (error) {
-                    console.error('Error loading anime:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Anime</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your anime</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering anime:', error);
                 }
             }
 
@@ -7290,347 +7258,51 @@
             let animeShowcaseData = {};
 
             async function renderGames() {
-                if (GAMES_DISABLED) {
-                    markTabRendered('games');
-                    return;
-                }
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileGamesGrid') : document.getElementById('gamesGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderGamesToken;
+                const checkToken = () => renderToken === renderGamesToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
+                    const allLists = await renderCategoryGrid('game', userId, checkToken);
+                    if (!checkToken()) return;
+
+                    await renderShowcaseRail('game', userId);
+                    if (!checkToken()) return;
+
+                    gameAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('game');
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Games you love', type: 'default' },
-                        { id: 'watched', title: 'Played', icon: 'check', description: 'Games you played', type: 'default' },
-                        { id: 'watchlist', title: 'Backlog', icon: 'bookmark', description: 'Games to play', type: 'default' }
-                    ];
-
-                    let customLists = await loadCollaborativeCustomLists('game', userId);
-                    if (renderToken !== renderGamesToken) return;
-                    customLists = await hydrateListMetaByOwner('game', customLists, userId);
-                    if (renderToken !== renderGamesToken) return;
-
-                    const items = await loadMediaListItems('game', userId, customLists.map((list) => list.id));
-
-                    for (const list of defaultLists) {
-                        list.gameIds = Array.from(new Set(
-                            items
-                                .filter(i => i.list_type === list.id)
-                                .map(i => i.game_id)
-                                .filter((id) => String(id || '').trim() !== '')
-                        ));
-                    }
-                    favoriteIds.game = defaultLists.find(l => l.id === 'favorites')?.gameIds || [];
-
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.game = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.gameIds || showcaseList?.items || []
-                    };
-
-                    for (const list of customLists) {
-                        list.gameIds = Array.from(new Set(
-                            items
-                                .filter(i => String(i.list_id || '') === String(list.id || ''))
-                                .map(i => i.game_id)
-                                .filter((id) => String(id || '').trim() !== '')
-                        ));
-                        list.type = 'custom';
-                    }
-
-                    const allLists = applyPinnedListSorting('game', [...defaultLists, ...customLists]);
-
-                    if (allLists.length === 0) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Games Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save games to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='games.html'">
-                                        <i class="fas fa-gamepad"></i> Explore Games
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('games');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'game',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach(card => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.gameIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'game') : [];
-                        populateRailTrack('game', previewUrls);
-                    }
-                    gameAllLists = allLists;
+                    const showcaseList = gameAllLists.find(l => l.id === showcaseListId) || gameAllLists.find(l => l.id === 'favorites');
                     gameShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('games');
                 } catch (error) {
-                    console.error('Error loading games:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Games</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your games</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering games:', error);
                 }
             }
 
             let gameAllLists = [];
             let gameShowcaseData = {};
 
-            const pendingBookRequests = new Map();
-
-            async function fetchBookDetails(bookId) {
-                if (bookCache.has(bookId)) return bookCache.get(bookId);
-                if (pendingBookRequests.has(bookId)) return pendingBookRequests.get(bookId);
-                const promise = (async () => {
-                    try {
-                        const normalizedId = String(bookId || '').replace(/^\/works\//i, '').trim();
-                        if (!normalizedId || !/^[A-Za-z0-9]+W$/.test(normalizedId)) return null;
-                        const path = `/works/${encodeURIComponent(normalizedId)}.json`;
-                        const target = `${OPEN_LIBRARY_PROXY_BASE}${path}`;
-                        for (let attempt = 0; attempt < 2; attempt += 1) {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 3000 + (attempt * 2000));
-                            try {
-                                const res = await fetch(target, { signal: controller.signal, headers: { Accept: 'application/json' } });
-                                clearTimeout(timeoutId);
-                                if (res.ok) {
-                                    const data = await res.json();
-                                    bookCache.set(bookId, data);
-                                    return data;
-                                }
-                                const retryable = res.status === 429 || res.status >= 500;
-                                if (!retryable) break;
-                            } catch (_error) {
-                                clearTimeout(timeoutId);
-                            }
-                            if (attempt < 1) {
-                                await new Promise((resolve) => setTimeout(resolve, 500));
-                            }
-                        }
-                        return null;
-                    } catch (error) {
-                        console.error('Error fetching book details:', error);
-                        return null;
-                    }
-                })();
-                pendingBookRequests.set(bookId, promise);
-                promise.finally(() => pendingBookRequests.delete(bookId));
-                return promise;
-            }
-
-            function normalizeBookImageUrl(url) {
-                if (!url) return null;
-                let safe = String(url).trim();
-                if (safe.startsWith('//')) safe = `https:${safe}`;
-                if (safe.startsWith('http:')) safe = safe.replace(/^http:/i, 'https:');
-                return safe;
-            }
-
-            function getBestBookIdentifier(book) {
-                const isbnFromArray = Array.isArray(book?.isbn) ? String(book.isbn[0] || '').trim() : '';
-                if (isbnFromArray) return { type: 'isbn', value: isbnFromArray };
-                const identifiers = book?.identifiers || {};
-                const isbn13 = Array.isArray(identifiers.isbn_13) ? String(identifiers.isbn_13[0] || '').trim() : '';
-                if (isbn13) return { type: 'isbn', value: isbn13 };
-                const isbn10 = Array.isArray(identifiers.isbn_10) ? String(identifiers.isbn_10[0] || '').trim() : '';
-                if (isbn10) return { type: 'isbn', value: isbn10 };
-                return null;
-            }
-
-            function getOpenLibraryBookFallback(book) {
-                const best = getBestBookIdentifier(book);
-                if (!best) return null;
-                return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(best.value)}-L.jpg`;
-            }
-
-            function getBookThumbnail(book) {
-                const coverId = Number(book?.cover_i || (Array.isArray(book?.covers) ? book.covers[0] : 0) || 0);
-                const coverById = coverId ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(coverId))}-L.jpg` : '';
-                const fallbackCover = getOpenLibraryBookFallback(book);
-                return normalizeBookImageUrl(coverById) || normalizeBookImageUrl(fallbackCover) || FALLBACK_BOOK_IMAGE;
-            }
-
-            async function fetchGoogleBookVolume(volumeId) {
-                const cleanId = String(volumeId || '').trim();
-                if (!cleanId || cleanId.startsWith('search-')) return null;
-                try {
-                    const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000);
-                    const res = await fetch(volumeUrl.toString(), { signal: controller.signal, headers: { Accept: 'application/json' } });
-                    clearTimeout(timeoutId);
-                    if (!res.ok) return null;
-                    const json = await res.json();
-                    const info = json?.volumeInfo || {};
-                    const title = String(info?.title || '').trim();
-                    if (!title) return null;
-                    const authors = Array.isArray(info?.authors) ? info.authors.filter(Boolean).map((name) => String(name).trim()) : [];
-                    const publisher = String(info?.publisher || '').trim();
-                    const thumbnail = normalizeBookImageUrl(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '') || FALLBACK_BOOK_IMAGE;
-                    return {
-                        id: cleanId,
-                        title,
-                        authors: authors.join(', '),
-                        published_date: String(info?.publishedDate || '').trim(),
-                        thumbnail,
-                        publisher
-                    };
-                } catch (_err) {
-                    return null;
-                }
-            }
-
-            async function resolveProfileBookRecord(bookId) {
-                const safeId = String(bookId || '').trim();
-                if (!safeId) return null;
-                const workDetails = await fetchBookDetails(safeId);
-                if (workDetails) {
-                    const author = Array.isArray(workDetails?.authors) ? String(workDetails.authors[0] || '').trim() : '';
-                    return {
-                        id: safeId,
-                        title: String(workDetails?.title || '').trim() || `Book ${safeId}`,
-                        authors: author,
-                        published_date: String(workDetails?.first_publish_date || workDetails?.publishedDate || '').trim(),
-                        thumbnail: getBookThumbnail(workDetails),
-                        publisher: ''
-                    };
-                }
-                return await fetchGoogleBookVolume(safeId);
-            }
-
             async function renderBooks() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderBooksToken;
+                const checkToken = () => renderToken === renderBooksToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Books you love', type: 'default' },
-                        { id: 'read', title: 'Read', icon: 'check', description: 'Books you finished', type: 'default' },
-                        { id: 'readlist', title: 'Readlist', icon: 'bookmark', description: 'Books to read', type: 'default' }
-                    ];
+                    const allLists = await renderCategoryGrid('book', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('book', userId);
-                    const allItems = await loadMediaListItems('book', userId, customLists.map((list) => list.id));
+                    await renderShowcaseRail('book', userId);
+                    if (!checkToken()) return;
 
-                    if (renderToken !== renderBooksToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'read', 'readlist']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const raw of (customLists || [])) {
-                        const id = String(raw.id || '').trim();
-                        if (!id || seenCustomIds.has(id)) continue;
-
-                        const titleNorm = String(raw.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(titleNorm)) continue;
-
-                        seenCustomIds.add(id);
-                        normalizedCustomLists.push({ ...raw, type: 'custom' });
-                    }
-
-                    customLists = await hydrateListMetaByOwner('book', normalizedCustomLists, userId);
-                    if (renderToken !== renderBooksToken) return;
-
-                    for (const list of defaultLists) {
-                        list.bookIds = Array.from(new Set(
-                            allItems
-                                .filter(i => i.list_type === list.id)
-                                .map(i => i.book_id)
-                        ));
-                    }
-
-                    for (const list of customLists) {
-                        list.bookIds = Array.from(new Set(
-                            allItems
-                                .filter(i => String(i.list_id) === String(list.id))
-                                .map(i => i.book_id)
-                        ));
-                    }
-
+                    bookAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('book');
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.book = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.bookIds || showcaseList?.items || []
-                    };
-
-                    const allLists = applyPinnedListSorting('book', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Books Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save books to see them here.</p>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('books');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'book',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach(card => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.bookIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'book') : [];
-                        populateRailTrack('book', previewUrls);
-                    }
-                    bookAllLists = allLists;
+                    const showcaseList = bookAllLists.find(l => l.id === showcaseListId) || bookAllLists.find(l => l.id === 'favorites');
                     bookShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('books');
                 } catch (error) {
-                    console.error('Error loading books:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Books</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your books</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering books:', error);
                 }
             }
 
@@ -7638,128 +7310,25 @@
             let bookShowcaseData = {};
 
             async function renderMusic() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileMusicGrid') : document.getElementById('musicGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMusicToken;
-                if (grid) {
-                    const hasCards = !!grid.querySelector('.collection-card');
-                    if (!hasCards) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('music')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Music...</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                            </div>
-                        `;
-                    }
-                }
+                const checkToken = () => renderToken === renderMusicToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Tracks you love', type: 'default' },
-                        { id: 'listened', title: 'Listened', icon: 'check', description: 'Tracks you already played', type: 'default' },
-                        { id: 'listenlist', title: 'Listenlist', icon: 'bookmark', description: 'Tracks to play later', type: 'default' }
-                    ];
+                    const allLists = await renderCategoryGrid('music', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('music', userId);
-                    const allItems = await loadMediaListItems('music', userId, customLists.map((list) => list.id));
+                    await renderShowcaseRail('music', userId);
+                    if (!checkToken()) return;
 
-                    if (renderToken !== renderMusicToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'listened', 'listenlist']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const raw of (customLists || [])) {
-                        const id = String(raw.id || '').trim();
-                        if (!id || seenCustomIds.has(id)) continue;
-
-                        const titleNorm = String(raw.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(titleNorm)) continue;
-
-                        seenCustomIds.add(id);
-                        normalizedCustomLists.push({ ...raw, type: 'custom' });
-                    }
-
-                    customLists = await hydrateListMetaByOwner('music', normalizedCustomLists, userId);
-                    if (renderToken !== renderMusicToken) return;
-
-                    for (const list of defaultLists) {
-                        list.trackIds = Array.from(new Set(
-                            allItems
-                                .filter((i) => i.list_type === list.id)
-                                .map((i) => String(i.track_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    for (const list of customLists) {
-                        list.trackIds = Array.from(new Set(
-                            allItems
-                                .filter((i) => String(i.list_id) === String(list.id))
-                                .map((i) => String(i.track_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-
+                    musicAllLists = allLists || [];
                     const showcaseListId = getShowcaseListId('music');
-                    const showcaseDefault = defaultLists.find(l => l.id === showcaseListId);
-                    const showcaseCustom = customLists.find(l => l.id === showcaseListId);
-                    const showcaseList = showcaseCustom || showcaseDefault;
-                    showcaseData.music = {
-                        title: showcaseList?.title || showcaseListId,
-                        listId: showcaseListId,
-                        items: showcaseList?.trackIds || showcaseList?.items || []
-                    };
-
-                    const allLists = applyPinnedListSorting('music', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Music Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save tracks to see them here.</p>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('music');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'music',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach((card) => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseIds = showcaseList?.trackIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'music') : [];
-                        populateRailTrack('music', previewUrls);
-                    }
-                    musicAllLists = allLists;
+                    const showcaseList = musicAllLists.find(l => l.id === showcaseListId) || musicAllLists.find(l => l.id === 'favorites');
                     musicShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('music');
                 } catch (error) {
-                    console.error('Error loading music:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Music</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your tracks</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering music:', error);
                 }
             }
 
@@ -7944,8 +7513,9 @@
                         });
                         grid.appendChild(fragment);
                     }
-                    const teamLogos = teams.slice(0, 10).map(t => getSportsBadge(t, t.logo_url)).filter(Boolean);
-                    populateRailTrack('sports', teamLogos);
+                    const railPreviewLimit = isMobile ? 3 : 5;
+                    const teamLogos = teams.slice(0, railPreviewLimit).map(t => getSportsBadge(t, t.logo_url)).filter(Boolean);
+                    populateRailTrack('sports', teamLogos, teams.length);
                     markTabRendered('sports');
                 } catch (error) {
                     console.error('Error loading sports:', error);
@@ -7962,418 +7532,70 @@
             }
 
             async function renderTravel() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileTravelGrid') : document.getElementById('travelGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderTravelToken;
+                const checkToken = () => renderToken === renderTravelToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Countries you love', type: 'default' },
-                        { id: 'visited', title: 'Visited', icon: 'check', description: 'Countries you visited', type: 'default' },
-                        { id: 'bucketlist', title: 'Bucket List', icon: 'bookmark', description: 'Countries you want to visit', type: 'default' }
-                    ];
+                    await renderCategoryGrid('travel', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('travel', userId);
-                    const allItems = await loadMediaListItems('travel', userId, customLists.map((list) => list.id));
-
-                    if (renderToken !== renderTravelToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'visited', 'bucketlist', 'bucket list']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const raw of (customLists || [])) {
-                        const id = String(raw.id || '').trim();
-                        if (!id || seenCustomIds.has(id)) continue;
-                        const titleNorm = String(raw.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(titleNorm)) continue;
-                        seenCustomIds.add(id);
-                        normalizedCustomLists.push({ ...raw, type: 'custom' });
-                    }
-
-                    customLists = await hydrateListMetaByOwner('travel', normalizedCustomLists, userId);
-                    if (renderToken !== renderTravelToken) return;
-
-                    for (const list of defaultLists) {
-                        list.countryCodes = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    for (const list of customLists) {
-                        list.countryCodes = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => normalizeCountryCode(row.country_code || row.item_id))
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    const allLists = applyPinnedListSorting('travel', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Travel Lists Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save countries to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='travel.html'">
-                                        <i class="fas fa-earth-americas"></i> Explore Travel
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('travel');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'travel',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach((card) => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                        const showcaseCodes = showcaseList?.countryCodes || [];
-                        const flagUrls = showcaseCodes.length ? showcaseCodes.slice(0, 10).map(code => countryFlagFromCode(code)).filter(Boolean) : [];
-                        populateRailTrack('travel', flagUrls);
-                    }
+                    await renderShowcaseRail('travel', userId);
                     markTabRendered('travel');
                 } catch (error) {
-                    console.error('Error loading travel:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Travel</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your travel lists</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering travel:', error);
                 }
             }
 
             async function renderFashion() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileFashionGrid') : document.getElementById('fashionGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderFashionToken;
+                const checkToken = () => renderToken === renderFashionToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
-                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
-                    ];
+                    await renderCategoryGrid('fashion', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('fashion', userId);
-                    const allItems = await loadMediaListItems('fashion', userId, customLists.map((list) => list.id));
-
-                    if (renderToken !== renderFashionToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'owned', 'wishlist']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const list of customLists) {
-                        const title = String(list.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(title)) continue;
-                        const safeId = String(list.id || '').trim();
-                        if (safeId && !seenCustomIds.has(safeId)) {
-                            seenCustomIds.add(safeId);
-                            normalizedCustomLists.push(list);
-                        }
-                    }
-
-                    customLists = await hydrateListMetaByOwner('fashion', normalizedCustomLists, userId);
-                    if (renderToken !== renderFashionToken) return;
-
-                    for (const list of defaultLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    for (const list of customLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    const allLists = applyPinnedListSorting('fashion', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Fashion Lists Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='fashion.html'">
-                                        <i class="fas fa-shirt"></i> Explore Fashion
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('fashion');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'fashion',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach((card) => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                        const showcaseIds = showcaseList?.brandIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'fashion') : [];
-                        populateRailTrack('fashion', previewUrls);
-                    }
+                    await renderShowcaseRail('fashion', userId);
                     markTabRendered('fashion');
                 } catch (error) {
-                    console.error('Error loading fashion:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Fashion</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your fashion lists</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering fashion:', error);
                 }
             }
 
             async function renderCars() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileCarsGrid') : document.getElementById('carsGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderCarsToken;
+                const checkToken = () => renderToken === renderCarsToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'owned', title: 'Owned', icon: 'check', description: 'Brands you own', type: 'default' },
-                        { id: 'wishlist', title: 'Wishlist', icon: 'bookmark', description: 'Brands you want to try', type: 'default' }
-                    ];
+                    await renderCategoryGrid('car', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('car', userId);
-                    const allItems = await loadMediaListItems('car', userId, customLists.map((list) => list.id));
-
-                    if (renderToken !== renderCarsToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'owned', 'wishlist']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const list of customLists) {
-                        const title = String(list.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(title)) continue;
-                        const safeId = String(list.id || '').trim();
-                        if (safeId && !seenCustomIds.has(safeId)) {
-                            seenCustomIds.add(safeId);
-                            normalizedCustomLists.push(list);
-                        }
-                    }
-
-                    customLists = await hydrateListMetaByOwner('car', normalizedCustomLists, userId);
-                    if (renderToken !== renderCarsToken) return;
-
-                    for (const list of defaultLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    for (const list of customLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    const allLists = applyPinnedListSorting('car', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Car Lists Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='cars.html'">
-                                        <i class="fas fa-car"></i> Explore Cars
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('cars');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'car',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach((card) => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                        const showcaseIds = showcaseList?.brandIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'car') : [];
-                        populateRailTrack('car', previewUrls);
-                    }
+                    await renderShowcaseRail('car', userId);
                     markTabRendered('cars');
                 } catch (error) {
-                    console.error('Error loading cars:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Cars</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your car lists</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering cars:', error);
                 }
             }
 
             async function renderFood() {
-                const isMobile = window.innerWidth <= 768;
-                const grid = isMobile ? document.getElementById('mobileFoodGrid') : document.getElementById('foodGrid');
-
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderFoodToken;
+                const checkToken = () => renderToken === renderFoodToken;
 
                 try {
-                    await ensurePinnedCollectionsLoaded(userId);
-                    const defaultLists = [
-                        { id: 'favorites', title: 'Favorites', icon: 'heart', description: 'Brands you love', type: 'default' },
-                        { id: 'tried', title: 'Tried', icon: 'check', description: 'Places you already tried', type: 'default' },
-                        { id: 'want_to_try', title: 'Want to Try', icon: 'bookmark', description: 'Spots you want to try', type: 'default' }
-                    ];
+                    await renderCategoryGrid('food', userId, checkToken);
+                    if (!checkToken()) return;
 
-                    let customLists = await loadCollaborativeCustomLists('food', userId);
-                    const allItems = await loadMediaListItems('food', userId, customLists.map((list) => list.id));
-
-                    if (renderToken !== renderFoodToken) return;
-
-                    const reservedTitles = new Set(['favorites', 'tried', 'want to try', 'want_to_try']);
-                    const seenCustomIds = new Set();
-                    const normalizedCustomLists = [];
-
-                    for (const list of customLists) {
-                        const title = String(list.title || '').trim().toLowerCase();
-                        if (reservedTitles.has(title)) continue;
-                        const safeId = String(list.id || '').trim();
-                        if (safeId && !seenCustomIds.has(safeId)) {
-                            seenCustomIds.add(safeId);
-                            normalizedCustomLists.push(list);
-                        }
-                    }
-
-                    customLists = await hydrateListMetaByOwner('food', normalizedCustomLists, userId);
-                    if (renderToken !== renderFoodToken) return;
-
-                    for (const list of defaultLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_type || '').toLowerCase() === list.id)
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-                    for (const list of customLists) {
-                        list.brandIds = Array.from(new Set(
-                            allItems
-                                .filter((row) => String(row.list_id || '') === String(list.id || ''))
-                                .map((row) => String(row.brand_id || row.item_id || '').trim())
-                                .filter(Boolean)
-                        ));
-                    }
-
-                    const allLists = applyPinnedListSorting('food', [...defaultLists, ...customLists]);
-                    if (!allLists.length) {
-                        if (grid) {
-                            grid.innerHTML = `
-                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Food Lists Yet</h3>
-                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='food.html'">
-                                        <i class="fas fa-burger"></i> Explore Food
-                                    </button>
-                                </div>
-                            `;
-                        }
-                        markTabRendered('food');
-                        return;
-                    }
-
-                    const cards = await Promise.all(allLists.map((list) => createCollectionCard(
-                        list,
-                        'food',
-                        isMobile,
-                        String(list?.user_id || userId || '').trim() || userId
-                    )));
-                    if (grid) {
-                        grid.innerHTML = '';
-                        const fragment = document.createDocumentFragment();
-                        cards.forEach((card) => fragment.appendChild(card));
-                        grid.appendChild(fragment);
-                        const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
-                        const showcaseIds = showcaseList?.brandIds || [];
-                        const previewUrls = showcaseIds.length ? await getPreviewItems(showcaseIds.slice(0, 10), 'food') : [];
-                        populateRailTrack('food', previewUrls);
-                    }
+                    await renderShowcaseRail('food', userId);
                     markTabRendered('food');
                 } catch (error) {
-                    console.error('Error loading food:', error);
-                    if (grid) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Food</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your food lists</p>
-                            </div>
-                        `;
-                    }
+                    console.error('Error rendering food:', error);
                 }
             }
 
@@ -8623,89 +7845,116 @@
                 const missingIds = normalizedIds.filter((id, index) => !urls[index]);
 
                 if (missingIds.length) {
-                    if (contentType === 'book') {
-                        const rows = await Promise.all(missingIds.map((id) => resolveProfileBookRecord(id)));
-                        rows.forEach((row, index) => {
-                            const id = String(row?.id || missingIds[index] || '').trim();
-                            if (!id) return;
-                            const imageUrl = String(row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
-                            writePreviewAssetCache(contentType, id, imageUrl);
-                        });
-                    } else if (contentType === 'music') {
-                        const { data } = await supabase
-                            .from('tracks')
-                            .select('id, image_url')
-                            .in('id', missingIds);
-                        (data || []).forEach((row) => {
-                            const id = String(row.id || '').trim();
-                            const imageUrl = row.image_url || '/newlogo.webp';
-                            writePreviewAssetCache(contentType, id, imageUrl);
-                        });
-                    } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
-                        const table = contentType === 'fashion'
-                            ? 'fashion_brands'
-                            : (contentType === 'food' ? 'food_brands' : 'car_brands');
-                        const { data } = await supabase
-                            .from(table)
-                            .select('id, name, domain, logo_url')
-                            .in('id', missingIds);
-                        (data || []).forEach((row) => {
-                            const id = String(row.id || '').trim();
-                            const name = String(row?.name || '').trim();
-                            const domain = String(row?.domain || '').trim();
-                            let imageUrl = '';
-                            let rawLogoUrl = row?.logo_url || '';
-                            let localLogo = '';
-                            if (rawLogoUrl) {
-                                if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
-                                    localLogo = toHttpsUrl(rawLogoUrl);
-                                } else {
-                                    localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                    try {
+                        if (contentType === 'book') {
+                            const rows = await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    return await resolveProfileBookRecord(id);
+                                } catch (err) {
+                                    console.error(`Error resolving book details for ${id}:`, err);
+                                    return null;
                                 }
-                            }
-                            if (localLogo) {
-                                imageUrl = localLogo;
-                            } else if (name) {
-                                const params = new URLSearchParams();
-                                params.set('title', name);
-                                if (domain) params.set('domain', domain);
-                                params.set('mode', 'logo');
-                                imageUrl = `/api/logo?${params.toString()}`;
-                            } else if (domain) {
-                                imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
-                            }
-                            writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
-                        });
-                    } else if (contentType === 'travel') {
-                        missingIds.forEach((id) => {
-                            const code = normalizeCountryCode(id);
-                            if (!code) return;
-                            writePreviewAssetCache(contentType, id, countryFlagFromCode(code));
-                        });
-                    } else if (contentType === 'game') {
-                        await Promise.all(missingIds.map(async (id) => {
-                            const game = await fetchGameDetails(id);
-                            const imageUrl = normalizeGameImageSource(game);
-                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
-                        }));
-                    } else if (contentType === 'tv') {
-                        await Promise.all(missingIds.map(async (id) => {
-                            const tv = await fetchTvDetails(id);
-                            const imageUrl = tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
-                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
-                        }));
-                    } else if (contentType === 'anime') {
-                        await Promise.all(missingIds.map(async (id) => {
-                            const anime = await fetchAnimeDetails(id);
-                            const imageUrl = anime?.poster_path ? `${TMDB_POSTER}${anime.poster_path}` : null;
-                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
-                        }));
-                    } else {
-                        await Promise.all(missingIds.map(async (id) => {
-                            const movie = await fetchMovieDetails(id);
-                            const imageUrl = movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
-                            if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
-                        }));
+                            }));
+                            rows.forEach((row, index) => {
+                                const id = String(row?.id || missingIds[index] || '').trim();
+                                if (!id) return;
+                                const imageUrl = String(row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
+                                writePreviewAssetCache(contentType, id, imageUrl);
+                            });
+                        } else if (contentType === 'music') {
+                            const { data } = await supabase
+                                .from('tracks')
+                                .select('id, image_url')
+                                .in('id', missingIds);
+                            (data || []).forEach((row) => {
+                                const id = String(row.id || '').trim();
+                                const imageUrl = row.image_url || '/newlogo.webp';
+                                writePreviewAssetCache(contentType, id, imageUrl);
+                            });
+                        } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
+                            const table = contentType === 'fashion'
+                                ? 'fashion_brands'
+                                : (contentType === 'food' ? 'food_brands' : 'car_brands');
+                            const { data } = await supabase
+                                .from(table)
+                                .select('id, name, domain, logo_url')
+                                .in('id', missingIds);
+                            (data || []).forEach((row) => {
+                                const id = String(row.id || '').trim();
+                                const name = String(row?.name || '').trim();
+                                const domain = String(row?.domain || '').trim();
+                                let imageUrl = '';
+                                let rawLogoUrl = row?.logo_url || '';
+                                let localLogo = '';
+                                if (rawLogoUrl) {
+                                    if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
+                                        localLogo = toHttpsUrl(rawLogoUrl);
+                                    } else {
+                                        localLogo = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${rawLogoUrl}`;
+                                    }
+                                }
+                                if (localLogo) {
+                                    imageUrl = localLogo;
+                                } else if (name) {
+                                    const params = new URLSearchParams();
+                                    params.set('title', name);
+                                    if (domain) params.set('domain', domain);
+                                    params.set('mode', 'logo');
+                                    imageUrl = `/api/logo?${params.toString()}`;
+                                } else if (domain) {
+                                    imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
+                                }
+                                writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
+                            });
+                        } else if (contentType === 'travel') {
+                            missingIds.forEach((id) => {
+                                const code = normalizeCountryCode(id);
+                                if (!code) return;
+                                writePreviewAssetCache(contentType, id, countryFlagFromCode(code));
+                            });
+                        } else if (contentType === 'game') {
+                            await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    const game = await fetchGameDetails(id);
+                                    const imageUrl = normalizeGameImageSource(game);
+                                    if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                                } catch (err) {
+                                    console.error(`Error fetching game details for ${id} in preview:`, err);
+                                }
+                            }));
+                        } else if (contentType === 'tv') {
+                            await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    const tv = await fetchTvDetails(id);
+                                    const imageUrl = tv?.poster_path ? `${TMDB_POSTER}${tv.poster_path}` : null;
+                                    if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                                } catch (err) {
+                                    console.error(`Error fetching TV details for ${id} in preview:`, err);
+                                }
+                            }));
+                        } else if (contentType === 'anime') {
+                            await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    const anime = await fetchAnimeDetails(id);
+                                    const imageUrl = anime?.poster_path ? `${TMDB_POSTER}${anime.poster_path}` : null;
+                                    if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                                } catch (err) {
+                                    console.error(`Error fetching Anime details for ${id} in preview:`, err);
+                                }
+                            }));
+                        } else {
+                            await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    const movie = await fetchMovieDetails(id);
+                                    const imageUrl = movie?.poster_path ? `${TMDB_POSTER}${movie.poster_path}` : null;
+                                    if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                                } catch (err) {
+                                    console.error(`Error fetching movie details for ${id} in preview:`, err);
+                                }
+                            }));
+                        }
+                    } catch (err) {
+                        console.error(`Error in getPreviewItems batch for ${contentType}:`, err);
                     }
                 }
 
@@ -8716,7 +7965,8 @@
                     if (contentType === 'music') return '/newlogo.webp';
                     if (contentType === 'game') return '/newlogo.webp';
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
-                    return null;
+                    if (contentType === 'movie' || contentType === 'tv' || contentType === 'anime') return 'images/placeholder.jpg';
+                    return '/newlogo.webp';
                 });
             }
 

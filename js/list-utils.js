@@ -1461,7 +1461,114 @@
     return !error;
   }
 
-  window.ListUtils = {
+  function getDefaultListTitle(listId) {
+    const titles = {
+      favorites: 'Favorites',
+      watched: 'Watched',
+      watchlist: 'Watchlist',
+      played: 'Played',
+      wishlist: 'Wishlist',
+      read: 'Read',
+      readlist: 'Reading List',
+      currently_reading: 'Currently Reading',
+      visited: 'Visited',
+      bucketlist: 'Bucket List',
+      owned: 'Owned',
+      tried: 'Tried',
+      want_to_try: 'Want to Try'
+    };
+    return titles[String(listId).toLowerCase()] || String(listId).charAt(0).toUpperCase() + String(listId).slice(1);
+  }
+
+  async function loadMediaListItems(client, userId, type) {
+    const cfg = getListConfig(type);
+    if (!cfg || !client || !userId) return [];
+    try {
+      const { data, error } = await client
+        .from(cfg.itemsTable)
+        .select('*')
+        .eq('user_id', userId);
+      if (error) {
+        console.error(`Error in loadMediaListItems for type ${type}:`, error);
+        return [];
+      }
+      return (data || []).map(row => ({
+        ...row,
+        item_id: row[cfg.itemIdField]
+      }));
+    } catch (err) {
+      console.error(`Exception in loadMediaListItems for type ${type}:`, err);
+      return [];
+    }
+  }
+
+  async function loadList(client, userId, type, listId) {
+    const cfg = getListConfig(type);
+    if (!cfg || !client || !userId || !listId) return null;
+
+    const defaultListIds = new Set([
+      'favorites', 'watched', 'watchlist', 'played', 'wishlist',
+      'read', 'readlist', 'currently_reading', 'visited', 'bucketlist',
+      'owned', 'tried', 'want_to_try'
+    ]);
+    const isDefault = defaultListIds.has(String(listId).toLowerCase());
+
+    let title = '';
+    let items = [];
+
+    if (isDefault) {
+      title = getDefaultListTitle(listId);
+      const { data, error } = await client
+        .from(cfg.itemsTable)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('list_type', listId);
+      if (error) {
+        console.error(`Error in loadList for default list ${listId} (type ${type}):`, error);
+        return null;
+      }
+      items = data || [];
+    } else {
+      // Query the custom list row to verify it exists and get its title
+      const { data: listRow, error: listError } = await client
+        .from(cfg.listTable)
+        .select('title')
+        .eq('id', listId)
+        .maybeSingle();
+
+      if (listError || !listRow) {
+        // Custom list does not exist anymore (e.g. deleted)
+        return null;
+      }
+      title = listRow.title;
+
+      // Query custom list items
+      const { data, error } = await client
+        .from(cfg.itemsTable)
+        .select('*')
+        .eq('user_id', userId)
+        .eq('list_id', listId);
+      if (error) {
+        console.error(`Error in loadList for custom list ${listId} (type ${type}):`, error);
+        return null;
+      }
+      items = data || [];
+    }
+
+    const mappedItems = items.map(item => ({
+      ...item,
+      item_id: item[cfg.itemIdField]
+    }));
+
+    return {
+      title,
+      mediaType: type,
+      items: mappedItems,
+      listId
+    };
+  }
+
+  const ListService = {
     getListConfig,
     coerceItemId,
     normalizeQueryableItemId,
@@ -1498,8 +1605,13 @@
     addItemToList,
     removeItemFromList,
     createCustomList,
-    renameCustomList
+    renameCustomList,
+    loadMediaListItems,
+    loadList
   };
+
+  window.ListService = ListService;
+  window.ListUtils = ListService;
 
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
