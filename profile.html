@@ -1342,24 +1342,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
       // Patch: override showPrimaryTab to also show/hide pv2 overview
       var _origShowPrimaryTab = PM.showPrimaryTab && PM.showPrimaryTab.bind(PM);
-      PM.showPrimaryTab = function(tab) {
-        var overview = document.getElementById('pv2Overview');
-        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-        var activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
-
-        if (tab === 'lists' || tab === undefined) {
-          if (overview) overview.style.display = '';
-          if (listsPanel) listsPanel.style.display = 'none';
-          if (activityPanel) activityPanel.style.display = 'none';
-        } else if (tab === 'activity') {
-          if (overview) overview.style.display = 'none';
-          if (listsPanel) listsPanel.style.display = 'none';
-          if (activityPanel) {
-            activityPanel.style.display = '';
-            activityPanel.style.removeProperty('display');
-          }
-          if (_origShowPrimaryTab) _origShowPrimaryTab('activity');
-        }
+      PM.showPrimaryTab = function(tab, opts) {
+        if (_origShowPrimaryTab) _origShowPrimaryTab(tab, opts);
       };
 
       // Override showTab to show the lists panel instead of the overview

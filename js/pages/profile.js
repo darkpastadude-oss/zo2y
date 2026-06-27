@@ -727,6 +727,7 @@
                 syncPrimaryTabUi(safeTab);
 
                 const isMobile = window.innerWidth <= 768;
+
                 if (isMobile && safeTab !== 'lists' && safeTab !== 'activity') {
                     document.querySelectorAll('.mobile-section').forEach((section) => {
                         const panel = section.getAttribute('data-profile-panel') || '';
@@ -738,6 +739,42 @@
                             section.classList.remove('active');
                         }
                     });
+                }
+
+                if (isMobile) {
+                    const overviewPanel = document.getElementById('mobileOverviewPanel');
+                    const listsPanel = document.getElementById('mobileListsPanel');
+                    const communityPanel = document.getElementById('mobileCommunityPanel');
+                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                    const mediaToggle = document.querySelector('.mobile-media-toggle');
+
+                    if (safeTab === 'lists') {
+                        if (overviewPanel) overviewPanel.style.display = '';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (communityPanel) communityPanel.style.display = 'none';
+                        if (spaContainer) spaContainer.innerHTML = '';
+                        if (mediaToggle) mediaToggle.style.display = '';
+                    } else if (safeTab === 'activity') {
+                        if (overviewPanel) overviewPanel.style.display = 'none';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (communityPanel) communityPanel.style.display = '';
+                        if (spaContainer) spaContainer.innerHTML = '';
+                        if (mediaToggle) mediaToggle.style.display = 'none';
+                    }
+                } else {
+                    const overview = document.getElementById('pv2Overview');
+                    const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    const activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
+
+                    if (safeTab === 'lists') {
+                        if (overview) overview.style.display = '';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (activityPanel) activityPanel.style.display = 'none';
+                    } else if (safeTab === 'activity') {
+                        if (overview) overview.style.display = 'none';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (activityPanel) activityPanel.style.display = '';
+                    }
                 }
 
                 if (!options.skipTabSync) {
@@ -6545,7 +6582,14 @@
 
                 // Even on repeat clicks, make sure the section is visible.
                 if (safeTab === currentTab && alreadyActive) {
-                    ensureTabSectionVisible(safeTab, isMobile);
+                    if (isMobile) {
+                        const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                        const listsPanel = document.getElementById('mobileListsPanel');
+                        if (spaContainer && spaContainer.children.length === 0 && safeTab !== 'community') {
+                            renderShowcaseTab(safeTab);
+                        }
+                        if (listsPanel) listsPanel.style.display = 'block';
+                    }
                     return;
                 }
 
@@ -6572,70 +6616,39 @@
                 }
 
                 if (isMobile) {
-                    document.querySelectorAll('.mobile-section').forEach(section => {
-                        if (options.skipDetailReset) {
-                            const detailSection = section.querySelector('[id*="DetailSection"]');
-                            if (detailSection && detailSection.style.display === 'block') {
-                                return;
-                            }
-                        }
-                        section.style.display = 'none';
-                        section.classList.remove('active', 'rendered');
-                    });
+                    const overviewPanel = document.getElementById('mobileOverviewPanel');
+                    const listsPanel = document.getElementById('mobileListsPanel');
+                    const communityPanel = document.getElementById('mobileCommunityPanel');
+                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                    const mediaToggle = document.querySelector('.mobile-media-toggle');
 
-                    document.querySelectorAll('.mobile-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    closeProfileTabGroups();
+                    if (overviewPanel) overviewPanel.style.display = 'none';
+                    if (listsPanel) listsPanel.style.display = 'block';
+                    if (communityPanel) communityPanel.style.display = 'none';
+                    if (mediaToggle) mediaToggle.style.display = 'none';
 
-                    const activeSection =
-                        document.getElementById(`mobile${safeTab.charAt(0).toUpperCase() + safeTab.slice(1)}Section`) ||
-                        document.getElementById(`mobile${DEFAULT_PROFILE_TAB.charAt(0).toUpperCase() + DEFAULT_PROFILE_TAB.slice(1)}Section`) ||
-                        document.getElementById('mobileMoviesSection');
-                    if (activeSection) {
-                        activeSection.style.display = 'block';
-                        activeSection.classList.add('active');
-                        activeSection.classList.remove('rendered');
+                    if (spaContainer) {
+                        spaContainer.innerHTML = '';
+                        renderShowcaseTab(safeTab);
                     }
 
                     const activeTab = document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`);
                     if (activeTab) {
                         activeTab.classList.add('active');
-                    } else if (safeTab !== 'community') {
-                        const fallbackTab = document.querySelector(`.mobile-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
-                        if (fallbackTab) fallbackTab.classList.add('active');
                     }
-                    ensureProfileGroupRowVisible(safeTab);
-                    scrollActiveMobileTabIntoView(safeTab);
-                    const swipeHint = document.getElementById('mobileTabsSwipeHint');
-                    if (swipeHint) swipeHint.classList.add('hidden');
 
                     currentTab = safeTab;
-                    // Make the section visible IMMEDIATELY so the user always sees the
-                    // chrome (title, nav, grid container) even while the render is in
-                    // flight. Without this, the section sits at opacity:0 with only a
-                    // tiny spinner and a long render looks like a blank panel.
-                    ensureTabSectionVisible(safeTab, isMobile);
                     if (!options.skipRender) {
                         const renderPromise = requestTabRender(safeTab, requestToken);
                         if (renderPromise) {
-                            // Run the render in the background — do not block on it.
-                            // The section is already visible; the render populates it.
                             renderPromise.catch(() => {});
                         }
                     }
                 } else {
-                    document.querySelectorAll('.tab-content').forEach(tab => {
-                        tab.classList.remove('active', 'rendered');
-                    });
-
-                    const tabElement =
-                        document.getElementById(`${safeTab}-tab`) ||
-                        document.getElementById(`${DEFAULT_PROFILE_TAB}-tab`) ||
-                        document.getElementById('movies-tab');
-                    if (tabElement) {
-                        tabElement.classList.add('active');
-                        tabElement.classList.remove('rendered');
+                    const spaContainer = document.getElementById('spaViewAllContainer');
+                    if (spaContainer) {
+                        spaContainer.innerHTML = '';
+                        renderShowcaseTab(safeTab);
                     }
 
                     document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -6646,14 +6659,9 @@
                     const activeButton = document.querySelector(`.nav-tab[data-tab="${safeTab}"]`);
                     if (activeButton) {
                         activeButton.classList.add('active');
-                    } else if (safeTab !== 'community') {
-                        const fallbackButton = document.querySelector(`.nav-tab[data-tab="${DEFAULT_PROFILE_TAB}"]`);
-                        if (fallbackButton) fallbackButton.classList.add('active');
                     }
-                    ensureProfileGroupRowVisible(safeTab);
 
                     currentTab = safeTab;
-                    ensureTabSectionVisible(safeTab, isMobile);
                     if (!options.skipRender) {
                         const renderPromise = requestTabRender(safeTab, requestToken);
                         if (renderPromise) {
@@ -6664,23 +6672,104 @@
             }
 
             // ===== UNIFIED COLLECTION RENDERING =====
+            const RAIL_TRACK_MAP = {
+                movie: 'mph2TrackMovies', tv: 'mph2TrackTv', anime: 'mph2TrackAnime',
+                game: 'mph2TrackGames', book: 'mph2TrackBooks', music: 'mph2TrackMusic',
+                sports: 'mph2TrackSports', travel: 'mph2TrackTravel', fashion: 'mph2TrackFashion',
+                food: 'mph2TrackFood', car: 'mph2TrackCars'
+            };
+            const TAB_PAGE_MAP = {
+                movie: 'movies.html', tv: 'tv.html', anime: 'anime.html',
+                game: 'games.html', book: 'books.html', music: 'music.html',
+                sports: 'sports.html', travel: 'travel.html', fashion: 'fashion.html',
+                food: 'food.html', car: 'cars.html'
+            };
+            const SPA_TYPE_MAP = {
+                movies: 'movie', tv: 'tv', anime: 'anime', games: 'game',
+                books: 'book', music: 'music', sports: 'sports', travel: 'travel',
+                fashion: 'fashion', food: 'food', cars: 'car'
+            };
+            const SPA_TYPE_REVERSE = {
+                movie: 'movies', tv: 'tv', anime: 'anime', game: 'games',
+                book: 'books', music: 'music', sports: 'sports', travel: 'travel',
+                fashion: 'fashion', food: 'food', car: 'cars'
+            };
+
+            function renderShowcaseTab(tabName) {
+                const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                if (!spaContainer) return;
+
+                const GRID_ID_MAP = {
+                    movies: 'mobileMoviesGrid', tv: 'mobileTvGrid', anime: 'mobileAnimeGrid',
+                    games: 'mobileGamesGrid', books: 'mobileBooksGrid', music: 'mobileMusicGrid',
+                    sports: 'mobileSportsGrid', travel: 'mobileTravelGrid', fashion: 'mobileFashionGrid',
+                    food: 'mobileFoodGrid', cars: 'mobileCarsGrid'
+                };
+
+                const RENDERER_MAP = {
+                    movies: () => renderMovies(), tv: () => renderTvShows(), anime: () => renderAnimeShows(),
+                    games: () => renderGames(), books: () => renderBooks(), music: () => renderMusic(),
+                    sports: () => renderSports(), travel: () => renderTravel(), fashion: () => renderFashion(),
+                    food: () => renderFood(), cars: () => renderCars()
+                };
+
+                const gridId = GRID_ID_MAP[tabName];
+                const renderer = RENDERER_MAP[tabName];
+                if (!gridId || !renderer) return;
+
+                const grid = document.createElement('div');
+                grid.id = gridId;
+                grid.className = 'collection-grid';
+                spaContainer.appendChild(grid);
+
+                renderer();
+            }
+
+            function populateRailTrack(mediaType, previewUrls) {
+                const trackId = RAIL_TRACK_MAP[mediaType];
+                if (!trackId) return;
+                const track = document.getElementById(trackId);
+                if (!track) return;
+                track.innerHTML = '';
+                if (!previewUrls || !previewUrls.length) {
+                    track.innerHTML = '<div class="mph2-track-empty">Nothing saved yet</div>';
+                    return;
+                }
+                const page = TAB_PAGE_MAP[mediaType] || '#';
+                previewUrls.forEach(url => {
+                    const a = document.createElement('a');
+                    a.className = 'mph2-poster-card';
+                    a.href = page;
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = '';
+                    img.loading = 'lazy';
+                    img.decoding = 'async';
+                    img.onerror = function() { this.onerror = null; this.src = '/newlogo.webp'; };
+                    a.appendChild(img);
+                    track.appendChild(a);
+                });
+            }
+
             async function renderMovies() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileMoviesGrid') : document.getElementById('moviesGrid');
-                if (!grid) return;
+                const spaContainer = document.getElementById('mobileSpaViewAllContainer');
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMoviesToken;
-                const hasCards = !!grid.querySelector('.collection-card');
-                if (!hasCards) {
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('movie')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Movies...</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                        </div>
-                    `;
+                if (grid) {
+                    const hasCards = !!grid.querySelector('.collection-card');
+                    if (!hasCards) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('movie')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Movies...</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                            </div>
+                        `;
+                    }
                 }
 
                 try {
@@ -6734,16 +6823,18 @@
                     const allLists = applyPinnedListSorting('movie', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Movies Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save movies to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='movies.html'">
-                                    <i class="fas fa-film"></i> Explore Movies
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Movies Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save movies to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='movies.html'">
+                                        <i class="fas fa-film"></i> Explore Movies
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('movies');
                         return;
                     }
@@ -6754,40 +6845,55 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach(card => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.movieIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'movie');
+                        populateRailTrack('movie', previewUrls);
+                    }
+                    movieAllLists = allLists;
+                    movieShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('movies');
                 } catch (error) {
                     console.error('Error loading movies:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Movies</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your movies</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Movies</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your movies</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let movieAllLists = [];
+            let movieShowcaseData = {};
 
             async function renderTvShows() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileTvGrid') : document.getElementById('tvGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderTvToken;
-                const hasCards = !!grid.querySelector('.collection-card');
-                if (!hasCards) {
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('tv')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading TV Shows...</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                        </div>
-                    `;
+                if (grid) {
+                    const hasCards = !!grid.querySelector('.collection-card');
+                    if (!hasCards) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('tv')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading TV Shows...</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                            </div>
+                        `;
+                    }
                 }
 
                 try {
@@ -6841,16 +6947,18 @@
                     const allLists = applyPinnedListSorting('tv', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No TV Shows Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save TV shows to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='tvshows.html'">
-                                    <i class="fas fa-tv"></i> Explore TV Shows
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No TV Shows Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save TV shows to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='tvshows.html'">
+                                        <i class="fas fa-tv"></i> Explore TV Shows
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('tv');
                         return;
                     }
@@ -6861,40 +6969,55 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach(card => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.tvIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'tv');
+                        populateRailTrack('tv', previewUrls);
+                    }
+                    tvAllLists = allLists;
+                    tvShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('tv');
                 } catch (error) {
                     console.error('Error loading TV shows:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading TV Shows</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your TV shows</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading TV Shows</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your TV shows</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let tvAllLists = [];
+            let tvShowcaseData = {};
 
             async function renderAnimeShows() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileAnimeGrid') : document.getElementById('animeGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderAnimeToken;
-                const hasCards = !!grid.querySelector('.collection-card');
-                if (!hasCards) {
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('anime')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Anime...</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
-                        </div>
-                    `;
+                if (grid) {
+                    const hasCards = !!grid.querySelector('.collection-card');
+                    if (!hasCards) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('anime')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Anime...</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                            </div>
+                        `;
+                    }
                 }
 
                 try {
@@ -6948,16 +7071,18 @@
                     const allLists = applyPinnedListSorting('anime', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Anime Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save anime to see it here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='animes.html'">
-                                    <i class="fas fa-dragon"></i> Explore Anime
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Anime Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save anime to see it here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='animes.html'">
+                                        <i class="fas fa-dragon"></i> Explore Anime
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('anime');
                         return;
                     }
@@ -6968,22 +7093,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach(card => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.animeIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'anime');
+                        populateRailTrack('anime', previewUrls);
+                    }
+                    animeAllLists = allLists;
+                    animeShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('anime');
                 } catch (error) {
                     console.error('Error loading anime:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Anime</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your anime</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Anime</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your anime</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let animeAllLists = [];
+            let animeShowcaseData = {};
 
             async function renderGames() {
                 if (GAMES_DISABLED) {
@@ -6992,7 +7131,6 @@
                 }
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileGamesGrid') : document.getElementById('gamesGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7046,16 +7184,18 @@
                     const allLists = applyPinnedListSorting('game', [...defaultLists, ...customLists]);
 
                     if (allLists.length === 0) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Games Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save games to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='games.html'">
-                                    <i class="fas fa-gamepad"></i> Explore Games
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Games Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save games to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='games.html'">
+                                        <i class="fas fa-gamepad"></i> Explore Games
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('games');
                         return;
                     }
@@ -7066,22 +7206,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach(card => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.gameIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'game');
+                        populateRailTrack('game', previewUrls);
+                    }
+                    gameAllLists = allLists;
+                    gameShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('games');
                 } catch (error) {
                     console.error('Error loading games:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Games</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your games</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Games</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your games</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let gameAllLists = [];
+            let gameShowcaseData = {};
 
             const pendingBookRequests = new Map();
 
@@ -7208,7 +7362,6 @@
             async function renderBooks() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileBooksGrid') : document.getElementById('booksGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7273,13 +7426,15 @@
 
                     const allLists = applyPinnedListSorting('book', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Books Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save books to see them here.</p>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Books Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save books to see them here.</p>
+                                </div>
+                            `;
+                        }
                         markTabRendered('books');
                         return;
                     }
@@ -7290,31 +7445,56 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach(card => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach(card => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.bookIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'book');
+                        populateRailTrack('book', previewUrls);
+                    }
+                    bookAllLists = allLists;
+                    bookShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('books');
                 } catch (error) {
                     console.error('Error loading books:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Books</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your books</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Books</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your books</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let bookAllLists = [];
+            let bookShowcaseData = {};
 
             async function renderMusic() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileMusicGrid') : document.getElementById('musicGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderMusicToken;
+                if (grid) {
+                    const hasCards = !!grid.querySelector('.collection-card');
+                    if (!hasCards) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'} loading">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('music')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Loading Music...</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Syncing your collections.</p>
+                            </div>
+                        `;
+                    }
+                }
 
                 try {
                     await ensurePinnedCollectionsLoaded(userId);
@@ -7377,13 +7557,15 @@
 
                     const allLists = applyPinnedListSorting('music', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Music Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save tracks to see them here.</p>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Music Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save tracks to see them here.</p>
+                                </div>
+                            `;
+                        }
                         markTabRendered('music');
                         return;
                     }
@@ -7394,22 +7576,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach((card) => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach((card) => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseIds = showcaseList?.trackIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'music');
+                        populateRailTrack('music', previewUrls);
+                    }
+                    musicAllLists = allLists;
+                    musicShowcaseData = { listId: showcaseListId, title: showcaseList?.title || 'Favorites' };
                     markTabRendered('music');
                 } catch (error) {
                     console.error('Error loading music:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Music</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your tracks</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Music</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your tracks</p>
+                            </div>
+                        `;
+                    }
                 }
             }
+
+            let musicAllLists = [];
+            let musicShowcaseData = {};
 
             function normalizeSportsImageUrl(url) {
                 if (!url) return '';
@@ -7536,20 +7732,21 @@
             async function renderSports() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileSportsGrid') : document.getElementById('sportsGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
                 const renderToken = ++renderSportsToken;
                 await loadSportsManifest();
                 const renderEmptyState = () => {
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Teams Yet</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save teams to see them here.</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Teams Yet</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save teams to see them here.</p>
+                            </div>
+                        `;
+                    }
                 };
 
                 try {
@@ -7568,40 +7765,46 @@
 
                     if (!teams.length) {
                         renderEmptyState();
+                        populateRailTrack('sports', []);
                         markTabRendered('sports');
                         return;
                     }
 
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    teams.forEach((team) => {
-                        fragment.appendChild(buildSportsTeamCard(team, {
-                            canRemove: isViewingOwnProfile,
-                            onRemove: () => {
-                                if (!grid.querySelector('.team-card')) {
-                                    renderEmptyState();
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        teams.forEach((team) => {
+                            fragment.appendChild(buildSportsTeamCard(team, {
+                                canRemove: isViewingOwnProfile,
+                                onRemove: () => {
+                                    if (grid && !grid.querySelector('.team-card')) {
+                                        renderEmptyState();
+                                    }
                                 }
-                            }
-                        }));
-                    });
-                    grid.appendChild(fragment);
+                            }));
+                        });
+                        grid.appendChild(fragment);
+                    }
+                    const teamLogos = teams.slice(0, 10).map(t => getSportsBadge(t, t.logo_url)).filter(Boolean);
+                    populateRailTrack('sports', teamLogos);
                     markTabRendered('sports');
                 } catch (error) {
                     console.error('Error loading sports:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Sports</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your teams.</p>
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}"><i class="fas fa-futbol"></i></div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Sports</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your teams.</p>
                         </div>
                     `;
+                    }
                 }
             }
 
             async function renderTravel() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileTravelGrid') : document.getElementById('travelGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7656,16 +7859,18 @@
 
                     const allLists = applyPinnedListSorting('travel', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Travel Lists Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save countries to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='travel.html'">
-                                    <i class="fas fa-earth-americas"></i> Explore Travel
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Travel Lists Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save countries to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='travel.html'">
+                                        <i class="fas fa-earth-americas"></i> Explore Travel
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('travel');
                         return;
                     }
@@ -7676,27 +7881,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach((card) => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach((card) => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                    const showcaseCodes = showcaseList?.countryCodes || [];
+                    if (showcaseCodes.length) {
+                        const flagUrls = showcaseCodes.slice(0, 10).map(code => countryFlagFromCode(code)).filter(Boolean);
+                        populateRailTrack('travel', flagUrls);
+                    }
                     markTabRendered('travel');
                 } catch (error) {
                     console.error('Error loading travel:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Travel</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your travel lists</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Travel</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your travel lists</p>
+                            </div>
+                        `;
+                    }
                 }
             }
 
             async function renderFashion() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileFashionGrid') : document.getElementById('fashionGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7751,16 +7965,18 @@
 
                     const allLists = applyPinnedListSorting('fashion', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Fashion Lists Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='fashion.html'">
-                                    <i class="fas fa-shirt"></i> Explore Fashion
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Fashion Lists Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='fashion.html'">
+                                        <i class="fas fa-shirt"></i> Explore Fashion
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('fashion');
                         return;
                     }
@@ -7771,27 +7987,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach((card) => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach((card) => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                    const showcaseIds = showcaseList?.brandIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'fashion');
+                        populateRailTrack('fashion', previewUrls);
+                    }
                     markTabRendered('fashion');
                 } catch (error) {
                     console.error('Error loading fashion:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Fashion</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your fashion lists</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Fashion</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your fashion lists</p>
+                            </div>
+                        `;
+                    }
                 }
             }
 
             async function renderCars() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileCarsGrid') : document.getElementById('carsGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7846,16 +8071,18 @@
 
                     const allLists = applyPinnedListSorting('car', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Car Lists Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='cars.html'">
-                                    <i class="fas fa-car"></i> Explore Cars
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Car Lists Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='cars.html'">
+                                        <i class="fas fa-car"></i> Explore Cars
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('cars');
                         return;
                     }
@@ -7866,27 +8093,36 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach((card) => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach((card) => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                    const showcaseIds = showcaseList?.brandIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'car');
+                        populateRailTrack('car', previewUrls);
+                    }
                     markTabRendered('cars');
                 } catch (error) {
                     console.error('Error loading cars:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Cars</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your car lists</p>
-                        </div>
-                    `;
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Cars</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your car lists</p>
+                            </div>
+                        `;
+                    }
                 }
             }
 
             async function renderFood() {
                 const isMobile = window.innerWidth <= 768;
                 const grid = isMobile ? document.getElementById('mobileFoodGrid') : document.getElementById('foodGrid');
-                if (!grid) return;
 
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId) return;
@@ -7941,16 +8177,18 @@
 
                     const allLists = applyPinnedListSorting('food', [...defaultLists, ...customLists]);
                     if (!allLists.length) {
-                        grid.innerHTML = `
-                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Food Lists Yet</h3>
-                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
-                                <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='food.html'">
-                                    <i class="fas fa-burger"></i> Explore Food
-                                </button>
-                            </div>
-                        `;
+                        if (grid) {
+                            grid.innerHTML = `
+                                <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                    <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                    <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">No Food Lists Yet</h3>
+                                    <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Save brands to see them here.</p>
+                                    <button class="${isMobile ? 'mobile-action-btn' : 'btn btn-primary mt-md'}" onclick="window.location.href='food.html'">
+                                        <i class="fas fa-burger"></i> Explore Food
+                                    </button>
+                                </div>
+                            `;
+                        }
                         markTabRendered('food');
                         return;
                     }
@@ -7961,19 +8199,28 @@
                         isMobile,
                         String(list?.user_id || userId || '').trim() || userId
                     )));
-                    grid.innerHTML = '';
-                    const fragment = document.createDocumentFragment();
-                    cards.forEach((card) => fragment.appendChild(card));
-                    grid.appendChild(fragment);
+                    if (grid) {
+                        grid.innerHTML = '';
+                        const fragment = document.createDocumentFragment();
+                        cards.forEach((card) => fragment.appendChild(card));
+                        grid.appendChild(fragment);
+                    }
+                    const showcaseList = allLists.find(l => l.id === 'favorites') || allLists[0];
+                    const showcaseIds = showcaseList?.brandIds || [];
+                    if (showcaseIds.length) {
+                        const previewUrls = await getPreviewItems(showcaseIds.slice(0, 10), 'food');
+                        populateRailTrack('food', previewUrls);
+                    }
                     markTabRendered('food');
                 } catch (error) {
                     console.error('Error loading food:', error);
-                    grid.innerHTML = `
-                        <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
-                            <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
-                            <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Food</h3>
-                            <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your food lists</p>
-                        </div>
+                    if (grid) {
+                        grid.innerHTML = `
+                            <div class="${isMobile ? 'mobile-empty-state' : 'empty-state'}">
+                                <div class="${isMobile ? 'mobile-empty-icon' : 'empty-icon'}">${iconGlyph('list')}</div>
+                                <h3 class="${isMobile ? 'mobile-empty-title' : 'empty-title'}">Error Loading Food</h3>
+                                <p class="${isMobile ? 'mobile-empty-description' : 'empty-description'}">Unable to load your food lists</p>
+                            </div>
                     `;
                 }
             }
@@ -10292,10 +10539,16 @@
                     el.style.display = 'none';
                 });
                 if (isMobile) {
-                    document.querySelectorAll('.mobile-section').forEach(el => {
-                        el.style.display = 'none';
-                        el.classList.remove('active', 'rendered');
-                    });
+                    const overviewPanel = document.getElementById('mobileOverviewPanel');
+                    const listsPanel = document.getElementById('mobileListsPanel');
+                    const communityPanel = document.getElementById('mobileCommunityPanel');
+                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                    const mediaToggle = document.querySelector('.mobile-media-toggle');
+                    if (overviewPanel) overviewPanel.style.display = '';
+                    if (listsPanel) listsPanel.style.display = 'none';
+                    if (communityPanel) communityPanel.style.display = 'none';
+                    if (spaContainer) spaContainer.innerHTML = '';
+                    if (mediaToggle) mediaToggle.style.display = '';
                     document.querySelectorAll('.mobile-tab').forEach(tab => {
                         tab.classList.remove('active');
                     });
