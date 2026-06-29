@@ -777,13 +777,13 @@
                     const activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
 
                     if (safeTab === 'lists') {
-                        if (overview) overview.style.display = '';
-                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (overview) overview.style.display = 'none';
+                        if (listsPanel) listsPanel.style.display = '';
                         if (activityPanel) activityPanel.style.display = 'none';
                         const profileHeader = document.querySelector('.profile-header');
-                        if (profileHeader) profileHeader.style.display = '';
+                        if (profileHeader) profileHeader.style.display = 'none';
                         const statsBar = document.querySelector('.pv2-stats');
-                        if (statsBar) statsBar.style.display = '';
+                        if (statsBar) statsBar.style.display = 'none';
                     } else if (safeTab === 'activity') {
                         if (overview) overview.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
@@ -792,6 +792,10 @@
                         if (overview) overview.style.display = '';
                         if (listsPanel) listsPanel.style.display = 'none';
                         if (activityPanel) activityPanel.style.display = 'none';
+                        const profileHeader = document.querySelector('.profile-header');
+                        if (profileHeader) profileHeader.style.display = '';
+                        const statsBar = document.querySelector('.pv2-stats');
+                        if (statsBar) statsBar.style.display = '';
                     }
                 }
 
@@ -4311,6 +4315,7 @@
                     if (activeTabBtn) activeTabBtn.classList.add('active');
                 }
 
+                showPrimaryTab('lists', { force: true, skipTabSync: true });
                 window.previousWasCollectionRoute = true;
 
                 try {
@@ -9970,7 +9975,6 @@ resetDetailPanels();
                 const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                 if (listsPanel) {
                     listsPanel.style.display = 'block';
-                    listsPanel.style.removeProperty('display');
                 }
                 const mobileListsPanel = document.getElementById('mobileListsPanel');
                 if (mobileListsPanel) {
