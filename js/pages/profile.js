@@ -4306,6 +4306,10 @@
                     const activeTabBtn = document.querySelector(`.profile-primary-tab[data-tab="${tabName}"]`);
                     if (activeTabBtn) activeTabBtn.classList.add('active');
                 }
+
+                showPrimaryTab('lists', { force: true, skipTabSync: true });
+                window.previousWasCollectionRoute = true;
+
                 try {
                     await showCollectionDetail(String(listId), normalizedType, resolvedListType);
                 } catch (error) {
@@ -6764,6 +6768,8 @@ const alreadyActive = isMobile
                 if (!options.skipPrimarySync) {
                     if (safeTab === 'community') {
                         showPrimaryTab('activity', { skipTabSync: true });
+                    } else if (safeTab === 'overview') {
+                        showPrimaryTab('overview', { skipTabSync: true });
                     } else {
                         showPrimaryTab('lists', { skipTabSync: true });
                     }
