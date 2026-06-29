@@ -7814,6 +7814,13 @@ const alreadyActive = isMobile
             async function showCollectionDetail(listId, contentType, listType) {
                 const isMobile = window.innerWidth <= 768;
 
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+                const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                if (listsPanel) listsPanel.style.display = '';
+                const mobileListsPanel = document.getElementById('mobileListsPanel');
+                if (mobileListsPanel) mobileListsPanel.style.display = '';
+
                 if (isMobile) {
                     const spaContainer = document.getElementById('mobileSpaViewAllContainer');
                     if (spaContainer) spaContainer.style.display = 'none';
