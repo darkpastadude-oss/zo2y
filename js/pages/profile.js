@@ -4062,6 +4062,11 @@
                 }
                 const rawType = String(list?.type || '').trim().toLowerCase();
                 if (rawType === 'default' || rawType === 'custom') return rawType;
+                
+                const defaultListIds = new Set(['favorites', 'watched', 'watchlist', 'played', 'wishlist', 'read', 'readlist', 'currently_reading', 'visited', 'bucketlist', 'owned', 'tried', 'want_to_try']);
+                if (list && list.id && defaultListIds.has(String(list.id).toLowerCase())) return 'default';
+                if (list && list.listId && defaultListIds.has(String(list.listId).toLowerCase())) return 'default';
+                
                 return 'custom';
             }
 
@@ -7557,7 +7562,7 @@ const alreadyActive = isMobile
                     rail.innerHTML = `
                         <div class="mph2-row-hd" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             <span class="mph2-row-label" style="display:flex;align-items:center;gap:6px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></span>
-                            <a class="mph2-row-viewall">view list <i class="fas fa-chevron-right"></i></a>
+                            <a class="mph2-row-viewall">collections <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="track-${safeListId}"></div>
                     `;
@@ -7565,7 +7570,7 @@ const alreadyActive = isMobile
                     rail.innerHTML = `
                         <div class="pv2-rail-header" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></div>
-                            <a class="pv2-rail-viewall">view list <i class="fas fa-chevron-right"></i></a>
+                            <a class="pv2-rail-viewall">collections <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="track-${safeListId}"></div>
                     `;
