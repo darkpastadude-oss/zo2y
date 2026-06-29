@@ -6977,6 +6977,7 @@ const alreadyActive = isMobile
                     img.alt = 'Poster';
                     img.loading = 'lazy';
                     img.onerror = () => { img.src = '/newlogo.webp'; };
+                    img.className = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
 
                     imgWrap.appendChild(img);
                     card.appendChild(imgWrap);
@@ -7554,7 +7555,6 @@ const alreadyActive = isMobile
                 if (previewIds.length) {
                     void getPreviewItems(previewIds, contentType)
                         .then((resolvedPreviewItems) => {
-                            if (!rail.isConnected) return;
                             populateRailElement(track, isMobile, contentType, resolvedPreviewItems, count);
                         });
                 }
