@@ -7549,14 +7549,58 @@ const alreadyActive = isMobile
                     ? travelPreviewIds.slice(0, previewLimit)
                     : orderedIds.slice(0, previewLimit);
 
-                // Start empty
-                populateRailElement(track, isMobile, contentType, [], count);
+                const cachedPreviewItems = normalizedType === 'travel'
+                    ? previewIds.map((id) => {
+                        const code = normalizeCountryCode(id);
+                        const flagUrl = countryFlagFromCode(code || id);
+                        writePreviewAssetCache(normalizedType, code || id, flagUrl);
+                        return flagUrl;
+                    })
+                    : previewIds.map((id) => readPreviewAssetCache(normalizedType, id));
+
+                const buildPreviewHtml = (previewUrls) => {
+                    if (!previewIds || !previewIds.length) {
+                        return `<div style="padding: 16px; color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;"><i class="fas fa-plus"></i> No items yet</div>`;
+                    }
+                    const maxVisible = isMobile ? 5 : 8;
+                    const visible = previewUrls.slice(0, maxVisible);
+                    let html = '';
+                    visible.forEach((url, i) => {
+                        const baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
+                        const wrapClass = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
+                        const imgClass = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
+                        if (url) {
+                            html += `
+                                <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
+                                    <div class="${wrapClass}">
+                                        <img class="${imgClass}" src="${url}" alt="Poster" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            html += `
+                                <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
+                                    <div class="${wrapClass}" style="display:flex;align-items:center;justify-content:center;background:var(--elevation-2);">
+                                        <i class="fas fa-film" style="color:var(--muted)"></i>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    return html;
+                };
+
+                track.innerHTML = buildPreviewHtml(cachedPreviewItems);
 
                 if (previewIds.length) {
                     void getPreviewItems(previewIds, contentType)
                         .then((resolvedPreviewItems) => {
-                            populateRailElement(track, isMobile, contentType, resolvedPreviewItems, count);
-                        });
+                            const nextHtml = buildPreviewHtml(resolvedPreviewItems);
+                            if (track.innerHTML !== nextHtml) {
+                                track.innerHTML = nextHtml;
+                            }
+                        })
+                        .catch(() => {});
                 }
 
                 return rail;
