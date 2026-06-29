@@ -7816,8 +7816,7 @@ const alreadyActive = isMobile
 
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
-                const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                if (listsPanel) listsPanel.style.display = '';
+
                 if (isMobile) {
                     const mobileView = document.querySelector('.mobile-only');
                     if (mobileView) mobileView.style.display = '';
@@ -7825,17 +7824,29 @@ const alreadyActive = isMobile
                     if (overviewPanel) overviewPanel.style.display = 'none';
                     const communityPanel = document.getElementById('mobileCommunityPanel');
                     if (communityPanel) communityPanel.style.display = 'none';
-                }
-                const mobileListsPanel = document.getElementById('mobileListsPanel');
-                if (mobileListsPanel) mobileListsPanel.style.display = '';
-
-                if (isMobile) {
-                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
-                    if (spaContainer) spaContainer.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'block';
+                    document.querySelectorAll('#mobileListsPanel .mobile-section').forEach(function(el) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
+                    });
                 } else {
-                    const spaContainer = document.getElementById('spaViewAllContainer');
-                    if (spaContainer) spaContainer.style.display = 'none';
+                    const desktopView = document.querySelector('.desktop-only');
+                    if (desktopView) desktopView.style.display = '';
+                    const overview = document.getElementById('pv2Overview');
+                    if (overview) overview.style.display = 'none';
+                    const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsPanel) listsPanel.style.display = 'block';
+                    document.querySelectorAll('.profile-primary-panel[data-panel="lists"] .tab-content').forEach(function(el) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
+                    });
                 }
+
+                const spaContainer = isMobile
+                    ? document.getElementById('mobileSpaViewAllContainer')
+                    : document.getElementById('spaViewAllContainer');
+                if (spaContainer) spaContainer.style.display = 'none';
 
                 if (contentType === 'movie') {
                     await showMovieDetail(listId, listType, isMobile);
