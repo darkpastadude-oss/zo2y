@@ -780,6 +780,10 @@
                         if (overview) overview.style.display = '';
                         if (listsPanel) listsPanel.style.display = 'none';
                         if (activityPanel) activityPanel.style.display = 'none';
+                        const profileHeader = document.querySelector('.profile-header');
+                        if (profileHeader) profileHeader.style.display = '';
+                        const statsBar = document.querySelector('.pv2-stats');
+                        if (statsBar) statsBar.style.display = '';
                     } else if (safeTab === 'activity') {
                         if (overview) overview.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
@@ -4370,6 +4374,10 @@
                     const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                     if (overview) overview.style.display = '';
                     if (listsPanel) listsPanel.style.display = 'none';
+                    const profileHeader = document.querySelector('.profile-header');
+                    if (profileHeader) profileHeader.style.display = '';
+                    const statsBar = document.querySelector('.pv2-stats');
+                    if (statsBar) statsBar.style.display = '';
                     currentTab = DEFAULT_PROFILE_TAB;
                     requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
                     return;
@@ -7899,6 +7907,10 @@ const alreadyActive = isMobile
                     if (profileContainer) profileContainer.style.display = '';
                     const overview = document.getElementById('pv2Overview');
                     if (overview) overview.style.display = 'none';
+                    const profileHeader = document.querySelector('.profile-header');
+                    if (profileHeader) profileHeader.style.display = 'none';
+                    const statsBar = document.querySelector('.pv2-stats');
+                    if (statsBar) statsBar.style.display = 'none';
                     const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                     if (listsPanel) listsPanel.style.display = 'block';
                     document.querySelectorAll('.profile-primary-panel[data-panel="lists"] .tab-content').forEach(function(el) {
@@ -9934,6 +9946,10 @@ resetDetailPanels();
                 const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                 if (overview) overview.style.display = '';
                 if (listsPanel) listsPanel.style.display = 'none';
+                const profileHeader = document.querySelector('.profile-header');
+                if (profileHeader) profileHeader.style.display = '';
+                const statsBar = document.querySelector('.pv2-stats');
+                if (statsBar) statsBar.style.display = '';
                 currentTab = DEFAULT_PROFILE_TAB;
                 const nextUrl = buildProfileUrl({});
                 history.pushState({}, '', nextUrl);
@@ -9967,6 +9983,10 @@ resetDetailPanels();
                         tc.style.display = 'none';
                         tc.classList.remove('active', 'rendered');
                     });
+                    const profileHeader = document.querySelector('.profile-header');
+                    if (profileHeader) profileHeader.style.display = 'none';
+                    const statsBar = document.querySelector('.pv2-stats');
+                    if (statsBar) statsBar.style.display = 'none';
                 }
 
                 if (type === 'sports') {
