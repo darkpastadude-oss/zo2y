@@ -7449,12 +7449,16 @@ const alreadyActive = isMobile
             }
 
             async function createCollectionCard(list, contentType, isMobile, ownerUserId = null) {
-                const card = document.createElement('div');
-                card.className = 'collection-card';
+                const rail = document.createElement('div');
+                rail.className = isMobile ? 'mph2-row' : 'pv2-rail';
+                rail.style.marginBottom = '32px';
 
                 const normalizedType = contentType === 'cars' ? 'car' : contentType;
-
-                                let itemIds = [];
+                const safeListId = String(list.id || '').replace(/'/g, "\\'");
+                const routeListType = resolveCollectionListType(normalizedType, list);
+                const safeListType = String(routeListType || '').replace(/'/g, "\\'");
+                
+                let itemIds = [];
                 if (normalizedType === 'restaurant') {
                     itemIds = list.restaurantIds || [];
                 } else if (normalizedType === 'movie') {
@@ -7473,34 +7477,37 @@ const alreadyActive = isMobile
                     itemIds = list.countryCodes || [];
                 } else {
                     itemIds = list.trackIds || [];
-                }                const resolvedListType = resolveCollectionListType(normalizedType, list);
-                const routeListId = String(list.id || '');
-                const { tierMeta, orderedIds } = await resolveTierOrderedIds(normalizedType, list, routeListId, itemIds, {
-                    listType: resolvedListType,
+                }
+
+                const { orderedIds } = await resolveTierOrderedIds(normalizedType, list, list.id, itemIds, {
+                    listType: routeListType,
                     ownerUserId
                 });
+                
                 const count = orderedIds.length;
-                const isCustom = normalizedType === 'restaurant' ? !list.is_default : list.type === 'custom';
-                const collabAccess = isCustom
-                    ? getCollaborativeAccess(normalizedType, routeListId, list)
-                    : { isOwner: true, canEdit: true, isCollaborative: false };
-                const pinKey = getPinnedCollectionKey(normalizedType, routeListId, resolvedListType);
-                const isPinned = !!pinnedListsMap.get(pinKey);
-                const tierBadgeHtml = (isCustom && tierMeta.isTier)
-                    ? `<div class="tier-list-badge"><i class="fas fa-layer-group"></i> Tier List</div>`
-                    : '';
-                const pinBadgeHtml = isPinned
-                    ? `<div class="collection-pin-badge"><i class="fas fa-thumbtack"></i> Pinned</div>`
-                    : '';
-                const collabBadgeHtml = (isCustom && collabAccess.isCollaborative)
-                    ? `<div class="collection-collab-badge"><i class="fas fa-user-group"></i> Shared</div>`
-                    : '';
-                const routeListType = String(resolvedListType || '');
-                const safeListId = routeListId.replace(/'/g, "\\'");
-                const safeListType = routeListType.replace(/'/g, "\\'");
-                const countLabel = getCollectionItemLabel(normalizedType, count);
+                const iconGlyphStr = iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))));
 
-                const previewLimit = 3;
+                if (isMobile) {
+                    rail.innerHTML = `
+                        <div class="mph2-row-hd" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
+                            <span class="mph2-row-label" style="display:flex;align-items:center;gap:6px;">${iconGlyphStr} ${list.title}</span>
+                            <a class="mph2-row-viewall">view list <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="track-${safeListId}"></div>
+                    `;
+                } else {
+                    rail.innerHTML = `
+                        <div class="pv2-rail-header" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
+                            <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} ${list.title}</div>
+                            <a class="pv2-rail-viewall">view list <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="track-${safeListId}"></div>
+                    `;
+                }
+
+                const track = rail.querySelector(isMobile ? '.mph2-row-track' : '.pv2-rail-track');
+                
+                const previewLimit = isMobile ? 5 : 8;
                 const travelPreviewIds = normalizedType === 'travel'
                     ? Array.from(new Set(
                         [
@@ -7514,151 +7521,19 @@ const alreadyActive = isMobile
                 const previewIds = normalizedType === 'travel'
                     ? travelPreviewIds.slice(0, previewLimit)
                     : orderedIds.slice(0, previewLimit);
-                const previewOrientationClass = getPreviewOrientationClass(normalizedType);
-                const fallbackPreviewIcon = normalizedType === 'restaurant'
-                    ? 'restaurant'
-                    : normalizedType === 'movie'
-                        ? 'movie'
-                        : normalizedType === 'tv'
-                            ? 'tv'
-                            : normalizedType === 'anime'
-                                ? 'anime'
-                                : normalizedType === 'game'
-                                    ? 'game'
-                                    : normalizedType === 'book'
-                                        ? 'book'
-                                        : normalizedType === 'fashion'
-                                            ? 'fashion'
-                                            : normalizedType === 'food'
-                                                ? 'food'
-                                                : normalizedType === 'car'
-                                                    ? 'car'
-                                        : normalizedType === 'travel'
-                                            ? 'travel'
-                                            : 'music';
-                const isBrandCollection = normalizedType === 'fashion' || normalizedType === 'food' || normalizedType === 'car';
-                const buildPreviewHtml = (previewItems = []) => {
-                    let html = '';
-                    for (let i = 0; i < previewLimit; i++) {
-                        const overflowHtml = (i === previewLimit - 1 && count > previewLimit)
-                            ? `<div class="collection-preview-overflow">+${count - previewLimit}</div>`
-                            : '';
-                        const previewClass = `collection-preview-item ${previewOrientationClass}${isBrandCollection ? ' brand-logo-preview' : ''}`;
-                        const imageClass = isBrandCollection ? 'brand-logo-preview-image' : '';
-                        if (previewItems[i]) {
-                            html += `
-                                <div class="${previewClass}">
-                                    <img class="${imageClass}" src="${previewItems[i]}" alt="Preview" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
-                                    ${overflowHtml}
-                                </div>
-                            `;
-                        } else {
-                            html += `
-                                <div class="${previewClass}">
-                                    <div class="collection-preview-item-empty">${iconGlyph(fallbackPreviewIcon)}</div>
-                                    ${overflowHtml}
-                                </div>
-                            `;
-                        }
-                    }
-                    return html;
-                };
-                const cachedPreviewItems = normalizedType === 'travel'
-                    ? previewIds.map((id) => {
-                        const code = normalizeCountryCode(id);
-                        const flagUrl = countryFlagFromCode(code || id);
-                        writePreviewAssetCache(normalizedType, code || id, flagUrl);
-                        return flagUrl;
-                    })
-                    : previewIds.map((id) => readPreviewAssetCache(normalizedType, id));
-                const previewHtml = buildPreviewHtml(cachedPreviewItems);
 
-                const canEditCollection = isViewingOwnProfile && isCustom && !!collabAccess.canEdit;
-                const canDeleteCollection = isViewingOwnProfile && isCustom && !!collabAccess.isOwner;
-                const canPinCollection = isViewingOwnProfile;
-                const pinActionLabel = isPinned ? 'Unpin' : 'Pin to Top';
-                const pinActionIcon = isPinned ? 'fa-thumbtack-slash' : 'fa-thumbtack';
-                const kebabHtml = (canEditCollection || canDeleteCollection || canPinCollection) ? `
-                    <div class="collection-card-actions">
-                        <button class="collection-kebab-btn" onclick="event.stopPropagation(); ProfileManager.toggleCollectionMenu('${list.id}', '${normalizedType}')">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <div class="collection-dropdown" id="collection-${normalizedType}-${list.id}">
-                            ${canPinCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.togglePinnedCollection('${safeListId}', '${normalizedType}', '${safeListType}')">
-                                    <i class="fas ${pinActionIcon}"></i> ${pinActionLabel}
-                                </div>
-                            ` : ''}
-                            ${canEditCollection ? `
-                                <div class="collection-dropdown-item" onclick="event.stopPropagation(); ProfileManager.editCollection('${safeListId}', '${normalizedType}')">
-                                    <i class="fas fa-edit"></i> Edit
-                                </div>
-                            ` : ''}
-                            ${canDeleteCollection ? `
-                                <div class="collection-dropdown-item danger" onclick="event.stopPropagation(); ProfileManager.deleteCollection('${safeListId}', '${normalizedType}')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                ` : '';
+                // Start empty
+                populateRailElement(track, isMobile, contentType, [], count);
 
-                card.innerHTML = `
-                    <div class="collection-card-reorder">
-                        <button class="reorder-btn reorder-up" onclick="event.stopPropagation(); ProfileManager.reorderList('${normalizedType}', '${safeListId}', 'up')" title="Move up">
-                            <i class="fas fa-chevron-up"></i>
-                        </button>
-                        <button class="reorder-btn reorder-down" onclick="event.stopPropagation(); ProfileManager.reorderList('${normalizedType}', '${safeListId}', 'down')" title="Move down">
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                    </div>
-                    ${kebabHtml}
-                    <div class="collection-card-header">
-                        <div class="collection-card-title-group">
-                            <div class="collection-card-icon">${iconGlyph(list.icon, normalizedType === 'restaurant' ? 'restaurant' : (normalizedType === 'movie' ? 'movie' : (normalizedType === 'tv' ? 'tv' : (normalizedType === 'anime' ? 'anime' : (normalizedType === 'game' ? 'game' : (normalizedType === 'book' ? 'book' : (normalizedType === 'travel' ? 'travel' : (normalizedType === 'car' ? 'car' : 'music'))))))))}</div>
-                            <div class="collection-card-info">
-                                <div class="collection-card-title">${list.title}</div>
-                                <div class="collection-card-count">${countLabel}</div>
-                                ${tierBadgeHtml}
-                                ${pinBadgeHtml}
-                                ${collabBadgeHtml}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="collection-card-preview">
-                        ${previewHtml}
-                    </div>
-                    <div class="collection-card-footer">
-                        <div class="collection-card-meta">
-                            <div class="collection-card-meta-item">
-                                <i class="fas fa-calendar"></i>
-                                ${list.created_at ? new Date(list.created_at).toLocaleDateString() : ''}
-                            </div>
-                        </div>
-                        <button class="collection-view-btn" onclick="event.stopPropagation(); ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
-                            View all ->
-                        </button>
-                    </div>
-                `;
-
-                card.onclick = () => openCollectionPage(routeListId, normalizedType, routeListType);
-
-                // Hydrate preview images in the background to keep first paint instant.
                 if (previewIds.length) {
                     void getPreviewItems(previewIds, contentType)
                         .then((resolvedPreviewItems) => {
-                            if (!card.isConnected) return;
-                            const previewContainer = card.querySelector('.collection-card-preview');
-                            if (!previewContainer) return;
-                            const nextHtml = buildPreviewHtml(resolvedPreviewItems);
-                            if (previewContainer.innerHTML !== nextHtml) {
-                                previewContainer.innerHTML = nextHtml;
-                            }
-                        })
-                        .catch(() => {});
+                            if (!rail.isConnected) return;
+                            populateRailElement(track, isMobile, contentType, resolvedPreviewItems, count);
+                        });
                 }
 
-                return card;
+                return rail;
             }
 
             function getPreviewAssetCacheKey(contentType, id) {

@@ -105,7 +105,7 @@ const newPopulate = `function populateRailTrack(mediaType, previewUrls, totalIte
 content = content.replace(populateRegex, newPopulate);
 
 // --- 2. Replace createCollectionCard ---
-const createCardRegex = /async function createCollectionCard\([\s\S]*?(?=\n\s+async function openCollectionPage)/;
+const createCardRegex = /async function createCollectionCard\([\s\S]*?(?=\n\s+function getPreviewAssetCacheKey)/;
 const newCreateCard = `async function createCollectionCard(list, contentType, isMobile, ownerUserId = null) {
                 const rail = document.createElement('div');
                 rail.className = isMobile ? 'mph2-row' : 'pv2-rail';
