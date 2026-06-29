@@ -77,18 +77,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div id="pv2CategoryView" class="pv2-category-view" style="display:none;">
         <div class="container">
             <div class="pv2-category-header">
-                <button class="btn btn-secondary btn-sm pv2-category-back" onclick="ProfileManager.backToProfile()">
-                    <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
-                </button>
-                <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
-                <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
-                <div class="pv2-category-actions">
-                    <button class="btn btn-primary btn-sm pv2-category-create" id="pv2CategoryCreateBtn">
-                        <i class="fas fa-plus"></i> <span class="pv2-category-create-text">Create List</span>
+                <div class="pv2-category-header-top">
+                    <button class="btn pv2-category-back" onclick="ProfileManager.backToProfile()">
+                        <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
                     </button>
-                    <button class="btn btn-secondary btn-sm pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
-                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
-                    </button>
+                </div>
+                <div class="pv2-category-header-main">
+                    <div class="pv2-category-title-group">
+                        <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
+                        <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
+                    </div>
+                    <div class="pv2-category-actions">
+                        <button class="btn btn-primary pv2-category-create" id="pv2CategoryCreateBtn">
+                            <i class="fas fa-plus"></i> <span class="pv2-category-create-text">create list</span>
+                        </button>
+                        <button class="btn btn-outline pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
+                            <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">browse</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -224,7 +230,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">movies</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MoviesTrack"></div>
                     </div>
@@ -237,7 +243,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">tv shows</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TvTrack"></div>
                     </div>
@@ -250,7 +256,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">anime</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2AnimeTrack"></div>
                     </div>
@@ -263,7 +269,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">games</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2GamesTrack"></div>
                     </div>
@@ -276,7 +282,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">books</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2BooksTrack"></div>
                     </div>
@@ -289,7 +295,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">music</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MusicTrack"></div>
                     </div>
@@ -307,7 +313,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">sports</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2SportsTrack"></div>
                     </div>
@@ -320,7 +326,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">cars</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2CarsTrack"></div>
                     </div>
@@ -333,7 +339,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">travel</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TravelTrack"></div>
                     </div>
@@ -346,7 +352,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">food</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FoodTrack"></div>
                     </div>
@@ -359,7 +365,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span class="pv2-rail-title-base">fashion</span>
                             <span class="pv2-rail-title-showcase hidden"></span>
                         </div>
-                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FashionTrack"></div>
                     </div>

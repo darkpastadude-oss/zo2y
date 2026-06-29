@@ -6662,12 +6662,24 @@
                                 const hasDefault = allLists.some(l => l.is_default);
                                 for (const list of allLists) {
                                     if (hasDefault && !list.is_default && !hasAddedDivider) {
+                                        const dividerContainer = document.createElement('div');
+                                        dividerContainer.style.marginBottom = '24px';
+                                        
+                                        const customListsTitle = document.createElement('div');
+                                        customListsTitle.innerText = 'custom lists';
+                                        customListsTitle.style.color = 'var(--muted)';
+                                        customListsTitle.style.fontSize = '0.85rem';
+                                        customListsTitle.style.fontWeight = '600';
+                                        customListsTitle.style.marginBottom = '8px';
+                                        
                                         const divider = document.createElement('div');
                                         divider.style.height = '1px';
                                         divider.style.background = 'var(--border)';
-                                        divider.style.margin = '8px 0 0 0';
                                         divider.style.opacity = '0.5';
-                                        container.appendChild(divider);
+                                        
+                                        dividerContainer.appendChild(customListsTitle);
+                                        dividerContainer.appendChild(divider);
+                                        container.appendChild(dividerContainer);
                                         hasAddedDivider = true;
                                     }
                                     const rail = await createCollectionCard(list, mappedTab, isMobile, userId);
@@ -7557,7 +7569,7 @@ const alreadyActive = isMobile
                     rail.innerHTML = `
                         <div class="pv2-rail-header" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
                             <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></div>
-                            <a class="pv2-rail-viewall">view list <i class="fas fa-arrow-right"></i></a>
+                            <a class="pv2-rail-viewall">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="track-${safeListId}"></div>
                     `;
