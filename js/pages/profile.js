@@ -6622,6 +6622,11 @@
                     if (desktopView) desktopView.style.display = 'none';
                     if (mobileView) mobileView.style.display = 'none';
                     if (profileContainer) profileContainer.style.display = 'none';
+                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsTab) listsTab.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+
                     
                     categoryView.style.display = 'block';
 
@@ -6669,6 +6674,11 @@
                 if (desktopView) desktopView.style.display = '';
                 if (mobileView) mobileView.style.display = '';
                 if (profileContainer) profileContainer.style.display = '';
+                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsTab) listsTab.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+
                 
 const alreadyActive = isMobile
                     ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
@@ -6917,9 +6927,7 @@ const alreadyActive = isMobile
                 const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
 
                 if (!previewUrls || !previewUrls.length) {
-                    // Skip rendering the rail track layout entirely
-                    track.className = '';
-                    
+                    const emptyEl = document.createElement('div');
                     const iconMap = {
                         movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon',
                         game: 'fa-gamepad', book: 'fa-book', music: 'fa-music',
@@ -6927,17 +6935,20 @@ const alreadyActive = isMobile
                         fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
                     };
                     const icon = iconMap[mediaType] || 'fa-plus';
+                    emptyEl.innerHTML = `<i class="fas ${icon}"></i> No items yet`;
                     
-                    track.innerHTML = `<div style="color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fas ${icon}"></i> Nothing here yet</div>`;
-                    
-                    if (railEl) railEl.style.display = '';
-                    return;
-                }
+                    emptyEl.style.padding = '16px';
+                    emptyEl.style.color = 'rgba(255,255,255,0.3)';
+                    emptyEl.style.fontSize = '0.85rem';
+                    emptyEl.style.fontWeight = '500';
+                    emptyEl.style.display = 'flex';
+                    emptyEl.style.alignItems = 'center';
+                    emptyEl.style.justifyContent = 'center';
+                    emptyEl.style.gap = '8px';
+                    emptyEl.style.width = '100%';
 
-                // Restore track classes if they were previously stripped
-                track.className = isMobile ? 'mph2-row-track' : 'pv2-rail-track';
-                
-                if (railEl) railEl.style.display = '';
+                    track.appendChild(emptyEl);
+                    if (railEl) railEl.style.display = '';
                     return;
                 }
 
@@ -9806,6 +9817,11 @@ const alreadyActive = isMobile
                 if (desktopView) desktopView.style.display = '';
                 if (mobileView) mobileView.style.display = '';
                 if (profileContainer) profileContainer.style.display = '';
+                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsTab) listsTab.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+
 resetDetailPanels();
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;

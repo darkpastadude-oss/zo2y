@@ -77,7 +77,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     <div id="pv2CategoryView" class="pv2-category-view" style="display:none;">
         <div class="container">
             <div class="pv2-category-header">
-                <button class="btn btn-secondary btn-sm pv2-category-back" onclick="ProfileManager.backToOverview()">
+                <button class="btn btn-secondary btn-sm pv2-category-back" onclick="ProfileManager.backToProfile()">
                     <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Back</span>
                 </button>
                 <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
@@ -2585,23 +2585,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       };
 
       // Override showTab to show the lists panel instead of the overview
-      var _origShowTab = PM.showTab && PM.showTab.bind(PM);
-      PM.showTab = function(tab) {
-        var overview = document.getElementById('pv2Overview');
-        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-        var mobileOverview = document.getElementById('mobileOverviewPanel');
-        var mobileLists = document.getElementById('mobileListsPanel');
-
-        if (overview) overview.style.display = 'none';
-        if (listsPanel) listsPanel.style.display = 'block';
-        if (listsPanel) listsPanel.style.removeProperty('display');
-
-        if (mobileOverview) mobileOverview.style.display = 'none';
-        if (mobileLists) mobileLists.style.display = 'block';
-        if (mobileLists) mobileLists.style.removeProperty('display');
-
-        if (_origShowTab) _origShowTab(tab);
-      };
+      
     }
 
     // === Boot sequence ===
