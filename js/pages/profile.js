@@ -7506,6 +7506,16 @@ const alreadyActive = isMobile
                     itemIds = list.trackIds || [];
                 }
 
+                if (!itemIds.length && ownerUserId) {
+                    const listTypeParam = list?.is_default ? 'default' : 'custom';
+                    try {
+                        const fetchedIds = await fetchMediaCollectionItemIds(normalizedType, ownerUserId, list.id, listTypeParam);
+                        if (fetchedIds.length) {
+                            itemIds = fetchedIds;
+                        }
+                    } catch (_e) {}
+                }
+
                 const { orderedIds } = await resolveTierOrderedIds(normalizedType, list, list.id, itemIds, {
                     listType: routeListType,
                     ownerUserId
