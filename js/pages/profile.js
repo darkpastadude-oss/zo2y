@@ -4057,6 +4057,9 @@
             }
 
             function resolveCollectionListType(contentType, list = null) {
+                if (list && typeof list.is_default === 'boolean') {
+                    return list.is_default ? 'default' : 'custom';
+                }
                 if (contentType === 'restaurant') {
                     return list?.is_default ? 'default' : 'custom';
                 }
