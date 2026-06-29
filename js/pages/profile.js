@@ -7818,6 +7818,14 @@ const alreadyActive = isMobile
                 if (categoryView) categoryView.style.display = 'none';
                 const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                 if (listsPanel) listsPanel.style.display = '';
+                if (isMobile) {
+                    const mobileView = document.querySelector('.mobile-only');
+                    if (mobileView) mobileView.style.display = '';
+                    const overviewPanel = document.getElementById('mobileOverviewPanel');
+                    if (overviewPanel) overviewPanel.style.display = 'none';
+                    const communityPanel = document.getElementById('mobileCommunityPanel');
+                    if (communityPanel) communityPanel.style.display = 'none';
+                }
                 const mobileListsPanel = document.getElementById('mobileListsPanel');
                 if (mobileListsPanel) mobileListsPanel.style.display = '';
 
