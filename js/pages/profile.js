@@ -6609,7 +6609,68 @@
                 const safeTab = normalizeProfileTab(tabName);
                 const requestToken = ++tabSwitchToken;
                 const isMobile = window.innerWidth <= 768;
-                const alreadyActive = isMobile
+                
+                const isMediaTab = ['movies', 'tvshows', 'tv', 'anime', 'games', 'game', 'books', 'book', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'car'].includes(safeTab);
+                const mappedTab = safeTab === 'movies' ? 'movie' : safeTab === 'tvshows' ? 'tv' : safeTab === 'games' ? 'game' : safeTab === 'books' ? 'book' : safeTab === 'cars' ? 'car' : safeTab;
+                const categoryView = document.getElementById('pv2CategoryView');
+                
+                if (isMediaTab && categoryView) {
+                    const desktopView = document.querySelector('.desktop-only');
+                    const mobileView = document.querySelector('.mobile-only');
+                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                    
+                    if (desktopView) desktopView.style.display = 'none';
+                    if (mobileView) mobileView.style.display = 'none';
+                    if (profileContainer) profileContainer.style.display = 'none';
+                    
+                    categoryView.style.display = 'block';
+
+                    const titleMap = { movie: 'Movies', tv: 'TV Shows', anime: 'Anime', game: 'Games', book: 'Books', music: 'Music', sports: 'Sports', travel: 'Travel', fashion: 'Fashion', food: 'Food', car: 'Cars' };
+                    document.getElementById('pv2CategoryTitle').innerText = titleMap[mappedTab] || safeTab;
+
+                    const browseUrlMap = { movie: 'movies.html', tv: 'tvshows.html', anime: 'animes.html', game: 'games.html', book: 'books.html', music: 'music.html', sports: 'sports.html', travel: 'travel.html', fashion: 'fashion.html', food: 'food.html', car: 'cars.html' };
+                    document.getElementById('pv2CategoryBrowseBtn').onclick = () => { window.location.href = browseUrlMap[mappedTab] || 'index.html'; };
+
+                    const container = document.getElementById('pv2CategoryContent');
+                    if (container) {
+                        container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                        const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                        if (userId && window.ProfileShowcase) {
+                            window.ProfileShowcase.getAllListsForType(mappedTab, userId).then(async allLists => {
+                                container.innerHTML = '';
+                                if (!allLists || allLists.length === 0) {
+                                    container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">📺 nothing here yet</div>';
+                                    return;
+                                }
+                                for (const list of allLists) {
+                                    const rail = await createCollectionCard(list, mappedTab, isMobile, userId);
+                                    container.appendChild(rail);
+                                }
+                            }).catch(err => {
+                                console.error(err);
+                                container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">Error loading lists</div>';
+                            });
+                        }
+                    }
+                    
+                    currentTab = safeTab;
+                    lastMediaTab = safeTab;
+                    if (!options.skipUrlSync) {
+                        const nextUrl = buildProfileUrl({ tab: safeTab });
+                        history.replaceState({}, '', nextUrl);
+                    }
+                    return;
+                }
+                
+                if (categoryView) categoryView.style.display = 'none';
+                const desktopView = document.querySelector('.desktop-only');
+                const mobileView = document.querySelector('.mobile-only');
+                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                if (desktopView) desktopView.style.display = '';
+                if (mobileView) mobileView.style.display = '';
+                if (profileContainer) profileContainer.style.display = '';
+                
+const alreadyActive = isMobile
                     ? !!document.querySelector(`.mobile-tab[data-tab="${safeTab}"]`)?.classList.contains('active')
                     : !!document.querySelector(`.nav-tab[data-tab="${safeTab}"]`)?.classList.contains('active');
 
@@ -9736,7 +9797,16 @@
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
-                resetDetailPanels();
+                
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+                const desktopView = document.querySelector('.desktop-only');
+                const mobileView = document.querySelector('.mobile-only');
+                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                if (desktopView) desktopView.style.display = '';
+                if (mobileView) mobileView.style.display = '';
+                if (profileContainer) profileContainer.style.display = '';
+resetDetailPanels();
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 document.querySelectorAll('.tab-content').forEach(el => {

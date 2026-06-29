@@ -8112,3 +8112,88 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   margin-bottom: 16px;
   padding: 0 16px;
 }
+
+/* View All (Category View) Styles */
+.pv2-category-view {
+    padding-bottom: 60px;
+    min-height: 100vh;
+}
+.pv2-category-header {
+    display: flex;
+    flex-direction: column;
+    padding-top: 24px;
+}
+.pv2-category-back { 
+    order: 1; 
+    margin-bottom: 16px; 
+    align-self: flex-start;
+}
+.pv2-category-header .category-title { 
+    order: 2; 
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    text-transform: lowercase;
+}
+.pv2-category-browse { 
+    order: 3; 
+    margin-bottom: 8px; 
+    align-self: flex-start;
+}
+.pv2-category-header .category-subtitle { 
+    order: 4; 
+    font-size: 15px;
+    color: var(--muted);
+    margin: 0 0 24px 0;
+}
+.pv2-category-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+@media (min-width: 769px) {
+    .pv2-category-header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto auto;
+        padding-top: 32px;
+    }
+    .pv2-category-back { 
+        grid-column: 1 / 2; 
+        grid-row: 1 / 2; 
+        align-self: center; 
+        margin-bottom: 24px; 
+    }
+    .pv2-category-browse { 
+        grid-column: 2 / 3; 
+        grid-row: 1 / 2; 
+        align-self: center; 
+        margin-bottom: 24px; 
+    }
+    .pv2-category-header .category-title { 
+        grid-column: 1 / 3; 
+        grid-row: 2 / 3; 
+        margin-bottom: 4px; 
+    }
+    .pv2-category-header .category-subtitle { 
+        grid-column: 1 / 3; 
+        grid-row: 3 / 4; 
+        margin-bottom: 32px; 
+    }
+}
+
+/* Empty State override for Rail in Category View */
+.pv2-rail-track:empty, .pv2-rail-track:has(> .rail-empty-inline) {
+    min-height: auto !important;
+    height: auto !important;
+    padding: 0;
+}
+.rail-empty-inline {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 8px 0 16px 0;
+    font-style: italic;
+    opacity: 0.7;
+    width: 100%;
+}
