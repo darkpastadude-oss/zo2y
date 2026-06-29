@@ -777,8 +777,8 @@
                     const activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
 
                     if (safeTab === 'lists') {
-                        if (overview) overview.style.display = 'none';
-                        if (listsPanel) listsPanel.style.display = '';
+                        if (overview) overview.style.display = '';
+                        if (listsPanel) listsPanel.style.display = 'none';
                         if (activityPanel) activityPanel.style.display = 'none';
                     } else if (safeTab === 'activity') {
                         if (overview) overview.style.display = 'none';
@@ -4307,7 +4307,6 @@
                     if (activeTabBtn) activeTabBtn.classList.add('active');
                 }
 
-                showPrimaryTab('lists', { force: true, skipTabSync: true });
                 window.previousWasCollectionRoute = true;
 
                 try {
@@ -4331,7 +4330,52 @@
                 const returningFromCollection = window.previousWasCollectionRoute && !hasCollectionRoute;
                 window.previousWasCollectionRoute = hasCollectionRoute;
 
-                if (initialTab !== currentTab || returningFromCollection) {
+                if (returningFromCollection) {
+                    const categoryView = document.getElementById('pv2CategoryView');
+                    if (categoryView) categoryView.style.display = 'none';
+                    resetDetailPanels();
+                    currentMediaDetail = null;
+                    const isMobile = window.innerWidth <= 768;
+                    document.querySelectorAll('.tab-content').forEach(function(el) {
+                        el.classList.remove('active', 'rendered');
+                        el.style.display = 'none';
+                    });
+                    const desktopView = document.querySelector('.desktop-only');
+                    const mobileView = document.querySelector('.mobile-only');
+                    if (desktopView) desktopView.style.display = '';
+                    if (mobileView) mobileView.style.display = '';
+                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                    if (profileContainer) profileContainer.style.display = '';
+                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsTab) listsTab.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+                    if (isMobile) {
+                        const overviewPanel = document.getElementById('mobileOverviewPanel');
+                        const listsPanel = document.getElementById('mobileListsPanel');
+                        const communityPanel = document.getElementById('mobileCommunityPanel');
+                        const spaContainer = document.getElementById('mobileSpaViewAllContainer');
+                        const mediaToggle = document.querySelector('.mobile-media-toggle');
+                        if (overviewPanel) overviewPanel.style.display = '';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (communityPanel) communityPanel.style.display = 'none';
+                        if (spaContainer) spaContainer.innerHTML = '';
+                        if (mediaToggle) mediaToggle.style.display = '';
+                        document.querySelectorAll('.mobile-tab').forEach(function(tab) {
+                            tab.classList.remove('active');
+                        });
+                        closeProfileTabGroups();
+                    }
+                    const overview = document.getElementById('pv2Overview');
+                    const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (overview) overview.style.display = '';
+                    if (listsPanel) listsPanel.style.display = 'none';
+                    currentTab = DEFAULT_PROFILE_TAB;
+                    requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
+                    return;
+                }
+
+                if (initialTab !== currentTab) {
                     showTab(initialTab, { skipUrlSync: true, skipRender: hasCollectionRoute });
                 } else if (!hasCollectionRoute) {
                     requestTabRender(initialTab, ++tabSwitchToken);

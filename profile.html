@@ -2564,43 +2564,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
       PM.toggleOverflowMenu = toggleOverflowMenu;
       PM.closeOverflowMenu  = closeOverflowMenu;
 
-      // Patch: override showPrimaryTab to also show/hide pv2 overview
-      var _origShowPrimaryTab = PM.showPrimaryTab && PM.showPrimaryTab.bind(PM);
-      PM.showPrimaryTab = function(tab) {
-        var overview = document.getElementById('pv2Overview');
-        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-        var activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
-        var mobileOverview = document.getElementById('mobileOverviewPanel');
-        var mobileLists = document.getElementById('mobileListsPanel');
-        var mobileCommunity = document.getElementById('mobileCommunityPanel');
-
-        if (tab === 'lists' || tab === undefined) {
-          if (overview) overview.style.display = '';
-          if (listsPanel) listsPanel.style.display = 'none';
-          if (activityPanel) activityPanel.style.display = 'none';
-          
-          if (mobileOverview) mobileOverview.style.display = '';
-          if (mobileLists) mobileLists.style.display = 'none';
-          if (mobileCommunity) mobileCommunity.style.display = 'none';
-        } else if (tab === 'activity') {
-          if (overview) overview.style.display = 'none';
-          if (listsPanel) listsPanel.style.display = 'none';
-          if (activityPanel) {
-            activityPanel.style.display = '';
-            activityPanel.style.removeProperty('display');
-          }
-
-          if (mobileOverview) mobileOverview.style.display = 'none';
-          if (mobileLists) mobileLists.style.display = 'none';
-          if (mobileCommunity) {
-            mobileCommunity.style.display = '';
-            mobileCommunity.style.removeProperty('display');
-          }
-          if (_origShowPrimaryTab) _origShowPrimaryTab('activity');
-        }
-      };
-
-      // Override showTab to show the lists panel instead of the overview
       
     }
 
