@@ -777,13 +777,17 @@
                     const activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
 
                     if (safeTab === 'lists') {
-                        if (overview) overview.style.display = '';
-                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (overview) overview.style.display = 'none';
+                        if (listsPanel) listsPanel.style.display = '';
                         if (activityPanel) activityPanel.style.display = 'none';
                     } else if (safeTab === 'activity') {
                         if (overview) overview.style.display = 'none';
                         if (listsPanel) listsPanel.style.display = 'none';
                         if (activityPanel) activityPanel.style.display = '';
+                    } else {
+                        if (overview) overview.style.display = '';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                        if (activityPanel) activityPanel.style.display = 'none';
                     }
                 }
 
@@ -4320,7 +4324,10 @@
                 const hasCollectionRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
                 const initialTab = hasCollectionRoute ? getTabForCollectionType(routeCollection) : requestedTab;
 
-                if (initialTab !== currentTab) {
+                const returningFromCollection = window.previousWasCollectionRoute && !hasCollectionRoute;
+                window.previousWasCollectionRoute = hasCollectionRoute;
+
+                if (initialTab !== currentTab || returningFromCollection) {
                     showTab(initialTab, { skipUrlSync: true, skipRender: hasCollectionRoute });
                 } else if (!hasCollectionRoute) {
                     requestTabRender(initialTab, ++tabSwitchToken);
@@ -7898,7 +7905,7 @@ const alreadyActive = isMobile
                         detailView.classList.add('active', 'rendered');
                         const titleEl = document.getElementById('movieDetailName'); if (titleEl) titleEl.innerText = 'Loading...';
                         const descEl = document.getElementById('movieDetailDescription'); if (descEl) descEl.innerText = '';
-                        const itemsContainer = document.getElementById('movieDetailItems'); if (itemsContainer) itemsContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                        const itemsContainer = document.getElementById('movieItemsContainer'); if (itemsContainer) itemsContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
                     }
                 }
 
