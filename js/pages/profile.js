@@ -6982,10 +6982,6 @@ const alreadyActive = isMobile
                 track.className = isMobile ? 'mph2-row-track' : 'pv2-rail-track';
                 
                 if (railEl) railEl.style.display = '';
-                    return;
-                }
-
-                if (railEl) railEl.style.display = '';
 
                 const maxVisible = isMobile ? 5 : 8; // Increased limit for category rails
                 const visible = previewUrls.slice(0, maxVisible);
