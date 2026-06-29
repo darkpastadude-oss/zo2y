@@ -4295,8 +4295,12 @@
                 if (window.location.pathname + window.location.search !== url) {
                     history.pushState({}, '', url);
                 }
+                // Update tab state without triggering full render/layout toggle
                 if (currentTab !== tabName) {
-                    showTab(tabName, { skipUrlSync: true, skipRender: true });
+                    currentTab = tabName;
+                    document.querySelectorAll('.profile-primary-tab').forEach(t => t.classList.remove('active'));
+                    const activeTabBtn = document.querySelector(`.profile-primary-tab[data-tab="${tabName}"]`);
+                    if (activeTabBtn) activeTabBtn.classList.add('active');
                 }
                 try {
                     await showCollectionDetail(String(listId), normalizedType, resolvedListType);
@@ -7816,6 +7820,7 @@ const alreadyActive = isMobile
 
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (isMobile) {
                     const mobileView = document.querySelector('.mobile-only');
@@ -7833,6 +7838,8 @@ const alreadyActive = isMobile
                 } else {
                     const desktopView = document.querySelector('.desktop-only');
                     if (desktopView) desktopView.style.display = '';
+                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                    if (profileContainer) profileContainer.style.display = '';
                     const overview = document.getElementById('pv2Overview');
                     if (overview) overview.style.display = 'none';
                     const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
@@ -7889,6 +7896,9 @@ const alreadyActive = isMobile
                     if (detailView) {
                         detailView.style.display = 'block';
                         detailView.classList.add('active', 'rendered');
+                        const titleEl = document.getElementById('movieDetailName'); if (titleEl) titleEl.innerText = 'Loading...';
+                        const descEl = document.getElementById('movieDetailDescription'); if (descEl) descEl.innerText = '';
+                        const itemsContainer = document.getElementById('movieDetailItems'); if (itemsContainer) itemsContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
                     }
                 }
 
