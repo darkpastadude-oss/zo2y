@@ -6996,10 +6996,10 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   gap: 5px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgba(203,213,225,0.42);
+  color: var(--color-accent);
   text-decoration: none;
   letter-spacing: 0.04em;
-  transition: color 0.16s ease;
+  transition: opacity 0.16s ease, color 0.16s ease;
 }
 
 .pv2-rail-viewall i {
@@ -7008,7 +7008,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 .pv2-rail-viewall:hover {
-  color: var(--color-accent);
+  opacity: 0.8;
 }
 
 .pv2-rail-viewall:hover i {
@@ -7018,7 +7018,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Rail track (horizontal scroll of poster cards) === */
 .pv2-rail-track {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -8132,19 +8132,20 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
     order: 2; 
     font-size: 28px;
     font-weight: 700;
-    margin: 0 0 8px 0;
+    margin: 0 0 4px 0;
     text-transform: lowercase;
 }
-.pv2-category-browse { 
-    order: 3; 
-    margin-bottom: 8px; 
-    align-self: flex-start;
-}
 .pv2-category-header .category-subtitle { 
-    order: 4; 
+    order: 3; 
     font-size: 15px;
     color: var(--muted);
-    margin: 0 0 24px 0;
+    margin: 0 0 16px 0;
+}
+.pv2-category-actions { 
+    order: 4;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
 }
 .pv2-category-content {
     display: flex;
@@ -8165,11 +8166,12 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
         align-self: center; 
         margin-bottom: 24px; 
     }
-    .pv2-category-browse { 
+    .pv2-category-actions { 
         grid-column: 2 / 3; 
         grid-row: 1 / 2; 
         align-self: center; 
         margin-bottom: 24px; 
+        gap: 12px;
     }
     .pv2-category-header .category-title { 
         grid-column: 1 / 3; 
@@ -8180,6 +8182,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
         grid-column: 1 / 3; 
         grid-row: 3 / 4; 
         margin-bottom: 32px; 
+    }
+    .pv2-category-create-text {
+        display: none;
     }
 }
 

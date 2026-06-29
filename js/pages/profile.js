@@ -6634,7 +6634,18 @@
                     document.getElementById('pv2CategoryTitle').innerText = titleMap[mappedTab] || safeTab;
 
                     const browseUrlMap = { movie: 'movies.html', tv: 'tvshows.html', anime: 'animes.html', game: 'games.html', book: 'books.html', music: 'music.html', sports: 'sports.html', travel: 'travel.html', fashion: 'fashion.html', food: 'food.html', car: 'cars.html' };
-                    document.getElementById('pv2CategoryBrowseBtn').onclick = () => { window.location.href = browseUrlMap[mappedTab] || 'index.html'; };
+                    const browseBtn = document.getElementById('pv2CategoryBrowseBtn');
+                    if (browseBtn) browseBtn.onclick = () => { window.location.href = browseUrlMap[mappedTab] || 'index.html'; };
+
+                    const createBtn = document.getElementById('pv2CategoryCreateBtn');
+                    if (createBtn) {
+                        createBtn.onclick = () => {
+                            if (window.ProfileManager && window.ProfileManager.createListForType) {
+                                window.ProfileManager.createListForType(mappedTab);
+                            }
+                        };
+                        createBtn.style.display = isViewingOwnProfile ? 'inline-flex' : 'none';
+                    }
 
                     const container = document.getElementById('pv2CategoryContent');
                     if (container) {
@@ -6647,7 +6658,18 @@
                                     container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">📺 nothing here yet</div>';
                                     return;
                                 }
+                                let hasAddedDivider = false;
+                                const hasDefault = allLists.some(l => l.is_default);
                                 for (const list of allLists) {
+                                    if (hasDefault && !list.is_default && !hasAddedDivider) {
+                                        const divider = document.createElement('div');
+                                        divider.style.height = '1px';
+                                        divider.style.background = 'var(--border)';
+                                        divider.style.margin = '8px 0 0 0';
+                                        divider.style.opacity = '0.5';
+                                        container.appendChild(divider);
+                                        hasAddedDivider = true;
+                                    }
                                     const rail = await createCollectionCard(list, mappedTab, isMobile, userId);
                                     container.appendChild(rail);
                                 }
@@ -6927,7 +6949,9 @@ const alreadyActive = isMobile
                 const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
 
                 if (!previewUrls || !previewUrls.length) {
-                    const emptyEl = document.createElement('div');
+                    // Skip rendering the rail track layout entirely
+                    track.className = '';
+                    
                     const iconMap = {
                         movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon',
                         game: 'fa-gamepad', book: 'fa-book', music: 'fa-music',
@@ -6935,20 +6959,17 @@ const alreadyActive = isMobile
                         fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
                     };
                     const icon = iconMap[mediaType] || 'fa-plus';
-                    emptyEl.innerHTML = `<i class="fas ${icon}"></i> No items yet`;
                     
-                    emptyEl.style.padding = '16px';
-                    emptyEl.style.color = 'rgba(255,255,255,0.3)';
-                    emptyEl.style.fontSize = '0.85rem';
-                    emptyEl.style.fontWeight = '500';
-                    emptyEl.style.display = 'flex';
-                    emptyEl.style.alignItems = 'center';
-                    emptyEl.style.justifyContent = 'center';
-                    emptyEl.style.gap = '8px';
-                    emptyEl.style.width = '100%';
-
-                    track.appendChild(emptyEl);
+                    track.innerHTML = `<div style="color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 8px;"><i class="fas ${icon}"></i> Nothing here yet</div>`;
+                    
                     if (railEl) railEl.style.display = '';
+                    return;
+                }
+
+                // Restore track classes if they were previously stripped
+                track.className = isMobile ? 'mph2-row-track' : 'pv2-rail-track';
+                
+                if (railEl) railEl.style.display = '';
                     return;
                 }
 
@@ -7527,7 +7548,7 @@ const alreadyActive = isMobile
                 if (isMobile) {
                     rail.innerHTML = `
                         <div class="mph2-row-hd" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
-                            <span class="mph2-row-label" style="display:flex;align-items:center;gap:6px;">${iconGlyphStr} ${list.title}</span>
+                            <span class="mph2-row-label" style="display:flex;align-items:center;gap:6px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></span>
                             <a class="mph2-row-viewall">view list <i class="fas fa-chevron-right"></i></a>
                         </div>
                         <div class="mph2-row-track" id="track-${safeListId}"></div>
@@ -7535,7 +7556,7 @@ const alreadyActive = isMobile
                 } else {
                     rail.innerHTML = `
                         <div class="pv2-rail-header" style="cursor: pointer;" onclick="ProfileManager.openCollectionPage('${safeListId}', '${normalizedType}', '${safeListType}')">
-                            <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} ${list.title}</div>
+                            <div class="pv2-rail-title" style="display:flex;align-items:center;gap:8px;">${iconGlyphStr} <span class="pv2-rail-title-base">${list.title}</span><span class="pv2-rail-title-showcase hidden"></span></div>
                             <a class="pv2-rail-viewall">view list <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="track-${safeListId}"></div>

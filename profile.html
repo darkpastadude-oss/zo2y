@@ -78,13 +78,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="container">
             <div class="pv2-category-header">
                 <button class="btn btn-secondary btn-sm pv2-category-back" onclick="ProfileManager.backToProfile()">
-                    <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Back</span>
+                    <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
                 </button>
                 <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
-                <button class="btn btn-secondary btn-sm pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
-                    <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
-                </button>
                 <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
+                <div class="pv2-category-actions">
+                    <button class="btn btn-primary btn-sm pv2-category-create" id="pv2CategoryCreateBtn">
+                        <i class="fas fa-plus"></i> <span class="pv2-category-create-text">Create List</span>
+                    </button>
+                    <button class="btn btn-secondary btn-sm pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
+                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
+                    </button>
+                </div>
             </div>
             
             <div class="pv2-category-content" id="pv2CategoryContent">
@@ -214,7 +219,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Movies Rail -->
                     <div class="pv2-rail" id="pv2RailMovies">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-film"></i> movies</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-film"></i> 
+                            <span class="pv2-rail-title-base">movies</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MoviesTrack"></div>
@@ -223,7 +232,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- TV Shows Rail -->
                     <div class="pv2-rail" id="pv2RailTv">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-tv"></i> tv shows</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-tv"></i> 
+                            <span class="pv2-rail-title-base">tv shows</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TvTrack"></div>
@@ -232,7 +245,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Anime Rail -->
                     <div class="pv2-rail" id="pv2RailAnime">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-dragon"></i> anime</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-dragon"></i> 
+                            <span class="pv2-rail-title-base">anime</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2AnimeTrack"></div>
@@ -241,7 +258,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Games Rail -->
                     <div class="pv2-rail" id="pv2RailGames">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-gamepad"></i> games</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-gamepad"></i> 
+                            <span class="pv2-rail-title-base">games</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2GamesTrack"></div>
@@ -250,7 +271,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Books Rail -->
                     <div class="pv2-rail" id="pv2RailBooks">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-book"></i> books</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-book"></i> 
+                            <span class="pv2-rail-title-base">books</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2BooksTrack"></div>
@@ -259,7 +284,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Music Rail -->
                     <div class="pv2-rail" id="pv2RailMusic">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-music"></i> music</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-music"></i> 
+                            <span class="pv2-rail-title-base">music</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2MusicTrack"></div>
@@ -273,7 +302,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Sports Rail -->
                     <div class="pv2-rail" id="pv2RailSports">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-futbol"></i> sports</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-futbol"></i> 
+                            <span class="pv2-rail-title-base">sports</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2SportsTrack"></div>
@@ -282,7 +315,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Cars Rail -->
                     <div class="pv2-rail" id="pv2RailCars">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-car"></i> cars</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-car"></i> 
+                            <span class="pv2-rail-title-base">cars</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2CarsTrack"></div>
@@ -291,7 +328,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Travel Rail -->
                     <div class="pv2-rail" id="pv2RailTravel">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-earth-americas"></i> travel</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-earth-americas"></i> 
+                            <span class="pv2-rail-title-base">travel</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2TravelTrack"></div>
@@ -300,7 +341,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Food Rail -->
                     <div class="pv2-rail" id="pv2RailFood">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-burger"></i> food</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-burger"></i> 
+                            <span class="pv2-rail-title-base">food</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FoodTrack"></div>
@@ -309,7 +354,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     <!-- Fashion Rail -->
                     <div class="pv2-rail" id="pv2RailFashion">
                         <div class="pv2-rail-header">
-                            <div class="pv2-rail-title"><i class="fas fa-shirt"></i> fashion</div>
+                            <div class="pv2-rail-title">
+                            <i class="fas fa-shirt"></i> 
+                            <span class="pv2-rail-title-base">fashion</span>
+                            <span class="pv2-rail-title-showcase hidden"></span>
+                        </div>
                             <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
                         </div>
                         <div class="pv2-rail-track" id="pv2FashionTrack"></div>
