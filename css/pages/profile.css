@@ -7024,7 +7024,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Rail track (horizontal scroll of poster cards) === */
 .pv2-rail-track {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -7076,9 +7076,11 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 /* Landscape for travel flags/country images */
+.pv2-poster.is-landscape {
+  width: 170px;
+}
 .pv2-poster.is-landscape .pv2-poster-img-wrap {
   aspect-ratio: 4 / 3;
-  width: 160px;
 }
 
 .pv2-poster:hover .pv2-poster-img-wrap {
@@ -7892,7 +7894,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 /* === Row poster track (horizontal scroll) === */
 .mph2-row-track {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: none;
@@ -7940,7 +7942,10 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 }
 
 .mph2-poster.is-square .mph2-poster-img-wrap  { aspect-ratio: 1 / 1; }
-.mph2-poster.is-landscape .mph2-poster-img-wrap { aspect-ratio: 4 / 3; width: 120px; }
+.mph2-poster.is-landscape {
+  width: 130px;
+}
+.mph2-poster.is-landscape .mph2-poster-img-wrap { aspect-ratio: 4 / 3; }
 .mph2-poster.is-brand .mph2-poster-img-wrap {
   background: linear-gradient(180deg, rgba(245,247,252,0.98), rgba(226,232,244,0.96));
 }
