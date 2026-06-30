@@ -7030,6 +7030,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   -ms-overflow-style: none;
   padding-bottom: 4px;
   align-items: flex-start;
+  justify-content: safe center;
 }
 
 .pv2-rail-track::-webkit-scrollbar {
@@ -7901,6 +7902,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   -ms-overflow-style: none;
   padding: 0 16px 4px;
   align-items: flex-start;
+  justify-content: safe center;
   /* Scroll snap for satisfying feel */
   scroll-snap-type: x proximity;
 }

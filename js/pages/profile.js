@@ -6900,10 +6900,15 @@ const alreadyActive = isMobile
                 } else {
                     const overview = document.getElementById('pv2Overview');
                     const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                    if (overview) overview.style.display = 'none';
-                    if (listsPanel) {
-                        listsPanel.style.display = 'block';
-                        listsPanel.style.removeProperty('display');
+                    if (safeTab === 'overview' || safeTab === 'media' || safeTab === 'lifestyle') {
+                        if (overview) overview.style.display = 'block';
+                        if (listsPanel) listsPanel.style.display = 'none';
+                    } else {
+                        if (overview) overview.style.display = 'none';
+                        if (listsPanel) {
+                            listsPanel.style.display = 'block';
+                            listsPanel.style.removeProperty('display');
+                        }
                     }
 
                     document.querySelectorAll('.tab-content').forEach(tab => {
