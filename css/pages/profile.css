@@ -6966,8 +6966,6 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 .pv2-rail {
   display: grid;
   gap: 14px;
-  max-width: fit-content;
-  margin: 0 auto;
 }
 
 .pv2-rail-header {

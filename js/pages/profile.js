@@ -7065,12 +7065,9 @@ const alreadyActive = isMobile
                 
                 if (railEl) railEl.style.display = '';
 
-                const maxVisible = isMobile ? 5 : 8; // Increased limit for category rails
-                const visible = previewUrls.slice(0, maxVisible);
                 const total = typeof totalItemCount === 'number' ? totalItemCount : previewUrls.length;
-                const extra = total - visible.length;
 
-                visible.forEach((url, i) => {
+                previewUrls.forEach((url, i) => {
                     const card = document.createElement('div');
                     
                     let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
@@ -7094,21 +7091,6 @@ const alreadyActive = isMobile
                     card.appendChild(imgWrap);
                     track.appendChild(card);
                 });
-
-                if (extra > 0) {
-                    const more = document.createElement('div');
-                    more.className = isMobile ? 'mph2-poster is-more' : 'pv2-poster is-more';
-                    if (opts.isSquare) more.classList.add('is-square');
-                    if (opts.isLandscape) more.classList.add('is-landscape');
-                    if (opts.isBrand) more.classList.add('is-brand');
-                    
-                    more.innerHTML = `
-                        <div class="${isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap'}">
-                            <div class="${isMobile ? 'mph2-more-overlay' : 'pv2-more-overlay'}">+${extra}</div>
-                        </div>
-                    `;
-                    track.appendChild(more);
-                }
             }
 
             async function resolveShowcaseList(userId, contentType) {
@@ -7655,7 +7637,6 @@ const alreadyActive = isMobile
 
                 const track = rail.querySelector(isMobile ? '.mph2-row-track' : '.pv2-rail-track');
                 
-                const previewLimit = isMobile ? 5 : 8;
                 const travelPreviewIds = normalizedType === 'travel'
                     ? Array.from(new Set(
                         [
@@ -7667,8 +7648,8 @@ const alreadyActive = isMobile
                     ))
                     : [];
                 const previewIds = normalizedType === 'travel'
-                    ? travelPreviewIds.slice(0, previewLimit)
-                    : orderedIds.slice(0, previewLimit);
+                    ? travelPreviewIds
+                    : orderedIds;
 
                 const cachedPreviewItems = normalizedType === 'travel'
                     ? previewIds.map((id) => {
@@ -7683,11 +7664,13 @@ const alreadyActive = isMobile
                     if (!previewIds || !previewIds.length) {
                         return `<div style="padding: 16px; color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;"><i class="fas fa-plus"></i> No items yet</div>`;
                     }
-                    const maxVisible = isMobile ? 5 : 8;
-                    const visible = previewUrls.slice(0, maxVisible);
+                    const railOpts = getRailOptions(normalizedType);
                     let html = '';
-                    visible.forEach((url, i) => {
-                        const baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
+                    previewUrls.forEach((url, i) => {
+                        let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
+                        if (railOpts.isSquare) baseClass += ' is-square';
+                        if (railOpts.isLandscape) baseClass += ' is-landscape';
+                        if (railOpts.isBrand) baseClass += ' is-brand';
                         const wrapClass = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
                         const imgClass = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
                         if (url) {

@@ -539,7 +539,7 @@ main.container {
     border-radius: 6px !important;
   }
 
-  .brand-grid .brand-card-name {
+  .brand-grid .card-name {
     font-size: 13px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -547,7 +547,7 @@ main.container {
     width: 100%;
   }
 
-  .brand-grid .brand-card-meta {
+  .brand-grid .card-sub {
     font-size: 11px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -556,7 +556,7 @@ main.container {
     width: 100%;
   }
 
-  .brand-grid .brand-card-desc {
+  .brand-grid .card-extra {
     display: none !important;
   }
 
