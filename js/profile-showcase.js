@@ -264,15 +264,27 @@ const ProfileShowcase = (function () {
                 { id: 'wishlist', title: 'Wishlist', icon: 'bookmark' }
             ],
             fashion: [
-                { id: 'favorites', title: 'Favorites', icon: 'heart' }
+                { id: 'favorites', title: 'Favorites', icon: 'heart' },
+                { id: 'wishlist', title: 'Wishlist', icon: 'bookmark' },
+                { id: 'owned', title: 'Owned', icon: 'check' }
             ],
             food: [
-                { id: 'favorites', title: 'Favorites', icon: 'heart' }
+                { id: 'favorites', title: 'Favorites', icon: 'heart' },
+                { id: 'wishlist', title: 'Wishlist', icon: 'bookmark' },
+                { id: 'tried', title: 'Tried', icon: 'check' }
             ],
             car: [
-                { id: 'favorites', title: 'Favorites', icon: 'heart' }
+                { id: 'favorites', title: 'Favorites', icon: 'heart' },
+                { id: 'wishlist', title: 'Wishlist', icon: 'bookmark' },
+                { id: 'owned', title: 'Owned', icon: 'check' }
             ],
             sports: [
+                // Sports uses a fundamentally different architecture from other categories.
+                // Instead of the standard *_list_items table pattern, sports stores
+                // team favorites in a dedicated `user_favorite_teams` junction table
+                // and renders them directly via renderSports(). The sports_lists table
+                // and sports_list_items table exist in the schema but are not used by
+                // the profile rendering pipeline. This single default list is intentional.
                 { id: 'favorites', title: 'Favorites', icon: 'heart' }
             ]
         };

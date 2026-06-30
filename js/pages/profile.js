@@ -194,7 +194,8 @@
                 'travel',
                 'fashion',
                 'food',
-                'car'
+                'car',
+                'sports'
             ]);
             const COLLECTION_TO_TAB = {
                 movie: 'movies',
@@ -206,7 +207,8 @@
                 travel: 'travel',
                 fashion: 'fashion',
                 food: 'food',
-                car: 'cars'
+                car: 'cars',
+                sports: 'sports'
             };
             const HIDE_DETAIL_CONFIG = {
                 movie: { route: 'movies', mobileDetail: 'mobileMovieDetailSection', mobileMain: 'mobileMoviesSection', desktopDetail: 'movie-detail-view', desktopTab: 'movies-tab' },
@@ -4461,6 +4463,8 @@
                     await showFoodDetail(listId, listType, isMobile);
                 } else if (mediaType === 'car') {
                     await showCarDetail(listId, listType, isMobile);
+                } else if (mediaType === 'sports') {
+                    await showSportsDetail(listId, listType, isMobile);
                 }
             }
 
@@ -6693,8 +6697,8 @@
                 const isMediaTab = ['movies', 'tvshows', 'tv', 'anime', 'games', 'game', 'books', 'book', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'car'].includes(safeTab);
                 const mappedTab = safeTab === 'movies' ? 'movie' : safeTab === 'tvshows' ? 'tv' : safeTab === 'games' ? 'game' : safeTab === 'books' ? 'book' : safeTab === 'cars' ? 'car' : safeTab;
                 const categoryView = document.getElementById('pv2CategoryView');
-                
-                if (isMediaTab && categoryView) {
+
+                if (isMediaTab && categoryView && safeTab !== 'sports') {
                     const desktopView = document.querySelector('.desktop-only');
                     const mobileView = document.querySelector('.mobile-only');
                     const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
@@ -7927,6 +7931,8 @@ const alreadyActive = isMobile
                     await showCarDetail(listId, listType, isMobile);
                 } else if (contentType === 'music') {
                     await showMusicDetail(listId, listType, isMobile);
+                } else if (contentType === 'sports') {
+                    await showSportsDetail(listId, listType, isMobile);
                 } else {
                     await showBookDetail(listId, listType, isMobile);
                 }
@@ -8883,6 +8889,52 @@ const alreadyActive = isMobile
                     canReorderList ? listId : null,
                     canReorderList ? listType : 'default'
                 );
+            }
+
+            async function showSportsDetail(listId, listType, isMobile) {
+                if (isMobile) {
+                    const mobileView = document.querySelector('.mobile-only');
+                    if (mobileView) mobileView.style.display = '';
+                    const overviewPanel = document.getElementById('mobileOverviewPanel');
+                    if (overviewPanel) overviewPanel.style.display = 'none';
+                    const communityPanel = document.getElementById('mobileCommunityPanel');
+                    if (communityPanel) communityPanel.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'block';
+                    const section = document.getElementById('mobileSportsSection');
+                    if (section) {
+                        section.style.display = 'block';
+                        section.classList.add('active');
+                    }
+                } else {
+                    const desktopView = document.querySelector('.desktop-only');
+                    if (desktopView) desktopView.style.display = '';
+                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                    if (profileContainer) profileContainer.style.display = '';
+                    const overview = document.getElementById('pv2Overview');
+                    if (overview) overview.style.display = 'none';
+                    const profileHeader = document.querySelector('.profile-header');
+                    if (profileHeader) profileHeader.style.display = 'none';
+                    const statsBar = document.querySelector('.pv2-stats');
+                    if (statsBar) statsBar.style.display = 'none';
+                    const tab = document.getElementById('sports-tab');
+                    if (tab) {
+                        tab.style.display = '';
+                        tab.classList.add('active');
+                    }
+                }
+
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+
+                await renderSports();
+
+                const titleEl = document.getElementById('sportsTitle');
+                if (titleEl) titleEl.innerText = 'Favorite Teams';
+                const descEl = document.getElementById('sportsSubtitle');
+                if (descEl) descEl.innerText = 'Teams you follow across leagues';
+
+                currentMediaDetail = { mediaType: 'sports', listId: 'favorites', listType: 'default', isMobile };
             }
 
             async function showMusicDetail(listId, listType, isMobile) {
