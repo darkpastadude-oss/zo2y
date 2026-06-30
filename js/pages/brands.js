@@ -760,7 +760,7 @@
 
   function createCard(brand) {
     const card = document.createElement('article');
-    card.className = 'brand-card';
+    card.className = 'card';
     card.tabIndex = 0;
 
     const id = String(brand.id || brand.slug || brand.domain || brand.name || '').trim();
@@ -796,7 +796,7 @@
     const label = BRAND_TYPE === 'food' ? 'Food' : (BRAND_TYPE === 'car' ? 'Cars' : 'Fashion');
 
     card.innerHTML = `
-      <div class="brand-card-logo card-media brand-cover is-loading-media">
+      <div class="card-media brand-cover is-loading-media">
         <img
           src="${BRAND_IMAGE_PLACEHOLDER}"
           data-defer-src="${escapeHtml(image)}"
@@ -810,12 +810,10 @@
         />
       </div>
       <div class="card-meta">
-        <div class="card-meta-header">
-          <span class="card-type"><i class="fa-solid ${escapeHtml(iconClass)}"></i> ${escapeHtml(label)}</span>
-          ${trailingControl}
-        </div>
+        <span class="card-type"><i class="fa-solid ${escapeHtml(iconClass)}"></i> ${escapeHtml(label)}</span>
         <div class="card-meta-top">
           <p class="card-name">${escapeHtml(title)}</p>
+          ${trailingControl}
         </div>
         <p class="card-sub">${escapeHtml(subtitle)}</p>
         <p class="card-extra">${escapeHtml(extra)}</p>

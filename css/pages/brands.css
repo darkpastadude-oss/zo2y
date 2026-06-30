@@ -280,79 +280,42 @@ main.container {
   overflow: hidden;
 }
 
-.brand-card {
+.brand-grid .card {
   position: relative;
-  background: var(--brand-card-soft);
-  border: 1px solid var(--brand-border);
-  border-radius: 18px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 240px;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 232px;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   z-index: 0;
-  overflow: hidden;
-  isolation: isolate;
 }
 
-.brand-card:hover {
+.brand-grid .card:hover {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
   box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
 }
 
-.brand-card-logo {
-  width: 100%;
+.brand-grid .card-media.brand-cover {
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(16, 34, 74, 0.7), rgba(11, 22, 51, 0.85));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px;
-  border: 1px solid var(--brand-border);
-  overflow: hidden;
+  padding: 10px;
+  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
 }
 
-.brand-card-logo.is-loading,
-.brand-card-logo.is-loading-media {
-  position: relative;
-  overflow: hidden;
+.brand-grid .card-media.brand-cover::before,
+.brand-grid .card-media.brand-cover.is-loading-media::before {
+  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
 }
 
-.brand-card-logo.is-loading::before,
-.brand-card-logo.is-loading-media::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.08) 48%, rgba(255,255,255,0.02) 100%),
-    linear-gradient(180deg, rgba(16, 34, 74, 0.7), rgba(11, 22, 51, 0.85));
-  background-size: 220px 100%, 100% 100%;
-  background-repeat: no-repeat;
-  animation: brandImageShimmer 1.15s linear infinite;
-}
-
-.brand-card-logo img {
+.brand-grid .card-media.brand-cover img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 6px;
-  padding: 10px;
-  box-sizing: border-box;
-  position: relative;
-  z-index: 1;
-  opacity: 0;
-  filter: blur(10px);
-  transition: opacity 220ms ease, filter 220ms ease;
-}
-
-.brand-card-logo img[data-ready="1"],
-.brand-card-logo img[data-image-ready="1"] {
-  opacity: 1;
-  filter: blur(0);
+  object-position: center;
+  border-radius: 8px;
+  background: transparent;
 }
 
 @keyframes brandImageShimmer {
@@ -362,25 +325,6 @@ main.container {
   to {
     background-position: calc(100% + 220px) 0, 0 0;
   }
-}
-
-.brand-card-name {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.brand-card-meta {
-  color: var(--brand-muted);
-  font-size: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.brand-card-desc {
-  font-size: 12px;
-  color: rgba(226, 236, 255, 0.8);
-  line-height: 1.4;
 }
 
 .brand-chip {
@@ -494,9 +438,9 @@ main.container {
     padding: 16px;
   }
 
-  .brand-card-logo,
-  .brand-card-logo img {
-    background: linear-gradient(180deg, rgba(16, 34, 74, 0.7), rgba(11, 22, 51, 0.85)) !important;
+  .brand-grid .card-media.brand-cover,
+  .brand-grid .card-media.brand-cover img {
+    background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
   }
 
   .brand-grid {
@@ -504,28 +448,17 @@ main.container {
     gap: 8px !important;
   }
 
-  .brand-grid .brand-card {
+  .brand-grid .card {
     min-width: 0 !important;
     max-width: none !important;
-  }
-
-  
-
-  .brand-grid .brand-card {
     padding: 8px !important;
-    gap: 6px !important;
     border-radius: 12px !important;
     min-height: auto !important;
   }
-  
-  .brand-grid .brand-card-logo {
+
+  .brand-grid .card-media.brand-cover {
     padding: 8px !important;
     border-radius: 10px !important;
-  }
-
-  .brand-grid .card-meta-header {
-    gap: 6px !important;
-    margin-bottom: 2px !important;
   }
 
   .brand-grid .brand-chip {
