@@ -41,8 +41,8 @@
             const GAMES_DISABLED = false;
             const ENABLE_RESTAURANTS = false;
             const DEFAULT_PROFILE_TAB = 'movies';
-            const VALID_PRIMARY_TABS = new Set(['lists', 'activity']);
-            let currentPrimaryTab = 'lists';
+            const VALID_PRIMARY_TABS = new Set(['lists', 'activity', 'overview']);
+            let currentPrimaryTab = 'overview';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
             let customLists = [];
             let currentTab = DEFAULT_PROFILE_TAB;
@@ -323,7 +323,7 @@
                     ]);
 
                     setupEventListeners();
-                    showPrimaryTab('lists', { force: true, skipTabSync: true });
+                    showPrimaryTab('overview', { force: true, skipTabSync: true });
                     bindRouteListeners();
                     
                     if (window.innerWidth <= 768) {

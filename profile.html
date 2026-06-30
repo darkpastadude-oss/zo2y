@@ -73,7 +73,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   </div>
 </header>
 
-    
+    <!-- Category View (Collections) - Dynamically Replaces Profile Overview -->
+    <div id="pv2CategoryView" class="pv2-category-view" style="display:none;">
+        <div class="container">
+            <div class="pv2-category-header">
+                <div class="pv2-category-header-top">
+                    <button class="btn pv2-category-back" onclick="ProfileManager.backToProfile()">
+                        <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
+                    </button>
+                </div>
+                
+                <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
+                <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
+                
+                <div class="pv2-category-actions">
+                    <button class="btn pv2-category-create" id="pv2CategoryCreateBtn">
+                        <i class="fas fa-plus"></i> <span class="pv2-category-create-text">Create List</span>
+                    </button>
+                    <button class="btn pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
+                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="pv2-category-content" id="pv2CategoryContent">
+                <!-- Rails rendered here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Desktop View -->
     <div class="desktop-only">
@@ -1993,35 +2020,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
         <!-- Toast Container -->
         <div class="mobile-toast-container" id="mobileToastContainer"></div>
-    </div>
-
-    <!-- Category View (Collections) - Dynamically Replaces Profile Overview -->
-    <div id="pv2CategoryView" class="pv2-category-view" style="display:none;">
-        <div class="container">
-            <div class="pv2-category-header">
-                <div class="pv2-category-header-top">
-                    <button class="btn pv2-category-back" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
-                    </button>
-                </div>
-                
-                <h1 class="category-title" id="pv2CategoryTitle">Category</h1>
-                <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
-                
-                <div class="pv2-category-actions">
-                    <button class="btn pv2-category-create" id="pv2CategoryCreateBtn">
-                        <i class="fas fa-plus"></i> <span class="pv2-category-create-text">Create List</span>
-                    </button>
-                    <button class="btn pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
-                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="pv2-category-content" id="pv2CategoryContent">
-                <!-- Rails rendered here -->
-            </div>
-        </div>
     </div>
 
     <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
