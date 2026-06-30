@@ -312,7 +312,7 @@
   function wireBrandImageState(scope) {
     const root = scope || document;
     root.querySelectorAll('img[data-home-image="1"]').forEach((img) => {
-      const wrap = img.closest('.card-media');
+      const wrap = img.closest('.card-media, .brand-card-logo');
       const markReady = () => {
         img.setAttribute('data-image-ready', '1');
         if (wrap) wrap.classList.remove('is-loading-media');
@@ -760,7 +760,7 @@
 
   function createCard(brand) {
     const card = document.createElement('article');
-    card.className = 'card brand-card';
+    card.className = 'brand-card';
     card.tabIndex = 0;
 
     const id = String(brand.id || brand.slug || brand.domain || brand.name || '').trim();

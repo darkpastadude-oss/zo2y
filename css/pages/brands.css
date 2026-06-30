@@ -285,7 +285,7 @@ main.container {
   background: var(--brand-card-soft);
   border: 1px solid var(--brand-border);
   border-radius: 18px;
-  padding: 14px 14px 56px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -504,18 +504,12 @@ main.container {
     gap: 8px !important;
   }
 
-  .brand-grid .card {
+  .brand-grid .brand-card {
     min-width: 0 !important;
     max-width: none !important;
   }
 
-  .brand-grid .card-meta {
-    padding: 8px 10px 10px !important;
-    gap: 6px !important;
-    background: #172b58 !important;
-    border-top: 1px solid rgba(255,255,255,0.08) !important;
-    min-height: auto !important;
-  }
+  
 
   .brand-grid .card-meta-header {
     display: flex !important;
@@ -540,10 +534,7 @@ main.container {
     flex-shrink: 0 !important;
   }
 
-  .brand-grid .card-meta-top {
-    gap: 8px !important;
-    align-items: center !important;
-  }
+  
 
   .brand-grid .card-name {
     flex: 1 !important;
