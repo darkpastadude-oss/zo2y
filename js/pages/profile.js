@@ -7115,8 +7115,7 @@ const alreadyActive = isMobile
                 }
 
                 const totalItemCount = listData.items.length;
-                const previewLimit = isMobile ? 3 : 5;
-                const itemIds = listData.items.slice(0, previewLimit).map(i => i.item_id);
+                const itemIds = listData.items.map(i => i.item_id);
                 const previewUrls = itemIds.length ? await getPreviewItems(itemIds, contentType).catch(() => []) : [];
 
                 populateRailTrack(contentType, previewUrls, totalItemCount);
@@ -7482,8 +7481,7 @@ const alreadyActive = isMobile
                         });
                         grid.appendChild(fragment);
                     }
-                    const railPreviewLimit = isMobile ? 3 : 5;
-                    const teamLogos = teams.slice(0, railPreviewLimit).map(t => getSportsBadge(t, t.logo_url)).filter(Boolean);
+                    const teamLogos = teams.map(t => getSportsBadge(t, t.logo_url)).filter(Boolean);
                     populateRailTrack('sports', teamLogos, teams.length);
                     markTabRendered('sports');
                 } catch (error) {
