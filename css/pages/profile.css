@@ -4305,6 +4305,12 @@ header, .top-stripe, .section-nav {
   object-fit: contain;
 }
 
+.collection-items-grid .collection-item-image.brand-logo-stage {
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
+  padding: 14px;
+}
+
 .collection-items-grid .collection-item-body {
   padding: 10px 10px 46px;
   gap: 6px;
@@ -7030,7 +7036,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   -ms-overflow-style: none;
   padding-bottom: 4px;
   align-items: flex-start;
-  justify-content: safe center;
+  justify-content: flex-start;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pv2-rail-track::-webkit-scrollbar {
@@ -7151,45 +7159,6 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   text-overflow: ellipsis;
   max-width: 100%;
   line-height: 1.3;
-}
-
-/* +N more chip at end of rail */
-.pv2-more-chip {
-  flex-shrink: 0;
-  align-self: center;
-  width: 76px;
-  height: 76px;
-  border-radius: 12px;
-  border: 1px dashed rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.03);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.18s ease, border-color 0.18s ease;
-}
-
-.pv2-more-chip:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.22);
-}
-
-.pv2-more-chip-count {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.pv2-more-chip-label {
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(203,213,225,0.45);
 }
 
 /* Rail empty state */
@@ -7902,7 +7871,9 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   -ms-overflow-style: none;
   padding: 0 16px 4px;
   align-items: flex-start;
-  justify-content: safe center;
+  justify-content: flex-start;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
   /* Scroll snap for satisfying feel */
   scroll-snap-type: x proximity;
 }
@@ -7979,45 +7950,6 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   text-overflow: ellipsis;
   max-width: 100%;
   line-height: 1.25;
-}
-
-/* +N more chip (mobile) */
-.mph2-more-chip {
-  flex-shrink: 0;
-  align-self: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  border: 1px dashed rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.03);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  cursor: pointer;
-  text-decoration: none;
-  scroll-snap-align: start;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mph2-more-chip:active {
-  background: rgba(255,255,255,0.07);
-}
-
-.mph2-more-chip-count {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #fff;
-  line-height: 1;
-}
-
-.mph2-more-chip-label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(203,213,225,0.42);
 }
 
 /* Row empty state (mobile) */

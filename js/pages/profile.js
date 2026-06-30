@@ -7047,8 +7047,9 @@ const alreadyActive = isMobile
                 track.innerHTML = '';
                 const railEl = track.closest(isMobile ? '.mph2-row' : '.pv2-rail');
 
-                if (!previewUrls || !previewUrls.length) {
-                    // Skip rendering the rail track layout entirely
+                const filteredUrls = Array.isArray(previewUrls) ? previewUrls.filter(Boolean) : [];
+
+                if (!filteredUrls.length) {
                     track.className = '';
                     
                     const iconMap = {
@@ -7065,14 +7066,11 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                // Restore track classes if they were previously stripped
                 track.className = isMobile ? 'mph2-row-track' : 'pv2-rail-track';
                 
                 if (railEl) railEl.style.display = '';
 
-                const total = typeof totalItemCount === 'number' ? totalItemCount : previewUrls.length;
-
-                previewUrls.forEach((url, i) => {
+                filteredUrls.forEach((url, i) => {
                     const card = document.createElement('div');
                     
                     let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
@@ -7668,31 +7666,25 @@ const alreadyActive = isMobile
                         return `<div style="padding: 16px; color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;"><i class="fas fa-plus"></i> No items yet</div>`;
                     }
                     const railOpts = getRailOptions(normalizedType);
+                    const validUrls = Array.isArray(previewUrls) ? previewUrls.filter(Boolean) : [];
+                    if (!validUrls.length) {
+                        return `<div style="padding: 16px; color: rgba(255,255,255,0.3); font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;"><i class="fas fa-plus"></i> No items yet</div>`;
+                    }
                     let html = '';
-                    previewUrls.forEach((url, i) => {
+                    validUrls.forEach((url, i) => {
                         let baseClass = isMobile ? 'mph2-poster' : 'pv2-poster';
                         if (railOpts.isSquare) baseClass += ' is-square';
                         if (railOpts.isLandscape) baseClass += ' is-landscape';
                         if (railOpts.isBrand) baseClass += ' is-brand';
                         const wrapClass = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
                         const imgClass = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
-                        if (url) {
-                            html += `
-                                <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
-                                    <div class="${wrapClass}">
-                                        <img class="${imgClass}" src="${url}" alt="Poster" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
-                                    </div>
+                        html += `
+                            <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
+                                <div class="${wrapClass}">
+                                    <img class="${imgClass}" src="${url}" alt="Poster" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
                                 </div>
-                            `;
-                        } else {
-                            html += `
-                                <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
-                                    <div class="${wrapClass}" style="display:flex;align-items:center;justify-content:center;background:var(--elevation-2);">
-                                        <i class="fas fa-film" style="color:var(--muted)"></i>
-                                    </div>
-                                </div>
-                            `;
-                        }
+                            </div>
+                        `;
                     });
                     return html;
                 };
