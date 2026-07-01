@@ -645,7 +645,7 @@
         team.league || team.sport || "",
       );
       if (team.badge) ui.actionCard.setAttribute("data-list-image", team.badge);
-      const titleEl = ui.actionCard.querySelector(".card-title");
+      const titleEl = ui.actionCard.querySelector(".action-card-title");
       if (titleEl) titleEl.textContent = team.name || "";
       const metaEl = ui.actionCard.querySelector(".card-meta");
       if (metaEl) metaEl.textContent = team.league || team.sport || "";

@@ -500,7 +500,7 @@
 
     const title = normalizeDedupeText(
       card.getAttribute("data-title") ||
-      card.querySelector(".card-title")?.textContent ||
+      card.querySelector(".card-name")?.textContent ||
       card.querySelector(".card-name")?.textContent ||
       card.querySelector("h2, h3, h4")?.textContent ||
       ""

@@ -103,7 +103,7 @@
             transition: var(--transition);
         }
 
-        .card:hover .remove-btn,
+        .action-card:hover .remove-btn,
         .mobile-list-restaurant-card:hover .remove-btn {
             opacity: 1;
         }
@@ -242,14 +242,8 @@
             gap: 12px;
         }
 
-        /* === CARDS GRID === */
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
+         /* === ACTION CARDS (list/dashboard UI — NOT category grid cards) === */
+        .action-card {
             background: var(--card);
             border-radius: var(--radius);
             border: 1px solid var(--border);
@@ -258,12 +252,12 @@
             position: relative;
         }
 
-        .card:hover {
+        .action-card:hover {
             transform: translateY(-4px);
             border-color: var(--accent);
         }
 
-        .card-header {
+        .action-card-header {
             padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -271,7 +265,7 @@
             align-items: center;
         }
 
-        .card-title {
+        .action-card-title {
             font-size: 18px;
             font-weight: 600;
             display: flex;
@@ -279,11 +273,11 @@
             gap: 8px;
         }
 
-        .card-body {
+        .action-card-body {
             padding: 20px;
         }
 
-        .card-footer {
+        .action-card-footer {
             padding: 16px 20px;
             border-top: 1px solid var(--border);
             background: var(--bg);

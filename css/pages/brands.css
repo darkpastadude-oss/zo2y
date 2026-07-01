@@ -280,44 +280,6 @@ main.container {
   overflow: hidden;
 }
 
-.brand-grid .card {
-  position: relative;
-  background: var(--card-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  min-height: 232px;
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  z-index: 0;
-}
-
-.brand-grid .card:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 22%, transparent);
-}
-
-.brand-grid .card-media.brand-cover {
-  aspect-ratio: 1 / 1;
-  padding: 10px;
-  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
-}
-
-.brand-grid .card-media.brand-cover::before,
-.brand-grid .card-media.brand-cover.is-loading-media::before {
-  background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
-}
-
-.brand-grid .card-media.brand-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 8px;
-  background: transparent;
-}
-
 @keyframes brandImageShimmer {
   from {
     background-position: -220px 0, 0 0;
@@ -339,24 +301,7 @@ main.container {
   color: #ffe0a3;
 }
 
-.card-menu-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: rgba(19, 35, 71, 0.92);
-  color: var(--white);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
 
-.card-menu-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
 
 .card-meta-header {
   display: flex;
@@ -438,59 +383,14 @@ main.container {
     padding: 16px;
   }
 
-  .brand-grid .card-media.brand-cover,
-  .brand-grid .card-media.brand-cover img {
-    background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96)) !important;
-  }
-
   .brand-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
   }
 
-  .brand-grid .card {
-    min-width: 0 !important;
-    max-width: none !important;
-    padding: 8px !important;
-    border-radius: 12px !important;
-    min-height: auto !important;
-  }
-
-  .brand-grid .card-media.brand-cover {
-    padding: 8px !important;
-    border-radius: 10px !important;
-  }
-
   .brand-grid .brand-chip {
     padding: 2px 4px !important;
     font-size: 10px !important;
-  }
-  
-  .brand-grid .card-menu-btn {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 6px !important;
-  }
-
-  .brand-grid .card-name {
-    font-size: 13px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    width: 100%;
-  }
-
-  .brand-grid .card-sub {
-    font-size: 11px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    color: #9fb1d6 !important;
-    width: 100%;
-  }
-
-  .brand-grid .card-extra {
-    display: none !important;
   }
 
   .brand-spotlight {

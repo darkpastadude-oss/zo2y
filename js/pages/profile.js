@@ -5205,7 +5205,7 @@
                         </button>
                         <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
                         <div class="movie-list-movie-body">
-                            <h3 class="card-title">${m?.title || 'Untitled'}</h3>
+                            <h3 class="profile-card-title">${m?.title || 'Untitled'}</h3>
                         </div>
                     </div>
                 `).join('');
@@ -5218,7 +5218,7 @@
                             </button>
                             <img src="${m && m.poster_path ? TMDB_POSTER + m.poster_path : 'images/placeholder.jpg'}" alt="${m?.title || 'Movie'}">
                             <div class="movie-list-movie-body">
-                                <h3 class="card-title">${m?.title || 'Untitled'}</h3>
+                                <h3 class="profile-card-title">${m?.title || 'Untitled'}</h3>
                             </div>
                         </div>
                     `).join('');

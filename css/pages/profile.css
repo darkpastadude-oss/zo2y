@@ -3879,24 +3879,24 @@ h3 { font-size: var(--ds-title-sm); line-height: 1.3; }
   box-shadow: var(--ds-shadow);
 }
 
-.card-content, .list-card, .review-card {
+.profile-card-content, .list-card, .review-card {
   padding: var(--ds-card-pad);
 }
 
-.card-header, .card-footer {
+.profile-card-header, .profile-card-footer {
   gap: var(--ds-card-gap);
 }
 
-.card-title, .list-card-title, .mobile-list-title {
+.profile-card-title, .list-card-title, .mobile-list-title {
   letter-spacing: 0.2px;
 }
 
-.card-description, .list-card-description, .section-subtitle {
+.profile-card-description, .list-card-description, .section-subtitle {
   line-height: 1.65;
 }
 
 /* Normalize image aspect ratios where cards have images */
-.card-image img {
+.profile-card-image img {
   object-fit: cover;
 }
 

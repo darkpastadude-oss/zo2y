@@ -174,7 +174,7 @@
           <img src="${escapeHtml(cover)}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.src='${escapeHtml(fallback)}'" fetchpriority="high">
         </a>
         <div class="card-meta">
-          <h3 class="card-title" title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
+          <h3 class="card-name" title="${escapeHtml(title)}">${escapeHtml(title)}</h3>
           <div class="card-sub">${escapeHtml(authors)}</div>
           <div class="card-extra">${date ? `${new Date(date).getFullYear()}` : ''}</div>
         </div>

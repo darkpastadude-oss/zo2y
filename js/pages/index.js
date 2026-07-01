@@ -6908,7 +6908,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return {
             mediaType: mediaType,
             itemId: rawId,
-            title: card.getAttribute('data-title') || card.querySelector('.card-title, .card-name')?.textContent || '',
+            title: card.getAttribute('data-title') || card.querySelector('.card-name')?.textContent || '',
             subtitle: card.getAttribute('data-subtitle') || card.querySelector('.card-meta, .card-sub')?.textContent || '',
             image: card.getAttribute('data-image') || '',
             listImage: card.getAttribute('data-list-image') || ''

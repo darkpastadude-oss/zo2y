@@ -28,7 +28,7 @@
       color: var(--text);
     }
     .wrap { width: min(1100px, calc(100% - 28px)); margin: 24px auto; }
-    .card {
+    .form-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -113,7 +113,7 @@
   </div>
 </header>
   <main class="wrap">
-    <section class="card">
+    <section class="form-card">
       <h1 class="mt-0">Support Admin</h1>
       <div class="row">
         <input id="adminApiKey" type="password" placeholder="Support API key" class="min-w-290">
@@ -131,7 +131,7 @@
       <p id="adminStatus" class="text-sm text-muted-light"></p>
     </section>
 
-    <section class="card">
+    <section class="form-card">
       <div id="ticketList"></div>
     </section>
   </main>

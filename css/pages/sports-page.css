@@ -138,22 +138,6 @@
   border-color: var(--accent);
 }
 
-.sports-grid .card-media {
-  padding: 12%;
-  box-sizing: border-box;
-}
-
-.sports-grid .card-media img {
-  width: 76%;
-  height: 76%;
-  max-width: 120px;
-  max-height: 120px;
-  object-fit: contain;
-  object-position: center;
-  transform: none;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.10));
-}
-
 @media (max-width: 768px) {
   .controls-meta {
     justify-content: center;
@@ -162,76 +146,6 @@
   .sports-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
-  }
-
-  .sports-grid .card {
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  .sports-grid .card-media {
-    padding: 10%;
-  }
-
-  .sports-grid .card-media img {
-    width: 80%;
-    height: 80%;
-    max-width: 80px;
-    max-height: 80px;
-  }
-
-  .sports-grid .card-meta {
-    padding: 8px 10px 10px !important;
-    gap: 6px !important;
-    background: #172b58 !important;
-    border-top: 1px solid rgba(255,255,255,0.08) !important;
-    min-height: auto !important;
-  }
-
-  .sports-grid .card-meta-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 12px !important;
-    margin-bottom: 6px !important;
-    width: 100% !important;
-    padding-right: 2px !important;
-  }
-
-  .sports-grid .card-meta-header .card-type {
-    margin-bottom: 0 !important;
-    max-width: none !important;
-    overflow: visible !important;
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-  }
-
-  .sports-grid .card-meta-header .card-save-btn {
-    margin-left: auto !important;
-    flex-shrink: 0 !important;
-  }
-
-  .sports-grid .card-meta-top {
-    gap: 8px !important;
-    align-items: center !important;
-  }
-
-  .sports-grid .card-name {
-    flex: 1 !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .sports-grid .card-sub {
-    color: #9fb1d6 !important;
-  }
-
-  .sports-grid .card-extra,
-  .sports-grid .card-extra.placeholder {
-    display: none !important;
-    min-height: 0 !important;
-    margin: 0 !important;
   }
 
   .sports-search-tags {

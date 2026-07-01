@@ -958,7 +958,7 @@
     if (!ui.actionCard) return;
     ui.actionCard.setAttribute("data-item-id", state.code || "");
     ui.actionCard.setAttribute("data-media-type", "travel");
-    const titleEl = ui.actionCard.querySelector(".card-title");
+    const titleEl = ui.actionCard.querySelector(".action-card-title");
     if (titleEl) titleEl.textContent = state.name || "Country";
     const metaEl = ui.actionCard.querySelector(".card-meta");
     if (metaEl)

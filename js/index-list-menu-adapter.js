@@ -206,7 +206,7 @@
     const mt=String(card.getAttribute('data-media-type')||getMediaType()).toLowerCase();
     const attr=_bridge?.itemIdAttr||'data-item-id'; const raw=card.getAttribute(attr); if(!raw) return null;
     const cid=normalizeQueryableItemIdValue(raw); if(cid===null||cid===undefined||String(cid).trim()==='') return null;
-    const t=card.querySelector('.card-title, .card-name')?.textContent||'';
+    const t=card.querySelector('.card-name')?.textContent||'';
     const sub=card.querySelector('.card-meta, .card-sub')?.textContent||'';
     const li=card.getAttribute('data-list-image')||'';
     const img=li||card.querySelector('img')?.getAttribute('src')||'';
