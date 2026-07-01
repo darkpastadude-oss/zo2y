@@ -942,10 +942,10 @@
     }
 
     .card-meta-top {
+      order: 1;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      align-items: flex-start;
+      gap: 6px;
       margin-bottom: 2px;
     }
 
@@ -968,6 +968,7 @@
     }
 
     .card-type {
+      order: 2;
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -982,6 +983,8 @@
     }
 
     .card-name {
+      flex: 1;
+      min-width: 0;
       font-size: 13px;
       font-weight: 700;
       line-height: 1.35;
@@ -1017,6 +1020,7 @@
     }
 
     .card-sub {
+      order: 3;
       color: var(--muted);
       font-size: 12px;
       white-space: nowrap;
@@ -1026,6 +1030,7 @@
     }
 
     .card-extra {
+      order: 4;
       margin-top: 4px;
       color: #a9b9da;
       font-size: 12px;
@@ -1268,14 +1273,14 @@
       position: relative;
       flex-shrink: 0;
       display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      align-items: flex-start;
+      gap: 0;
     }
 
     .card-menu-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
       border: 1px solid var(--border);
       background: rgba(19, 35, 71, 0.92);
       color: var(--white);
@@ -1291,9 +1296,9 @@
     }
 
     .card-preview-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
       border: 1px solid color-mix(in srgb, var(--color-accent) 55%, transparent);
       background: color-mix(in srgb, var(--color-accent) 18%, transparent);
       color: #ffd89a;
@@ -1310,9 +1315,9 @@
     }
 
     .card-open-link {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
       border: 1px solid var(--border);
       background: rgba(19, 35, 71, 0.92);
       color: #d4e2ff;
