@@ -5307,7 +5307,7 @@
                     game: ['favorites', 'watched', 'watchlist'],
                     book: ['favorites', 'read', 'readlist'],
                     music: ['favorites', 'listened', 'listenlist'],
-                    travel: ['favorites', 'visited', 'bucket list', 'bucketlist'],
+                    travel: ['favorites', 'visited', 'bucketlist'],
                     fashion: ['favorites', 'owned', 'wishlist'],
                     food: ['favorites', 'tried', 'want to try', 'want_to_try'],
                     car: ['favorites', 'owned', 'wishlist']
@@ -9992,7 +9992,7 @@ resetDetailPanels();
 
             function showShowcaseDetail(type) {
                 const listId = getShowcaseListId(type);
-                const listType = (listId === 'favorites' || listId === 'watched' || listId === 'watchlist' || listId === 'read' || listId === 'readlist' || listId === 'currently_reading' || listId === 'played' || listId === 'wishlist' || listId === 'visited') ? 'default' : 'custom';
+                const listType = (listId === 'favorites' || listId === 'watched' || listId === 'watchlist' || listId === 'read' || listId === 'readlist' || listId === 'currently_reading' || listId === 'played' || listId === 'wishlist' || listId === 'visited' || listId === 'bucketlist' || listId === 'tried' || listId === 'want_to_try' || listId === 'owned') ? 'default' : 'custom';
                 const isMobile = window.innerWidth <= 768;
                 
                 // Hide the Overview Panels

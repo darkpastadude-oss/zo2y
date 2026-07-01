@@ -20,8 +20,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260623z">
-  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260623z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260623z"></noscript>
+  <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260630d" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260630d"></noscript>
   <style>
     :root {
       --category-hero-image: url("https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=1600&q=80");
@@ -634,7 +634,10 @@
             ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
           </div>
           <div class="card-meta">
-            <p class="card-title">${escapeHtml(item.name)}</p>
+            <span class="card-type"><i class="fa-solid fa-music"></i> Music</span>
+            <div class="card-meta-top">
+              <p class="card-name">${escapeHtml(item.name)}</p>
+            </div>
             <p class="card-sub">${escapeHtml(item.subtitle)}</p>
             <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
             <div class="card-actions">

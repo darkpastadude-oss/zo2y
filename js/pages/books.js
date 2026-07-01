@@ -158,7 +158,7 @@ function renderGrid() {
         </div>
         <div class="card-meta">
           <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
-          <div class="card-meta-top"><p class="card-title">${escapeHtml(book.title)}</p></div>
+          <div class="card-meta-top"><p class="card-name">${escapeHtml(book.title)}</p></div>
           <p class="card-sub">${escapeHtml(author)}</p>
           <p class="card-extra">${escapeHtml(year)}</p>
           <div class="card-actions">

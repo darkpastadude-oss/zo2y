@@ -293,9 +293,9 @@ main.container {
 }
 
 .brand-grid .card:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--color-accent) 60%, transparent);
-  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 .brand-grid .card-media.brand-cover {

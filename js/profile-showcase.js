@@ -261,7 +261,7 @@ const ProfileShowcase = (function () {
             travel: [
                 { id: 'favorites', title: 'Favorites', icon: 'heart' },
                 { id: 'visited', title: 'Visited', icon: 'check' },
-                { id: 'wishlist', title: 'Wishlist', icon: 'bookmark' }
+                { id: 'bucketlist', title: 'Bucket List', icon: 'bookmark' }
             ],
             fashion: [
                 { id: 'favorites', title: 'Favorites', icon: 'heart' },
