@@ -973,6 +973,10 @@
                 // 1. Clear storage immediately — always synchronously first.
                 clearAuthStorageNuclear();
 
+                // 1b. Set intentional logout flag to prevent session restoration on next page load.
+                //     shared-header.js and auth-gate.js check this flag to skip session restore.
+                try { sessionStorage.setItem('zo2y-intentional-logout', 'true'); } catch (_err) {}
+
                 // 2. Mark explicit signout before any signOut call so the SIGNED_OUT handler
                 //    sees it. We will re-set it again after signOut completes.
                 try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_err) {}
@@ -991,7 +995,7 @@
                         ]);
                     } else if (supabase && supabase.auth && typeof supabase.auth.signOut === 'function') {
                         await Promise.race([
-                            supabase.auth.signOut({ scope: 'local' }),
+                            supabase.auth.signOut({ scope: 'global' }),
                             new Promise((r) => setTimeout(r, 3000))
                         ]);
                     }
@@ -10420,6 +10424,32 @@ resetDetailPanels();
                 showModal('mobileMenuModal');
             }
 
+            // ===== OVERFLOW MENU FUNCTIONS =====
+            function toggleOverflowMenu() {
+                const menu = document.getElementById('profileOverflowMenu');
+                if (!menu) return;
+                const isOpen = menu.classList.contains('open');
+                if (isOpen) {
+                    closeOverflowMenu();
+                } else {
+                    menu.classList.add('open');
+                    document.addEventListener('click', closeOverflowMenuOnOutsideClick);
+                }
+            }
+
+            function closeOverflowMenu() {
+                const menu = document.getElementById('profileOverflowMenu');
+                if (menu) menu.classList.remove('open');
+                document.removeEventListener('click', closeOverflowMenuOnOutsideClick);
+            }
+
+            function closeOverflowMenuOnOutsideClick(e) {
+                const wrap = document.querySelector('.pv2-overflow-wrap');
+                if (wrap && !wrap.contains(e.target)) {
+                    closeOverflowMenu();
+                }
+            }
+
             // ===== AVATAR FUNCTIONS =====
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
@@ -11172,6 +11202,8 @@ resetDetailPanels();
                 setRating,
                 toggleFollow,
                 showMobileMenu,
+                toggleOverflowMenu,
+                closeOverflowMenu,
                 showCreateListTypeModal,
                 createListForType,
                 logout,

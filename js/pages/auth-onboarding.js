@@ -197,6 +197,15 @@
   signOutButton.addEventListener('click', function () {
     clearAuthStorage();
     try { localStorage.setItem('zo2y-auth-explicit-signout-v2', String(Date.now())); } catch (_e) {}
+    // Call the canonical signOut to properly terminate the Supabase session
+    try {
+      var authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.signOut === 'function') {
+        authRuntime.signOut();
+      } else if (window.__ZO2Y_SUPABASE_CLIENT && window.__ZO2Y_SUPABASE_CLIENT.auth && typeof window.__ZO2Y_SUPABASE_CLIENT.auth.signOut === 'function') {
+        window.__ZO2Y_SUPABASE_CLIENT.auth.signOut({ scope: 'global' });
+      }
+    } catch (_e) {}
     try { window.__ZO2Y_SUPABASE_CLIENT = null; } catch (_e) {}
     try { window.__ZO2Y_AUTH = null; } catch (_e) {}
     if (typeof window.__ZO2Y_CLEAR_PERSISTED_SESSION_SNAPSHOTS === 'function') {

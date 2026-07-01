@@ -230,7 +230,10 @@
         const errors = await deleteAccount(supabase, user.id);
         setStatus(status, 'Signing you out and clearing local data…', 'info');
         try {
-          await supabase.auth.signOut();
+          await supabase.auth.signOut({ scope: 'global' });
+        } catch (_e) {}
+        try {
+          sessionStorage.setItem('zo2y-intentional-logout', 'true');
         } catch (_e) {}
         try {
           Object.keys(localStorage).forEach((key) => {
