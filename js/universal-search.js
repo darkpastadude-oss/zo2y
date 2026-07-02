@@ -205,18 +205,17 @@
     const json = await fetchJson(url.toString(), signal);
     const results = Array.isArray(json?.results) ? json.results : [];
     return results.slice(0, 10).map((row) => {
-      const kind = String(row?.kind || row?.type || '').toLowerCase();
-      const title = String(row?.name || '').trim();
+      const title = String(row?.title || row?.name || '').trim();
       const id = String(row?.id || '').trim();
       if (!title) return null;
-      const artist = Array.isArray(row?.artists) ? String(row.artists[0] || '').trim() : '';
-      const isAlbum = kind === 'album';
+      const artist = Array.isArray(row?.artists) ? String(row.artists[0] || '').trim() : String(row?.artist || '').trim();
+      const isAlbum = String(row?.albumType || '').toLowerCase() === 'album' || (!row?.trackNumber && !row?.durationMs);
       return {
         type: 'Music',
         title,
         sub: artist ? `${isAlbum ? 'Album' : 'Track'} • ${artist}` : (isAlbum ? 'Album' : 'Track'),
         image: toHttpsUrl(row?.image || ''),
-        href: isAlbum && id ? `song.html?album_id=${encodeURIComponent(id)}&source=${encodeURIComponent(String(row?.source || 'itunes'))}` : 'music.html'
+        href: isAlbum && id ? `song.html?album_id=${encodeURIComponent(id)}&source=${encodeURIComponent(String(row?.provider || row?.source || 'itunes'))}` : (id ? `song.html?id=${encodeURIComponent(id)}` : 'music.html')
       };
     }).filter(Boolean);
   }

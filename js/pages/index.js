@@ -2801,20 +2801,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
         const getTrackContainerLabel = (row = {}) => {
-          const title = String(row?.name || '').trim().toLowerCase();
-          const albumName = String(row?.album?.name || row?.album_name || '').trim();
-          const albumType = String(row?.album?.album_type || row?.album_type || '').trim().toLowerCase();
-          const totalTracks = Number(row?.album?.total_tracks || row?.total_tracks || 0);
+          const title = String(row?.title || '').trim().toLowerCase();
+          const albumName = String(row?.albumName || '').trim();
+          const albumType = String(row?.albumType || '').trim().toLowerCase();
+          const totalTracks = Number(row?.trackCount || 0);
           const sameName = !!title && !!albumName && title === albumName.toLowerCase();
           if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
           if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
           return 'Album';
         };
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
-          if (String(track?.kind || '').trim().toLowerCase() === 'album') return null;
-          const artists = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : '';
-          const title = String(track?.name || 'Track').trim() || 'Track';
-          const albumName = String(track?.album?.name || track?.album_name || '').trim() || 'Unknown Album';
+          const artists = String(track?.artist || '').trim();
+          const title = String(track?.title || 'Track').trim() || 'Track';
+          const albumName = String(track?.albumName || '').trim() || 'Unknown Album';
           const containerLabel = getTrackContainerLabel(track);
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
@@ -2827,7 +2826,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             backgroundImage: image,
             spotlightImage: image,
             spotlightMediaImage: image,
-            previewUrl: String(track?.preview_url || '').trim(),
+            previewUrl: String(track?.previewUrl || '').trim(),
             spotlightMediaFit: 'contain',
             spotlightMediaShape: 'poster',
             explicit: track?.explicit === true,
@@ -2837,25 +2836,25 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
 
         const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
-          const artists = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : '';
+          const artists = String(album?.artist || '').trim();
           const image = String(album?.image || '').trim();
           const albumIdRaw = String(album?.id || '').trim();
           const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
-          const source = String(album?.source || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
-          const albumType = String(album?.album_type || 'album').trim().toLowerCase();
+          const provider = String(album?.provider || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
+          const albumType = String(album?.albumType || 'album').trim().toLowerCase();
           if (albumType && albumType !== 'album') return null;
-          const releaseDate = String(album?.release_date || '').trim();
+          const releaseDate = String(album?.releaseDate || '').trim();
           const parsedRelease = Date.parse(releaseDate);
           const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
-          const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.total_tracks || 0) > 0 ? `${Number(album.total_tracks)} tracks` : ''].filter(Boolean);
+          const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.trackCount || 0) > 0 ? `${Number(album.trackCount)} tracks` : ''].filter(Boolean);
           const detail = detailBits.length ? `Album | ${detailBits.join(' | ')}` : 'Album';
           const href = albumId
-            ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`
+            ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(provider)}`
             : 'music.html';
           const item = {
             mediaType: 'music',
             itemId: albumId ? `album:${albumId}` : '',
-            title: String(album?.name || 'Album').trim() || 'Album',
+            title: String(album?.title || 'Album').trim() || 'Album',
             subtitle: artists || 'Artist',
             image,
             backgroundImage: image,
@@ -2971,6 +2970,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ? musicAlbumRes.value.results
         : [];
 
+      const musicTracks = musicTrackRows.map(function (t) { return (typeof window.normalizeTrack === 'function' && t) ? window.normalizeTrack(t) || t : t; });
+      const musicAlbums = musicAlbumRows.map(function (a) { return (typeof window.normalizeAlbum === 'function' && a) ? window.normalizeAlbum(a) || a : a; });
+
       const combined = [
         ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5, { detail: 'Airing Today' }),
         ...mapShowRows(tvSeasonRows, 'tv', 'New Season', 5, { detail: 'Latest Season' }),
@@ -2980,7 +2982,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
         ...(ENABLE_GAMES ? mapGameRows(gameRows, 'New Release', 4) : []),
         ...mapBookRows(bookRows, 'New Release', 4),
-        ...mapMusicRows(musicTrackRows, musicAlbumRows, 'Chart Update', 4)
+        ...mapMusicRows(musicTracks, musicAlbums, 'Chart Update', 4)
       ];
 
       const deduped = dedupeHomeItemsByMediaAndId(combined)
