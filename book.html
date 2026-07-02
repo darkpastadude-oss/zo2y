@@ -822,34 +822,21 @@
 
     <script src="js/list-utils.js?v=20260623z" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260623z" defer></script>
+<script src="js/normalizers.js?v=20260623z"></script>
+<script src="js/unified-media-hero.js?v=20260623z"></script>
     <script src="js/review-interactions.js?v=20260623z" defer></script>
     <script>
     (function () {
+      'use strict';
       const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
-      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
-      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
-      const GOOGLE_BOOKS_PROXY_BASE = '/api/books';
-      const OPEN_LIBRARY_PROXY_BASE = '/api/openlibrary';
       const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
-      const titleParam = String(params.get('title') || '').trim();
-      const authorParam = String(params.get('author') || '').trim();
-      const LEGACY_FAKE_WORK_MAP = {
-        OL1W: { title: 'Pride and Prejudice', author: 'Jane Austen' },
-        OL2W: { title: 'Murder on the Orient Express', author: 'Agatha Christie' },
-        OL3W: { title: 'The Hobbit', author: 'J.R.R. Tolkien' },
-        OL4W: { title: 'Sapiens', author: 'Yuval Noah Harari' },
-        OL5W: { title: 'Atomic Habits', author: 'James Clear' }
-      };
-      const bookId = id || null;
-      let normalizedBookId = bookId ? (bookId.startsWith('/works/') ? bookId.replace('/works/', '') : bookId) : null;
+      const bookId = params.get('id') || '';
       let supabaseClient = null;
       let currentUser = null;
       let currentRating = 0;
       let editingReviewId = null;
       let reviews = [];
       let bookInfo = null;
-      let bookCoverUrl = null;
       let currentSort = 'latest';
       const listStatus = { favorites: false, read: false, readlist: false };
       const pendingListOps = new Set();
@@ -858,366 +845,18 @@
       let selectedIcon = 'fas fa-book';
       let bookSyncWarned = false;
 
-      function toHttpsUrl(value) {
-        return String(value || '').replace(/^http:\/\//i, 'https://');
+      function escapeHtml(v) {
+        return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
       }
 
-      function buildOpenLibraryCoverUrl(coverId, size = 'L') {
-        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
-          ? String(size || 'L').toUpperCase()
-          : 'L';
-        const id = Number(coverId || 0) || 0;
-        if (!id) return '';
-        return `https://covers.openlibrary.org/b/id/${encodeURIComponent(String(id))}-${safeSize}.jpg`;
-      }
-
-      function buildOpenLibraryCoverByIsbn(isbn, size = 'L') {
-        const safeSize = ['S', 'M', 'L'].includes(String(size || '').toUpperCase())
-          ? String(size || 'L').toUpperCase()
-          : 'L';
-        const normalized = String(isbn || '').replace(/[^0-9Xx]/g, '');
-        if (!normalized) return '';
-        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(normalized)}-${safeSize}.jpg`;
-      }
-
-      function isSyntheticSearchId(value) {
-        const raw = String(value || '').trim().toLowerCase();
-        return raw.startsWith('search-');
-      }
-
-      function buildGoogleBooksQuery(paramsObj = {}) {
-        const title = String(paramsObj?.title || '').trim();
-        const author = String(paramsObj?.author || '').trim();
-        const qRaw = String(paramsObj?.q || '').trim();
-        const subject = String(paramsObj?.subject || '').trim();
-        const year = String(paramsObj?.first_publish_year || paramsObj?.year || '').trim();
-        const chunks = [];
-        if (qRaw) chunks.push(qRaw);
-        if (title) chunks.push(`intitle:\"${title}\"`);
-        if (author) chunks.push(`inauthor:\"${author}\"`);
-        if (subject) chunks.push(subject);
-        if (year) chunks.push(year);
-        return chunks.join(' ').trim();
-      }
-
-      function normalizeGoogleBookDoc(volume, idx = 0) {
-        const info = volume?.volumeInfo || {};
-        const title = String(info?.title || `Book ${idx + 1}`).trim();
-        const authorNames = Array.isArray(info?.authors) ? info.authors.filter(Boolean).map((name) => String(name).trim()).filter(Boolean) : [];
-        const published = String(info?.publishedDate || '').trim();
-        const yearMatch = published.match(/\d{4}/);
-        const year = yearMatch ? Number(yearMatch[0]) : null;
-        const categories = Array.isArray(info?.categories) ? info.categories.filter(Boolean).map((entry) => String(entry).trim()) : [];
-        const publisher = String(info?.publisher || '').trim();
-        const identifiers = Array.isArray(info?.industryIdentifiers) ? info.industryIdentifiers : [];
-        const isbn = identifiers
-          .map((entry) => String(entry?.identifier || '').replace(/[^0-9Xx]/g, ''))
-          .filter(Boolean);
-        const thumb = String(info?.imageLinks?.thumbnail || info?.imageLinks?.smallThumbnail || '').replace(/^http:\/\//i, 'https://').trim();
-
-        return {
-          key: '',
-          title,
-          author_name: authorNames.length ? authorNames : ['Unknown author'],
-          first_publish_year: Number.isFinite(year) ? year : null,
-          isbn,
-          subject: categories,
-          publisher: publisher ? [publisher] : [],
-          cover_i: null,
-          _googleThumbnail: thumb,
-          _googleVolumeId: String(volume?.id || '').trim(),
-          _googleRaw: volume
-        };
-      }
-
-      async function fetchGoogleBooksDocs(paramsObj = {}) {
-        const q = buildGoogleBooksQuery(paramsObj);
-        if (!q) return [];
-        const limit = String(Math.max(1, Number(paramsObj?.limit || 8)));
-        try {
-          const proxyUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/search`, window.location.origin);
-          proxyUrl.searchParams.set('q', q);
-          proxyUrl.searchParams.set('limit', limit);
-          const res = await fetch(proxyUrl.toString(), { headers: { Accept: 'application/json' } });
-          if (res.ok) {
-            const json = await res.json();
-            const items = Array.isArray(json?.items) ? json.items : [];
-            if (items.length) {
-              return items.map((entry, idx) => normalizeGoogleBookDoc(entry, idx)).filter((entry) => String(entry?.title || '').trim());
-            }
-          }
-        } catch (_err) {
-        }
-        try {
-          const olUrl = new URL('https://openlibrary.org/search.json');
-          olUrl.searchParams.set('q', q);
-          olUrl.searchParams.set('limit', limit);
-          olUrl.searchParams.set('language', 'eng');
-          const res = await fetch(olUrl.toString(), { headers: { Accept: 'application/json' } });
-          if (!res.ok) return [];
-          const json = await res.json();
-          const docs = Array.isArray(json?.docs) ? json.docs : [];
-          return docs.map((doc, idx) => {
-            const title = String(doc?.title || '').trim();
-            if (!title) return null;
-            const authorNames = Array.isArray(doc?.author_name) ? doc.author_name.filter(Boolean).map((n) => String(n).trim()) : [];
-            const coverId = Number(doc?.cover_i || 0) || 0;
-            const year = Number(doc?.first_publish_year || 0) || null;
-            return {
-              key: String(doc?.key || '').trim(),
-              title,
-              author_name: authorNames.length ? authorNames : ['Unknown author'],
-              first_publish_year: year,
-              isbn: Array.isArray(doc?.isbn) ? doc.isbn : [],
-              subject: Array.isArray(doc?.subject) ? doc.subject : [],
-              publisher: Array.isArray(doc?.publisher) ? doc.publisher : [],
-              cover_i: coverId || null,
-              _googleThumbnail: buildOpenLibraryCoverUrl(coverId, 'L'),
-              _googleVolumeId: '',
-              _googleRaw: null
-            };
-          }).filter(Boolean);
-        } catch (_err) {
-          return [];
-        }
-      }
-
-      async function fetchGoogleBookFromHints(titleHint = '', authorHint = '') {
-        const docs = await fetchGoogleBooksDocs({
-          title: String(titleHint || '').trim() || undefined,
-          author: String(authorHint || '').trim() || undefined,
-          q: [titleHint, authorHint].filter(Boolean).join(' '),
-          limit: 6
-        });
-        const best = docs[0] || null;
-        if (!best) return null;
-        const raw = best._googleRaw?.volumeInfo || {};
-        const coverImage = String(best._googleThumbnail || '').trim();
-        const pageCount = Number(raw?.pageCount || 0) || null;
-        return {
-          title: String(best.title || '').trim() || 'Untitled',
-          description: String(raw?.description || '').trim(),
-          first_publish_date: String(raw?.publishedDate || '').trim(),
-          publishedDate: String(raw?.publishedDate || '').trim(),
-          covers: [],
-          coverImage: coverImage || '',
-          subjects: Array.isArray(raw?.categories) ? raw.categories : [],
-          authors: Array.isArray(best.author_name) ? best.author_name.map((name) => ({ name })) : [],
-          publishers: raw?.publisher ? [String(raw.publisher)] : [],
-          number_of_pages: pageCount,
-          key: '',
-          googleVolumeId: String(best._googleVolumeId || '').trim()
-        };
-      }
-
-      async function fetchGoogleBookFromVolumeId(volumeId) {
-        const cleanId = String(volumeId || '').trim();
-        if (!cleanId || isSyntheticSearchId(cleanId)) return null;
-        const volumeUrl = new URL(`${GOOGLE_BOOKS_PROXY_BASE}/volumes/${encodeURIComponent(cleanId)}`, window.location.origin);
-        try {
-          const res = await fetch(volumeUrl.toString(), { headers: { Accept: 'application/json' } });
-          if (!res.ok) return null;
-          const json = await res.json();
-          const raw = json?.volumeInfo || {};
-          const authorNames = Array.isArray(raw?.authors) ? raw.authors.filter(Boolean) : [];
-          const coverImage = toHttpsUrl(raw?.imageLinks?.thumbnail || raw?.imageLinks?.smallThumbnail || '');
-          const pageCount = Number(raw?.pageCount || 0) || null;
-          return {
-            title: String(raw?.title || '').trim() || 'Untitled',
-            description: String(raw?.description || '').trim(),
-            first_publish_date: String(raw?.publishedDate || '').trim(),
-            publishedDate: String(raw?.publishedDate || '').trim(),
-            covers: [],
-            coverImage: coverImage || '',
-            subjects: Array.isArray(raw?.categories) ? raw.categories : [],
-            authors: authorNames.map((name) => ({ name: String(name).trim() })),
-            publishers: raw?.publisher ? [String(raw.publisher)] : [],
-            number_of_pages: pageCount,
-            key: '',
-            googleVolumeId: String(json?.id || cleanId).trim()
-          };
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      async function fetchGoogleBookFromStoredBook(idHint) {
-        if (!supabaseClient || !idHint) return null;
-        try {
-          const { data } = await supabaseClient
-            .from('books')
-            .select('id, title, authors')
-            .eq('id', idHint)
-            .maybeSingle();
-          const title = String(data?.title || '').trim();
-          const author = String(data?.authors || '').split(',')[0]?.trim() || '';
-          if (!title && !author) return null;
-          return await fetchGoogleBookFromHints(title, author);
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      async function resolveOpenLibraryAuthorNames(authorRefs = []) {
-        const keys = (Array.isArray(authorRefs) ? authorRefs : [])
-          .map((entry) => String(entry?.author?.key || entry?.key || '').trim())
-          .filter(Boolean)
-          .slice(0, 6);
-        if (!keys.length) return [];
-        const names = await Promise.all(keys.map(async (key) => {
-          const authorPath = key.startsWith('/') ? key : `/${key}`;
-          const url = new URL(`${OPEN_LIBRARY_PROXY_BASE}${authorPath}.json`, window.location.origin);
-          try {
-            const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-            if (!res.ok) return '';
-            const json = await res.json();
-            return String(json?.name || '').trim();
-          } catch (_err) {
-            return '';
-          }
-        }));
-        return names.filter(Boolean);
-      }
-
-      async function fetchOpenLibraryBookFromWorkId(workId) {
-        const cleanId = String(workId || '').trim().replace(/^\/works\//i, '');
-        if (!cleanId) return null;
-        const url = new URL(`${OPEN_LIBRARY_PROXY_BASE}/works/${encodeURIComponent(cleanId)}.json`, window.location.origin);
-        try {
-          const res = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-          if (!res.ok) return null;
-          const work = await res.json();
-          const coverId = Array.isArray(work?.covers) ? Number(work.covers[0] || 0) : 0;
-          const authorNames = await resolveOpenLibraryAuthorNames(Array.isArray(work?.authors) ? work.authors : []);
-          const description = typeof work?.description === 'string'
-            ? work.description
-            : String(work?.description?.value || '').trim();
-          const subjects = Array.isArray(work?.subjects)
-            ? work.subjects.map((entry) => String(entry || '').trim()).filter(Boolean)
-            : [];
-          const firstPublishDate = String(work?.first_publish_date || '').trim();
-          return {
-            title: String(work?.title || '').trim() || (titleParam || 'Untitled'),
-            description,
-            first_publish_date: firstPublishDate,
-            publishedDate: firstPublishDate,
-            covers: Array.isArray(work?.covers) ? work.covers : [],
-            cover_i: coverId || null,
-            coverImage: buildOpenLibraryCoverUrl(coverId, 'L'),
-            subjects,
-            categories: subjects,
-            authors: authorNames.map((name) => ({ name })),
-            publishers: [],
-            number_of_pages: null,
-            key: String(work?.key || `/works/${cleanId}`),
-            googleVolumeId: ''
-          };
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      async function fetchOpenLibraryBookFromHints(titleHint = '', authorHint = '') {
-        const title = String(titleHint || '').trim();
-        const author = String(authorHint || '').trim();
-        if (!title && !author) return null;
-        const searchUrl = new URL(`${OPEN_LIBRARY_PROXY_BASE}/search.json`, window.location.origin);
-        if (title) searchUrl.searchParams.set('title', title);
-        if (author) searchUrl.searchParams.set('author', author);
-        searchUrl.searchParams.set('language', 'eng');
-        searchUrl.searchParams.set('limit', '5');
-        try {
-          const res = await fetch(searchUrl.toString(), { headers: { Accept: 'application/json' } });
-          if (!res.ok) return null;
-          const json = await res.json();
-          const docs = Array.isArray(json?.docs) ? json.docs : [];
-          if (!docs.length) return null;
-          const best = docs.find((doc) => {
-            const docTitle = String(doc?.title || '').toLowerCase();
-            const docAuthor = String((Array.isArray(doc?.author_name) ? doc.author_name[0] : '') || '').toLowerCase();
-            const titleOk = title ? docTitle.includes(title.toLowerCase()) : true;
-            const authorOk = author ? docAuthor.includes(author.toLowerCase()) : true;
-            return titleOk && authorOk;
-          }) || docs[0];
-
-          const workId = String(best?.key || '').trim().replace(/^\/works\//i, '');
-          const detailed = workId ? await fetchOpenLibraryBookFromWorkId(workId) : null;
-          const coverId = Number(best?.cover_i || 0) || 0;
-          const isbnList = Array.isArray(best?.isbn)
-            ? best.isbn.map((entry) => String(entry || '').replace(/[^0-9Xx]/g, '')).filter(Boolean)
-            : [];
-          const openCover = buildOpenLibraryCoverUrl(coverId, 'L') || buildOpenLibraryCoverByIsbn(isbnList[0] || '', 'L');
-          const docYear = Number(best?.first_publish_year || 0) || 0;
-          const publishText = docYear ? String(docYear) : '';
-          if (detailed) {
-            if (!detailed.coverImage) detailed.coverImage = openCover || '';
-            detailed.cover_i = detailed.cover_i || coverId || null;
-            detailed.isbn = Array.isArray(detailed?.isbn) && detailed.isbn.length ? detailed.isbn : isbnList;
-            if (!detailed.first_publish_date && publishText) detailed.first_publish_date = publishText;
-            if (!detailed.publishedDate && publishText) detailed.publishedDate = publishText;
-            if (!Array.isArray(detailed?.authors) || !detailed.authors.length) {
-              detailed.authors = (Array.isArray(best?.author_name) ? best.author_name : [])
-                .map((name) => ({ name: String(name || '').trim() }))
-                .filter((entry) => entry.name);
-            }
-            return detailed;
-          }
-
-          const subjects = Array.isArray(best?.subject)
-            ? best.subject.map((entry) => String(entry || '').trim()).filter(Boolean)
-            : [];
-          return {
-            title: String(best?.title || '').trim() || (title || 'Untitled'),
-            description: '',
-            first_publish_date: publishText,
-            publishedDate: publishText,
-            covers: coverId ? [coverId] : [],
-            cover_i: coverId || null,
-            coverImage: openCover || '',
-            subjects,
-            categories: subjects,
-            authors: (Array.isArray(best?.author_name) ? best.author_name : [])
-              .map((name) => ({ name: String(name || '').trim() }))
-              .filter((entry) => entry.name),
-            publishers: Array.isArray(best?.publisher) ? best.publisher : [],
-            number_of_pages: null,
-            key: String(best?.key || '').trim(),
-            isbn: isbnList,
-            googleVolumeId: ''
-          };
-        } catch (_err) {
-          return null;
-        }
-      }
-
-      async function booksFetch(path, paramsObj = {}) {
-        const normalizedPath = String(path || '').startsWith('/') ? String(path) : `/${String(path || '')}`;
-        if (normalizedPath !== '/search.json') {
-          throw new Error('Unsupported books endpoint');
-        }
-        const googleDocs = await fetchGoogleBooksDocs(paramsObj);
-        if (googleDocs.length) {
-          return { docs: googleDocs, numFound: googleDocs.length };
-        }
-        throw new Error('Books API error');
-      }
-
-      function showNotification(message, type = 'info', duration = 3000) {
-        const existing = document.querySelectorAll('.notification');
-        existing.forEach(n => n.remove());
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = (typeof message === 'string') ? message : JSON.stringify(message);
-        document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), duration);
-      }
-
-      function renderListIcon(icon) {
-        if (window.ListUtils) return ListUtils.renderListIcon(icon, 'fas fa-book');
-        if (!icon) return '<i class="fas fa-book"></i>';
-        if (icon.includes('fa-')) return `<i class="${icon}"></i>`;
-        const m = ({movie:'fas fa-film',tv:'fas fa-tv',anime:'fas fa-dragon',game:'fas fa-gamepad',book:'fas fa-book',music:'fas fa-music',travel:'fas fa-earth-americas',fashion:'fas fa-shirt',food:'fas fa-burger',car:'fas fa-car',sports:'fas fa-futbol',restaurant:'fas fa-clapperboard',heart:'fas fa-heart',check:'fas fa-check',bookmark:'fas fa-bookmark',user:'fas fa-user',star:'fas fa-star',list:'fas fa-list'})[icon.toLowerCase().trim()];
-        return m ? '<i class="'+m+'"></i>' : icon;
+      function showNotification(message, type, duration) {
+        type = type || 'info'; duration = duration || 3000;
+        document.querySelectorAll('.notification').forEach(n => n.remove());
+        const n = document.createElement('div');
+        n.className = 'notification ' + type;
+        n.textContent = typeof message === 'string' ? message : JSON.stringify(message);
+        document.body.appendChild(n);
+        setTimeout(() => { try { n.remove(); } catch(_) {} }, duration);
       }
 
       async function initSupabase() {
@@ -1236,38 +875,145 @@
           if (supabaseClient) return supabaseClient;
         }
         if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
-          supabaseClient = window.supabase.createClient(
-            window.__ZO2Y_SUPABASE_CONFIG.url,
-            window.__ZO2Y_SUPABASE_CONFIG.key,
-            { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-          );
+          supabaseClient = window.supabase.createClient(window.__ZO2Y_SUPABASE_CONFIG.url, window.__ZO2Y_SUPABASE_CONFIG.key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
           window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
           return supabaseClient;
         }
         return null;
       }
 
+      async function fetchBookFromApi(vid) {
+        const cleanId = String(vid || bookId || "").trim();
+        if (!cleanId) return null;
+        try {
+          const res = await fetch(`/api/books/volumes/${encodeURIComponent(cleanId)}`);
+          if (!res.ok) return null;
+          const data = await res.json();
+          const n = typeof window.normalizeBook === 'function' ? window.normalizeBook(data) : data;
+          return n && n.title ? n : null;
+        } catch (_) { return null; }
+      }
+
+      async function fetchRecommendations(bid) {
+        try {
+          const res = await fetch(`/api/books/recommendations?id=${encodeURIComponent(bid)}`);
+          if (!res.ok) return [];
+          const data = await res.json();
+          return (data.books || []).map(b => typeof window.normalizeBook === 'function' ? window.normalizeBook(b) : b).filter(Boolean);
+        } catch (_) { return []; }
+      }
+
+      async function load() {
+        if (!bookId) { showNotification("No book specified", "error"); return; }
+        const cached = localStorage.getItem("book_" + bookId);
+        let data = null;
+        if (cached) { try { data = JSON.parse(cached); displayBookInfo(data); } catch(_) {} }
+        data = await fetchBookFromApi(bookId);
+        if (!data) { showNotification("Could not load book details", "error", 4000); return; }
+        try { localStorage.setItem("book_" + bookId, JSON.stringify(data)); } catch(_) {}
+        bookInfo = data;
+        displayBookInfo(data);
+      }
+
+      function displayBookInfo(n) {
+        if (!n) return;
+        const container = document.getElementById("unifiedHeroContainer");
+        if (container && typeof window.renderUnifiedMediaHero === 'function') {
+          window.renderUnifiedMediaHero(container, {
+            type: "book",
+            title: n.title || "Untitled",
+            posterUrl: n.image || "/images/fallback/book.svg",
+            backdropUrl: n.image || "",
+            description: n.description || "No description available.",
+            posterFit: "contain",
+            metadata: [
+              n.authors ? { type: "director", value: n.authors } : null,
+              n.year ? { type: "year", value: String(n.year) } : null,
+              n.publisher ? { type: "network", value: n.publisher } : null,
+              n.pageCount > 0 ? { type: "runtime", value: n.pageCount + " pages" } : null,
+              n.language ? { type: "platform", value: n.language.toUpperCase() } : null,
+              n.rating > 0 ? { type: "rating", value: n.rating.toFixed(1) + "/5" } : null
+            ].filter(Boolean),
+            actions: [
+              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", primary: true, href: n.externalUrl } : null,
+              { id: "bookMenuBtn", icon: "fas fa-ellipsis-v", label: "Save to Lists" }
+            ].filter(Boolean)
+          });
+        }
+
+        const metaGrid = document.getElementById("metaGrid");
+        if (metaGrid) {
+          const items = [];
+          if (n.authors) items.push("<div class=\"meta-item\"><strong>Author:</strong> " + escapeHtml(n.authors) + "</div>");
+          if (n.publisher) items.push("<div class=\"meta-item\"><strong>Publisher:</strong> " + escapeHtml(n.publisher) + "</div>");
+          if (n.releaseDate) items.push("<div class=\"meta-item\"><strong>Published:</strong> " + escapeHtml(n.releaseDate) + "</div>");
+          if (n.pageCount) items.push("<div class=\"meta-item\"><strong>Pages:</strong> " + n.pageCount + "</div>");
+          if (n.language) items.push("<div class=\"meta-item\"><strong>Language:</strong> " + escapeHtml(n.language.toUpperCase()) + "</div>");
+          if (n.rating > 0) items.push("<div class=\"meta-item\"><strong>Rating:</strong> " + n.rating.toFixed(1) + "/5" + (n.ratingsCount ? " (" + n.ratingsCount + ")" : "") + "</div>");
+          metaGrid.innerHTML = items.join("");
+        }
+
+        const details = document.getElementById("details");
+        if (details) {
+          const rows = [];
+          if (n.subtitle) rows.push("<div class=\"list-row\"><span class=\"list-label\">Subtitle:</span> " + escapeHtml(n.subtitle) + "</div>");
+          if (Array.isArray(n.isbn) && n.isbn.length) rows.push("<div class=\"list-row\"><span class=\"list-label\">ISBN:</span> " + escapeHtml(n.isbn.join(", ")) + "</div>");
+          if (n.externalUrl) rows.push("<div class=\"list-row\"><span class=\"list-label\">Google Books:</span> <a href=\"" + escapeHtml(n.externalUrl) + "\" target=\"_blank\" rel=\"noopener\">View on Google Books</a></div>");
+          if (Array.isArray(n.genres) && n.genres.length) rows.push("<div class=\"list-row\"><span class=\"list-label\">Categories:</span> " + escapeHtml(n.genres.slice(0, 10).join(", ")) + "</div>");
+          details.innerHTML = rows.length ? rows.join("") : '<div class="list-row">No details available.</div>';
+        }
+
+        const tags = document.getElementById("tags");
+        if (tags && Array.isArray(n.genres)) {
+          tags.innerHTML = n.genres.slice(0, 12).map(c => "<span class=\"tag\">" + escapeHtml(c) + "</span>").join("");
+        }
+
+        const cast = document.getElementById("cast");
+        if (cast && Array.isArray(n.genres)) {
+          cast.innerHTML = n.genres.slice(0, 12).map(c => "<span class=\"person-chip\">" + escapeHtml(c) + "</span>").join("");
+          if (!n.genres.length) cast.innerHTML = '<span class="person-chip">N/A</span>';
+        }
+
+        const directors = document.getElementById("directors");
+        if (directors) {
+          const a = n.authors ? n.authors.split(",").map(s => s.trim()).filter(Boolean).slice(0, 12) : [];
+          directors.innerHTML = a.length ? a.map(p => "<span class=\"person-chip\">" + escapeHtml(p) + "</span>").join("") : '<span class="person-chip">N/A</span>';
+        }
+
+        const writers = document.getElementById("writers");
+        if (writers) {
+          const a = n.authors ? n.authors.split(",").map(s => s.trim()).filter(Boolean).slice(0, 12) : [];
+          writers.innerHTML = a.length ? a.map(p => "<span class=\"person-chip\">" + escapeHtml(p) + "</span>").join("") : '<span class="person-chip">N/A</span>';
+        }
+
+        renderRecommendations(n.id || bookId);
+      }
+
+      async function renderRecommendations(bid) {
+        const container = document.getElementById("recommendations");
+        if (!container) return;
+        const recs = await fetchRecommendations(bid);
+        if (!recs.length) { container.style.display = "none"; return; }
+        container.style.display = "block";
+        container.innerHTML = '<h3 class="section-title">Related Books</h3><div class="people-list">' +
+          recs.slice(0, 8).map(r =>
+            '<a href="book.html?id=' + encodeURIComponent(r.id || r.providerId || "") + '" class="person-chip" style="text-decoration:none">' + escapeHtml(r.title) + '</a>'
+          ).join("") + '</div>';
+      }
+
       async function upsertBookRecordLocal() {
-        if (!normalizedBookId) return false;
+        if (!bookId) return false;
         const payload = {
-          id: normalizedBookId,
+          id: bookId,
           title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
-          authors: Array.isArray(bookInfo?.authors)
-            ? bookInfo.authors
-              .map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
-              .filter(Boolean)
-              .join(', ')
-            : null,
-          thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null),
-          published_date: bookInfo?.first_publish_date || null,
+          authors: bookInfo?.authors || '',
+          thumbnail: bookInfo?.image || '',
+          published_date: bookInfo?.releaseDate || '',
           updated_at: new Date().toISOString()
         };
         if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
           const ok = await ListUtils.ensureBookRecord(supabaseClient, payload);
-          if (!ok && !bookSyncWarned) {
-            bookSyncWarned = true;
-            showNotification('Book info is unavailable right now.', 'error');
-          }
+          if (!ok && !bookSyncWarned) { bookSyncWarned = true; showNotification('Book info is unavailable right now.', 'error'); }
           return !!ok;
         }
         return false;
@@ -1286,465 +1032,31 @@
         });
       }
 
-      async function load() {
-        if (!id) return;
-        bookInfo = {};
-        
-        // Check cache first for instant display
-        const cacheKey = `book_${id}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          try {
-            const cachedInfo = JSON.parse(cached);
-            displayBookInfo(cachedInfo);
-          } catch (e) {
-          }
-        }
-
-        try {
-          const normalizedId = id.startsWith('/works/') ? id.replace('/works/', '') : id;
-          let loadedInfo = null;
-          const legacy = LEGACY_FAKE_WORK_MAP[String(normalizedId || '').toUpperCase()] || null;
-
-          loadedInfo =
-            await fetchGoogleBookFromHints(titleParam || legacy?.title || '', authorParam || legacy?.author || '') ||
-            await fetchGoogleBookFromStoredBook(normalizedId);
-
-          if (!loadedInfo && normalizedId && !isSyntheticSearchId(normalizedId)) {
-            loadedInfo = await fetchGoogleBookFromVolumeId(normalizedId);
-          }
-
-          if (!loadedInfo && (titleParam || authorParam)) {
-            loadedInfo = await fetchGoogleBookFromHints(titleParam, authorParam);
-          }
-
-          if (!loadedInfo && (titleParam || authorParam || legacy?.title || legacy?.author)) {
-            loadedInfo = await fetchOpenLibraryBookFromHints(
-              titleParam || legacy?.title || '',
-              authorParam || legacy?.author || ''
-            );
-          }
-
-          if (!loadedInfo && normalizedId && !isSyntheticSearchId(normalizedId)) {
-            loadedInfo = await fetchOpenLibraryBookFromWorkId(normalizedId);
-          }
-
-          if (!loadedInfo) throw new Error('Book record not found');
-
-          bookInfo = loadedInfo;
-          // Cache successful fetch
-          localStorage.setItem(`book_${normalizedBookId || id}`, JSON.stringify(bookInfo));
-          displayBookInfo(bookInfo);
-        } catch (err) {
-          console.error('Book fetch error', err);
-          if (!cached) {
-            showNotification('Could not load book details', 'error', 4000);
-            document.getElementById('poster').src = '/newlogo.webp';
-            document.getElementById('title').textContent = 'Untitled';
-            document.getElementById('overview').textContent = 'No description available.';
-          }
-        }
-      }
-
-      function displayBookInfo(info) {
-        if (!info) return;
-        bookInfo = info;
-        
-        // description can be a string or object
-        let description = '';
-        if (info.description) description = typeof info.description === 'string' ? info.description : info.description.value || '';
-        const publishedBase = info.first_publish_date || info.publishedDate || info.created?.value || '';
-        const publishedYear = publishedBase ? String(publishedBase).slice(0, 4) : '';
-
-        // Prefer Google cover URL when available.
-        bookCoverUrl = '';
-        if (info.coverImage) {
-          bookCoverUrl = toHttpsUrl(info.coverImage);
-        }
-        if (!bookCoverUrl && Number(info?.cover_i || 0) > 0) {
-          bookCoverUrl = buildOpenLibraryCoverUrl(Number(info.cover_i || 0), 'L');
-        }
-        if (!bookCoverUrl && Array.isArray(info?.covers) && info.covers.length) {
-          bookCoverUrl = buildOpenLibraryCoverUrl(Number(info.covers[0] || 0), 'L');
-        }
-        if (!bookCoverUrl && Array.isArray(info?.isbn) && info.isbn.length) {
-          bookCoverUrl = buildOpenLibraryCoverByIsbn(info.isbn[0], 'L');
-        }
-
-        document.getElementById('title').textContent = info.title || 'Untitled';
-        document.getElementById('overview').textContent = (description || 'No description available.').replace(/<[^>]+>/g, '');
-        document.getElementById('meta').textContent = `${publishedYear || ''}` + '';
-        const posterEl = document.getElementById('poster');
-        if (posterEl) {
-          posterEl.src = bookCoverUrl || '/newlogo.webp';
-          // Wire an OpenLibrary fallback chain (ISBN -> cover_i -> OLID -> local SVG)
-          // so a broken Google Books cover does not leave a busted poster behind.
-          if (window.Zo2yImgFallback && typeof window.Zo2yImgFallback.applyBookChain === 'function') {
-            const coverIdList = [];
-            if (Number(info?.cover_i || 0) > 0) coverIdList.push(Number(info.cover_i));
-            if (Array.isArray(info?.covers)) {
-              info.covers.forEach((entry) => {
-                const id = Number(entry || 0);
-                if (id > 0 && !coverIdList.includes(id)) coverIdList.push(id);
-              });
-            }
-            window.Zo2yImgFallback.applyBookChain(posterEl, {
-              isbn: Array.isArray(info?.isbn) ? info.isbn : [],
-              coverId: coverIdList,
-              olid: typeof info?.key === 'string' && info.key.startsWith('/works/') ? '' : '',
-              finalFallback: '/images/fallback/book.svg'
-            });
-          }
-        }
-
-        // categories/tags: subjects
-        const tags = document.getElementById('tags');
-        if (tags && Array.isArray(info.subjects)) {
-          tags.innerHTML = info.subjects.slice(0,12).map(c => `<span class="tag">${c}</span>`).join('');
-        }
-
-        // meta grid (authors/publisher/page info may require fetching an edition)
-        const metaGrid = document.getElementById('metaGrid');
-        if (metaGrid) {
-          const items = [];
-          if (Array.isArray(info.authors) && info.authors.length) {
-            // authors array contains objects with author key, need to fetch or show placeholder
-            items.push(`Author: ${info.authors.map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || 'Author'))).join(', ')}`);
-          }
-          metaGrid.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
-        }
-
-        const tagsEl = document.getElementById('tags');
-        if (tagsEl && Array.isArray(info.categories)) {
-          tagsEl.innerHTML = info.categories.map(c => `<span class="tag">${c}</span>`).join('');
-        }
-
-        const metaGridEl = document.getElementById('metaGrid');
-        if (metaGridEl) {
-          const items = [];
-          const authorLabels = (Array.isArray(info.authors) ? info.authors : [])
-            .map((entry) => (typeof entry === 'string' ? entry : (entry?.name || entry?.author?.key || '')))
-            .filter(Boolean);
-          const publisherLabel = String(
-            info.publisher ||
-            (Array.isArray(info.publishers) && info.publishers.length ? info.publishers[0] : '')
-          ).trim();
-          const pageCount = Number(info.pageCount || info.number_of_pages || 0) || 0;
-          if (authorLabels.length) items.push(`Author: ${authorLabels.join(', ')}`);
-          if (publisherLabel) items.push(`Publisher: ${publisherLabel}`);
-          if (info.publishedDate) items.push(`Published: ${info.publishedDate}`);
-          if (pageCount > 0) items.push(`Pages: ${pageCount}`);
-          if (info.language) items.push(`Language: ${String(info.language).toUpperCase()}`);
-          if (info.maturityRating) items.push(`Maturity: ${info.maturityRating}`);
-          if (info.averageRating) items.push(`Rating: ${info.averageRating} (${info.ratingsCount || 0})`);
-          metaGridEl.innerHTML = items.map(i => `<div class="meta-item">${i}</div>`).join('');
-        }
-
-        const detailsEl = document.getElementById('details');
-        if (detailsEl) {
-          const detailRows = [];
-          if (info.subtitle) detailRows.push(`<div class="list-row"><span class="list-label">Subtitle:</span> ${info.subtitle}</div>`);
-          if (info.publishedDate) detailRows.push(`<div class="list-row"><span class="list-label">Published:</span> ${info.publishedDate}</div>`);
-          if (info.printType) detailRows.push(`<div class="list-row"><span class="list-label">Type:</span> ${info.printType}</div>`);
-          if (info.industryIdentifiers?.length) {
-            detailRows.push(`<div class="list-row"><span class="list-label">Identifiers:</span> ${info.industryIdentifiers.map(x => `${x.type}: ${x.identifier}`).join(', ')}</div>`);
-          }
-          detailsEl.innerHTML = detailRows.length ? detailRows.join('') : '<div class="list-row">No extra details available.</div>';
-        }
-
-        const trailerEl = document.getElementById('trailer');
-        if (trailerEl) {
-          trailerEl.innerHTML = '<div class="meta-item">No trailer available for books.</div>';
-        }
-        const authors = (Array.isArray(info.authors) ? info.authors : [])
-          .map((a) => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
-          .filter(Boolean)
-          .slice(0, 12);
-        const authorsEl = document.getElementById('directors');
-        const contributorsEl = document.getElementById('writers');
-        const subjectsEl = document.getElementById('cast');
-        if (authorsEl) {
-          authorsEl.innerHTML = authors.length ? authors.map(p => `<span class="person-chip">${p}</span>`).join('') : '<span class="person-chip">N/A</span>';
-        }
-        if (contributorsEl) {
-          contributorsEl.innerHTML = authors.length ? authors.map(p => `<span class="person-chip">${p}</span>`).join('') : '<span class="person-chip">N/A</span>';
-        }
-        if (subjectsEl) {
-          const categories = (info.categories || []).slice(0, 12);
-          subjectsEl.innerHTML = categories.length ? categories.map(p => `<span class="person-chip">${p}</span>`).join('') : '<span class="person-chip">N/A</span>';
-        }
-      }
-
-
-      function ensureListMenuBackdrop() {
-        let backdrop = document.getElementById('listMenuBackdrop');
-        if (!backdrop) {
-          backdrop = document.createElement('div');
-          backdrop.id = 'listMenuBackdrop';
-          backdrop.className = 'list-menu-backdrop';
-          backdrop.addEventListener('click', closeAllListMenus);
-          document.body.appendChild(backdrop);
-        }
-        return backdrop;
-      }
-
-      function showListMenuBackdrop() {
-        const backdrop = ensureListMenuBackdrop();
-        backdrop.classList.add('active');
-      }
-
-      function hideListMenuBackdrop() {
-        const backdrop = document.getElementById('listMenuBackdrop');
-        if (backdrop) backdrop.classList.remove('active');
-      }
-
-      function closeAllListMenus() {
-        const menu = document.getElementById('movieListMenu');
-        if (menu) menu.classList.remove('open');
-        hideListMenuBackdrop();
-      }
-
-      function wireListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
-        const menu = document.getElementById('movieListMenu');
-        if (!menuBtn || !menu) return;
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const wasOpen = menu.classList.contains('open');
-          closeAllListMenus();
-          if (!wasOpen) {
-            menu.classList.add('open');
-            showListMenuBackdrop();
-          }
-        });
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.menu-wrapper') && !e.target.closest('.list-menu')) {
-            closeAllListMenus();
-          }
-        });
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const listType = btn.getAttribute('data-list');
-            if (listType === 'custom') {
-              closeAllListMenus();
-              openMovieListsModal();
-              return;
-            }
-            await toggleList(listType);
-            closeAllListMenus();
-          });
-        });
-      }
-
       async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !normalizedBookId) return;
-        const { data, error } = await supabaseClient
-          .from('book_list_items')
-          .select('list_type')
-          .eq('user_id', currentUser.id)
-          .eq('book_id', normalizedBookId);
-        if (error) {
-          console.error('Error loading list status', error);
-          showNotification('Could not load saved lists', 'error');
-          return;
-        }
-        listStatus.favorites = false;
-        listStatus.read = false;
-        listStatus.readlist = false;
-        (data || []).forEach(item => {
-          if (listStatus[item.list_type] !== undefined) {
-            listStatus[item.list_type] = true;
-          }
-        });
-        updateListMenuUI();
-      }
-
-      async function loadCustomLists() {
-        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'book');
-      }
-
-      async function openMovieListsModal() {
-        if (!currentUser) {
-          showNotification('Please sign in to manage lists', 'info');
-          return;
-        }
-        const modal = document.getElementById('movieListsModal');
-        const container = document.getElementById('movieListsContainer');
-        if (!modal || !container) return;
-        container.innerHTML = '<div class="chip">Loading...</div>';
-        customLists = await loadCustomLists();
-        const listIds = customLists.map(l => l.id);
-        modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'book', normalizedBookId, listIds)
-          : new Set();
-        container.innerHTML = '';
-        if (!customLists.length) {
-          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
-        } else {
-          customLists.forEach(list => {
-            const item = document.createElement('div');
-            item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `
-              <span>${renderListIcon(list.icon)} ${list.title}</span>
-              <span class="modal-list-actions">
-                <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
-                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
-              </span>
-            `;
-            item.onclick = () => {
-              if (modalSelectedLists.has(list.id)) {
-                modalSelectedLists.delete(list.id);
-              } else {
-                modalSelectedLists.add(list.id);
-              }
-              item.classList.toggle('active');
-              item.querySelector('.modal-list-actions span').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
-            };
-            const editBtn = item.querySelector('.list-edit-btn');
-            if (editBtn) {
-              editBtn.onclick = (e) => {
-                e.stopPropagation();
-                renameMovieList(list.id, list.title);
-              };
-            }
-            container.appendChild(item);
-          });
-        }
-        modal.classList.add('active');
-      }
-
-      async function saveMovieListChanges() {
-        if (!supabaseClient || !currentUser || !normalizedBookId) return;
-        if (window.ListUtils) {
-          const payload = {
-            id: normalizedBookId,
-            title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
-            authors: Array.isArray(bookInfo?.authors)
-              ? bookInfo.authors
-                .map(a => (typeof a === 'string' ? a : (a?.name || a?.author?.key || '')))
-                .filter(Boolean)
-                .join(', ')
-              : null,
-            thumbnail: bookCoverUrl || (document.getElementById('poster')?.src || null)
-          };
-          await ListUtils.saveCustomListChanges(
-            supabaseClient,
-            currentUser.id,
-            'book',
-            normalizedBookId,
-            [...modalSelectedLists],
-            payload
-          );
-        }
-        showNotification('Lists updated', 'success');
-        closeMovieListsModal();
-      }
-
-      function closeMovieListsModal() {
-        const modal = document.getElementById('movieListsModal');
-        if (modal) modal.classList.remove('active');
-      }
-
-      async function createMovieList() {
-        const input = document.getElementById('newMovieListName');
-        if (!input || !input.value.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const title = input.value.trim();
-        const modal = document.getElementById('movieListsModal');
-        const tierState = window.ListUtils && modal
-          ? ListUtils.readTierCreateState(modal)
-          : { listKind: 'standard', maxRank: null };
-        const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'book', {
-            title,
-            icon: selectedIcon || 'fas fa-book',
-          listKind: tierState.listKind,
-          maxRank: tierState.maxRank
-          })
-          : null;
-        if (!data) {
-          showNotification('Could not create list', 'error');
-          return;
-        }
-        input.value = '';
-        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
-        customLists.unshift(data);
-        openMovieListsModal();
-      }
-
-      async function renameMovieList(listId, currentTitle) {
-        const nextTitle = prompt('Rename list', currentTitle || '');
-        if (!nextTitle || !nextTitle.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'book', listId, nextTitle.trim())
-          : false;
-        if (!ok) {
-          showNotification('Could not rename list', 'error');
-          return;
-        }
-        customLists = customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
-        openMovieListsModal();
-      }
-
-      function updateListMenuUI() {
-        const menu = document.getElementById('movieListMenu');
-        if (!menu) return;
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          const listType = btn.getAttribute('data-list');
-          const state = btn.querySelector('.list-action-state');
-          if (listType === 'custom') {
-            btn.classList.remove('active');
-            btn.removeAttribute('aria-busy');
-            btn.style.pointerEvents = '';
-            btn.style.opacity = '';
-            if (state) state.textContent = 'Open';
-            return;
-          }
-          const isActive = !!listStatus[listType];
-          const opKey = `${String(normalizedBookId || '')}:${listType}`;
-          const isPending = pendingListOps.has(opKey);
-          btn.classList.toggle('active', isActive);
-          if (state) state.textContent = isActive ? 'Saved' : 'Add';
-          btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
-          btn.style.pointerEvents = isPending ? 'none' : '';
-          btn.style.opacity = isPending ? '0.72' : '';
-        });
+        if (!supabaseClient || !currentUser || !bookId) return;
+        const { data, error } = await supabaseClient.from('book_list_items').select('list_type').eq('user_id', currentUser.id).eq('book_id', bookId);
+        if (error) { showNotification('Could not load saved lists', 'error'); return; }
+        listStatus.favorites = false; listStatus.read = false; listStatus.readlist = false;
+        (data || []).forEach(item => { if (listStatus[item.list_type] !== undefined) listStatus[item.list_type] = true; });
       }
 
       async function toggleList(listType, forcedNextSaved) {
-        if (!currentUser) {
-          showNotification('Please sign in to save books', 'info');
-          return { ok: false, saved: false };
-        }
-        if (!normalizedBookId || !(listType in listStatus)) return { ok: false, saved: false };
-        const opKey = `${String(normalizedBookId)}:${listType}`;
+        if (!currentUser) { showNotification('Please sign in to save books', 'info'); return { ok: false, saved: false }; }
+        if (!bookId || !(listType in listStatus)) return { ok: false, saved: false };
+        const opKey = bookId + ":" + listType;
         if (pendingListOps.has(opKey)) return { ok: false, saved: !!listStatus[listType] };
-
         const previousSaved = !!listStatus[listType];
         const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
         pendingListOps.add(opKey);
         listStatus[listType] = nextSaved;
-        updateListMenuUI();
-
         try {
           if (nextSaved) {
-            const ensured = await upsertBookRecordLocal();
-            if (!ensured) throw new Error('book_record_missing');
-            const { error } = await supabaseClient
-              .from('book_list_items')
-              .insert({ user_id: currentUser.id, book_id: normalizedBookId, list_type: listType });
+            await upsertBookRecordLocal();
+            const { error } = await supabaseClient.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
             if (error && String(error.code || '') !== '23505') throw error;
             showNotification('Saved to list', 'success');
           } else {
-            const { error } = await supabaseClient
-              .from('book_list_items')
-              .delete()
-              .eq('user_id', currentUser.id)
-              .eq('book_id', normalizedBookId)
-              .eq('list_type', listType);
+            const { error } = await supabaseClient.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
             if (error) throw error;
             showNotification('Removed from list', 'info');
           }
@@ -1755,48 +1067,31 @@
           return { ok: false, saved: previousSaved };
         } finally {
           pendingListOps.delete(opKey);
-          updateListMenuUI();
         }
       }
 
       function bindUnifiedListMenu() {
         const menuBtn = document.getElementById('movieMenuBtn');
-        if (!menuBtn || !normalizedBookId || !window.initIndexStyleListMenu) return;
-
+        if (!menuBtn || !bookId || !window.initIndexStyleListMenu) return;
         window.initIndexStyleListMenu({
           mediaType: 'book',
           itemIdAttr: 'data-item-id',
-          getVisibleItemIds: () => normalizedBookId ? [normalizedBookId] : [],
-          getQuickStatusForItem: (itemId) => {
-            if (String(itemId || '') !== String(normalizedBookId || '')) return null;
-            return { ...listStatus };
-          },
-          getItemFromCard: () => ({
-            mediaType: 'book',
-            itemId: normalizedBookId,
-            title: String(document.getElementById('title')?.textContent || 'Book').trim(),
-            subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
-            image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
-          }),
-          ensureClient: async () => {
-            if (supabaseClient) return supabaseClient;
-            return initSupabase();
-          },
+          getVisibleItemIds: () => bookId ? [bookId] : [],
+          getQuickStatusForItem: (itemId) => { if (String(itemId) !== String(bookId)) return null; return { ...listStatus }; },
+          getItemFromCard: () => ({ mediaType: 'book', itemId: bookId, title: String(bookInfo?.title || ''), subtitle: String(bookInfo?.authors || ''), image: String(bookInfo?.image || '') }),
+          ensureClient: async () => { if (supabaseClient) return supabaseClient; return initSupabase(); },
           getCurrentUser: () => currentUser,
           notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
           toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
         });
-
         menuBtn.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(menuBtn);
-          }
+          if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(menuBtn);
         });
       }
 
       async function initReviewSystem() {
-        if (!supabaseClient || !normalizedBookId) return;
+        if (!supabaseClient || !bookId) return;
         const sortSelect = document.getElementById('sortSelect');
         if (sortSelect) {
           sortSelect.addEventListener('change', (e) => {
@@ -1849,7 +1144,7 @@
         const { data, error } = await supabaseClient
           .from('book_reviews')
           .select('*')
-          .eq('book_id', normalizedBookId)
+          .eq('book_id', bookId)
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -2014,7 +1309,7 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { book_id: normalizedBookId, user_id: currentUser.id, rating: currentRating, comment };
+        const payload = { book_id: bookId, user_id: currentUser.id, rating: currentRating, comment };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
@@ -2103,6 +1398,7 @@
         let suggestions = [];
         let activeIndex = -1;
         let debounceTimer = null;
+        let abortController = null;
         const go = () => {
           const query = input.value.trim();
           const url = new URL('books.html', window.location.href);
@@ -2147,30 +1443,28 @@
             closeSuggest();
             return;
           }
+          if (abortController) abortController.abort();
+          abortController = new AbortController();
           try {
-            const googleDocs = await fetchGoogleBooksDocs({ q, limit: 6 });
-            const docs = googleDocs;
+            const res = await fetch(`/api/books/search?q=${encodeURIComponent(q)}&limit=6`, { signal: abortController.signal });
+            if (!res.ok) { closeSuggest(); return; }
+            const data = await res.json();
+            const docs = data.books || data.items || [];
             suggestions = docs.slice(0, 6).map((b) => {
-              const rawWorkId = String(b.key || '').replace(/^\/works\//i, '').trim();
-              const author = Array.isArray(b.author_name) && b.author_name.length ? b.author_name[0] : 'Book';
-              const fallbackId = `search-${String(b.title || 'book').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'book'}`;
-              const workId = rawWorkId || fallbackId;
-              const cover = String(b?._googleThumbnail || '');
-              const href = rawWorkId
-                ? `book.html?id=${encodeURIComponent(workId)}`
-                : `book.html?id=${encodeURIComponent(workId)}&title=${encodeURIComponent(String(b.title || ''))}&author=${encodeURIComponent(String(author || ''))}`;
+              const rawId = String(b.id || b.providerId || '');
+              const id = rawId || b.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'book';
               return {
-                id: workId,
+                id: id,
                 title: b.title || 'Book',
-                sub: author,
-                image: cover,
-                href
+                sub: b.authors || b.author || 'Book',
+                image: b.image || b.thumbnail || '/newlogo.webp',
+                href: `book.html?id=${encodeURIComponent(id)}`
               };
-            }).filter((x) => !!x.id && !!x.title);
+            }).filter((x) => x.id && x.title);
             activeIndex = -1;
             renderSuggest();
           } catch (_e) {
-            closeSuggest();
+            if (_e?.name !== 'AbortError') closeSuggest();
           }
         };
         btn.addEventListener('click', go);
@@ -2208,6 +1502,75 @@
         });
       }
 
+      async function loadMovieListsModal() {
+        const container = document.getElementById('movieListsContainer');
+        if (!container || !supabaseClient || !currentUser) return;
+        modalSelectedLists.clear();
+        const { data: lists } = await supabaseClient.from('book_custom_lists').select('*').eq('user_id', currentUser.id);
+        const { data: existing } = await supabaseClient.from('book_list_items').select('list_id').eq('user_id', currentUser.id).eq('book_id', bookId);
+        const inLists = new Set((existing || []).map(i => i.list_id));
+        (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.name); });
+        container.innerHTML = (lists || []).map(l => `
+          <div class="modal-list-item${modalSelectedLists.has(l.name) ? ' active' : ''}" data-name="${esc(l.name)}">
+            <span><i class="${l.icon || 'fas fa-book'}"></i> ${esc(l.name)}</span>
+            <input type="checkbox" ${modalSelectedLists.has(l.name) ? 'checked' : ''}>
+          </div>
+        `).join('');
+        container.querySelectorAll('.modal-list-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const name = el.getAttribute('data-name');
+            if (modalSelectedLists.has(name)) modalSelectedLists.delete(name); else modalSelectedLists.add(name);
+            el.classList.toggle('active');
+            el.querySelector('input').checked = modalSelectedLists.has(name);
+          });
+        });
+      }
+
+      function closeAllListMenus() {
+        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
+        const bd = document.querySelector('.list-menu-backdrop.active');
+        if (bd) bd.classList.remove('active');
+        const modals = document.querySelectorAll('.modal.active');
+        modals.forEach(m => m.classList.remove('active'));
+      }
+
+      function closeMovieListsModal() {
+        const modal = document.getElementById('movieListsModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      async function saveMovieListChanges() {
+        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
+        const toAdd = []; const toRemove = [];
+        const { data: existing } = await supabaseClient.from('book_custom_lists').select('id, name').eq('user_id', currentUser.id);
+        const existingNames = new Set((existing || []).map(l => l.name));
+        modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
+        existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
+        for (const name of toAdd) {
+          await supabaseClient.from('book_custom_lists').insert({ user_id: currentUser.id, name, icon: selectedIcon || 'fas fa-book' });
+        }
+        if (toRemove.length) {
+          for (const name of toRemove) {
+            const list = (existing || []).find(l => l.name === name);
+            if (list) await supabaseClient.from('book_custom_lists').delete().eq('id', list.id);
+          }
+        }
+        showNotification('Lists updated', 'success');
+        closeMovieListsModal();
+      }
+
+      async function createMovieList() {
+        const input = document.getElementById('newMovieListName');
+        const name = input?.value?.trim();
+        if (!name) { showNotification('Enter a list name', 'info'); return; }
+        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
+        const { error } = await supabaseClient.from('book_custom_lists').insert({ user_id: currentUser.id, name, icon: selectedIcon || 'fas fa-book' });
+        if (error) { showNotification('Could not create list', 'error'); return; }
+        showNotification('List created', 'success');
+        input.value = '';
+        if (typeof loadMovieListsModal === 'function') loadMovieListsModal();
+      }
+
       (async function init() {
         await initSupabase();
         initPageSearch();
@@ -2241,35 +1604,6 @@
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

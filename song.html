@@ -16,6 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/list-utils.js?v=20260623z" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260623z" defer></script>
+<script src="js/normalizers.js?v=20260623z"></script>
+<script src="js/unified-media-hero.js?v=20260623z"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260623z">
@@ -652,41 +654,10 @@
       });
     }
 
-    function toHttpsUrl(url) {
-      const value = String(url || '').trim();
-      if (!value) return '';
-      if (value.startsWith('//')) return `https:${value}`;
-      if (value.startsWith('http://')) return value.replace(/^http:\/\//i, 'https://');
-      return value;
-    }
-
-    function upgradeItunesArtwork(url, size = 1200) {
-      const src = toHttpsUrl(url);
-      if (!src) return '';
-      return src
-        .replace(/\/[0-9]+x[0-9]+bb\./i, `/${size}x${size}bb.`)
-        .replace(/\/[0-9]+x[0-9]+\./i, `/${size}x${size}.`);
-    }
-
     function pickTrackImage(data) {
       if (!data || typeof data !== 'object') return '';
-      const albumImages = Array.isArray(data.album?.images) ? data.album.images : [];
-      const bestAlbumImage = albumImages
-        .map((img) => ({
-          url: String(img?.url || '').trim(),
-          area: Number(img?.width || 0) * Number(img?.height || 0)
-        }))
-        .filter((img) => !!img.url)
-        .sort((a, b) => b.area - a.area)[0]?.url || '';
-      const raw = bestAlbumImage || String(data.image || '').trim();
-      const upgraded = upgradeItunesArtwork(raw, 1200);
-      return upgraded || toHttpsUrl(raw);
-    }
-
-    function inferSourceFromId(id) {
-      const value = String(id || '').trim();
-      if (!value) return 'spotify';
-      return /^[0-9]+$/.test(value) ? 'itunes' : 'spotify';
+      const n = typeof window.normalizeTrack === 'function' ? window.normalizeTrack(data) : data;
+      return String(n?.image || n?.thumbnail || data?.image || '').trim() || '';
     }
 
     async function ensureSupabase() {
@@ -726,7 +697,8 @@
     async function fetchSpotifyTrack(id) {
       const res = await fetch(`/api/music/tracks/${encodeURIComponent(id)}?market=US`);
       if (!res.ok) return null;
-      return res.json();
+      const data = await res.json();
+      return typeof window.normalizeTrack === 'function' ? window.normalizeTrack(data) : data;
     }
 
     async function fetchSpotifyArtist(id) {
@@ -745,43 +717,28 @@
       if (sourceParam) query.set('source', sourceParam);
       const res = await fetch(`/api/music/albums/${encodeURIComponent(albumId)}?${query.toString()}`);
       if (!res.ok) return null;
-      return res.json();
+      const payload = await res.json();
+      if (payload) {
+        if (payload.album && typeof window.normalizeAlbum === 'function') {
+          payload.album = window.normalizeAlbum(payload.album);
+        }
+        if (Array.isArray(payload.tracks) && typeof window.normalizeTrack === 'function') {
+          payload.tracks = payload.tracks.map(t => window.normalizeTrack(t)).filter(Boolean);
+        }
+      }
+      return payload;
     }
 
-    async function fetchItunesTrack(id) {
-      const res = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=song`);
-      if (!res.ok) return null;
-      const json = await res.json();
-      const row = Array.isArray(json.results)
-        ? (json.results.find((item) => item.wrapperType === 'track' || item.kind === 'song') || json.results[0])
-        : null;
-      if (!row) return null;
-      const rawArtwork = String(row.artworkUrl100 || row.artworkUrl60 || '').trim();
-      const hiResArtwork = upgradeItunesArtwork(rawArtwork, 1200) || toHttpsUrl(rawArtwork);
-      return {
-        id: String(row.trackId || row.collectionId || id),
-        name: row.trackName || row.collectionName || 'Track',
-        artists: [row.artistName || 'Artist'],
-        artist_ids: [],
-        album: {
-          name: row.collectionName || 'Album',
-          images: hiResArtwork ? [{ url: hiResArtwork, width: 1200, height: 1200 }] : []
-        },
-        image: hiResArtwork,
-        preview_url: row.previewUrl || '',
-        popularity: 0,
-        duration_ms: Number(row.trackTimeMillis || 0)
-      };
-    }
+
 
     function renderTrack(data) {
       albumMode = false;
       albumTracks = [];
       track = data;
-      qs('songTitle').textContent = data.name || 'Track';
-      qs('songArtist').textContent = Array.isArray(data.artists) && data.artists.length ? data.artists.join(', ') : 'Artist';
-      qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> ${data.album?.name || 'Album'}`;
-      qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${msToMinSec(data.duration_ms)}`;
+      qs('songTitle').textContent = data.title || 'Track';
+      qs('songArtist').textContent = data.artist || 'Artist';
+      qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> ${data.albumName || 'Album'}`;
+      qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${msToMinSec(data.durationMs)}`;
       qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Popularity ${Number(data.popularity || 0)}/100`;
       qs('artistFollowers').innerHTML = '<i class="fa-solid fa-users"></i> Followers --';
       const coverEl = qs('songCover');
@@ -792,7 +749,7 @@
         coverEl.onerror = null;
         coverEl.src = '/newlogo.webp';
       };
-      qs('songStatus').textContent = data.preview_url ? 'Ready to play preview.' : 'Preview not available for this track.';
+      qs('songStatus').textContent = data.previewUrl ? 'Ready to play preview.' : 'Preview not available for this track.';
       qs('songStatus').classList.remove('error');
       const section = qs('albumTracksSection');
       if (section) section.style.display = 'none';
@@ -801,8 +758,8 @@
       const listenBtn = qs('listenBtn');
       if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-play"></i> Listen Now';
 
-      if (data.preview_url) {
-        setPreviewSource(data.preview_url);
+      if (data.previewUrl) {
+        setPreviewSource(data.previewUrl);
       } else {
         setPreviewSource('');
       }
@@ -891,13 +848,13 @@
         if (nextSaved) {
           await client.from('tracks').upsert({
             id: trackId,
-            name: track.name || '',
-            artists: Array.isArray(track.artists) ? track.artists.join(', ') : '',
-            album_name: track.album?.name || '',
+            name: track.title || '',
+            artists: track.artist || '',
+            album_name: track.albumName || '',
             image_url: track.image || '',
-            preview_url: track.preview_url || '',
+            preview_url: track.previewUrl || '',
             popularity: Number(track.popularity || 0),
-            duration_ms: Number(track.duration_ms || 0),
+            duration_ms: Number(track.durationMs || 0),
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
@@ -966,13 +923,13 @@
       if (!client || !row?.id) return false;
       const payload = {
         id: String(row.id),
-        name: String(row.name || '').trim(),
-        artists: Array.isArray(row?.artists) ? row.artists.join(', ') : String(row?.subtitle || '').trim(),
-        album_name: String(row?.album?.name || row?.album_name || '').trim(),
-        image_url: String(row?.image || '').trim(),
-        preview_url: String(row?.preview_url || '').trim(),
-        popularity: Number(row?.popularity || 0),
-        duration_ms: Number(row?.duration_ms || 0),
+        name: String(row.title || '').trim(),
+        artists: row.artist || '',
+        album_name: String(row.albumName || '').trim(),
+        image_url: String(row.image || '').trim(),
+        preview_url: String(row.previewUrl || '').trim(),
+        popularity: Number(row.popularity || 0),
+        duration_ms: Number(row.durationMs || 0),
         updated_at: new Date().toISOString()
       };
       const { error } = await client.from('tracks').upsert(payload, { onConflict: 'id' });
@@ -1046,17 +1003,17 @@
       }
       list.innerHTML = albumTracks.map((row, index) => {
         const id = String(row?.id || '').trim();
-        const duration = msToMinSec(row?.duration_ms || 0);
-        const hasPreview = !!String(row?.preview_url || '').trim();
+        const duration = msToMinSec(row?.durationMs || 0);
+        const hasPreview = !!String(row?.previewUrl || '').trim();
         const explicitBadge = row?.explicit ? '<span class="album-track-sub"><i class="fa-solid fa-e"></i> Explicit</span>' : '';
-        const artistsText = Array.isArray(row?.artists) ? row.artists.join(', ') : '';
+        const artistsText = row?.artist || '';
         return `
-          <article class="album-track-row album-track-card" data-track-id="${escapeHtml(id)}" data-id="${escapeHtml(id)}" data-title="${escapeHtml(String(row?.name || 'Track'))}" data-subtitle="${escapeHtml(artistsText)}" data-image="${escapeHtml(String(row?.image || ''))}">
+          <article class="album-track-row album-track-card" data-track-id="${escapeHtml(id)}" data-id="${escapeHtml(id)}" data-title="${escapeHtml(String(row?.title || 'Track'))}" data-subtitle="${escapeHtml(artistsText)}" data-image="${escapeHtml(String(row?.image || ''))}">
             <div class="album-track-main">
               <div class="album-track-left">
                 <span class="album-track-index">${index + 1}</span>
                 <div class="album-track-info">
-                  <div class="album-track-title">${escapeHtml(String(row?.name || 'Track'))}</div>
+                  <div class="album-track-title">${escapeHtml(String(row?.title || 'Track'))}</div>
                   <div class="album-track-meta">
                     <span class="album-track-sub"><i class="fa-regular fa-clock"></i> ${escapeHtml(duration)}</span>
                     ${explicitBadge}
@@ -1064,7 +1021,7 @@
                 </div>
               </div>
               <div class="album-track-actions album-track-actions-primary">
-                ${hasPreview ? `<button class="track-pill primary album-preview-btn" data-preview="${escapeHtml(String(row.preview_url || ''))}" type="button"><i class="fa-solid fa-play"></i> Preview</button>` : ''}
+                ${hasPreview ? `<button class="track-pill primary album-preview-btn" data-preview="${escapeHtml(String(row.previewUrl || ''))}" type="button"><i class="fa-solid fa-play"></i> Preview</button>` : ''}
                 ${id ? `<a class="track-pill open-pill" href="song.html?id=${encodeURIComponent(id)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</a>` : ''}
                 <button class="album-track-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
               </div>
@@ -1107,14 +1064,14 @@
       albumMode = true;
       track = null;
 
-      qs('songTitle').textContent = String(album?.name || 'Album');
-      qs('songArtist').textContent = Array.isArray(album?.artists) && album.artists.length ? album.artists.join(', ') : 'Artist';
+      qs('songTitle').textContent = String(album?.title || 'Album');
+      qs('songArtist').textContent = album?.artist || 'Artist';
       qs('songAlbum').innerHTML = `<i class="fa-solid fa-compact-disc"></i> Album`;
       qs('songDuration').innerHTML = `<i class="fa-regular fa-clock"></i> ${albumTracks.length} tracks`;
       qs('songPopularity').innerHTML = `<i class="fa-solid fa-fire"></i> Album Release`;
-      qs('artistFollowers').innerHTML = `<i class="fa-solid fa-calendar"></i> ${String(album?.release_date || 'Release date unknown')}`;
+      qs('artistFollowers').innerHTML = `<i class="fa-solid fa-calendar"></i> ${String(album?.releaseDate || 'Release date unknown')}`;
 
-      const coverUrl = pickTrackImage({ image: album?.image, album: { images: album?.images || [] } });
+      const coverUrl = pickTrackImage({ image: album?.image });
       const coverEl = qs('songCover');
       coverEl.src = coverUrl || '/newlogo.webp';
       coverEl.onerror = () => {
@@ -1162,11 +1119,11 @@
           const id = String(card?.getAttribute?.('data-track-id') || '').trim();
           if (!id) return null;
           const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
-          const artists = Array.isArray(row?.artists) ? row.artists.join(', ') : '';
+          const artists = row?.artist || '';
           return {
             mediaType: 'music',
             itemId: id,
-            title: String(row?.name || card?.getAttribute?.('data-title') || 'Track'),
+            title: String(row?.title || card?.getAttribute?.('data-title') || 'Track'),
             subtitle: artists || String(card?.getAttribute?.('data-subtitle') || ''),
             image: String(row?.image || card?.getAttribute?.('data-image') || '')
           };
@@ -1257,14 +1214,9 @@
       const url = new URL(window.location.href);
       const id = String(url.searchParams.get('id') || '').trim();
       const albumId = String(url.searchParams.get('album_id') || '').trim();
-      const source = String(url.searchParams.get('source') || '').trim().toLowerCase();
 
       if (albumId) {
-        const primarySource = source || inferSourceFromId(albumId);
-        let payload = await fetchAlbumDetails(albumId, primarySource);
-        if (!payload && primarySource !== 'itunes') {
-          payload = await fetchAlbumDetails(albumId, 'itunes');
-        }
+        const payload = await fetchAlbumDetails(albumId);
         if (!payload?.album) {
           qs('songStatus').textContent = 'Could not load this album.';
           qs('songStatus').classList.add('error');
@@ -1280,14 +1232,7 @@
         return;
       }
 
-      let data = null;
-      if (source === 'itunes') {
-        data = await fetchItunesTrack(id);
-      } else {
-        data = await fetchSpotifyTrack(id);
-        if (!data) data = await fetchItunesTrack(id);
-      }
-
+      const data = await fetchSpotifyTrack(id);
       if (!data) {
         qs('songStatus').textContent = 'Could not load this song.';
         qs('songStatus').classList.add('error');
@@ -1297,9 +1242,7 @@
       renderTrack(data);
       await loadTrackListStatus();
 
-      const firstArtistId = Array.isArray(data.artist_ids) && data.artist_ids.length
-        ? String(data.artist_ids[0] || '').trim()
-        : '';
+      const firstArtistId = String(data.artist_ids || data.providerId || data.albumId || '').trim();
       if (firstArtistId) {
         const artist = await fetchSpotifyArtist(firstArtistId);
         if (artist) renderArtist(artist);
@@ -1312,8 +1255,8 @@
         return;
       }
       const audio = qs('previewPlayer');
-      if (!audio || !track?.preview_url) return;
-      playPreviewSource(track.preview_url);
+      if (!audio || !track?.previewUrl) return;
+      playPreviewSource(track.previewUrl);
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1338,43 +1281,6 @@
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

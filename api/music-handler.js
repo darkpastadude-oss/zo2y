@@ -1,46 +1,22 @@
-const ITUNES_SEARCH_URL = "https://itunes.apple.com/search";
-const ITUNES_LOOKUP_URL = "https://itunes.apple.com/lookup";
-const APPLE_MARKETING_API_BASE = "https://rss.applemarketingtools.com/api/v2";
-const REQUEST_CACHE_TTL_MS = 1000 * 60 * 10;
+const SPOTIFY_ACCOUNTS = "https://accounts.spotify.com/api";
+const SPOTIFY_API = "https://api.spotify.com/v1";
+const DEEZER_API = "https://api.deezer.com";
 
-const requestCache = new Map();
+const spotifyConfig = {
+  clientId: String(process.env.SPOTIFY_CLIENT_ID || "").trim(),
+  clientSecret: String(process.env.SPOTIFY_CLIENT_SECRET || "").trim()
+};
 
-const MUSIC_COVERS_BUCKET = 'music-covers';
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+let spotifyToken = null;
+let spotifyTokenExpires = 0;
 
-function musicCoverUrl(filename) {
-  if (!SUPABASE_URL) return '';
-  return `${SUPABASE_URL}/storage/v1/object/public/${MUSIC_COVERS_BUCKET}/${filename}`;
-}
+const CACHE = new Map();
+const CACHE_TTL = 5 * 60 * 1000;
 
-const MUSIC_CATALOG = [
-  { id: '1786885073', name: 'Die With A Smile', artists: ['Lady Gaga', 'Bruno Mars'], image: musicCoverUrl('die-with-a-smile.jpg'), album_name: 'Die With A Smile', preview_url: '' },
-  { id: '1776815963', name: 'A Bar Song (Tipsy)', artists: ['Shaboozey'], image: musicCoverUrl('bar-song-tipsy.jpg'), album_name: 'Where I\'ve Been, Isn\'t Where I\'m Going', preview_url: '' },
-  { id: '1746018235', name: 'I Had Some Help', artists: ['Post Malone', 'Morgan Wallen'], image: musicCoverUrl('i-had-some-help.jpg'), album_name: 'I Had Some Help', preview_url: '' },
-  { id: '1738258033', name: 'Lose Control', artists: ['Teddy Swims'], image: musicCoverUrl('lose-control.jpg'), album_name: 'I\'ve Tried Everything But Therapy', preview_url: '' },
-  { id: '1731742554', name: 'Taste', artists: ['Sabrina Carpenter'], image: musicCoverUrl('taste.jpg'), album_name: 'Short n\' Sweet', preview_url: '' },
-  { id: '1727299764', name: 'Espresso', artists: ['Sabrina Carpenter'], image: musicCoverUrl('espresso.jpg'), album_name: 'Short n\' Sweet', preview_url: '' },
-  { id: '1696313419', name: 'Beautiful Things', artists: ['Benson Boone'], image: musicCoverUrl('beautiful-things.jpg'), album_name: 'Fireworks & Rollerblades', preview_url: '' },
-  { id: '1741021439', name: 'BIRDS OF A FEATHER', artists: ['Billie Eilish'], image: musicCoverUrl('birds-of-a-feather.jpg'), album_name: 'HIT ME HARD AND SOFT', preview_url: '' },
-  { id: '1723506498', name: 'Gata Only', artists: ['FloyyMenor', 'Cris MJ'], image: musicCoverUrl('gata-only.jpg'), album_name: 'Gata Only', preview_url: '' },
-  { id: '1737234503', name: 'Fortnight', artists: ['Taylor Swift', 'Post Malone'], image: musicCoverUrl('fortnight.jpg'), album_name: 'THE TORTURED POETS DEPARTMENT', preview_url: '' }
-];
-
-const MUSIC_ALBUMS_CATALOG = [
-  { id: '6769568449', name: 'ICEMAN', artists: ['Drake'], image: musicCoverUrl('iceman.jpg'), release_date: '2026-05-15' },
-  { id: '1889992111', name: 'you seem pretty sad for a girl so in love', artists: ['Olivia Rodrigo'], image: musicCoverUrl('olivia-rodrigo.jpg'), release_date: '2026-06-12' },
-  { id: '1737234503', name: 'THE TORTURED POETS DEPARTMENT', artists: ['Taylor Swift'], image: musicCoverUrl('ttpd.jpg'), release_date: '2024-04-19' },
-  { id: '1731742554', name: 'Short n\' Sweet', artists: ['Sabrina Carpenter'], image: musicCoverUrl('short-n-sweet.jpg'), release_date: '2024-08-23' },
-  { id: '1741021439', name: 'HIT ME HARD AND SOFT', artists: ['Billie Eilish'], image: musicCoverUrl('hit-me-hard.jpg'), release_date: '2024-05-17' },
-  { id: '1696313419', name: 'Fireworks & Rollerblades', artists: ['Benson Boone'], image: musicCoverUrl('fireworks.jpg'), release_date: '2024-02-16' },
-  { id: '1727299764', name: 'Espresso', artists: ['Sabrina Carpenter'], image: musicCoverUrl('espresso-album.jpg'), release_date: '2024-04-12' },
-  { id: '1776815963', name: 'Where I\'ve Been, Isn\'t Where I\'m Going', artists: ['Shaboozey'], image: musicCoverUrl('shaboozey.jpg'), release_date: '2024-05-31' }
-];
-
-function setResponseCache(res, { maxAge = 300, staleWhileRevalidate = 900 } = {}) {
-  const age = Math.max(0, Math.floor(Number(maxAge) || 0));
-  const swr = Math.max(0, Math.floor(Number(staleWhileRevalidate) || 0));
-  res.setHeader("Cache-Control", `public, s-maxage=${age}, stale-while-revalidate=${swr}`);
+function setResponseCache(res, opts = {}) {
+  const maxAge = Math.max(0, Number(opts.maxAge) || 300);
+  const swr = Math.max(0, Number(opts.staleWhileRevalidate) || 900);
+  res.setHeader("Cache-Control", `public, s-maxage=${maxAge}, stale-while-revalidate=${swr}`);
 }
 
 function clampInt(value, min, max, fallback) {
@@ -49,16 +25,7 @@ function clampInt(value, min, max, fallback) {
   return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
-function shuffleArray(arr) {
-  const a = [...(Array.isArray(arr) ? arr : [])];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function toHttpsUrl(value) {
+function toHttps(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
   if (raw.startsWith("//")) return `https:${raw}`;
@@ -66,398 +33,270 @@ function toHttpsUrl(value) {
   return raw;
 }
 
-function normalizeMarket(value = "US") {
-  return String(value || "US").trim().slice(0, 2).toUpperCase() || "US";
-}
-
-function normalizeMusicTypes(raw) {
-  const allowed = new Set(["track", "album"]);
-  const rows = String(raw || "track")
-    .split(",")
-    .map((value) => String(value || "").trim().toLowerCase())
-    .filter((value) => allowed.has(value));
-  return rows.length ? rows : ["track"];
-}
-
-function normalizeAlbumTypes(raw) {
-  const rows = String(raw || "album")
-    .split(",")
-    .map((value) => String(value || "").trim().toLowerCase())
-    .filter(Boolean);
-  return rows.length ? rows : ["album"];
-}
-
-function normalizeItunesTrackRow(track) {
-  const collectionType = String(track?.collectionType || "").trim().toLowerCase();
-  const rawArtwork = String(track?.artworkUrl100 || track?.artworkUrl60 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
-  return {
-    source: "itunes",
-    kind: "track",
-    id: String(track?.trackId || track?.collectionId || ""),
-    name: String(track?.trackName || track?.collectionName || "Track"),
-    artists: [String(track?.artistName || "").trim()].filter(Boolean),
-    artist_ids: [],
-    album: {
-      id: String(track?.collectionId || ""),
-      name: String(track?.collectionName || "").trim(),
-      album_type: collectionType === "single" ? "single" : (collectionType || "album"),
-      release_date: String(track?.releaseDate || "").trim().slice(0, 10),
-      total_tracks: Number(track?.trackCount || 0),
-      images: [hiResArtwork]
-        .filter(Boolean)
-        .map((url) => ({ url, width: 1200, height: 1200 }))
-    },
-    image: hiResArtwork,
-    preview_url: String(track?.previewUrl || "").trim(),
-    external_url: String(track?.trackViewUrl || "").trim(),
-    popularity: 0,
-    duration_ms: Number(track?.trackTimeMillis || 0),
-    explicit: false
-  };
-}
-
-function normalizeItunesAlbumRow(album) {
-  const artistName = String(album?.artistName || "").trim();
-  const rawArtwork = String(album?.artworkUrl100 || album?.artworkUrl60 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
-  return {
-    source: "itunes",
-    id: String(album?.collectionId || album?.id || ""),
-    kind: "album",
-    name: String(album?.collectionName || "Album"),
-    artists: [artistName].filter(Boolean),
-    artist_ids: [],
-    artist_name: artistName,
-    artist_id: "",
-    image: hiResArtwork,
-    images: [hiResArtwork]
-      .filter(Boolean)
-      .map((url) => ({ url, width: 1200, height: 1200 })),
-    external_url: String(album?.collectionViewUrl || "").trim(),
-    release_date: String(album?.releaseDate || "").trim().slice(0, 10),
-    total_tracks: Number(album?.trackCount || 0),
-    album_type: "album",
-    popularity: 0,
-    label: "",
-    genres: [],
-    explicit: false
-  };
-}
-
-function normalizeAppleChartTrackRow(track) {
-  const rawArtwork = String(track?.artworkUrl100 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
-  return {
-    source: "apple",
-    kind: "track",
-    id: String(track?.id || track?.url || ""),
-    name: String(track?.name || "Track"),
-    artists: [String(track?.artistName || "").trim()].filter(Boolean),
-    artist_ids: [],
-    album: {
-      id: "",
-      name: String(track?.albumName || track?.name || "").trim(),
-      album_type: "album",
-      release_date: String(track?.releaseDate || "").trim().slice(0, 10),
-      total_tracks: Number(track?.trackCount || 0),
-      images: hiResArtwork ? [{ url: hiResArtwork, width: 1200, height: 1200 }] : []
-    },
-    image: hiResArtwork,
-    preview_url: "",
-    external_url: String(track?.url || "").trim(),
-    popularity: 0,
-    duration_ms: 0,
-    explicit: !!track?.contentAdvisoryRating
-  };
-}
-
-function normalizeAppleChartAlbumRow(album) {
-  const rawArtwork = String(album?.artworkUrl100 || "").trim();
-  const hiResArtwork = toHttpsUrl(rawArtwork);
-  return {
-    source: "apple",
-    kind: "album",
-    id: String(album?.id || album?.url || ""),
-    name: String(album?.name || "Album"),
-    artists: [String(album?.artistName || "").trim()].filter(Boolean),
-    artist_ids: [],
-    album_type: "album",
-    release_date: String(album?.releaseDate || "").trim().slice(0, 10),
-    total_tracks: Number(album?.trackCount || 0),
-    image: hiResArtwork,
-    preview_url: "",
-    external_url: String(album?.url || "").trim(),
-    popularity: 0
-  };
-}
-
-function dedupeByKey(rows = [], keyBuilder) {
-  const seen = new Set();
-  const output = [];
-  (Array.isArray(rows) ? rows : []).forEach((row) => {
-    const key = String(keyBuilder(row) || "").trim().toLowerCase();
-    if (!key || seen.has(key)) return;
-    seen.add(key);
-    output.push(row);
-  });
-  return output;
-}
-
-function dedupeTracks(rows = []) {
-  return dedupeByKey(rows, (row) => {
-    const id = String(row?.id || "").trim();
-    if (id) return `id:${id}`;
-    const name = String(row?.name || "").trim().toLowerCase();
-    const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").trim().toLowerCase() : "";
-    return `${name}:${artist}`;
-  });
-}
-
-function dedupeAlbums(rows = []) {
-  return dedupeByKey(rows, (row) => {
-    const id = String(row?.id || "").trim();
-    if (id) return `id:${id}`;
-    const name = String(row?.name || "").trim().toLowerCase();
-    const artist = Array.isArray(row?.artists) ? String(row.artists[0] || "").trim().toLowerCase() : "";
-    return `${name}:${artist}`;
-  });
-}
-
-function filterAlbumsByType(rows = [], albumTypes = ["album"]) {
-  const allow = new Set((Array.isArray(albumTypes) ? albumTypes : []).map((value) => String(value || "").trim().toLowerCase()));
-  if (!allow.size) return rows;
-  return (Array.isArray(rows) ? rows : []).filter((row) => {
-    const type = String(row?.album_type || "").trim().toLowerCase() || "album";
-    return allow.has(type);
-  });
-}
-
-function mergeMixedResults(tracks = [], albums = [], maxCount = 20) {
-  const t = [...(Array.isArray(tracks) ? tracks : [])];
-  const a = [...(Array.isArray(albums) ? albums : [])];
-  const mixed = [];
-  while (mixed.length < maxCount && (a.length || t.length)) {
-    if (a.length) mixed.push(a.shift());
-    if (t.length && mixed.length < maxCount) mixed.push(t.shift());
-    if (t.length && mixed.length < maxCount) mixed.push(t.shift());
-  }
-  while (mixed.length < maxCount && a.length) mixed.push(a.shift());
-  while (mixed.length < maxCount && t.length) mixed.push(t.shift());
-  return mixed.slice(0, maxCount);
-}
-
-function readCache(cacheKey) {
-  const hit = requestCache.get(cacheKey);
-  if (!hit) return null;
-  if (Date.now() >= Number(hit.expiresAt || 0)) {
-    requestCache.delete(cacheKey);
-    return null;
-  }
-  return hit.value;
-}
-
-function writeCache(cacheKey, value, ttlMs = REQUEST_CACHE_TTL_MS) {
-  requestCache.set(cacheKey, {
-    value,
-    expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || REQUEST_CACHE_TTL_MS)
-  });
-}
-
-async function fetchJson(url, { cacheKey = "", ttlMs = 0, timeoutMs = 7000, maxRetries = 1 } = {}) {
-  const key = String(cacheKey || "").trim();
-  if (key && ttlMs > 0) {
-    const hit = readCache(key);
-    if (hit) return hit;
-  }
-
-  let lastError;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), Math.max(1000, Number(timeoutMs) || 7000));
-    try {
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: { accept: "application/json" }
-      });
-      clearTimeout(timeout);
-      if (response.status === 429 && attempt < maxRetries) {
-        const retryAfter = Number(response.headers?.get?.("retry-after") || 2);
-        await new Promise((r) => setTimeout(r, Math.min(retryAfter * 1000, 5000)));
-        continue;
-      }
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const json = await response.json();
-      if (key && ttlMs > 0) writeCache(key, json, ttlMs);
-      return json;
-    } catch (error) {
-      clearTimeout(timeout);
-      lastError = error;
-      if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, 1000));
-        continue;
-      }
-    }
-  }
-  throw lastError || new Error("fetchJson failed");
-}
-
-async function searchItunesTracks({ q, limit = 20, market = "US" }) {
-  const url = new URL(ITUNES_SEARCH_URL);
-  url.searchParams.set("term", String(q || "").trim());
-  url.searchParams.set("media", "music");
-  url.searchParams.set("entity", "song");
-  url.searchParams.set("country", normalizeMarket(market));
-  url.searchParams.set("limit", String(clampInt(limit, 1, 100, 20)));
-  const json = await fetchJson(url.toString(), {
-    cacheKey: `itunes:tracks:${url.searchParams.toString()}`,
-    ttlMs: 1000 * 60 * 6
-  });
-  const rows = Array.isArray(json?.results) ? json.results : [];
-  return dedupeTracks(rows.map(normalizeItunesTrackRow).filter((row) => !!row.id));
-}
-
-async function searchItunesAlbums({ q, limit = 20, market = "US" }) {
-  const url = new URL(ITUNES_SEARCH_URL);
-  url.searchParams.set("term", String(q || "").trim());
-  url.searchParams.set("media", "music");
-  url.searchParams.set("entity", "album");
-  url.searchParams.set("country", normalizeMarket(market));
-  url.searchParams.set("limit", String(clampInt(limit, 1, 100, 20)));
-  const json = await fetchJson(url.toString(), {
-    cacheKey: `itunes:albums:${url.searchParams.toString()}`,
-    ttlMs: 1000 * 60 * 8
-  });
-  const rows = Array.isArray(json?.results) ? json.results : [];
-  return dedupeAlbums(rows.map(normalizeItunesAlbumRow).filter((row) => !!row.id));
-}
-
-async function fetchAppleMostPlayedSongs({ market = "US", limit = 50 }) {
-  const country = normalizeMarket(market).toLowerCase();
-  const safeLimit = clampInt(limit, 1, 100, 50);
-  const url = `${APPLE_MARKETING_API_BASE}/${encodeURIComponent(country)}/music/most-played/${safeLimit}/songs.json`;
-  const json = await fetchJson(url, {
-    cacheKey: `apple:chart:most-played:songs:${country}:${safeLimit}`,
-    ttlMs: 1000 * 60 * 8
-  });
-  const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
-  return dedupeTracks(rows.map(normalizeAppleChartTrackRow).filter((row) => !!row.id));
-}
-
-async function fetchAppleMostPlayedAlbums({ market = "US", limit = 30 }) {
-  const country = normalizeMarket(market).toLowerCase();
-  const safeLimit = clampInt(limit, 1, 100, 30);
-  const url = `${APPLE_MARKETING_API_BASE}/${encodeURIComponent(country)}/music/most-played/${safeLimit}/albums.json`;
-  const json = await fetchJson(url, {
-    cacheKey: `apple:chart:most-played:albums:${country}:${safeLimit}`,
-    ttlMs: 1000 * 60 * 8,
-    timeoutMs: 12000,
-    maxRetries: 2
-  });
-  const rows = Array.isArray(json?.feed?.results) ? json.feed.results : [];
-  return dedupeAlbums(rows.map(normalizeAppleChartAlbumRow).filter((row) => !!row.id));
-}
-
-async function fetchItunesAlbumDetails(id, { market = "US", limit = 120 } = {}) {
-  const albumId = String(id || "").trim();
-  if (!albumId) return null;
-
-  const url = new URL(ITUNES_LOOKUP_URL);
-  url.searchParams.set("id", albumId);
-  url.searchParams.set("entity", "song");
-  url.searchParams.set("country", normalizeMarket(market));
-  url.searchParams.set("limit", String(clampInt(limit, 1, 200, 120)));
-
-  const json = await fetchJson(url.toString(), {
-    cacheKey: `itunes:album:${url.searchParams.toString()}`,
-    ttlMs: 1000 * 60 * 8
-  });
-  const rows = Array.isArray(json?.results) ? json.results : [];
-  if (!rows.length) return null;
-
-  const collection = rows.find((row) => String(row?.wrapperType || "").toLowerCase() === "collection");
-  const trackRows = rows.filter((row) => String(row?.wrapperType || "").toLowerCase() === "track");
-
-  const normalizedCollection = collection ? normalizeItunesAlbumRow(collection) : null;
-  const tracks = dedupeTracks(trackRows.map((row) => {
-    const normalized = normalizeItunesTrackRow(row);
-    if (normalizedCollection) {
-      normalized.album = {
-        id: normalizedCollection.id,
-        name: normalizedCollection.name,
-        album_type: normalizedCollection.album_type || "album",
-        release_date: normalizedCollection.release_date || "",
-        total_tracks: normalizedCollection.total_tracks || 0,
-        images: Array.isArray(normalizedCollection.images) ? normalizedCollection.images : []
-      };
-      normalized.image = normalizedCollection.image || normalized.image;
-    }
-    return normalized;
-  }).filter((row) => !!row.id));
-
-  const album = normalizedCollection || (tracks[0]?.album?.id
-    ? {
-        source: "itunes",
-        id: String(tracks[0].album.id),
-        kind: "album",
-        name: String(tracks[0].album.name || "Album"),
-        artists: Array.isArray(tracks[0].artists) ? tracks[0].artists : [],
-        artist_ids: [],
-        artist_name: Array.isArray(tracks[0].artists) ? String(tracks[0].artists[0] || "") : "",
-        artist_id: "",
-        image: String(tracks[0].image || ""),
-        images: Array.isArray(tracks[0].album.images) ? tracks[0].album.images : [],
-        external_url: String(tracks[0].external_url || ""),
-        release_date: String(tracks[0].album.release_date || ""),
-        total_tracks: Number(tracks[0].album.total_tracks || tracks.length || 0),
-        album_type: String(tracks[0].album.album_type || "album"),
-        popularity: 0,
-        label: "",
-        genres: [],
-        explicit: false
-      }
-    : null);
-
-  if (!album) return null;
-  return { album, tracks };
-}
-
-async function fetchItunesTrackDetails(id, market = "US") {
-  const trackId = String(id || "").trim();
-  if (!trackId) return null;
-
-  const url = new URL(ITUNES_LOOKUP_URL);
-  url.searchParams.set("id", trackId);
-  url.searchParams.set("entity", "song");
-  url.searchParams.set("country", normalizeMarket(market));
-
-  const json = await fetchJson(url.toString(), {
-    cacheKey: `itunes:track:${url.searchParams.toString()}`,
-    ttlMs: 1000 * 60 * 8
-  });
-  const rows = Array.isArray(json?.results) ? json.results : [];
-  const track = rows.find((row) => String(row?.wrapperType || "").toLowerCase() === "track");
-  return track ? normalizeItunesTrackRow(track) : null;
-}
-
 function readQuery(req) {
   if (req.query && typeof req.query === "object") return req.query;
   try {
     const url = new URL(req.url || "", "http://localhost");
     return Object.fromEntries(url.searchParams.entries());
-  } catch (_error) {
-    return {};
-  }
+  } catch (_) { return {}; }
 }
 
 function readPathParts(query) {
-  const rawPath = query?.path;
-  if (Array.isArray(rawPath)) return rawPath.filter(Boolean);
-  return String(rawPath || "")
-    .split("/")
-    .filter(Boolean);
+  const raw = query?.path;
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  return String(raw || "").split("/").filter(Boolean);
+}
+
+async function getSpotifyToken() {
+  if (spotifyToken && Date.now() < spotifyTokenExpires - 60000) return spotifyToken;
+  if (!spotifyConfig.clientId || !spotifyConfig.clientSecret) return null;
+  try {
+    const body = new URLSearchParams({ grant_type: "client_credentials" });
+    const res = await fetch(`${SPOTIFY_ACCOUNTS}/token`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Basic " + Buffer.from(`${spotifyConfig.clientId}:${spotifyConfig.clientSecret}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    spotifyToken = json.access_token;
+    spotifyTokenExpires = Date.now() + (json.expires_in || 3600) * 1000;
+    return spotifyToken;
+  } catch (_) { return null; }
+}
+
+async function spotifyFetch(endpoint, params = {}, timeoutMs = 7000) {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+  const url = new URL(`${SPOTIFY_API}/${endpoint}`);
+  Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null) url.searchParams.set(k, String(v)); });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) { if (res.status === 429) await new Promise(r => setTimeout(r, 2000)); return null; }
+    return res.json();
+  } catch (_) { clearTimeout(timeout); return null; }
+}
+
+async function deezerFetch(endpoint, params = {}, timeoutMs = 7000) {
+  const url = new URL(`${DEEZER_API}/${endpoint}`);
+  Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null) url.searchParams.set(k, String(v)); });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url.toString(), { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    return res.json();
+  } catch (_) { clearTimeout(timeout); return null; }
+}
+
+function normalizeSpotifyTrack(track) {
+  if (!track) return null;
+  const album = track.album || {};
+  const images = album.images || [];
+  const image = images.length > 0 ? images[0]?.url : "";
+  const artists = (track.artists || []).map(a => String(a.name || "").trim()).filter(Boolean);
+  return {
+    id: String(track.id || ""),
+    mediaType: "music",
+    title: String(track.name || "").trim(),
+    subtitle: artists.join(", "),
+    artist: artists.join(", "),
+    artists,
+    albumName: String(album.name || "").trim(),
+    albumId: String(album.id || ""),
+    albumType: String(album.album_type || "album"),
+    image,
+    backdrop: image,
+    previewUrl: String(track.preview_url || "").trim(),
+    externalUrl: String(track.external_urls?.spotify || "").trim(),
+    durationMs: Number(track.duration_ms || 0),
+    popularity: Number(track.popularity || 0),
+    trackNumber: Number(track.track_number || 0),
+    discNumber: Number(track.disc_number || 0),
+    explicit: !!track.explicit,
+    releaseDate: String(album.release_date || "").trim(),
+    genres: (album.genres || []).map(g => String(g).trim()).filter(Boolean),
+    totalTracks: Number(album.total_tracks || 0),
+    language: "",
+    rating: 0,
+    provider: "spotify",
+    providerId: String(track.id || ""),
+    coverColor: ""
+  };
+}
+
+function normalizeDeezerTrack(track) {
+  if (!track) return null;
+  const album = track.album || {};
+  const artist = track.artist || {};
+  const image = String(track.album?.cover_big || track.album?.cover_medium || track.album?.cover || "").trim();
+  return {
+    id: String(track.id || ""),
+    mediaType: "music",
+    title: String(track.title || "").trim(),
+    subtitle: String(artist.name || "").trim(),
+    artist: String(artist.name || "").trim(),
+    artists: [String(artist.name || "").trim()].filter(Boolean),
+    albumName: String(album.title || "").trim(),
+    albumId: String(album.id || ""),
+    albumType: "album",
+    image: toHttps(image),
+    backdrop: toHttps(image),
+    previewUrl: String(track.preview || "").trim(),
+    externalUrl: String(track.link || "").trim(),
+    durationMs: Number(track.duration || 0) * 1000,
+    popularity: Number(track.rank || 0),
+    trackNumber: Number(track.track_position || 0),
+    discNumber: 1,
+    explicit: !!track.explicit_lyrics,
+    releaseDate: String(album.release_date || "").trim(),
+    genres: [],
+    totalTracks: 0,
+    language: "",
+    rating: Number(track.rank || 0),
+    provider: "deezer",
+    providerId: String(track.id || ""),
+    coverColor: ""
+  };
+}
+
+function normalizeSpotifyAlbum(album) {
+  if (!album) return null;
+  const images = album.images || [];
+  const image = images.length > 0 ? images[0]?.url : "";
+  const artists = (album.artists || []).map(a => String(a.name || "").trim()).filter(Boolean);
+  const genres = (album.genres || []).map(g => String(g).trim()).filter(Boolean);
+  return {
+    id: String(album.id || ""),
+    mediaType: "music",
+    title: String(album.name || "").trim(),
+    subtitle: artists.join(", "),
+    artist: artists.join(", "),
+    artists,
+    albumName: String(album.name || "").trim(),
+    albumId: String(album.id || ""),
+    albumType: String(album.album_type || "album"),
+    image,
+    backdrop: image,
+    previewUrl: "",
+    externalUrl: String(album.external_urls?.spotify || "").trim(),
+    durationMs: 0,
+    popularity: Number(album.popularity || 0),
+    totalTracks: Number(album.total_tracks || 0),
+    releaseDate: String(album.release_date || "").trim(),
+    genres,
+    label: String(album.label || "").trim(),
+    copyrights: (album.copyrights || []).map(c => String(c.text || "").trim()).filter(Boolean),
+    explicit: false,
+    language: "",
+    rating: 0,
+    provider: "spotify",
+    providerId: String(album.id || ""),
+    coverColor: ""
+  };
+}
+
+function normalizeDeezerAlbum(album) {
+  if (!album) return null;
+  const artist = album.artist || {};
+  const image = String(album.cover_big || album.cover_medium || album.cover_xl || album.cover || "").trim();
+  const genres = (album.genres?.data || []).map(g => String(g.name || "").trim()).filter(Boolean);
+  return {
+    id: String(album.id || ""),
+    mediaType: "music",
+    title: String(album.title || "").trim(),
+    subtitle: String(artist.name || "").trim(),
+    artist: String(artist.name || "").trim(),
+    artists: [String(artist.name || "").trim()].filter(Boolean),
+    albumName: String(album.title || "").trim(),
+    albumId: String(album.id || ""),
+    albumType: "album",
+    image: toHttps(image),
+    backdrop: toHttps(image),
+    previewUrl: "",
+    externalUrl: String(album.link || "").trim(),
+    durationMs: 0,
+    popularity: Number(album.rank || 0),
+    totalTracks: Number(album.nb_tracks || 0),
+    releaseDate: String(album.release_date || "").trim(),
+    genres,
+    label: String(album.label || "").trim(),
+    explicit: !!album.explicit_lyrics,
+    language: "",
+    rating: Number(album.rank || 0),
+    provider: "deezer",
+    providerId: String(album.id || ""),
+    coverColor: ""
+  };
+}
+
+function dedupeBy(rows, keyFn) {
+  const seen = new Set();
+  return (rows || []).filter(r => {
+    const k = String(keyFn(r) || "").toLowerCase();
+    if (!k || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+async function spotifySearchTracks(q, limit = 20, market = "US") {
+  const data = await spotifyFetch("search", { q, type: "track", limit: String(limit), market });
+  if (!data) return null;
+  return (data.tracks?.items || []).map(normalizeSpotifyTrack).filter(Boolean);
+}
+
+async function spotifySearchAlbums(q, limit = 20, market = "US") {
+  const data = await spotifyFetch("search", { q, type: "album", limit: String(limit), market });
+  if (!data) return null;
+  return (data.albums?.items || []).map(normalizeSpotifyAlbum).filter(Boolean);
+}
+
+async function deezerSearchTracks(q, limit = 20) {
+  const data = await deezerFetch("search/track", { q, limit: String(limit) });
+  if (!data) return [];
+  return (data.data || []).map(normalizeDeezerTrack).filter(Boolean);
+}
+
+async function deezerSearchAlbums(q, limit = 20) {
+  const data = await deezerFetch("search/album", { q, limit: String(limit) });
+  if (!data) return [];
+  return (data.data || []).map(normalizeDeezerAlbum).filter(Boolean);
+}
+
+async function deezerGetAlbum(id) {
+  const data = await deezerFetch(`album/${encodeURIComponent(id)}`);
+  if (!data) return null;
+  const album = normalizeDeezerAlbum(data);
+  const tracks = (data.tracks?.data || []).map(normalizeDeezerTrack).filter(Boolean);
+  return { album, tracks };
+}
+
+async function deezerGetTrack(id) {
+  const data = await deezerFetch(`track/${encodeURIComponent(id)}`);
+  return data ? normalizeDeezerTrack(data) : null;
+}
+
+async function deezerGetArtistTop(id, limit = 10) {
+  const data = await deezerFetch(`artist/${encodeURIComponent(id)}/top`, { limit: String(limit) });
+  if (!data) return [];
+  return (data.data || []).map(normalizeDeezerTrack).filter(Boolean);
+}
+
+async function deezerGetChart() {
+  const data = await deezerFetch("chart/0/tracks", { limit: "30" });
+  if (!data) return [];
+  return (data.data || []).map(normalizeDeezerTrack).filter(Boolean);
 }
 
 export default async function handler(req, res) {
@@ -468,218 +307,154 @@ export default async function handler(req, res) {
 
   if (!section) {
     setResponseCache(res, { maxAge: 900, staleWhileRevalidate: 3600 });
-    return res.json({
-      ok: true,
-      service: "music-fallback",
-      configured: false,
-      source: "itunes-fallback",
-      routes: ["/search", "/top-50", "/popular", "/popular-albums", "/featured-playlists", "/new-releases", "/albums/:id", "/tracks/:id"]
-    });
-  }
-
-  if (section === "cover") {
-    const targetUrl = String(query.url || "").trim();
-    if (!targetUrl) return res.status(400).json({ error: "Missing url parameter" });
-    try {
-      const proxyRes = await fetch(targetUrl, {
-        headers: { "User-Agent": "zo2y-music/1.0" },
-        redirect: "follow"
-      });
-      if (!proxyRes.ok) {
-        res.setHeader("Content-Type", "image/svg+xml");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#1a1a2e"/><text x="150" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
-      }
-      const buffer = await proxyRes.arrayBuffer();
-      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
-      res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
-      return res.end(new Uint8Array(buffer));
-    } catch (_err) {
-      res.setHeader("Content-Type", "image/svg+xml");
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="300" height="300" fill="#1a1a2e"/><text x="150" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
-    }
+    return res.json({ ok: true, service: "music", spotifyConfigured: !!spotifyConfig.clientId, routes: ["/search", "/albums/:id", "/tracks/:id", "/trending", "/new-releases", "/popular"] });
   }
 
   if (section === "health") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    return res.json({
-      ok: true,
-      service: "music-fallback",
-      source: "itunes-fallback"
-    });
-  }
-
-  if (section === "top-50") {
-    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const limit = clampInt(query.limit, 1, 100, 50);
-    const market = normalizeMarket(query.market || "US");
-    try {
-      const chartRows = await searchItunesTracks({ q: `hits`, limit: Math.max(limit, 24), market }).catch(() => []);
-      const searchRows = await searchItunesTracks({ q: `pop`, limit: Math.max(limit, 24), market }).catch(() => []);
-      let results = dedupeTracks([...chartRows, ...searchRows]).slice(0, limit);
-      return res.json({ count: results.length, limit, offset: 0, source: results.length ? (results[0]?.source || "itunes") : "unavailable", results });
-    } catch (_error) {
-      return res.json({ count: 0, limit, offset: 0, source: "unavailable", results: [] });
-    }
-  }
-
-  if (section === "popular") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 100, 24);
-    const results = shuffleArray([...MUSIC_CATALOG]).slice(0, limit).map((track) => ({
-      source: "local",
-      kind: "track",
-      id: track.id,
-      name: track.name,
-      artists: track.artists,
-      artist_ids: [],
-      album: { id: track.id, name: track.album_name || track.name, album_type: "single", release_date: "", total_tracks: 1, images: track.image ? [{ url: track.image, width: 600, height: 600 }] : [] },
-      image: track.image,
-      preview_url: track.preview_url || "",
-      external_url: "",
-      popularity: 0,
-      duration_ms: 0,
-      explicit: false
-    }));
-    return res.json({ count: results.length, limit, offset: 0, source: "local-catalog", results });
-  }
-
-  if (section === "popular-albums") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 60, 24);
-    const results = shuffleArray([...MUSIC_ALBUMS_CATALOG]).slice(0, limit).map((album) => ({
-      source: "local",
-      kind: "album",
-      id: album.id,
-      name: album.name,
-      artists: album.artists,
-      artist_ids: [],
-      album_type: "album",
-      release_date: album.release_date || "",
-      image: album.image,
-      preview_url: "",
-      external_url: `https://music.apple.com/us/album/${album.id}`,
-      popularity: 0
-    }));
-    return res.json({ count: results.length, limit, source: "local-catalog", results });
-  }
-
-  if (section === "new-releases") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 60, 20);
-    const market = normalizeMarket(query.market || "US");
-    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
-    const albumTypesKey = albumTypes.join(",") || "album";
-    try {
-      const newRows = await searchItunesAlbums({ q: `2026`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
-      const trendingRows = await searchItunesAlbums({ q: `hits`, limit: Math.max(limit * 2, 40), market }).catch(() => []);
-      const merged = dedupeAlbums([...newRows, ...trendingRows]);
-      const results = filterAlbumsByType(merged, albumTypes).slice(0, limit);
-      return res.json({
-        count: results.length,
-        limit,
-        album_types: albumTypesKey,
-        source: "itunes-fallback",
-        results
-      });
-    } catch (_error) {
-      return res.json({ count: 0, limit, album_types: albumTypesKey, source: "unavailable", results: [] });
-    }
-  }
-
-  if (section === "featured-playlists") {
-    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const limit = clampInt(query.limit, 1, 20, 8);
-    return res.json({ count: 0, limit, source: "unavailable", results: [] });
+    return res.json({ ok: true, service: "music", spotifyConfigured: !!spotifyConfig.clientId });
   }
 
   if (section === "search") {
     setResponseCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
-    const q = String(query.q || "").trim().slice(0, 120);
-    if (!q) {
-      return res.status(400).json({ message: "Missing q query parameter." });
-    }
-
+    const q = String(query.q || "").trim().slice(0, 200);
+    if (!q) return res.status(400).json({ message: "Missing q parameter" });
     const limit = clampInt(query.limit, 1, 50, 20);
-    const market = normalizeMarket(query.market || "US");
-    const types = normalizeMusicTypes(query.type || "track");
+    const market = String(query.market || "US").trim().toUpperCase();
+    const type = String(query.type || "track,album").trim().toLowerCase();
+    const types = type.split(",").map(t => t.trim()).filter(Boolean);
     const includeTracks = types.includes("track");
     const includeAlbums = types.includes("album");
-    const albumTypes = normalizeAlbumTypes(query.album_types || "album");
-    const albumTypesKey = albumTypes.join(",") || "album";
+
+    let tracks = [];
+    let albums = [];
 
     try {
-      const [tracksRaw, albumsRaw] = await Promise.all([
-        includeTracks ? searchItunesTracks({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([]),
-        includeAlbums ? searchItunesAlbums({ q, limit: Math.max(limit * 2, 30), market }) : Promise.resolve([])
-      ]);
-
-      const tracks = includeTracks ? dedupeTracks(tracksRaw) : [];
-      const albums = includeAlbums ? filterAlbumsByType(dedupeAlbums(albumsRaw), albumTypes) : [];
-      const primaryResults = includeTracks && includeAlbums
-        ? mergeMixedResults(tracks, albums, limit)
-        : (includeTracks ? tracks.slice(0, limit) : albums.slice(0, limit));
-
-      return res.json({
-        count: includeTracks && includeAlbums ? (tracks.length + albums.length) : (includeTracks ? tracks.length : albums.length),
-        track_count: tracks.length,
-        album_count: albums.length,
-        limit,
-        offset: 0,
-        source: "itunes-fallback",
-        type: types.join(","),
-        album_types: albumTypesKey,
-        results: primaryResults,
-        tracks,
-        albums
-      });
-      } catch (_error) {
-        return res.json({
-          count: 0, track_count: 0, album_count: 0,
-          limit, offset: 0,
-          source: "unavailable",
-          type: types.join(","),
-          album_types: albumTypesKey,
-          results: [], tracks: [], albums: []
-        });
+      if (includeTracks) {
+        const spotifyTracks = await spotifySearchTracks(q, Math.min(limit * 2, 50), market);
+        if (spotifyTracks) {
+          tracks = spotifyTracks;
+        } else {
+          tracks = await deezerSearchTracks(q, Math.min(limit * 2, 50));
+        }
       }
+      if (includeAlbums) {
+        const spotifyAlbums = await spotifySearchAlbums(q, Math.min(limit * 2, 50), market);
+        if (spotifyAlbums) {
+          albums = spotifyAlbums;
+        } else {
+          albums = await deezerSearchAlbums(q, Math.min(limit * 2, 50));
+        }
+      }
+    } catch (_) {}
+
+    tracks = dedupeBy(tracks, t => t.id);
+    albums = dedupeBy(albums, a => a.id);
+
+    const mixed = [];
+    const max = Math.max(tracks.length, albums.length);
+    for (let i = 0; i < max && mixed.length < limit; i++) {
+      if (i < tracks.length) mixed.push(tracks[i]);
+      if (i < albums.length && mixed.length < limit) mixed.push(albums[i]);
+    }
+
+    return res.json({
+      count: mixed.length,
+      track_count: tracks.length,
+      album_count: albums.length,
+      limit,
+      offset: 0,
+      results: mixed.slice(0, limit),
+      tracks: tracks.slice(0, limit),
+      albums: albums.slice(0, limit)
+    });
   }
 
   if (section === "albums") {
     setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-    if (!id) return res.status(400).json({ message: "Invalid album id." });
-    const market = normalizeMarket(query.market || "US");
+    if (!id) return res.status(400).json({ message: "Missing album id" });
     const includeTracks = String(query.include_tracks || "true").trim().toLowerCase() !== "false";
-    const trackLimit = clampInt(query.limit, 1, 200, 120);
-    try {
-      const details = await fetchItunesAlbumDetails(id, { market, limit: trackLimit });
-      if (!details?.album) return res.status(404).json({ message: "Album not found." });
-      const tracks = includeTracks ? details.tracks : [];
-      return res.json({ album: details.album, tracks, count: tracks.length, source: "itunes-fallback" });
-    } catch (_error) {
-      return res.status(404).json({ message: "Album not found." });
+    let album = await spotifyFetch(`albums/${encodeURIComponent(id)}`, { market: "US" });
+    if (album) {
+      const normalized = normalizeSpotifyAlbum(album);
+      let tracks = [];
+      if (includeTracks && album.tracks?.items) {
+        tracks = album.tracks.items.map(normalizeSpotifyTrack).filter(Boolean);
+        let next = album.tracks.next;
+        while (next) {
+          try {
+            const more = await (await fetch(next, { headers: { Authorization: `Bearer ${spotifyToken}` } })).json();
+            if (more?.items) { tracks.push(...more.items.map(normalizeSpotifyTrack).filter(Boolean)); next = more.next; }
+            else break;
+          } catch (_) { break; }
+        }
+      }
+      return res.json({ album: normalized, tracks, count: tracks.length, source: "spotify" });
     }
+    const deezerResult = await deezerGetAlbum(id);
+    if (deezerResult) {
+      return res.json({ album: deezerResult.album, tracks: deezerResult.tracks, count: deezerResult.tracks.length, source: "deezer" });
+    }
+    return res.status(404).json({ message: "Album not found" });
   }
 
   if (section === "tracks") {
     setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-    if (!id) return res.status(400).json({ message: "Invalid track id." });
-    const market = normalizeMarket(query.market || "US");
-    try {
-      const track = await fetchItunesTrackDetails(id, market);
-      if (!track) return res.status(404).json({ message: "Track not found." });
-      return res.json(track);
-    } catch (_error) {
-      return res.status(404).json({ message: "Track not found." });
-    }
+    if (!id) return res.status(400).json({ message: "Missing track id" });
+    let track = await spotifyFetch(`tracks/${encodeURIComponent(id)}`, { market: "US" });
+    if (track) return res.json(normalizeSpotifyTrack(track));
+    const deezerTrack = await deezerGetTrack(id);
+    if (deezerTrack) return res.json(deezerTrack);
+    return res.status(404).json({ message: "Track not found" });
   }
 
   if (section === "artists") {
-    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    return res.status(404).json({ message: "Artist details are unavailable right now." });
+    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
+    if (!id) return res.status(400).json({ message: "Missing artist id" });
+    const artist = await spotifyFetch(`artists/${encodeURIComponent(id)}`);
+    if (artist) {
+      return res.json({
+        id: String(artist.id || ""),
+        name: String(artist.name || ""),
+        genres: (artist.genres || []).map(g => String(g).trim()).filter(Boolean),
+        popularity: Number(artist.popularity || 0),
+        followers: Number(artist.followers?.total || 0),
+        image: (artist.images || []).length > 0 ? artist.images[0]?.url : "",
+        externalUrl: String(artist.external_urls?.spotify || ""),
+        provider: "spotify"
+      });
+    }
+    return res.status(404).json({ message: "Artist not found" });
   }
 
-  return res.status(404).json({ message: "Not found" });
-}
+  if (section === "trending" || section === "popular") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 50, 24);
+    let results = [];
+    const spotifyResults = await spotifyFetch("search", { q: "year:2024 2025 2026", type: "track", limit: String(limit), market: "US" });
+    if (spotifyResults) {
+      results = (spotifyResults.tracks?.items || []).map(normalizeSpotifyTrack).filter(Boolean);
+    } else {
+      const deezerChart = await deezerGetChart();
+      results = deezerChart.slice(0, limit);
+    }
+    return res.json({ count: results.length, limit, offset: 0, results, source: results[0]?.provider || "deezer" });
+  }
 
+  if (section === "new-releases") {
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = clampInt(query.limit, 1, 50, 20);
+    let results = [];
+    const spotifyResults = await spotifyFetch("browse/new-releases", { limit: String(limit), market: "US", country: "US" });
+    if (spotifyResults) {
+      results = (spotifyResults.albums?.items || []).map(normalizeSpotifyAlbum).filter(Boolean);
+    } else {
+      const deezerData = await deezerFetch("chart/0/albums", { limit: String(limit) });
+      results = (deezerData?.data || []).map(normalizeDeezerAlbum).filter(Boolean);
+    }
+    return res.json({ count: results.length, limit, results, source: results[0]?.provider || "deezer" });
+  }
+
+  setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+  return res.json({ ok: true, service: "music", spotifyConfigured: !!spotifyConfig.clientId });
+}

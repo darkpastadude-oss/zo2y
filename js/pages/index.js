@@ -9912,39 +9912,35 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
       const mapBook = (b) => {
         if (!b || !b.title) return null;
-        const cover = proxyBookCover(String(b.coverImage || b.cover || '').trim());
+        const cover = proxyBookCover(b.image);
+        const authorsArr = b.authors ? b.authors.split(', ').filter(Boolean) : ['Unknown author'];
         return {
-          itemId: String(b.id || b._id || 'book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
+          itemId: b.id || ('book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
           title: b.title,
-          subtitle: '',
+          subtitle: b.subtitle || b.authors || '',
           image: cover || '/images/fallback/book.svg',
           images: cover ? [{ url: cover }] : [],
-          metadata: {
-            authors: Array.isArray(b.author_name) ? b.author_name : (b.author ? (typeof b.author === 'string' ? b.author.split(', ') : [b.author]) : (b.authors ? (typeof b.authors === 'string' ? b.authors.split(', ') : Array.isArray(b.authors) ? b.authors : ['Unknown author']) : ['Unknown author'])),
-            year: b.year || b.first_publish_year || null
-          },
-          genres: Array.isArray(b.subject) ? b.subject.slice(0, 3) : [],
-          externalUrl: b.id ? `https://openlibrary.org/works/${b.id}` : '',
+          metadata: { authors: authorsArr, year: b.year || null },
+          genres: Array.isArray(b.genres) ? b.genres.slice(0, 3) : [],
+          externalUrl: b.externalUrl || '',
           mediaType: 'book',
-          year: b.year || b.first_publish_year || null
+          year: b.year || null
         };
       };
 
       let items = [];
-      const fetchJson = async (url, opts) => {
-        try {
-          const r = await fetch(url, { signal, ...opts });
-          if (!r.ok) return null;
-          return await r.json();
-        } catch { return null; }
+      const fetchJson = async (url) => {
+        try { const r = await fetch(url, { signal }); if (!r.ok) return null; return await r.json(); }
+        catch { return null; }
       };
 
-      // Stage 1: Try server API
       const data = await fetchJson(`/api/books/trending?genre=fiction&limit=${Math.max(40, targetCount * 2)}`);
       if (data && data.books && data.books.length) {
         let booksList = safeArr(data.books);
         booksList = shuffleArray(booksList);
-        items = booksList.slice(0, targetCount).map(mapBook).filter((i) => i && i.itemId);
+        items = booksList.slice(0, targetCount)
+          .map((raw) => typeof window.normalizeBook === 'function' ? window.normalizeBook(raw) : raw)
+          .map(mapBook).filter((i) => i && i.itemId);
       }
 
       if (items.length) {
@@ -9962,8 +9958,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
 
-      const safeArt = (url) => String(url || '').trim();
-
       function proxyMusicCover(url) {
         var s = String(url || '').trim();
         if (!s) return '';
@@ -9973,38 +9967,38 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       const fetchJson = async (url) => {
-        try {
-          const r = await fetch(url, { signal });
-          if (!r.ok) return null;
-          return await r.json();
-        } catch { return null; }
+        try { const r = await fetch(url, { signal }); if (!r.ok) return null; return await r.json(); }
+        catch { return null; }
       };
 
-      const mapTrack = (track) => {
-        const arts = Array.isArray(track?.artists) ? track.artists.filter(Boolean).join(', ') : String(track?.artistName || track?.subtitle || 'Artist').trim();
-        const img = proxyMusicCover(safeArt(track?.image || track?.artworkUrl100 || ''));
-        const id = String(track?.id || track?.trackId || track?.collectionId || '');
+      const normalize = typeof window.normalizeTrack === 'function' ? window.normalizeTrack : (x) => x;
+      const normalizeAlbum = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum : (x) => x;
+
+      const mapTrack = (t) => {
+        if (!t || !t.title) return null;
+        const img = proxyMusicCover(t.image);
         return {
-          mediaType: 'music', itemId: id, title: String(track?.name || track?.trackName || 'Track').trim(),
-          subtitle: arts, extra: `Song${track?.collectionName ? ` | ${String(track.collectionName).trim()}` : ''}`,
+          mediaType: 'music', itemId: t.id || '',
+          title: t.title, subtitle: t.artist || '',
+          extra: t.albumName ? `Song | ${t.albumName}` : 'Song',
           image: img, backgroundImage: img, spotlightImage: img,
           spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          previewUrl: String(track?.preview_url || track?.previewUrl || '').trim(),
-          href: id ? `song.html?id=${encodeURIComponent(id)}` : 'music.html'
+          previewUrl: t.previewUrl || '',
+          href: t.id ? `song.html?id=${encodeURIComponent(t.id)}` : 'music.html'
         };
       };
 
-      const mapAlbum = (album) => {
-        const arts = Array.isArray(album?.artists) ? album.artists.filter(Boolean).join(', ') : String(album?.artistName || album?.subtitle || 'Artist').trim();
-        const img = proxyMusicCover(safeArt(album?.image || album?.artworkUrl100 || ''));
-        const id = String(album?.id || album?.collectionId || '');
-        const releaseDate = String(album?.release_date || '').slice(0, 10);
+      const mapAlbum = (a) => {
+        if (!a || !a.title) return null;
+        const img = proxyMusicCover(a.image);
+        const releaseDate = a.releaseDate ? String(a.releaseDate).slice(0, 10) : '';
         return {
-          mediaType: 'music', itemId: `album:${id}`, title: String(album?.name || album?.collectionName || 'Album').trim(),
-          subtitle: arts, extra: `Album${releaseDate ? ` | Released ${releaseDate}` : ''}`,
+          mediaType: 'music', itemId: `album:${a.id}`,
+          title: a.title, subtitle: a.artist || '',
+          extra: `Album${releaseDate ? ` | Released ${releaseDate}` : ''}`,
           image: img, backgroundImage: img, spotlightImage: img,
           spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          href: id ? `song.html?album_id=${encodeURIComponent(id)}&source=itunes` : 'music.html',
+          href: a.id ? `song.html?album_id=${encodeURIComponent(a.id)}` : 'music.html',
           isMusicAlbum: true
         };
       };
@@ -10021,34 +10015,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return out.slice(0, count);
       };
 
-      const fetchItunesTracks = async (limit = 30) => {
-        try {
-          const j = await fetchJson(`/api/music/popular?limit=${limit}`);
-          return safeArr(j?.results).map((t) => {
-            return {
-              id: String(t.id || ''), name: String(t.name || 'Track'),
-              artists: t.artists || [], image: String(t.image || ''),
-              collectionName: String(t.album?.name || ''), preview_url: String(t.preview_url || '')
-            };
-          });
-        } catch (_err) { return []; }
-      };
-
-      const fetchItunesAlbums = async (limit = 20) => {
-        try {
-          const j = await fetchJson(`/api/music/popular-albums?limit=${limit}`);
-          return safeArr(j?.results).map((a) => ({
-            id: String(a.id || ''), name: String(a.name || 'Album'),
-            artists: a.artists || [], image: String(a.image || ''),
-            release_date: String(a.release_date || '')
-          }));
-        } catch (_err) { return []; }
-      };
-
-      let [trackRows, albumRows] = await Promise.all([
-        fetchItunesTracks(50),
-        fetchItunesAlbums(30)
+      const [trackData, albumData] = await Promise.all([
+        fetchJson(`/api/music/popular?limit=50`),
+        fetchJson(`/api/music/new-releases?limit=30`)
       ]);
+
+      let trackRows = safeArr(trackData?.results).map(normalize).filter(Boolean);
+      let albumRows = safeArr(albumData?.results).map(normalizeAlbum).filter(Boolean);
 
       if (trackRows.length || albumRows.length) {
         trackRows = shuffleArray(trackRows);

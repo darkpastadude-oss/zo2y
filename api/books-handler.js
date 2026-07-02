@@ -1,177 +1,314 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
-
 const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
 
-const DISCOVERY_CACHE = new Map();
-const DISCOVERY_CACHE_TTL_MS = 15 * 60 * 1000;
-
-function toHttpsUrl(url) {
-  if (!url) return '';
-  const str = String(url).trim();
-  return str.replace(/^http:/i, 'https:');
+function getKey() {
+  return process.env.GOOGLE_BOOKS_API_KEY || process.env.GOOGLE_BOOKS_KEY || "";
 }
 
-const BOOK_COVERS_BUCKET = 'book-covers';
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-
-function bookCoverUrl(filename) {
-  if (!SUPABASE_URL) return `/images/books/${filename}`;
-  return `${SUPABASE_URL}/storage/v1/object/public/${BOOK_COVERS_BUCKET}/${filename}`;
+function setCache(res, opts = {}) {
+  const maxAge = Math.max(0, Number(opts.maxAge) || 300);
+  const swr = Math.max(0, Number(opts.staleWhileRevalidate) || 900);
+  res.setHeader("Cache-Control", `public, s-maxage=${maxAge}, stale-while-revalidate=${swr}`);
 }
 
-const BOOKS_CATALOG = [
-  { id: 'gb_atomic_habits', title: 'Atomic Habits', author: 'James Clear', year: 2018, cover: bookCoverUrl('atomic-habits.jpg') },
-  { id: 'gb_surrounded_idiots', title: 'Surrounded by Idiots', author: 'Thomas Erikson', year: 2019, cover: bookCoverUrl('surrounded-by-idiots.jpg') },
-  { id: 'gb_ittw', title: 'It Ends with Us', author: 'Colleen Hoover', year: 2016, cover: bookCoverUrl('it-ends-with-us.jpg') },
-  { id: 'gb_silent_patient', title: 'The Silent Patient', author: 'Alex Michaelides', year: 2019, cover: bookCoverUrl('the-silent-patient.jpg') },
-  { id: 'gb_fourth_wing', title: 'Fourth Wing', author: 'Rebecca Yarros', year: 2023, cover: bookCoverUrl('fourth-wing.jpg') },
-  { id: 'gb_iron_flame', title: 'Iron Flame', author: 'Rebecca Yarros', year: 2023, cover: bookCoverUrl('iron-flame.jpg') },
-  { id: 'gb_happy_place', title: 'Happy Place', author: 'Emily Henry', year: 2023, cover: bookCoverUrl('happy-place.jpg') },
-  { id: 'gb_verity', title: 'Verity', author: 'Colleen Hoover', year: 2018, cover: bookCoverUrl('verity.jpg') },
-  { id: 'gb_acotar', title: 'A Court of Thorns and Roses', author: 'Sarah J. Maas', year: 2015, cover: bookCoverUrl('acotar.jpg') },
-  { id: 'gb_housemaid', title: 'The Housemaid', author: 'Freida McFadden', year: 2022, cover: bookCoverUrl('the-housemaid.jpg') },
-  { id: 'gb_beach_read', title: 'Beach Read', author: 'Emily Henry', year: 2020, cover: bookCoverUrl('beach-read.jpg') },
-  { id: 'gb_normal_people', title: 'Normal People', author: 'Sally Rooney', year: 2018, cover: bookCoverUrl('normal-people.jpg') },
-  { id: 'gb_lessons_chem', title: 'Lessons in Chemistry', author: 'Bonnie Garmus', year: 2022, cover: bookCoverUrl('lessons-in-chemistry.jpg') },
-  { id: 'gb_seven_husbands', title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', year: 2017, cover: bookCoverUrl('seven-husbands.jpg') },
-  { id: 'gb_piranesi', title: 'Piranesi', author: 'Susanna Clarke', year: 2020, cover: bookCoverUrl('piranesi.jpg') },
-  { id: 'gb_tiktok_romance', title: 'Twisted Love', author: 'Ana Huang', year: 2021, cover: bookCoverUrl('twisted-love.jpg') },
-  { id: 'gb_clover_strauss', title: 'The Love Hypothesis', author: 'Ali Hazelwood', year: 2021, cover: bookCoverUrl('love-hypothesis.jpg') },
-  { id: 'gb_daisy_jones', title: 'Daisy Jones & The Six', author: 'Taylor Jenkins Reid', year: 2019, cover: bookCoverUrl('daisy-jones.jpg') },
-  { id: 'gb_circe', title: 'Circe', author: 'Madeline Miller', year: 2018, cover: bookCoverUrl('circe.jpg') },
-  { id: 'gb_midnight_library', title: 'The Midnight Library', author: 'Matt Haig', year: 2020, cover: bookCoverUrl('midnight-library.jpg') },
-  { id: 'gb_project_hail_mary', title: 'Project Hail Mary', author: 'Andy Weir', year: 2021, cover: bookCoverUrl('project-hail-mary.jpg') },
-  { id: 'gb_song_achilles', title: 'The Song of Achilles', author: 'Madeline Miller', year: 2012, cover: bookCoverUrl('song-of-achilles.jpg') },
-  { id: 'gb_manacled', title: 'Manacled', author: 'SenLinYu', year: 2023, cover: bookCoverUrl('manacled.jpg') },
-  { id: 'gb_midnight_garden', title: 'Midnight in the Garden', author: 'John Berendt', year: 1994, cover: bookCoverUrl('midnight-garden.jpg') },
-  { id: 'gb_people_meeting', title: 'People We Meet on Vacation', author: 'Emily Henry', year: 2021, cover: bookCoverUrl('people-we-meet.jpg') },
-  { id: 'gb_mexican_gothic', title: 'Mexican Gothic', author: 'Silvia Moreno-Garcia', year: 2020, cover: bookCoverUrl('mexican-gothic.jpg') },
-  { id: 'gb_starter_villain', title: 'Starter Villain', author: 'John Scalzi', year: 2023, cover: bookCoverUrl('starter-villain.jpg') },
-  { id: 'gb_very_bad_ideas', title: 'Very Bad Ideas', author: 'Tara Crescent', year: 2023, cover: bookCoverUrl('very-bad-ideas.jpg') }
-];
+function toHttps(url) {
+  if (!url) return "";
+  return String(url).replace(/^http:/i, "https:");
+}
 
-function shuffleArray(arr) {
-  const a = [...(Array.isArray(arr) ? arr : [])];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+const CACHE = new Map();
+const CACHE_TTL = 5 * 60 * 1000;
+
+function cacheGet(key) {
+  const hit = CACHE.get(key);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) { CACHE.delete(key); return null; }
+  return hit.value;
+}
+
+function cacheSet(key, value, ttl = CACHE_TTL) {
+  CACHE.set(key, { value, expiresAt: Date.now() + ttl });
+}
+
+async function fetchJson(url, { cacheKey = "", ttlMs = CACHE_TTL, timeoutMs = 8000 } = {}) {
+  if (cacheKey) {
+    const hit = cacheGet(cacheKey);
+    if (hit) return hit;
   }
-  return a;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (cacheKey) cacheSet(cacheKey, json, ttlMs);
+    return json;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+function normalizeBook(item) {
+  const vol = item.volumeInfo || {};
+  const id = String(item.id || "");
+  const title = String(vol.title || "").trim();
+  const subtitle = String(vol.subtitle || "").trim();
+  const authors = (vol.authors || []).map(a => String(a).trim()).filter(Boolean);
+  const publishedDate = String(vol.publishedDate || "").trim();
+  const year = publishedDate ? parseInt(publishedDate.substring(0, 4)) : null;
+  const description = String(vol.description || "").trim();
+  const categories = (vol.categories || []).map(c => String(c).trim()).filter(Boolean);
+  const imageLinks = vol.imageLinks || {};
+  const image = toHttps(imageLinks.thumbnail || imageLinks.smallThumbnail || "");
+  const pageCount = Number(vol.pageCount) || 0;
+  const publisher = String(vol.publisher || "").trim();
+  const language = String(vol.language || "").trim();
+  const averageRating = Number(vol.averageRating) || 0;
+  const ratingsCount = Number(vol.ratingsCount) || 0;
+  const previewLink = String(vol.previewLink || "").trim();
+  const infoLink = String(vol.infoLink || "").trim();
+  const isbn = (vol.industryIdentifiers || []).map(i => i.identifier).filter(Boolean);
+
+  return {
+    id,
+    mediaType: "book",
+    title,
+    subtitle,
+    authors: authors,
+    author: authors.join(", "),
+    year,
+    description,
+    genres: categories,
+    categories,
+    image,
+    backdrop: image,
+    rating: averageRating,
+    ratingsCount,
+    popularity: 0,
+    language,
+    pageCount,
+    publisher,
+    previewUrl: previewLink,
+    externalUrl: infoLink,
+    releaseDate: publishedDate,
+    isbn,
+    provider: "google-books",
+    providerId: id,
+    coverColor: ""
+  };
+}
+
+function normalizeSearchResult(item) {
+  const n = normalizeBook(item);
+  return {
+    id: n.id,
+    title: n.title,
+    author: n.author,
+    year: n.year,
+    cover: n.image,
+    description: n.description,
+    _source: "google-books"
+  };
+}
+
+function parseQuery(req) {
+  if (req.query && typeof req.query === "object") return req.query;
+  try {
+    const url = new URL(req.url || "", "http://localhost");
+    return Object.fromEntries(url.searchParams.entries());
+  } catch (_) { return {}; }
+}
+
+function getPathParts(query) {
+  const raw = query?.path;
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  return String(raw || "").split("/").filter(Boolean);
 }
 
 export default async function booksHandler(req, res) {
-  const method = req.method;
-  if (method === "OPTIONS") {
+  if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     return res.status(200).end();
   }
 
-  // Parse path
-  const urlParts = req.url.split("?")[0].split("/").filter(Boolean);
-  // e.g. /api/books/trending -> urlParts = ["api", "books", "trending"]
-  const section = urlParts[urlParts.length - 1];
-  const query = req.query || {};
+  const query = parseQuery(req);
+  const pathParts = getPathParts(query);
+  const section = String(pathParts[pathParts.length - 1] || "").toLowerCase();
+  const key = getKey();
 
-  // ==========================================
-  // 1. TRENDING (local catalog — no external API)
-  // ==========================================
-  if (section === "trending") {
-    const limit = Math.min(Number(query.limit) || 20, 50);
-    const books = shuffleArray(BOOKS_CATALOG).slice(0, limit);
-    res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
-    return res.json({ ok: true, books, total: books.length });
-  }
+  const googleFetch = async (endpoint, extraParams = {}) => {
+    const url = new URL(`${GOOGLE_BOOKS_BASE}/${endpoint}`);
+    Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    if (key) url.searchParams.set("key", key);
+    return fetchJson(url.toString(), { cacheKey: `gb:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
+  };
 
-  // ==========================================
-  // 2. SEARCH (local catalog — no external API)
-  // ==========================================
-  if (section === "search") {
-    const q = String(query.q || '').trim().toLowerCase();
-    if (!q) return res.status(400).json({ ok: false, message: "Missing search query" });
-
+  if (section === "search" || section === "volumes") {
+    setCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
+    const q = String(query.q || "").trim();
+    if (!q) return res.status(400).json({ ok: false, message: "Missing query" });
     const limit = Math.min(Number(query.limit) || 20, 40);
-    const results = BOOKS_CATALOG.filter((book) => {
-      return book.title.toLowerCase().includes(q) || book.author.toLowerCase().includes(q);
-    }).slice(0, limit);
+    const orderBy = String(query.orderBy || "relevance").trim();
+    const langRestrict = String(query.langRestrict || "").trim();
+    const startIndex = Math.max(0, Number(query.startIndex) || 0);
+    const printType = String(query.printType || "all").trim();
+    const filter = String(query.filter || "").trim();
 
-    res.setHeader("Cache-Control", "public, max-age=600");
-    return res.json({ ok: true, books: results, total: results.length });
+    try {
+      const params = { q, maxResults: String(limit), startIndex: String(startIndex) };
+      if (orderBy !== "relevance") params.orderBy = orderBy;
+      if (langRestrict) params.langRestrict = langRestrict;
+      if (printType !== "all") params.printType = printType;
+      if (filter) params.filter = filter;
+
+      const data = await googleFetch("volumes", params);
+      const items = data.items || [];
+      const total = data.totalItems || 0;
+      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      return res.json({ ok: true, books, total, items: books.map(normalizeBook) });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+    }
   }
 
-  // ==========================================
-  // 3. COVER PROXY & POPULAR
-  // ==========================================
-  try {
-    let relativePath = urlParts.slice(urlParts.indexOf("books") + 1).join("/");
-    
-    if (relativePath === "cover") {
-      const targetUrl = query.url;
-      if (!targetUrl) return res.status(400).json({ error: "Missing url parameter" });
-      try {
-        const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-worker/1.0" }});
-        if (!proxyRes.ok) {
-          res.setHeader("Content-Type", "image/svg+xml");
-          res.setHeader("Cache-Control", "public, max-age=86400");
-          return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
-        }
-        const buffer = await proxyRes.arrayBuffer();
-        res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
-        res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=604800");
-        return res.end(new Uint8Array(buffer));
-      } catch (_err) {
-        res.setHeader("Content-Type", "image/svg+xml");
-        res.setHeader("Cache-Control", "public, max-age=3600");
-        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14" font-family="sans-serif">No Cover</text></svg>'));
-      }
-    }
-
-    if (relativePath === "popular") {
-      const limit = Math.min(Number(query.limit) || 20, 50);
-      const books = shuffleArray(BOOKS_CATALOG).slice(0, limit);
-      res.setHeader("Cache-Control", "public, max-age=300, s-maxage=600");
-      return res.json({ ok: true, books, total: books.length });
-    }
-
-    const url = new URL(`${GOOGLE_BOOKS_BASE}/${relativePath}`);
-    Object.entries(query || {}).forEach(([k, v]) => url.searchParams.set(k, v));
-    if (process.env.GOOGLE_BOOKS_API_KEY) url.searchParams.set("key", process.env.GOOGLE_BOOKS_API_KEY);
-
-    const response = await fetch(url.toString());
-    
-    if (relativePath === "volumes") {
-      const data = await response.json();
-      if (!response.ok) return res.status(response.status).json(data);
-      
-      const books = (data.items || []).map(item => {
-        const vol = item.volumeInfo || {};
-        const authors = vol.authors || [];
-        const imageLinks = vol.imageLinks || {};
-        const cover = imageLinks.thumbnail || imageLinks.smallThumbnail || "/images/fallback/book.svg";
-        
-        return {
-          id: item.id,
-          title: vol.title || "Unknown Title",
-          author: authors.length ? authors.join(", ") : "Unknown Author",
-          year: vol.publishedDate ? parseInt(vol.publishedDate.substring(0, 4)) : null,
-          cover: cover.replace("http:", "https:"),
-          description: vol.description || "",
-          _source: "google-books"
-        };
+  if (section === "trending") {
+    setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = Math.min(Number(query.limit) || 20, 40);
+    const genre = String(query.genre || "fiction").trim();
+    try {
+      const data = await googleFetch("volumes", {
+        q: `subject:${genre}`,
+        maxResults: String(limit),
+        orderBy: "relevance"
       });
-      res.setHeader("Cache-Control", "public, max-age=600");
-      return res.json({ ok: true, books, total: data.totalItems || books.length });
-    } else {
-      const text = await response.text();
-      res.status(response.status);
-      res.setHeader("content-type", response.headers.get("content-type") || "application/json");
-      return res.send(text);
+      const items = data.items || [];
+      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      return res.json({ ok: true, books, total: books.length, genre });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
     }
-  } catch (error) {
-    return res.status(500).json({ ok: false, message: "Proxy error" });
   }
-}
 
+  if (section === "new-releases") {
+    setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = Math.min(Number(query.limit) || 20, 40);
+    try {
+      const data = await googleFetch("volumes", {
+        q: "new release 2024 2025 2026",
+        maxResults: String(limit),
+        orderBy: "newest"
+      });
+      const items = data.items || [];
+      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      return res.json({ ok: true, books, total: books.length });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+    }
+  }
+
+  if (section === "popular") {
+    setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    const limit = Math.min(Number(query.limit) || 20, 40);
+    try {
+      const data = await googleFetch("volumes", {
+        q: "popular books 2024 2025",
+        maxResults: String(limit),
+        orderBy: "relevance"
+      });
+      const items = data.items || [];
+      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      return res.json({ ok: true, books, total: books.length });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+    }
+  }
+
+  if (section === "editors-picks") {
+    setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const limit = Math.min(Number(query.limit) || 12, 30);
+    try {
+      const picks = [
+        "subject:fiction orderBy:relevance",
+        "subject:nonfiction orderBy:relevance",
+        "subject:fantasy orderBy:relevance",
+        "subject:romance orderBy:relevance",
+        "subject:thriller orderBy:relevance",
+        "subject:biography orderBy:relevance",
+        "subject:science orderBy:relevance",
+        "subject:history orderBy:relevance",
+        "subject:self-help orderBy:relevance",
+        "subject:poetry orderBy:relevance",
+        "subject:mystery orderBy:relevance",
+        "subject:young-adult orderBy:relevance"
+      ];
+      const results = await Promise.all(
+        picks.slice(0, limit).map(q => googleFetch("volumes", { q, maxResults: "3" }).catch(() => null))
+      );
+      const books = [];
+      results.forEach(r => {
+        if (r && r.items) {
+          r.items.forEach(item => {
+            const n = normalizeSearchResult(item);
+            if (n.title && !books.find(b => b.id === n.id)) books.push(n);
+          });
+        }
+      });
+      return res.json({ ok: true, books, total: books.length });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+    }
+  }
+
+  if (section === "recommendations") {
+    setCache(res, { maxAge: 3600, staleWhileRevalidate: 86400 });
+    const bookId = String(query.id || "").trim();
+    if (!bookId) return res.status(400).json({ ok: false, message: "Missing book id" });
+    try {
+      const detailData = await googleFetch(`volumes/${encodeURIComponent(bookId)}`);
+      const vol = detailData.volumeInfo || {};
+      const author = (vol.authors || [])[0] || "";
+      const category = (vol.categories || [])[0] || "";
+      const searchTerms = [category, author].filter(Boolean).join(" ");
+      if (!searchTerms) return res.json({ ok: true, books: [], total: 0 });
+      const data = await googleFetch("volumes", {
+        q: searchTerms,
+        maxResults: "12"
+      });
+      const items = (data.items || []).filter(i => i.id !== bookId);
+      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      return res.json({ ok: true, books, total: books.length });
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+    }
+  }
+
+  if (section === "cover") {
+    const targetUrl = String(query.url || "").trim();
+    if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+    try {
+      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-books/1.0" } });
+      if (!proxyRes.ok) {
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+      }
+      const buffer = await proxyRes.arrayBuffer();
+      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.end(new Uint8Array(buffer));
+    } catch (_) {
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+    }
+  }
+
+  setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+  return res.json({ ok: true, service: "google-books", configured: !!key });
+}

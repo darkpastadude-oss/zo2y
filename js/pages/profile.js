@@ -10424,32 +10424,6 @@ resetDetailPanels();
                 showModal('mobileMenuModal');
             }
 
-            // ===== OVERFLOW MENU FUNCTIONS =====
-            function toggleOverflowMenu() {
-                const menu = document.getElementById('profileOverflowMenu');
-                if (!menu) return;
-                const isOpen = menu.classList.contains('open');
-                if (isOpen) {
-                    closeOverflowMenu();
-                } else {
-                    menu.classList.add('open');
-                    document.addEventListener('click', closeOverflowMenuOnOutsideClick);
-                }
-            }
-
-            function closeOverflowMenu() {
-                const menu = document.getElementById('profileOverflowMenu');
-                if (menu) menu.classList.remove('open');
-                document.removeEventListener('click', closeOverflowMenuOnOutsideClick);
-            }
-
-            function closeOverflowMenuOnOutsideClick(e) {
-                const wrap = document.querySelector('.pv2-overflow-wrap');
-                if (wrap && !wrap.contains(e.target)) {
-                    closeOverflowMenu();
-                }
-            }
-
             // ===== AVATAR FUNCTIONS =====
             function showAvatarModal() {
                 if (!isViewingOwnProfile) return;
@@ -11123,9 +11097,21 @@ resetDetailPanels();
                 return unique;
             }
 
+            function toggleOverflowMenu() {
+                var menu = document.getElementById('profileOverflowMenu');
+                if (menu) menu.classList.toggle('open');
+            }
+
+            function closeOverflowMenu() {
+                var menu = document.getElementById('profileOverflowMenu');
+                if (menu) menu.classList.remove('open');
+            }
+
             // ===== PUBLIC API =====
             return {
                 initialize,
+                toggleOverflowMenu,
+                closeOverflowMenu,
                 showTab,
                 showPrimaryTab,
                 showRailShowcaseDetail,
@@ -11202,8 +11188,6 @@ resetDetailPanels();
                 setRating,
                 toggleFollow,
                 showMobileMenu,
-                toggleOverflowMenu,
-                closeOverflowMenu,
                 showCreateListTypeModal,
                 createListForType,
                 logout,
