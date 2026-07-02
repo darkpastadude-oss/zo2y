@@ -799,7 +799,7 @@ export function applySecurityHeaders(_req, res, next) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
-    "connect-src 'self' https://api.rawg.io https://gfkhjbztayjyojsgdpgk.supabase.co https://api.supabase.com https://image.tmdb.org https://covers.openlibrary.org https://books.googleusercontent.com https://i.scdn.co https://images.igdb.com https://flagcdn.com https://commons.wikimedia.org https://www.thesportsdb.com https://media.rawg.io https://is1-ssl.mzstatic.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org",
+    "connect-src 'self' https://cdn-images.dzcdn.net https://api.rawg.io https://gfkhjbztayjyojsgdpgk.supabase.co https://api.supabase.com https://image.tmdb.org https://covers.openlibrary.org https://books.googleusercontent.com https://i.scdn.co https://images.igdb.com https://flagcdn.com https://commons.wikimedia.org https://www.thesportsdb.com https://media.rawg.io https://is1-ssl.mzstatic.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org",
     "frame-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
