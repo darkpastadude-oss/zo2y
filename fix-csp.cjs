@@ -3,8 +3,8 @@ const fs = require('fs');
 const addDomains = (content) => {
   if (content.includes("connect-src 'self'")) {
     let replaced = content;
-    if (!replaced.includes('https://cdn-images.dzcdn.net')) {
-      replaced = replaced.replace(/connect-src 'self'/, "connect-src 'self' https://cdn-images.dzcdn.net");
+    if (!replaced.includes('https://*.dzcdn.net')) {
+      replaced = replaced.replace(/connect-src 'self'/, "connect-src 'self' https://*.dzcdn.net");
     }
     if (!replaced.includes('https://i.scdn.co')) {
       replaced = replaced.replace(/connect-src 'self'/, "connect-src 'self' https://i.scdn.co");
