@@ -103,7 +103,10 @@ async function appleRssFetch(endpoint, timeoutMs = 7000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url.toString(), { signal: controller.signal });
+    const res = await fetch(url.toString(), { 
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+    });
     clearTimeout(timeout);
     if (!res.ok) return null;
     return res.json();
@@ -167,7 +170,7 @@ function normalizeAppleTrack(track) {
     durationMs: Number(track.trackTimeMillis || 0),
     popularity: 0,
     trackNumber: Number(track.trackNumber || 0),
-    discNumber: Number(track.discNumber || 1),
+    discNumber: Number(track.trackNumber || 1),
     explicit: track.trackExplicitness === "explicit",
     releaseDate: String(track.releaseDate || "").trim(),
     genres: [String(track.primaryGenreName || "").trim()].filter(Boolean),
@@ -256,14 +259,11 @@ function normalizeSpotifyAlbum(album) {
 
 function normalizeAppleAlbum(album) {
   if (!album) return null;
-  const isRss = !!album.id;
-  
-  let image = album.artworkUrl100 || "";
-  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
-  
-  const id = isRss ? String(album.id) : String(album.collectionId || "");
+  const isRss = album.kind === "albums";
+  if (!isRss && album.wrapperType !== "collection" && album.collectionType !== "Album") return null;
+  const id = isRss ? String(album.id || "") : String(album.collectionId || "");
+  const artists = [String(album.artistName || "").trim()].filter(Boolean);
   const title = String(album.name || album.collectionName || "").trim();
-  const artist = String(album.artistName || "").trim();
   const externalUrl = String(album.url || album.collectionViewUrl || "").trim();
   const releaseDate = String(album.releaseDate || "").trim();
   const explicit = album.collectionExplicitness === "explicit" || album.contentAdvisoryRating === "Explict";
@@ -273,14 +273,16 @@ function normalizeAppleAlbum(album) {
   } else if (album.primaryGenreName) {
     genres = [String(album.primaryGenreName).trim()];
   }
+  let image = album.artworkUrl100 || "";
+  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
 
   return {
     id: id,
     mediaType: "music",
-    title: title,
-    subtitle: artist,
-    artist: artist,
-    artists: [artist].filter(Boolean),
+    title: title || "",
+    subtitle: artists.join(", "),
+    artist: artists.join(", "),
+    artists: artists,
     albumName: title,
     albumId: id,
     albumType: "album",

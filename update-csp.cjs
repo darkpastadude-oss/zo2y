@@ -1,16 +1,10 @@
 const fs = require('fs');
-const files = fs.readdirSync('.').filter(f => f.endsWith('.html'));
-files.forEach(f => {
-  let content = fs.readFileSync(f, 'utf8');
-  if (content.includes('connect-src \'self\'') && !content.includes('https://api.rawg.io')) {
-    content = content.replace(/connect-src 'self'/, "connect-src 'self' https://api.rawg.io");
-    fs.writeFileSync(f, content);
-  }
-});
+let content = fs.readFileSync('index.html', 'utf8');
+content = content.replace(/media-src 'self' https:\/\/\*\.supabase\.co blob:;/g, "media-src 'self' https://*.supabase.co blob: https://*.apple.com;");
+content = content.replace(/connect-src 'self' ([^;]+);/g, "connect-src 'self' $1 https://*.apple.com https://rss.applemarketingtools.com https://*.mzstatic.com https://image.tmdb.org https://media.rawg.io;");
+fs.writeFileSync('index.html', content);
 
-let guardrails = fs.readFileSync('backend/lib/guardrails.js', 'utf8');
-if (!guardrails.includes('https://api.rawg.io')) {
-  guardrails = guardrails.replace(/connect-src 'self'/, "connect-src 'self' https://api.rawg.io");
-  fs.writeFileSync('backend/lib/guardrails.js', guardrails);
-}
-console.log("CSP updated.");
+let mcontent = fs.readFileSync('music.html', 'utf8');
+mcontent = mcontent.replace(/media-src 'self' https:\/\/\*\.supabase\.co blob:;/g, "media-src 'self' https://*.supabase.co blob: https://*.apple.com;");
+mcontent = mcontent.replace(/connect-src 'self' ([^;]+);/g, "connect-src 'self' $1 https://*.apple.com https://rss.applemarketingtools.com https://*.mzstatic.com https://image.tmdb.org https://media.rawg.io;");
+fs.writeFileSync('music.html', mcontent);
