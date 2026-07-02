@@ -404,7 +404,7 @@ export default async function handler(req, res) {
     try {
       if (includeTracks) {
         const spotifyTracks = await spotifySearchTracks(q, Math.min(limit * 2, 50), market);
-        if (spotifyTracks) {
+        if (spotifyTracks && spotifyTracks.length > 0) {
           tracks = spotifyTracks;
         } else {
           tracks = await appleSearchTracks(q, Math.min(limit * 2, 50));
@@ -412,7 +412,7 @@ export default async function handler(req, res) {
       }
       if (includeAlbums) {
         const spotifyAlbums = await spotifySearchAlbums(q, Math.min(limit * 2, 50), market);
-        if (spotifyAlbums) {
+        if (spotifyAlbums && spotifyAlbums.length > 0) {
           albums = spotifyAlbums;
         } else {
           albums = await appleSearchAlbums(q, Math.min(limit * 2, 50));

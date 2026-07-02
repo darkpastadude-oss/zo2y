@@ -2812,14 +2812,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         };
         const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
           const artists = String(track?.artist || '').trim();
-          const title = String(track?.title || 'Track').trim() || 'Track';
+          const title = String(track?.title || track?.name || 'Track').trim() || 'Track';
           const albumName = String(track?.albumName || '').trim() || 'Unknown Album';
           const containerLabel = getTrackContainerLabel(track);
           const image = String(track?.image || '').trim();
           const releaseDateSort = Date.now() - (idx * 1000);
           const item = {
             mediaType: 'music',
-            itemId: String(track?.id || ''),
+            itemId: String(track?.itemId || track?.id || ''),
             title,
             subtitle: artists || 'Artist',
             image,
