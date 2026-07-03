@@ -170,7 +170,7 @@ function normalizeAppleTrack(track) {
     durationMs: Number(track.trackTimeMillis || 0),
     popularity: 0,
     trackNumber: Number(track.trackNumber || 0),
-    discNumber: Number(track.trackNumber || 1),
+    discNumber: Number(track.discNumber || 1),
     explicit: track.trackExplicitness === "explicit",
     releaseDate: String(track.releaseDate || "").trim(),
     genres: [String(track.primaryGenreName || "").trim()].filter(Boolean),

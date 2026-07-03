@@ -364,7 +364,7 @@
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v3';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v3';
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v4';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
