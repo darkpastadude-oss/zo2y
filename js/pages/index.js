@@ -5924,6 +5924,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -9952,7 +9953,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadMusic(signal) {
       const targetCount = Math.max(8, Number(getHomeChannelTargetItems() || 12));
       const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return cached.slice(0, targetCount);
+      if (cached.length) return shuffleArray(cached).slice(0, targetCount);
 
       const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
 
