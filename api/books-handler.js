@@ -151,6 +151,27 @@ export default async function booksHandler(req, res) {
     return fetchJson(url.toString(), { cacheKey: `ol:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
   };
 
+  if (section === "cover") {
+    const targetUrl = String(query.url || "").trim();
+    if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+    try {
+      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-books/1.0" } });
+      if (!proxyRes.ok) {
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+      }
+      const buffer = await proxyRes.arrayBuffer();
+      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.end(new Uint8Array(buffer));
+    } catch (_) {
+      res.setHeader("Content-Type", "image/svg+xml");
+      res.setHeader("Cache-Control", "public, max-age=3600");
+      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+    }
+  }
+
   if (section === "search" || section === "volumes") {
     setCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
     const q = String(query.q || "").trim();
