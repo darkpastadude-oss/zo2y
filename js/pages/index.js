@@ -9977,27 +9977,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const normalizeAlbum = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum : (x) => x;
 
       const mapTrack = (t) => {
-        if (!t || !t.title) return null;
-        const img = proxyMusicCover(t.image);
+        if (!t || (!t.title && !t.name)) return null;
+        const img = proxyMusicCover(t.image || t.thumbnail || '');
         return {
           mediaType: 'music', itemId: t.id || '',
-          title: t.title, subtitle: t.artist || '',
-          extra: t.albumName ? `Song | ${t.albumName}` : 'Song',
+          title: t.title || t.name || 'Track', 
+          subtitle: t.artist || t.artists || 'Artist',
+          extra: (t.albumName || t.album || t.album_name) ? `Song | ${t.albumName || t.album || t.album_name}` : 'Song',
           image: img, backgroundImage: img, spotlightImage: img,
           spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          previewUrl: t.previewUrl || '',
+          previewUrl: t.previewUrl || t.preview_url || '',
           href: t.id ? `song.html?id=${encodeURIComponent(t.id)}` : 'music.html'
         };
       };
 
       const mapAlbum = (a) => {
-        if (!a || !a.title) return null;
-        const img = proxyMusicCover(a.image);
-        const releaseDate = a.releaseDate ? String(a.releaseDate).slice(0, 10) : '';
+        if (!a || (!a.title && !a.name)) return null;
+        const img = proxyMusicCover(a.image || a.thumbnail || '');
+        const releaseDate = a.releaseDate || a.release_date || '';
+        const rd = releaseDate ? String(releaseDate).slice(0, 10) : '';
         return {
           mediaType: 'music', itemId: `album:${a.id}`,
-          title: a.title, subtitle: a.artist || '',
-          extra: `Album${releaseDate ? ` | Released ${releaseDate}` : ''}`,
+          title: a.title || a.name || 'Album', 
+          subtitle: a.artist || a.artists || 'Artist',
+          extra: `Album${rd ? ` | Released ${rd}` : ''}`,
           image: img, backgroundImage: img, spotlightImage: img,
           spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
           href: a.id ? `song.html?album_id=${encodeURIComponent(a.id)}` : 'music.html',
@@ -10018,12 +10021,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
 
       const [trackData, albumData] = await Promise.all([
-        fetchJson(`/api/music/popular?limit=50`),
+        fetchJson(`/api/music/trending?limit=50&market=US`),
         fetchJson(`/api/music/new-releases?limit=30`)
       ]);
 
-      let trackRows = safeArr(trackData?.results).map(normalize).filter(Boolean);
-      let albumRows = safeArr(albumData?.results).map(normalizeAlbum).filter(Boolean);
+      let trackRows = safeArr(trackData?.results || trackData?.tracks).map(normalize).filter(Boolean);
+      let albumRows = safeArr(albumData?.results || albumData?.albums).map(normalizeAlbum).filter(Boolean);
 
       if (trackRows.length || albumRows.length) {
         trackRows = shuffleArray(trackRows);
