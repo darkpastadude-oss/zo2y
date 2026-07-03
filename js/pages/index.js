@@ -4,8 +4,8 @@
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
     const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
-      ? ['movie', 'tv', 'anime', 'game', 'book', 'music', 'travel', 'sports']
-      : ['movie', 'tv', 'anime', 'book', 'music', 'travel', 'sports'];
+      ? ['movie', 'tv', 'anime', 'game', 'travel', 'sports']
+      : ['movie', 'tv', 'anime', 'travel', 'sports'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
@@ -311,8 +311,6 @@
       tv: { label: 'TV', icon: 'fa-tv', accent: '#22c55e' },
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
       ...(ENABLE_GAMES ? { game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' } } : {}),
-      book: { label: 'Book', icon: 'fa-book', accent: '#f97316' },
-      music: { label: 'Music', icon: 'fa-music', accent: '#f59e0b' },
       travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' },
       sports: { label: 'Sports', icon: 'fa-futbol', accent: '#f59e0b' }
     };
@@ -326,8 +324,6 @@
       tv: { table: 'tv_list_items', itemField: 'tv_id' },
       anime: { table: 'anime_list_items', itemField: 'anime_id' },
       ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
-      book: { table: 'book_list_items', itemField: 'book_id' },
-      music: { table: 'music_list_items', itemField: 'track_id' },
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
       ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
@@ -338,8 +334,6 @@
       tv: { table: 'tv_reviews', itemField: 'tv_id' },
       anime: { table: 'anime_reviews', itemField: 'anime_id' },
       ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
-      book: { table: 'book_reviews', itemField: 'book_id' },
-      music: { table: 'music_reviews', itemField: 'track_id' },
       travel: { table: 'travel_reviews', itemField: 'country_code' }
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_v2_home_feed_cache';
@@ -362,10 +356,6 @@
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v2';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v5';
-    const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v6';
-    const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
     const HOME_SPOTLIGHT_BUCKET_NAME = 'home-spotlights';
     const HOME_BRAND_BACKGROUND_BUCKET_NAME = 'brand-backgrounds';
@@ -714,43 +704,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const encodedPath = targetPath.split('/').map((segment) => encodeURIComponent(segment)).join('/');
       return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedPath}`;
     }
-    const HOME_BOOK_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
-        <defs>
-          <linearGradient id='paperGrad' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#f7f0e4' />
-            <stop offset='52%' stop-color='#efe5d2' />
-            <stop offset='100%' stop-color='#f4e9d8' />
-          </linearGradient>
-        </defs>
-        <rect width='1600' height='900' fill='url(#paperGrad)' />
-        <circle cx='1320' cy='200' r='220' fill='rgba(248,200,138,0.22)' />
-        <circle cx='260' cy='740' r='260' fill='rgba(188,214,240,0.18)' />
-        <circle cx='940' cy='660' r='190' fill='rgba(205,231,214,0.18)' />
-      </svg>
-    `)}`;
-    const HOME_MUSIC_SPOTLIGHT_BG = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
-        <defs>
-          <linearGradient id='musicGrad' x1='0' y1='0' x2='1' y2='1'>
-            <stop offset='0%' stop-color='#042f2e' />
-            <stop offset='52%' stop-color='#0f766e' />
-            <stop offset='100%' stop-color='#115e59' />
-          </linearGradient>
-        </defs>
-        <rect width='1600' height='900' fill='url(#musicGrad)' />
-        <circle cx='1250' cy='170' r='230' fill='rgba(16,185,129,0.28)' />
-        <circle cx='260' cy='770' r='250' fill='rgba(59,130,246,0.16)' />
-        <g fill='rgba(255,255,255,0.16)'>
-          <rect x='400' y='450' width='56' height='170' rx='28' />
-          <rect x='490' y='380' width='56' height='240' rx='28' />
-          <rect x='580' y='330' width='56' height='290' rx='28' />
-          <rect x='670' y='280' width='56' height='340' rx='28' />
-          <rect x='760' y='320' width='56' height='300' rx='28' />
-          <rect x='850' y='360' width='56' height='260' rx='28' />
-        </g>
-      </svg>
-    `)}`;
     const HOME_FASHION_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'fashion.jpg');
     const HOME_FOOD_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'food.jpg');
     const HOME_CAR_SPOTLIGHT_BG = getHomePublicBucketUrl(HOME_SPOTLIGHT_BUCKET_NAME, 'cars.jpg');
@@ -785,8 +738,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       { id: 'tv', label: 'TV Shows', kind: 'type', tags: ['tv', 'television', 'show', 'series'] },
       { id: 'anime', label: 'Anime', kind: 'type', tags: ['anime'] },
       ...(ENABLE_GAMES ? [{ id: 'game', label: 'Games', kind: 'type', tags: ['game', 'games', 'gaming'] }] : []),
-      { id: 'book', label: 'Books', kind: 'type', tags: ['book', 'books', 'reading'] },
-      { id: 'music', label: 'Music', kind: 'type', tags: ['music'] },
       { id: 'travel', label: 'Travel', kind: 'type', tags: ['travel'] },
       { id: 'sports', label: 'Sports', kind: 'type', tags: ['sports'] },
       ...(ENABLE_FASHION ? [{ id: 'fashion', label: 'Fashion', kind: 'type', tags: ['fashion', 'style', 'clothing'] }] : []),
@@ -834,8 +785,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       tv: { icon: 'fas fa-tv', hint: 'Series and rewatches', fallback: '/images/onboarding/onboard-profile.svg' },
       anime: { icon: 'fas fa-dragon', hint: 'Shonen and classics', fallback: '/images/onboarding/onboard-interests.svg' },
       game: { icon: 'fas fa-gamepad', hint: 'Backlogs and finishes', fallback: '/images/onboarding/onboard-interests.svg' },
-      book: { icon: 'fas fa-book', hint: 'Read piles and standouts', fallback: '/images/onboarding/onboard-travel.svg' },
-      music: { icon: 'fas fa-music', hint: 'Albums and tracks', fallback: '/images/onboarding/onboard-media.svg' },
       travel: { icon: 'fas fa-earth-americas', hint: 'Trips and countries', fallback: '/images/onboarding/onboard-travel.svg' },
       sports: { icon: 'fas fa-futbol', hint: 'Teams and leagues', fallback: '/images/onboarding/onboard-media.svg' },
       fashion: { icon: 'fas fa-shirt', hint: 'Brands and style', fallback: '/images/onboarding/onboard-fashion.svg' },
@@ -940,7 +889,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const k = String(key || '').trim();
       if (!k) return false;
       // Focus retries on the rails that historically “lock” after refresh.
-      if (!['travel', 'sports', 'car', 'music'].includes(k)) return false;
+      if (!['travel', 'sports', 'car'].includes(k)) return false;
       return Number(attempt || 0) < 4;
     }
 
@@ -2072,8 +2021,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function getHomeSpotlightBackgroundByType(mediaType) {
       const type = String(mediaType || '').toLowerCase();
-      if (type === 'book') return HOME_BOOK_SPOTLIGHT_BG;
-      if (type === 'music') return HOME_MUSIC_SPOTLIGHT_BG;
       return '';
     }
 
@@ -2125,8 +2072,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (type === 'tv') return 'TV Shows';
       if (type === 'anime') return 'Anime';
       if (type === 'game') return 'Games';
-      if (type === 'book') return 'Books';
-      if (type === 'music') return 'Music';
       if (type === 'travel') return 'Travel';
       if (type === 'sports') return 'Sports';
       if (type === 'restaurant') return 'Restaurants';
@@ -2180,26 +2125,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
             { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
             { key: 'watchlist', label: 'Backlog', icon: 'fas fa-bookmark' }
-          ]
-        };
-      }
-      if (type === 'book') {
-        return {
-          customHref: 'books.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'read', label: 'Read', icon: 'fas fa-eye' },
-            { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
-          ]
-        };
-      }
-      if (type === 'music') {
-        return {
-          customHref: 'music.html',
-          rows: [
-            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-            { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
-            { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
           ]
         };
       }
@@ -2413,10 +2338,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const spotlightMediaPosition = String(item.spotlightMediaPosition || item.imagePosition || '').trim();
       let spotlightMediaFit = String(item.spotlightMediaFit || '').trim() || 'contain';
       let spotlightMediaShape = String(item.spotlightMediaShape || '').trim() || 'poster';
-      if (String(item.mediaType || '').toLowerCase() === 'music') {
-        spotlightMediaFit = 'contain';
-        spotlightMediaShape = 'poster';
-      } else if (isTravelSpotlight && travelFlagImage) {
+      if (isTravelSpotlight && travelFlagImage) {
         spotlightMediaFit = 'contain';
         spotlightMediaShape = 'square';
       }
@@ -2424,13 +2346,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const usesLandscapeMedia = spotlightMediaShape === 'landscape';
       const mediaToken = ++homeSpotlightImageToken;
 
-      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-music', 'theme-book', 'theme-travel', 'travel-single-visual');
+      spotlightSection.classList.remove('has-square-media', 'has-landscape-media', 'theme-travel', 'travel-single-visual');
       mediaWrap.classList.remove('square', 'landscape');
-      if (mediaTypeKey === 'music') {
-        spotlightSection.classList.add('theme-music');
-      } else if (mediaTypeKey === 'book') {
-        spotlightSection.classList.add('theme-book');
-      } else if (isTravelSpotlight) {
+      if (isTravelSpotlight) {
         spotlightSection.classList.add('theme-travel');
         spotlightSection.classList.add('travel-single-visual');
       }
@@ -2470,9 +2388,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           item.spotlightImage,
           item.backgroundImage
         ];
-        if (String(item.mediaType || '').toLowerCase() === 'book') {
-          fallbackCandidates.push(getBookCoverFallback(item));
-        }
         setSpotlightImageWithFallback(mediaImage, fallbackCandidates, mediaToken);
       } else {
         if (mediaImage.__homeSpotlightOnLoad) {
@@ -2627,7 +2542,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function buildNewReleasesFallback(feedMap = homeFeedState) {
-      const sourceOrder = ['movie', 'tv', 'anime', 'game', 'book'];
+      const sourceOrder = ['movie', 'tv', 'anime', 'game'];
       const seen = new Set();
       const fallback = [];
       sourceOrder.forEach((key) => {
@@ -2646,8 +2561,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadNewReleases(signal) {
       const now = new Date();
       const currentYear = now.getUTCFullYear();
-      const recentBookMinYear = Math.max(2018, currentYear - 1);
-      const bookReleaseQuery = encodeURIComponent(`bestseller new release fiction ${currentYear}`);
       const toIsoDate = (value) => {
         const date = value instanceof Date ? value : new Date(value);
         return Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : '';
@@ -2762,127 +2675,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
       };
 
-      const mapBookRows = (rows, label, takeCount = 6) => {
-        const list = Array.isArray(rows) ? rows : [];
-        const buildCover = (row) => {
-          const directCover = toHttpsUrl(row?.cover || row?.image || row?.thumbnail || '');
-          return directCover || '';
-        };
-        return list.slice(0, takeCount).map((row, idx) => {
-          const title = String(row?.title || row?.name || '').trim();
-          if (!title) return null;
-          const author = String(row?.author || '').trim();
-          const year = Number(row?.year || 0) || 0;
-          const cover = buildCover(row);
-          if (!cover) return null;
-          const itemId = String(row?.id || `book-${idx}`).trim();
-          const href = itemId
-            ? `book.html?id=${encodeURIComponent(itemId)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(author || 'Unknown author')}`
-            : 'books.html';
-          const releaseDateSort = year > 0 ? Date.UTC(year, 0, 1) : 0;
-          const item = {
-            mediaType: 'book',
-            itemId: itemId || `book-${idx}`,
-            title,
-            subtitle: author ? `${author}${year ? ` | ${year}` : ''}` : (year ? String(year) : 'Book'),
-            image: cover,
-            backgroundImage: cover,
-            spotlightImage: cover,
-            spotlightMediaImage: cover,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            maturityRating: '',
-            href,
-            fallbackImage: ''
-          };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: year > 0 ? String(year) : '' });
-        }).filter(Boolean);
-      };
-
-      const mapMusicRows = (trackRows, albumRows, label, takeCount = 6) => {
-        const getTrackContainerLabel = (row = {}) => {
-          const title = String(row?.title || '').trim().toLowerCase();
-          const albumName = String(row?.albumName || '').trim();
-          const albumType = String(row?.albumType || '').trim().toLowerCase();
-          const totalTracks = Number(row?.trackCount || 0);
-          const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-          if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-          if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-          return 'Album';
-        };
-        const tracks = (Array.isArray(trackRows) ? trackRows : []).slice(0, Math.max(takeCount * 2, 8)).map((track, idx) => {
-          const artists = String(track?.artist || '').trim();
-          const title = String(track?.title || track?.name || 'Track').trim() || 'Track';
-          const albumName = String(track?.albumName || '').trim() || 'Unknown Album';
-          const containerLabel = getTrackContainerLabel(track);
-          const image = String(track?.image || '').trim();
-          const releaseDateSort = Date.now() - (idx * 1000);
-          const item = {
-            mediaType: 'music',
-            itemId: String(track?.itemId || track?.id || ''),
-            title,
-            subtitle: artists || 'Artist',
-            image,
-            backgroundImage: image,
-            spotlightImage: image,
-            spotlightMediaImage: image,
-            previewUrl: String(track?.previewUrl || '').trim(),
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            explicit: track?.explicit === true,
-            href: String(track?.id || '').trim() ? `song.html?id=${encodeURIComponent(track.id)}` : 'music.html'
-          };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail: `Song | ${containerLabel}: ${albumName}` });
-        }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
-
-        const albums = (Array.isArray(albumRows) ? albumRows : []).slice(0, Math.max(takeCount, 4)).map((album, idx) => {
-          const artists = String(album?.artist || '').trim();
-          const image = String(album?.image || '').trim();
-          const albumIdRaw = String(album?.id || '').trim();
-          const albumId = albumIdRaw.startsWith('album:') ? albumIdRaw.slice(6) : albumIdRaw;
-          const provider = String(album?.provider || '').trim().toLowerCase() || (/^[0-9]+$/.test(albumId) ? 'itunes' : 'spotify');
-          const albumType = String(album?.albumType || 'album').trim().toLowerCase();
-          if (albumType && albumType !== 'album') return null;
-          const releaseDate = String(album?.releaseDate || '').trim();
-          const parsedRelease = Date.parse(releaseDate);
-          const releaseDateSort = Number.isFinite(parsedRelease) ? parsedRelease : (Date.now() - ((idx + 1) * 900));
-          const detailBits = [releaseDate ? `Released ${releaseDate}` : '', Number(album?.trackCount || 0) > 0 ? `${Number(album.trackCount)} tracks` : ''].filter(Boolean);
-          const detail = detailBits.length ? `Album | ${detailBits.join(' | ')}` : 'Album';
-          const href = albumId
-            ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(provider)}`
-            : 'music.html';
-          const item = {
-            mediaType: 'music',
-            itemId: albumId ? `album:${albumId}` : '',
-            title: String(album?.title || 'Album').trim() || 'Album',
-            subtitle: artists || 'Artist',
-            image,
-            backgroundImage: image,
-            spotlightImage: image,
-            spotlightMediaImage: image,
-            spotlightMediaFit: 'contain',
-            spotlightMediaShape: 'poster',
-            href,
-            isMusicAlbum: true
-          };
-          return withReleaseTag({ ...item, releaseDateSort }, label, { detail });
-        }).filter((item) => String(item.itemId || '').trim() && String(item.image || '').trim());
-
-        const mixed = [];
-        const trackQueue = [...tracks];
-        const albumQueue = [...albums];
-        while (mixed.length < takeCount && (trackQueue.length || albumQueue.length)) {
-          if (albumQueue.length) mixed.push(albumQueue.shift());
-          if (trackQueue.length && mixed.length < takeCount) mixed.push(trackQueue.shift());
-          if (albumQueue.length && mixed.length < takeCount) mixed.push(albumQueue.shift());
-        }
-        while (mixed.length < takeCount && trackQueue.length) mixed.push(trackQueue.shift());
-        while (mixed.length < takeCount && albumQueue.length) mixed.push(albumQueue.shift());
-        return mixed.slice(0, takeCount);
-      };
-
       const includeExtendedSources = !isHomeCompactViewport() && !isHomeSlowNetwork();
-      const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes, booksRes, musicTrackRes, musicAlbumRes] = await Promise.allSettled([
+      const [movieNowRes, movieUpcomingRes, tvEpisodeRes, tvSeasonRes, animeEpisodeRes, animeSeasonRes, gamesRes] = await Promise.allSettled([
         fetchJsonWithPerfCache(
           `${TMDB_PROXY_BASE}/movie/now_playing?language=en-US&page=${movieNowPage}`,
           { signal, cacheKey: `tmdb:new-releases:movie-now:${movieNowPage}` }
@@ -2928,21 +2722,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .limit(24);
             return { results: Array.isArray(data) ? data : [] };
           })()
-          : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            `/api/books/popular?limit=30&page=1&language=en&orderBy=newest&q=${bookReleaseQuery}`,
-            { signal, cacheKey: `books:new-releases:newest:${recentBookMinYear}:${currentYear}` }
-          )
-          : Promise.resolve({ books: [] }),
-        includeExtendedSources
-          ? Promise.resolve({ results: [] }) // Removed top-50 from new releases to prevent old fallback tracks
-          : Promise.resolve({ results: [] }),
-        includeExtendedSources
-          ? fetchJsonWithPerfCache(
-            '/api/music/new-releases?limit=40&market=US&album_types=album',
-            { signal, cacheKey: 'music:new-releases:albums-us-40:album' }
-          )
           : Promise.resolve({ results: [] })
       ]);
 
@@ -2955,23 +2734,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const gameRows = ENABLE_GAMES && gamesRes.status === 'fulfilled'
         ? (Array.isArray(gamesRes.value?.results) ? gamesRes.value.results : (Array.isArray(gamesRes.value) ? gamesRes.value : []))
         : [];
-      const rawBookRows = booksRes.status === 'fulfilled' && Array.isArray(booksRes.value?.books)
-        ? booksRes.value.books
-        : [];
-      const bookRows = rawBookRows.slice().sort((a, b) => {
-        const yearA = Number(a?.year || 0) || 0;
-        const yearB = Number(b?.year || 0) || 0;
-        return yearB - yearA;
-      });
-      const musicTrackRows = musicTrackRes.status === 'fulfilled' && Array.isArray(musicTrackRes.value?.results)
-        ? musicTrackRes.value.results
-        : [];
-      const musicAlbumRows = musicAlbumRes.status === 'fulfilled' && Array.isArray(musicAlbumRes.value?.results)
-        ? musicAlbumRes.value.results
-        : [];
-
-      const musicTracks = musicTrackRows.map(function (t) { return (typeof window.normalizeTrack === 'function' && t) ? window.normalizeTrack(t) || t : t; });
-      const musicAlbums = musicAlbumRows.map(function (a) { return (typeof window.normalizeAlbum === 'function' && a) ? window.normalizeAlbum(a) || a : a; });
 
       const combined = [
         ...mapShowRows(tvEpisodeRows, 'tv', 'New Episode', 5, { detail: 'Airing Today' }),
@@ -2980,9 +2742,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...mapShowRows(animeSeasonRows, 'anime', 'New Season', 4, { detail: 'Latest Season' }),
         ...mapMovieRows(movieNowRows, 'New Release', 5),
         ...mapMovieRows(movieUpcomingRows, 'Upcoming Release', 3),
-        ...(ENABLE_GAMES ? mapGameRows(gameRows, 'New Release', 4) : []),
-        ...mapBookRows(bookRows, 'New Release', 4),
-        ...mapMusicRows(musicTracks, musicAlbums, 'Chart Update', 4)
+        ...(ENABLE_GAMES ? mapGameRows(gameRows, 'New Release', 4) : [])
       ];
 
       const deduped = dedupeHomeItemsByMediaAndId(combined)
@@ -3154,12 +2914,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const type = String(mediaType || '').trim().toLowerCase();
       if (!(typeWeights instanceof Map) || !type) return 0;
       const relatedGroups = {
-        movie: ['tv', 'anime', 'book'],
-        tv: ['movie', 'anime', 'book'],
+        movie: ['tv', 'anime'],
+        tv: ['movie', 'anime'],
         anime: ['tv', 'movie', 'game'],
         game: ['anime', 'movie'],
-        book: ['movie', 'tv', 'anime'],
-        music: ['book'],
         travel: ['sports'],
         sports: ['travel']
       };
@@ -3759,7 +3517,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, animeRes, gameRes, bookRes, musicRes, travelRes, listRes] = await Promise.all([
+        const [movieRes, tvRes, animeRes, gameRes, travelRes, listRes] = await Promise.all([
           client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
@@ -3768,8 +3526,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ENABLE_GAMES
             ? client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
             : Promise.resolve({ count: 0 }),
-          client.from('book_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('music_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
           client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
             .then((res) => res)
             .catch(() => ({ count: 0 })),
@@ -3793,8 +3549,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           tv: Number(tvRes?.count || 0),
           anime: Number(animeRes?.count || 0),
           ...(ENABLE_GAMES ? { game: Number(gameRes?.count || 0) } : {}),
-          book: Number(bookRes?.count || 0),
-          music: Number(musicRes?.count || 0),
           travel: Number(travelRes?.count || 0),
           ...(ENABLE_RESTAURANTS ? { restaurant: restaurantCount } : {})
         };
@@ -4049,27 +3803,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       const ensureLinkedMediaRecord = async (itemId) => {
-        if (mediaType === 'book') {
-          if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
-            return await ListUtils.ensureBookRecord(client, {
-              id: String(itemId),
-              title: payload.title || '',
-              authors: getHomeBookAuthorsText(payload.subtitle),
-              thumbnail: payload.image || ''
-            });
-          }
-          return false;
-        }
-
-        if (mediaType === 'music') {
-          await client.from('tracks').upsert({
-            id: String(itemId),
-            name: payload.title || '',
-            artists: payload.subtitle || '',
-            image_url: payload.image || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-        }
         return true;
       };
 
@@ -4755,22 +4488,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const item = homeItemMenuState.currentItem;
       if (!item) return null;
       const mediaType = String(item.mediaType || '').toLowerCase();
-      if (mediaType === 'book') {
-        return {
-          id: item.itemId,
-          title: item.title || '',
-          authors: getHomeBookAuthorsText(item.subtitle),
-          thumbnail: item.image || ''
-        };
-      }
-      if (mediaType === 'music') {
-        return {
-          id: item.itemId,
-          name: item.title || '',
-          artists: item.subtitle || '',
-          image: item.image || ''
-        };
-      }
       if (mediaType === 'travel') {
         return {
           id: String(item.itemId || '').toUpperCase(),
@@ -4854,7 +4571,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       const mt = homeItemMenuState.currentItem?.mediaType || '';
-      const fb = ({movie:'fas fa-film',tv:'fas fa-tv',anime:'fas fa-dragon',game:'fas fa-gamepad',book:'fas fa-book',music:'fas fa-music',travel:'fas fa-earth-americas',fashion:'fas fa-shirt',food:'fas fa-burger',car:'fas fa-car',sports:'fas fa-futbol',restaurant:'fas fa-clapperboard'})[mt] || 'fas fa-list';
+      const fb = ({movie:'fas fa-film',tv:'fas fa-tv',anime:'fas fa-dragon',game:'fas fa-gamepad',travel:'fas fa-earth-americas',fashion:'fas fa-shirt',food:'fas fa-burger',car:'fas fa-car',sports:'fas fa-futbol',restaurant:'fas fa-clapperboard'})[mt] || 'fas fa-list';
       customContainer.innerHTML = homeItemMenuState.customLists.map((list) => {
         const isActive = homeItemMenuState.selectedCustomLists.has(list.id);
         return `
@@ -5132,8 +4849,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         tv: 'Custom TV Lists',
         anime: 'Custom Anime Lists',
         game: 'Custom Game Lists',
-        book: 'Custom Book Lists',
-        music: 'Custom Music Lists',
         travel: 'Custom Travel Lists',
         restaurant: 'Custom Restaurant Lists'
       };
@@ -5233,21 +4948,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (window.ListUtils) {
         const mediaType = String(homeCustomListState.mediaType || '').toLowerCase();
         let itemPayload = null;
-        if (mediaType === 'book') {
-          itemPayload = {
-            id: homeCustomListState.itemId,
-            title: homeCustomListState.title,
-            authors: getHomeBookAuthorsText(homeCustomListState.subtitle),
-            thumbnail: homeCustomListState.image
-          };
-        } else if (mediaType === 'music') {
-          itemPayload = {
-            id: homeCustomListState.itemId,
-            name: homeCustomListState.title,
-            artists: homeCustomListState.subtitle,
-            image: homeCustomListState.image
-          };
-        }
         await ListUtils.saveCustomListChanges(
           client,
           activeUser.id,
@@ -5711,10 +5411,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
     }
 
-    function getBookCoverFallback(item) {
-      return String(item?.listImage || item?.image || '').trim();
-    }
-
     function setSpotlightImageWithFallback(imgEl, sources, token) {
       if (!imgEl) return;
       if (imgEl.__homeSpotlightOnLoad) {
@@ -5805,8 +5501,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         ...(ENABLE_GAMES ? {
           game: makeSeedItems('game', ['Top Games', 'New Releases', 'Community Picks', 'Multiplayer Hits', 'Story Games'], 'games.html')
         } : {}),
-        music: [],
-        book: makeSeedItems('book', ['Bestselling Books', 'Popular Fiction', 'Book Club Picks', 'Page-Turners', 'Must Read Stories'], 'books.html'),
         ...(ENABLE_FASHION ? {
           fashion: HOME_FASHION_FALLBACKS.slice(0, targetCount).map((row, index) => ({
             ...mapHomeBrandItem(row, 'fashion', index),
@@ -5895,24 +5589,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           extra: row.sport || ''
         }));
       }
-      if (key === 'music') {
-        return [
-          { title: 'Today\'s Top Hits', subtitle: 'Apple Music', extra: 'Playlist' },
-          { title: 'Rap Life', subtitle: 'Apple Music', extra: 'Playlist' },
-          { title: 'Pop Hits 2026', subtitle: 'Apple Music', extra: 'Playlist' },
-          { title: 'New Music Daily', subtitle: 'Apple Music', extra: 'Playlist' },
-          { title: 'A-List Pop', subtitle: 'Apple Music', extra: 'Playlist' },
-          { title: 'Hot Tracks', subtitle: 'Apple Music', extra: 'Playlist' }
-        ].slice(0, Math.max(3, Math.min(targetCount, 6))).map((row, index) => ({
-          mediaType: 'music', itemId: `seed-music-${index + 1}`, title: row.title,
-          subtitle: row.subtitle, extra: row.extra,
-          image: HOME_LOCAL_FALLBACK_IMAGE, backgroundImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightImage: HOME_LOCAL_FALLBACK_IMAGE,
-          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          fallbackImage: HOME_LOCAL_FALLBACK_IMAGE,
-          href: 'music.html', isPlaceholder: true
-        }));
-      }
       return [];
     }
 
@@ -5923,16 +5599,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
-        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
         { key: 'travel', railId: 'travelRail', loader: loadTravel, opts: { mediaType: 'travel' }, timeoutMs: 12000 },
         { key: 'sports', railId: 'sportsRail', loader: loadSports, opts: { mediaType: 'sports', landscape: false }, timeoutMs: 12000 }
       ];
-      if (window.ZO2Y_DISABLE_HOME_BOOKS) {
-        return channels.filter(ch => ch.key !== 'book');
-      }
       return channels;
     }
 
@@ -6578,15 +6250,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       rail.classList.remove('games-rail');
 
       if (!items || !items.length) {
-        if (railId === 'booksRail') {
-          const debug = window.__zo2yHomeBooksDebug || null;
-          if (debug) {
-            console.error('[home books] books rail rendered empty', debug);
-            const stage = escapeHtml(String(debug?.stage || 'unknown'));
-            rail.innerHTML = `<div class="empty">Books failed to load. Check console. Stage: ${stage}</div>`;
-            return;
-          }
-        }
         rail.innerHTML = '<div class="empty">No items right now.</div>';
         return;
       }
@@ -6621,9 +6284,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const itemId = escapeHtml(itemData.itemId || '');
         const supportsLists = supportsHomeLists(mediaTypeRaw) && !itemData.isPlaceholder && itemData.disableLists !== true;
         const opensExternal = /^https?:\/\//i.test(String(hrefRaw || ''));
-        const previewUrlRaw = (mediaTypeRaw === 'music' && !itemData?.isMusicAlbum)
-          ? String(itemData?.previewUrl || '').trim()
-          : '';
+        const previewUrlRaw = '';
         const previewControl = previewUrlRaw
           ? `<button class="card-preview-btn" data-preview="${escapeHtml(previewUrlRaw)}" aria-label="Play preview"><i class="fas fa-play"></i></button>`
           : '';
@@ -6639,7 +6300,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (mediaFit === 'cover') mediaClasses.push('cover');
         if (landscape) mediaClasses.push('landscape');
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
-        if (mediaTypeRaw === 'music') mediaClasses.push('music-cover');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') mediaClasses.push('brand-cover');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
@@ -6649,11 +6309,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const optimizedTravelImage = mediaTypeRaw === 'travel'
           ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
           : '';
-        // Books carry an OpenLibrary cover fallback chain so we can retry a few
-        // alternate cover URLs before falling back to the local placeholder.
-        const homeImageExtra = (mediaTypeRaw === 'book' && Array.isArray(itemData?.fallbackChain) && itemData.fallbackChain.length)
-          ? { fallbackChain: itemData.fallbackChain }
-          : {};
+        const homeImageExtra = {};
         let mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
@@ -6784,8 +6440,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             img.src = directSrc;
             return;
           }
-          // Walk through the OpenLibrary cover chain (books) before falling back
-          // to the generic local placeholder.
           const nextChainUrl = tryFallbackChain();
           if (nextChainUrl) {
             img.setAttribute('data-image-ready', '0');
@@ -7191,13 +6845,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
     window.getVerifiedHomeUser = getVerifiedHomeUser;
 
-    function getHomeBookAuthorsText(value) {
-      const raw = String(value || '').trim();
-      if (!raw) return '';
-      const authorPart = raw.split('|')[0];
-      return String(authorPart || raw).trim();
-    }
-
     function getHomeProfileLabelFallback(user) {
       const fullName = String(user?.user_metadata?.full_name || user?.user_metadata?.name || '').trim();
       if (fullName) return fullName;
@@ -7466,8 +7113,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         tv: 'TV Show',
         anime: 'Anime',
         game: 'Game',
-        book: 'Book',
-        music: 'Track',
         travel: 'Country'
       };
       return map[key] || 'Pick';
@@ -7823,8 +7468,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const fallback = [
         { title: 'Movies', subtitle: 'Save watchlists and favorites.', image: '/images/onboarding/onboard-media.svg', mediaType: 'movie', itemId: 'onboarding-movie' },
         { title: 'Games', subtitle: 'Build backlogs and finish lists.', image: '/images/onboarding/onboard-interests.svg', mediaType: 'game', itemId: 'onboarding-game' },
-        { title: 'TV Shows', subtitle: 'Track what you are watching next.', image: '/images/onboarding/onboard-profile.svg', mediaType: 'tv', itemId: 'onboarding-tv' },
-        { title: 'Books', subtitle: 'Keep read piles in one place.', image: '/images/onboarding/onboard-travel.svg', mediaType: 'book', itemId: 'onboarding-book' }
+        { title: 'TV Shows', subtitle: 'Track what you are watching next.', image: '/images/onboarding/onboard-profile.svg', mediaType: 'tv', itemId: 'onboarding-tv' }
       ];
 
       return (unique.length ? unique : fallback).slice(0, limit);
@@ -7870,8 +7514,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         tv: 'TV show card',
         anime: 'Anime card',
         game: 'Game card',
-        book: 'Book card',
-        music: 'Music card',
         sport: 'Sports card',
         travel: 'Travel card',
         fashion: 'Fashion card',
@@ -7929,7 +7571,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           body: 'Save a few favorites and Zo2y starts learning your taste.',
           art: `
             ${buildHomeOnboardingShelfMarkup(5)}
-            <div class="onboarding-photo-caption">Start with movies, TV, games, or books. Everything lands in one profile.</div>
+            <div class="onboarding-photo-caption">Start with movies, TV, and games. Everything lands in one profile.</div>
           `,
           actionLabel: null,
           action: null
@@ -9895,148 +9537,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return homeHeavyLoaderScriptPromise;
     }
 
-    async function loadBooks(signal) {
-      const targetCount = Math.max(8, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      const cached = readHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return shuffleArray(cached).slice(0, targetCount);
-
-      const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
-      const proxyBookCover = (url) => {
-        var s = String(url || '').trim();
-        if (!s || /\/images\/fallback\//i.test(s)) return '/images/fallback/book.svg';
-        if (/covers\.openlibrary\.org/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
-        if (/books\.google(?:usercontent)?\.com/i.test(s)) return '/api/books/cover?url=' + encodeURIComponent(s);
-        return s;
-      };
-      const mapBook = (b) => {
-        if (!b || !b.title) return null;
-        const cover = proxyBookCover(b.image);
-        const authorsArr = b.authors ? b.authors.split(', ').filter(Boolean) : ['Unknown author'];
-        return {
-          itemId: b.id || ('book_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
-          title: b.title,
-          subtitle: b.subtitle || b.authors || '',
-          image: cover || '/images/fallback/book.svg',
-          images: cover ? [{ url: cover }] : [],
-          metadata: { authors: authorsArr, year: b.year || null },
-          genres: Array.isArray(b.genres) ? b.genres.slice(0, 3) : [],
-          externalUrl: b.externalUrl || '',
-          mediaType: 'book',
-          year: b.year || null
-        };
-      };
-
-      let items = [];
-      const fetchJson = async (url) => {
-        try { const r = await fetch(url, { signal }); if (!r.ok) return null; return await r.json(); }
-        catch { return null; }
-      };
-
-      const data = await fetchJson(`/api/books/trending?genre=fiction&limit=${Math.max(40, targetCount * 2)}`);
-      if (data && data.books && data.books.length) {
-        let booksList = safeArr(data.books);
-        booksList = shuffleArray(booksList);
-        items = booksList.slice(0, targetCount)
-          .map((raw) => typeof window.normalizeBook === 'function' ? window.normalizeBook(raw) : raw)
-          .map(mapBook).filter((i) => i && i.itemId);
-      }
-
-      if (items.length) {
-        writeHomeItemsCache(HOME_BOOKS_ITEMS_CACHE_KEY, items);
-        return items;
-      }
-
-      return [];
-    }
-
-    async function loadMusic(signal) {
-      const targetCount = Math.max(8, Number(getHomeChannelTargetItems() || 12));
-      const cached = readHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS);
-      if (cached.length) return cached.slice(0, targetCount);
-
-      const safeArr = (arr) => (Array.isArray(arr) ? arr : []).filter(Boolean);
-
-      function proxyMusicCover(url) {
-        return String(url || '').trim();
-      }
-
-      const fetchJson = async (url) => {
-        try { const r = await fetch(url, { signal }); if (!r.ok) return null; return await r.json(); }
-        catch { return null; }
-      };
-
-      const normalize = typeof window.normalizeTrack === 'function' ? window.normalizeTrack : (x) => x;
-      const normalizeAlbum = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum : (x) => x;
-
-      const mapTrack = (t) => {
-        if (!t || (!t.title && !t.name)) return null;
-        const img = proxyMusicCover(t.image || t.thumbnail || '');
-        return {
-          mediaType: 'music', itemId: t.id || '',
-          title: t.title || t.name || 'Track', 
-          subtitle: t.artist || t.artists || 'Artist',
-          extra: (t.albumName || t.album || t.album_name) ? `Song | ${t.albumName || t.album || t.album_name}` : 'Song',
-          image: img, backgroundImage: img, spotlightImage: img,
-          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          previewUrl: t.previewUrl || t.preview_url || '',
-          href: t.id ? `song.html?id=${encodeURIComponent(t.id)}` : 'music.html'
-        };
-      };
-
-      const mapAlbum = (a) => {
-        if (!a || (!a.title && !a.name)) return null;
-        const img = proxyMusicCover(a.image || a.thumbnail || '');
-        const releaseDate = a.releaseDate || a.release_date || '';
-        const rd = releaseDate ? String(releaseDate).slice(0, 10) : '';
-        return {
-          mediaType: 'music', itemId: `album:${a.id}`,
-          title: a.title || a.name || 'Album', 
-          subtitle: a.artist || a.artists || 'Artist',
-          extra: `Album${rd ? ` | Released ${rd}` : ''}`,
-          image: img, backgroundImage: img, spotlightImage: img,
-          spotlightMediaFit: 'contain', spotlightMediaShape: 'poster',
-          href: a.id ? `song.html?album_id=${encodeURIComponent(a.id)}` : 'music.html',
-          isMusicAlbum: true
-        };
-      };
-
-      const interleave = (tracks, albums, count) => {
-        const out = [], tq = [...tracks], aq = [...albums];
-        while (out.length < count && (tq.length || aq.length)) {
-          if (aq.length) out.push(aq.shift());
-          if (tq.length && out.length < count) out.push(tq.shift());
-          if (tq.length && out.length < count) out.push(tq.shift());
-        }
-        while (out.length < count && tq.length) out.push(tq.shift());
-        while (out.length < count && aq.length) out.push(aq.shift());
-        return out.slice(0, count);
-      };
-
-      const [trackData, albumData] = await Promise.all([
-        fetchJson(`/api/music/trending?limit=50&market=US`),
-        fetchJson(`/api/music/new-releases?limit=30`)
-      ]);
-
-      let trackRows = safeArr(trackData?.results || trackData?.tracks).map(normalize).filter(Boolean);
-      let albumRows = safeArr(albumData?.results || albumData?.albums).map(normalizeAlbum).filter(Boolean);
-
-      if (trackRows.length || albumRows.length) {
-        trackRows = shuffleArray(trackRows);
-        albumRows = shuffleArray(albumRows);
-        const items = interleave(
-          trackRows.map(mapTrack).filter((i) => i.itemId),
-          albumRows.map(mapAlbum).filter((i) => i.itemId),
-          targetCount
-        );
-        if (items.length) {
-          writeHomeItemsCache(HOME_MUSIC_ITEMS_CACHE_KEY, items);
-          return items;
-        }
-      }
-
-      return [];
-    }
-
     async function loadTravel(signal) {
       const targetCount = Math.max(1, Number(getHomeChannelTargetItems() || 16));
       const cachedHomeItems = readHomeItemsCache(
@@ -10757,8 +10257,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
       { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
       { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
-      { mediaType: 'book', table: 'book_reviews', idField: 'book_id' },
-      { mediaType: 'music', table: 'music_reviews', idField: 'track_id' },
       { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
     ];
 
@@ -11160,8 +10658,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         case 'tv': return 'tvshows.html';
         case 'anime': return 'animes.html';
         case 'game': return 'games.html';
-        case 'book': return 'books.html';
-        case 'music': return 'music.html';
         case 'travel': return 'travel.html';
         case 'sports': return 'sports.html';
         case 'fashion': return 'fashion.html';
@@ -11186,11 +10682,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const type = String(item.mediaType || '').toLowerCase();
       const cover = type === 'game'
         ? resolveHomeGameCover(item)
-        : (type === 'book'
-          ? (item.spotlightMediaImage || item.image || getBookCoverFallback(item))
-          : (type === 'sports'
-            ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
-            : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage)));
+        : (type === 'sports'
+          ? (item.logo || item.badge || item.flagImage || item.image || item.spotlightMediaImage)
+          : (item.spotlightMediaImage || item.image || item.listImage || item.logo || item.badge || item.flagImage));
       const normalized = normalizeLandingImageUrl(cover);
       return isRenderableLandingImage(normalized) ? normalized : '';
     }
@@ -11371,8 +10865,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         else if (mediaType === 'tv') href = `tvshow.html?id=${encodeURIComponent(itemId)}`;
         else if (mediaType === 'anime') href = `anime.html?id=${encodeURIComponent(itemId)}`;
         else if (mediaType === 'game') href = `game.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'book') href = `book.html?id=${encodeURIComponent(itemId)}`;
-        else if (mediaType === 'music') href = `song.html?id=${encodeURIComponent(itemId)}`;
         else if (mediaType === 'travel') href = `country.html?country=${encodeURIComponent(itemId.toUpperCase())}`;
       }
       return {
@@ -11454,42 +10946,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return;
       const safeRows = Array.isArray(rows) ? rows : [];
-      const bookIds = [...new Set(safeRows.filter((row) => row.mediaType === 'book').map((row) => row.itemId).filter(Boolean))];
-      const trackIds = [...new Set(safeRows.filter((row) => row.mediaType === 'music').map((row) => row.itemId).filter(Boolean))];
-
-      if (bookIds.length) {
-        const { data } = await client
-          .from('books')
-          .select('id,title,authors,thumbnail')
-          .in('id', bookIds.slice(0, 40));
-        (Array.isArray(data) ? data : []).forEach((row) => {
-          const id = String(row?.id || '').trim();
-          if (!id) return;
-          landingReviewMeta.set(getLandingReviewKey('book', id), {
-            title: String(row?.title || 'Book').trim(),
-            subtitle: String(row?.authors || 'Book').trim(),
-            image: normalizeLandingImageUrl(row?.thumbnail || '') || '/newlogo.webp',
-            href: `book.html?id=${encodeURIComponent(id)}`
-          });
-        });
-      }
-
-      if (trackIds.length) {
-        const { data } = await client
-          .from('tracks')
-          .select('id,name,artists,image_url,album_name')
-          .in('id', trackIds.slice(0, 40));
-        (Array.isArray(data) ? data : []).forEach((row) => {
-          const id = String(row?.id || '').trim();
-          if (!id) return;
-          landingReviewMeta.set(getLandingReviewKey('music', id), {
-            title: String(row?.name || 'Track').trim(),
-            subtitle: String(row?.artists || row?.album_name || 'Music').trim(),
-            image: normalizeLandingImageUrl(row?.image_url || '') || '/newlogo.webp',
-            href: `song.html?id=${encodeURIComponent(id)}`
-          });
-        });
-      }
     }
 
     async function fetchLandingReviewJson(url, timeoutMs = 8000) {

@@ -110,66 +110,6 @@
       background: linear-gradient(100deg, rgba(10, 15, 30, 0.85) 0%, rgba(17, 24, 39, 0.6) 50%, rgba(17, 24, 39, 0.2) 100%);
     }
 
-    .spotlight.theme-music .spotlight-bg::after {
-      opacity: 0.82;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='%23ffd58a' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round' opacity='0.9'%3E%3Cpath d='M74 38v82c0 11-9 20-20 20s-20-9-20-20 9-20 20-20c6 0 11 2 15 5V62l70-14v60c0 11-9 20-20 20s-20-9-20-20 9-20 20-20c6 0 11 2 15 5V34z'/%3E%3Cpath d='M149 141v34c0 8-7 15-15 15s-15-7-15-15 7-15 15-15c4 0 8 1 11 3v-30' opacity='0.55'/%3E%3C/g%3E%3C/svg%3E"),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23fff4db' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' opacity='0.58'%3E%3Cpath d='M54 30v70c0 9-7 16-16 16s-16-7-16-16 7-16 16-16c4 0 8 1 11 3V49l53-11v52c0 9-7 16-16 16S70 99 70 90s7-16 16-16c4 0 8 1 10 3V30z'/%3E%3C/g%3E%3C/svg%3E");
-      background-size: 250px 250px, 195px 195px;
-      background-position: 0 0, 130px 70px;
-      background-repeat: repeat;
-      mix-blend-mode: screen;
-      animation: spotlightMusicNotesDrift 22s linear infinite;
-    }
-
-    .spotlight.theme-music .spotlight-bg::before {
-      opacity: 0.42;
-      background:
-        linear-gradient(90deg, transparent 0%, rgba(255, 196, 101, 0.3) 20%, transparent 42%) 0 0 / 190px 100% repeat-x,
-        linear-gradient(90deg, transparent 0%, rgba(110, 210, 255, 0.24) 18%, transparent 42%) 40px 0 / 240px 100% repeat-x,
-        radial-gradient(circle at 82% 18%, rgba(255, 178, 74, 0.32), transparent 34%);
-      filter: blur(0.2px);
-      animation: spotlightMusicBeams 12s linear infinite;
-    }
-
-    .spotlight.theme-book .spotlight-bg::after {
-      opacity: 0.36;
-      background-image:
-        url("/images/patterns/open-book-01.svg"),
-        url("/images/patterns/open-book-01.svg");
-      background-size: 220px 110px, 160px 80px;
-      background-position: 0 0, 140px 90px;
-      background-repeat: repeat;
-      mix-blend-mode: normal;
-      filter: saturate(0.75) brightness(1.05);
-      animation: spotlightBooksFloat 30s linear infinite;
-    }
-
-    .spotlight.theme-book .spotlight-bg::before {
-      opacity: 0.42;
-      background:
-        radial-gradient(circle at 12% 22%, rgba(255, 226, 168, 0.32), transparent 45%),
-        radial-gradient(circle at 78% 12%, rgba(255, 210, 132, 0.28), transparent 40%),
-        radial-gradient(circle at 78% 78%, rgba(188, 219, 242, 0.26), transparent 44%),
-        linear-gradient(90deg, transparent 0%, rgba(255, 233, 188, 0.22) 28%, transparent 52%) 0 0 / 210px 100% repeat-x;
-      filter: blur(0.4px);
-      animation: spotlightBookGlow 14s ease-in-out infinite alternate;
-    }
-
-    .spotlight.theme-music::before {
-      background:
-        linear-gradient(100deg, rgba(4, 10, 24, 0.84) 0%, rgba(7, 14, 32, 0.52) 38%, rgba(10, 22, 48, 0.14) 100%),
-        radial-gradient(circle at 80% 22%, color-mix(in srgb, var(--color-accent) 34%, transparent), transparent 42%),
-        radial-gradient(circle at 62% 68%, rgba(72, 187, 255, 0.18), transparent 30%);
-    }
-
-    .spotlight.theme-book::before {
-      background:
-        linear-gradient(100deg, rgba(20, 16, 12, 0.72) 0%, rgba(22, 18, 14, 0.48) 38%, rgba(24, 20, 16, 0.22) 100%),
-        radial-gradient(circle at 82% 18%, rgba(255, 179, 71, 0.24), transparent 42%),
-        radial-gradient(circle at 18% 82%, rgba(255, 216, 141, 0.16), transparent 28%);
-    }
-
     .spotlight.theme-travel .spotlight-bg::before {
       opacity: 0.92;
       inset: auto -2% -6% 46%;
@@ -846,18 +786,6 @@
       background: #0f1f40;
     }
 
-    .card-media.music-cover {
-      aspect-ratio: 1/1;
-      padding: 0;
-      background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
-    }
-
-    .card-media.music-cover img {
-      object-fit: cover;
-      border-radius: 0;
-      background: transparent;
-    }
-
     .card-media.game-poster img {
       object-fit: cover;
       object-position: center center;
@@ -1080,7 +1008,6 @@
 
     .rail.unified-rail .card-media.landscape img,
     .rail.unified-rail .card-media.game-poster img,
-    .rail.unified-rail .card-media.music-cover img,
     .rail.unified-rail .card-media.brand-cover img {
       object-fit: contain;
       padding: 8px;
@@ -1122,10 +1049,6 @@
       border-radius: 0;
       padding: 0;
       object-fit: cover;
-    }
-
-    .rail.unified-rail .card-media.music-cover img {
-      background: transparent;
     }
 
     .rail.unified-rail .card-type,
@@ -2380,43 +2303,7 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes spotlightMusicNotesDrift {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        transform: translate3d(-160px, -140px, 0);
-      }
-    }
 
-    @keyframes spotlightMusicBeams {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        transform: translate3d(-180px, 0, 0);
-      }
-    }
-
-    @keyframes spotlightBooksFloat {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        transform: translate3d(-165px, -135px, 0);
-      }
-    }
-
-    @keyframes spotlightBookGlow {
-      from {
-        transform: scale(1) translate3d(0, 0, 0);
-        opacity: 0.16;
-      }
-      to {
-        transform: scale(1.05) translate3d(8px, -10px, 0);
-        opacity: 0.28;
-      }
-    }
 
     @media (max-width: 1100px) {
       .top-nav {
@@ -2749,7 +2636,6 @@
       .rail .card-media,
       .rail .card-media.game-poster,
       .rail .card-media.landscape,
-      .rail .card-media.music-cover,
       .rail .card-media.restaurant-composite {
         width: 100% !important;
         height: auto !important;
@@ -2762,7 +2648,6 @@
       .rail .card-media img,
       .rail .card-media.game-poster img,
       .rail .card-media.landscape img,
-      .rail .card-media.music-cover img,
       .rail .card-media.restaurant-composite .restaurant-cover {
         width: 100% !important;
         height: 100% !important;

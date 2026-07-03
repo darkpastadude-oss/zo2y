@@ -12,18 +12,18 @@
   <title>Zo2y | All Your Interests in One Place</title>
 <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
-  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
+  <meta name="description" content="All your interests in one place. Track favorites, build custom lists, and follow friends across movies, TV, anime, travel, and sports." />
   <link rel="canonical" href="https://zo2y.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Zo2y" />
   <meta property="og:title" content="Zo2y | All Your Interests in One Place" />
-  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
+  <meta property="og:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, travel, and sports." />
   <meta property="og:url" content="https://zo2y.com/" />
   <meta property="og:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
   <meta property="og:image:alt" content="Zo2y illustration with gaming, movies, and TV." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Zo2y | All Your Interests in One Place" />
-  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, books, music, travel, and sports." />
+  <meta name="twitter:description" content="Track favorites, build custom lists, and follow friends across movies, TV, anime, travel, and sports." />
   <meta name="twitter:image" content="https://zo2y.com/images/zo2y-search-illustration.png" />
   <script>
     // Allow the client to operate even when IGDB credentials are missing.
@@ -52,9 +52,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
   <link rel="dns-prefetch" href="//image.tmdb.org">
-  <link rel="dns-prefetch" href="//covers.openlibrary.org">
-  <link rel="dns-prefetch" href="//books.googleusercontent.com">
-  <link rel="dns-prefetch" href="//i.scdn.co">
+
   <link rel="dns-prefetch" href="//images.igdb.com">
   <link rel="dns-prefetch" href="//flagcdn.com">
   <link rel="dns-prefetch" href="//commons.wikimedia.org">
@@ -232,7 +230,7 @@
         <section class="section">
           <div class="section-head">
             <h2>Culture Stream</h2>
-            <p>One swipeable feed blending movies, TV, anime, books, music, and travel.</p>
+            <p>One swipeable feed blending movies, TV, anime, and travel.</p>
           </div>
 
           <div class="rail-wrap">
@@ -250,7 +248,7 @@
         <section class="section category-section" aria-label="Media">
           <div class="section-head">
             <h2>Media</h2>
-            <p>Movies, TV, anime, games, books, and music - all in one place.</p>
+            <p>Movies, TV, anime, and games - all in one place.</p>
           </div>
 
           <div class="rail-wrap">
@@ -271,16 +269,6 @@
           <div class="rail-wrap">
             <div class="rail-title"><span><i class="fa-solid fa-gamepad"></i> Games</span><a href="games.html">View all</a></div>
             <div class="rail" id="gamesRail"></div>
-          </div>
-
-          <div class="rail-wrap">
-            <div class="rail-title"><span><i class="fa-solid fa-book"></i> Books</span><a href="books.html">View all</a></div>
-            <div class="rail" id="booksRail"></div>
-          </div>
-
-          <div class="rail-wrap">
-            <div class="rail-title"><span><i class="fa-solid fa-music"></i> Music</span><a href="music.html">View all</a></div>
-            <div class="rail" id="musicRail"></div>
           </div>
 
         </section>
@@ -325,7 +313,6 @@
       <a class="mobile-nav-item" href="movies.html?v=20260623z" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
     <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
     <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
-    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
     <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
     <a class="mobile-nav-item" href="sports.html" aria-label="Sports"><i class="fa-solid fa-futbol"></i></a>
   </nav>
@@ -442,155 +429,6 @@
 
   <script src="/js/shared-components.js?v=20260623z" defer></script>
 
-  <script>
-  (function() {
-    var rail = document.getElementById('musicRail');
-    if (!rail) return;
-
-    function esc(v) {
-      return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function shuffle(a) {
-      for (var i = a.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-      }
-      return a;
-    }
-
-    function getMusicSource(row) {
-      return String(row?.source || row?.provider || 'spotify').trim().toLowerCase() || 'spotify';
-    }
-
-    function mapTracks(rows) {
-      return (Array.isArray(rows) ? rows : []).map(function(row) {
-        if (!row) return null;
-        var n = typeof window.normalizeTrack === 'function' ? window.normalizeTrack(row) : row;
-        if (!n || !n.id) return null;
-        return {
-          id: String(n.id || ''), kind: 'track', source: getMusicSource(n),
-          name: n.title || n.name || 'Track',
-          subtitle: n.artist || n.artists || 'Artist',
-          album: n.albumName || n.album_name || 'Unknown Album',
-          album_type: String(n.albumType || n.album_type || '').trim().toLowerCase(),
-          total_tracks: Number(n.trackCount || n.totalTracks || 0),
-          image: String(n.image || n.thumbnail || ''),
-          preview_url: n.previewUrl || n.preview_url || '',
-          external_url: n.externalUrl || '',
-          popularity: Number(n.popularity || 0),
-          release_date: String(n.releaseDate || n.release_date || '').trim()
-        };
-      }).filter(function(r) { return r && r.id; });
-    }
-
-    function mapAlbums(rows) {
-      return (Array.isArray(rows) ? rows : []).map(function(row) {
-        if (!row) return null;
-        var n = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum(row) : row;
-        if (!n || !n.id) return null;
-        var at = String(n.albumType || n.album_type || 'album').trim().toLowerCase();
-        if (at && at !== 'album') return null;
-        return {
-          id: 'album:' + n.id, kind: 'album', source: getMusicSource(n),
-          name: n.title || n.name || 'Album',
-          subtitle: n.artist || n.artists || 'Artist',
-          album: n.title || n.name || 'Album',
-          image: String(n.image || n.thumbnail || ''),
-          preview_url: '', external_url: n.externalUrl || '',
-          release_date: String(n.releaseDate || n.release_date || '').trim(),
-          total_tracks: Number(n.trackCount || n.total_tracks || 0),
-          album_type: at || 'album', popularity: Number(n.popularity || 0)
-        };
-      }).filter(Boolean);
-    }
-
-    function dedupe(items) {
-      var seen = {};
-      return items.filter(function(item) {
-        var key = (item.kind || 'track') + ':' + (item.id || '');
-        if (!item.id || seen[key]) return false;
-        seen[key] = true;
-        return true;
-      });
-    }
-
-    function mix(tracks, albums, limit) {
-      var out = [], t = tracks.slice(), a = albums.slice();
-      while (out.length < limit && (t.length || a.length)) {
-        if (t.length) out.push(t.shift());
-        if (t.length && out.length < limit) out.push(t.shift());
-        if (a.length && out.length < limit) out.push(a.shift());
-      }
-      return out.slice(0, limit);
-    }
-
-    function cardExtra(item) {
-      if (item.kind === 'album') {
-        var rd = item.release_date || '';
-        var tr = item.total_tracks || 0;
-        var details = [rd ? 'Released ' + rd : '', tr > 0 ? tr + ' tracks' : '', item.album_type || ''].filter(Boolean).join(' | ');
-        return details ? 'Album | ' + details : 'Album Release';
-      }
-      var albumName = item.album || 'Unknown Album';
-      return 'Song | ' + albumName + ' | Popularity ' + (item.popularity || 0) + '/100';
-    }
-
-    function href(item) {
-      if (item.kind === 'album') {
-        var aid = item.id.replace('album:', '');
-        return aid ? 'song.html?album_id=' + encodeURIComponent(aid) + '&source=' + encodeURIComponent(item.source || 'spotify') : 'music.html';
-      }
-      return item.id ? 'song.html?id=' + encodeURIComponent(item.id) : 'music.html';
-    }
-
-    function render(items) {
-      if (!items.length) {
-        rail.innerHTML = '<div class="empty">No music right now.</div>';
-        return;
-      }
-      rail.innerHTML = items.map(function(item) {
-        var isTrack = item.kind === 'track';
-        var previewBtn = isTrack && item.preview_url
-          ? '<button class="icon-btn" data-preview="' + esc(item.preview_url) + '" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>'
-          : '';
-        return '<article class="card" onclick="window.location.href=\'' + esc(href(item)) + '\'" style="cursor:pointer">' +
-          '<div class="card-media">' +
-            (item.image ? '<img src="' + esc(item.image) + '" alt="' + esc(item.name) + '" loading="lazy" referrerpolicy="no-referrer" decoding="async">' : '') +
-          '</div>' +
-          '<div class="card-meta">' +
-            '<span class="card-type"><i class="fa-solid fa-music"></i> Music</span>' +
-            '<div class="card-meta-top">' +
-              '<p class="card-name">' + esc(item.name) + '</p>' +
-            '</div>' +
-            '<p class="card-sub">' + esc(item.subtitle) + '</p>' +
-            '<p class="card-extra">' + esc(cardExtra(item)) + '</p>' +
-            (previewBtn ? '<div class="card-actions">' + previewBtn + '</div>' : '') +
-          '</div>' +
-        '</article>';
-      }).join('');
-    }
-
-    async function load() {
-      try {
-        var results = await Promise.allSettled([
-          fetch('/api/music/trending?limit=50&market=US').then(function(r) { return r.ok ? r.json() : null; }),
-          fetch('/api/music/new-releases?limit=30').then(function(r) { return r.ok ? r.json() : null; })
-        ]);
-        var trackData = results[0].status === 'fulfilled' ? results[0].value : null;
-        var albumData = results[1].status === 'fulfilled' ? results[1].value : null;
-        var tracks = mapTracks(trackData && trackData.results ? shuffle(trackData.results) : []);
-        var albums = mapAlbums(albumData && albumData.results ? shuffle(albumData.results) : []);
-        var items = dedupe(mix(tracks, albums, 12));
-        render(shuffle(items));
-      } catch (e) {
-        rail.innerHTML = '<div class="empty">No music right now.</div>';
-      }
-    }
-
-    load();
-  })();
-  </script>
 </body>
 </html>
 

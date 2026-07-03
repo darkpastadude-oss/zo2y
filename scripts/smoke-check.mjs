@@ -21,7 +21,6 @@ const checks = [
   { name: "movies", url: "/movies.html", expectIncludes: ["Movies"] },
   { name: "tvshows", url: "/tvshows.html", expectIncludes: ["TV"] },
   { name: "games", url: "/games.html", expectIncludes: ["Games"] },
-  { name: "books", url: "/books.html", expectIncludes: ["Books"] },
   { name: "travel", url: "/travel.html", expectIncludes: ["Travel"] },
   { name: "profile", url: "/profile.html", expectIncludes: ["Profile"] },
   { name: "privacy", url: "/privacy.html", expectIncludes: ["Privacy Policy"] },
@@ -30,8 +29,7 @@ const checks = [
   { name: "health", url: "/api/health", expectJsonKeys: ["ok", "service"] },
   { name: "analytics-health", url: "/api/analytics/health", expectJsonKeys: ["ok", "service"] },
   { name: "support-health", url: "/api/support/health", expectJsonKeys: ["ok", "service"] },
-  { name: "igdb-health", url: "/api/igdb", expectStatus: [200, 410] },
-  { name: "music-health", url: "/api/music", expectStatus: 200 }
+  { name: "igdb-health", url: "/api/igdb", expectStatus: [200, 410] }
 ];
 
 function buildUrl(baseUrl, path) {

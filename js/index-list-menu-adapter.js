@@ -43,16 +43,6 @@
       { key: 'watched', label: 'Played', icon: 'fas fa-eye' },
       { key: 'watchlist', label: 'Backlog', icon: 'fas fa-bookmark' }
     ],
-    book: [
-      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-      { key: 'read', label: 'Read', icon: 'fas fa-eye' },
-      { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
-    ],
-    music: [
-      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
-      { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
-      { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
-    ],
     travel: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
       { key: 'visited', label: 'Visited', icon: 'fas fa-check' },
@@ -83,8 +73,6 @@
     tv: { table: 'tv_list_items', itemField: 'tv_id' },
     anime: { table: 'anime_list_items', itemField: 'anime_id' },
     game: { table: 'game_list_items', itemField: 'game_id' },
-    book: { table: 'book_list_items', itemField: 'book_id' },
-    music: { table: 'music_list_items', itemField: 'track_id' },
     travel: { table: 'travel_list_items', itemField: 'country_code' },
     fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
     food: { table: 'food_list_items', itemField: 'brand_id' },
@@ -95,7 +83,7 @@
 
   const MEDIA_LIST_ICONS = {
     movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
-    game:'fas fa-gamepad', book:'fas fa-book', music:'fas fa-music',
+    game:'fas fa-gamepad',
     travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
     food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
     restaurant:'fas fa-clapperboard'
@@ -248,10 +236,6 @@
   function notify(m, e) { if(_bridge&&typeof _bridge.notify==='function'){_bridge.notify(m,!!e);return} if(typeof console!=='undefined'){if(e)console.error(m);else console.log(m)} }
 
   function buildCustomListPayload() {
-    const it=STATE.currentItem; if(!it) return null;
-    const mt=getMediaType();
-    if(mt==='book') return{id:it.itemId,title:it.title||'',authors:it.subtitle||'',thumbnail:it.image||''};
-    if(mt==='music') return{id:it.itemId,name:it.title||'',artists:it.subtitle||'',image:it.image||''};
     return null;
   }
 
