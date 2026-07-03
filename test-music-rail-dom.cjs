@@ -78,6 +78,16 @@ async function runTests() {
   const hasShuffle = indexJs.includes('shuffleArray(cached).slice(0, targetCount)');
   console.log("   shuffleArray on cache:", hasShuffle ? "PASS" : "FAIL");
 
+  // 9. Verify music images use eager loading (bypass deferred)
+  console.log("\n9. Music images use eager loading");
+  const hasEagerMusic = indexJs.includes("mediaTypeRaw === 'music' ? 'eager' : imagePolicy.loading");
+  console.log("   Eager loading for music:", hasEagerMusic ? "PASS" : "FAIL");
+
+  // 10. Verify referrer policy skip for music images
+  console.log("\n10. Referrer policy skipped for music images");
+  const hasSkipReferrer = indexJs.includes("mediaTypeRaw === 'music' ? { skipReferrerPolicy: true }");
+  console.log("    skipReferrerPolicy for music:", hasSkipReferrer ? "PASS" : "FAIL");
+
   console.log("\n== All checks complete ==");
 }
 

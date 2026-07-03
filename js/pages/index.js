@@ -5533,13 +5533,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         : '';
       const imgWidth = extra.imgWidth || 300;
       const imgHeight = extra.imgHeight || 450;
+      const skipReferrerPolicy = !!extra.skipReferrerPolicy;
       const attrs = [
         `src="${shouldDefer ? HOME_IMAGE_PLACEHOLDER : actualSrc}"`,
         shouldDefer ? `data-home-src="${actualSrc}"` : '',
         `loading="${shouldDefer ? 'lazy' : loading}"`,
         `fetchpriority="${shouldDefer ? 'low' : priority}"`,
         'decoding="async"',
-        'referrerpolicy="no-referrer"',
+        skipReferrerPolicy ? '' : 'referrerpolicy="no-referrer"',
         `width="${imgWidth}"`,
         `height="${imgHeight}"`,
         'data-home-image="1"',
@@ -6632,8 +6633,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const imagePolicy = hasVisualImage
           ? consumeHomeImageRequestBudget()
           : { loading: 'lazy', priority: 'low' };
-        const imageLoading = imagePolicy.loading;
-        const imagePriority = imagePolicy.priority;
+        const imageLoading = mediaTypeRaw === 'music' ? 'eager' : imagePolicy.loading;
+        const imagePriority = mediaTypeRaw === 'music' ? 'high' : imagePolicy.priority;
 
         const mediaClasses = ['card-media'];
         const mediaFit = String(itemData.mediaFit || '').trim().toLowerCase();
@@ -6654,6 +6655,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         // alternate cover URLs before falling back to the local placeholder.
         const homeImageExtra = (mediaTypeRaw === 'book' && Array.isArray(itemData?.fallbackChain) && itemData.fallbackChain.length)
           ? { fallbackChain: itemData.fallbackChain }
+          : mediaTypeRaw === 'music' ? { skipReferrerPolicy: true }
           : {};
         let mediaHtml = restaurantComposite
           ? `
