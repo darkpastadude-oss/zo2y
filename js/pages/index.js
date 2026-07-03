@@ -5924,7 +5924,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -5933,9 +5932,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       ];
       if (window.ZO2Y_DISABLE_HOME_BOOKS) {
         return channels.filter(ch => ch.key !== 'book');
-      }
-      if (window.ZO2Y_DISABLE_HOME_MUSIC) {
-        return channels.filter(ch => ch.key !== 'music');
       }
       return channels;
     }
