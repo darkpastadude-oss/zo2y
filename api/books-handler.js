@@ -1,11 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
-const GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1";
-
-function getKey() {
-  return process.env.GOOGLE_BOOKS_API_KEY || process.env.GOOGLE_BOOKS_KEY || "";
-}
+const OPENLIB_BASE = "https://openlibrary.org";
 
 function setCache(res, opts = {}) {
   const maxAge = Math.max(0, Number(opts.maxAge) || 300);
@@ -52,87 +48,95 @@ async function fetchJson(url, { cacheKey = "", ttlMs = CACHE_TTL, timeoutMs = 80
   }
 }
 
-function normalizeBook(item) {
-  const vol = item.volumeInfo || {};
-  const id = String(item.id || "");
-  const title = String(vol.title || "").trim();
-  const subtitle = String(vol.subtitle || "").trim();
-  const authors = (vol.authors || []).map(a => String(a).trim()).filter(Boolean);
-  const publishedDate = String(vol.publishedDate || "").trim();
-  const year = publishedDate ? parseInt(publishedDate.substring(0, 4)) : null;
-  const description = String(vol.description || "").trim();
-  const categories = (vol.categories || []).map(c => String(c).trim()).filter(Boolean);
-  const imageLinks = vol.imageLinks || {};
-  const image = toHttps(imageLinks.thumbnail || imageLinks.smallThumbnail || "");
-  const pageCount = Number(vol.pageCount) || 0;
-  const publisher = String(vol.publisher || "").trim();
-  const language = String(vol.language || "").trim();
-  const averageRating = Number(vol.averageRating) || 0;
-  const ratingsCount = Number(vol.ratingsCount) || 0;
-  const previewLink = String(vol.previewLink || "").trim();
-  const infoLink = String(vol.infoLink || "").trim();
-  const isbn = (vol.industryIdentifiers || []).map(i => i.identifier).filter(Boolean);
-
+function mapOpenLibDoc(doc) {
+  const id = doc.key ? doc.key.replace("/works/", "").replace("/books/", "") : "";
+  const title = String(doc.title || "").trim();
+  const authors = Array.isArray(doc.author_name) ? doc.author_name : (doc.author_name ? [doc.author_name] : []);
+  const authorStr = authors.join(", ");
+  const year = doc.first_publish_year ? String(doc.first_publish_year) : "";
+  const image = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : "";
+  const genres = Array.isArray(doc.subject) ? doc.subject : [];
+  
   return {
     id,
     mediaType: "book",
     title,
-    subtitle,
-    authors: authors,
-    author: authors.join(", "),
+    subtitle: authorStr ? `By ${authorStr}` : "",
+    author: authorStr,
+    authors: authorStr,
     year,
-    description,
-    genres: categories,
-    categories,
-    image,
+    cover: image,
+    image: image,
     backdrop: image,
-    rating: averageRating,
-    ratingsCount,
-    popularity: 0,
-    language,
-    pageCount,
-    publisher,
-    previewUrl: previewLink,
-    externalUrl: infoLink,
-    releaseDate: publishedDate,
-    isbn,
-    provider: "google-books",
-    providerId: id,
-    coverColor: ""
+    description: "",
+    genres,
+    categories: genres,
+    pageCount: doc.number_of_pages_median || 0,
+    publisher: Array.isArray(doc.publisher) ? doc.publisher[0] : "",
+    rating: doc.ratings_average || 0,
+    ratingsCount: doc.readinglog_count || doc.already_read_count || 0,
+    language: Array.isArray(doc.language) ? doc.language[0] : "",
+    releaseDate: year,
+    previewUrl: `https://openlibrary.org/works/${id}`,
+    externalUrl: `https://openlibrary.org/works/${id}`,
+    _source: "open-library"
   };
 }
 
-function normalizeSearchResult(item) {
-  const n = normalizeBook(item);
+function mapOpenLibSubjectDoc(doc) {
+  const id = doc.key ? doc.key.replace("/works/", "") : "";
+  const title = String(doc.title || "").trim();
+  const authors = Array.isArray(doc.authors) ? doc.authors.map(a => a.name) : [];
+  const authorStr = authors.join(", ");
+  const year = doc.first_publish_year ? String(doc.first_publish_year) : "";
+  const image = doc.cover_id ? `https://covers.openlibrary.org/b/id/${doc.cover_id}-L.jpg` : "";
+  
   return {
-    id: n.id,
-    title: n.title,
-    author: n.author,
-    year: n.year,
-    cover: n.image,
-    description: n.description,
-    _source: "google-books"
+    id,
+    mediaType: "book",
+    title,
+    subtitle: authorStr ? `By ${authorStr}` : "",
+    author: authorStr,
+    authors: authorStr,
+    year,
+    cover: image,
+    image: image,
+    backdrop: image,
+    description: "",
+    genres: [],
+    categories: [],
+    pageCount: 0,
+    publisher: "",
+    rating: 0,
+    ratingsCount: 0,
+    language: "eng",
+    releaseDate: year,
+    previewUrl: `https://openlibrary.org/works/${id}`,
+    externalUrl: `https://openlibrary.org/works/${id}`,
+    _source: "open-library"
   };
 }
 
 function parseQuery(req) {
-  if (req.query && typeof req.query === "object") return req.query;
   try {
-    const url = new URL(req.url || "", "http://localhost");
-    return Object.fromEntries(url.searchParams.entries());
+    if (req.query && Object.keys(req.query).length > 0) return req.query;
+    const url = new URL(req.url, `http://${req.headers?.host || "localhost"}`);
+    const q = {};
+    for (const [k, v] of url.searchParams.entries()) { q[k] = v; }
+    return q;
   } catch (_) { return {}; }
 }
 
 function getPathParts(query) {
-  const raw = query?.path;
-  if (Array.isArray(raw)) return raw.filter(Boolean);
-  return String(raw || "").split("/").filter(Boolean);
+  if (Array.isArray(query.path)) return query.path;
+  if (typeof query.path === "string") return query.path.split("/").filter(Boolean);
+  return [];
 }
 
 export default async function booksHandler(req, res) {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     return res.status(200).end();
   }
@@ -140,13 +144,11 @@ export default async function booksHandler(req, res) {
   const query = parseQuery(req);
   const pathParts = getPathParts(query);
   const section = String(pathParts[pathParts.length - 1] || "").toLowerCase();
-  const key = getKey();
 
-  const googleFetch = async (endpoint, extraParams = {}) => {
-    const url = new URL(`${GOOGLE_BOOKS_BASE}/${endpoint}`);
+  const openLibFetch = async (endpoint, extraParams = {}) => {
+    const url = new URL(`${OPENLIB_BASE}/${endpoint}`);
     Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-    if (key) url.searchParams.set("key", key);
-    return fetchJson(url.toString(), { cacheKey: `gb:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
+    return fetchJson(url.toString(), { cacheKey: `ol:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
   };
 
   if (section === "search" || section === "volumes") {
@@ -154,26 +156,16 @@ export default async function booksHandler(req, res) {
     const q = String(query.q || "").trim();
     if (!q) return res.status(400).json({ ok: false, message: "Missing query" });
     const limit = Math.min(Number(query.limit) || 20, 40);
-    const orderBy = String(query.orderBy || "relevance").trim();
-    const langRestrict = String(query.langRestrict || "").trim();
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
-    const printType = String(query.printType || "all").trim();
-    const filter = String(query.filter || "").trim();
 
     try {
-      const params = { q, maxResults: String(limit), startIndex: String(startIndex) };
-      if (orderBy !== "relevance") params.orderBy = orderBy;
-      if (langRestrict) params.langRestrict = langRestrict;
-      if (printType !== "all") params.printType = printType;
-      if (filter) params.filter = filter;
-
-      const data = await googleFetch("volumes", params);
-      const items = data.items || [];
-      const total = data.totalItems || 0;
-      const books = items.map(normalizeSearchResult).filter(b => b.title);
-      return res.json({ ok: true, books, total, items: books.map(normalizeBook) });
+      const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex });
+      const rawItems = data.docs || [];
+      const total = data.numFound || 0;
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
+      return res.json({ ok: true, books, total, items: books });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
@@ -182,33 +174,29 @@ export default async function booksHandler(req, res) {
     const limit = Math.min(Number(query.limit) || 20, 40);
     const genre = String(query.genre || "fiction").trim();
     try {
-      const data = await googleFetch("volumes", {
-        q: `subject:${genre}`,
-        maxResults: String(limit),
-        orderBy: "relevance"
-      });
-      const items = data.items || [];
-      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      const data = await openLibFetch(`subjects/${genre}.json`, { limit: limit * 2 });
+      const rawItems = data.works || [];
+      const books = rawItems.filter(doc => doc.title && doc.cover_id).map(mapOpenLibSubjectDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length, genre });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
   if (section === "new-releases") {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
+    const currentYear = new Date().getFullYear();
     try {
-      const data = await googleFetch("volumes", {
-        q: "new release 2024 2025 2026",
-        maxResults: String(limit),
-        orderBy: "newest"
+      const data = await openLibFetch("search.json", {
+        q: `first_publish_year:${currentYear} subject:fiction`,
+        limit: limit * 2
       });
-      const items = data.items || [];
-      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      const rawItems = data.docs || [];
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
@@ -216,16 +204,16 @@ export default async function booksHandler(req, res) {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
     try {
-      const data = await googleFetch("volumes", {
-        q: "popular books 2024 2025",
-        maxResults: String(limit),
-        orderBy: "relevance"
+      const data = await openLibFetch("search.json", {
+        q: `bestseller`,
+        sort: `rating`,
+        limit: limit * 2
       });
-      const items = data.items || [];
-      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      const rawItems = data.docs || [];
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
@@ -233,35 +221,16 @@ export default async function booksHandler(req, res) {
     setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = Math.min(Number(query.limit) || 12, 30);
     try {
-      const picks = [
-        "subject:fiction orderBy:relevance",
-        "subject:nonfiction orderBy:relevance",
-        "subject:fantasy orderBy:relevance",
-        "subject:romance orderBy:relevance",
-        "subject:thriller orderBy:relevance",
-        "subject:biography orderBy:relevance",
-        "subject:science orderBy:relevance",
-        "subject:history orderBy:relevance",
-        "subject:self-help orderBy:relevance",
-        "subject:poetry orderBy:relevance",
-        "subject:mystery orderBy:relevance",
-        "subject:young-adult orderBy:relevance"
-      ];
-      const results = await Promise.all(
-        picks.slice(0, limit).map(q => googleFetch("volumes", { q, maxResults: "3" }).catch(() => null))
-      );
-      const books = [];
-      results.forEach(r => {
-        if (r && r.items) {
-          r.items.forEach(item => {
-            const n = normalizeSearchResult(item);
-            if (n.title && !books.find(b => b.id === n.id)) books.push(n);
-          });
-        }
+      const data = await openLibFetch("search.json", {
+        q: `(subject:fantasy OR subject:thriller OR subject:romance OR subject:history)`,
+        sort: `rating`,
+        limit: limit * 2
       });
+      const rawItems = data.docs || [];
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
@@ -270,45 +239,50 @@ export default async function booksHandler(req, res) {
     const bookId = String(query.id || "").trim();
     if (!bookId) return res.status(400).json({ ok: false, message: "Missing book id" });
     try {
-      const detailData = await googleFetch(`volumes/${encodeURIComponent(bookId)}`);
-      const vol = detailData.volumeInfo || {};
-      const author = (vol.authors || [])[0] || "";
-      const category = (vol.categories || [])[0] || "";
-      const searchTerms = [category, author].filter(Boolean).join(" ");
-      if (!searchTerms) return res.json({ ok: true, books: [], total: 0 });
-      const data = await googleFetch("volumes", {
-        q: searchTerms,
-        maxResults: "12"
-      });
-      const items = (data.items || []).filter(i => i.id !== bookId);
-      const books = items.map(normalizeSearchResult).filter(b => b.title);
+      const workData = await openLibFetch(`works/${encodeURIComponent(bookId)}.json`);
+      const subjects = workData.subjects || [];
+      const subjectTerms = subjects.slice(0, 2).join(" OR ");
+      const q = subjectTerms ? `subject:(${subjectTerms})` : "bestseller";
+      
+      const data = await openLibFetch("search.json", { q, limit: 12 * 2 });
+      const items = (data.docs || []).filter(doc => doc.key !== `/works/${bookId}`);
+      const books = items.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, 12);
       return res.json({ ok: true, books, total: books.length });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "Google Books API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }
   }
 
-  if (section === "cover") {
-    const targetUrl = String(query.url || "").trim();
-    if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+  const possibleVolumeId = String(pathParts[pathParts.length - 1] || "").trim();
+  if (possibleVolumeId && possibleVolumeId.length > 2) {
+    setCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
     try {
-      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-books/1.0" } });
-      if (!proxyRes.ok) {
-        res.setHeader("Content-Type", "image/svg+xml");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+      const [workData, searchData] = await Promise.all([
+        openLibFetch(`works/${encodeURIComponent(possibleVolumeId)}.json`),
+        openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1 })
+      ]);
+      
+      let baseDoc = (searchData.docs && searchData.docs[0]) || { key: `/works/${possibleVolumeId}` };
+      let normalized = mapOpenLibDoc(baseDoc);
+      
+      if (workData.title) normalized.title = workData.title;
+      if (workData.description) {
+        normalized.description = typeof workData.description === 'string' 
+          ? workData.description 
+          : (workData.description.value || "");
       }
-      const buffer = await proxyRes.arrayBuffer();
-      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
-      res.setHeader("Cache-Control", "public, max-age=86400");
-      return res.end(new Uint8Array(buffer));
-    } catch (_) {
-      res.setHeader("Content-Type", "image/svg+xml");
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+      
+      if (workData.covers && workData.covers.length > 0) {
+        normalized.image = `https://covers.openlibrary.org/b/id/${workData.covers[0]}-L.jpg`;
+        normalized.cover = normalized.image;
+        normalized.backdrop = normalized.image;
+      }
+
+      return res.json(normalized);
+    } catch (e) {
+      return res.status(502).json({ ok: false, message: "OpenLibrary API error" });
     }
   }
 
-  setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  return res.json({ ok: true, service: "google-books", configured: !!key });
+  return res.status(404).json({ ok: false, message: "Not found" });
 }

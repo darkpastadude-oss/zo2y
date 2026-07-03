@@ -185,17 +185,17 @@
           id: String(n.id || ''),
           kind: 'track',
           source: getMusicSource(n),
-          name: n.name || n.title || 'Track',
-          subtitle: n.artists || n.artist || 'Artist',
-          album: n.album || n.album_name || 'Unknown Album',
-          album_type: String(n.album_type || n.album?.album_type || '').trim().toLowerCase(),
-          total_tracks: Number(n.total_tracks || n.album?.total_tracks || 0),
+          name: n.title || n.name || 'Track',
+          subtitle: n.artist || n.artists || 'Artist',
+          album: n.albumName || n.album_name || 'Unknown Album',
+          album_type: String(n.albumType || n.album_type || '').trim().toLowerCase(),
+          total_tracks: Number(n.trackCount || n.totalTracks || n.total_tracks || 0),
           image: String(n.image || n.thumbnail || ''),
-          preview_url: n.preview_url || n.preview || '',
-          external_url: n.external_url || n.externalUrl || '',
+          preview_url: n.previewUrl || n.preview_url || n.preview || '',
+          external_url: n.externalUrl || n.external_url || '',
           popularity: Number(n.popularity || 0),
           genre: String(n.genre || n.genres?.[0] || '').trim(),
-          release_date: String(n.release_date || n.releaseDate || '').trim()
+          release_date: String(n.releaseDate || n.release_date || '').trim()
         };
       }).filter((row) => row && row.id);
     }
@@ -216,20 +216,20 @@
         if (!row) return null;
         const n = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum(row) : row;
         if (!n || !n.id) return null;
-        const albumType = String(n.album_type || 'album').trim().toLowerCase();
+        const albumType = String(n.albumType || n.album_type || 'album').trim().toLowerCase();
         if (albumType && albumType !== 'album') return null;
         return {
           id: `album:${n.id}`,
           kind: 'album',
           source: getMusicSource(n),
-          name: n.name || n.title || 'Album',
-          subtitle: n.artists || n.artist || 'Artist',
-          album: n.name || n.title || 'Album',
+          name: n.title || n.name || 'Album',
+          subtitle: n.artist || n.artists || 'Artist',
+          album: n.title || n.name || 'Album',
           image: String(n.image || n.thumbnail || ''),
           preview_url: '',
-          external_url: n.external_url || n.externalUrl || '',
-          release_date: String(n.release_date || n.releaseDate || '').trim(),
-          total_tracks: Number(n.total_tracks || 0),
+          external_url: n.externalUrl || n.external_url || '',
+          release_date: String(n.releaseDate || n.release_date || '').trim(),
+          total_tracks: Number(n.trackCount || n.total_tracks || 0),
           album_type: albumType || 'album',
           popularity: Number(n.popularity || 0),
           genre: String(n.genre || n.genres?.[0] || '').trim()
@@ -347,7 +347,16 @@
       if (musicSpotlightTimer) clearInterval(musicSpotlightTimer);
       musicSpotlightItems = [];
       musicSpotlightIndex = 0;
-      if (section) section.hidden = true;
+      if (!section) return;
+      const pool = pickMusicSpotlightPool(items);
+      if (!pool.length) {
+        section.hidden = true;
+        return;
+      }
+      musicSpotlightItems = pool;
+      musicSpotlightIndex = 0;
+      renderMusicPageSpotlight(musicSpotlightItems[0]);
+      resetMusicPageSpotlightTimer();
     }
 
     async function ensureSupabase() {
