@@ -226,8 +226,7 @@ export default async function booksHandler(req, res) {
     const limit = Math.min(Number(query.limit) || 20, 40);
     try {
       const data = await openLibFetch("search.json", {
-        q: `bestseller`,
-        sort: `rating`,
+        q: `"Atomic Habits" OR "Surrounded by Idiots" OR "Verity" OR "It Ends with Us" OR "The Seven Husbands of Evelyn Hugo" OR "Fourth Wing" OR "A Court of Thorns and Roses" OR "The Silent Patient"`,
         limit: limit * 2
       });
       const rawItems = data.docs || [];
