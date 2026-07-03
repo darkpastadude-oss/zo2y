@@ -246,6 +246,46 @@ async function appleGetNewReleases(limit = 20) {
   return data.feed.results.map(normalizeAppleAlbum).filter(Boolean);
 }
 
+function normalizeRssArtist(song, rank) {
+  if (!song) return null;
+  let image = song.artworkUrl100 || "";
+  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
+  return {
+    id: String(song.artistId || ""),
+    mediaType: "artist",
+    title: String(song.artistName || "").trim(),
+    subtitle: String(song.genres?.[0]?.name || "Music").trim(),
+    artist: String(song.artistName || "").trim(),
+    image: image,
+    externalUrl: String(song.artistUrl || "").trim(),
+    provider: "apple",
+    rank: rank
+  };
+}
+
+async function appleGetTopArtists(limit = 12) {
+  const data = await appleRssFetch(`most-played/${Math.min(limit * 3, 50)}/songs.json`);
+  if (!data || !data.feed || !data.feed.results) return [];
+  const seen = new Set();
+  const artists = [];
+  data.feed.results.forEach((song, i) => {
+    const key = String(song.artistId || song.artistName || "").toLowerCase();
+    if (!key || seen.has(key)) return;
+    if (artists.length >= limit) return;
+    seen.add(key);
+    artists.push(normalizeRssArtist(song, artists.length + 1));
+  });
+  return artists.filter(Boolean);
+}
+
+async function appleGetHomeFeed(artistLimit = 8, albumLimit = 8) {
+  const [artists, albums] = await Promise.all([
+    appleGetTopArtists(artistLimit),
+    appleGetNewReleases(albumLimit)
+  ]);
+  return { artists, albums };
+}
+
 export default async function handler(req, res) {
   const query = readQuery(req);
   const pathParts = readPathParts(query);
@@ -366,6 +406,14 @@ export default async function handler(req, res) {
     const appleData = await appleGetNewReleases(limit);
     const results = appleData.slice(0, limit);
     return res.json({ count: results.length, limit, results, source: "apple" });
+  }
+
+  if (section === "home") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const artistLimit = clampInt(query.artists, 1, 20, 8);
+    const albumLimit = clampInt(query.albums, 1, 20, 8);
+    const feed = await appleGetHomeFeed(artistLimit, albumLimit);
+    return res.json({ ...feed, artist_count: feed.artists.length, album_count: feed.albums.length, source: "apple" });
   }
 
   setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });

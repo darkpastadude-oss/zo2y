@@ -10059,44 +10059,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadMusic(signal) {
-      const _mdbg = (...a) => { try { console.log('[music-debug]', ...a); } catch (_) {} };
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
-      _mdbg('loadMusic start, targetCount=' + targetCount);
-      let trackRows = [];
-      let albumRows = [];
       try {
-        const [trackRes, albumRes] = await Promise.allSettled([
-          fetch('/api/music/trending?limit=50&market=US', { signal }),
-          fetch('/api/music/new-releases?limit=50', { signal })
-        ]);
-        if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
-          const json = await trackRes.value.json();
-          trackRows = Array.isArray(json.results) ? json.results : [];
-          _mdbg('trending raw count=' + trackRows.length, 'sample=' + JSON.stringify(trackRows[0]).slice(0, 120));
-        } else {
-          _mdbg('trending FAILED', trackRes.status, trackRes.reason?.message || '');
+        const res = await fetch('/api/music/home?artists=' + targetCount + '&albums=' + targetCount, { signal });
+        if (!res.ok) return [];
+        const data = await res.json();
+        const artists = Array.isArray(data.artists) ? data.artists : [];
+        const albums = Array.isArray(data.albums) ? data.albums : [];
+        const items = [];
+        const aQ = [...artists];
+        const bQ = [...albums];
+        while (items.length < targetCount && (aQ.length || bQ.length)) {
+          if (aQ.length) items.push(aQ.shift());
+          if (items.length < targetCount && bQ.length) items.push(bQ.shift());
         }
-        if (albumRes.status === 'fulfilled' && albumRes.value?.ok) {
-          const json = await albumRes.value.json();
-          albumRows = Array.isArray(json.results) ? json.results : [];
-          _mdbg('new-releases raw count=' + albumRows.length, 'sample=' + JSON.stringify(albumRows[0]).slice(0, 120));
-        } else {
-          _mdbg('new-releases FAILED', albumRes.status, albumRes.reason?.message || '');
-        }
-      } catch (err) { _mdbg('fetch error', err?.message || err); }
-      const mappedTracks = mapHomeTrackRowsToItems(trackRows);
-      const mappedAlbums = mapHomeAlbumRowsToItems(albumRows);
-      _mdbg('mappedTracks=' + mappedTracks.length, 'mappedAlbums=' + mappedAlbums.length);
-      if (mappedTracks[0]) _mdbg('track[0] title=' + JSON.stringify(mappedTracks[0].name) + ' image=' + JSON.stringify(mappedTracks[0].image).slice(0, 80));
-      if (mappedAlbums[0]) _mdbg('album[0] title=' + JSON.stringify(mappedAlbums[0].name) + ' image=' + JSON.stringify(mappedAlbums[0].image).slice(0, 80));
-      const mixed = mixHomeTrackAndAlbumItems(mappedTracks, mappedAlbums, targetCount);
-      const merged = dedupeHomeMixedMusicItems(mixed);
-      _mdbg('mixed=' + mixed.length, 'deduped=' + merged.length);
-      if (!merged.length) { _mdbg('loadMusic returning EMPTY'); return []; }
-      const railItems = merged.slice(0, targetCount).map(homeMusicItemToRailItem);
-      _mdbg('railItems=' + railItems.length);
-      railItems.forEach((ri, i) => _mdbg('  rail[' + i + '] title=' + JSON.stringify(ri.title) + ' img=' + JSON.stringify(ri.image).slice(0, 80)));
-      return railItems;
+        return items.slice(0, targetCount).map((item) => {
+          const isArtist = item.mediaType === 'artist';
+          const title = String(item?.title || '').trim();
+          const subtitle = String(item?.subtitle || item?.artist || '').trim();
+          const image = String(item?.image || '').trim();
+          const id = String(item?.id || '');
+          return {
+            mediaType: 'music',
+            itemId: id,
+            title: title || (isArtist ? 'Artist' : 'Album'),
+            subtitle: subtitle || 'Music',
+            extra: isArtist ? 'Artist' : 'Album',
+            image,
+            fallbackImage: '/images/fallback/music.svg',
+            href: isArtist
+              ? (item?.externalUrl || 'music.html')
+              : (id ? 'song.html?album_id=' + encodeURIComponent(id) + '&source=apple' : 'music.html')
+          };
+        });
+      } catch (_) { return []; }
     }
 
     function hasExistingRealItemsInFeed() {
