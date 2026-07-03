@@ -3,6 +3,7 @@ const { JSDOM } = require('jsdom');
 
 async function runTests() {
   const html = fs.readFileSync('index.html', 'utf8');
+  const indexJs = fs.readFileSync('js/pages/index.js', 'utf8');
 
   console.log("== DOM Test: Music Rail in index.html ==");
 
@@ -33,7 +34,7 @@ async function runTests() {
     console.log("   Position check: FAIL (missing rail wraps)");
   }
 
-  // 3. Verify music rail title contains "Music" and links to music.html
+  // 3. Verify music rail title and link
   console.log("\n3. Music rail title and link");
   const musicRailWrap = musicRail ? musicRail.closest('.rail-wrap') : null;
   const musicTitle = musicRailWrap ? musicRailWrap.querySelector('.rail-title') : null;
@@ -53,40 +54,42 @@ async function runTests() {
   const isInMediaSection = mediaSection && mediaSection.contains(musicRail);
   console.log("   In Media section:", isInMediaSection ? "PASS" : "FAIL");
 
-  // 5. Verify #musicRail is empty div (populated by JS at runtime)
-  console.log("\n5. Music rail is an empty container (JS-populated)");
-  const isEmpty = musicRail && musicRail.innerHTML.trim() === '';
-  console.log("   Empty container:", isEmpty ? "PASS" : "FAIL");
+  // 5. Verify #musicRail is populated by inline script (JS-populated)
+  console.log("\n5. Music rail is JS-populated by inline script");
+  const railContent = musicRail ? musicRail.innerHTML.trim() : '';
+  const isPopulated = railContent.length > 0;
+  console.log("   Rail has content:", isPopulated ? "PASS" : "FAIL");
 
-  // 6. Verify the loadMusic function exists in index.js
-  console.log("\n6. loadMusic function exists in index.js");
-  const indexJs = fs.readFileSync('js/pages/index.js', 'utf8');
-  const hasLoadMusic = indexJs.includes('async function loadMusic(');
-  const hasMusicRailChannel = indexJs.includes("railId: 'musicRail'");
-  console.log("   loadMusic defined:", hasLoadMusic ? "PASS" : "FAIL");
-  console.log("   musicRail channel registered:", hasMusicRailChannel ? "PASS" : "FAIL");
+  // 6. Verify inline script exists with music loader
+  console.log("\n6. Inline music rail script exists");
+  const hasInlineScript = html.includes("var rail = document.getElementById('musicRail')");
+  console.log("   Inline script found:", hasInlineScript ? "PASS" : "FAIL");
 
-  // 7. Verify music data fetches from correct API endpoints
-  console.log("\n7. Music data fetches from correct API endpoints");
-  const hasTrending = indexJs.includes('/api/music/trending');
-  const hasNewReleases = indexJs.includes('/api/music/new-releases');
-  console.log("   Fetches trending:", hasTrending ? "PASS" : "FAIL");
-  console.log("   Fetches new releases:", hasNewReleases ? "PASS" : "FAIL");
+  // 7. Verify the script uses music.html's exact loader functions
+  console.log("\n7. Script uses music.html's loader pattern");
+  const hasTrendingFetch = html.includes("/api/music/trending");
+  const hasNewReleasesFetch = html.includes("/api/music/new-releases");
+  const hasNormalizeTrack = html.includes("normalizeTrack");
+  const hasNormalizeAlbum = html.includes("normalizeAlbum");
+  console.log("   Fetches trending:", hasTrendingFetch ? "PASS" : "FAIL");
+  console.log("   Fetches new releases:", hasNewReleasesFetch ? "PASS" : "FAIL");
+  console.log("   Uses normalizeTrack:", hasNormalizeTrack ? "PASS" : "FAIL");
+  console.log("   Uses normalizeAlbum:", hasNormalizeAlbum ? "PASS" : "FAIL");
 
-  // 8. Verify shuffle is applied to cached music items
-  console.log("\n8. Shuffle applied to cached music items");
-  const hasShuffle = indexJs.includes('shuffleArray(cached).slice(0, targetCount)');
-  console.log("   shuffleArray on cache:", hasShuffle ? "PASS" : "FAIL");
+  // 8. Verify cards use simple img tags (not buildHomeImageAttrs)
+  console.log("\n8. Cards use simple img tags (no deferred loading)");
+  const hasSimpleImg = html.includes('loading="lazy" referrerpolicy="no-referrer" decoding="async"');
+  console.log("   Simple <img> tag:", hasSimpleImg ? "PASS" : "FAIL");
 
-  // 9. Verify music images use eager loading (bypass deferred)
-  console.log("\n9. Music images use eager loading");
-  const hasEagerMusic = indexJs.includes("mediaTypeRaw === 'music' ? 'eager' : imagePolicy.loading");
-  console.log("   Eager loading for music:", hasEagerMusic ? "PASS" : "FAIL");
+  // 9. Verify music is NOT in getHomeChannels (removed from index.js)
+  console.log("\n9. Music NOT in index.js getHomeChannels");
+  const musicNotInChannels = !indexJs.includes("railId: 'musicRail'");
+  console.log("   Removed from channels:", musicNotInChannels ? "PASS" : "FAIL");
 
-  // 10. Verify referrer policy skip for music images
-  console.log("\n10. Referrer policy skipped for music images");
-  const hasSkipReferrer = indexJs.includes("mediaTypeRaw === 'music' ? { skipReferrerPolicy: true }");
-  console.log("    skipReferrerPolicy for music:", hasSkipReferrer ? "PASS" : "FAIL");
+  // 10. Verify shuffle function in inline script
+  console.log("\n10. Shuffle function in inline script");
+  const hasShuffle = html.includes("function shuffle(a)");
+  console.log("    shuffle function:", hasShuffle ? "PASS" : "FAIL");
 
   console.log("\n== All checks complete ==");
 }
