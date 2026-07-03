@@ -10059,7 +10059,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadMusic(signal) {
+      const _mdbg = (...a) => { try { console.log('[music-debug]', ...a); } catch (_) {} };
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      _mdbg('loadMusic start, targetCount=' + targetCount);
       let trackRows = [];
       let albumRows = [];
       try {
@@ -10070,17 +10072,31 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
           const json = await trackRes.value.json();
           trackRows = Array.isArray(json.results) ? json.results : [];
+          _mdbg('trending raw count=' + trackRows.length, 'sample=' + JSON.stringify(trackRows[0]).slice(0, 120));
+        } else {
+          _mdbg('trending FAILED', trackRes.status, trackRes.reason?.message || '');
         }
         if (albumRes.status === 'fulfilled' && albumRes.value?.ok) {
           const json = await albumRes.value.json();
           albumRows = Array.isArray(json.results) ? json.results : [];
+          _mdbg('new-releases raw count=' + albumRows.length, 'sample=' + JSON.stringify(albumRows[0]).slice(0, 120));
+        } else {
+          _mdbg('new-releases FAILED', albumRes.status, albumRes.reason?.message || '');
         }
-      } catch (_) {}
+      } catch (err) { _mdbg('fetch error', err?.message || err); }
       const mappedTracks = mapHomeTrackRowsToItems(trackRows);
       const mappedAlbums = mapHomeAlbumRowsToItems(albumRows);
-      const merged = dedupeHomeMixedMusicItems(mixHomeTrackAndAlbumItems(mappedTracks, mappedAlbums, targetCount));
-      if (!merged.length) return [];
-      return merged.slice(0, targetCount).map(homeMusicItemToRailItem);
+      _mdbg('mappedTracks=' + mappedTracks.length, 'mappedAlbums=' + mappedAlbums.length);
+      if (mappedTracks[0]) _mdbg('track[0] title=' + JSON.stringify(mappedTracks[0].name) + ' image=' + JSON.stringify(mappedTracks[0].image).slice(0, 80));
+      if (mappedAlbums[0]) _mdbg('album[0] title=' + JSON.stringify(mappedAlbums[0].name) + ' image=' + JSON.stringify(mappedAlbums[0].image).slice(0, 80));
+      const mixed = mixHomeTrackAndAlbumItems(mappedTracks, mappedAlbums, targetCount);
+      const merged = dedupeHomeMixedMusicItems(mixed);
+      _mdbg('mixed=' + mixed.length, 'deduped=' + merged.length);
+      if (!merged.length) { _mdbg('loadMusic returning EMPTY'); return []; }
+      const railItems = merged.slice(0, targetCount).map(homeMusicItemToRailItem);
+      _mdbg('railItems=' + railItems.length);
+      railItems.forEach((ri, i) => _mdbg('  rail[' + i + '] title=' + JSON.stringify(ri.title) + ' img=' + JSON.stringify(ri.image).slice(0, 80)));
+      return railItems;
     }
 
     function hasExistingRealItemsInFeed() {
