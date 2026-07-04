@@ -5647,7 +5647,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'artist' }, timeoutMs: 12000 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
@@ -10105,7 +10105,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         : `song.html?album_id=${encodeURIComponent((item.id || '').replace('album:', ''))}&source=${encodeURIComponent(item.source || 'spotify')}`;
       const image = String(item?.image || '').trim();
       return {
-        mediaType: 'music',
+        mediaType: 'artist',
         itemId: item.id || '',
         title: title || 'Track',
         subtitle: artist || 'Artist',
@@ -10131,7 +10131,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         _log('raw results count:', (data.results || []).length);
         const artists = Array.isArray(data.results) ? data.results : [];
         const railItems = artists.slice(0, targetCount).map((item) => ({
-          mediaType: 'music',
+          mediaType: 'artist',
           itemId: item.id || '',
           title: String(item?.title || '').trim() || 'Artist',
           subtitle: String(item?.subtitle || 'Music').trim(),
