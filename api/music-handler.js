@@ -222,7 +222,7 @@ async function deezerSearchArtistsByQuery(query, limit = 10) {
       id: String(a.id || ""),
       mediaType: "artist",
       title: String(a.name || "").trim(),
-      subtitle: "",
+      subtitle: "Music",
       image: String(a.picture_xl || a.picture_big || a.picture_medium || ""),
       popularity: Number(a.nb_fan || 0),
       externalUrl: String(a.link || "").trim(),

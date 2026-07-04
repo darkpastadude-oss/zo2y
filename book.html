@@ -1054,11 +1054,8 @@
             await upsertBookRecordLocal();
             const { error } = await supabaseClient
               .from('book_list_items')
-              .upsert({
+              .insert({
                 user_id: currentUser.id, book_id: bookId, list_type: listType
-              }, {
-                onConflict: 'user_id,book_id,list_type',
-                ignoreDuplicates: true
               });
             if (error && String(error.code || '') !== '23505' && Number(error.status || error.statusCode || 0) !== 409) throw error;
             showNotification('Saved to list', 'success');
