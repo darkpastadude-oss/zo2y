@@ -507,17 +507,19 @@
         if (nextSaved) {
           const ok = await upsertTrackRecord(client, track);
           if (!ok) throw new Error('Track upsert failed');
+          await client.from('music_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('track_id', trackId)
+            .eq('list_type', listType);
           const { error } = await client
             .from('music_list_items')
-            .upsert({
+            .insert({
               user_id: currentUser.id,
               track_id: trackId,
               list_type: listType
-            }, {
-              onConflict: 'user_id,track_id,list_type',
-              ignoreDuplicates: true
             });
-          if (error && String(error.code || '') !== '23505' && Number(error.status || error.statusCode || 0) !== 409) throw error;
+          if (error) throw error;
           showToast('Added to list');
         } else {
           const { error } = await client

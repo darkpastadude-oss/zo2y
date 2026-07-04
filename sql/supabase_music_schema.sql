@@ -52,8 +52,11 @@ create index if not exists idx_music_list_items_track on public.music_list_items
 create index if not exists idx_music_reviews_track on public.music_reviews(track_id);
 create index if not exists idx_music_reviews_user on public.music_reviews(user_id);
 
-create unique index if not exists ux_music_list_items_unique
-  on public.music_list_items (user_id, track_id, list_type, list_id);
+create unique index if not exists ux_music_list_items_quick
+  on public.music_list_items (user_id, track_id, list_type) where list_id is null;
+
+create unique index if not exists ux_music_list_items_custom
+  on public.music_list_items (user_id, track_id, list_id) where list_id is not null;
 
 create or replace function public.touch_tracks_updated_at()
 returns trigger as $$
