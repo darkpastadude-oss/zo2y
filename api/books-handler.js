@@ -294,22 +294,36 @@ export default async function booksHandler(req, res) {
       'author:"Khaled Hosseini"',
       'author:"Kazuo Ishiguro"'
     ];
-    const q = queries[Math.floor(Math.random() * queries.length)];
+    const numAuthors = Math.min(4, queries.length);
+    const shuffled = [...queries].sort(() => Math.random() - 0.5);
+    const selected = shuffled.slice(0, numAuthors);
     try {
-      const data = await openLibFetch("search.json", { q, limit: limit * 3 });
-      const rawItems = data.docs || [];
       const seenTitles = new Set();
-      const books = rawItems.filter(doc => {
-        if (!doc.title || !doc.cover_i) return false;
-        if ((doc.first_publish_year || 0) < 2000) return false;
-        const langs = Array.isArray(doc.language) ? doc.language : [];
-        if (langs.length === 0 || !langs.includes('eng')) return false;
-        const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
-        if (seenTitles.has(norm)) return false;
-        seenTitles.add(norm);
-        return true;
-      }).map(mapOpenLibDoc).slice(0, limit);
-      return res.json({ ok: true, books, total: books.length });
+      const authorCounts = {};
+      const maxPerAuthor = 3;
+      const allBooks = [];
+      for (const q of selected) {
+        if (allBooks.length >= limit) break;
+        try {
+          const data = await openLibFetch("search.json", { q, limit: Math.ceil(limit * 1.5) });
+          const rawItems = data.docs || [];
+          for (const doc of rawItems) {
+            if (allBooks.length >= limit) break;
+            if (!doc.title || !doc.cover_i) continue;
+            if ((doc.first_publish_year || 0) < 2000) continue;
+            const langs = Array.isArray(doc.language) ? doc.language : [];
+            if (langs.length === 0 || !langs.includes('eng')) continue;
+            const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+            if (seenTitles.has(norm)) continue;
+            const authorKey = (doc.author_name?.[0] || '').toLowerCase();
+            if (authorCounts[authorKey] >= maxPerAuthor) continue;
+            seenTitles.add(norm);
+            authorCounts[authorKey] = (authorCounts[authorKey] || 0) + 1;
+            allBooks.push(mapOpenLibDoc(doc));
+          }
+        } catch (_) {}
+      }
+      return res.json({ ok: true, books: allBooks, total: allBooks.length });
     } catch (e) {
       return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }

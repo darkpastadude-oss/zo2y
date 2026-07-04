@@ -10149,7 +10149,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadBooks(signal) {
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       try {
-        const url = '/api/books/popular?limit=' + (targetCount * 2);
+        const url = '/api/books/popular?limit=' + (targetCount * 5);
         const res = await fetch(url, { signal });
         if (!res.ok) return [];
         const data = await res.json();
