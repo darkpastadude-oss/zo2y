@@ -270,7 +270,7 @@ async function fetchHomeArtists(targetCount = 12) {
       const ids = shuffle(POPULAR_ARTIST_IDS).slice(0, targetCount + 10);
       const spotifyArtists = await spotifyGetArtistsByIds(ids);
       artists.push(...spotifyArtists);
-    } catch (_) {}
+    } catch (e) {}
   }
 
   if (artists.length < targetCount) {
@@ -286,13 +286,28 @@ async function fetchHomeArtists(targetCount = 12) {
         }
       }
       artists.push(...rssOnly);
-    } catch (_) {}
+    } catch (e) {}
+  }
+
+  if (artists.length < targetCount) {
+    try {
+      const deezerQueries = ["pop", "hip-hop", "rock", "country", "r&b", "latin"];
+      const dq = shuffle(deezerQueries).slice(0, 3);
+      for (const q of dq) {
+        const dzArtists = await deezerSearchArtistsByQuery(q, Math.ceil(targetCount / dq.length));
+        const dzOnly = dzArtists.filter(d => !artists.find(a => a.title.toLowerCase() === d.title.toLowerCase()));
+        artists.push(...dzOnly);
+        if (artists.length >= targetCount) break;
+      }
+    } catch (e) {}
   }
 
   artists = dedupeById(artists);
   artists = shuffle(artists);
 
-  ARTIST_CACHE.set(cacheKey, { items: artists, ts: Date.now() });
+  if (artists.length > 0) {
+    ARTIST_CACHE.set(cacheKey, { items: artists, ts: Date.now() });
+  }
   return artists;
 }
 
