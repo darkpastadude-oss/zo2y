@@ -220,7 +220,7 @@
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
     const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const nid=normalizeQueryableItemIdValue(item.itemId);if(nid===null||nid===undefined)return{ok:false,saved:false};await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,nid).eq('list_type',listType);const{error}=await c.from(tbl.table).insert(p);if(error)return{ok:false,saved:false,error};return{ok:true,saved:true}}
+    if(nextSaved){const nid=normalizeQueryableItemIdValue(item.itemId);if(nid===null||nid===undefined)return{ok:false,saved:false};const{error}=await c.from(tbl.table).upsert({...p},{onConflict:`user_id,${tbl.itemField},list_type`,ignoreDuplicates:true});if(error&&String(error.code||'')!=='23505'&&Number(error.status||error.statusCode||0)!==409)return{ok:false,saved:false,error};return{ok:true,saved:true}}
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }

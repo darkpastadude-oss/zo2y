@@ -489,13 +489,7 @@ CREATE INDEX IF NOT EXISTS idx_books_authors ON books USING gin (to_tsvector('en
 CREATE INDEX IF NOT EXISTS idx_book_list_items_user ON book_list_items (user_id);
 CREATE INDEX IF NOT EXISTS idx_book_list_items_book ON book_list_items (book_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_quick
-  ON book_list_items (user_id, book_id, list_type)
-  WHERE list_id IS NULL;
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_custom
-  ON book_list_items (user_id, book_id, list_id)
-  WHERE list_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_unique ON book_list_items (user_id, book_id, list_type, list_id);
 
 INSERT INTO books (id, title, authors, thumbnail, published_date, categories, description, page_count, publisher)
 VALUES
@@ -984,11 +978,8 @@ create index if not exists idx_music_list_items_track on public.music_list_items
 create index if not exists idx_music_reviews_track on public.music_reviews(track_id);
 create index if not exists idx_music_reviews_user on public.music_reviews(user_id);
 
-create unique index if not exists ux_music_list_items_quick
-  on public.music_list_items (user_id, track_id, list_type) where list_id is null;
-
-create unique index if not exists ux_music_list_items_custom
-  on public.music_list_items (user_id, track_id, list_id) where list_id is not null;
+create unique index if not exists ux_music_list_items_unique
+  on public.music_list_items (user_id, track_id, list_type, list_id);
 
 create or replace function public.touch_tracks_updated_at()
 returns trigger as $$

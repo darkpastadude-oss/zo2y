@@ -49,15 +49,8 @@ CREATE INDEX IF NOT EXISTS idx_books_authors ON books USING gin (to_tsvector('en
 CREATE INDEX IF NOT EXISTS idx_book_list_items_user ON book_list_items (user_id);
 CREATE INDEX IF NOT EXISTS idx_book_list_items_book ON book_list_items (book_id);
 
--- Quick lists (list_id IS NULL): at most one row per user/book/list_type
--- Custom lists (list_id NOT NULL): at most one row per user/book/list
-CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_quick
-  ON book_list_items (user_id, book_id, list_type)
-  WHERE list_id IS NULL;
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_custom
-  ON book_list_items (user_id, book_id, list_id)
-  WHERE list_id IS NOT NULL;
+-- Prevent exact duplicate list rows per user/book/list_type/list_id
+CREATE UNIQUE INDEX IF NOT EXISTS ux_book_list_items_unique ON book_list_items (user_id, book_id, list_type, list_id);
 
 -- Example seed rows (replace with your own). Thumbnails use Open Library cover API when available.
 INSERT INTO books (id, title, authors, thumbnail, published_date, categories, description, page_count, publisher)
