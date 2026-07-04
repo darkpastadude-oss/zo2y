@@ -201,21 +201,19 @@
     const url = new URL(`${MUSIC_PROXY_BASE}/search`, window.location.origin);
     url.searchParams.set('q', query);
     url.searchParams.set('limit', '10');
-    url.searchParams.set('type', 'track,album');
     const json = await fetchJson(url.toString(), signal);
     const results = Array.isArray(json?.results) ? json.results : [];
     return results.slice(0, 10).map((row) => {
       const title = String(row?.title || row?.name || '').trim();
       const id = String(row?.id || '').trim();
       if (!title) return null;
-      const artist = Array.isArray(row?.artists) ? String(row.artists[0] || '').trim() : String(row?.artist || '').trim();
-      const isAlbum = String(row?.albumType || '').toLowerCase() === 'album' || (!row?.trackNumber && !row?.durationMs);
+      const genre = String(row?.subtitle || row?.genre || '').trim();
       return {
         type: 'Music',
         title,
-        sub: artist ? `${isAlbum ? 'Album' : 'Track'} • ${artist}` : (isAlbum ? 'Album' : 'Track'),
+        sub: genre ? `Artist • ${genre}` : 'Artist',
         image: toHttpsUrl(row?.image || ''),
-        href: isAlbum && id ? `song.html?album_id=${encodeURIComponent(id)}&source=${encodeURIComponent(String(row?.provider || row?.source || 'itunes'))}` : (id ? `song.html?id=${encodeURIComponent(id)}` : 'music.html')
+        href: row?.externalUrl ? row.externalUrl : (id ? `music.html` : 'music.html')
       };
     }).filter(Boolean);
   }

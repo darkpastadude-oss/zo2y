@@ -350,9 +350,7 @@
           }
         } else {
           const params = new URLSearchParams({ limit: '50' });
-          if (state.genre) params.set('genre', state.genre);
-          if (state.year) params.set('year', state.year);
-          const res = await fetch(`/api/music/trending?${params}`, { signal: abort.signal });
+          const res = await fetch(`/api/music/artists?${params}`, { signal: abort.signal });
           
           if (abort.signal.aborted) return;
           if (res?.ok) {

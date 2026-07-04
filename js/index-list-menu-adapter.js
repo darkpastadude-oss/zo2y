@@ -65,6 +65,16 @@
     ],
     sports: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
+    ],
+    book: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'read', label: 'Read', icon: 'fas fa-eye' },
+      { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
+    ],
+    music: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
+      { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
     ]
   };
 
@@ -78,7 +88,9 @@
     food: { table: 'food_list_items', itemField: 'brand_id' },
     car: { table: 'car_list_items', itemField: 'brand_id' },
     sports: { table: 'sports_list_items', itemField: 'team_id' },
-    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' }
+    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' },
+    book: { table: 'book_list_items', itemField: 'book_id' },
+    music: { table: 'music_list_items', itemField: 'track_id' }
   };
 
   const MEDIA_LIST_ICONS = {
@@ -86,7 +98,8 @@
     game:'fas fa-gamepad',
     travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
     food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
-    restaurant:'fas fa-clapperboard'
+    restaurant:'fas fa-clapperboard',
+    book:'fas fa-book', music:'fas fa-music'
   };
   function getMediaListFallbackIcon() { return MEDIA_LIST_ICONS[getMediaType()] || 'fas fa-list'; }
   function escapeHtml(v) {
@@ -207,7 +220,7 @@
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
     const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const{error}=await c.from(tbl.table).insert(p); if(error){const m=String(error.message||'').toLowerCase();if(m.includes('duplicate')||m.includes('already exists')||m.includes('unique'))return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
+    if(nextSaved){const p2={...p,list_id:null};const conflictCols=`user_id,${tbl.itemField},list_type,list_id`;const{error}=await c.from(tbl.table).upsert(p2,{onConflict:conflictCols,ignoreDuplicates:true}); if(error)return{ok:false,saved:false,error}; return{ok:true,saved:true}}
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }

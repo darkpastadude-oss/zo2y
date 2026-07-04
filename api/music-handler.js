@@ -125,26 +125,110 @@ async function spotifySearchArtists(query, limit = 50) {
   return (data.artists.items || []).map(normalizeSpotifyArtist).filter(Boolean);
 }
 
-async function spotifyGetRelatedArtists(id, limit = 20) {
-  const data = await spotifyFetch(`artists/${encodeURIComponent(id)}/related-artists`);
-  if (!data || !data.artists) return [];
-  return data.artists.slice(0, limit).map(normalizeSpotifyArtist).filter(Boolean);
+const POPULAR_ARTIST_IDS = [
+  "66CXWjxzNUsdJxJ2JdwvnR", "1Xyo4u8uXC1ZmMpatF05PJ", "0Y5tJX1MQlPlqiwlOH1tJY",
+  "74KM79TiuVKeVCqs8QtBqB", "4Q8iWy4kM9yHy3WEsqYKcK", "6KImCVD70vtIoJWnq6nGn3",
+  "1HY2Jd0NmPuamShAr6KMms", "0du5cEVh5yTK9QJze8zA0C", "246dkJv52ZmvvB3MU3EfWD",
+  "6eUKZXaKkcviH0Ku9w2n3V", "4dpARuHxo51G3z768sgnrY", "0vn82ciwoffRj4fPM57RRz",
+  "1vCWHaC5f2uS3yhpwWbIA6", "7cPv8Q080UGh7Q4uxU0qQc", "1dfeR4HaWDbWqFHLkxsg1d",
+  "4gzpq5DPGxSnKTe4SA8HAU", "3WrFJ7ztbogyGnTHbHJFl2", "1RyvyyTE3bv76ynp8GV1CD",
+  "5K4W6rqBFWDnAN6FQUkS6x", "7ouG8Zh9LKboamobBmvrqL", "3Nrfpe0tUJi4K4DXYWgMUX",
+  "1uNFoZAHGPtTmQ8EzALuQI", "1XyzdFpbj67yiDUZ1JWQnA", "0EmeFodog0B6cWt2Tl4JDl",
+  "3q7HBObVc0L8jNeTe5Gofh", "53Xhw976x0cJV354YqJXRW", "0qtk0OhDkVaH2MoIhZ0UOo",
+  "4r63FHU0t8eEYzTRzRt0Zp", "3EclbrCbNnNeaLVNRtPBz", "4kI8iiVn0PpoaEGMlCp1MF",
+  "0gPlYImhkx45dkZDqCLcQX", "4yvcSjfuuPCcSYzB+oUm0n", "4xRYI6IsDOsa8yz3RgHaw3",
+  "2CIMQHirSU0MQaakyelNZW", "3sgXDLRjZ0t5nAeHxFWHnQ", "4STHE9QIsOUL7Ih5kW1Vf3",
+  "0iEtIznC4noha2kHvbYrNH", "09C0xjtosZaytableMvJcW", "3hV2JqIHtiGIF1ME5SjQXC",
+  "4qwqE4EdtN5bLFO1hZ1mWD", "6olE6TJLqED3rqDCT0FyPh", "707St7h4p1Ajd84lVNKX4p",
+  "23zg3TcMrWgg9Oh63tZPbO", "66aHtG9YF2Ti0JL26cIeKj", "4kSGhnmKgXbk5D8yXDbCgF",
+  "6FfCtQCECycRrLrfoSFkQF", "20q1BFx3gHkDBkYDoHpn0V", "536HYn9LbcNPRXEM2HqDk2",
+  "0aXZ8AHBfvq3nJU5CQ36uk"
+];
+
+async function spotifyGetArtistsByIds(ids) {
+  const batch = ids.slice(0, 50);
+  const token = await getSpotifyToken();
+  if (!token) return [];
+  try {
+    const url = new URL(`${SPOTIFY_API}/artists`);
+    url.search = `ids=${batch.join(",")}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data.artists) return [];
+    return data.artists.filter(Boolean).map(normalizeSpotifyArtist).filter(Boolean);
+  } catch (_) { return []; }
 }
 
-async function spotifyGetTopArtistsByGenres(genres, perGenre = 5) {
-  const results = [];
+function dedupeById(items) {
   const seen = new Set();
-  for (const genre of genres) {
-    if (results.length >= 100) break;
-    const artists = await spotifySearchArtists(`genre:${genre}`, perGenre + 5);
-    for (const artist of artists) {
-      if (seen.has(artist.id)) continue;
-      seen.add(artist.id);
-      results.push(artist);
-      if (results.length >= 100) break;
-    }
+  return (items || []).filter(item => {
+    if (!item || !item.id) return false;
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function deezerSearchArtists(names) {
+  const results = {};
+  for (const name of names) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(name)}&limit=1`, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0" }
+      });
+      clearTimeout(timeout);
+      if (!res.ok) continue;
+      const json = await res.json();
+      const artist = json.data?.[0];
+      if (artist?.picture_xl) {
+        results[name.toLowerCase()] = artist.picture_xl;
+      }
+    } catch (_) {}
   }
   return results;
+}
+
+async function deezerSearchArtistsByQuery(query, limit = 10) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
+    const res = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=${limit}`, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0" }
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json.data || []).map(a => ({
+      id: String(a.id || ""),
+      mediaType: "artist",
+      title: String(a.name || "").trim(),
+      subtitle: "",
+      image: String(a.picture_xl || a.picture_big || a.picture_medium || ""),
+      popularity: Number(a.nb_fan || 0),
+      externalUrl: String(a.link || "").trim(),
+      provider: "deezer"
+    })).filter(a => a.title);
+  } catch (_) { return []; }
 }
 
 async function getArtistsFromRss(limit = 20) {
@@ -173,37 +257,18 @@ async function getArtistsFromRss(limit = 20) {
   return artists.filter(Boolean);
 }
 
-function dedupeById(items) {
-  const seen = new Set();
-  return (items || []).filter(item => {
-    if (!item || !item.id) return false;
-    if (seen.has(item.id)) return false;
-    seen.add(item.id);
-    return true;
-  });
-}
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 async function fetchHomeArtists(targetCount = 12) {
   const cacheKey = "home_artists";
   const cached = ARTIST_CACHE.get(cacheKey);
   if (cached && (Date.now() - cached.ts) < ARTIST_CACHE_TTL) return cached.items;
 
   let artists = [];
-
   const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
+
   if (spotifyWorks) {
     try {
-      const genres = shuffle(DEFAULT_GENRES).slice(0, 8);
-      const spotifyArtists = await spotifyGetTopArtistsByGenres(genres, 4);
+      const ids = shuffle(POPULAR_ARTIST_IDS).slice(0, targetCount + 10);
+      const spotifyArtists = await spotifyGetArtistsByIds(ids);
       artists.push(...spotifyArtists);
     } catch (_) {}
   }
@@ -211,7 +276,16 @@ async function fetchHomeArtists(targetCount = 12) {
   if (artists.length < targetCount) {
     try {
       const rssArtists = await getArtistsFromRss(30);
-      artists.push(...rssArtists);
+      const rssOnly = rssArtists.filter(r => !artists.find(a => a.title.toLowerCase() === r.title.toLowerCase()));
+      if (rssOnly.length) {
+        const names = [...new Set(rssOnly.map(a => a.title))];
+        const deezerImages = await deezerSearchArtists(names.slice(0, 20));
+        for (const a of rssOnly) {
+          const dzImg = deezerImages[a.title.toLowerCase()];
+          if (dzImg) a.image = dzImg;
+        }
+      }
+      artists.push(...rssOnly);
     } catch (_) {}
   }
 
@@ -223,6 +297,7 @@ async function fetchHomeArtists(targetCount = 12) {
 }
 
 export default async function handler(req, res) {
+  try {
   const query = readQuery(req);
   const pathParts = readPathParts(query);
   const section = String(pathParts[0] || "").trim().toLowerCase();
@@ -278,10 +353,19 @@ export default async function handler(req, res) {
       } catch (_) {}
     }
 
+    if (!artists.length) {
+      try {
+        artists = await deezerSearchArtistsByQuery(q, limit);
+      } catch (_) {}
+    }
+
     artists = dedupeById(artists);
     return res.json({ count: artists.length, limit, offset: 0, results: artists.slice(0, limit) });
   }
 
   setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
   return res.json({ ok: true, service: "music", type: "artists" });
+  } catch (err) {
+    return res.status(500).json({ error: "Internal error", message: String(err?.message || err) });
+  }
 }

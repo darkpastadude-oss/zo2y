@@ -4,8 +4,8 @@
     const ENABLE_FOOD = window.ZO2Y_DISABLE_FOOD !== true;
     const ENABLE_CARS = window.ZO2Y_DISABLE_CARS !== true;
     const HOME_BASE_MEDIA_TYPES = ENABLE_GAMES
-      ? ['movie', 'tv', 'anime', 'game', 'travel', 'sports', 'music']
-      : ['movie', 'tv', 'anime', 'travel', 'sports', 'music'];
+      ? ['movie', 'tv', 'anime', 'game', 'travel', 'sports', 'music', 'book']
+      : ['movie', 'tv', 'anime', 'travel', 'sports', 'music', 'book'];
     const HOME_LIFESTYLE_MEDIA_TYPES = [
       ...(ENABLE_FASHION ? ['fashion'] : []),
       ...(ENABLE_FOOD ? ['food'] : []),
@@ -312,6 +312,7 @@
       anime: { label: 'Anime', icon: 'fa-dragon', accent: '#f97316' },
       ...(ENABLE_GAMES ? { game: { label: 'Game', icon: 'fa-gamepad', accent: '#38bdf8' } } : {}),
       music: { label: 'Music', icon: 'fa-music', accent: '#a855f7' },
+      book: { label: 'Book', icon: 'fa-book', accent: '#22c55e' },
       travel: { label: 'Travel', icon: 'fa-earth-americas', accent: '#22d3ee' },
       sports: { label: 'Sports', icon: 'fa-futbol', accent: '#f59e0b' }
     };
@@ -328,7 +329,9 @@
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
       ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
+      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {}),
+      book: { table: 'book_list_items', itemField: 'book_id' },
+      music: { table: 'music_list_items', itemField: 'track_id' }
     };
     const HOME_REVIEW_SIGNAL_TABLES = {
       movie: { table: 'movie_reviews', itemField: 'movie_id' },
@@ -355,7 +358,7 @@
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v5';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v5';
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v6';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v7';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -2191,6 +2194,26 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ]
         };
       }
+      if (type === 'book') {
+        return {
+          customHref: 'books.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'read', label: 'Read', icon: 'fas fa-eye' },
+            { key: 'readlist', label: 'Readlist', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
+      if (type === 'music') {
+        return {
+          customHref: 'music.html',
+          rows: [
+            { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+            { key: 'listened', label: 'Listened', icon: 'fas fa-eye' },
+            { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
+          ]
+        };
+      }
       return null;
     }
 
@@ -3926,10 +3949,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const insertRow = { user_id: activeUser.id, list_type: listType };
-            insertRow[itemField] = itemId;
-            const { error: insertError } = await client.from(table).insert(insertRow);
-            if (insertError && String(insertError.code || '') !== '23505') {
+            const upsertRow = { user_id: activeUser.id, list_type: listType, list_id: null };
+            upsertRow[itemField] = itemId;
+            const conflictCols = `user_id,${itemField},list_type,list_id`;
+            const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: conflictCols, ignoreDuplicates: true });
+            if (insertError) {
               showHomeToast('Could not add to list', true);
               return result;
             }
@@ -3963,10 +3987,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const insertRow = { user_id: activeUser.id, list_type: listType };
-          insertRow[itemField] = itemId;
-          const { error: insertError } = await client.from(table).insert(insertRow);
-          if (insertError && String(insertError.code || '') !== '23505') {
+          const upsertRow2 = { user_id: activeUser.id, list_type: listType, list_id: null };
+          upsertRow2[itemField] = itemId;
+          const conflictCols2 = `user_id,${itemField},list_type,list_id`;
+          const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: conflictCols2, ignoreDuplicates: true });
+          if (insertError) {
             showHomeToast('Could not add to list', true);
             return result;
           }
@@ -5605,6 +5630,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
         { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
+        { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -6316,6 +6342,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ? getOptimizedHomeTravelImage(safeImage, landscape ? 960 : 720)
           : '';
         const homeImageExtra = {};
+        if (Array.isArray(itemData.fallbackChain) && itemData.fallbackChain.length) {
+          homeImageExtra.fallbackChain = itemData.fallbackChain;
+        }
         let mediaHtml = restaurantComposite
           ? `
               ${coverImage ? `<img class="restaurant-cover" ${buildHomeImageAttrs(coverImage, imageLoading, imagePriority, fallbackImage)} alt="${title}">` : '<i class="fa-solid fa-image"></i>'}
@@ -10097,6 +10126,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         railItems.forEach((ri, i) => _log('  [' + (i+1) + ']', ri.title, '|', ri.subtitle, '| img:', ri.image ? ri.image.substring(0, 60) + '...' : 'EMPTY'));
         return railItems;
       } catch (e) { _err('loadMusic error:', e?.message || e); return []; }
+    }
+
+    async function loadBooks(signal) {
+      const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      try {
+        const url = '/api/books/popular?limit=' + (targetCount * 2);
+        const res = await fetch(url, { signal });
+        if (!res.ok) return [];
+        const data = await res.json();
+        const books = Array.isArray(data.books) ? data.books : [];
+        return books.slice(0, targetCount).map((item) => {
+          const rawCover = String(item?.rawCover || '').trim();
+          const proxyCover = String(item?.image || item?.cover || '').trim();
+          const fallbackChain = [];
+          if (proxyCover && proxyCover !== rawCover) fallbackChain.push(proxyCover);
+          return {
+            mediaType: 'book',
+            itemId: item.id || '',
+            title: String(item?.title || '').trim() || 'Untitled',
+            subtitle: String(item?.subtitle || item?.author || 'Book').trim(),
+            image: rawCover || proxyCover,
+            fallbackImage: proxyCover || '',
+            fallbackChain,
+            href: item?.externalUrl || 'books.html'
+          };
+        });
+      } catch (_) { return []; }
     }
 
     function hasExistingRealItemsInFeed() {

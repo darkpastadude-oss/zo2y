@@ -858,12 +858,11 @@
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
-          const { error } = await client.from('music_list_items').insert({
-            user_id: currentUser.id,
-            track_id: trackId,
-            list_type: listType
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
+          const { error } = await client.from('music_list_items').upsert(
+            { user_id: currentUser.id, track_id: trackId, list_type: listType, list_id: null },
+            { onConflict: 'user_id,track_id,list_type,list_id', ignoreDuplicates: true }
+          );
+          if (error) throw error;
           qs('songStatus').textContent = 'Added to list.';
           qs('songStatus').classList.remove('error');
         } else {
@@ -962,12 +961,11 @@
         if (nextSaved) {
           const ok = await upsertTrackRecord(client, row);
           if (!ok) throw new Error('Track upsert failed');
-          const { error } = await client.from('music_list_items').insert({
-            user_id: currentUser.id,
-            track_id: id,
-            list_type: type
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
+          const { error } = await client.from('music_list_items').upsert(
+            { user_id: currentUser.id, track_id: id, list_type: type, list_id: null },
+            { onConflict: 'user_id,track_id,list_type,list_id', ignoreDuplicates: true }
+          );
+          if (error) throw error;
           qs('songStatus').textContent = 'Added to list.';
           qs('songStatus').classList.remove('error');
           return { ok: true, saved: true };

@@ -36,10 +36,15 @@ async function fetchJson(url, { cacheKey = "", ttlMs = CACHE_TTL, timeoutMs = 80
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal });
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
+    });
     clearTimeout(timeout);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } catch (_) { throw new Error("Invalid JSON"); }
     if (cacheKey) cacheSet(cacheKey, json, ttlMs);
     return json;
   } catch (e) {
@@ -54,7 +59,11 @@ function mapOpenLibDoc(doc) {
   const authors = Array.isArray(doc.author_name) ? doc.author_name : (doc.author_name ? [doc.author_name] : []);
   const authorStr = authors.join(", ");
   const year = doc.first_publish_year ? String(doc.first_publish_year) : "";
-  const image = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : "";
+  const isbn = (Array.isArray(doc.isbn) ? doc.isbn.find(i => i && i.length === 13) : null) || (Array.isArray(doc.isbn) ? doc.isbn[0] : null) || "";
+  const rawCover = isbn
+    ? `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
+    : (doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg` : "");
+  const image = rawCover ? `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(authorStr)}` : "";
   const genres = Array.isArray(doc.subject) ? doc.subject : [];
   
   return {
@@ -67,6 +76,7 @@ function mapOpenLibDoc(doc) {
     year,
     cover: image,
     image: image,
+    rawCover: rawCover,
     backdrop: image,
     description: "",
     genres,
@@ -89,7 +99,8 @@ function mapOpenLibSubjectDoc(doc) {
   const authors = Array.isArray(doc.authors) ? doc.authors.map(a => a.name) : [];
   const authorStr = authors.join(", ");
   const year = doc.first_publish_year ? String(doc.first_publish_year) : "";
-  const image = doc.cover_id ? `https://covers.openlibrary.org/b/id/${doc.cover_id}-L.jpg` : "";
+  const rawImage = doc.cover_id ? `https://covers.openlibrary.org/b/id/${doc.cover_id}-L.jpg` : "";
+  const image = rawImage ? `/api/books/cover?url=${encodeURIComponent(rawImage)}&title=${encodeURIComponent(title)}&author=${encodeURIComponent(authorStr)}` : "";
   
   return {
     id,
@@ -134,6 +145,7 @@ function getPathParts(query) {
 }
 
 export default async function booksHandler(req, res) {
+  try {
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
@@ -148,28 +160,64 @@ export default async function booksHandler(req, res) {
   const openLibFetch = async (endpoint, extraParams = {}) => {
     const url = new URL(`${OPENLIB_BASE}/${endpoint}`);
     Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-    return fetchJson(url.toString(), { cacheKey: `ol:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
+    return fetchJson(url.toString(), { cacheKey: `ol2:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
   };
 
   if (section === "cover") {
     const targetUrl = String(query.url || "").trim();
     if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+    const SVG_FALLBACK = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>';
     try {
-      const proxyRes = await fetch(targetUrl, { headers: { "User-Agent": "zo2y-books/1.0" } });
-      if (!proxyRes.ok) {
-        res.setHeader("Content-Type", "image/svg+xml");
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const proxyRes = await fetch(targetUrl, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
+      });
+      clearTimeout(timeout);
+      if (proxyRes.ok) {
+        const buffer = await proxyRes.arrayBuffer();
+        if (buffer.byteLength > 500) {
+          res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return res.end(new Uint8Array(buffer));
+        }
       }
-      const buffer = await proxyRes.arrayBuffer();
-      res.setHeader("Content-Type", proxyRes.headers.get("Content-Type") || "image/jpeg");
-      res.setHeader("Cache-Control", "public, max-age=86400");
-      return res.end(new Uint8Array(buffer));
-    } catch (_) {
-      res.setHeader("Content-Type", "image/svg+xml");
-      res.setHeader("Cache-Control", "public, max-age=3600");
-      return res.send(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>'));
+    } catch (_) {}
+
+    const title = String(query.title || "").trim();
+    const author = String(query.author || "").trim();
+    if (title) {
+      try {
+        const gq = `${title}${author ? ' ' + author : ''}`;
+        const gUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(gq)}&maxResults=1&fields=items(volumeInfo(imageLinks))`;
+        const controller2 = new AbortController();
+        const timeout2 = setTimeout(() => controller2.abort(), 5000);
+        const gRes = await fetch(gUrl, { signal: controller2.signal });
+        clearTimeout(timeout2);
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          const thumb = gData.items?.[0]?.volumeInfo?.imageLinks?.thumbnail || gData.items?.[0]?.volumeInfo?.imageLinks?.smallThumbnail || '';
+          if (thumb) {
+            const imgUrl = thumb.replace(/^http:/i, 'https:');
+            const controller3 = new AbortController();
+            const timeout3 = setTimeout(() => controller3.abort(), 5000);
+            const imgRes = await fetch(imgUrl, { signal: controller3.signal, headers: { "User-Agent": "Mozilla/5.0" } });
+            clearTimeout(timeout3);
+            if (imgRes.ok) {
+              const buffer = await imgRes.arrayBuffer();
+              res.setHeader("Content-Type", imgRes.headers.get("Content-Type") || "image/jpeg");
+              res.setHeader("Cache-Control", "public, max-age=86400");
+              return res.end(new Uint8Array(buffer));
+            }
+          }
+        }
+      } catch (_) {}
     }
+
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    return res.send(Buffer.from(SVG_FALLBACK));
   }
 
   if (section === "search" || section === "volumes") {
@@ -224,13 +272,43 @@ export default async function booksHandler(req, res) {
   if (section === "popular") {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
+    const queries = [
+      'author:"Colleen Hoover"',
+      'author:"Taylor Jenkins Reid"',
+      'author:"Rebecca Yarros"',
+      'author:"Ana Huang"',
+      'author:"Sarah J. Maas"',
+      'author:"Holly Black"',
+      'author:"Leigh Bardugo"',
+      'author:"Madeline Miller"',
+      'author:"Emily Henry"',
+      'author:"Rachel Gillig"',
+      'author:"Carola Lovering"',
+      'author:"Elly Griffiths"',
+      'author:"Freida McFadden"',
+      'author:"Italo Calvino"',
+      'author:"Fredrik Backman"',
+      'author:"V.E. Schwab"',
+      'author:"Stephanie Garber"',
+      'author:"Donna Tartt"',
+      'author:"Khaled Hosseini"',
+      'author:"Kazuo Ishiguro"'
+    ];
+    const q = queries[Math.floor(Math.random() * queries.length)];
     try {
-      const data = await openLibFetch("search.json", {
-        q: `"Atomic Habits" OR "Surrounded by Idiots" OR "Verity" OR "It Ends with Us" OR "The Seven Husbands of Evelyn Hugo" OR "Fourth Wing" OR "A Court of Thorns and Roses" OR "The Silent Patient"`,
-        limit: limit * 2
-      });
+      const data = await openLibFetch("search.json", { q, limit: limit * 3 });
       const rawItems = data.docs || [];
-      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
+      const seenTitles = new Set();
+      const books = rawItems.filter(doc => {
+        if (!doc.title || !doc.cover_i) return false;
+        if ((doc.first_publish_year || 0) < 2000) return false;
+        const langs = Array.isArray(doc.language) ? doc.language : [];
+        if (langs.length === 0 || !langs.includes('eng')) return false;
+        const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+        if (seenTitles.has(norm)) return false;
+        seenTitles.add(norm);
+        return true;
+      }).map(mapOpenLibDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length });
     } catch (e) {
       return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
@@ -293,7 +371,8 @@ export default async function booksHandler(req, res) {
       }
       
       if (workData.covers && workData.covers.length > 0) {
-        normalized.image = `https://covers.openlibrary.org/b/id/${workData.covers[0]}-L.jpg`;
+        const rawCover = `https://covers.openlibrary.org/b/id/${workData.covers[0]}-L.jpg`;
+        normalized.image = `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(normalized.title)}&author=${encodeURIComponent(normalized.author)}`;
         normalized.cover = normalized.image;
         normalized.backdrop = normalized.image;
       }
@@ -305,4 +384,7 @@ export default async function booksHandler(req, res) {
   }
 
   return res.status(404).json({ ok: false, message: "Not found" });
+  } catch (err) {
+    return res.status(500).json({ ok: false, message: "Internal error", error: String(err?.message || err) });
+  }
 }
