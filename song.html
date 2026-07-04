@@ -464,15 +464,7 @@
         </div>
         <div class="actions">
           <button class="btn btn-primary" id="listenBtn" type="button"><i class="fa-solid fa-play"></i> Listen Now</button>
-          <div class="menu-wrapper">
-            <button class="menu-btn" id="songMenuBtn" type="button" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            <div class="list-menu" id="songListMenu">
-              <div class="list-menu-title">Save to list</div>
-              <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="listened"><span><i class="fas fa-check"></i> Listened</span><span class="list-action-state">Add</span></button>
-              <button class="list-action" data-list="listenlist"><span><i class="fas fa-bookmark"></i> Listenlist</span><span class="list-action-state">Add</span></button>
-            </div>
-          </div>
+
           <a class="btn" href="music.html"><i class="fa-solid fa-arrow-left"></i> Back to Music</a>
         </div>
         <audio id="previewPlayer" preload="none" class="hidden"></audio>
@@ -506,12 +498,8 @@
     let track = null;
     let albumMode = false;
     let albumTracks = [];
-    const albumTrackStatusMap = new Map();
-    const albumTrackPendingOps = new Set();
     const albumPreviewState = { btn: null };
     const previewPlayerState = { initialized: false };
-    const trackListStatus = { favorites: false, listened: false, listenlist: false };
-    const pendingListOps = new Set();
 
     function qs(id) { return document.getElementById(id); }
     function escapeHtml(value) {
@@ -782,211 +770,7 @@
       followersEl.innerHTML = `<i class="fa-solid fa-users"></i> Followers ${Number(artist.followers || 0).toLocaleString()}`;
     }
 
-    function updateListMenuUi() {
-      const menu = qs('songListMenu');
-      if (!menu) return;
-      const trackId = String(track?.id || '').trim();
-      menu.querySelectorAll('.list-action[data-list]').forEach((btn) => {
-        const listType = String(btn.getAttribute('data-list') || '').trim().toLowerCase();
-        if (!(listType in trackListStatus)) return;
-        const state = btn.querySelector('.list-action-state');
-        const isSaved = !!trackListStatus[listType];
-        const isPending = pendingListOps.has(`${trackId}:${listType}`);
-        btn.classList.toggle('active', isSaved);
-        btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
-        btn.disabled = isPending;
-        btn.title = isSaved ? `Remove from ${listType}` : `Add to ${listType}`;
-        if (state) state.textContent = isPending ? '...' : (isSaved ? 'Saved' : 'Add');
-      });
-    }
 
-    async function loadTrackListStatus() {
-      trackListStatus.favorites = false;
-      trackListStatus.listened = false;
-      trackListStatus.listenlist = false;
-      if (!track?.id || !currentUser?.id) {
-        updateListMenuUi();
-        return;
-      }
-      const client = await ensureSupabase();
-      if (!client) return;
-      const { data, error } = await client
-        .from('music_list_items')
-        .select('list_type')
-        .eq('user_id', currentUser.id)
-        .eq('track_id', String(track.id));
-      if (!error) {
-        (data || []).forEach((row) => {
-          const key = String(row.list_type || '');
-          if (key in trackListStatus) {
-            trackListStatus[key] = true;
-          }
-        });
-      }
-      updateListMenuUi();
-    }
-
-    async function toggleList(listType) {
-      if (!track?.id) return;
-      if (!(listType in trackListStatus)) return;
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id) {
-        window.location.href = 'login.html';
-        return;
-      }
-      const trackId = String(track.id);
-      const opKey = `${trackId}:${listType}`;
-      if (pendingListOps.has(opKey)) return;
-
-      const previousSaved = !!trackListStatus[listType];
-      const nextSaved = !previousSaved;
-      pendingListOps.add(opKey);
-      trackListStatus[listType] = nextSaved;
-      updateListMenuUi();
-
-      try {
-        if (nextSaved) {
-          await client.from('tracks').upsert({
-            id: trackId,
-            name: track.title || '',
-            artists: track.artist || '',
-            album_name: track.albumName || '',
-            image_url: track.image || '',
-            preview_url: track.previewUrl || '',
-            popularity: Number(track.popularity || 0),
-            duration_ms: Number(track.durationMs || 0),
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-
-          const { error } = await client.from('music_list_items').insert({
-            user_id: currentUser.id, track_id: trackId, list_type: listType
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
-          qs('songStatus').textContent = 'Added to list.';
-          qs('songStatus').classList.remove('error');
-        } else {
-          const { error } = await client
-            .from('music_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('track_id', trackId)
-            .eq('list_type', listType);
-          if (error) throw error;
-          qs('songStatus').textContent = 'Removed from list.';
-          qs('songStatus').classList.remove('error');
-        }
-      } catch (_error) {
-        trackListStatus[listType] = previousSaved;
-        qs('songStatus').textContent = 'Could not update list.';
-        qs('songStatus').classList.add('error');
-      } finally {
-        pendingListOps.delete(opKey);
-        updateListMenuUi();
-      }
-    }
-
-    function getAlbumTrackStatus(trackId) {
-      const id = String(trackId || '').trim();
-      const empty = { favorites: false, listened: false, listenlist: false };
-      if (!id) return { ...empty };
-      if (!albumTrackStatusMap.has(id)) albumTrackStatusMap.set(id, { ...empty });
-      return albumTrackStatusMap.get(id);
-    }
-
-    async function loadAlbumTrackListStatus() {
-      albumTrackStatusMap.clear();
-      if (!currentUser?.id || !albumTracks.length) return;
-      const ids = albumTracks
-        .map((row) => String(row?.id || '').trim())
-        .filter(Boolean);
-      if (!ids.length) return;
-      const client = await ensureSupabase();
-      if (!client) return;
-      const { data, error } = await client
-        .from('music_list_items')
-        .select('track_id, list_type')
-        .eq('user_id', currentUser.id)
-        .in('track_id', ids);
-      if (error) return;
-      (data || []).forEach((row) => {
-        const id = String(row?.track_id || '').trim();
-        const listType = String(row?.list_type || '').trim().toLowerCase();
-        if (!id) return;
-        const bucket = getAlbumTrackStatus(id);
-        if (listType in bucket) bucket[listType] = true;
-      });
-    }
-
-    async function upsertTrackRecord(client, row) {
-      if (!client || !row?.id) return false;
-      const payload = {
-        id: String(row.id),
-        name: String(row.title || '').trim(),
-        artists: row.artist || '',
-        album_name: String(row.albumName || '').trim(),
-        image_url: String(row.image || '').trim(),
-        preview_url: String(row.previewUrl || '').trim(),
-        popularity: Number(row.popularity || 0),
-        duration_ms: Number(row.durationMs || 0),
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('tracks').upsert(payload, { onConflict: 'id' });
-      return !error;
-    }
-
-    async function toggleAlbumTrackDefaultList(trackId, listType, _card, forcedNextSaved) {
-      const id = String(trackId || '').trim();
-      if (!id) return { ok: false, saved: false };
-      const type = String(listType || '').trim().toLowerCase();
-      const status = getAlbumTrackStatus(id);
-      if (!(type in status)) return { ok: false, saved: false };
-
-      const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
-      if (!row) return { ok: false, saved: false };
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id) {
-        window.location.href = 'login.html';
-        return { ok: false, saved: false };
-      }
-
-      const opKey = `${id}:${type}`;
-      if (albumTrackPendingOps.has(opKey)) return { ok: false, saved: !!status[type] };
-      const previousSaved = !!status[type];
-      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-      albumTrackPendingOps.add(opKey);
-      status[type] = nextSaved;
-
-      try {
-        if (nextSaved) {
-          const { error } = await client.from('music_list_items').insert({
-            user_id: currentUser.id, track_id: id, list_type: type
-          });
-          if (error && String(error.code || '') !== '23505') throw error;
-          qs('songStatus').textContent = 'Added to list.';
-          qs('songStatus').classList.remove('error');
-          return { ok: true, saved: true };
-        } else {
-          const { error } = await client
-            .from('music_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('track_id', id)
-            .eq('list_type', type);
-          if (error) throw error;
-          qs('songStatus').textContent = 'Removed from list.';
-          qs('songStatus').classList.remove('error');
-          return { ok: true, saved: false };
-        }
-      } catch (_err) {
-        status[type] = previousSaved;
-        qs('songStatus').textContent = 'Could not update list.';
-        qs('songStatus').classList.add('error');
-        return { ok: false, saved: previousSaved };
-      } finally {
-        albumTrackPendingOps.delete(opKey);
-        renderAlbumTrackRows();
-      }
-    }
 
     function renderAlbumTrackRows() {
       const list = qs('albumTracks');
@@ -1017,7 +801,6 @@
               <div class="album-track-actions album-track-actions-primary">
                 ${hasPreview ? `<button class="track-pill primary album-preview-btn" data-preview="${escapeHtml(String(row.previewUrl || ''))}" type="button"><i class="fa-solid fa-play"></i> Preview</button>` : ''}
                 ${id ? `<a class="track-pill open-pill" href="song.html?id=${encodeURIComponent(id)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Open</a>` : ''}
-                <button class="album-track-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
               </div>
             </div>
           </article>
@@ -1037,17 +820,6 @@
           if (!src) return;
           playPreviewSource(src, previewBtn);
           return;
-        }
-
-        const menuBtn = event.target.closest('.album-track-menu-btn');
-        if (menuBtn) {
-          event.preventDefault();
-          event.stopPropagation();
-          const card = menuBtn.closest('.album-track-card');
-          if (!card) return;
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(card);
-          }
         }
       });
     }
@@ -1077,7 +849,6 @@
       if (artistPanel) artistPanel.style.display = 'none';
       const menuBtn = qs('songMenuBtn');
       if (menuBtn) menuBtn.style.display = 'none';
-      closeAllListMenus();
       const listenBtn = qs('listenBtn');
       if (listenBtn) listenBtn.innerHTML = '<i class="fa-solid fa-list"></i> Album Tracks';
       const audio = qs('previewPlayer');
@@ -1088,7 +859,6 @@
       qs('songStatus').textContent = `Showing ${albumTracks.length} track${albumTracks.length === 1 ? '' : 's'} from this album.`;
       qs('songStatus').classList.remove('error');
 
-      await loadAlbumTrackListStatus();
       const section = qs('albumTracksSection');
       if (section) section.style.display = 'block';
       renderAlbumTrackRows();
@@ -1234,7 +1004,6 @@
       }
 
       renderTrack(data);
-      await loadTrackListStatus();
 
       const firstArtistId = String(data.artist_ids || data.providerId || data.albumId || '').trim();
       if (firstArtistId) {
@@ -1263,8 +1032,6 @@
         }
       }
       initPreviewPlayerUi();
-      initAlbumTrackKebabMenu();
-      wireListMenu();
       initSongPage();
     });
   </script>

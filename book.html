@@ -838,8 +838,7 @@
       let reviews = [];
       let bookInfo = null;
       let currentSort = 'latest';
-      const listStatus = { favorites: false, read: false, readlist: false };
-      const pendingListOps = new Set();
+      const listStatus = {};
       let customLists = [];
       let modalSelectedLists = new Set();
       let selectedIcon = 'fas fa-book';
@@ -935,8 +934,7 @@
               n.rating > 0 ? { type: "rating", value: n.rating.toFixed(1) + "/5" } : null
             ].filter(Boolean),
             actions: [
-              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", primary: true, href: n.externalUrl } : null,
-              { id: "bookMenuBtn", icon: "fas fa-ellipsis-v", label: "Save to Lists" }
+              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", primary: true, href: n.externalUrl } : null
             ].filter(Boolean)
           });
         }
@@ -1001,93 +999,14 @@
           ).join("") + '</div>';
       }
 
-      async function upsertBookRecordLocal() {
-        if (!bookId) return false;
-        const payload = {
-          id: bookId,
-          title: (bookInfo && bookInfo.title) ? bookInfo.title : (document.getElementById('title')?.textContent || 'Untitled'),
-          authors: bookInfo?.authors || '',
-          thumbnail: bookInfo?.image || '',
-          published_date: bookInfo?.releaseDate || '',
-          updated_at: new Date().toISOString()
-        };
-        if (window.ListUtils && typeof ListUtils.ensureBookRecord === 'function') {
-          const ok = await ListUtils.ensureBookRecord(supabaseClient, payload);
-          if (!ok && !bookSyncWarned) { bookSyncWarned = true; showNotification('Book info is unavailable right now.', 'error'); }
-          return !!ok;
-        }
-        return false;
-      }
-
       async function initAuth() {
         if (!supabaseClient) return;
         const { data: { user } } = await supabaseClient.auth.getUser();
         currentUser = user || null;
         renderReviewForm();
-        await loadListStatus();
         supabaseClient.auth.onAuthStateChange((_event, session) => {
           currentUser = session?.user || null;
           renderReviewForm();
-          loadListStatus();
-        });
-      }
-
-      async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !bookId) return;
-        const { data, error } = await supabaseClient.from('book_list_items').select('list_type').eq('user_id', currentUser.id).eq('book_id', bookId);
-        if (error) { showNotification('Could not load saved lists', 'error'); return; }
-        listStatus.favorites = false; listStatus.read = false; listStatus.readlist = false;
-        (data || []).forEach(item => { if (listStatus[item.list_type] !== undefined) listStatus[item.list_type] = true; });
-      }
-
-      async function toggleList(listType, forcedNextSaved) {
-        if (!currentUser) { showNotification('Please sign in to save books', 'info'); return { ok: false, saved: false }; }
-        if (!bookId || !(listType in listStatus)) return { ok: false, saved: false };
-        const opKey = bookId + ":" + listType;
-        if (pendingListOps.has(opKey)) return { ok: false, saved: !!listStatus[listType] };
-        const previousSaved = !!listStatus[listType];
-        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-        pendingListOps.add(opKey);
-        listStatus[listType] = nextSaved;
-        try {
-          if (nextSaved) {
-            const { error } = await supabaseClient
-              .from('book_list_items')
-              .insert({ user_id: currentUser.id, book_id: bookId, list_type: listType });
-            if (error && String(error.code || '') !== '23505') throw error;
-            showNotification('Saved to list', 'success');
-          } else {
-            const { error } = await supabaseClient.from('book_list_items').delete().eq('user_id', currentUser.id).eq('book_id', bookId).eq('list_type', listType);
-            if (error) throw error;
-            showNotification('Removed from list', 'info');
-          }
-          return { ok: true, saved: nextSaved };
-        } catch (error) {
-          listStatus[listType] = previousSaved;
-          showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
-        } finally {
-          pendingListOps.delete(opKey);
-        }
-      }
-
-      function bindUnifiedListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
-        if (!menuBtn || !bookId || !window.initIndexStyleListMenu) return;
-        window.initIndexStyleListMenu({
-          mediaType: 'book',
-          itemIdAttr: 'data-item-id',
-          getVisibleItemIds: () => bookId ? [bookId] : [],
-          getQuickStatusForItem: (itemId) => { if (String(itemId) !== String(bookId)) return null; return { ...listStatus }; },
-          getItemFromCard: () => ({ mediaType: 'book', itemId: bookId, title: String(bookInfo?.title || ''), subtitle: String(bookInfo?.authors || ''), image: String(bookInfo?.image || '') }),
-          ensureClient: async () => { if (supabaseClient) return supabaseClient; return initSupabase(); },
-          getCurrentUser: () => currentUser,
-          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-          toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
-        });
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (typeof window.openIndexStyleListMenu === 'function') window.openIndexStyleListMenu(menuBtn);
         });
       }
 

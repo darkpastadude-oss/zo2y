@@ -329,9 +329,7 @@
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
       ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {}),
-      book: { table: 'book_list_items', itemField: 'book_id' },
-      music: { table: 'music_list_items', itemField: 'track_id' }
+      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
     };
     const HOME_REVIEW_SIGNAL_TABLES = {
       movie: { table: 'movie_reviews', itemField: 'movie_id' },

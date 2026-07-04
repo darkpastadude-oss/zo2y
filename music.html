@@ -377,41 +377,9 @@
       state.totalPages = Math.max(1, Math.ceil(mergedLive.length / MUSIC_PAGE_SIZE));
     }
 
-    async function loadListStatus() {
-      state.listStatusMap = new Map();
-      if (!currentUser?.id || !state.tracks.length) return;
-      const client = await ensureSupabase();
-      if (!client) return;
-      const ids = state.tracks
-        .map((track) => track.id);
-      if (!ids.length) return;
-      const { data } = await client
-        .from('music_list_items')
-        .select('track_id, list_type')
-        .eq('user_id', currentUser.id)
-        .in('track_id', ids);
-      (data || []).forEach((row) => {
-        const id = String(row.track_id || '');
-        if (!id) return;
-        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, listened: false, listenlist: false });
-        const bucket = state.listStatusMap.get(id);
-        if (row.list_type in bucket) bucket[row.list_type] = true;
-      });
-    }
-
-    function getTrackListStatus(trackId) {
-      const id = String(trackId || '').trim();
-      const empty = { favorites: false, listened: false, listenlist: false };
-      if (!id) return empty;
-      if (!state.listStatusMap.has(id)) {
-        state.listStatusMap.set(id, { ...empty });
-      }
-      return state.listStatusMap.get(id);
-    }
-
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
 
-      function renderGrid() {
+    function renderGrid() {
       const grid = document.getElementById('musicGrid');
       if (!grid) return;
       if (!state.tracks.length) {
@@ -425,7 +393,6 @@
       const visibleItems = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((item) => {
         const kind = String(item.kind || 'artist').toLowerCase();
-        const trailingBtn = '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>';
         return `
         <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
           <div class="card-media">
@@ -439,7 +406,6 @@
             <p class="card-sub">${escapeHtml(item.subtitle)}</p>
             <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
             <div class="card-actions">
-              ${trailingBtn}
               <span></span>
             </div>
           </div>
@@ -462,97 +428,13 @@
       if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
     }
 
-    async function upsertTrackRecord(client, track) {
-      if (!client || !track?.id) return false;
-      const payload = {
-        id: String(track.id),
-        name: track.name || '',
-        artists: track.subtitle || '',
-        image_url: track.image || '',
-        updated_at: new Date().toISOString()
-      };
-      const { error } = await client.from('tracks').upsert(payload, { onConflict: 'id' });
-      if (error) {
-        console.error('Track upsert failed', error);
-        return false;
-      }
-      return true;
-    }
-
-    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
-      const trackId = String(itemId || '').trim();
-      if (!trackId) return { ok: false, saved: false };
-      const track = state.tracks.find((row) => String(row.id || '').trim() === trackId);
-      if (!track) return { ok: false, saved: false };
-
-      const client = await ensureSupabase();
-      if (!client || !currentUser?.id) {
-        window.location.href = 'login.html';
-        return { ok: false, saved: false };
-      }
-
-      const status = getTrackListStatus(trackId);
-      if (!(listType in status)) return { ok: false, saved: false };
-
-      const previousSaved = !!status[listType];
-      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-      const opKey = `${trackId}:${listType}`;
-      if (state.pendingQuickOps.has(opKey)) {
-        return { ok: false, saved: previousSaved };
-      }
-
-      state.pendingQuickOps.add(opKey);
-      status[listType] = nextSaved;
-      try {
-          if (nextSaved) {
-            const { error } = await client
-              .from('music_list_items')
-              .insert({
-                user_id: currentUser.id,
-                track_id: trackId,
-                list_type: listType
-              });
-            if (error && String(error.code || '') !== '23505') throw error;
-            showToast('Added to list');
-        } else {
-          const { error } = await client
-            .from('music_list_items')
-            .delete()
-            .eq('user_id', currentUser.id)
-            .eq('track_id', trackId)
-            .eq('list_type', listType);
-          if (error) throw error;
-          showToast('Removed from list');
-        }
-        return { ok: true, saved: nextSaved };
-      } catch (error) {
-        console.error('Music list toggle failed', error);
-        status[listType] = previousSaved;
-        showToast('Could not update list', true);
-        return { ok: false, saved: previousSaved };
-      } finally {
-        state.pendingQuickOps.delete(opKey);
-      }
-    }
-
     function wireGridActions() {
       const audio = new Audio();
       let currentBtn = null;
 
-      document.querySelectorAll('.menu-btn').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const card = btn.closest('.card');
-          if (!card) return;
-          if (typeof window.openIndexStyleListMenu === 'function') {
-            window.openIndexStyleListMenu(card);
-          }
-        });
-      });
-
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
+          if (e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
           window.location.href = `song.html?artist_id=${encodeURIComponent(id)}`;
@@ -593,7 +475,6 @@
         await initAuthUi();
         await loadTracks(state.currentQuery);
         applyClientSort();
-        await loadListStatus();
         renderGrid();
       } catch (_err) {
         const grid = document.getElementById('musicGrid');

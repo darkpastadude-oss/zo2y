@@ -28,20 +28,6 @@
       usesUserId: true,
       defaultIcon: 'fas fa-gamepad'
     },
-    book: {
-      listTable: 'book_lists',
-      itemsTable: 'book_list_items',
-      itemIdField: 'book_id',
-      usesUserId: true,
-      defaultIcon: 'fas fa-book'
-    },
-    music: {
-      listTable: 'music_lists',
-      itemsTable: 'music_list_items',
-      itemIdField: 'track_id',
-      usesUserId: true,
-      defaultIcon: 'fas fa-music'
-    },
     travel: {
       listTable: 'travel_lists',
       itemsTable: 'travel_list_items',
@@ -1284,14 +1270,6 @@
     if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'book' && itemPayload) {
-      // Keep books aligned with other media flows: attempt catalog sync, but never
-      // block list writes if catalog enrichment fails due env/RLS differences.
-      await ensureBookRecord(client, itemPayload).catch(() => false);
-    }
-    if (type === 'music' && itemPayload) {
-      await ensureTrackRecord(client, itemPayload);
-    }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
     if (listIds.length && !missingListTables.has(cfg.listTable)) {
@@ -1352,8 +1330,6 @@
     if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return false;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'book' && itemPayload) { await ensureBookRecord(client, itemPayload).catch(() => false); }
-    if (type === 'music' && itemPayload) { await ensureTrackRecord(client, itemPayload); }
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (normalizedItemId === null) return false;
     let ownerId = userId;
