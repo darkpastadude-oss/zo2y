@@ -868,7 +868,7 @@
     function initAlbumTrackKebabMenu() {
       if (!window.initIndexStyleListMenu) return;
       window.initIndexStyleListMenu({
-        mediaType: 'music',
+        mediaType: 'artist',
         itemIdAttr: 'data-track-id',
         getVisibleItemIds: () =>
           (Array.isArray(albumTracks) ? albumTracks : [])
@@ -885,7 +885,7 @@
           const row = albumTracks.find((item) => String(item?.id || '').trim() === id);
           const artists = row?.artist || '';
           return {
-            mediaType: 'music',
+            mediaType: 'artist',
             itemId: id,
             title: String(row?.title || card?.getAttribute?.('data-title') || 'Track'),
             subtitle: artists || String(card?.getAttribute?.('data-subtitle') || ''),
