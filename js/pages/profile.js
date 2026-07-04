@@ -133,7 +133,7 @@
                 anime: 'anime_lists',
                 ...(GAMES_DISABLED ? {} : { game: 'game_lists' }),
                 book: 'book_lists',
-                music: 'music_lists',
+                music: 'artist_lists',
                 travel: 'travel_lists',
                 fashion: 'fashion_lists',
                 food: 'food_lists',
@@ -145,7 +145,7 @@
                 anime: 'anime_list_items',
                 ...(GAMES_DISABLED ? {} : { game: 'game_list_items' }),
                 book: 'book_list_items',
-                music: 'music_list_items',
+                music: 'artist_list_items',
                 travel: 'travel_list_items',
                 fashion: 'fashion_list_items',
                 food: 'food_list_items',
@@ -157,7 +157,7 @@
                 anime: 'anime_id',
                 ...(GAMES_DISABLED ? {} : { game: 'game_id' }),
                 book: 'book_id',
-                music: 'track_id',
+                music: 'artist_id',
                 travel: 'country_code',
                 fashion: 'brand_id',
                 food: 'brand_id',
@@ -1084,7 +1084,7 @@
                         
                         let listItems = items.filter(i => isCustom ? String(i.list_id) === String(listId) : i.list_type === listId);
                         
-                        const idFieldMap = { movie: 'movie_id', tv: 'tv_id', anime: 'anime_id', games: 'game_id', books: 'book_id', music: 'track_id', travel: 'country_code', fashion: 'brand_id', cars: 'brand_id', food: 'brand_id' };
+                        const idFieldMap = { movie: 'movie_id', tv: 'tv_id', anime: 'anime_id', games: 'game_id', books: 'book_id', music: 'artist_id', travel: 'country_code', fashion: 'brand_id', cars: 'brand_id', food: 'brand_id' };
                         let idField = idFieldMap[mt.key] || 'id';
                         if (mt.key === 'movies') idField = 'movie_id';
 
@@ -1835,13 +1835,13 @@
                     { table: 'anime_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'game_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'book_list_items', filter: `user_id=eq.${safeId}` },
-                    { table: 'music_list_items', filter: `user_id=eq.${safeId}` },
+                    { table: 'artist_list_items', filter: `user_id=eq.${safeId}` },
                     { table: 'movie_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'anime_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'game_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'book_lists', filter: `user_id=eq.${safeId}` },
-                    { table: 'music_lists', filter: `user_id=eq.${safeId}` },
+                    { table: 'artist_lists', filter: `user_id=eq.${safeId}` },
                     { table: 'journal_entries', filter: `user_id=eq.${safeId}` },
                     { table: 'tv_reviews', filter: `user_id=eq.${safeId}` },
                     { table: 'anime_reviews', filter: `user_id=eq.${safeId}` },
@@ -1956,13 +1956,13 @@
                         safeCountByUser('anime_list_items', targetId),
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
-                        safeCountByUser('music_list_items', targetId),
+                        safeCountByUser('artist_list_items', targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
-                        safeCountByUser('music_lists', targetId)
+                        safeCountByUser('artist_lists', targetId)
                     ]);
 
                     const savedItemsCount = Number(movieSavedCount || 0)
@@ -2025,13 +2025,13 @@
                         safeCountByUser('anime_list_items', targetId),
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
-                        safeCountByUser('music_list_items', targetId),
+                        safeCountByUser('artist_list_items', targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
                         safeCountByUser('game_lists', targetId),
                         safeCountByUser('book_lists', targetId),
-                        safeCountByUser('music_lists', targetId),
+                        safeCountByUser('artist_lists', targetId),
                         safeCountByUser('journal_entries', targetId),
                         safeCountByUser('movie_reviews', targetId),
                         safeCountByUser('tv_reviews', targetId),
@@ -2725,7 +2725,7 @@
                             { table: 'anime_list_items', mediaType: 'anime', itemField: 'anime_id' },
                             { table: 'game_list_items', mediaType: 'game', itemField: 'game_id' },
                             { table: 'book_list_items', mediaType: 'book', itemField: 'book_id' },
-                            { table: 'music_list_items', mediaType: 'music', itemField: 'track_id' }
+                            { table: 'artist_list_items', mediaType: 'music', itemField: 'artist_id' }
                         ];
                         const customListSources = [
                             { table: 'movie_lists', mediaType: 'movie' },
@@ -2733,7 +2733,7 @@
                             { table: 'anime_lists', mediaType: 'anime' },
                             { table: 'game_lists', mediaType: 'game' },
                             { table: 'book_lists', mediaType: 'book' },
-                            { table: 'music_lists', mediaType: 'music' }
+                            { table: 'artist_lists', mediaType: 'music' }
                         ];
                         const reviewSources = [
                             { table: 'movie_reviews', mediaType: 'movie', itemField: 'movie_id', textField: 'comment' },
@@ -2741,7 +2741,7 @@
                             { table: 'anime_reviews', mediaType: 'anime', itemField: 'anime_id', textField: 'comment' },
                             { table: 'game_reviews', mediaType: 'game', itemField: 'game_id', textField: 'comment' },
                             { table: 'book_reviews', mediaType: 'book', itemField: 'book_id', textField: 'comment' },
-                            { table: 'music_reviews', mediaType: 'music', itemField: 'track_id', textField: 'comment' }
+                            { table: 'music_reviews', mediaType: 'music', itemField: 'artist_id', textField: 'comment' }
                         ];
 
                         const listAddTasks = listItemSources.map(async (source) => {
@@ -5294,7 +5294,7 @@
                     anime: { table: 'anime_lists', fallback: 'anime', label: 'Anime', rerender: renderAnimeShows },
                     game: { table: 'game_lists', fallback: 'game', label: 'Game', rerender: renderGames },
                     book: { table: 'book_lists', fallback: 'book', label: 'Book', rerender: renderBooks },
-                    music: { table: 'music_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
+                    music: { table: 'artist_lists', fallback: 'music', label: 'Music', rerender: renderMusic },
                     travel: { table: 'travel_lists', fallback: 'travel', label: 'Travel', rerender: renderTravel },
                     fashion: { table: 'fashion_lists', fallback: 'fashion', label: 'Fashion', rerender: renderFashion },
                     food: { table: 'food_lists', fallback: 'food', label: 'Food', rerender: renderFood },
@@ -8973,7 +8973,7 @@ const alreadyActive = isMobile
                     };
                     list = { id: listId, title: titles[listId], icon: icons[listId], description: descriptions[listId], type: 'default' };
                 } else {
-                    const { data, error } = await supabase.from('music_lists').select('*').eq('id', listId).single();
+                    const { data, error } = await supabase.from('artist_lists').select('*').eq('id', listId).single();
                     if (error || !data) {
                         showToast('Collection not found', 'error');
                         return;

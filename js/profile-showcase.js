@@ -14,14 +14,14 @@ const ProfileShowcase = (function () {
 
     const CUSTOM_LIST_TABLES = {
         movie: 'movie_lists', tv: 'tv_lists', anime: 'anime_lists',
-        game: 'game_lists', book: 'book_lists', music: 'music_lists',
+        game: 'game_lists', book: 'book_lists', music: 'artist_lists',
         travel: 'travel_lists', fashion: 'fashion_lists', food: 'food_lists',
         car: 'car_lists', sports: 'sports_lists'
     };
 
     const ITEM_TABLES = {
         movie: 'movie_list_items', tv: 'tv_list_items', anime: 'anime_list_items',
-        game: 'game_list_items', book: 'book_list_items', music: 'music_list_items',
+        game: 'game_list_items', book: 'book_list_items', music: 'artist_list_items',
         travel: 'travel_list_items', fashion: 'fashion_list_items',
         food: 'food_list_items', car: 'car_list_items', sports: 'sports_list_items'
     };
