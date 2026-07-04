@@ -1453,10 +1453,97 @@
         });
       }
 
+      async function loadMovieListsModal() {
+        const container = document.getElementById('movieListsContainer');
+        if (!container || !supabaseClient || !currentUser) return;
+        modalSelectedLists.clear();
+        const { data: lists } = await supabaseClient.from('book_lists').select('*').eq('user_id', currentUser.id);
+        const { data: existing } = await supabaseClient.from('book_list_items').select('list_id').eq('user_id', currentUser.id).eq('book_id', bookId);
+        const inLists = new Set((existing || []).map(i => i.list_id));
+        (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.title); });
+        container.innerHTML = (lists || []).map(l => `
+          <div class="modal-list-item${modalSelectedLists.has(l.title) ? ' active' : ''}" data-name="${escapeHtml(l.title)}">
+            <span><i class="${l.icon || 'fas fa-book'}"></i> ${escapeHtml(l.title)}</span>
+            <input type="checkbox" ${modalSelectedLists.has(l.title) ? 'checked' : ''}>
+          </div>
+        `).join('');
+        container.querySelectorAll('.modal-list-item').forEach(el => {
+          el.addEventListener('click', () => {
+            const name = el.getAttribute('data-name');
+            if (modalSelectedLists.has(name)) modalSelectedLists.delete(name); else modalSelectedLists.add(name);
+            el.classList.toggle('active');
+            el.querySelector('input').checked = modalSelectedLists.has(name);
+          });
+        });
+      }
+
+      function closeMovieListsModal() {
+        const modal = document.getElementById('movieListsModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      async function saveMovieListChanges() {
+        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
+        const toAdd = []; const toRemove = [];
+        const { data: existing } = await supabaseClient.from('book_lists').select('id, title').eq('user_id', currentUser.id);
+        const existingNames = new Set((existing || []).map(l => l.title));
+        modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
+        existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
+        for (const name of toAdd) {
+          const { data: newList } = await supabaseClient.from('book_lists').insert({ user_id: currentUser.id, title: name, icon: selectedIcon || 'fas fa-book' }).select().single();
+          if (newList) {
+             await supabaseClient.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_id: newList.id, list_type: 'custom' });
+          }
+        }
+        if (toRemove.length) {
+          for (const name of toRemove) {
+            const list = (existing || []).find(l => l.title === name);
+            if (list) await supabaseClient.from('book_list_items').delete().eq('list_id', list.id).eq('book_id', bookId);
+          }
+        }
+        showNotification('Lists updated', 'success');
+        closeMovieListsModal();
+      }
+
+      async function createMovieList() {
+        const input = document.getElementById('newMovieListName');
+        const name = input?.value?.trim();
+        if (!name) { showNotification('Enter a list name', 'info'); return; }
+        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
+        const { error } = await supabaseClient.from('book_lists').insert({ user_id: currentUser.id, title: name, icon: selectedIcon || 'fas fa-book' });
+        if (error) { showNotification('Could not create list', 'error'); return; }
+        showNotification('List created', 'success');
+        input.value = '';
+        if (typeof loadMovieListsModal === 'function') loadMovieListsModal();
+      }
+
+      window.ZO2Y_CUSTOM_LIST_MODAL = {
+         openModal: async () => {
+            const modal = document.getElementById('movieListsModal');
+            if (modal) modal.classList.add('active');
+            await loadMovieListsModal();
+         }
+      };
+
       (async function init() {
         await initSupabase();
         initPageSearch();
         bindUnifiedListMenu();
+
+        const closeListsBtn = document.getElementById('closeMovieListsBtn');
+        const saveListsBtn = document.getElementById('saveMovieListsBtn');
+        const createListBtn = document.getElementById('createMovieListBtn');
+        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
+        if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
+        if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
+        if (createListBtn) createListBtn.addEventListener('click', createMovieList);
+        iconOptions.forEach(btn => {
+          btn.addEventListener('click', () => {
+            iconOptions.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedIcon = btn.getAttribute('data-icon') || 'fas fa-book';
+          });
+        });
 
         await initAuth();
         await load();
