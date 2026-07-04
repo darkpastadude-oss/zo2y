@@ -1284,13 +1284,23 @@
     if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'book' && itemPayload) {
-      // Keep books aligned with other media flows: attempt catalog sync, but never
-      // block list writes if catalog enrichment fails due env/RLS differences.
-      await ensureBookRecord(client, itemPayload).catch(() => false);
+    if (type === 'book') {
+      if (itemPayload) {
+        // Keep books aligned with other media flows: attempt catalog sync, but never
+        // block list writes if catalog enrichment fails due env/RLS differences.
+        await ensureBookRecord(client, itemPayload).catch(() => false);
+      } else {
+        const { error: pe } = await client.from('books').upsert({ id: normalizedItemId, title: normalizedItemId || itemId }, { onConflict: 'id' });
+        if (pe) return;
+      }
     }
-    if (type === 'music' && itemPayload) {
-      await ensureTrackRecord(client, itemPayload);
+    if (type === 'music') {
+      if (itemPayload) {
+        await ensureTrackRecord(client, itemPayload);
+      } else {
+        const { error: pe } = await client.from('tracks').upsert({ id: normalizedItemId, name: normalizedItemId || itemId }, { onConflict: 'id' });
+        if (pe) return;
+      }
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
@@ -1352,10 +1362,24 @@
     if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return false;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'book' && itemPayload) { await ensureBookRecord(client, itemPayload).catch(() => false); }
-    if (type === 'music' && itemPayload) { await ensureTrackRecord(client, itemPayload); }
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (normalizedItemId === null) return false;
+    if (type === 'book') {
+      if (itemPayload) {
+        await ensureBookRecord(client, itemPayload).catch(() => false);
+      } else {
+        const { error: pe } = await client.from('books').upsert({ id: normalizedItemId, title: normalizedItemId }, { onConflict: 'id' });
+        if (pe) return false;
+      }
+    }
+    if (type === 'music') {
+      if (itemPayload) {
+        await ensureTrackRecord(client, itemPayload);
+      } else {
+        const { error: pe } = await client.from('tracks').upsert({ id: normalizedItemId, name: normalizedItemId }, { onConflict: 'id' });
+        if (pe) return false;
+      }
+    }
     let ownerId = userId;
     if (cfg.usesUserId) {
       const { data: ownerRows } = await client
