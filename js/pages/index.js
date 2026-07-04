@@ -355,6 +355,10 @@
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v5';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v5';
+    const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v7';
+    const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v2';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_TRAVEL_BUCKET_NAME = 'travel-photos';
@@ -10061,20 +10065,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     async function loadMusic(signal) {
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       try {
-        const res = await fetch('/api/music/home?artists=' + targetCount + '&albums=' + targetCount, { signal });
+        const res = await fetch('/api/music/trending?limit=' + targetCount, { signal });
         if (!res.ok) return [];
         const data = await res.json();
-        const artists = Array.isArray(data.artists) ? data.artists : [];
-        const albums = Array.isArray(data.albums) ? data.albums : [];
-        const items = [];
-        const aQ = [...artists];
-        const bQ = [...albums];
-        while (items.length < targetCount && (aQ.length || bQ.length)) {
-          if (aQ.length) items.push(aQ.shift());
-          if (items.length < targetCount && bQ.length) items.push(bQ.shift());
-        }
+        const artists = Array.isArray(data.results) ? data.results : [];
+        const items = [...artists];
         return items.slice(0, targetCount).map((item) => {
-          const isArtist = item.mediaType === 'artist';
           const title = String(item?.title || '').trim();
           const subtitle = String(item?.subtitle || item?.artist || '').trim();
           const image = String(item?.image || '').trim();
@@ -10082,14 +10078,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           return {
             mediaType: 'music',
             itemId: id,
-            title: title || (isArtist ? 'Artist' : 'Album'),
+            title: title || 'Artist',
             subtitle: subtitle || 'Music',
-            extra: isArtist ? 'Artist' : 'Album',
+            extra: 'Artist',
             image,
             fallbackImage: '/images/fallback/music.svg',
-            href: isArtist
-              ? (item?.externalUrl || 'music.html')
-              : (id ? 'song.html?album_id=' + encodeURIComponent(id) + '&source=apple' : 'music.html')
+            href: 'music.html'
           };
         });
       } catch (_) { return []; }

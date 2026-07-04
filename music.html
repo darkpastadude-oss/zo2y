@@ -90,10 +90,10 @@
     <section class="section">
       <div class="section-head">
         <h2>popular music right now</h2>
-        <p>Current chart signals and album momentum, refreshed into one feed.</p>
+        <p>Current chart signals and artist momentum, refreshed into one feed.</p>
       </div>
     <section class="controls">
-      <input id="q" class="search-input" placeholder="Search songs, artists, or albums...">
+      <input id="q" class="search-input" placeholder="Search artists...">
       <button id="musicSearchBtn" class="control-icon-btn" type="button" aria-label="Search music"><i class="fas fa-search"></i></button>
       <button id="musicFilterBtn" class="control-icon-btn" type="button" aria-label="Open music filters"><i class="fas fa-sliders-h"></i></button>
     </section>
@@ -176,112 +176,38 @@
 
 
 
-    function mapTrackRowsToItems(rows = []) {
+    function mapArtistRowsToItems(rows = []) {
       return (Array.isArray(rows) ? rows : []).map((row) => {
         if (!row) return null;
-        const n = typeof window.normalizeTrack === 'function' ? window.normalizeTrack(row) : row;
-        if (!n || !n.id) return null;
+        if (!row.id) return null;
         return {
-          id: String(n.id || ''),
-          kind: 'track',
-          source: getMusicSource(n),
-          name: n.title || n.name || 'Track',
-          subtitle: n.artist || n.artists || 'Artist',
-          album: n.albumName || n.album_name || 'Unknown Album',
-          album_type: String(n.albumType || n.album_type || '').trim().toLowerCase(),
-          total_tracks: Number(n.trackCount || n.totalTracks || n.total_tracks || 0),
-          image: String(n.image || n.thumbnail || ''),
-          preview_url: n.previewUrl || n.preview_url || n.preview || '',
-          external_url: n.externalUrl || n.external_url || '',
-          popularity: Number(n.popularity || 0),
-          genre: String(n.genre || n.genres?.[0] || '').trim(),
-          release_date: String(n.releaseDate || n.release_date || '').trim()
+          id: String(row.id || ''),
+          kind: 'artist',
+          source: getMusicSource(row),
+          name: row.title || row.artist || row.name || 'Artist',
+          subtitle: row.subtitle || row.genres?.[0] || 'Music',
+          image: String(row.image || row.thumbnail || ''),
+          external_url: row.externalUrl || row.external_url || '',
+          genre: String(row.genre || row.genres?.[0] || '').trim(),
+          popularity: Number(row.popularity || 0)
         };
       }).filter((row) => row && row.id);
     }
 
-    function getTrackContainerLabel(item = {}) {
-      const title = String(item?.name || '').trim().toLowerCase();
-      const albumName = String(item?.album || '').trim();
-      const albumType = String(item?.album_type || '').trim().toLowerCase();
-      const totalTracks = Number(item?.total_tracks || 0);
-      const sameName = !!title && !!albumName && title === albumName.toLowerCase();
-      if (albumType === 'single' && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-      if (/\bsingle\b/i.test(albumName) && totalTracks > 0 && totalTracks <= 1 && sameName) return 'Single';
-      return 'Album';
-    }
-
-    function mapAlbumRowsToItems(rows = []) {
-      return (Array.isArray(rows) ? rows : []).map((row) => {
-        if (!row) return null;
-        const n = typeof window.normalizeAlbum === 'function' ? window.normalizeAlbum(row) : row;
-        if (!n || !n.id) return null;
-        const albumType = String(n.albumType || n.album_type || 'album').trim().toLowerCase();
-        if (albumType && albumType !== 'album') return null;
-        return {
-          id: `album:${n.id}`,
-          kind: 'album',
-          source: getMusicSource(n),
-          name: n.title || n.name || 'Album',
-          subtitle: n.artist || n.artists || 'Artist',
-          album: n.title || n.name || 'Album',
-          image: String(n.image || n.thumbnail || ''),
-          preview_url: '',
-          external_url: n.externalUrl || n.external_url || '',
-          release_date: String(n.releaseDate || n.release_date || '').trim(),
-          total_tracks: Number(n.trackCount || n.total_tracks || 0),
-          album_type: albumType || 'album',
-          popularity: Number(n.popularity || 0),
-          genre: String(n.genre || n.genres?.[0] || '').trim()
-        };
-      }).filter(Boolean);
-    }
-
-    function dedupeMixedMusicItems(items = []) {
+    function dedupeArtists(items = []) {
       const seen = new Set();
       const out = [];
       (Array.isArray(items) ? items : []).forEach((item) => {
-        const kind = String(item?.kind || 'track').trim().toLowerCase();
         const id = String(item?.id || '').trim().toLowerCase();
-        const title = String(item?.name || '').trim().toLowerCase();
-        const subtitle = String(item?.subtitle || '').trim().toLowerCase();
-        const key = `${kind}:${id || `${title}::${subtitle}`}`;
-        if (!kind || !id || seen.has(key)) return;
-        seen.add(key);
+        if (!id || seen.has(id)) return;
+        seen.add(id);
         out.push(item);
       });
       return out;
     }
 
-    function mixTrackAndAlbumItems(trackItems = [], albumItems = [], limit = 90) {
-      const tracks = [...(Array.isArray(trackItems) ? trackItems : [])];
-      const albums = [...(Array.isArray(albumItems) ? albumItems : [])];
-      const mixed = [];
-      while (mixed.length < limit && (tracks.length || albums.length)) {
-        if (tracks.length) mixed.push(tracks.shift());
-        if (tracks.length && mixed.length < limit) mixed.push(tracks.shift());
-        if (albums.length && mixed.length < limit) mixed.push(albums.shift());
-      }
-      return mixed.slice(0, limit);
-    }
-
     function getMusicCardExtra(item) {
-      const kind = String(item?.kind || 'track').toLowerCase();
-      if (kind === 'album') {
-        const release = String(item?.release_date || '').trim();
-        const tracks = Number(item?.total_tracks || 0);
-        const albumType = String(item?.album_type || '').trim();
-        const details = [
-          release ? `Released ${release}` : '',
-          tracks > 0 ? `${tracks} tracks` : '',
-          albumType || ''
-        ].filter(Boolean).join(' | ');
-        return details ? `Album | ${details}` : 'Album Release';
-      }
-      const title = String(item?.name || '').trim().toLowerCase();
-      const albumName = String(item?.album || '').trim() || 'Unknown Album';
-      const containerLabel = getTrackContainerLabel(item);
-      return `Song | ${containerLabel}: ${albumName} | Popularity ${Number(item?.popularity || 0)}/100`;
+      return `Artist | ${String(item?.genre || '').trim() || 'Music'} | Popularity ${Number(item?.popularity || 0)}/100`;
     }
 
     let musicSpotlightTimer = null;
@@ -289,15 +215,9 @@
     let musicSpotlightIndex = 0;
 
     function getMusicSpotlightHref(item) {
-      const kind = String(item?.kind || 'track').toLowerCase();
-      const source = String(item?.source || '').trim().toLowerCase() || 'spotify';
       const id = String(item?.id || '').trim();
       if (!id) return '#';
-      if (kind === 'album') {
-        const albumId = id.startsWith('album:') ? id.slice(6) : id;
-        return albumId ? `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}` : '#';
-      }
-      return `song.html?id=${encodeURIComponent(id)}`;
+      return `song.html?artist_id=${encodeURIComponent(id)}`;
     }
 
     function pickMusicSpotlightPool(items = []) {
@@ -323,12 +243,12 @@
       const image = String(item?.image || '').trim();
       section.hidden = false;
       if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${image}")`;
-      if (titleEl) titleEl.textContent = String(item?.name || 'Music Spotlight');
-      if (metaEl) metaEl.textContent = [String(item?.subtitle || '').trim(), String(item?.release_date || '').trim()].filter(Boolean).join(' ? ');
+      if (titleEl) titleEl.textContent = String(item?.name || 'Artist Spotlight');
+      if (metaEl) metaEl.textContent = String(item?.subtitle || '').trim();
       if (summaryEl) summaryEl.textContent = getMusicCardExtra(item);
       if (imgEl) {
         imgEl.src = image || 'images/placeholder.jpg';
-        imgEl.alt = `${String(item?.name || 'Music')} artwork`;
+        imgEl.alt = `${String(item?.name || 'Artist')} artwork`;
       }
       if (openEl) openEl.href = getMusicSpotlightHref(item);
     }
@@ -418,44 +338,34 @@
 
       const query = String(queryOverride || state.currentQuery || '').trim();
       const q = encodeURIComponent(query);
-      let trackRows = [];
-      let albumRows = [];
+      let artistRows = [];
 
       try {
         if (query) {
-          const res = await fetch(`/api/music/search?q=${q}&limit=36&market=US&type=track,album`, { signal: abort.signal });
+          const res = await fetch(`/api/music/search?q=${q}&limit=36`, { signal: abort.signal });
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
-            trackRows = Array.isArray(json.tracks) ? shuffleArray(json.tracks) : [];
-            albumRows = Array.isArray(json.albums) ? shuffleArray(json.albums) : [];
+            artistRows = Array.isArray(json.results) ? json.results : [];
           }
         } else {
-          const params = new URLSearchParams({ limit: '50', market: 'US' });
+          const params = new URLSearchParams({ limit: '50' });
           if (state.genre) params.set('genre', state.genre);
           if (state.year) params.set('year', state.year);
-          const [trackRes, albumRes] = await Promise.allSettled([
-            fetch(`/api/music/trending?${params}`, { signal: abort.signal }),
-            fetch(`/api/music/new-releases?limit=50`, { signal: abort.signal })
-          ]);
-
+          const res = await fetch(`/api/music/trending?${params}`, { signal: abort.signal });
+          
           if (abort.signal.aborted) return;
-          if (trackRes.status === 'fulfilled' && trackRes.value?.ok) {
-            const json = await trackRes.value.json();
-            trackRows = Array.isArray(json.results) ? shuffleArray(json.results) : [];
-          }
-          if (albumRes.status === 'fulfilled' && albumRes.value?.ok) {
-            const json = await albumRes.value.json();
-            albumRows = Array.isArray(json.results) ? shuffleArray(json.results) : [];
+          if (res?.ok) {
+            const json = await res.json();
+            artistRows = Array.isArray(json.results) ? shuffleArray(json.results) : [];
           }
         }
       } catch (_err) {
         if (_err?.name === 'AbortError') return;
       }
 
-      const mappedTracks = mapTrackRowsToItems(trackRows);
-      const mappedAlbums = mapAlbumRowsToItems(albumRows);
-      const mergedLive = dedupeMixedMusicItems(mixTrackAndAlbumItems(mappedTracks, mappedAlbums, 96));
+      const mappedArtists = mapArtistRowsToItems(artistRows);
+      const mergedLive = dedupeArtists(mappedArtists);
 
       if (!mergedLive.length) {
         state.tracks = [];
@@ -516,11 +426,7 @@
       const start = (state.page - 1) * MUSIC_PAGE_SIZE;
       const visibleItems = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
       grid.innerHTML = visibleItems.map((item) => {
-        const kind = String(item.kind || 'track').toLowerCase();
-        const isTrack = kind === 'track';
-        const previewBtn = isTrack && item.preview_url
-          ? `<button class="icon-btn preview-toggle" data-preview="${escapeHtml(item.preview_url)}" type="button" aria-label="Preview"><i class="fas fa-play"></i></button>`
-          : '<span></span>';
+        const kind = String(item.kind || 'artist').toLowerCase();
         const trailingBtn = '<button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>';
         return `
         <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
@@ -528,7 +434,7 @@
             ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
           </div>
           <div class="card-meta">
-            <span class="card-type"><i class="fa-solid fa-music"></i> Music</span>
+            <span class="card-type"><i class="fa-solid fa-microphone"></i> Artist</span>
             <div class="card-meta-top">
               <p class="card-name">${escapeHtml(item.name)}</p>
             </div>
@@ -536,7 +442,7 @@
             <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
             <div class="card-actions">
               ${trailingBtn}
-              ${previewBtn}
+              <span></span>
             </div>
           </div>
         </article>
@@ -650,16 +556,8 @@
         card.addEventListener('click', (e) => {
           if (e.target.closest('.menu-btn') || e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
-          const kind = String(card.getAttribute('data-kind') || 'track').toLowerCase();
-          const source = String(card.getAttribute('data-source') || '').trim().toLowerCase() || 'spotify';
           if (!id) return;
-          if (kind === 'album') {
-            const albumId = id.startsWith('album:') ? id.slice(6) : id;
-            if (!albumId) return;
-            window.location.href = `song.html?album_id=${encodeURIComponent(albumId)}&source=${encodeURIComponent(source)}`;
-            return;
-          }
-          window.location.href = `song.html?id=${encodeURIComponent(id)}`;
+          window.location.href = `song.html?artist_id=${encodeURIComponent(id)}`;
         });
       });
 

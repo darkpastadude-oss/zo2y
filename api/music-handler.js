@@ -202,6 +202,21 @@ function dedupeBy(rows, keyFn) {
   });
 }
 
+async function appleSearchArtists(q, limit = 20) {
+  const data = await appleFetch("search", { term: q, entity: "musicArtist", limit: String(limit) });
+  if (!data || !data.results) return [];
+  return data.results.map(a => ({
+    id: String(a.artistId || ""),
+    mediaType: "artist",
+    title: String(a.artistName || "").trim(),
+    subtitle: String(a.primaryGenreName || "Music").trim(),
+    artist: String(a.artistName || "").trim(),
+    image: String(a.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
+    externalUrl: String(a.artistLinkUrl || "").trim(),
+    provider: "apple"
+  })).filter(Boolean);
+}
+
 async function appleSearchTracks(q, limit = 20) {
   const data = await appleFetch("search", { term: q, entity: "song", limit: String(limit) });
   if (!data) return [];
@@ -307,42 +322,20 @@ export default async function handler(req, res) {
     const q = String(query.q || "").trim().slice(0, 200);
     if (!q) return res.status(400).json({ message: "Missing q parameter" });
     const limit = clampInt(query.limit, 1, 50, 20);
-    const type = String(query.type || "track,album").trim().toLowerCase();
-    const types = type.split(",").map(t => t.trim()).filter(Boolean);
-    const includeTracks = types.includes("track");
-    const includeAlbums = types.includes("album");
 
-    let tracks = [];
-    let albums = [];
+    let artists = [];
 
     try {
-      if (includeTracks) {
-        tracks = await appleSearchTracks(q, Math.min(limit * 2, 50));
-      }
-      if (includeAlbums) {
-        albums = await appleSearchAlbums(q, Math.min(limit * 2, 50));
-      }
+      artists = await appleSearchArtists(q, Math.min(limit * 2, 50));
     } catch (_) {}
 
-    tracks = dedupeBy(tracks, t => t.id);
-    albums = dedupeBy(albums, a => a.id);
-
-    const mixed = [];
-    const max = Math.max(tracks.length, albums.length);
-    for (let i = 0; i < max && mixed.length < limit; i++) {
-      if (i < tracks.length) mixed.push(tracks[i]);
-      if (i < albums.length && mixed.length < limit) mixed.push(albums[i]);
-    }
+    artists = dedupeBy(artists, a => a.id);
 
     return res.json({
-      count: mixed.length,
-      track_count: tracks.length,
-      album_count: albums.length,
+      count: artists.length,
       limit,
       offset: 0,
-      results: mixed.slice(0, limit),
-      tracks: tracks.slice(0, limit),
-      albums: albums.slice(0, limit)
+      results: artists.slice(0, limit)
     });
   }
 
@@ -387,17 +380,15 @@ export default async function handler(req, res) {
   if (section === "trending" || section === "popular") {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = clampInt(query.limit, 1, 50, 24);
-    const appleChart = await appleGetChart(limit);
-    const results = appleChart.slice(0, limit);
-    return res.json({ count: results.length, limit, offset: 0, results, source: "apple" });
+    const artists = await appleGetTopArtists(limit);
+    return res.json({ count: artists.length, limit, offset: 0, results: artists, source: "apple" });
   }
 
   if (section === "new-releases") {
     setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = clampInt(query.limit, 1, 50, 20);
-    const appleData = await appleGetNewReleases(limit);
-    const results = appleData.slice(0, limit);
-    return res.json({ count: results.length, limit, results, source: "apple" });
+    const artists = await appleGetTopArtists(limit);
+    return res.json({ count: artists.length, limit, results: artists, source: "apple" });
   }
 
   if (section === "popular-albums") {
