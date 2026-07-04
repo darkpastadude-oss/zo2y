@@ -858,20 +858,10 @@
             updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
 
-          const { data: existingTrackRow } = await client
-            .from('music_list_items')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('track_id', trackId)
-            .eq('list_type', listType)
-            .is('list_id', null)
-            .maybeSingle();
-          if (!existingTrackRow) {
-            const { error } = await client.from('music_list_items').upsert({
-              user_id: currentUser.id, track_id: trackId, list_type: listType, list_id: null
-            }, { onConflict: 'user_id,track_id,list_type,list_id', ignoreDuplicates: true });
-            if (error) throw error;
-          }
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id, track_id: trackId, list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
           qs('songStatus').textContent = 'Added to list.';
           qs('songStatus').classList.remove('error');
         } else {
@@ -968,22 +958,10 @@
 
       try {
         if (nextSaved) {
-          const ok = await upsertTrackRecord(client, row);
-          if (!ok) throw new Error('Track upsert failed');
-          const { data: existingAlbumRow } = await client
-            .from('music_list_items')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('track_id', id)
-            .eq('list_type', type)
-            .is('list_id', null)
-            .maybeSingle();
-          if (!existingAlbumRow) {
-            const { error } = await client.from('music_list_items').upsert({
-              user_id: currentUser.id, track_id: id, list_type: type, list_id: null
-            }, { onConflict: 'user_id,track_id,list_type,list_id', ignoreDuplicates: true });
-            if (error) throw error;
-          }
+          const { error } = await client.from('music_list_items').insert({
+            user_id: currentUser.id, track_id: id, list_type: type
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
           qs('songStatus').textContent = 'Added to list.';
           qs('songStatus').classList.remove('error');
           return { ok: true, saved: true };

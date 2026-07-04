@@ -1284,23 +1284,13 @@
     if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'book') {
-      if (itemPayload) {
-        // Keep books aligned with other media flows: attempt catalog sync, but never
-        // block list writes if catalog enrichment fails due env/RLS differences.
-        await ensureBookRecord(client, itemPayload).catch(() => false);
-      } else {
-        const { error: pe } = await client.from('books').upsert({ id: normalizedItemId, title: normalizedItemId || itemId }, { onConflict: 'id' });
-        if (pe) return;
-      }
+    if (type === 'book' && itemPayload) {
+      // Keep books aligned with other media flows: attempt catalog sync, but never
+      // block list writes if catalog enrichment fails due env/RLS differences.
+      await ensureBookRecord(client, itemPayload).catch(() => false);
     }
-    if (type === 'music') {
-      if (itemPayload) {
-        await ensureTrackRecord(client, itemPayload);
-      } else {
-        const { error: pe } = await client.from('tracks').upsert({ id: normalizedItemId, name: normalizedItemId || itemId }, { onConflict: 'id' });
-        if (pe) return;
-      }
+    if (type === 'music' && itemPayload) {
+      await ensureTrackRecord(client, itemPayload);
     }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
@@ -1362,24 +1352,10 @@
     if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return false;
     if (userId) setTierSyncContext(client, userId);
+    if (type === 'book' && itemPayload) { await ensureBookRecord(client, itemPayload).catch(() => false); }
+    if (type === 'music' && itemPayload) { await ensureTrackRecord(client, itemPayload); }
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (normalizedItemId === null) return false;
-    if (type === 'book') {
-      if (itemPayload) {
-        await ensureBookRecord(client, itemPayload).catch(() => false);
-      } else {
-        const { error: pe } = await client.from('books').upsert({ id: normalizedItemId, title: normalizedItemId }, { onConflict: 'id' });
-        if (pe) return false;
-      }
-    }
-    if (type === 'music') {
-      if (itemPayload) {
-        await ensureTrackRecord(client, itemPayload);
-      } else {
-        const { error: pe } = await client.from('tracks').upsert({ id: normalizedItemId, name: normalizedItemId }, { onConflict: 'id' });
-        if (pe) return false;
-      }
-    }
     let ownerId = userId;
     if (cfg.usesUserId) {
       const { data: ownerRows } = await client
@@ -1389,9 +1365,17 @@
     const row = { list_id: listId, list_type: null };
     row[cfg.itemIdField] = normalizedItemId;
     if (cfg.usesUserId) row.user_id = ownerId;
-    const conflictTarget = cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`;
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictTarget, ignoreDuplicates: true });
+    const { data: existingItem } = await client
+      .from(cfg.itemsTable)
+      .select('id')
+      .eq(cfg.itemIdField, normalizedItemId)
+      .eq('list_id', listId)
+      .is('list_type', null)
+      .maybeSingle();
+    if (existingItem) return true;
+    const { error } = await client.from(cfg.itemsTable).insert(row);
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
+    if (error && isConflictError(error)) return true;
     return !error;
   }
 
