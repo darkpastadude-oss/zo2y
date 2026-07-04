@@ -3949,13 +3949,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const upsertRow = { user_id: activeUser.id, list_type: listType, list_id: null };
+            const upsertRow = { user_id: activeUser.id, list_type: listType };
             upsertRow[itemField] = itemId;
-            const conflictCols = `user_id,${itemField},list_type,list_id`;
-            const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: conflictCols, ignoreDuplicates: true });
-            if (insertError) {
-              showHomeToast('Could not add to list', true);
-              return result;
+            const { data: existingCheck } = await client
+              .from(table).select('id')
+              .eq('user_id', activeUser.id).eq(itemField, itemId)
+              .eq('list_type', listType).is('list_id', null)
+              .maybeSingle();
+            if (!existingCheck) {
+              const { error: insertError } = await client.from(table).insert(upsertRow);
+              if (insertError) {
+                const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
+                if (!isConflict) {
+                  showHomeToast('Could not add to list', true);
+                  return result;
+                }
+              }
             }
             showHomeToast('Added to list');
             result.ok = true;
@@ -3987,13 +3996,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const upsertRow2 = { user_id: activeUser.id, list_type: listType, list_id: null };
+          const upsertRow2 = { user_id: activeUser.id, list_type: listType };
           upsertRow2[itemField] = itemId;
-          const conflictCols2 = `user_id,${itemField},list_type,list_id`;
-          const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: conflictCols2, ignoreDuplicates: true });
-          if (insertError) {
-            showHomeToast('Could not add to list', true);
-            return result;
+          const { data: existingCheck2 } = await client
+            .from(table).select('id')
+            .eq('user_id', activeUser.id).eq(itemField, itemId)
+            .eq('list_type', listType).is('list_id', null)
+            .maybeSingle();
+          if (!existingCheck2) {
+            const { error: insertError } = await client.from(table).insert(upsertRow2);
+            if (insertError) {
+              const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
+              if (!isConflict) {
+                showHomeToast('Could not add to list', true);
+                return result;
+              }
+            }
           }
           showHomeToast('Added to list');
           result.ok = true;

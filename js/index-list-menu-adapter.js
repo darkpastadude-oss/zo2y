@@ -220,7 +220,7 @@
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
     const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const p2={...p,list_id:null};const conflictCols=`user_id,${tbl.itemField},list_type,list_id`;const{error}=await c.from(tbl.table).upsert(p2,{onConflict:conflictCols,ignoreDuplicates:true}); if(error)return{ok:false,saved:false,error}; return{ok:true,saved:true}}
+    if(nextSaved){const nid=normalizeQueryableItemIdValue(item.itemId);if(nid===null||nid===undefined)return{ok:false,saved:false};const{data:existRow}=await c.from(tbl.table).select('id').eq('user_id',user.id).eq(tbl.itemField,nid).eq('list_type',listType).is('list_id',null).maybeSingle();if(!existRow){const{error}=await c.from(tbl.table).insert(p);if(error){const isC=String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409;if(!isC)return{ok:false,saved:false,error}}} return{ok:true,saved:true}}
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }
