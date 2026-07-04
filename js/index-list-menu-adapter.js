@@ -219,8 +219,8 @@
     try { if(_bridge&&typeof _bridge.toggleDefaultList==='function'&&(!tbl?.table||!tbl?.itemField||_bridgeCanUseResolvedUser())){const r=await _bridge.toggleDefaultList({itemId:item.itemId,listType,card:STATE.currentCard,nextSaved,user});if(r&&typeof r.ok==='boolean'){if(r.ok)return r;if(isConflictLikeError(r?.error))return{ok:true,saved:!!nextSaved};return r}} }catch(e){}
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
-    const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const{error}=await c.from(tbl.table).insert(p); if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
+    const p={user_id:user.id,list_type:listType,list_id:null}; p[tbl.itemField]=item.itemId;
+    if(nextSaved){const{error}=await c.from(tbl.table).upsert(p,{onConflict:`user_id,${tbl.itemField},list_type,list_id`,ignoreDuplicates:true}); if(error) return{ok:false,saved:false,error}; return{ok:true,saved:true}}
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }

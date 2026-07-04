@@ -1,6 +1,7 @@
 let supabaseClient = null;
 let currentUser = null;
 let currentAbort = null;
+let bookListStatusMap = new Map();
 
 async function ensureSupabase() {
   if (supabaseClient) return supabaseClient;
@@ -59,6 +60,27 @@ function showToast(msg, isErr) {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2200);
+}
+
+async function loadBookListStatus() {
+  bookListStatusMap = new Map();
+  if (!currentUser?.id || !state.books.length) return;
+  const client = await ensureSupabase();
+  if (!client) return;
+  const ids = state.books.map((b) => b.id || b.providerId || "").filter(Boolean);
+  if (!ids.length) return;
+  const { data } = await client
+    .from('book_list_items')
+    .select('book_id, list_type')
+    .eq('user_id', currentUser.id)
+    .in('book_id', ids);
+  (data || []).forEach((row) => {
+    const id = String(row.book_id || "");
+    if (!id) return;
+    if (!bookListStatusMap.has(id)) bookListStatusMap.set(id, { favorites: false, read: false, readlist: false });
+    const bucket = bookListStatusMap.get(id);
+    if (row.list_type in bucket) bucket[row.list_type] = true;
+  });
 }
 
 async function loadBooks() {
@@ -261,6 +283,11 @@ function initMenuBridge() {
       getVisibleItemIds: function () {
         return Array.from(document.querySelectorAll('.card[data-id]')).map(c => c.getAttribute("data-id")).filter(Boolean);
       },
+      getQuickStatusForItem: function (itemId) {
+        const key = String(itemId || "").trim();
+        const status = bookListStatusMap.get(key);
+        return status ? { ...status } : null;
+      },
       ensureClient: async function () { return await ensureSupabase(); },
       getCurrentUser: function () { return currentUser || null; },
       notify: function (msg, isErr) { showToast(msg, !!isErr); }
@@ -285,5 +312,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   wireEvents();
   initMenuBridge();
-  initAuthUi().then(() => loadBooks());
+  initAuthUi().then(async () => { await loadBooks(); await loadBookListStatus(); });
 });
