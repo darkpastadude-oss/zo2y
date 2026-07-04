@@ -1,8 +1,24 @@
-const APPLE_SEARCH = "https://itunes.apple.com";
+const SPOTIFY_ACCOUNTS = "https://accounts.spotify.com/api";
+const SPOTIFY_API = "https://api.spotify.com/v1";
 const APPLE_RSS = "https://rss.applemarketingtools.com/api/v2/us/music";
 
-const CACHE = new Map();
-const CACHE_TTL = 5 * 60 * 1000;
+const spotifyConfig = {
+  clientId: String(process.env.SPOTIFY_CLIENT_ID || "").trim(),
+  clientSecret: String(process.env.SPOTIFY_CLIENT_SECRET || "").trim()
+};
+
+let spotifyToken = null;
+let spotifyTokenExpires = 0;
+
+const ARTIST_CACHE = new Map();
+const ARTIST_CACHE_TTL = 3600 * 1000;
+
+const DEFAULT_GENRES = [
+  "pop", "hip-hop", "rap", "r&b", "rock", "country",
+  "latin", "indie", "k-pop", "dance", "electronic",
+  "alternative", "soul", "jazz", "reggaeton", "metal",
+  "punk", "folk", "blues", "classical"
+];
 
 function setResponseCache(res, opts = {}) {
   const maxAge = Math.max(0, Number(opts.maxAge) || 300);
@@ -30,31 +46,45 @@ function readPathParts(query) {
   return String(raw || "").split("/").filter(Boolean);
 }
 
-async function appleFetch(endpoint, params = {}, timeoutMs = 10000, retries = 3) {
-  const url = new URL(`${APPLE_SEARCH}/${endpoint}`);
-  Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null) url.searchParams.set(k, String(v)); });
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetch(url.toString(), { signal: controller.signal });
-      clearTimeout(timeout);
-      if (res.status === 429 && attempt < retries) {
-        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
-        continue;
-      }
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      clearTimeout(timeout);
-      if (attempt < retries) {
-        await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
-        continue;
-      }
-      return null;
-    }
-  }
-  return null;
+async function getSpotifyToken() {
+  if (spotifyToken && Date.now() < spotifyTokenExpires - 60000) return spotifyToken;
+  if (!spotifyConfig.clientId || !spotifyConfig.clientSecret) return null;
+  try {
+    const body = new URLSearchParams({ grant_type: "client_credentials" });
+    const res = await fetch(`${SPOTIFY_ACCOUNTS}/token`, {
+      method: "POST",
+      headers: {
+        "Authorization": "Basic " + Buffer.from(`${spotifyConfig.clientId}:${spotifyConfig.clientSecret}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    spotifyToken = json.access_token;
+    spotifyTokenExpires = Date.now() + (json.expires_in || 3600) * 1000;
+    return spotifyToken;
+  } catch (_) { return null; }
+}
+
+async function spotifyFetch(endpoint, params = {}, timeoutMs = 8000) {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+  const url = new URL(`${SPOTIFY_API}/${endpoint}`);
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
+  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    return res.json();
+  } catch (_) { clearTimeout(timeout); return null; }
 }
 
 async function appleRssFetch(endpoint, timeoutMs = 7000) {
@@ -64,7 +94,7 @@ async function appleRssFetch(endpoint, timeoutMs = 7000) {
   try {
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
     });
     clearTimeout(timeout);
     if (!res.ok) return null;
@@ -72,233 +102,124 @@ async function appleRssFetch(endpoint, timeoutMs = 7000) {
   } catch (_) { clearTimeout(timeout); return null; }
 }
 
-function normalizeAppleTrack(track) {
-  if (!track || track.wrapperType !== "track") return null;
-  let image = track.artworkUrl100 || "";
-  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
+function normalizeSpotifyArtist(artist) {
+  if (!artist) return null;
+  const images = artist.images || [];
+  const image = images.length > 0 ? images[0].url : "";
   return {
-    id: String(track.trackId || ""),
-    mediaType: "music",
-    title: String(track.trackName || "").trim(),
-    subtitle: String(track.artistName || "").trim(),
-    artist: String(track.artistName || "").trim(),
-    artists: [String(track.artistName || "").trim()].filter(Boolean),
-    albumName: String(track.collectionName || "").trim(),
-    albumId: String(track.collectionId || ""),
-    albumType: "album",
+    id: String(artist.id || ""),
+    mediaType: "artist",
+    title: String(artist.name || "").trim(),
+    subtitle: String((artist.genres || []).slice(0, 2).join(", ") || "Music").trim(),
     image: image,
-    backdrop: image,
-    previewUrl: String(track.previewUrl || "").trim(),
-    externalUrl: String(track.trackViewUrl || track.collectionViewUrl || "").trim(),
-    durationMs: Number(track.trackTimeMillis || 0),
-    popularity: 0,
-    trackNumber: Number(track.trackNumber || 0),
-    discNumber: Number(track.discNumber || 1),
-    explicit: track.trackExplicitness === "explicit",
-    releaseDate: String(track.releaseDate || "").trim(),
-    genres: [String(track.primaryGenreName || "").trim()].filter(Boolean),
-    totalTracks: Number(track.trackCount || 0),
-    language: "",
-    rating: 0,
-    provider: "apple",
-    providerId: String(track.trackId || ""),
-    coverColor: ""
+    popularity: Number(artist.popularity || 0),
+    followers: Number(artist.followers?.total || 0),
+    externalUrl: String(artist.external_urls?.spotify || "").trim(),
+    provider: "spotify"
   };
 }
 
-function normalizeAppleRssTrack(track) {
-  if (!track) return null;
-  let image = track.artworkUrl100 || "";
-  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
-  const artist = String(track.artistName || "").trim();
-  let genres = [];
-  if (track.genres) genres = track.genres.map(g => String(g.name).trim());
-
-  return {
-    id: String(track.id || ""),
-    mediaType: "music",
-    title: String(track.name || "").trim(),
-    subtitle: artist,
-    artist: artist,
-    artists: [artist].filter(Boolean),
-    albumName: "",
-    albumId: "",
-    albumType: "album",
-    image: image,
-    backdrop: image,
-    previewUrl: "",
-    externalUrl: String(track.url || "").trim(),
-    durationMs: 0,
-    popularity: 0,
-    trackNumber: 0,
-    discNumber: 1,
-    explicit: track.contentAdvisoryRating === "Explict",
-    releaseDate: String(track.releaseDate || "").trim(),
-    genres: genres,
-    totalTracks: 0,
-    language: "",
-    rating: 0,
-    provider: "apple",
-    providerId: String(track.id || ""),
-    coverColor: ""
-  };
+async function spotifySearchArtists(query, limit = 50) {
+  const data = await spotifyFetch("search", { q: query, type: "artist", limit: String(limit) });
+  if (!data || !data.artists) return [];
+  return (data.artists.items || []).map(normalizeSpotifyArtist).filter(Boolean);
 }
 
-function normalizeAppleAlbum(album) {
-  if (!album) return null;
-  const isRss = album.kind === "albums";
-  if (!isRss && album.wrapperType !== "collection" && album.collectionType !== "Album") return null;
-  const id = isRss ? String(album.id || "") : String(album.collectionId || "");
-  const artists = [String(album.artistName || "").trim()].filter(Boolean);
-  const title = String(album.name || album.collectionName || "").trim();
-  const externalUrl = String(album.url || album.collectionViewUrl || "").trim();
-  const releaseDate = String(album.releaseDate || "").trim();
-  const explicit = album.collectionExplicitness === "explicit" || album.contentAdvisoryRating === "Explict";
-  let genres = [];
-  if (isRss && album.genres) {
-    genres = album.genres.map(g => String(g.name).trim());
-  } else if (album.primaryGenreName) {
-    genres = [String(album.primaryGenreName).trim()];
-  }
-  let image = album.artworkUrl100 || "";
-  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
-
-  return {
-    id: id,
-    mediaType: "music",
-    title: title || "",
-    subtitle: artists.join(", "),
-    artist: artists.join(", "),
-    artists: artists,
-    albumName: title,
-    albumId: id,
-    albumType: "album",
-    image: image,
-    backdrop: image,
-    previewUrl: "",
-    externalUrl: externalUrl,
-    durationMs: 0,
-    popularity: 0,
-    totalTracks: Number(album.trackCount || 0),
-    releaseDate: releaseDate,
-    genres,
-    label: String(album.copyright || "").trim(),
-    explicit: explicit,
-    language: "",
-    rating: 0,
-    provider: "apple",
-    providerId: id,
-    coverColor: ""
-  };
+async function spotifyGetRelatedArtists(id, limit = 20) {
+  const data = await spotifyFetch(`artists/${encodeURIComponent(id)}/related-artists`);
+  if (!data || !data.artists) return [];
+  return data.artists.slice(0, limit).map(normalizeSpotifyArtist).filter(Boolean);
 }
 
-function dedupeBy(rows, keyFn) {
+async function spotifyGetTopArtistsByGenres(genres, perGenre = 5) {
+  const results = [];
   const seen = new Set();
-  return (rows || []).filter(r => {
-    const k = String(keyFn(r) || "").toLowerCase();
-    if (!k || seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
+  for (const genre of genres) {
+    if (results.length >= 100) break;
+    const artists = await spotifySearchArtists(`genre:${genre}`, perGenre + 5);
+    for (const artist of artists) {
+      if (seen.has(artist.id)) continue;
+      seen.add(artist.id);
+      results.push(artist);
+      if (results.length >= 100) break;
+    }
+  }
+  return results;
 }
 
-async function appleSearchArtists(q, limit = 20) {
-  const data = await appleFetch("search", { term: q, entity: "musicArtist", limit: String(limit) });
-  if (!data || !data.results) return [];
-  return data.results.map(a => ({
-    id: String(a.artistId || ""),
-    mediaType: "artist",
-    title: String(a.artistName || "").trim(),
-    subtitle: String(a.primaryGenreName || "Music").trim(),
-    artist: String(a.artistName || "").trim(),
-    image: String(a.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
-    externalUrl: String(a.artistLinkUrl || "").trim(),
-    provider: "apple"
-  })).filter(Boolean);
-}
-
-async function appleSearchTracks(q, limit = 20) {
-  const data = await appleFetch("search", { term: q, entity: "song", limit: String(limit) });
-  if (!data) return [];
-  return (data.results || []).map(normalizeAppleTrack).filter(Boolean);
-}
-
-async function appleSearchAlbums(q, limit = 20) {
-  const data = await appleFetch("search", { term: q, entity: "album", limit: String(limit) });
-  if (!data) return [];
-  return (data.results || []).map(normalizeAppleAlbum).filter(Boolean);
-}
-
-async function appleGetAlbum(id) {
-  const data = await appleFetch("lookup", { id: encodeURIComponent(id), entity: "song" });
-  if (!data || !data.results || data.results.length === 0) return null;
-
-  const collection = data.results.find(r => r.wrapperType === "collection");
-  const tracksData = data.results.filter(r => r.wrapperType === "track");
-
-  if (!collection) return null;
-  const album = normalizeAppleAlbum(collection);
-  const tracks = tracksData.map(normalizeAppleTrack).filter(Boolean);
-  return { album, tracks };
-}
-
-async function appleGetTrack(id) {
-  const data = await appleFetch("lookup", { id: encodeURIComponent(id), entity: "song" });
-  if (!data || !data.results || data.results.length === 0) return null;
-  const track = data.results.find(r => r.wrapperType === "track");
-  return track ? normalizeAppleTrack(track) : null;
-}
-
-async function appleGetChart(limit = 30) {
-  const data = await appleRssFetch(`most-played/${limit}/songs.json`);
-  if (!data || !data.feed || !data.feed.results) return [];
-  return data.feed.results.map(normalizeAppleRssTrack).filter(Boolean);
-}
-
-async function appleGetNewReleases(limit = 20) {
-  const data = await appleRssFetch(`most-played/${limit}/albums.json`);
-  if (!data || !data.feed || !data.feed.results) return [];
-  return data.feed.results.map(normalizeAppleAlbum).filter(Boolean);
-}
-
-function normalizeRssArtist(song, rank) {
-  if (!song) return null;
-  let image = song.artworkUrl100 || "";
-  image = image.replace("100x100bb.jpg", "600x600bb.jpg");
-  return {
-    id: String(song.artistId || ""),
-    mediaType: "artist",
-    title: String(song.artistName || "").trim(),
-    subtitle: String(song.genres?.[0]?.name || "Music").trim(),
-    artist: String(song.artistName || "").trim(),
-    image: image,
-    externalUrl: String(song.artistUrl || "").trim(),
-    provider: "apple",
-    rank: rank
-  };
-}
-
-async function appleGetTopArtists(limit = 12) {
+async function getArtistsFromRss(limit = 20) {
   const data = await appleRssFetch(`most-played/${Math.min(limit * 3, 50)}/songs.json`);
   if (!data || !data.feed || !data.feed.results) return [];
   const seen = new Set();
   const artists = [];
-  data.feed.results.forEach((song, i) => {
+  data.feed.results.forEach((song) => {
     const key = String(song.artistId || song.artistName || "").toLowerCase();
     if (!key || seen.has(key)) return;
     if (artists.length >= limit) return;
     seen.add(key);
-    artists.push(normalizeRssArtist(song, artists.length + 1));
+    let image = song.artworkUrl100 || "";
+    image = image.replace("100x100bb.jpg", "600x600bb.jpg");
+    artists.push({
+      id: String(song.artistId || ""),
+      mediaType: "artist",
+      title: String(song.artistName || "").trim(),
+      subtitle: String(song.genres?.[0]?.name || "Music").trim(),
+      image: image,
+      popularity: 0,
+      externalUrl: String(song.artistUrl || "").trim(),
+      provider: "apple"
+    });
   });
   return artists.filter(Boolean);
 }
 
-async function appleGetHomeFeed(artistLimit = 8, albumLimit = 8) {
-  const [artists, albums] = await Promise.all([
-    appleGetTopArtists(artistLimit),
-    appleGetNewReleases(albumLimit)
-  ]);
-  return { artists, albums };
+function dedupeById(items) {
+  const seen = new Set();
+  return (items || []).filter(item => {
+    if (!item || !item.id) return false;
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function fetchHomeArtists(targetCount = 12) {
+  const cacheKey = "home_artists";
+  const cached = ARTIST_CACHE.get(cacheKey);
+  if (cached && (Date.now() - cached.ts) < ARTIST_CACHE_TTL) return cached.items;
+
+  let artists = [];
+
+  const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
+  if (spotifyWorks) {
+    try {
+      const genres = shuffle(DEFAULT_GENRES).slice(0, 8);
+      const spotifyArtists = await spotifyGetTopArtistsByGenres(genres, 4);
+      artists.push(...spotifyArtists);
+    } catch (_) {}
+  }
+
+  if (artists.length < targetCount) {
+    try {
+      const rssArtists = await getArtistsFromRss(30);
+      artists.push(...rssArtists);
+    } catch (_) {}
+  }
+
+  artists = dedupeById(artists);
+  artists = shuffle(artists);
+
+  ARTIST_CACHE.set(cacheKey, { items: artists, ts: Date.now() });
+  return artists;
 }
 
 export default async function handler(req, res) {
@@ -309,104 +230,58 @@ export default async function handler(req, res) {
 
   if (!section) {
     setResponseCache(res, { maxAge: 900, staleWhileRevalidate: 3600 });
-    return res.json({ ok: true, service: "music", provider: "apple", routes: ["/search", "/albums/:id", "/tracks/:id", "/trending", "/new-releases", "/popular"] });
+    return res.json({ ok: true, service: "music", type: "artists", routes: ["/artists", "/search"] });
   }
 
   if (section === "health") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    return res.json({ ok: true, service: "music", provider: "apple" });
+    return res.json({ ok: true, service: "music", type: "artists", spotifyConfigured: !!spotifyConfig.clientId });
+  }
+
+  if (section === "artists") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const limit = clampInt(query.limit, 1, 50, 20);
+    const artists = await fetchHomeArtists(limit);
+    return res.json({ count: artists.length, results: artists.slice(0, limit), source: "multi" });
   }
 
   if (section === "search") {
-    setResponseCache(res, { maxAge: 3600, staleWhileRevalidate: 86400 });
+    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const q = String(query.q || "").trim().slice(0, 200);
     if (!q) return res.status(400).json({ message: "Missing q parameter" });
     const limit = clampInt(query.limit, 1, 50, 20);
 
     let artists = [];
 
-    try {
-      artists = await appleSearchArtists(q, Math.min(limit * 2, 50));
-    } catch (_) {}
-
-    artists = dedupeBy(artists, a => a.id);
-
-    return res.json({
-      count: artists.length,
-      limit,
-      offset: 0,
-      results: artists.slice(0, limit)
-    });
-  }
-
-  if (section === "albums") {
-    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-    if (!id) return res.status(400).json({ message: "Missing album id" });
-    const appleResult = await appleGetAlbum(id);
-    if (appleResult) {
-      return res.json({ album: appleResult.album, tracks: appleResult.tracks, count: appleResult.tracks.length, source: "apple" });
+    const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
+    if (spotifyWorks) {
+      try {
+        artists = await spotifySearchArtists(q, limit);
+      } catch (_) {}
     }
-    return res.status(404).json({ message: "Album not found" });
-  }
 
-  if (section === "tracks") {
-    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-    if (!id) return res.status(400).json({ message: "Missing track id" });
-    const appleTrack = await appleGetTrack(id);
-    if (appleTrack) return res.json(appleTrack);
-    return res.status(404).json({ message: "Track not found" });
-  }
-
-  if (section === "artists") {
-    setResponseCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
-    if (!id) return res.status(400).json({ message: "Missing artist id" });
-    const data = await appleFetch("lookup", { id: String(id), entity: "musicArtist" });
-    if (data && data.results && data.results.length > 0) {
-      const artist = data.results[0];
-      return res.json({
-        id: String(artist.artistId || id || ""),
-        name: String(artist.artistName || ""),
-        genres: [String(artist.primaryGenreName || "")].filter(Boolean),
-        popularity: 0,
-        followers: 0,
-        image: String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
-        externalUrl: String(artist.artistLinkUrl || ""),
-        provider: "apple"
-      });
+    if (!artists.length) {
+      try {
+        const data = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=musicArtist&limit=${limit}`);
+        if (data.ok) {
+          const json = await data.json();
+          artists = (json.results || []).map(a => ({
+            id: String(a.artistId || ""),
+            mediaType: "artist",
+            title: String(a.artistName || "").trim(),
+            subtitle: String(a.primaryGenreName || "Music").trim(),
+            image: String(a.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
+            externalUrl: String(a.artistLinkUrl || "").trim(),
+            provider: "apple"
+          })).filter(Boolean);
+        }
+      } catch (_) {}
     }
-    return res.status(404).json({ message: "Artist not found" });
-  }
 
-  if (section === "trending" || section === "popular") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 50, 24);
-    const artists = await appleGetTopArtists(limit);
-    return res.json({ count: artists.length, limit, offset: 0, results: artists, source: "apple" });
-  }
-
-  if (section === "new-releases") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 50, 20);
-    const artists = await appleGetTopArtists(limit);
-    return res.json({ count: artists.length, limit, results: artists, source: "apple" });
-  }
-
-  if (section === "popular-albums") {
-    setResponseCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
-    const limit = clampInt(query.limit, 1, 50, 20);
-    const appleData = await appleGetNewReleases(limit);
-    const results = appleData.slice(0, limit);
-    return res.json({ count: results.length, limit, results, source: "apple" });
-  }
-
-  if (section === "home") {
-    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const artistLimit = clampInt(query.artists, 1, 20, 8);
-    const albumLimit = clampInt(query.albums, 1, 20, 8);
-    const feed = await appleGetHomeFeed(artistLimit, albumLimit);
-    return res.json({ ...feed, artist_count: feed.artists.length, album_count: feed.albums.length, source: "apple" });
+    artists = dedupeById(artists);
+    return res.json({ count: artists.length, limit, offset: 0, results: artists.slice(0, limit) });
   }
 
   setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-  return res.json({ ok: true, service: "music", provider: "apple" });
+  return res.json({ ok: true, service: "music", type: "artists" });
 }

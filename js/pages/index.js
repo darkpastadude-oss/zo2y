@@ -6281,8 +6281,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const flagImage = escapeHtml(itemData.flagImage || '');
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
-        const fallbackImage = escapeHtml(itemData.fallbackImage || HOME_LOCAL_FALLBACK_IMAGE);
-        const safeImage = image || listImage || fallbackImage;
+        const fallbackImage = 'fallbackImage' in itemData ? escapeHtml(itemData.fallbackImage) : escapeHtml(HOME_LOCAL_FALLBACK_IMAGE);
+        const safeImage = image || listImage || (fallbackImage || undefined);
         const coverImage = image || listImage || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -6464,6 +6464,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             const wrapper = getHomeImageWrapper(img);
             if (wrapper) wrapper.classList.add('is-loading-media');
             img.src = fallback;
+            return;
+          }
+          if (!fallback) {
+            img.setAttribute('data-image-ready', '1');
+            img.setAttribute('data-home-image-state', 'loaded');
+            const wrapper = getHomeImageWrapper(img);
+            if (wrapper) wrapper.classList.remove('is-loading-media');
             return;
           }
           img.src = HOME_LOCAL_FALLBACK_IMAGE;
@@ -10063,30 +10070,33 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     async function loadMusic(signal) {
+      const _log = (...a) => { try { console.log('[music]', ...a); } catch (_) {} };
+      const _err = (...a) => { try { console.error('[music]', ...a); } catch (_) {} };
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
+      _log('loadMusic start, targetCount=' + targetCount);
       try {
-        const res = await fetch('/api/music/trending?limit=' + targetCount, { signal });
-        if (!res.ok) return [];
+        const url = '/api/music/artists?limit=' + (targetCount * 2);
+        _log('fetching:', url);
+        const res = await fetch(url, { signal });
+        _log('response status:', res.status);
+        if (!res.ok) { _err('non-ok response:', res.status); return []; }
         const data = await res.json();
+        _log('raw results count:', (data.results || []).length);
         const artists = Array.isArray(data.results) ? data.results : [];
-        const items = [...artists];
-        return items.slice(0, targetCount).map((item) => {
-          const title = String(item?.title || '').trim();
-          const subtitle = String(item?.subtitle || item?.artist || '').trim();
-          const image = String(item?.image || '').trim();
-          const id = String(item?.id || '');
-          return {
-            mediaType: 'music',
-            itemId: id,
-            title: title || 'Artist',
-            subtitle: subtitle || 'Music',
-            extra: 'Artist',
-            image,
-            fallbackImage: '/images/fallback/music.svg',
-            href: 'music.html'
-          };
-        });
-      } catch (_) { return []; }
+        const railItems = artists.slice(0, targetCount).map((item) => ({
+          mediaType: 'music',
+          itemId: item.id || '',
+          title: String(item?.title || '').trim() || 'Artist',
+          subtitle: String(item?.subtitle || 'Music').trim(),
+          extra: 'Artist',
+          image: String(item?.image || '').trim(),
+          fallbackImage: '',
+          href: item?.externalUrl || 'music.html'
+        }));
+        _log('rail items:', railItems.length);
+        railItems.forEach((ri, i) => _log('  [' + (i+1) + ']', ri.title, '|', ri.subtitle, '| img:', ri.image ? ri.image.substring(0, 60) + '...' : 'EMPTY'));
+        return railItems;
+      } catch (e) { _err('loadMusic error:', e?.message || e); return []; }
     }
 
     function hasExistingRealItemsInFeed() {
