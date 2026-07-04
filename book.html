@@ -721,14 +721,7 @@
       <div class="title-row">
         <h1 id="title" class="title">Loading...</h1>
         <div class="menu-wrapper">
-          <button class="menu-btn" id="movieMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-          <div class="list-menu" id="movieListMenu">
-            <div class="list-menu-title">Save to list</div>
-            <button class="list-action" data-list="favorites"><span><i class="fas fa-heart"></i> Favorites</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="read"><span><i class="fas fa-eye"></i> Read</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="readlist"><span><i class="fas fa-bookmark"></i> Readlist</span><span class="list-action-state">Add</span></button>
-            <button class="list-action" data-list="custom"><span><i class="fas fa-list"></i> Custom Lists</span><span class="list-action-state">Open</span></button>
-          </div>
+          <button class="menu-btn" id="bookMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
         </div>
       </div>
       <div id="meta" class="meta"></div>
@@ -1422,96 +1415,49 @@
         });
       }
 
-      async function loadMovieListsModal() {
-        const container = document.getElementById('movieListsContainer');
-        if (!container || !supabaseClient || !currentUser) return;
-        modalSelectedLists.clear();
-        const { data: lists } = await supabaseClient.from('book_custom_lists').select('*').eq('user_id', currentUser.id);
-        const { data: existing } = await supabaseClient.from('book_list_items').select('list_id').eq('user_id', currentUser.id).eq('book_id', bookId);
-        const inLists = new Set((existing || []).map(i => i.list_id));
-        (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.name); });
-        container.innerHTML = (lists || []).map(l => `
-          <div class="modal-list-item${modalSelectedLists.has(l.name) ? ' active' : ''}" data-name="${esc(l.name)}">
-            <span><i class="${l.icon || 'fas fa-book'}"></i> ${esc(l.name)}</span>
-            <input type="checkbox" ${modalSelectedLists.has(l.name) ? 'checked' : ''}>
-          </div>
-        `).join('');
-        container.querySelectorAll('.modal-list-item').forEach(el => {
-          el.addEventListener('click', () => {
-            const name = el.getAttribute('data-name');
-            if (modalSelectedLists.has(name)) modalSelectedLists.delete(name); else modalSelectedLists.add(name);
-            el.classList.toggle('active');
-            el.querySelector('input').checked = modalSelectedLists.has(name);
+      function bindUnifiedListMenu() {
+        const menuBtn = document.getElementById('bookMenuBtn');
+        if (!menuBtn || !bookId || typeof window.initIndexStyleListMenu !== 'function') return;
+
+        window.initIndexStyleListMenu({
+          mediaType: 'book',
+          itemIdAttr: 'data-item-id',
+          getVisibleItemIds: () => bookId ? [bookId] : [],
+          getQuickStatusForItem: () => null, // rely on adapter fetch
+          getItemFromCard: () => ({
+            mediaType: 'book',
+            itemId: bookId,
+            title: String(document.getElementById('title')?.textContent || 'Book').trim(),
+            subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
+            image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
+          }),
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            return initSupabase();
+          }
+        });
+
+        menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const fakeCard = document.createElement('div');
+          fakeCard.setAttribute('data-item-id', bookId);
+          fakeCard.appendChild(menuBtn.cloneNode(true)); // For positioning
+          fakeCard.style.position = 'absolute';
+          fakeCard.style.top = `${menuBtn.getBoundingClientRect().top + window.scrollY}px`;
+          fakeCard.style.left = `${menuBtn.getBoundingClientRect().left + window.scrollX}px`;
+          document.body.appendChild(fakeCard);
+          window.openIndexStyleListMenu(fakeCard, () => {
+            fakeCard.remove();
           });
         });
-      }
-
-      function closeAllListMenus() {
-        document.querySelectorAll('.list-menu.open').forEach(m => m.classList.remove('open'));
-        const bd = document.querySelector('.list-menu-backdrop.active');
-        if (bd) bd.classList.remove('active');
-        const modals = document.querySelectorAll('.modal.active');
-        modals.forEach(m => m.classList.remove('active'));
-      }
-
-      function closeMovieListsModal() {
-        const modal = document.getElementById('movieListsModal');
-        if (modal) modal.classList.remove('active');
-      }
-
-      async function saveMovieListChanges() {
-        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const toAdd = []; const toRemove = [];
-        const { data: existing } = await supabaseClient.from('book_custom_lists').select('id, name').eq('user_id', currentUser.id);
-        const existingNames = new Set((existing || []).map(l => l.name));
-        modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
-        existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
-        for (const name of toAdd) {
-          await supabaseClient.from('book_custom_lists').insert({ user_id: currentUser.id, name, icon: selectedIcon || 'fas fa-book' });
-        }
-        if (toRemove.length) {
-          for (const name of toRemove) {
-            const list = (existing || []).find(l => l.name === name);
-            if (list) await supabaseClient.from('book_custom_lists').delete().eq('id', list.id);
-          }
-        }
-        showNotification('Lists updated', 'success');
-        closeMovieListsModal();
-      }
-
-      async function createMovieList() {
-        const input = document.getElementById('newMovieListName');
-        const name = input?.value?.trim();
-        if (!name) { showNotification('Enter a list name', 'info'); return; }
-        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const { error } = await supabaseClient.from('book_custom_lists').insert({ user_id: currentUser.id, name, icon: selectedIcon || 'fas fa-book' });
-        if (error) { showNotification('Could not create list', 'error'); return; }
-        showNotification('List created', 'success');
-        input.value = '';
-        if (typeof loadMovieListsModal === 'function') loadMovieListsModal();
       }
 
       (async function init() {
         await initSupabase();
         initPageSearch();
         bindUnifiedListMenu();
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeAllListMenus();
-        });
-        const closeListsBtn = document.getElementById('closeMovieListsBtn');
-        const saveListsBtn = document.getElementById('saveMovieListsBtn');
-        const createListBtn = document.getElementById('createMovieListBtn');
-        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
-        if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
-        if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
-        if (createListBtn) createListBtn.addEventListener('click', createMovieList);
-        iconOptions.forEach(btn => {
-          btn.addEventListener('click', () => {
-            iconOptions.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedIcon = btn.getAttribute('data-icon') || 'fas fa-book';
-          });
-        });
+
         await initAuth();
         await load();
         await initReviewSystem();

@@ -65,6 +65,16 @@
     ],
     sports: [
       { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' }
+    ],
+    book: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'read', label: 'Read', icon: 'fas fa-check' },
+      { key: 'readlist', label: 'To Read', icon: 'fas fa-bookmark' }
+    ],
+    artist: [
+      { key: 'favorites', label: 'Favorites', icon: 'fas fa-heart' },
+      { key: 'listened', label: 'Listened', icon: 'fas fa-headphones' },
+      { key: 'listenlist', label: 'Listenlist', icon: 'fas fa-bookmark' }
     ]
   };
 
@@ -78,7 +88,9 @@
     food: { table: 'food_list_items', itemField: 'brand_id' },
     car: { table: 'car_list_items', itemField: 'brand_id' },
     sports: { table: 'sports_list_items', itemField: 'team_id' },
-    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' }
+    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' },
+    book: { table: 'book_list_items', itemField: 'book_id' },
+    artist: { table: 'artist_list_items', itemField: 'artist_id' }
   };
 
   const MEDIA_LIST_ICONS = {
@@ -86,7 +98,8 @@
     game:'fas fa-gamepad',
     travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
     food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
-    restaurant:'fas fa-clapperboard'
+    restaurant:'fas fa-clapperboard', book:'fas fa-book',
+    artist:'fas fa-microphone'
   };
   function getMediaListFallbackIcon() { return MEDIA_LIST_ICONS[getMediaType()] || 'fas fa-list'; }
   function escapeHtml(v) {

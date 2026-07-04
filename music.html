@@ -407,6 +407,7 @@
             <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
             <div class="card-actions">
               <span></span>
+              <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
             </div>
           </div>
         </article>
@@ -437,6 +438,16 @@
           if (e.target.closest('.preview-toggle') || e.target.closest('.open-external')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
+          
+          if (e.target.closest('.menu-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window.openIndexStyleListMenu === 'function') {
+              window.openIndexStyleListMenu(card);
+            }
+            return;
+          }
+          
           window.location.href = `song.html?artist_id=${encodeURIComponent(id)}`;
         });
       });
@@ -509,6 +520,7 @@
       clearTimeout(searchDebounce);
       searchDebounce = setTimeout(async () => {
         state.currentQuery = String(e.target.value || '').trim();
+        
         await loadPage();
       }, 350);
     });
@@ -566,26 +578,28 @@
       }
       if (window.initIndexStyleListMenu) {
         window.initIndexStyleListMenu({
-          mediaType: 'music',
+          mediaType: 'artist',
           itemIdAttr: 'data-id',
           getVisibleItemIds: () =>
             Array.from(document.querySelectorAll('.card[data-id]'))
               .map((card) => card.getAttribute('data-id'))
               .filter(Boolean),
-          getQuickStatusForItem: (itemId) => {
-            const key = String(itemId || '').trim();
-            const status = state.listStatusMap.get(key);
-            return status ? { ...status } : null;
+          getQuickStatusForItem: () => null,
+          getItemFromCard: (card) => {
+            return {
+              mediaType: 'artist',
+              itemId: String(card.getAttribute('data-id') || '').trim(),
+              title: String(card.querySelector('.card-name')?.textContent || 'Artist').trim(),
+              subtitle: String(card.querySelector('.card-sub')?.textContent || '').trim(),
+              image: String(card.querySelector('img')?.getAttribute('src') || '').trim()
+            };
           },
           ensureClient: async () => {
             if (supabaseClient) return supabaseClient;
-            await ensureSupabase();
-            return supabaseClient;
+            return await ensureSupabase();
           },
           getCurrentUser: () => currentUser,
-          notify: (message, isError) => showToast(message, !!isError),
-          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-            toggleDefaultList(itemId, listType, card, nextSaved)
+          notify: (message, isError) => showToast(message, !!isError)
         });
       }
       loadPage();

@@ -325,6 +325,8 @@
       movie: { table: 'movie_list_items', itemField: 'movie_id' },
       tv: { table: 'tv_list_items', itemField: 'tv_id' },
       anime: { table: 'anime_list_items', itemField: 'anime_id' },
+      book: { table: 'book_list_items', itemField: 'book_id' },
+      artist: { table: 'artist_list_items', itemField: 'artist_id' },
       ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
       travel: { table: 'travel_list_items', itemField: 'country_code' },
       ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),

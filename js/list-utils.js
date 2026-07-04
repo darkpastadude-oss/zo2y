@@ -11,8 +11,22 @@
       listTable: 'tv_lists',
       itemsTable: 'tv_list_items',
       itemIdField: 'tv_id',
-      usesUserId: true,
+      usesUserId: false,
       defaultIcon: 'fas fa-tv'
+    },
+    book: {
+      listTable: 'book_lists',
+      itemsTable: 'book_list_items',
+      itemIdField: 'book_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-book'
+    },
+    artist: {
+      listTable: 'artist_lists',
+      itemsTable: 'artist_list_items',
+      itemIdField: 'artist_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-microphone'
     },
     anime: {
       listTable: 'anime_lists',
@@ -183,7 +197,7 @@
     }
     const ICON_MAP = {
       movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
-      game:'fas fa-gamepad', book:'fas fa-book', music:'fas fa-music',
+      game:'fas fa-gamepad', book:'fas fa-book', artist:'fas fa-microphone', music:'fas fa-music',
       travel:'fas fa-earth-americas', fashion:'fas fa-shirt',
       food:'fas fa-burger', car:'fas fa-car', sports:'fas fa-futbol',
       restaurant:'fas fa-clapperboard', heart:'fas fa-heart',
@@ -372,6 +386,7 @@
       raw === 'anime' ||
       raw === 'game' ||
       raw === 'book' ||
+      raw === 'artist' ||
       raw === 'music' ||
       raw === 'travel' ||
       raw === 'sports' ||
