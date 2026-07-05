@@ -846,8 +846,17 @@
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
-      pendingQuickOps: new Set()
+      pendingQuickOps: new Set(),
+      _poolCache: null,
+      _poolCacheKey: '',
+      _poolCacheMeta: null
     };
+
+    function invalidatePoolCache() {
+      state._poolCache = null;
+      state._poolCacheKey = '';
+      state._poolCacheMeta = null;
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1225,50 +1234,66 @@
           console.error('Failed to load anime with filters', _err);
         }
       } else if (!query) {
-        // Keep this feed "popular right now" and shuffle results for variety.
         const sortBy = 'popularity.desc';
-        try {
-          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
-            const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const tvResults = Array.isArray(json?.results) ? json.results : [];
-            const batch = filterAnime(tvResults);
-            animes = animes.concat(batch);
-            if (!tvResults.length) break;
+        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular');
+        if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
+          animes = state._poolCache;
+          if (state._poolCacheMeta) {
+            apiTotalResults = state._poolCacheMeta.totalResults;
+            apiTotalPages = state._poolCacheMeta.totalPages;
+            totalFilteredCount = state._poolCacheMeta.filteredCount;
           }
-          if (animes.length > 0 && apiTotalResults != null) {
-            const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-            const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
-            totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
-          }
-        } catch (_err) {
-          console.error('Failed to load anime', _err);
-          // Fallback to trending if discover fails
+        } else {
           try {
-            animes = [];
+            let fetchedTotalResults = null;
+            let fetchedTotalPages = 1;
             for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
-              const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+              const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
               const res = await fetch(url);
               if (!res.ok) break;
               const json = await res.json();
-              if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-              apiTotalPages = json?.total_pages || apiTotalPages || 1;
+              if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
+              fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
               const tvResults = Array.isArray(json?.results) ? json.results : [];
               const batch = filterAnime(tvResults);
               animes = animes.concat(batch);
               if (!tvResults.length) break;
             }
-            if (animes.length > 0 && apiTotalResults != null) {
-              const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-              const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
-              totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+            if (animes.length > 0 && fetchedTotalResults != null) {
+              const fetchedRawCount = (apiPageStart + Math.min(6, fetchedTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+              const filterRatio = animes.length / Math.min(fetchedRawCount, fetchedTotalResults);
+              totalFilteredCount = Math.floor(fetchedTotalResults * filterRatio);
             }
-          } catch (_err2) {
-            console.error('Failed to load trending anime', _err2);
+            state._poolCache = animes;
+            state._poolCacheKey = poolCacheKey;
+            state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages, filteredCount: totalFilteredCount };
+            apiTotalResults = fetchedTotalResults;
+            apiTotalPages = fetchedTotalPages;
+          } catch (_err) {
+            console.error('Failed to load anime', _err);
+            // Fallback to trending if discover fails
+            try {
+              animes = [];
+              for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
+                const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                const tvResults = Array.isArray(json?.results) ? json.results : [];
+                const batch = filterAnime(tvResults);
+                animes = animes.concat(batch);
+                if (!tvResults.length) break;
+              }
+              if (animes.length > 0 && apiTotalResults != null) {
+                const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
+                const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
+                totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
+              }
+            } catch (_err2) {
+              console.error('Failed to load trending anime', _err2);
+            }
           }
         }
       } else {
@@ -1358,6 +1383,7 @@
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
         state.page = 1;
+        invalidatePoolCache();
         await loadAnimesWithFallback();
         await loadListStatus();
         renderGrid();
@@ -1663,6 +1689,7 @@
       state.sort = String(e.target.value || 'popular').trim();
     });
     document.getElementById('refresh')?.addEventListener('click', async () => {
+      invalidatePoolCache();
       document.getElementById('animesFilterModal')?.classList.remove('show');
       await loadPage();
     });

@@ -186,8 +186,17 @@
       page: 1,
       totalPages: 1,
       listStatusMap: new Map(),
-      pendingQuickOps: new Set()
+      pendingQuickOps: new Set(),
+      _poolCache: null,
+      _poolCacheKey: '',
+      _poolCacheMeta: null
     };
+
+    function invalidatePoolCache() {
+      state._poolCache = null;
+      state._poolCacheKey = '';
+      state._poolCacheMeta = null;
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -346,23 +355,37 @@
           console.error('Failed to load movies with filters', _err);
         }
       } else if (!query) {
-        // Proper shuffling: shuffle between *current popular* movies.
-        try {
-          const pool = [];
-          for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
-            const url = `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const batch = Array.isArray(json?.results) ? json.results : [];
-            pool.push(...batch);
-            if (!batch.length) break;
+        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular');
+        if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
+          movies = state._poolCache;
+          if (state._poolCacheMeta) {
+            apiTotalResults = state._poolCacheMeta.totalResults;
+            apiTotalPages = state._poolCacheMeta.totalPages;
           }
-          movies = pool;
-        } catch (_err) {
-          console.error('Failed to load popular movies', _err);
+        } else {
+          try {
+            const pool = [];
+            let fetchedTotalResults = null;
+            let fetchedTotalPages = 1;
+            for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
+              const url = `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`;
+              const res = await fetch(url);
+              if (!res.ok) break;
+              const json = await res.json();
+              if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
+              fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
+              const batch = Array.isArray(json?.results) ? json.results : [];
+              pool.push(...batch);
+              if (!batch.length) break;
+            }
+            movies = pool;
+            state._poolCache = pool;
+            state._poolCacheKey = poolCacheKey;
+            state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
+            apiTotalResults = fetchedTotalResults;
+            apiTotalPages = fetchedTotalPages;
+          } catch (_err) {
+            console.error('Failed to load popular movies', _err);
           // Fallback to trending if popular fails.
           try {
             const pool = [];
@@ -381,6 +404,7 @@
           } catch (_err2) {
             console.error('Failed to load trending movies', _err2);
           }
+        }
         }
       } else {
         // Use multi-search for better accuracy (searches across movies, TV, people)
@@ -467,6 +491,7 @@
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
         state.page = 1;
+        invalidatePoolCache();
         await loadMoviesWithFallback();
         await loadListStatus();
         renderGrid();
@@ -750,6 +775,7 @@
     document.getElementById('genre')?.addEventListener('change', async (e) => {
       state.genre = String(e.target.value || '').trim();
       state.page = 1;
+      invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
       renderGrid();
@@ -757,6 +783,7 @@
     document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
       state.page = 1;
+      invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
       renderGrid();
@@ -764,11 +791,13 @@
     document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
       state.page = 1;
+      invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
       renderGrid();
     });
     document.getElementById('refresh')?.addEventListener('click', async () => {
+      invalidatePoolCache();
       document.getElementById('moviesFilterModal')?.classList.remove('show');
       await loadPage();
     });
