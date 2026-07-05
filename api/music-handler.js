@@ -356,6 +356,24 @@ export default async function handler(req, res) {
         const artist = json.results && json.results[0];
         if (artist && artist.artistName) {
           let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
+          if (!image) {
+            try {
+              const trackCtrl = new AbortController();
+              const trackTimeout = setTimeout(() => trackCtrl.abort(), 5000);
+              const trackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.artistName)}&entity=musicTrack&limit=1`, {
+                signal: trackCtrl.signal,
+                headers: { "User-Agent": "Mozilla/5.0" }
+              });
+              clearTimeout(trackTimeout);
+              if (trackRes.ok) {
+                const trackJson = await trackRes.json();
+                const track = trackJson.results && trackJson.results[0];
+                if (track && track.artworkUrl100) {
+                  image = String(track.artworkUrl100).replace("100x100bb.jpg", "600x600bb.jpg");
+                }
+              }
+            } catch (_) {}
+          }
           return res.json({ ok: true, result: {
             id: String(artist.artistId || id),
             mediaType: "artist",
