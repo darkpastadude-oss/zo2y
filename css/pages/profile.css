@@ -7797,7 +7797,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* Ensure bottom nav stays above content */
 .mobile-bottom-nav {
-  display: none !important;
+  display: none;
 }
 
 /* ============================================================
