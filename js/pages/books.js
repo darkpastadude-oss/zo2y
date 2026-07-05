@@ -93,16 +93,7 @@ async function loadBooks() {
   const grid = document.getElementById("booksGrid");
   if (!grid) return;
 
-  grid.innerHTML = Array(PAGE_SIZE).fill(`
-    <article class="card book-skeleton-card">
-      <div class="card-media skeleton-shimmer" style="padding-bottom:140%"></div>
-      <div class="card-meta">
-        <span class="skeleton-line skeleton-line-sm skeleton-shimmer"></span>
-        <span class="skeleton-line skeleton-line-md skeleton-shimmer"></span>
-        <span class="skeleton-line skeleton-line-xs skeleton-shimmer"></span>
-      </div>
-    </article>
-  `).join("");
+  grid.innerHTML = Skel.grid(PAGE_SIZE, 4);
 
   const q = state.query.trim();
   const startIndex = (state.page - 1) * PAGE_SIZE;

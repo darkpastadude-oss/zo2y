@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260623z">
+  <link rel="stylesheet" href="css/skeleton.css">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <style>
@@ -752,8 +753,14 @@
       </select>
     </div>
     <div class="reviews-stats" id="reviewsStats">
-      <div class="reviews-loading">Loading reviews...</div>
+      <div class="reviews-loading" id="reviewsStatsSkeleton"></div>
     </div>
+    <script>
+      (function() {
+        var el = document.getElementById('reviewsStatsSkeleton');
+        if (el && typeof Skel !== 'undefined') el.innerHTML = Skel.reviewList(3);
+      })();
+    </script>
     <div class="reviews-container" id="reviewsList"></div>
     <div class="review-form-section">
       <h3>Share Your Thoughts</h3>
@@ -814,6 +821,7 @@
   </div>
 
     <script src="js/list-utils.js?v=20260705a" defer></script>
+    <script src="js/skeleton.js" defer></script>
 <script src="js/index-list-menu-adapter.js?v=20260705a" defer></script>
 <script src="js/normalizers.js?v=20260623z"></script>
 <script src="js/unified-media-hero.js?v=20260623z"></script>
@@ -1053,7 +1061,7 @@
         const container = document.getElementById('reviewsList');
         const statsContainer = document.getElementById('reviewsStats');
         if (!container || !statsContainer || !supabaseClient) return;
-        container.innerHTML = '<div class="reviews-loading">Loading reviews...</div>';
+        container.innerHTML = Skel.reviewList(3);
         const { data, error } = await supabaseClient
           .from('book_reviews')
           .select('*')

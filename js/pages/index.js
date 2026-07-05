@@ -4969,7 +4969,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const modal = document.getElementById('homeListsModal');
       const container = document.getElementById('homeListsContainer');
       if (!modal || !container) return;
-      container.innerHTML = '<div class="chip">Loading...</div>';
+      container.innerHTML = Skel.chips(4);
       homeCustomListState.customLists = window.ListUtils
         ? await ListUtils.loadCustomLists(client, activeUser.id, homeCustomListState.mediaType)
         : [];

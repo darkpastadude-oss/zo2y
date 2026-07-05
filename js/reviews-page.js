@@ -564,7 +564,7 @@
 
   async function loadPage() {
     const listEl = document.getElementById("reviewsList");
-    if (listEl) listEl.innerHTML = '<div class="empty">Loading reviews...</div>';
+    if (listEl) listEl.innerHTML = Skel.reviewList(4);
 
     await ensureSupabase();
     if (!client) {

@@ -1077,7 +1077,7 @@
                     const trackMobile = document.getElementById(`mph2Track${capitalized}`);
                     if (!trackMobile) continue;
 
-                    trackMobile.innerHTML = '<div style="padding:10px;color:rgba(255,255,255,0.4);font-size:12px;">Loading...</div>';
+                    trackMobile.innerHTML = Skel.showcaseRail(8);
 
                     try {
                         const cfg = config.find(s => s.media_type === mt.key);
@@ -5141,13 +5141,7 @@
                 if (!grid && !mobileGrid) return;
                 const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 if (!userId || !supabase) return;
-                const loadingHtml = `
-                    <div class="empty-state">
-                        <div class="empty-icon"><i class="fas fa-film"></i></div>
-                        <h3 class="empty-title">Loading...</h3>
-                        <p class="empty-description">Fetching your movie lists.</p>
-                    </div>
-                `;
+                const loadingHtml = Skel.grid(4, 2);
                 if (grid) grid.innerHTML = loadingHtml;
                 if (mobileGrid) mobileGrid.innerHTML = loadingHtml;
 
@@ -5320,8 +5314,8 @@
                     }
                 }
 
-                if (grid) grid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
-                if (mobileGrid) mobileGrid.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-film"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                if (grid) grid.innerHTML = Skel.collectionList(4);
+                if (mobileGrid) mobileGrid.innerHTML = Skel.collectionList(4);
                 const ownerIdForDefault = isViewingOwnProfile ? currentUser?.id : targetUserId;
                 let ownerIdForCustom = ownerIdForDefault;
                 if (listType === 'custom') {
@@ -6876,7 +6870,7 @@
 
                     const container = document.getElementById('pv2CategoryContent');
                     if (container) {
-                        container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                        container.innerHTML = Skel.rail(6);
                         const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
                         if (userId && window.ProfileShowcase) {
                             window.ProfileShowcase.getAllListsForType(mappedTab, userId).then(async allLists => {
@@ -8141,7 +8135,7 @@ const alreadyActive = isMobile
                         detailView.classList.add('active', 'rendered');
                         const titleEl = document.getElementById('movieDetailName'); if (titleEl) titleEl.innerText = 'Loading...';
                         const descEl = document.getElementById('movieDetailDescription'); if (descEl) descEl.innerText = '';
-                        const itemsContainer = document.getElementById('movieItemsContainer'); if (itemsContainer) itemsContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--muted);"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+                        const itemsContainer = document.getElementById('movieItemsContainer'); if (itemsContainer) itemsContainer.innerHTML = Skel.collectionList(4);
                     }
                 }
 
@@ -8247,7 +8241,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const { tierMeta, orderedIds: rankedMovieIds } = await resolveTierOrderedIds('movie', list, listId, movieIds, {
                     listType,
                     ownerUserId
@@ -8433,7 +8427,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const { tierMeta, orderedIds: rankedTvIds } = await resolveTierOrderedIds('tv', list, listId, tvIds, {
                     listType,
                     ownerUserId
@@ -8621,7 +8615,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const { tierMeta, orderedIds: rankedAnimeIds } = await resolveTierOrderedIds('anime', list, listId, animeIds, {
                     listType,
                     ownerUserId
@@ -8809,7 +8803,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const { tierMeta, orderedIds: rankedGameIds } = await resolveTierOrderedIds('game', list, listId, gameIds, {
                     listType,
                     ownerUserId
@@ -9004,7 +8998,7 @@ const alreadyActive = isMobile
                 const canReorderList = canReorderCollectionItems('book', listId, listType, list);
                 const canEditItems = canEditCollectionItems('book', listId, listType, list);
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const resolvedRows = await Promise.all(rankedBookIds.map((id) => resolveProfileBookRecord(id)));
                 const bookData = resolvedRows.filter(Boolean);
 
@@ -9239,7 +9233,7 @@ const alreadyActive = isMobile
                     return;
                 }
 
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-spinner fa-spin"></i></div><h3 class="empty-title">Loading...</h3></div>';
+                container.innerHTML = Skel.collectionList(4);
                 const { tierMeta, orderedIds: rankedTrackIds } = await resolveTierOrderedIds('music', list, listId, trackIds, {
                     listType,
                     ownerUserId
@@ -10940,7 +10934,7 @@ resetDetailPanels();
                 const userId = currentUser?.id;
                 if (!userId) return;
 
-                container.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(255,255,255,0.4);">Loading...</div>';
+                container.innerHTML = Skel.settingsList(6);
 
                 try {
                     if (ProfileShowcase) {

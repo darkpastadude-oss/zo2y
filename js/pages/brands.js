@@ -913,7 +913,7 @@
 
   async function loadBrands() {
     if (!grid) return;
-    grid.innerHTML = '<div class="empty-state">Loading brands...</div>';
+    grid.innerHTML = Skel.grid(8, 4);
     const client = ensureSupabase();
     if (!client) {
       allBrands = [];

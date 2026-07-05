@@ -1,0 +1,385 @@
+/* === SKELETON LOADING SYSTEM === */
+/* Shared skeleton components for all pages. Replace spinners/text with these. */
+
+@keyframes skeletonShimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skel {
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.06) 40%,
+    rgba(255,255,255,0.12) 50%,
+    rgba(255,255,255,0.06) 60%,
+    rgba(255,255,255,0) 100%
+  );
+  background-size: 600px 100%;
+  animation: skeletonShimmer 1.6s ease-in-out infinite;
+}
+
+/* Poster card skeleton (2:3 aspect ratio) */
+.skel-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: 10px;
+}
+
+/* Square card skeleton (1:1) */
+.skel-square {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 10px;
+}
+
+/* Landscape card skeleton (16:9) */
+.skel-landscape {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 10px;
+}
+
+/* Text lines */
+.skel-line {
+  height: 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.skel-line-sm { width: 40%; }
+.skel-line-md { width: 65%; }
+.skel-line-lg { width: 85%; }
+.skel-line-full { width: 100%; }
+
+/* Circle (avatar, logo) */
+.skel-circle {
+  border-radius: 50%;
+}
+
+/* === COMPOSITE SKELETON COMPONENTS === */
+
+/* Poster card: image + 2 text lines */
+.skel-card-poster {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.skel-card-poster .skel-poster {
+  flex-shrink: 0;
+}
+
+.skel-card-poster .skel-meta {
+  padding: 8px 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Square card: image + text lines */
+.skel-card-square {
+  display: flex;
+  flex-direction: column;
+}
+
+.skel-card-square .skel-square {
+  flex-shrink: 0;
+}
+
+.skel-card-square .skel-meta {
+  padding: 8px 2px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Horizontal rail of poster skeletons */
+.skel-rail {
+  display: flex;
+  gap: 14px;
+  overflow: hidden;
+  padding: 0 20px;
+}
+
+.skel-rail .skel-card-poster {
+  flex: 0 0 160px;
+}
+
+/* Mobile rail */
+.skel-rail-mobile {
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+  padding: 0 14px;
+}
+
+.skel-rail-mobile .skel-card-poster {
+  flex: 0 0 110px;
+}
+
+/* Grid of poster skeletons */
+.skel-grid {
+  display: grid;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.skel-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.skel-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.skel-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.skel-grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+@media (max-width: 768px) {
+  .skel-grid-3,
+  .skel-grid-4,
+  .skel-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .skel-rail .skel-card-poster { flex: 0 0 120px; }
+}
+
+/* Collection item: horizontal card with poster + text (profile detail views) */
+.skel-collection-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.skel-collection-item .skel-poster {
+  flex: 0 0 60px;
+  width: 60px;
+  height: 90px;
+  aspect-ratio: auto;
+}
+
+.skel-collection-item .skel-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skel-collection-item .skel-text .skel-line:first-child {
+  margin-top: 0;
+}
+
+/* Spotlight skeleton (hero card) */
+.skel-spotlight {
+  width: 100%;
+  height: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skel-spotlight .skel-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.skel-spotlight .skel-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skel-spotlight .skel-kicker {
+  width: 80px;
+  height: 14px;
+}
+
+.skel-spotlight .skel-title {
+  width: 60%;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.skel-spotlight .skel-summary {
+  width: 80%;
+  height: 14px;
+}
+
+.skel-spotlight .skel-summary:last-child {
+  width: 50%;
+}
+
+.skel-spotlight .skel-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.skel-spotlight .skel-btn {
+  width: 120px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+/* Review card skeleton */
+.skel-review {
+  padding: 16px;
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skel-review .skel-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skel-review .skel-review-avatar {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+
+.skel-review .skel-review-name {
+  width: 120px;
+  height: 14px;
+}
+
+.skel-review .skel-review-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.skel-review .skel-review-star {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.skel-review .skel-review-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Chip skeleton (for list modals) */
+.skel-chip {
+  height: 40px;
+  border-radius: 20px;
+  width: 100%;
+}
+
+.skel-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* List settings skeleton (profile showcase settings) */
+.skel-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.skel-settings-row .skel-icon {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.skel-settings-row .skel-label {
+  flex: 1;
+  height: 14px;
+}
+
+.skel-settings-row .skel-toggle {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+}
+
+.skel-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Sports team grid skeleton */
+.skel-sports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.skel-sports-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Brand grid skeleton */
+.skel-brand-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: var(--color-bg-elevated, #172b58);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Profile showcase rail skeleton */
+.skel-showcase-rail {
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+  padding: 0 14px;
+}
+
+.skel-showcase-rail .skel-card-poster {
+  flex: 0 0 80px;
+}
+
+.skel-showcase-rail .skel-card-poster .skel-poster {
+  height: 120px;
+  aspect-ratio: auto;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skel::after {
+    animation: none;
+    background: rgba(255,255,255,0.06);
+  }
+}

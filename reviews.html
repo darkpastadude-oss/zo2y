@@ -23,6 +23,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=20260623z">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <script src="js/skeleton.js" defer></script>
 
   <style>
     :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); --surface:rgba(12,26,57,.86); --gradient:linear-gradient(135deg,#f59e0b,#ffb84d); --hand-font:'Caveat', cursive; --marker-font:'Kalam', cursive; }
@@ -728,7 +730,13 @@
       </div>
       <div class="summary" id="summaryText"></div>
     </section>
-    <section id="reviewsList"><div class="empty">Loading reviews...</div></section>
+    <section id="reviewsList"><div class="empty" id="reviewsListSkeleton"></div></section>
+    <script>
+      (function() {
+        var el = document.getElementById('reviewsListSkeleton');
+        if (el && typeof Skel !== 'undefined') el.innerHTML = Skel.reviewList(4);
+      })();
+    </script>
   </main>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
