@@ -4860,6 +4860,30 @@
 
             const resolveProfileBookRecord = fetchBookDetails;
 
+            let musicArtistsMapPromise = null;
+            function getMusicArtistsMap() {
+                if (!musicArtistsMapPromise) {
+                    musicArtistsMapPromise = fetch('/api/music/artists?limit=100')
+                        .then(r => r.ok ? r.json() : null)
+                        .then(json => {
+                            const map = new Map();
+                            const results = Array.isArray(json?.results) ? json.results : [];
+                            results.forEach(a => {
+                                const id = String(a.id || '').trim();
+                                if (id) map.set(id, {
+                                    id,
+                                    name: String(a.title || '').trim(),
+                                    image_url: String(a.image || '').trim(),
+                                    external_url: String(a.externalUrl || '').trim()
+                                });
+                            });
+                            return map;
+                        })
+                        .catch(() => new Map());
+                }
+                return musicArtistsMapPromise;
+            }
+
             async function fetchMusicDetails(artistId) {
                 const key = String(artistId || '').trim();
                 if (!key) return null;
@@ -4870,9 +4894,12 @@
                         .select('id, name, image_url, external_url')
                         .eq('id', key)
                         .maybeSingle();
-                    if (data) {
+                    if (data && data.image_url) {
                         musicCache.set(key, data);
                         return data;
+                    }
+                    if (data && !data.image_url) {
+                        musicCache.set(key, data);
                     }
                 } catch (_err) {
                     // ignore and fallback
@@ -4896,7 +4923,19 @@
                 } catch (e) {
                     // ignore
                 }
-                
+
+                try {
+                    const map = await getMusicArtistsMap();
+                    const match = map.get(key);
+                    if (match && match.image_url) {
+                        musicCache.set(key, match);
+                        return match;
+                    }
+                } catch (_e) {}
+
+                if (!musicCache.has(key)) {
+                    musicCache.set(key, null);
+                }
                 return null;
             }
 
