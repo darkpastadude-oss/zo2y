@@ -1,6 +1,42 @@
 /* === SKELETON LOADING SYSTEM === */
 /* Shared skeleton components for all pages. Replace spinners/text with these. */
 
+/* === SPA PAGE TRANSITIONS === */
+.main-container-transition,
+.page-shell,
+.desktop-main-panel {
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.is-transitioning-out {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+}
+
+.is-transitioning-in {
+  animation: spaFadeIn 220ms ease forwards;
+}
+
+@keyframes spaFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-transitioning-out,
+  .is-transitioning-in {
+    transition: none;
+    animation: none;
+  }
+}
+
 @keyframes skeletonShimmer {
   0% { background-position: -600px 0; }
   100% { background-position: 600px 0; }
