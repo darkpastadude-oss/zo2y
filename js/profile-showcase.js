@@ -206,10 +206,12 @@ const ProfileShowcase = (function () {
         const result = [];
 
         const defaultLists = getDefaultListsForType(mediaType);
-        for (const dl of defaultLists) {
-            const count = await getItemCountForDefaultList(mediaType, dl.id, userId);
-            result.push({ ...dl, count, is_default: true });
-        }
+        const counts = await Promise.all(defaultLists.map(dl =>
+            getItemCountForDefaultList(mediaType, dl.id, userId).catch(() => 0)
+        ));
+        defaultLists.forEach((dl, i) => {
+            result.push({ ...dl, count: counts[i], is_default: true });
+        });
 
         const table = CUSTOM_LIST_TABLES[mediaType];
         if (table && sb && userId) {

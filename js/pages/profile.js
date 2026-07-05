@@ -8,7 +8,7 @@
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
 
-            const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
+            const FALLBACK_BOOK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' fill='%23132347'%3E%3Crect width='200' height='300'/%3E%3C/svg%3E";
             const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
             async function igdbFetch(path, params = {}, signal = null) {
@@ -1035,11 +1035,11 @@
                     }
                 }
 
-                // Render each showcase row
-                for (const mt of SHOWCASE_MEDIA_TYPES) {
+                // Render each showcase row — all in parallel
+                await Promise.allSettled(SHOWCASE_MEDIA_TYPES.map(async (mt) => {
                     const capitalized = mt.key.charAt(0).toUpperCase() + mt.key.slice(1);
                     const trackMobile = document.getElementById(`mph2Track${capitalized}`);
-                    if (!trackMobile) continue;
+                    if (!trackMobile) return;
 
                     trackMobile.innerHTML = Skel.showcaseRail(8);
 
@@ -1064,11 +1064,11 @@
                         const topIds = orderedIds.slice(0, 15);
                         if (topIds.length === 0) {
                             trackMobile.innerHTML = '<div style="padding:10px;color:rgba(255,255,255,0.3);font-size:13px;">Nothing here yet</div>';
-                            continue;
+                            return;
                         }
 
-                        let html = '';
-                        for (const id of topIds) {
+                        // Fetch all detail images in parallel
+                        const detailPromises = topIds.map(async (id) => {
                             let imgUrl = 'images/placeholder.jpg';
                             let title = '';
                             try {
@@ -1092,20 +1092,24 @@
                                     const d = await fetchBookDetails(id);
                                     imgUrl = d && d.cover_url ? d.cover_url : imgUrl;
                                     title = d ? d.title : '';
+                                } else if (mt.key === 'music') {
+                                    const d = await fetchMusicDetails(id);
+                                    imgUrl = d && d.image_url ? d.image_url : imgUrl;
+                                    title = d ? d.name : '';
                                 }
                             } catch (e) {}
-
-                            html += `<div style="display:inline-block; width:100px; margin-right:10px; vertical-align:top; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05); aspect-ratio: 2/3;">
+                            return `<div style="display:inline-block; width:100px; margin-right:10px; vertical-align:top; border-radius:8px; overflow:hidden; background:rgba(255,255,255,0.05); aspect-ratio: 2/3;">
                                 <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">
                             </div>`;
-                        }
-                        
-                        trackMobile.innerHTML = `<div style="white-space: nowrap; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">${html}</div>`;
+                        });
+
+                        const results = await Promise.all(detailPromises);
+                        trackMobile.innerHTML = `<div style="white-space: nowrap; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none;">${results.join('')}</div>`;
 
                     } catch(e) {
                         trackMobile.innerHTML = '<div style="padding:10px;color:#ff4444;font-size:12px;">Failed to load</div>';
                     }
-                }
+                }));
             }
 
             async function loadProfile() {
@@ -7151,7 +7155,7 @@ const alreadyActive = isMobile
                         if (!triedFallback) {
                             triedFallback = true;
                             img.onerror = null;
-                            img.src = '/newlogo.webp';
+                            img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="300" fill="%23132347"%3E%3Crect width="200" height="300"/%3E%3C/svg%3E';
                         }
                     };
                 });
@@ -7273,11 +7277,9 @@ const alreadyActive = isMobile
                         if (!allLists || allLists.length === 0) {
                             container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">📺 nothing here yet</div>';
                         } else {
-                            for (const list of allLists) {
-                                const isMobile = window.innerWidth <= 768;
-                                const card = await createCollectionCard(list, contentType, isMobile, userId);
-                                if (card) container.appendChild(card);
-                            }
+                            const isMobile = window.innerWidth <= 768;
+                            const cards = await Promise.all(allLists.map(list => createCollectionCard(list, contentType, isMobile, userId)));
+                            cards.filter(Boolean).forEach(card => container.appendChild(card));
                         }
                     }
                     return allLists || [];
@@ -7294,10 +7296,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderMoviesToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('movie', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('movie', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('movie', userId, checkToken),
+                        renderShowcaseRail('movie', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     movieAllLists = allLists || [];
@@ -7320,10 +7322,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderTvToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('tv', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('tv', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('tv', userId, checkToken),
+                        renderShowcaseRail('tv', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     tvAllLists = allLists || [];
@@ -7346,10 +7348,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderAnimeToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('anime', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('anime', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('anime', userId, checkToken),
+                        renderShowcaseRail('anime', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     animeAllLists = allLists || [];
@@ -7372,10 +7374,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderGamesToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('game', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('game', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('game', userId, checkToken),
+                        renderShowcaseRail('game', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     gameAllLists = allLists || [];
@@ -7398,10 +7400,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderBooksToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('book', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('book', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('book', userId, checkToken),
+                        renderShowcaseRail('book', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     bookAllLists = allLists || [];
@@ -7424,10 +7426,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderMusicToken;
 
                 try {
-                    const allLists = await renderCategoryGrid('music', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('music', userId);
+                    const [allLists] = await Promise.all([
+                        renderCategoryGrid('music', userId, checkToken),
+                        renderShowcaseRail('music', userId)
+                    ]);
                     if (!checkToken()) return;
 
                     musicAllLists = allLists || [];
@@ -7645,10 +7647,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderTravelToken;
 
                 try {
-                    await renderCategoryGrid('travel', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('travel', userId);
+                    await Promise.all([
+                        renderCategoryGrid('travel', userId, checkToken),
+                        renderShowcaseRail('travel', userId)
+                    ]);
                     markTabRendered('travel');
                 } catch (error) {
                     console.error('Error rendering travel:', error);
@@ -7662,10 +7664,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderFashionToken;
 
                 try {
-                    await renderCategoryGrid('fashion', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('fashion', userId);
+                    await Promise.all([
+                        renderCategoryGrid('fashion', userId, checkToken),
+                        renderShowcaseRail('fashion', userId)
+                    ]);
                     markTabRendered('fashion');
                 } catch (error) {
                     console.error('Error rendering fashion:', error);
@@ -7679,10 +7681,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderCarsToken;
 
                 try {
-                    await renderCategoryGrid('car', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('car', userId);
+                    await Promise.all([
+                        renderCategoryGrid('car', userId, checkToken),
+                        renderShowcaseRail('car', userId)
+                    ]);
                     markTabRendered('cars');
                 } catch (error) {
                     console.error('Error rendering cars:', error);
@@ -7696,10 +7698,10 @@ const alreadyActive = isMobile
                 const checkToken = () => renderToken === renderFoodToken;
 
                 try {
-                    await renderCategoryGrid('food', userId, checkToken);
-                    if (!checkToken()) return;
-
-                    await renderShowcaseRail('food', userId);
+                    await Promise.all([
+                        renderCategoryGrid('food', userId, checkToken),
+                        renderShowcaseRail('food', userId)
+                    ]);
                     markTabRendered('food');
                 } catch (error) {
                     console.error('Error rendering food:', error);
@@ -7998,15 +8000,16 @@ const alreadyActive = isMobile
                     }
                 }
 
+                const MUSIC_FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='%23132347'%3E%3Crect width='200' height='200'/%3E%3Cpath d='M85 55v60a20 20 0 1 1-10-17.3V65L60 70v50a20 20 0 1 1-10-17.3V50l35-10z' fill='%232a4070' opacity='0.5'/%3E%3C/svg%3E";
                 return normalizedIds.map((id) => {
                     const cached = readPreviewAssetCache(contentType, id);
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
-                    if (contentType === 'music') return '/newlogo.webp';
-                    if (contentType === 'game') return '/newlogo.webp';
+                    if (contentType === 'music') return MUSIC_FALLBACK_IMG;
+                    if (contentType === 'game') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     if (contentType === 'movie' || contentType === 'tv' || contentType === 'anime') return 'images/placeholder.jpg';
-                    return '/newlogo.webp';
+                    return FALLBACK_BOOK_IMAGE;
                 });
             }
 

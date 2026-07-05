@@ -9,8 +9,8 @@
   <script src="js/skeleton.js" defer></script>
   <script src="js/spa-router.js?v=1751720000" defer></script>
   <script src="js/index-list-menu-adapter.js?v=20260705c"></script>
-  <script src="js/pages/profile.js?v=20260705e" defer></script>
-  <script src="js/profile-showcase.js?v=20260705b" defer></script>
+  <script src="js/pages/profile.js?v=20260705f" defer></script>
+  <script src="js/profile-showcase.js?v=20260705c" defer></script>
   <script src="/js/auth-gate.js?v=20260705a" defer></script>
   <script src="/js/bootstrap-auth.js?v=20260705a" defer></script>
   <meta name="robots" content="index,follow" />
@@ -27,8 +27,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 @keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes zo2y-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var skel = '<div class="skel-showcase-rail">' + Array(6).fill('<div class="skel-card-poster" style="flex:0 0 80px"><div class="skel skel-poster" style="height:120px;aspect-ratio:auto"></div><div class="skel-meta"><div class="skel skel-line skel-line-md"></div></div></div>').join('') + '</div>';
+        ['pv2MoviesTrack','pv2TvTrack','pv2AnimeTrack','pv2GamesTrack','pv2BooksTrack','pv2MusicTrack','pv2SportsTrack','pv2TravelTrack','pv2FashionTrack','pv2FoodTrack','pv2CarsTrack'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && !el.innerHTML.trim()) el.innerHTML = skel;
+        });
+    });
+    </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
-    <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="stylesheet" href="css/skeleton.css?v=20260705">
     <link rel="stylesheet" href="css/pages/profile.css?v=20260705c">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -2383,13 +2392,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </div>
 
     <script src="js/list-utils.js?v=20260705b" defer></script>
-    <script src="js/profile-showcase.js?v=20260705b" defer></script>
+    <script src="js/profile-showcase.js?v=20260705c" defer></script>
     <script src="js/referral-utils.js?v=20260623z" defer></script>
     <script src="js/igdb-client.js?v=20260623z" defer></script>
     <script src="js/taste_identity.js?v=20260623z" defer></script>
     <script src="js/cover-cache.js?v=20260623z" defer></script>
     <script src="js/pages/games-shared.js?v=20260623z" defer></script>
-    <script src="js/pages/profile.js?v=20260705e" defer></script>
+    <script src="js/pages/profile.js?v=20260705f" defer></script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
   <script src="js/legal-consent.js?v=20260623z" defer></script>
 
@@ -2649,7 +2658,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     window.addEventListener('load', function() {
       initModeIndicator();
       attachToProfileManager();
+      window._profileLoadComplete = performance.now();
     });
+
+    window.profilePerf = function() {
+      const t = window._profileLoadComplete || performance.now();
+      const nav = performance.getEntriesByType('navigation')[0];
+      const paint = performance.getEntriesByType('paint');
+      const fcp = paint.find(p => p.name === 'first-contentful-paint');
+      console.log('=== Profile Load Performance ===');
+      console.log('  DOMContentLoaded:', Math.round(nav.domContentLoadedEventEnd - nav.startTime), 'ms');
+      console.log('  Window load:', Math.round(t - nav.startTime), 'ms');
+      console.log('  FCP:', fcp ? Math.round(fcp.startTime) + 'ms' : 'N/A');
+      console.log('  Rails visible:', document.querySelectorAll('.pv2-rail-track img').length, 'images loaded');
+      console.log('  Skeletons remaining:', document.querySelectorAll('.skel-showcase-rail').length);
+    };
 
     if (!window.ProfileManager) window.ProfileManager = {};
     window.ProfileManager.setOverviewMode    = setOverviewMode;
