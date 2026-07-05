@@ -3847,7 +3847,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const row = { id: String(itemId || '').trim() };
           if (title) row.name = title;
           if (image) row.image_url = image;
-          if (row.id) { try { await client.from('artists').upsert(row, { onConflict: 'id', ignoreDuplicates: true }); } catch (_e) {} }
+          if (row.id) { try { await client.from('artists').upsert(row, { onConflict: 'id' }); } catch (_e) {} }
           return true;
         }
         return true;

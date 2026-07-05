@@ -4890,7 +4890,6 @@
                 if (musicCache.has(key)) {
                     const cached = musicCache.get(key);
                     if (cached) return cached;
-                    if (cached === null) return null;
                 }
                 let dbData = null;
                 try {
@@ -4963,7 +4962,6 @@
                     }
                 } catch (_e) {}
 
-                musicCache.set(key, null);
                 return null;
             }
 
@@ -7912,8 +7910,10 @@ const alreadyActive = isMobile
                             rows.forEach((row, index) => {
                                 const id = String(row?.id || missingIds[index] || '').trim();
                                 if (!id) return;
-                                const imageUrl = String(row?.image_url || '').trim() || FALLBACK_BOOK_IMAGE;
-                                writePreviewAssetCache(contentType, id, imageUrl);
+                                const imageUrl = String(row?.image_url || '').trim();
+                                if (imageUrl) {
+                                    writePreviewAssetCache(contentType, id, imageUrl);
+                                }
                             });
                         } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
                             const table = contentType === 'fashion'
