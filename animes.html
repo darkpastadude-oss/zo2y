@@ -1679,14 +1679,29 @@
     document.getElementById('animesFilterCloseBtn')?.addEventListener('click', () => {
       document.getElementById('animesFilterModal')?.classList.remove('show');
     });
-    document.getElementById('genre')?.addEventListener('change', (e) => {
+    document.getElementById('genre')?.addEventListener('change', async (e) => {
       state.genre = String(e.target.value || '').trim();
+      state.page = 1;
+      invalidatePoolCache();
+      await loadAnimesWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
-    document.getElementById('year')?.addEventListener('change', (e) => {
+    document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
+      state.page = 1;
+      invalidatePoolCache();
+      await loadAnimesWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
-    document.getElementById('sort')?.addEventListener('change', (e) => {
+    document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
+      state.page = 1;
+      invalidatePoolCache();
+      await loadAnimesWithFallback();
+      await loadListStatus();
+      renderGrid();
     });
     document.getElementById('refresh')?.addEventListener('click', async () => {
       invalidatePoolCache();
@@ -1746,6 +1761,15 @@
       }
       initFilters().then(() => loadPage());
     });
+
+    window.debugAnimesPage = function() {
+      console.log(`=== Page ${state.page} of ${state.totalPages} ===`);
+      console.log(`Grid size: ${ANIMES_PAGE_SIZE} | apiPageStart would be: ${Math.floor(((state.page - 1) * ANIMES_PAGE_SIZE) / TMDB_PAGE_SIZE) + 1}`);
+      state.animes.forEach((a, i) => {
+        console.log(`  ${(state.page - 1) * ANIMES_PAGE_SIZE + i + 1}. ${a.name} (${a.firstAirDate || 'N/A'}) [id:${a.id}]`);
+      });
+      return state.animes.map(a => `${a.name} (${a.firstAirDate || 'N/A'})`);
+    };
   </script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
   <script src="js/legal-consent.js?v=20260623z" defer></script>
