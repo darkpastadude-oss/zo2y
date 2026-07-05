@@ -330,11 +330,70 @@ export default async function handler(req, res) {
 
   if (section === "artist") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const id = String(pathParts[2] || "").trim();
+    const id = String(pathParts[1] || "").trim();
     if (!id) return res.status(400).json({ message: "Missing artist id" });
-    const artists = await spotifyGetArtistsByIds([id]);
-    if (artists.length === 0) return res.status(404).json({ message: "Artist not found" });
-    return res.json({ ok: true, result: artists[0] });
+
+    const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
+    if (spotifyWorks) {
+      try {
+        const spotifyArtists = await spotifyGetArtistsByIds([id]);
+        if (spotifyArtists.length > 0) {
+          return res.json({ ok: true, result: spotifyArtists[0] });
+        }
+      } catch (_) {}
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const res2 = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=musicArtist`, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0" }
+      });
+      clearTimeout(timeout);
+      if (res2.ok) {
+        const json = await res2.json();
+        const artist = json.results && json.results[0];
+        if (artist && artist.artistName) {
+          let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
+          return res.json({ ok: true, result: {
+            id: String(artist.artistId || id),
+            mediaType: "artist",
+            title: String(artist.artistName || "").trim(),
+            subtitle: String(artist.primaryGenreName || "Music").trim(),
+            image,
+            externalUrl: String(artist.artistLinkUrl || "").trim(),
+            provider: "apple"
+          }});
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res3 = await fetch(`https://api.deezer.com/artist/${encodeURIComponent(id)}`, {
+        signal: controller.signal,
+        headers: { "User-Agent": "Mozilla/5.0" }
+      });
+      clearTimeout(timeout);
+      if (res3.ok) {
+        const dz = await res3.json();
+        if (dz && dz.name) {
+          return res.json({ ok: true, result: {
+            id: String(dz.id || id),
+            mediaType: "artist",
+            title: String(dz.name || "").trim(),
+            subtitle: "Music",
+            image: String(dz.picture_xl || dz.picture_big || dz.picture_medium || ""),
+            externalUrl: String(dz.link || "").trim(),
+            provider: "deezer"
+          }});
+        }
+      }
+    } catch (_) {}
+
+    return res.status(404).json({ message: "Artist not found" });
   }
 
   if (section === "artists") {
