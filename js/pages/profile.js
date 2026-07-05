@@ -4818,19 +4818,44 @@
                 const key = String(bookId || '').trim();
                 if (!key) return null;
                 if (bookCache.has(key)) return bookCache.get(key);
+                let dbData = null;
                 try {
-                    const { data, error } = await supabase
+                    const { data } = await supabase
                         .from('books')
                         .select('id, title, author_name, cover_url, external_url')
                         .eq('id', key)
                         .maybeSingle();
-                    if (error || !data) return null;
-                    data.thumbnail = data.cover_url;
-                    bookCache.set(key, data);
-                    return data;
-                } catch (_err) {
-                    return null;
+                    if (data) dbData = data;
+                } catch (_err) { }
+                
+                if (!dbData || !dbData.cover_url || String(dbData.cover_url).trim() === '') {
+                    try {
+                        const res = await fetch(`/api/books/${key}`);
+                        if (res.ok) {
+                            const json = await res.json();
+                            const apiBook = json.books && json.books[0] ? json.books[0] : (json.book || json);
+                            if (apiBook && apiBook.id) {
+                                const merged = {
+                                    id: key,
+                                    title: apiBook.title || dbData?.title || 'Unknown',
+                                    author_name: apiBook.authors || apiBook.author || dbData?.author_name || '',
+                                    cover_url: apiBook.image || apiBook.cover || dbData?.cover_url || '',
+                                    external_url: apiBook.externalUrl || dbData?.external_url || ''
+                                };
+                                merged.thumbnail = merged.cover_url;
+                                bookCache.set(key, merged);
+                                return merged;
+                            }
+                        }
+                    } catch (e) { }
                 }
+                
+                if (dbData) {
+                    dbData.thumbnail = dbData.cover_url;
+                    bookCache.set(key, dbData);
+                    return dbData;
+                }
+                return null;
             }
 
             const resolveProfileBookRecord = fetchBookDetails;

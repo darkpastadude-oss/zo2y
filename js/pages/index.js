@@ -10130,16 +10130,40 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const data = await res.json();
         _log('raw results count:', (data.results || []).length);
         const artists = Array.isArray(data.results) ? data.results : [];
-        const railItems = artists.slice(0, targetCount).map((item) => ({
-          mediaType: 'music',
-          itemId: item.id || '',
-          title: String(item?.title || '').trim() || 'Artist',
-          subtitle: String(item?.subtitle || 'Music').trim(),
-          extra: 'Artist',
-          image: String(item?.image || '').trim(),
-          fallbackImage: '',
-          href: item?.externalUrl || 'music.html'
-        }));
+        const railItems = artists.slice(0, targetCount).map((item) => {
+          const title = String(item?.title || '').trim() || 'Artist';
+          const subtitle = String(item?.subtitle || 'Music').trim();
+          const image = String(item?.image || '').trim();
+          const mediaHtml = image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">` : '';
+          const customHtml = `
+              <div class="card-media cover ${image ? 'is-loading-media' : ''}">
+                ${mediaHtml}
+              </div>
+              <div class="card-meta">
+                <span class="card-type"><i class="fa-solid fa-microphone"></i> Artist</span>
+                <div class="card-meta-top">
+                  <p class="card-name">${escapeHtml(title)}</p>
+                </div>
+                <p class="card-sub">${escapeHtml(subtitle)}</p>
+                <p class="card-extra">Artist</p>
+                <div class="card-actions">
+                  <span></span>
+                  <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+              </div>
+            `;
+          return {
+            mediaType: 'music',
+            itemId: item.id || '',
+            title,
+            subtitle,
+            extra: 'Artist',
+            image,
+            fallbackImage: '',
+            href: item?.externalUrl || 'music.html',
+            customHtml
+          };
+        });
         _log('rail items:', railItems.length);
         railItems.forEach((ri, i) => _log('  [' + (i+1) + ']', ri.title, '|', ri.subtitle, '| img:', ri.image ? ri.image.substring(0, 60) + '...' : 'EMPTY'));
         return railItems;
