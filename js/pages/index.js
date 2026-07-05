@@ -6626,6 +6626,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (!mediaType || !rawId) return null;
           return {
             mediaType: mediaType,
+            type: mediaType,
             itemId: rawId,
             title: card.getAttribute('data-title') || card.querySelector('.card-name')?.textContent || '',
             subtitle: card.getAttribute('data-subtitle') || card.querySelector('.card-meta, .card-sub')?.textContent || '',
@@ -7582,7 +7583,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         anime: 'Anime card',
         game: 'Game card',
         sport: 'Sports card',
-        travel: 'Travel card',
+        travel: 'Country card',
         fashion: 'Fashion card',
         food: 'Food card',
         car: 'Car card'
@@ -10141,24 +10142,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const title = String(item?.title || '').trim() || 'Artist';
           const subtitle = String(item?.subtitle || 'Music').trim();
           const image = String(item?.image || '').trim();
-          const mediaHtml = image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy">` : '';
-          const customHtml = `
-              <div class="card-media cover ${image ? 'is-loading-media' : ''}">
-                ${mediaHtml}
-              </div>
-              <div class="card-meta">
-                <span class="card-type"><i class="fa-solid fa-microphone"></i> Artist</span>
-                <div class="card-meta-top">
-                  <p class="card-name">${escapeHtml(title)}</p>
-                </div>
-                <p class="card-sub">${escapeHtml(subtitle)}</p>
-                <p class="card-extra">Artist</p>
-                <div class="card-actions">
-                  <span></span>
-                  <button class="card-menu-btn" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-              </div>
-            `;
           return {
             mediaType: 'music',
             itemId: item.id || '',
@@ -10167,8 +10150,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             extra: 'Artist',
             image,
             fallbackImage: '',
-            href: item?.externalUrl || 'music.html',
-            customHtml
+            href: item?.externalUrl || 'music.html'
           };
         });
         _log('rail items:', railItems.length);
