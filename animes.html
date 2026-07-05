@@ -1337,10 +1337,6 @@
         genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
       })).filter((a) => a.id && isDateWithinAcceptableRange(a.firstAirDate));
 
-      if (!query && state.page <= 3) {
-        state.animes = shuffleArray(state.animes);
-      }
-
       state.animes = state.animes.slice(withinOffset, withinOffset + ANIMES_PAGE_SIZE);
 
       // Use estimated filtered count for pagination

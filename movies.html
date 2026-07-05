@@ -360,7 +360,7 @@
             pool.push(...batch);
             if (!batch.length) break;
           }
-          movies = shuffleArray(pool);
+          movies = pool;
         } catch (_err) {
           console.error('Failed to load popular movies', _err);
           // Fallback to trending if popular fails.
@@ -377,7 +377,7 @@
               pool.push(...batch);
               if (!batch.length) break;
             }
-            movies = shuffleArray(pool);
+            movies = pool;
           } catch (_err2) {
             console.error('Failed to load trending movies', _err2);
           }

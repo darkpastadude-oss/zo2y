@@ -1077,7 +1077,7 @@
             pool.push(...filterNonAnime(tvResults));
             if (!tvResults.length) break;
           }
-          tvshows = shuffleArray(pool);
+          tvshows = pool;
         } catch (_err) {
           console.error('Failed to load popular tvshows', _err);
           // Fallback to trending if popular fails
@@ -1094,7 +1094,7 @@
               pool.push(...filterNonAnime(tvResults));
               if (!tvResults.length) break;
             }
-            tvshows = shuffleArray(pool);
+            tvshows = pool;
           } catch (_err2) {
             console.error('Failed to load trending tvshows', _err2);
           }
@@ -1158,10 +1158,6 @@
         voteAverage: tvshow.vote_average || 0,
         genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
       })).filter((t) => t.id && isDateWithinAcceptableRange(t.firstAirDate));
-
-      if (!query && state.page === 1) {
-        state.tvshows = shuffleArray(state.tvshows);
-      }
 
       state.tvshows = state.tvshows.slice(withinOffset, withinOffset + TVSHOWS_PAGE_SIZE);
 
