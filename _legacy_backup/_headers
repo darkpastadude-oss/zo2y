@@ -1,0 +1,36 @@
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/auth-gate.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/js/shared-header.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/js/universal-search.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*
+  X-Robots-Tag: max-image-preview:none, noimageindex
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-Permitted-Cross-Domain-Policies: none
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Resource-Policy: same-site
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Reporting-Endpoints: csp-endpoint="/api/csp-report"
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self' https://*.supabase.co; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob: https://audio-ssl.itunes.apple.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://restcountries.com https://rss.applemarketingtools.com https://wikimedia.org https://www.thesportsdb.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; worker-src 'self' blob:; upgrade-insecure-requests; report-uri /api/csp-report; report-to csp-endpoint

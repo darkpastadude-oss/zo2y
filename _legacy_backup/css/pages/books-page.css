@@ -1,0 +1,150 @@
+/*
+ * Zo2y Books Page v3
+ * --------------------
+ * Augments category-shared.css with sectioned discovery, edition badges,
+ * and shimmer skeleton loaders. All visual primitives (colors, radii,
+ * spacing) are inherited from --accent / --card / --border so the books
+ * page looks identical to movies / tv / games.
+ */
+
+.books-shell { display: grid; gap: 18px; }
+
+/* ---------- Section tabs (Discover / Browse) ---------- */
+.books-mode-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.books-mode-tab {
+  padding: 7px 18px; border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(15, 39, 72, 0.6); color: #cfdcef;
+  cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: border-color .18s ease, color .18s ease, background .18s ease;
+}
+.books-mode-tab:hover { border-color: var(--accent); color: var(--accent); }
+.books-mode-tab.active {
+  background: linear-gradient(135deg, var(--color-accent) 0%, #ffb84d 100%);
+  color: #0b1633; border-color: transparent;
+}
+
+/* ---------- Genre chips (browse mode) ---------- */
+.books-genre-chips {
+  display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  margin-top: 6px;
+}
+.books-genre-chip {
+  padding: 5px 14px; border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--muted);
+  cursor: pointer; font-size: 12px;
+  transition: .18s ease;
+}
+.books-genre-chip:hover { border-color: var(--accent); color: #fff; }
+.books-genre-chip.active {
+  background: var(--accent); color: #0b1633; border-color: transparent; font-weight: 600;
+}
+
+/* ---------- Discover sections ---------- */
+.book-section + .book-section { margin-top: 16px; }
+.book-section .section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+}
+.book-section .section-head-text { min-width: 0; }
+.section-more-btn {
+  height: 34px; padding: 0 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: rgba(15,39,72,0.9);
+  color: #d7e8ff; font-size: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: .18s ease;
+}
+.section-more-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- Edition badge on covers ---------- */
+.card-edition-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(11, 22, 51, 0.86);
+  color: #ffd591;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.03em;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+
+/* ---------- Clear button inside search ---------- */
+.search-input-wrap { position: relative; display: flex; align-items: center; }
+.search-input-wrap input { padding-right: 48px; }
+
+
+.search-input-wrap input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+/* ---------- Year filter group ---------- */
+.filter-year-group {
+  display: flex; gap: 8px; grid-column: 1 / -1;
+}
+.filter-year-group input {
+  flex: 1; height: 48px; border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #10224a; color: #fff; padding: 0 14px;
+  font-size: 14px; -webkit-appearance: none; appearance: none;
+}
+.filter-year-group input::placeholder { color: var(--muted); }
+
+/* ---------- Skeleton placeholder (static) ---------- */
+.skeleton-shimmer {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%);
+  background-size: 600px 100%;
+  border-radius: 6px;
+}
+.book-section-skeleton .skeleton-line {
+  display: block;
+  height: 14px;
+  margin-bottom: 6px;
+}
+.skeleton-line-xs { width: 30%; height: 10px; }
+.skeleton-line-sm { width: 50%; height: 12px; }
+.skeleton-line-md { width: 70%; height: 14px; }
+.skeleton-line-lg { width: 35%; height: 22px; margin-bottom: 8px; }
+.book-skeleton-card { background: var(--card-2); min-height: 300px; }
+.book-skeleton-card .card-media {
+  width: 100%; aspect-ratio: 2/3;
+  background-size: 600px 100%;
+}
+.book-skeleton-card .card-meta { padding: 8px; gap: 6px; }
+
+/* ---------- Search results section ---------- */
+.book-search-section .section-head h2 small {
+  color: var(--muted); font-size: 13px; font-weight: 500; margin-left: 6px;
+}
+
+/* ---------- Empty / error states ---------- */
+.book-empty-state {
+  padding: 48px 20px; text-align: center;
+}
+.book-empty-state i { font-size: 36px; color: var(--accent); opacity: .7; margin-bottom: 10px; }
+.book-empty-state h3 { font-size: 18px; margin-bottom: 6px; }
+.book-empty-state p { color: var(--muted); font-size: 13px; max-width: 380px; margin: 0 auto; }
+.book-empty-state button {
+  margin-top: 14px; padding: 8px 16px; border-radius: 12px;
+  border: 1px solid var(--border); background: rgba(15,39,72,0.9); color: #d7e8ff;
+  cursor: pointer; font-size: 13px;
+}
+.book-empty-state button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- Mobile adjustments ---------- */
+@media (max-width: 768px) {
+  .book-section .section-head { gap: 8px; }
+  .section-more-btn { height: 30px; padding: 0 10px; font-size: 11px; }
+  .books-mode-tab { padding: 6px 14px; font-size: 12px; }
+  .books-genre-chip { padding: 4px 11px; font-size: 11px; }
+  .card-edition-badge { font-size: 9px; padding: 2px 7px; top: 6px; right: 6px; }
+}

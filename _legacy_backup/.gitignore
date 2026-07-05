@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build/cache artifacts and local deployment output
+.vercel/
+.wrangler/
+dist/
+
+# Backup/temp files
+*.bak
+*.diff
+*.tmp
+
+desktop.ini
+
+# Local cloudflare secrets
+.dev.vars

@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://api.igdb.com https://*.igdb.com https://id.twitch.tv https://*.twitch.tv https://api.rawg.io https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.themoviedb.org https://api.thesportsdb.com https://openlibrary.org https://covers.openlibrary.org https://commons.wikimedia.org https://*.wikimedia.org https://flagcdn.com https://restcountries.com https://itunes.apple.com https://images.unsplash.com https://en.wikipedia.org https://*.wikidata.org https://wikimedia.org https://*.googleapis.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+<script src="/js/auth-gate.js?v=20260623z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260623z" defer></script>
+  <meta name="robots" content="index,follow" />
+    <title>Zo2y - Profile</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+    <style>
+:root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--white); line-height: 1.6; overflow-x: clip; min-height: 100vh; }
+@keyframes zo2y-rise-in { from { opacity: 0; transform: translateY(10px) scale(0.995); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes zo2y-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    <link rel="stylesheet" href="css/animations.css?v=20260623z">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260623z">
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260623z" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
+<script src="js/shared-header.js?v=20260704d" defer></script>
+  <noscript></noscript>
+
+  
+    <link rel="stylesheet" href="css/components.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+</head>
+<body data-nav-page="profile">
+    <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" decoding="async" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
+</div>
+  </div>
+</header>
+
+    <!-- Desktop View -->
+    <div class="desktop-only">
+        <!-- Viewing Other Profile Indicator -->
+        <div class="container">
+            <div class="viewing-other-profile" id="viewingOtherProfile">
+                <div class="viewing-indicator">
+                    <i class="fas fa-eye"></i>
+                    <span id="viewingOtherProfileText">Viewing this profile</span>
+                </div>
+                <button class="btn btn-outline viewing-profile-cta" onclick="ProfileManager.goToMyProfile()">
+                    <i class="fas fa-user"></i> My Profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="pv2-hero">
+                <!-- Cinematic banner G현 JS populates background via ProfileManager.renderBanner() -->
+                <div class="pv2-banner" id="profileBanner">
+                    <div class="pv2-banner-backdrops" id="bannerBackdrops"></div>
+                    <div class="pv2-banner-overlay"></div>
+                    <div class="pv2-banner-vignette"></div>
+                </div>
+
+                <div class="pv2-hero-body">
+                    <!-- Avatar -->
+                    <div class="pv2-avatar-wrap">
+                        <div class="pv2-avatar" onclick="ProfileManager.showAvatarModal()" id="profileAvatar" aria-label="Change avatar">@</div>
+                    </div>
+
+                    <!-- Identity -->
+                    <div class="pv2-identity">
+                        <div class="pv2-name" id="profileName">Loading...</div>
+                        <div class="pv2-username" id="profileUsername">@username</div>
+                        <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+                        <div class="pv2-meta">
+                            <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">G현</span></span>
+                            <span class="pv2-meta-sep">-+</span>
+                            <span class="pv2-meta-item"><i class="fas fa-calendar-alt"></i> <span id="memberSince">Member since 2023</span></span>
+                        </div>
+                        <div class="profile-badges" id="profileBadges"></div>
+                    </div>
+
+                    <!-- Actions (compact: edit + overflow) -->
+                    <div class="pv2-actions">
+                        <button class="pv2-edit-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
+                            <i class="fas fa-pen"></i> edit profile
+                        </button>
+                        <button class="btn btn-secondary d-none pv2-follow-btn" id="followButton">follow</button>
+                        <div class="pv2-overflow-wrap">
+                            <button class="pv2-overflow-btn" id="profileOverflowBtn" aria-label="More options" onclick="ProfileManager.toggleOverflowMenu()">
+                                <i class="fas fa-ellipsis"></i>
+                            </button>
+                            <div class="pv2-overflow-menu" id="profileOverflowMenu">
+                                <button class="pv2-overflow-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeOverflowMenu()" id="settingsBtn">
+                                    <i class="fas fa-cog"></i> settings
+                                </button>
+                                <button class="pv2-overflow-item pv2-overflow-danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
+                                    <i class="fas fa-sign-out-alt"></i> log out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compact stats strip -->
+                <div class="pv2-stats" aria-label="Profile stats">
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="visitedCount">0</span>
+                        <span class="pv2-stat-label">saved</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="listsCount">0</span>
+                        <span class="pv2-stat-label">lists</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="reviewsCount">0</span>
+                        <span class="pv2-stat-label">reviews</span>
+                    </div>
+                    <div class="pv2-stat-divider"></div>
+                    <div class="pv2-stat">
+                        <span class="pv2-stat-value" id="followersCount">0</span>
+                        <span class="pv2-stat-label">followers</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Hidden legacy meta for JS compatibility -->
+        <span id="visitedCountMeta" style="display:none"></span>
+
+        <div class="pv2-content-wrap">
+
+            <!-- === OVERVIEW SHOWCASE (new primary view) === -->
+            <div class="pv2-overview" id="pv2Overview">
+
+                <!-- Mode Switch: Media / Lifestyle -->
+                <div class="pv2-mode-bar">
+                    <div class="pv2-mode-switch" role="tablist" aria-label="Content mode">
+                        <button class="pv2-mode-btn active" id="pv2ModeMedia" role="tab" aria-selected="true" onclick="ProfileManager.setOverviewMode('media')">
+                            <i class="fas fa-play-circle"></i> media
+                        </button>
+                        <button class="pv2-mode-btn" id="pv2ModeLifestyle" role="tab" aria-selected="false" onclick="ProfileManager.setOverviewMode('lifestyle')">
+                            <i class="fas fa-compass"></i> lifestyle
+                        </button>
+                        <div class="pv2-mode-indicator" id="pv2ModeIndicator"></div>
+                    </div>
+                    <a class="pv2-activity-link" href="#" onclick="ProfileManager.showPrimaryTab('activity'); return false;" id="pv2ActivityLink">
+                        <i class="fas fa-bolt"></i> recent activity
+                    </a>
+                </div>
+
+                <!-- Media Mode Showcase -->
+                <div class="pv2-mode-panel" id="pv2MediaPanel">
+
+                    <!-- Movies Rail -->
+                    <div class="pv2-rail" id="pv2RailMovies">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-film"></i> movies</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('movies'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2MoviesTrack"></div>
+                    </div>
+
+                    <!-- TV Shows Rail -->
+                    <div class="pv2-rail" id="pv2RailTv">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-tv"></i> tv shows</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('tv'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2TvTrack"></div>
+                    </div>
+
+                    <!-- Anime Rail -->
+                    <div class="pv2-rail" id="pv2RailAnime">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-dragon"></i> anime</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('anime'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2AnimeTrack"></div>
+                    </div>
+
+                    <!-- Games Rail -->
+                    <div class="pv2-rail" id="pv2RailGames">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-gamepad"></i> games</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('games'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2GamesTrack"></div>
+                    </div>
+
+                    <!-- Books Rail -->
+                    <div class="pv2-rail" id="pv2RailBooks">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-book"></i> books</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('books'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2BooksTrack"></div>
+                    </div>
+
+                    <!-- Music Rail -->
+                    <div class="pv2-rail" id="pv2RailMusic">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-music"></i> music</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('music'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2MusicTrack"></div>
+                    </div>
+
+                </div>
+
+                <!-- Lifestyle Mode Showcase -->
+                <div class="pv2-mode-panel" id="pv2LifestylePanel" style="display:none">
+
+                    <!-- Sports Rail -->
+                    <div class="pv2-rail" id="pv2RailSports">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-futbol"></i> sports</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('sports'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2SportsTrack"></div>
+                    </div>
+
+                    <!-- Cars Rail -->
+                    <div class="pv2-rail" id="pv2RailCars">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-car"></i> cars</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('cars'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2CarsTrack"></div>
+                    </div>
+
+                    <!-- Travel Rail -->
+                    <div class="pv2-rail" id="pv2RailTravel">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-earth-americas"></i> travel</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('travel'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2TravelTrack"></div>
+                    </div>
+
+                    <!-- Food Rail -->
+                    <div class="pv2-rail" id="pv2RailFood">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-burger"></i> food</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('food'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2FoodTrack"></div>
+                    </div>
+
+                    <!-- Fashion Rail -->
+                    <div class="pv2-rail" id="pv2RailFashion">
+                        <div class="pv2-rail-header">
+                            <div class="pv2-rail-title"><i class="fas fa-shirt"></i> fashion</div>
+                            <a class="pv2-rail-viewall" href="#" onclick="ProfileManager.showTab('fashion'); return false;">view all <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                        <div class="pv2-rail-track" id="pv2FashionTrack"></div>
+                    </div>
+
+                </div>
+
+                <!-- Compact Recent Activity -->
+                <div class="pv2-activity" id="pv2Activity">
+                    <div class="pv2-activity-header">
+                        <span class="pv2-activity-title">recent activity</span>
+                        <a class="pv2-activity-view" href="#" onclick="ProfileManager.showPrimaryTab('activity'); return false;">view all</a>
+                    </div>
+                    <div class="pv2-activity-feed" id="pv2ActivityFeed">
+                        <div class="pv2-activity-empty">no recent activity yet</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- === LEGACY LISTS PANEL (existing collection management, now secondary) === -->
+            <section class="profile-primary-panel" data-panel="lists" style="display:none">
+            <!-- Navigation Tabs -->
+            <div class="profile-section-shell profile-nav-shell">
+                <div class="profile-section-intro profile-section-intro-compact">
+                    <span class="profile-section-kicker">Browse</span>
+                    <h2 class="profile-section-heading">Collections and lists</h2>
+                </div>
+            <div class="nav-tabs">
+                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                    <span>Media</span> <i class="fas fa-chevron-down"></i>
+                </button>
+                <button class="nav-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                    <span>Lifestyle</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="profile-tab-group-row" data-group="media">
+                <div class="nav-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="movieTabText">Movies</span></div>
+                <div class="nav-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="tvTabText">TV Shows</span></div>
+                <div class="nav-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="animeTabText">Anime</span></div>
+                <div class="nav-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="gamesTabText">Games</span></div>
+                <div class="nav-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="booksTabText">Books</span></div>
+                <div class="nav-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="musicTabText">Music</span></div>
+            </div>
+            <div class="profile-tab-group-row" data-group="lifestyle">
+                <div class="nav-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="sportsTabText">Sports</span></div>
+                <div class="nav-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="travelTabText">Travel</span></div>
+                <div class="nav-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="fashionTabText">Fashion</span></div>
+                <div class="nav-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="foodTabText">Food</span></div>
+                <div class="nav-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="carsTabText">Cars</span></div>
+            </div>
+            </div>
+
+            <div id="lists-tab">
+            <!-- Movies Tab Content -->
+            <div class="tab-content" id="movies-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="moviesTitle">My Movies</h2>
+                            <p class="section-subtitle" id="moviesSubtitle">Organize your favorite films</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createMovieListBtn" onclick="ProfileManager.createMovieList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='movies.html'">
+                                <i class="fas fa-film"></i> Browse Movies
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="moviesGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Movies Yet</h3>
+                            <p class="empty-description">Save movies to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='movies.html'">
+                                <i class="fas fa-film"></i> Explore Movies
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie Detail View -->
+            <div class="tab-content" id="movie-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMovieDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="movieDetailTitle">
+                                <span id="movieDetailIcon"></span>
+                                <span id="movieDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="movieDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="movie">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="movieDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="movieListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="movieListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="movieItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- TV Shows Tab Content -->
+            <div class="tab-content" id="tv-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="tvTitle">My TV Shows</h2>
+                            <p class="section-subtitle" id="tvSubtitle">Organize your favorite series</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createTvListBtn" onclick="ProfileManager.createTvList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='tvshows.html'">
+                                <i class="fas fa-tv"></i> Browse TV Shows
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="tvGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No TV Shows Yet</h3>
+                            <p class="empty-description">Save TV shows to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='tvshows.html'">
+                                <i class="fas fa-tv"></i> Explore TV Shows
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV Show Detail View -->
+            <div class="tab-content" id="tv-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTvDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="tvDetailTitle">
+                                <span id="tvDetailIcon"></span>
+                                <span id="tvDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="tvDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="tv">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="tvDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="tvListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="tvListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tvItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Anime Tab Content -->
+            <div class="tab-content" id="anime-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="animeTitle">My Anime</h2>
+                            <p class="section-subtitle" id="animeSubtitle">Organize your favorite anime</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createAnimeListBtn" onclick="ProfileManager.createAnimeList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='animes.html'">
+                                <i class="fas fa-dragon"></i> Browse Anime
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="animeGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Anime Yet</h3>
+                            <p class="empty-description">Save anime to see it here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='animes.html'">
+                                <i class="fas fa-dragon"></i> Explore Anime
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anime Detail View -->
+            <div class="tab-content" id="anime-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideAnimeDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="animeDetailTitle">
+                                <span id="animeDetailIcon"></span>
+                                <span id="animeDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="animeDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="anime">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="animeDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="animeListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="animeListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="animeItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Games Tab Content -->
+            <div class="tab-content" id="games-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="gamesTitle">My Games</h2>
+                            <p class="section-subtitle" id="gamesSubtitle">Organize your favorite games</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createGameListBtn" onclick="ProfileManager.createGameList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='games.html'">
+                                <i class="fas fa-gamepad"></i> Browse Games
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="gamesGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Games Yet</h3>
+                            <p class="empty-description">Save games to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='games.html'">
+                                <i class="fas fa-gamepad"></i> Explore Games
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Detail View -->
+            <div class="tab-content" id="game-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideGameDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title">
+                                <span id="gameDetailIcon"></span>
+                                <span id="gameDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="gameDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="game">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="gameDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="gameListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="gameListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="gameItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Books Tab Content -->
+            <div class="tab-content" id="books-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="booksTitle">My Books</h2>
+                            <p class="section-subtitle" id="booksSubtitle">Organize your favorite books</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createBookListBtn" onclick="ProfileManager.createBookList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='books.html'">
+                                <i class="fas fa-book"></i> Browse Books
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="booksGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Books Yet</h3>
+                            <p class="empty-description">Save books to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='books.html'">
+                                <i class="fas fa-book"></i> Explore Books
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Detail View -->
+            <div class="tab-content" id="book-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideBookDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="bookDetailTitle">
+                                <span id="bookDetailIcon"></span>
+                                <span id="bookDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="bookDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="book">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="bookDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="bookListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="bookListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="bookItemsContainer"></div>
+                </div>
+            </div>
+            <!-- Music Tab Content -->
+            <div class="tab-content" id="music-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="musicTitle">My Music</h2>
+                            <p class="section-subtitle" id="musicSubtitle">Organize your favorite tracks</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createMusicListBtn" onclick="ProfileManager.createMusicList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='music.html'">
+                                <i class="fas fa-music"></i> Browse Music
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="musicGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Music Yet</h3>
+                            <p class="empty-description">Save tracks to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='music.html'">
+                                <i class="fas fa-music"></i> Explore Music
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Music Detail View -->
+            <div class="tab-content" id="music-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideMusicDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="musicDetailTitle">
+                                <span id="musicDetailIcon"></span>
+                                <span id="musicDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="musicDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="music">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="musicDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="musicListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="musicListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="musicItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Sports Tab Content -->
+            <div class="tab-content" id="sports-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
+                            <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Browse Sports
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="sportsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-futbol"></i></div>
+                            <h3 class="empty-title">No Teams Yet</h3>
+                            <p class="empty-description">Save teams to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='sports.html'">
+                                <i class="fas fa-futbol"></i> Explore Sports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Tab Content -->
+            <div class="tab-content" id="travel-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="travelTitle">My Travel</h2>
+                            <p class="section-subtitle" id="travelSubtitle">Organize countries you want to explore</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createTravelListBtn" onclick="ProfileManager.createTravelList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='travel.html'">
+                                <i class="fas fa-earth-americas"></i> Browse Travel
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="travelGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Travel Lists Yet</h3>
+                            <p class="empty-description">Save countries to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='travel.html'">
+                                <i class="fas fa-earth-americas"></i> Explore Travel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Detail View -->
+            <div class="tab-content" id="travel-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideTravelDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="travelDetailTitle">
+                                <span id="travelDetailIcon"></span>
+                                <span id="travelDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="travelDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="travel">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="travelDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="travelListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="travelListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="travelItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Fashion Tab Content -->
+            <div class="tab-content" id="fashion-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="fashionTitle">My Fashion</h2>
+                            <p class="section-subtitle" id="fashionSubtitle">Organize brands you wear, love, or want to try</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createFashionListBtn" onclick="ProfileManager.createFashionList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='fashion.html'">
+                                <i class="fas fa-shirt"></i> Browse Fashion
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="fashionGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Fashion Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='fashion.html'">
+                                <i class="fas fa-shirt"></i> Explore Fashion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fashion Detail View -->
+            <div class="tab-content" id="fashion-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFashionDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="fashionDetailTitle">
+                                <span id="fashionDetailIcon"></span>
+                                <span id="fashionDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="fashionDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="fashion">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="fashionDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="fashionListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="fashionListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="fashionItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Cars Tab Content -->
+            <div class="tab-content" id="cars-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="carsTitle">My Cars</h2>
+                            <p class="section-subtitle" id="carsSubtitle">Organize car brands you love or want to try</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createCarsListBtn" onclick="ProfileManager.createCarList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='cars.html'">
+                                <i class="fas fa-car"></i> Browse Cars
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="carsGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Car Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='cars.html'">
+                                <i class="fas fa-car"></i> Explore Cars
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cars Detail View -->
+            <div class="tab-content" id="cars-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideCarDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="carsDetailTitle">
+                                <span id="carsDetailIcon"></span>
+                                <span id="carsDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="carsDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="car">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="carsDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="carsListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="carsListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="carsItemsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Food Tab Content -->
+            <div class="tab-content" id="food-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="foodTitle">My Food</h2>
+                            <p class="section-subtitle" id="foodSubtitle">Track fast food and chains you love</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary btn-sm" id="createFoodListBtn" onclick="ProfileManager.createFoodList()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='food.html'">
+                                <i class="fas fa-burger"></i> Browse Food
+                            </button>
+                        </div>
+                    </div>
+                    <div class="collection-grid" id="foodGrid">
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fas fa-list"></i></div>
+                            <h3 class="empty-title">No Food Lists Yet</h3>
+                            <p class="empty-description">Save brands to see them here.</p>
+                            <button class="btn btn-primary mt-md" onclick="window.location.href='food.html'">
+                                <i class="fas fa-burger"></i> Explore Food
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Detail View -->
+            <div class="tab-content" id="food-detail-view">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideFoodDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="foodDetailTitle">
+                                <span id="foodDetailIcon"></span>
+                                <span id="foodDetailName"></span>
+                            </h2>
+                            <p class="collection-detail-subtitle" id="foodDetailDescription">Collection description</p>
+                        </div>
+                        <div class="collection-view-toggle" data-media="food">
+                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid')"><i class="fas fa-th"></i></button>
+                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list')"><i class="fas fa-list"></i></button>
+                        </div>
+                        <div class="collection-detail-actions hidden" id="foodDetailActions">
+                            <button class="btn btn-secondary btn-sm" id="foodListEditBtn">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="foodListDeleteBtn">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div id="foodItemsContainer"></div>
+                </div>
+            </div>
+            </div>
+
+            <!-- List Detail View -->
+            <div id="list-detail-view" style="display: none;">
+                <div class="section">
+                    <div class="collection-detail-header">
+                        <div class="collection-detail-back">
+                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.hideListDetail()">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                        </div>
+                        <div class="collection-detail-title-group">
+                            <h2 class="collection-detail-title" id="listDetailTitle">List</h2>
+                            <p class="collection-detail-subtitle" id="listDetailDescription"></p>
+                        </div>
+                        <div class="collection-detail-actions">
+                            <button class="btn btn-secondary btn-sm" id="editListBtn" style="display: none;">
+                                <i class="fas fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-primary btn-sm" id="addToListBtn" style="display: none;">
+                                <i class="fas fa-plus"></i> Add Items
+                            </button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            </section>
+
+            <section class="profile-primary-panel" data-panel="activity">
+            <!-- Community Tab Content -->
+            <div class="tab-content" id="community-tab">
+                <div class="section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title" id="communityTitle">Community</h2>
+                            <p class="section-subtitle" id="communitySubtitle">Follow collectors, discover lists, and keep up with what your circle is saving.</p>
+                        </div>
+                        <div class="section-actions">
+                            <div class="community-switcher d-flex gap-sm">
+                                <button class="btn btn-secondary btn-sm active" id="showFollowersBtn" onclick="ProfileManager.showCommunitySection('followers')">
+                                    Followers <span id="followersCountBadge" class="nav-tab-badge">0</span>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="showFollowingBtn" onclick="ProfileManager.showCommunitySection('following')">
+                                    Following <span id="followingCountBadge" class="nav-tab-badge">0</span>
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="showActivityBtn" onclick="ProfileManager.showCommunitySection('activity')">
+                                    Activity <span id="activityCountBadge" class="nav-tab-badge">0</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-primary" onclick="ProfileManager.showModal('communitySearchModal')" id="addCommunityBtn">
+                                <i class="fas fa-user-plus"></i> Find Users
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="community-intro-card">
+                        <div class="community-intro-copy">
+                            <span class="community-intro-kicker">Network</span>
+                            <h3>Build a circle around taste</h3>
+                            <p>Follow people whose lists you trust, see what they are saving, and jump straight into their collections.</p>
+                        </div>
+                        <div class="community-intro-actions">
+                            <button class="btn btn-primary" type="button" onclick="ProfileManager.showModal('communitySearchModal')">
+                                <i class="fas fa-user-plus"></i> Find People
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Followers Section -->
+                    <div class="community-section active" id="followersSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followersSectionTitle">Your Followers</h3>
+                            <p class="section-subtitle">People keeping up with this profile's saved items and lists.</p>
+                        </div>
+                        <div id="followersList">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="fas fa-list"></i></div>
+                                <h3 class="empty-title">No followers yet</h3>
+                                <p class="empty-description">Share a few strong lists and this space will start filling up.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Following Section -->
+                    <div class="community-section" id="followingSection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="followingSectionTitle">You're Following</h3>
+                            <p class="section-subtitle">Profiles you follow for ideas, recommendations, and list inspiration.</p>
+                        </div>
+                        <div id="followingList">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="fas fa-list"></i></div>
+                                <h3 class="empty-title">Not following anyone yet</h3>
+                                <p class="empty-description">Start following a few people to build a more useful feed.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Section -->
+                    <div class="community-section" id="activitySection">
+                        <div class="section-header">
+                            <h3 class="section-title" id="activitySectionTitle">Community Activity</h3>
+                            <p class="section-subtitle">Recent saves, new lists, and review activity from people you follow.</p>
+                        </div>
+                        <div id="activityList">
+                            <div class="empty-state">
+                                <div class="empty-icon"><i class="fas fa-list"></i></div>
+                                <h3 class="empty-title">No activity yet</h3>
+                                <p class="empty-description">Follow more people or publish fresh lists to wake this feed up.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </section>
+
+        </div><!-- /pv2-content-wrap -->
+        
+    </div><!-- /desktop-only -->
+
+    <!-- Mobile View -->
+    <div class="mobile-only">
+        <!-- Mobile Viewing Indicator Banner -->
+        <div class="mobile-viewing-indicator" id="mobileViewingIndicator">
+            <div class="viewing-indicator">
+                <i class="fas fa-eye"></i>
+                <span id="mobileViewingOtherProfileText">Viewing this profile</span>
+            </div>
+            <button class="btn btn-outline btn-sm viewing-profile-cta" onclick="ProfileManager.goToMyProfile()">
+                <i class="fas fa-user"></i> My Profile
+            </button>
+        </div>
+
+        <!-- Mobile Identity Card (pv2 design) -->
+        <div class="mph2-card" id="mobileIdentityCard">
+
+            <!-- Cinematic banner -->
+            <div class="mph2-banner" id="mobileBanner">
+                <div class="mph2-banner-backdrops" id="mobileBannerBackdrops"></div>
+                <div class="mph2-banner-overlay"></div>
+                <div class="mph2-banner-vignette"></div>
+            </div>
+
+            <!-- Topbar: menu + edit -->
+            <div class="mph2-topbar">
+                <button class="mph2-menu-btn" onclick="ProfileManager.showMobileMenu()" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="mph2-topbar-actions">
+                    <button class="mph2-edit-pill" onclick="ProfileManager.showModal('editProfileModal')" id="mobileEditBtn">
+                        <i class="fas fa-pen"></i> edit
+                    </button>
+                    <button class="mph2-follow-pill d-none" id="mobileFollowButton">follow</button>
+                </div>
+            </div>
+
+            <!-- Hero body: avatar + identity -->
+            <div class="mph2-hero-body">
+                <div class="mph2-avatar-wrap">
+                    <div class="mph2-avatar" id="mobileAvatar" onclick="ProfileManager.showAvatarModal()" aria-label="Change avatar">@</div>
+                </div>
+                <div class="mph2-identity">
+                    <div class="mph2-name" id="mobileProfileName">Loading...</div>
+                    <div class="mph2-username" id="mobileProfileUsername">@username</div>
+                    <div class="mph2-bio" id="mobileProfileBio">No bio yet. Tap edit to add one!</div>
+                    <div class="mph2-meta" id="mobileProfileMeta">
+                        <span class="mph2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="mobileProfileLocation">G현</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compact stat row -->
+            <div class="mph2-stats">
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileVisitedCount">0</span>
+                    <span class="mph2-stat-label">saved</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileFollowersCount">0</span>
+                    <span class="mph2-stat-label">followers</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileListsCount">0</span>
+                    <span class="mph2-stat-label">lists</span>
+                </div>
+                <div class="mph2-stat-sep"></div>
+                <div class="mph2-stat">
+                    <span class="mph2-stat-value" id="mobileReviewsCount">0</span>
+                    <span class="mph2-stat-label">reviews</span>
+                </div>
+            </div>
+
+            <!-- Badges (hidden by default G현 JS shows when present) -->
+            <div class="profile-badges mph2-badges" id="mobileProfileBadges"></div>
+        </div>
+
+        <!-- Mobile Content Area -->
+        <div class="mobile-content mph2-content">
+
+            <!-- === MOBILE OVERVIEW SHOWCASE (new primary) === -->
+            <section class="mobile-primary-panel mph2-overview-panel" id="mobileOverviewPanel">
+
+                <!-- Premium light-switch toggle: Media / Lifestyle -->
+                <div class="mph2-toggle-wrap">
+                    <div class="mph2-toggle" id="mph2Toggle" role="tablist" aria-label="Content mode">
+                        <button class="mph2-toggle-opt active" id="mph2ToggleMedia" role="tab" aria-selected="true" onclick="ProfileV2Mobile.setMode('media')">
+                            <i class="fas fa-play-circle"></i>
+                            <span>media</span>
+                        </button>
+                        <button class="mph2-toggle-opt" id="mph2ToggleLifestyle" role="tab" aria-selected="false" onclick="ProfileV2Mobile.setMode('lifestyle')">
+                            <i class="fas fa-compass"></i>
+                            <span>lifestyle</span>
+                        </button>
+                        <!-- Physical-switch thumb -->
+                        <div class="mph2-toggle-thumb" id="mph2ToggleThumb" aria-hidden="true"></div>
+                    </div>
+                </div>
+
+                <!-- === MEDIA MODE === -->
+                <div class="mph2-mode-panel" id="mph2MobileMediaPanel">
+                    <!-- Movies row -->
+                    <div class="mph2-row" id="mph2RowMovies">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-film"></i> movies</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('movies'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackMovies"></div>
+                    </div>
+                    <!-- TV Shows row -->
+                    <div class="mph2-row" id="mph2RowTv">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-tv"></i> tv shows</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('tv'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackTv"></div>
+                    </div>
+                    <!-- Anime row -->
+                    <div class="mph2-row" id="mph2RowAnime">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-dragon"></i> anime</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('anime'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackAnime"></div>
+                    </div>
+                    <!-- Games row -->
+                    <div class="mph2-row" id="mph2RowGames">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-gamepad"></i> games</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('games'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackGames"></div>
+                    </div>
+                    <!-- Books row -->
+                    <div class="mph2-row" id="mph2RowBooks">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-book"></i> books</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('books'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackBooks"></div>
+                    </div>
+                    <!-- Music row -->
+                    <div class="mph2-row" id="mph2RowMusic">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-music"></i> music</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('music'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackMusic"></div>
+                    </div>
+                </div>
+
+                <!-- === LIFESTYLE MODE === -->
+                <div class="mph2-mode-panel" id="mph2MobileLifestylePanel" style="display:none">
+                    <!-- Sports row -->
+                    <div class="mph2-row" id="mph2RowSports">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-futbol"></i> sports</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('sports'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackSports"></div>
+                    </div>
+                    <!-- Cars row -->
+                    <div class="mph2-row" id="mph2RowCars">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-car"></i> cars</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('cars'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackCars"></div>
+                    </div>
+                    <!-- Travel row -->
+                    <div class="mph2-row" id="mph2RowTravel">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-earth-americas"></i> travel</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('travel'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackTravel"></div>
+                    </div>
+                    <!-- Food row -->
+                    <div class="mph2-row" id="mph2RowFood">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-burger"></i> food</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('food'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackFood"></div>
+                    </div>
+                    <!-- Fashion row -->
+                    <div class="mph2-row" id="mph2RowFashion">
+                        <div class="mph2-row-hd">
+                            <span class="mph2-row-label"><i class="fas fa-shirt"></i> fashion</span>
+                            <a class="mph2-row-viewall" href="#" onclick="ProfileV2Mobile.openTab('fashion'); return false;">view all <i class="fas fa-chevron-right"></i></a>
+                        </div>
+                        <div class="mph2-row-track" id="mph2TrackFashion"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- === LEGACY LISTS PANEL (detail drilldown, hidden by default) === -->
+            <section class="mobile-primary-panel mph2-lists-panel" id="mobileListsPanel" style="display:none">
+
+            <!-- Back to overview -->
+            <div class="mph2-back-bar">
+                <button class="mph2-back-btn" onclick="ProfileV2Mobile.backToOverview()">
+                    <i class="fas fa-arrow-left"></i> overview
+                </button>
+                <div class="mobile-tabs">
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="media" aria-expanded="false">
+                        <span>Media</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <button class="mobile-tab profile-tab-group-toggle" type="button" data-group="lifestyle" aria-expanded="false">
+                        <span>Lifestyle</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="profile-tab-group-row mobile" data-group="media">
+                    <div class="mobile-tab" data-tab="movies" onclick="ProfileManager.showTab('movies')"><i class="fas fa-film"></i> <span id="mobileTabMovies">Movies</span></div>
+                    <div class="mobile-tab" data-tab="tv" onclick="ProfileManager.showTab('tv')"><i class="fas fa-tv"></i> <span id="mobileTabTv">TV Shows</span></div>
+                    <div class="mobile-tab" data-tab="anime" onclick="ProfileManager.showTab('anime')"><i class="fas fa-dragon"></i> <span id="mobileTabAnime">Anime</span></div>
+                    <div class="mobile-tab" data-tab="games" onclick="ProfileManager.showTab('games')"><i class="fas fa-gamepad"></i> <span id="mobileTabGames">Games</span></div>
+                    <div class="mobile-tab" data-tab="books" onclick="ProfileManager.showTab('books')"><i class="fas fa-book"></i> <span id="mobileTabBooks">Books</span></div>
+                    <div class="mobile-tab" data-tab="music" onclick="ProfileManager.showTab('music')"><i class="fas fa-music"></i> <span id="mobileTabMusic">Music</span></div>
+                </div>
+                <div class="profile-tab-group-row mobile" data-group="lifestyle">
+                    <div class="mobile-tab" data-tab="sports" onclick="ProfileManager.showTab('sports')"><i class="fas fa-futbol"></i> <span id="mobileTabSports">Sports</span></div>
+                    <div class="mobile-tab" data-tab="travel" onclick="ProfileManager.showTab('travel')"><i class="fas fa-earth-americas"></i> <span id="mobileTabTravel">Travel</span></div>
+                    <div class="mobile-tab" data-tab="fashion" onclick="ProfileManager.showTab('fashion')"><i class="fas fa-shirt"></i> <span id="mobileTabFashion">Fashion</span></div>
+                    <div class="mobile-tab" data-tab="food" onclick="ProfileManager.showTab('food')"><i class="fas fa-burger"></i> <span id="mobileTabFood">Food</span></div>
+                    <div class="mobile-tab" data-tab="cars" onclick="ProfileManager.showTab('cars')"><i class="fas fa-car"></i> <span id="mobileTabCars">Cars</span></div>
+                </div>
+                <div class="mobile-tabs-swipe-hint" id="mobileTabsSwipeHint">
+                    <div class="mobile-tabs-swipe-pill"></div>
+                    <span>Swipe tabs</span>
+                </div>
+            </div>
+
+            <!-- Movies Section -->
+            <div class="mobile-section active" id="mobileMoviesSection">
+                <div class="mobile-section-title">
+                    <span id="mobileMoviesTitle">My Movies</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMovieListBtn" onclick="ProfileManager.createMovieList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='movies.html'">
+                            <i class="fas fa-film"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileMoviesSubtitle">Organize your favorite films</div>
+                
+                <div class="collection-grid" id="mobileMoviesGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Movies Yet</div>
+                        <div class="mobile-empty-description">Save movies to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='movies.html'">
+                            <i class="fas fa-film"></i> Explore Movies
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movie Detail View -->
+            <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMovieDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileMovieDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="movie">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileMovieDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileMovieItems"></div>
+            </div>
+
+            <!-- TV Shows Section -->
+            <div class="mobile-section" id="mobileTvSection">
+                <div class="mobile-section-title">
+                    <span>My TV Shows</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateTvListBtn" onclick="ProfileManager.createTvList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='tvshows.html'">
+                            <i class="fas fa-tv"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle">Organize your favorite series</div>
+
+                <div class="collection-grid" id="mobileTvGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No TV Shows Yet</div>
+                        <div class="mobile-empty-description">Save TV shows to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='tvshows.html'">
+                            <i class="fas fa-tv"></i> Explore TV Shows
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV Detail View -->
+            <div class="mobile-section" id="mobileTvDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTvDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileTvDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="tv">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileTvDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileTvItems"></div>
+            </div>
+
+            <!-- Anime Section -->
+            <div class="mobile-section" id="mobileAnimeSection">
+                <div class="mobile-section-title">
+                    <span id="mobileAnimeTitle">My Anime</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateAnimeListBtn" onclick="ProfileManager.createAnimeList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='animes.html'">
+                            <i class="fas fa-dragon"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileAnimeSubtitle">Organize your favorite anime</div>
+
+                <div class="collection-grid" id="mobileAnimeGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Anime Yet</div>
+                        <div class="mobile-empty-description">Save anime to see it here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='animes.html'">
+                            <i class="fas fa-dragon"></i> Explore Anime
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anime Detail View -->
+            <div class="mobile-section" id="mobileAnimeDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideAnimeDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileAnimeDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileAnimeDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="anime">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileAnimeDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileAnimeItems"></div>
+            </div>
+
+            <!-- Games Section -->
+            <div class="mobile-section" id="mobileGamesSection">
+                <div class="mobile-section-title">
+                    <span id="mobileGamesTitle">My Games</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateGameListBtn" onclick="ProfileManager.createGameList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='games.html'">
+                            <i class="fas fa-gamepad"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileGamesSubtitle">Organize your favorite games</div>
+
+                <div class="collection-grid" id="mobileGamesGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Games Yet</div>
+                        <div class="mobile-empty-description">Save games to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='games.html'">
+                            <i class="fas fa-gamepad"></i> Explore Games
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Detail View -->
+            <div class="mobile-section" id="mobileGameDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideGameDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileGameDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="game">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileGameDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileGameItems"></div>
+            </div>
+
+            <!-- Books Section -->
+            <div class="mobile-section" id="mobileBooksSection">
+                <div class="mobile-section-title">
+                    <span id="mobileBooksTitle">My Books</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateBookListBtn" onclick="ProfileManager.createBookList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='books.html'">
+                            <i class="fas fa-book"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileBooksSubtitle">Organize your favorite books</div>
+
+                <div class="collection-grid" id="mobileBooksGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Books Yet</div>
+                        <div class="mobile-empty-description">Save books to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='books.html'">
+                            <i class="fas fa-book"></i> Explore Books
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Books Detail View -->
+            <div class="mobile-section" id="mobileBookDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideBookDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileBookDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="book">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileBookDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileBookItems"></div>
+            </div>
+            <!-- Music Section -->
+            <div class="mobile-section" id="mobileMusicSection">
+                <div class="mobile-section-title">
+                    <span id="mobileMusicTitle">My Music</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateMusicListBtn" onclick="ProfileManager.createMusicList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='music.html'">
+                            <i class="fas fa-music"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileMusicSubtitle">Organize your favorite tracks</div>
+
+                <div class="collection-grid" id="mobileMusicGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Music Yet</div>
+                        <div class="mobile-empty-description">Save tracks to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='music.html'">
+                            <i class="fas fa-music"></i> Explore Music
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Music Detail View -->
+            <div class="mobile-section" id="mobileMusicDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideMusicDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileMusicDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="music">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileMusicDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileMusicItems"></div>
+            </div>
+
+            <!-- Sports Section -->
+            <div class="mobile-section" id="mobileSportsSection">
+                <div class="mobile-section-title">
+                    <span id="mobileSportsTitle">Favorite Teams</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='sports.html'">
+                            <i class="fas fa-futbol"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileSportsSubtitle">Teams you follow across leagues</div>
+
+                <div class="collection-grid" id="mobileSportsGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Teams Yet</div>
+                        <div class="mobile-empty-description">Save teams to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='sports.html'">
+                            <i class="fas fa-futbol"></i> Explore Sports
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Section -->
+            <div class="mobile-section" id="mobileTravelSection">
+                <div class="mobile-section-title">
+                    <span id="mobileTravelTitle">My Travel</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateTravelListBtn" onclick="ProfileManager.createTravelList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='travel.html'">
+                            <i class="fas fa-earth-americas"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileTravelSubtitle">Organize countries you want to explore</div>
+
+                <div class="collection-grid" id="mobileTravelGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <div class="mobile-empty-title">No Travel Lists Yet</div>
+                        <div class="mobile-empty-description">Save countries to see them here.</div>
+                        <button class="mobile-action-btn" onclick="window.location.href='travel.html'">
+                            <i class="fas fa-earth-americas"></i> Explore Travel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Travel Detail View -->
+            <div class="mobile-section" id="mobileTravelDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideTravelDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileTravelDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileTravelDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="travel">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('travel', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('travel', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileTravelDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileTravelListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileTravelItems"></div>
+            </div>
+
+            <!-- Fashion Section -->
+            <div class="mobile-section" id="mobileFashionSection">
+                <div class="mobile-section-title">
+                    <span id="mobileFashionTitle">My Fashion</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFashionListBtn" onclick="ProfileManager.createFashionList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='fashion.html'">
+                            <i class="fas fa-shirt"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFashionSubtitle">Organize your favorite fashion brands</div>
+
+                <div class="collection-grid" id="mobileFashionGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Fashion Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='fashion.html'">
+                            <i class="fas fa-shirt"></i> Explore Fashion
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fashion Detail View -->
+            <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFashionDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileFashionDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="fashion">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileFashionItems"></div>
+            </div>
+
+            <!-- Cars Section -->
+            <div class="mobile-section" id="mobileCarsSection">
+                <div class="mobile-section-title">
+                    <span id="mobileCarsTitle">My Cars</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateCarsListBtn" onclick="ProfileManager.createCarList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='cars.html'">
+                            <i class="fas fa-car"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCarsSubtitle">Track your favorite car brands</div>
+
+                <div class="collection-grid" id="mobileCarsGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Car Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='cars.html'">
+                            <i class="fas fa-car"></i> Explore Cars
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cars Detail View -->
+            <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideCarDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileCarsDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="car">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileCarsItems"></div>
+            </div>
+
+            <!-- Food Section -->
+            <div class="mobile-section" id="mobileFoodSection">
+                <div class="mobile-section-title">
+                    <span id="mobileFoodTitle">My Food</span>
+                    <div class="d-flex gap-sm">
+                        <button class="mobile-action-btn btn-base mb-0" id="mobileCreateFoodListBtn" onclick="ProfileManager.createFoodList()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Browse
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFoodSubtitle">Track your favorite food brands</div>
+
+                <div class="collection-grid" id="mobileFoodGrid">
+                    <div class="mobile-empty-state">
+                        <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="mobile-empty-title">No Food Lists Yet</h3>
+                        <p class="mobile-empty-description">Save brands to see them here.</p>
+                        <button class="mobile-action-btn" onclick="window.location.href='food.html'">
+                            <i class="fas fa-burger"></i> Explore Food
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food Detail View -->
+            <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.hideFoodDetail()">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <span id="mobileFoodDetailTitle">Collection</span>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
+                <div class="collection-view-toggle mb-10" data-media="food">
+                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
+                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
+                </div>
+                <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
+                        <i class="fas fa-pen"></i> Edit
+                    </button>
+                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+                <div id="mobileFoodItems"></div>
+            </div>
+
+            <!-- Mobile List Detail Section -->
+            <div class="mobile-section" id="mobileListDetailSection" style="display: none;">
+                <div class="mobile-section-title">
+                    <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.hideListDetail()">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <span id="mobileListDetailTitle">List</span>
+                    <button class="mobile-action-btn btn-base" id="mobileAddToListBtn" style="display: none;">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileListDetailDescription"></div>
+            </div>
+            </div><!-- /mobileListsPanel list detail -->
+            </section><!-- /mobileListsPanel -->
+
+            <section class="mobile-primary-panel mph2-community-panel" id="mobileCommunityPanel" style="display:none">
+
+            <!-- Community Section -->
+            <div class="mobile-section" id="mobileCommunitySection">
+                <div class="mobile-section-title">
+                    <span id="mobileCommunityTitle">Community</span>
+                    <div class="community-switcher mobile-community-switcher">
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('followers')" id="mobileFollowersTabBtn">
+                            Followers
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('following')" id="mobileFollowingTabBtn">
+                            Following
+                        </button>
+                        <button class="mobile-action-btn secondary btn-base" onclick="ProfileManager.showCommunitySection('activity')" id="mobileActivityTabBtn">
+                            Activity <span id="mobileActivityCountBadge" class="nav-tab-badge">0</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="mobile-section-subtitle" id="mobileCommunitySubtitle">Follow collectors, see what they save, and keep up with new lists.</div>
+                <div class="mobile-community-intro">
+                    <div class="mobile-community-intro-copy">
+                        <span class="community-intro-kicker">Network</span>
+                        <strong>Find people worth following</strong>
+                        <p>Build a sharper feed by following profiles with good taste across media and lifestyle.</p>
+                    </div>
+                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.showModal('communitySearchModal')">
+                        <i class="fas fa-user-plus"></i> Find Users
+                    </button>
+                </div>
+                
+                <!-- Followers Tab -->
+                <div class="mobile-community-tab active" id="mobileFollowersTab">
+                    <div id="mobileFollowersList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No followers yet</div>
+                                <div class="mobile-empty-description">Share a few standout lists and your audience will build over time.</div>
+                            </div>
+                        </div>
+                    </div>
+                
+                <!-- Following Tab -->
+                <div class="mobile-community-tab" id="mobileFollowingTab">
+                    <div id="mobileFollowingList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">Not following anyone</div>
+                                <div class="mobile-empty-description">Follow a few strong profiles to make this tab useful.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Activity Tab -->
+                <div class="mobile-community-tab" id="mobileActivityTab">
+                    <div id="mobileActivityList">
+                            <div class="mobile-empty-state">
+                                <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>
+                                <div class="mobile-empty-title">No activity yet</div>
+                                <div class="mobile-empty-description">Follow more people or publish new lists to populate this feed.</div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            </section>
+
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="mobile-bottom-nav">
+            <a href="index.html" class="mobile-bottom-nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showCreateListTypeModal()">
+                <i class="fas fa-plus-circle"></i>
+                <span>New List</span>
+            </div>
+            <div class="mobile-bottom-nav-item active" onclick="ProfileManager.showTab('profile')">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </div>
+            <div class="mobile-bottom-nav-item" onclick="ProfileManager.showModal('communitySearchModal')">
+                <i class="fas fa-search"></i>
+                <span>Search</span>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div class="mobile-toast-container" id="mobileToastContainer"></div>
+    </div>
+
+    <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
+
+    <!-- Edit Profile Modal -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit Profile</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
+            </div>
+            
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+                        <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about your food journey"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                    </div>
+
+                    
+
+                    <div class="form-group">
+                        <label class="form-label">Custom Badges</label>
+                        <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector,Top Critic)">
+                        <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" id="editIsPrivate"> Private Account
+                        </label>
+                        <small class="text-muted d-block mt-4">Private accounts require approval for followers</small>
+                    </div>
+
+                    <!-- Profile Showcase Settings -->
+                    <div class="form-group" id="showcaseSettingsGroup">
+                        <label class="form-label" style="font-size:14px;font-weight:600;margin-bottom:10px;display:block;">Profile Showcase</label>
+                        <small class="text-muted d-block" style="margin-bottom:12px;">Choose which list appears on your profile for each category.</small>
+                        <div id="showcaseSettingsList"></div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create List Modal -->
+    <div class="modal menu-modal" id="createListModal">
+        <div class="modal-content menu-modal-content">
+            <div class="modal-header menu-modal-header">
+                <h3 class="modal-title menu-modal-title">Create New List</h3>
+                <button class="modal-close menu-modal-close" onclick="ProfileManager.closeModal('createListModal')">&times;</button>
+            </div>
+
+            <form id="createListForm">
+                <div class="modal-body menu-modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input menu-input" id="listName" required placeholder="List name..." maxlength="50">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea menu-input" id="listDescription" rows="2" placeholder="What's this list about?"></textarea>
+                    </div>
+                    <input type="hidden" id="selectedIcon" value="list">
+                    <div class="menu-icon-grid" id="createListIconGrid">
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+                        <button type="button" class="menu-icon-option selected" data-icon="fas fa-utensils"><i class="fas fa-utensils"></i></button>
+                    </div>
+
+                    <div class="menu-modal-actions">
+                        <button type="button" class="menu-btn menu-btn-secondary" onclick="ProfileManager.closeModal('createListModal')">Cancel</button>
+                        <button type="submit" class="menu-btn menu-btn-primary">Create List</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Choose List Type Modal (Mobile) -->
+    <div class="modal" id="createListTypeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create List For</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('createListTypeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-10">
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('movies')"><i class="fas fa-film" style="color:var(--accent);margin-right:8px"></i>Movies</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('tv')"><i class="fas fa-tv" style="color:var(--accent);margin-right:8px"></i>TV Shows</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('anime')"><i class="fas fa-dragon" style="color:var(--accent);margin-right:8px"></i>Anime</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('books')"><i class="fas fa-book" style="color:var(--accent);margin-right:8px"></i>Books</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('music')"><i class="fas fa-music" style="color:var(--accent);margin-right:8px"></i>Music</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('travel')"><i class="fas fa-earth-americas" style="color:var(--accent);margin-right:8px"></i>Travel</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('fashion')"><i class="fas fa-shirt" style="color:var(--accent);margin-right:8px"></i>Fashion</button>
+                    <button class="btn btn-secondary" onclick="ProfileManager.createListForType('food')"><i class="fas fa-burger" style="color:var(--accent);margin-right:8px"></i>Food</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Media List Modal -->
+    <div class="modal menu-modal" id="editMediaListModal">
+        <div class="modal-content menu-modal-content">
+            <div class="modal-header menu-modal-header">
+                <h3 class="modal-title menu-modal-title" id="editMediaListModalTitle">Edit List</h3>
+                <button class="modal-close menu-modal-close" onclick="ProfileManager.closeModal('editMediaListModal')">&times;</button>
+            </div>
+
+            <form id="editMediaListForm">
+                <div class="modal-body menu-modal-body">
+                    <div class="form-group">
+                        <label class="form-label">List Name</label>
+                        <input type="text" class="form-input menu-input" id="editMediaListName" required placeholder="List name..." maxlength="50">
+                    </div>
+                    <input type="hidden" id="editMediaListSelectedIcon" value="list">
+                    <div class="menu-icon-grid" id="editMediaIconGrid">
+                        <button type="button" class="menu-icon-option selected" data-icon="fas fa-list"><i class="fas fa-list"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-heart"><i class="fas fa-heart"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-star"><i class="fas fa-star"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-bookmark"><i class="fas fa-bookmark"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-film"><i class="fas fa-film"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-tv"><i class="fas fa-tv"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-dragon"><i class="fas fa-dragon"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-gamepad"><i class="fas fa-gamepad"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-book"><i class="fas fa-book"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-music"><i class="fas fa-music"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-earth-americas"><i class="fas fa-earth-americas"></i></button>
+                        <button type="button" class="menu-icon-option" data-icon="fas fa-clapperboard"><i class="fas fa-clapperboard"></i></button>
+                    </div>
+
+                    <div class="form-group d-none" id="editMediaCollaboratorsGroup">
+                        <label class="form-label">Collaborators</label>
+                        <div class="d-flex gap-sm">
+                            <input type="text" class="form-input flex-1" id="editMediaCollaboratorUsername" placeholder="Username (without @)">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="ProfileManager.addMediaListCollaborator()">
+                                <i class="fas fa-user-plus"></i> Add
+                            </button>
+                        </div>
+                        <div class="collab-list" id="editMediaCollaboratorsList"></div>
+                        <small class="text-muted d-block mt-6">Only the list owner can manage collaborators.</small>
+                    </div>
+
+                    <div class="menu-modal-actions">
+                        <button type="button" class="menu-btn menu-btn-secondary" onclick="ProfileManager.closeModal('editMediaListModal')">Cancel</button>
+                        <button type="submit" class="menu-btn menu-btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Avatar Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Choose Avatar</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('avatarModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="avatar-icon-grid" id="avatarIconGrid">
+                    <!-- Icons will be populated here -->
+                </div>
+                
+                <div class="form-actions mt-20">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('avatarModal')">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="ProfileManager.saveAvatar()">Save Avatar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Search Modal -->
+    <div class="modal" id="communitySearchModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find Users</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('communitySearchModal')">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group position-relative">
+                    <input type="text" class="form-input" id="userSearch" placeholder="Search by username...">
+                    <i class="fas fa-search position-absolute left-20 top-50 transform-y-50 text-muted"></i>
+                </div>
+                
+                <div id="searchResults" class="mt-20">
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-list"></i></div>
+                        <h3 class="empty-title">Search for users</h3>
+                        <p class="empty-description">Enter a username to search</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Settings Modal -->
+    <div class="modal" id="accountSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Account Settings</h3>
+                <button class="modal-close" onclick="ProfileManager.closeModal('accountSettingsModal')">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Current email</label>
+                    <input type="email" class="form-input" id="settingsCurrentEmail" readonly>
+                </div>
+
+                <form id="accountEmailForm" class="mb-18">
+                    <div class="form-group">
+                        <label class="form-label" for="settingsNewEmail">Change email</label>
+                        <input type="email" class="form-input" id="settingsNewEmail" placeholder="newemail@example.com" required>
+                        <small class="text-muted d-block mt-4">Supabase will send a verification email to complete this change.</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-envelope"></i> Update Email
+                    </button>
+                </form>
+
+                <form id="accountPasswordForm" class="mb-18">
+                    <div class="form-group">
+                        <label class="form-label" for="settingsNewPassword">Change password</label>
+                        <input type="password" class="form-input" id="settingsNewPassword" minlength="8" placeholder="New password (min 8 chars)" autocomplete="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="settingsConfirmPassword">Confirm new password</label>
+                        <input type="password" class="form-input" id="settingsConfirmPassword" minlength="8" placeholder="Confirm new password" autocomplete="new-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-lock"></i> Update Password
+                    </button>
+                </form>
+
+                <div class="form-group">
+                    <label class="form-label">Recovery and sign-in emails</label>
+                    <div class="d-flex gap-10 flex-wrap">
+                        <button type="button" class="btn btn-secondary" id="sendResetPasswordBtn">
+                            <i class="fas fa-key"></i> Forgot Password Email
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="sendMagicLinkBtn">
+                            <i class="fas fa-link"></i> Send Magic Link
+                        </button>
+                    </div>
+                </div>
+
+                <small class="text-muted d-block mt-6">
+                    Auth emails are delivered through your Supabase custom SMTP (Resend).
+                </small>
+
+                <hr class="my-18">
+
+                <div class="form-group">
+                    <label class="form-label">Your data & privacy</label>
+                    <p class="text-muted small">Export or delete your account, or review our privacy policy.</p>
+                    <div class="d-flex gap-10 flex-wrap">
+                        <a href="data.html" class="btn btn-secondary">
+                            <i class="fas fa-database"></i> Manage your data
+                        </a>
+                        <a href="privacy.html" class="btn btn-secondary">
+                            <i class="fas fa-shield-halved"></i> Privacy policy
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="confirm-modal" id="confirmModal">
+        <div class="confirm-content">
+            <div class="confirm-header">
+                <h3 class="confirm-title" id="confirmTitle">Confirm Action</h3>
+            </div>
+            <div class="confirm-body">
+                <div class="confirm-message" id="confirmMessage">Are you sure you want to perform this action?</div>
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeConfirmModal()">Cancel</button>
+                    <button type="button" class="btn btn-error" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container for Desktop -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Mobile Menu Modal -->
+    <div class="modal" id="mobileMenuModal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="mobile-menu-items">
+                    <a href="index.html" class="mobile-menu-item">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showCreateListTypeModal(); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New List</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('editProfileModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-user-edit"></i>
+                        <span>Edit Profile</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('communitySearchModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-search"></i>
+                        <span>Search Users</span>
+                    </div>
+
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('avatarModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Change Avatar</span>
+                    </div>
+                    
+                    <div class="mobile-menu-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeModal('mobileMenuModal')">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                    
+                    <div class="mobile-menu-divider"></div>
+                    
+                    <div class="mobile-menu-item logout" onclick="ProfileManager.logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/list-utils.js?v=20260704d" defer></script>
+    <script src="js/profile-showcase.js?v=20260626z" defer></script>
+    <script src="js/referral-utils.js?v=20260623z" defer></script>
+    <script src="js/igdb-client.js?v=20260623z" defer></script>
+    <script src="js/taste_identity.js?v=20260623z" defer></script>
+    <script src="js/cover-cache.js?v=20260623z" defer></script>
+    <script src="js/pages/games-shared.js?v=20260623z" defer></script>
+    <script src="js/pages/profile.js?v=20260626z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
+  <script src="js/legal-consent.js?v=20260623z" defer></script>
+
+  <script src="/js/shared-components.js?v=20260623z" defer></script>
+
+  <!-- ============================================================
+       ProfileV2 G현 Overview, Banner, Rails, Mode Switch
+       ============================================================ -->
+  <script>
+  (function() {
+    'use strict';
+
+    // === Overflow menu ===
+    function toggleOverflowMenu() {
+      var menu = document.getElementById('profileOverflowMenu');
+      if (!menu) return;
+      menu.classList.toggle('open');
+    }
+
+    function closeOverflowMenu() {
+      var menu = document.getElementById('profileOverflowMenu');
+      if (menu) menu.classList.remove('open');
+    }
+
+    // Close on outside click
+    document.addEventListener('click', function(e) {
+      var btn = document.getElementById('profileOverflowBtn');
+      var menu = document.getElementById('profileOverflowMenu');
+      if (!menu || !btn) return;
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('open');
+      }
+    });
+
+    // === Mode switch (Media / Lifestyle) ===
+    var currentMode = 'media';
+
+    function setOverviewMode(mode) {
+      currentMode = mode;
+      var mediaPanel   = document.getElementById('pv2MediaPanel');
+      var lifestylePanel = document.getElementById('pv2LifestylePanel');
+      var mediaBtn     = document.getElementById('pv2ModeMedia');
+      var lifestyleBtn = document.getElementById('pv2ModeLifestyle');
+      var indicator    = document.getElementById('pv2ModeIndicator');
+
+      if (!mediaPanel || !lifestylePanel) return;
+
+      if (mode === 'media') {
+        mediaPanel.style.display   = '';
+        lifestylePanel.style.display = 'none';
+        mediaBtn.classList.add('active');
+        lifestyleBtn.classList.remove('active');
+        mediaBtn.setAttribute('aria-selected', 'true');
+        lifestyleBtn.setAttribute('aria-selected', 'false');
+        if (indicator) {
+          indicator.style.width     = mediaBtn.offsetWidth + 'px';
+          indicator.style.transform = 'translateX(0)';
+        }
+      } else {
+        mediaPanel.style.display   = 'none';
+        lifestylePanel.style.display = '';
+        lifestyleBtn.classList.add('active');
+        mediaBtn.classList.remove('active');
+        lifestyleBtn.setAttribute('aria-selected', 'true');
+        mediaBtn.setAttribute('aria-selected', 'false');
+        if (indicator) {
+          indicator.style.width     = lifestyleBtn.offsetWidth + 'px';
+          indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
+        }
+      }
+    }
+
+    // Init indicator position once fonts settle
+    function initModeIndicator() {
+      var mediaBtn  = document.getElementById('pv2ModeMedia');
+      var indicator = document.getElementById('pv2ModeIndicator');
+      if (!mediaBtn || !indicator) return;
+      indicator.style.width     = mediaBtn.offsetWidth + 'px';
+      indicator.style.transform = 'translateX(0)';
+    }
+
+    // === Cinematic backdrop banner ===
+    function buildBanner(backdropUrls) {
+      var container = document.getElementById('bannerBackdrops');
+      var mobileContainer = document.getElementById('mobileBannerBackdrops');
+      if (!container && !mobileContainer) return;
+
+      var shuffled = backdropUrls.slice().sort(function() { return Math.random() - 0.5; });
+      var maxItems = Math.min(shuffled.length, 5);
+      var toShow = shuffled.slice(0, maxItems);
+
+      function renderInto(target) {
+        if (!target) return;
+        target.innerHTML = '';
+        target.className = target.id === 'mobileBannerBackdrops' ? 'mph2-banner-backdrops' : 'pv2-banner-backdrops';
+        if (toShow.length === 0) {
+          target.classList.add('is-empty');
+          return;
+        }
+        if (toShow.length === 1) target.classList.add('count-1');
+        else if (toShow.length === 2) target.classList.add('count-2');
+        else if (toShow.length === 3) target.classList.add('count-3');
+        else target.classList.add('count-4+');
+
+        toShow.forEach(function(src) {
+          var panel = document.createElement('div');
+          panel.className = 'pv2-backdrop-panel';
+          var img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          img.loading = 'eager';
+          img.decoding = 'async';
+          panel.appendChild(img);
+          target.appendChild(panel);
+        });
+      }
+
+      renderInto(container);
+      renderInto(mobileContainer);
+    }
+
+    // === Poster rail renderer ===
+    function renderRail(trackId, items, opts) {
+      var track = document.getElementById(trackId);
+      if (!track) return;
+      var railEl = track.closest('.pv2-rail');
+      opts = opts || {};
+      var maxVisible   = opts.maxVisible || 7;
+      var isSquare     = !!opts.isSquare;
+      var isLandscape  = !!opts.isLandscape;
+      var isBrand      = !!opts.isBrand;
+      var onClickBase  = opts.onClickBase || '';
+
+      track.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        // Show rail as empty (subtle dashed placeholder)
+        var emptyEl = document.createElement('div');
+        emptyEl.className = 'pv2-rail-empty';
+        emptyEl.innerHTML = '<i class="fas fa-plus"></i><span class="pv2-rail-empty-text">nothing here yet</span>';
+        track.appendChild(emptyEl);
+        if (railEl) railEl.style.display = '';
+        return;
+      }
+
+      if (railEl) railEl.style.display = '';
+
+      var visible = items.slice(0, maxVisible);
+      var extra   = items.length - visible.length;
+
+      visible.forEach(function(item, i) {
+        var poster = document.createElement('div');
+        var classes = 'pv2-poster';
+        if (isSquare)    classes += ' is-square';
+        if (isLandscape) classes += ' is-landscape';
+        if (isBrand)     classes += ' is-brand';
+        poster.className = classes;
+        poster.style.animationDelay = (i * 40) + 'ms';
+
+        var imgSrc = item.poster || item.image || item.cover || item.logo || item.flag || '';
+        var title  = item.title || item.name || '';
+
+        poster.innerHTML =
+          '<div class="pv2-poster-img-wrap">' +
+            (imgSrc ? '<img class="pv2-poster-img" src="' + imgSrc + '" alt="' + title.replace(/"/g,'&quot;') + '" loading="lazy" decoding="async">' : '') +
+            '<div class="pv2-poster-overlay"><span class="pv2-poster-overlay-title">' + title + '</span></div>' +
+          '</div>' +
+          '<div class="pv2-poster-label">' + title + '</div>';
+
+        if (item.url || onClickBase) {
+          poster.style.cursor = 'pointer';
+          poster.addEventListener('click', function() {
+            var dest = item.url || (onClickBase + encodeURIComponent(item.id || ''));
+            if (dest) window.location.href = dest;
+          });
+        }
+
+        track.appendChild(poster);
+      });
+
+      if (extra > 0) {
+        var chip = document.createElement('a');
+        chip.className = 'pv2-more-chip';
+        chip.href = '#';
+        chip.innerHTML =
+          '<span class="pv2-more-chip-count">+' + extra + '</span>' +
+          '<span class="pv2-more-chip-label">more</span>';
+        chip.addEventListener('click', function(e) {
+          e.preventDefault();
+          // Navigate to the lists tab for this category
+          if (opts.onMore) opts.onMore();
+        });
+        track.appendChild(chip);
+      }
+    }
+
+    // === Extract favorites from ProfileManager's loaded data ===
+    function extractFavorites(collections) {
+      // collections is an array of {name, items[]}
+      // Find the "Favorites" collection (first match on name)
+      if (!collections || !collections.length) return [];
+      var fav = collections.find(function(c) {
+        return c.name && c.name.toLowerCase().includes('favorit');
+      });
+      if (fav && fav.items && fav.items.length) return fav.items;
+      // Fallback: combine all items, prefer top 10
+      var all = [];
+      collections.forEach(function(c) { if (c.items) all = all.concat(c.items); });
+      return all.slice(0, 20);
+    }
+
+    // === Render compact activity feed ===
+    function renderActivityFeed(activities) {
+      var feed = document.getElementById('pv2ActivityFeed');
+      if (!feed) return;
+      feed.innerHTML = '';
+
+      if (!activities || activities.length === 0) {
+        feed.innerHTML = '<div class="pv2-activity-empty">no recent activity yet</div>';
+        return;
+      }
+
+      var toShow = activities.slice(0, 5);
+      var now = Date.now();
+
+      toShow.forEach(function(act) {
+        var item = document.createElement('div');
+        item.className = 'pv2-activity-item';
+
+        var thumbHtml = '';
+        if (act.image || act.poster) {
+          thumbHtml = '<div class="pv2-activity-thumb"><img src="' + (act.image || act.poster) + '" alt="" loading="lazy"></div>';
+        } else {
+          thumbHtml = '<div class="pv2-activity-thumb"></div>';
+        }
+
+        var timeAgo = '';
+        if (act.created_at) {
+          var diff = now - new Date(act.created_at).getTime();
+          if (diff < 3600000)      timeAgo = Math.round(diff/60000) + 'm ago';
+          else if (diff < 86400000) timeAgo = Math.round(diff/3600000) + 'h ago';
+          else                      timeAgo = Math.round(diff/86400000) + 'd ago';
+        }
+
+        var isNew = act.created_at && (now - new Date(act.created_at).getTime()) < 86400000;
+        var dotHtml = isNew ? '<div class="pv2-activity-dot"></div>' : '';
+
+        item.innerHTML =
+          thumbHtml +
+          '<div class="pv2-activity-text">' +
+            '<div class="pv2-activity-desc">' + (act.description || act.action || '') + '</div>' +
+            (timeAgo ? '<div class="pv2-activity-time">' + timeAgo + '</div>' : '') +
+          '</div>' +
+          dotHtml;
+
+        feed.appendChild(item);
+      });
+    }
+
+    // === Wire into ProfileManager after it loads ===
+    function attachToProfileManager() {
+      var PM = window.ProfileManager;
+      if (!PM) return;
+
+      // Patch: expose overview API on ProfileManager
+      PM.setOverviewMode = setOverviewMode;
+      PM.toggleOverflowMenu = toggleOverflowMenu;
+      PM.closeOverflowMenu  = closeOverflowMenu;
+
+      // Patch: override showPrimaryTab to also show/hide pv2 overview
+      var _origShowPrimaryTab = PM.showPrimaryTab && PM.showPrimaryTab.bind(PM);
+      PM.showPrimaryTab = function(tab) {
+        var overview = document.getElementById('pv2Overview');
+        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+        var activityPanel = document.querySelector('.profile-primary-panel[data-panel="activity"]');
+
+        if (tab === 'lists' || tab === undefined) {
+          if (overview) overview.style.display = '';
+          if (listsPanel) listsPanel.style.display = 'none';
+          if (activityPanel) activityPanel.style.display = 'none';
+        } else if (tab === 'activity') {
+          if (overview) overview.style.display = 'none';
+          if (listsPanel) listsPanel.style.display = 'none';
+          if (activityPanel) {
+            activityPanel.style.display = '';
+            activityPanel.style.removeProperty('display');
+          }
+          if (_origShowPrimaryTab) _origShowPrimaryTab('activity');
+        }
+      };
+
+      // Override showTab to show the lists panel instead of the overview
+      var _origShowTab = PM.showTab && PM.showTab.bind(PM);
+      PM.showTab = function(tab) {
+        var overview = document.getElementById('pv2Overview');
+        var listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+        if (overview) overview.style.display = 'none';
+        if (listsPanel) listsPanel.style.removeProperty('display');
+        if (_origShowTab) _origShowTab(tab);
+      };
+    }
+
+    // === Boot sequence ===
+    function boot() {
+      initModeIndicator();
+      attachToProfileManager();
+
+      var attempts = 0;
+      var poller = setInterval(function() {
+        attempts++;
+        var PM = window.ProfileManager;
+        if (!PM) { if (attempts > 60) clearInterval(poller); return; }
+
+        // === Banner ===
+        if (!PM._bannerBuilt && PM.getFavoriteBackdropUrls) {
+          var favIds = PM.favoriteIds || {};
+          var totalFavs = (favIds.movie || []).length + (favIds.tv || []).length + (favIds.anime || []).length + (favIds.game || []).length;
+          if (totalFavs > 0) {
+            PM._bannerBuilt = true;
+            PM.getFavoriteBackdropUrls().then(function(urls) {
+              if (urls && urls.length) buildBanner(urls);
+            }).catch(function() {});
+          } else if (attempts > 20) {
+            PM._bannerBuilt = true;
+          }
+        }
+
+        // === Update rail headings from showcase data ===
+        if (!PM._headingsUpdated) {
+          var sd = PM.showcaseData || {};
+          var headingMap = {
+            movies: { rail: 'pv2RailMovies', icon: 'fa-film', type: 'movie' },
+            tv:     { rail: 'pv2RailTv',     icon: 'fa-tv',   type: 'tv' },
+            anime:  { rail: 'pv2RailAnime',  icon: 'fa-dragon', type: 'anime' },
+            games:  { rail: 'pv2RailGames',  icon: 'fa-gamepad', type: 'game' }
+          };
+          var anyReady = false;
+          Object.keys(headingMap).forEach(function(key) {
+            var info = headingMap[key];
+            var data = sd[key];
+            var rail = document.getElementById(info.rail);
+            if (!rail) return;
+            var titleEl = rail.querySelector('.pv2-rail-title');
+            if (!titleEl) return;
+            if (data && data.title) {
+              titleEl.innerHTML = '<i class="fas ' + info.icon + '"></i> ' + data.title.toLowerCase();
+              anyReady = true;
+            }
+          });
+          if (anyReady || attempts > 30) PM._headingsUpdated = true;
+        }
+
+        // === Build rails from DOM (fallback) ===
+        if (!PM._railsBuilt) {
+          function buildRailFromGrid(gridId, trackId, opts) {
+            var grid = document.getElementById(gridId);
+            if (!grid) return;
+            var cards = grid.querySelectorAll('.collection-card');
+            if (!cards || cards.length === 0) return;
+
+            var targetCard = null;
+            cards.forEach(function(c) {
+              var title = c.querySelector('.collection-card-title');
+              if (title && title.textContent && title.textContent.toLowerCase().includes('favorit')) {
+                if (!targetCard) targetCard = c;
+              }
+            });
+            targetCard = targetCard || cards[0];
+            if (!targetCard) return;
+
+            var imgs = targetCard.querySelectorAll('.collection-preview-item img');
+            var totalCount = parseInt(targetCard.querySelector('.collection-card-count') && targetCard.querySelector('.collection-card-count').textContent) || 0;
+
+            var items = [];
+            imgs.forEach(function(img) {
+              if (img.src && !img.src.includes('data:')) {
+                items.push({ poster: img.src, title: '', url: '' });
+              }
+            });
+
+            if (items.length > 0) {
+              opts = opts || {};
+              opts.onMore = function() {
+                var PM = window.ProfileManager;
+                if (PM && PM.showTab) PM.showTab(opts.tabKey || 'movies');
+              };
+              renderRail(trackId, items, opts);
+            }
+          }
+
+          var railConfigs = [
+            ['moviesGrid',  'pv2MoviesTrack', { tabKey:'movies' }],
+            ['tvGrid',      'pv2TvTrack',     { tabKey:'tv' }],
+            ['animeGrid',   'pv2AnimeTrack',  { tabKey:'anime' }],
+            ['gamesGrid',   'pv2GamesTrack',  { tabKey:'games', isSquare: false }],
+            ['booksGrid',   'pv2BooksTrack',  { tabKey:'books' }],
+            ['musicGrid',   'pv2MusicTrack',  { tabKey:'music', isSquare: true }],
+            ['sportsGrid',  'pv2SportsTrack', { tabKey:'sports', isSquare: true, isBrand: true }],
+            ['carsGrid',    'pv2CarsTrack',   { tabKey:'cars',   isLandscape: true, isBrand: true }],
+            ['travelGrid',  'pv2TravelTrack', { tabKey:'travel', isLandscape: true }],
+            ['fashionGrid', 'pv2FashionTrack',{ tabKey:'fashion', isSquare: true, isBrand: true }],
+            ['foodGrid',    'pv2FoodTrack',   { tabKey:'food',   isSquare: true, isBrand: true }]
+          ];
+
+          var anyRailBuilt = false;
+          railConfigs.forEach(function(cfg) {
+            var grid = document.getElementById(cfg[0]);
+            if (grid && grid.querySelector('.collection-card')) {
+              buildRailFromGrid(cfg[0], cfg[1], cfg[2]);
+              anyRailBuilt = true;
+            }
+          });
+
+          if (anyRailBuilt) PM._railsBuilt = true;
+          if (attempts > 40) PM._railsBuilt = true;
+        }
+
+        if (PM._bannerBuilt && PM._railsBuilt && PM._headingsUpdated) {
+          clearInterval(poller);
+        }
+        if (attempts > 60) clearInterval(poller);
+      }, 400);
+    }
+
+    // Run after DOM + scripts loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      // Scripts are deferred so wait a tick
+      setTimeout(boot, 0);
+    }
+
+    // Also re-run on window load (deferred scripts may have settled)
+    window.addEventListener('load', function() {
+      initModeIndicator();
+      attachToProfileManager();
+    });
+
+    // Expose to global scope so inline onclick attrs work
+    if (!window.ProfileManager) window.ProfileManager = {};
+    window.ProfileManager.setOverviewMode    = setOverviewMode;
+    window.ProfileManager.toggleOverflowMenu = toggleOverflowMenu;
+    window.ProfileManager.closeOverflowMenu  = closeOverflowMenu;
+  })();
+  </script>
+</body>
+</html>

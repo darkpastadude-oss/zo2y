@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ca8a04"/>
+      <stop offset="100%" stop-color="#a16207"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="300" fill="url(#bg)"/>
+  <rect x="0" y="0" width="200" height="6" fill="#fef08a" opacity="0.8"/>
+  <rect x="0" y="294" width="200" height="6" fill="#fef08a" opacity="0.8"/>
+  <text x="100" y="105" text-anchor="middle" fill="white" font-size="14" font-weight="bold" font-family="Georgia, serif">
+    <tspan x="100" dy="0">Daisy Jones</tspan>
+    <tspan x="100" dy="20">&amp; The Six</tspan>
+  </text>
+  <line x1="60" y1="170" x2="140" y2="170" stroke="#fef08a" stroke-width="1.5" opacity="0.6"/>
+  <text x="100" y="200" text-anchor="middle" fill="#fef08a" font-size="10" font-family="Georgia, serif" opacity="0.9">
+    Taylor Jenkins Reid
+  </text>
+</svg>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="robots" content="index,follow" />
+  <title>Signing In - Zo2y</title>
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+<script src="/js/auth-gate.js?v=20260623z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260623z" defer></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/referral-utils.js?v=20260623z" defer></script>
+  <link rel="stylesheet" href="css/animations.css?v=20260623z">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      background:
+        radial-gradient(circle at top, rgba(245, 158, 11, 0.16), transparent 24%),
+        linear-gradient(180deg, #09142d 0%, #0b1633 100%);
+      color: white;
+      font-family: 'Manrope', system-ui, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      transition: background 180ms ease, color 180ms ease;
+    }
+    body.auth-callback-error {
+      background:
+        radial-gradient(circle at top, rgba(248, 113, 113, 0.14), transparent 24%),
+        linear-gradient(180deg, #1a1222 0%, #140f1d 100%);
+    }
+    .callback-shell {
+      text-align: center;
+      width: min(calc(100% - 32px), 340px);
+      padding: 24px 22px;
+      border-radius: 24px;
+      background: rgba(11, 22, 51, 0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+    }
+    .callback-logo {
+      width: 56px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: 18px;
+      display: block;
+      margin: 0 auto 18px;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.2);
+    }
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top: 3px solid #f59e0b;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 18px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      font-family: 'Space Grotesk', 'Manrope', system-ui, sans-serif;
+    }
+    .callback-copy {
+      margin: 0;
+      color: rgba(232, 239, 255, 0.78);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .error {
+      color: #fecaca;
+      margin-top: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+    }
+    body.auth-callback-error .error {
+      display: block;
+    }
+    .debug {
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      font-size: 12px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: monospace;
+      display: none;
+    }
+    .debug.show { display: block; }
+    .debug-line { margin-bottom: 5px; color: #00ff00; }
+    .debug-error { color: #ff0000; }
+  </style>
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260623z" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <noscript></noscript>
+
+    <link rel="stylesheet" href="css/components.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+</head>
+<body>
+  <div class="callback-shell">
+    <img class="callback-logo" src="/newlogo.webp" alt="Zo2y">
+    <div class="spinner"></div>
+    <h1>Signing you in</h1>
+    <p id="statusText" class="callback-copy">Just a second while we open your account.</p>
+    <p id="errorText" class="error"></p>
+    <div id="debugConsole" class="debug"></div>
+  </div>
+<script src="js/pages/auth-callback.js?v=20260623z" defer></script>
+  <script src="js/username-popup.js?v=20260623z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
+  <script src="js/legal-consent.js?v=20260623z" defer></script>
+
+  <script src="/js/shared-components.js?v=20260623z" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

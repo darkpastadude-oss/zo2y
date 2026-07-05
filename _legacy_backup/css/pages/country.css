@@ -1,0 +1,199 @@
+/* === Country detail page ===
+   Thin override layer for country.html.
+   Reuses elevated-detail.css for the main shell.
+*/
+
+:root {
+  --country-bg: #0b1633;
+  --country-card: #132347;
+  --country-card-soft: rgba(19, 35, 71, 0.78);
+  --country-border: rgba(255, 255, 255, 0.08);
+  --country-border-strong: rgba(255, 255, 255, 0.14);
+  --country-accent: #f59e0b;
+  --country-accent-2: #ffb84d;
+  --country-muted: rgba(180, 192, 216, 0.78);
+  --country-text: #f4f7ff;
+  --country-radius-card: 14px;
+  --country-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* === Flag — no white box, just the flag === */
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-frame,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster-frame {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  padding: 0 !important;
+  overflow: hidden;
+  aspect-ratio: auto;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 10px;
+  padding: 0;
+  background: transparent;
+}
+
+.elevated-detail-page[data-elevated-category="travel"] .umh-poster-fallback,
+.elevated-media-page[data-elevated-category="travel"] .umh-poster-fallback {
+  background: linear-gradient(135deg, var(--dt-fallback-c1), var(--dt-fallback-c2));
+  border-radius: 12px;
+}
+
+/* === Travel category accent — orange === */
+.elevated-detail-page[data-elevated-category="travel"],
+.elevated-media-page[data-elevated-category="travel"] {
+  --dt-accent: #f59e0b;
+  --dt-accent-2: #ffb84d;
+  --dt-accent-soft: rgba(245, 158, 11, 0.16);
+  --dt-accent-line: rgba(245, 158, 11, 0.42);
+  --dt-glow-a: rgba(245, 158, 11, 0.22);
+  --dt-glow-b: rgba(239, 68, 68, 0.18);
+  --dt-fallback-c1: #1a0f04;
+  --dt-fallback-c2: #2a1606;
+  --dt-fallback-c3: #07091a;
+}
+
+/* === Travel guide grid === */
+.country-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.country-guide-card {
+  padding: 18px;
+  border-radius: var(--country-radius-card);
+  background: linear-gradient(160deg, rgba(19, 35, 71, 0.7) 0%, rgba(11, 22, 51, 0.85) 100%);
+  border: 1px solid var(--country-border);
+  transition: transform 0.2s var(--country-ease), border-color 0.2s var(--country-ease);
+}
+
+.country-guide-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--country-accent);
+}
+
+.country-guide-card h3 {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--country-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-guide-card h3 i {
+  color: var(--country-accent);
+  font-size: 0.9em;
+}
+
+.country-guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.country-guide-list li {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--country-muted);
+  padding-left: 16px;
+  position: relative;
+}
+
+.country-guide-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--country-accent);
+  opacity: 0.6;
+}
+
+.country-guide-empty {
+  color: var(--country-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* === Quick facts === */
+.country-fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(14, 20, 44, 0.55);
+  border-bottom: 1px solid var(--country-border);
+  transition: background 0.2s var(--country-ease);
+}
+
+.country-fact:last-child {
+  border-bottom: 0;
+}
+
+.country-fact:hover {
+  background: rgba(20, 28, 56, 0.75);
+}
+
+.country-fact > i {
+  color: var(--country-accent);
+  font-size: 1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.country-fact-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.country-fact-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.country-fact-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--country-text);
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+/* === Review empty state (also used by facts grid fallback) === */
+.country-review-empty {
+  padding: 24px 18px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.9rem;
+  font-style: italic;
+  border: 1px dashed var(--country-border-strong);
+  border-radius: var(--country-radius-card);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* === Mobile === */
+@media (max-width: 768px) {
+  .country-guide-grid {
+    grid-template-columns: 1fr;
+  }
+}

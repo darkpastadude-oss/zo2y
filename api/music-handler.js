@@ -328,6 +328,15 @@ export default async function handler(req, res) {
     return res.json({ ok: true, service: "music", type: "artists", spotifyConfigured: !!spotifyConfig.clientId });
   }
 
+  if (section === "artist") {
+    setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
+    const id = String(pathParts[2] || "").trim();
+    if (!id) return res.status(400).json({ message: "Missing artist id" });
+    const artists = await spotifyGetArtistsByIds([id]);
+    if (artists.length === 0) return res.status(404).json({ message: "Artist not found" });
+    return res.json({ ok: true, result: artists[0] });
+  }
+
   if (section === "artists") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = clampInt(query.limit, 1, 50, 20);

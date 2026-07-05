@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="TV show fallback">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1633"/>
+      <stop offset="1" stop-color="#1a2e63"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="44" fill="url(#g)"/>
+  <rect x="46" y="74" width="164" height="108" rx="18" fill="#0f214a" stroke="rgba(255,255,255,0.14)" stroke-width="6"/>
+  <rect x="62" y="90" width="132" height="76" rx="14" fill="rgba(255,255,255,0.06)"/>
+  <path d="M92 58 L128 82 L164 58" fill="none" stroke="rgba(245,158,11,0.9)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M104 200h48" stroke="rgba(255,255,255,0.18)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M84 214h88" stroke="rgba(255,255,255,0.12)" stroke-width="10" stroke-linecap="round"/>
+</svg>

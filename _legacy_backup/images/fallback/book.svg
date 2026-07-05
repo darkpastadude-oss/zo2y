@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Book fallback">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1633"/>
+      <stop offset="1" stop-color="#1a2e63"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="44" fill="url(#g)"/>
+  <path d="M74 68c38-14 74-14 108 0v128c-34-14-70-14-108 0z" fill="#0f214a" stroke="rgba(255,255,255,0.14)" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M86 92h84" stroke="rgba(245,158,11,0.8)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M86 116h72" stroke="rgba(255,255,255,0.14)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M86 140h64" stroke="rgba(255,255,255,0.12)" stroke-width="10" stroke-linecap="round"/>
+</svg>

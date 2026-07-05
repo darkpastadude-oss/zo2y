@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Game fallback">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1633"/>
+      <stop offset="1" stop-color="#1a2e63"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="44" fill="url(#g)"/>
+  <path d="M70 152c0-28 16-48 58-48h0c42 0 58 20 58 48 0 30-14 54-40 54-14 0-22-6-30-18-8 12-16 18-30 18-26 0-40-24-40-54z" fill="#0f214a" stroke="rgba(255,255,255,0.14)" stroke-width="6"/>
+  <path d="M106 148h-24" stroke="rgba(245,158,11,0.9)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M94 136v24" stroke="rgba(245,158,11,0.9)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="168" cy="140" r="10" fill="rgba(255,255,255,0.22)"/>
+  <circle cx="184" cy="156" r="10" fill="rgba(255,255,255,0.22)"/>
+</svg>

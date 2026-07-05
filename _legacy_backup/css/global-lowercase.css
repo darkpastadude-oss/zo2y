@@ -1,0 +1,4 @@
+/* Global lowercase enforcement - visible UI text */
+* {
+  text-transform: lowercase !important;
+}

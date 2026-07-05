@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <script src="/js/auth-gate.js?v=20260623z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260623z" defer></script>
+  <meta name="robots" content="index,follow" />
+  <title>Zo2y | Reviews</title>
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+  <meta name="description" content="Browse reviews across movies, TV, anime, games, books, music, and travel." />
+  <link rel="canonical" href="https://www.zo2y.com/reviews.html" />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/igdb-client.js?v=20260623z" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260623z">
+
+  <style>
+    :root { --bg:#0b1633; --card:#132347; --muted:#8ca3c7; --accent:#f59e0b; --white:#fff; --border:rgba(255,255,255,.12); --surface:rgba(12,26,57,.86); --gradient:linear-gradient(135deg,#f59e0b,#ffb84d); --hand-font:'Caveat', cursive; --marker-font:'Kalam', cursive; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html,body { min-height:100%; background:radial-gradient(circle at 20% -10%, rgba(245,158,11,.15), transparent 35%), var(--bg); color:var(--white); font-family:Inter,system-ui,-apple-system,sans-serif; overflow-x:hidden; }
+    a { color:inherit; text-decoration:none; }
+
+    .container { width:min(1240px, calc(100% - 28px)); margin:0 auto; }
+    header { position:sticky; top:0; z-index:100; backdrop-filter:blur(10px) saturate(180%); background:var(--surface); border-bottom:1px solid var(--border); }
+    .header-inner { min-height:72px; display:flex; align-items:center; gap:14px; padding:12px 0; flex-wrap:wrap; }
+    .brand { display:inline-flex; align-items:center; gap:10px; font-size:22px; font-weight:800; letter-spacing:.2px; }
+    .brand img { width:36px; height:36px; border-radius:10px; object-fit:cover; }
+    .search-wrap { flex:1; min-width:210px; max-width:420px; position:relative; margin-left:8px; }
+    .search-wrap i { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:13px; }
+    .search { width:100%; height:42px; border-radius:999px; border:1px solid var(--border); background:var(--card); color:var(--white); padding:0 14px 0 34px; outline:none; }
+    .search:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(245,158,11,.14); }
+
+    .header-actions { margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .top-nav { display:inline-flex; align-items:center; gap:8px; opacity:.92; }
+    .nav-pill { border:1px solid transparent; color:#e2ecff; background:transparent; border-radius:999px; font-size:12px; font-weight:600; padding:8px 10px; transition:border-color .2s ease, color .2s ease, background .2s ease; }
+    .nav-pill:hover { border-color:var(--border); color:var(--accent); background:rgba(255,255,255,.04); }
+
+    .auth-actions { display:inline-flex; align-items:center; gap:8px; }
+    .btn { border:1px solid var(--border); background:var(--card); color:var(--white); height:40px; padding:0 14px; border-radius:12px; font-size:13px; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer; transition:border-color .2s ease, transform .2s ease; }
+    .btn:hover { border-color:var(--accent); transform:translateY(-1px); }
+    .btn-primary { background:var(--gradient); color:#0b1633; border:0; }
+
+    .mobile-bottom-nav { display:none; }
+
+    .page { padding:18px 0 36px; display:grid; gap:12px; }
+    .hero,.filters,.card { border:1px solid var(--border); border-radius:14px; background:linear-gradient(160deg, rgba(23,43,88,.92), rgba(19,35,71,.95)); }
+    .hero { padding:16px; display:grid; gap:8px; }
+    .hero-kicker { color:#ffc874; font-size:11px; font-weight:800; letter-spacing:1.2px; text-transform:uppercase; }
+    .hero h1 { font-size:clamp(28px, 4vw, 44px); line-height:1; }
+    .hero p { color:var(--muted); font-size:14px; max-width:760px; }
+    .reviews-spotlight-shell {
+      position:relative;
+      padding:24px 24px 26px;
+      display:grid;
+      gap:16px;
+      overflow:hidden;
+      background:linear-gradient(160deg, rgba(16,30,63,.94), rgba(10,22,50,.92));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:22px;
+      box-shadow:0 20px 38px rgba(0,0,0,.24);
+      isolation:isolate;
+    }
+    .reviews-spotlight-shell::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:22px;
+      background:
+        radial-gradient(circle at 20% -10%, rgba(245,158,11,.08), transparent 28%),
+        radial-gradient(circle at 90% 110%, rgba(21,84,167,.08), transparent 30%);
+      pointer-events:none;
+      z-index:0;
+    }
+    .reviews-spotlight-head {
+      display:grid;
+      grid-template-columns:minmax(0, 1.35fr) minmax(280px, .95fr);
+      align-items:start;
+      gap:18px;
+      padding:4px 4px 0;
+      position:relative;
+      z-index:1;
+      border:0;
+      border-radius:0;
+      background:none;
+      box-shadow:none;
+    }
+    .reviews-spotlight-kicker {
+      color:#ffc874;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1.2px;
+      text-transform:uppercase;
+      text-shadow:0 1px 0 rgba(0,0,0,.22);
+    }
+    .reviews-spotlight-heading {
+      margin-top:8px;
+      font-size:clamp(24px, 2.8vw, 34px);
+      line-height:1.02;
+      max-width:560px;
+      color:#f8fbff;
+      text-shadow:none;
+    }
+    .reviews-spotlight-subtext {
+      margin-top:10px;
+      color:#d7e3ff;
+      font-size:13px;
+      line-height:1.5;
+      max-width:560px;
+      opacity:.96;
+    }
+    .reviews-spotlight-stats,
+    .reviews-spotlight-dots {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .reviews-spotlight-side {
+      display:grid;
+      justify-items:end;
+      gap:10px;
+    }
+    .reviews-spotlight-stats {
+      justify-content:flex-end;
+      align-self:start;
+    }
+    .reviews-spotlight-stat {
+      min-height:34px;
+      padding:0 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(10, 24, 44, .58);
+      color:#f6f8ff;
+      border-radius:12px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .reviews-spotlight-stat {
+      color:#e9eeff;
+      font-weight:600;
+    }
+    .reviews-spotlight-popover {
+      position:absolute;
+      right:24px;
+      bottom:24px;
+      width:min(320px, calc(100% - 48px));
+      padding:14px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(10,22,46,.82), rgba(8,18,36,.92));
+      box-shadow:0 16px 30px rgba(0,0,0,.28);
+      display:grid;
+      grid-template-columns:92px 1fr;
+      gap:14px;
+      align-items:start;
+      min-height:144px;
+      opacity:0;
+      transform:translateY(10px);
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      z-index:7;
+    }
+    .reviews-spotlight-popover.is-visible {
+      opacity:1;
+      transform:translateY(0);
+      pointer-events:auto;
+    }
+    .reviews-spotlight-popover-thumb {
+      width:100%;
+      aspect-ratio:3 / 4;
+      object-fit:cover;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background:#112142;
+      box-shadow:0 10px 18px rgba(0,0,0,.24);
+    }
+    .reviews-spotlight-popover-body {
+      display:grid;
+      gap:6px;
+      min-width:0;
+    }
+    .reviews-spotlight-popover-meta {
+      color:#ffc874;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .reviews-spotlight-popover-title {
+      font-size:18px;
+      line-height:1.1;
+      color:#f7fbff;
+      font-weight:800;
+    }
+    .reviews-spotlight-popover-stars {
+      color:#ffd36b;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.6px;
+    }
+    .rating-stars {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      font-size:12px;
+      line-height:1;
+    }
+    .reviews-spotlight-popover-stars .rating-stars {
+      font-size:13px;
+    }
+    .rating-star {
+      width:1em;
+      height:1em;
+      background:#8ca3c7;
+      mask:url('/images/icons/star.svg') center / contain no-repeat;
+      -webkit-mask:url('/images/icons/star.svg') center / contain no-repeat;
+      opacity:0.5;
+    }
+    .rating-star.is-filled {
+      background:#ffd36b;
+      opacity:1;
+    }
+    .reviews-spotlight-popover-byline {
+      color:#d7e5ff;
+      font-size:13px;
+      line-height:1.45;
+    }
+    .reviews-spotlight-popover-quote {
+      color:#b9ccec;
+      font-size:13px;
+      line-height:1.45;
+      display:-webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .reviews-spotlight-popover-link {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      color:#fff6df;
+      font-size:12px;
+      font-weight:800;
+      margin-top:4px;
+    }
+    .reviews-spotlight-stage {
+      position:relative;
+      width:min(100%, 1020px);
+      min-height:unset;
+      aspect-ratio:4070 / 2760;
+      padding:44px 52px 40px;
+      margin:6px auto 0;
+      border:0;
+      border-radius:28px;
+      background:url('images/reviews/board-photo.jpg?v=20260623z') center/100% 100% no-repeat;
+      box-shadow:0 20px 36px rgba(0,0,0,.24);
+      isolation:isolate;
+      z-index:1;
+      overflow:hidden;
+    }
+    .reviews-spotlight-card-layer {
+      position:absolute;
+      inset:0;
+      z-index:1;
+    }
+    .reviews-spotlight-mobile-controls {
+      display:none;
+    }
+    .reviews-spotlight-mobile-next {
+      position:absolute;
+      right:14px;
+      bottom:14px;
+      min-height:38px;
+      padding:0 14px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:12px;
+      background:rgba(10,22,46,.74);
+      color:#fff4de;
+      font-size:12px;
+      font-weight:800;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      z-index:8;
+      box-shadow:0 10px 20px rgba(0,0,0,.22);
+    }
+    .reviews-spotlight-mobile-next:hover {
+      border-color:rgba(245,158,11,.45);
+    }
+    .reviews-spotlight-card {
+      position:absolute;
+      display:block;
+      width:min(100%, 336px);
+      min-height:286px;
+      padding:36px 20px 26px;
+      border:0;
+      background-position:center;
+      background-repeat:no-repeat;
+      background-size:100% 100%;
+      background-color:transparent;
+      color:#17233d;
+      text-align:left;
+      cursor:pointer;
+      overflow:visible;
+      box-shadow:none;
+      transition:transform .4s cubic-bezier(.2,.8,.2,1), opacity .25s ease, filter .25s ease;
+      filter:drop-shadow(0 11px 14px rgba(0,0,0,.22));
+    }
+    .reviews-spotlight-card::before {
+      content:"";
+      position:absolute;
+      top:12px;
+      left:50%;
+      width:26px;
+      height:26px;
+      transform:translateX(-50%);
+      background:url('images/reviews/pushpin-red.svg?v=20260623z') center/contain no-repeat;
+      box-shadow:none;
+      pointer-events:none;
+      z-index:5;
+    }
+    .reviews-spotlight-card::after {
+      display:none;
+    }
+    .reviews-spotlight-card .reviews-spotlight-card-body::before {
+      display:none;
+    }
+    .reviews-spotlight-card:hover,
+    .reviews-spotlight-card.is-active {
+      filter:drop-shadow(0 15px 18px rgba(0,0,0,.28));
+    }
+    .reviews-spotlight-card.is-front {
+      top:48px;
+      left:54px;
+      z-index:4;
+      transform:rotate(-8deg);
+    }
+    .reviews-spotlight-card.is-right {
+      top:40px;
+      right:56px;
+      z-index:3;
+      transform:rotate(7deg);
+    }
+    .reviews-spotlight-card.is-lower {
+      bottom:42px;
+      right:92px;
+      z-index:2;
+      transform:rotate(-6deg);
+    }
+    .reviews-spotlight-card.is-left {
+      bottom:34px;
+      left:126px;
+      z-index:1;
+      transform:rotate(5deg);
+    }
+    .reviews-spotlight-card.is-back {
+      opacity:.96;
+      filter:drop-shadow(0 8px 12px rgba(0,0,0,.18)) saturate(.98) brightness(1);
+    }
+    .reviews-spotlight-card.is-front .reviews-spotlight-card-quote {
+      -webkit-line-clamp:5;
+    }
+    .reviews-spotlight-card.is-front .reviews-spotlight-card-title {
+      font-size:24px;
+    }
+    .reviews-spotlight-card-body {
+      position:relative;
+      z-index:3;
+      display:grid;
+      align-content:start;
+      gap:6px;
+      min-width:0;
+      padding-top:28px;
+      padding-left:46px;
+      padding-right:96px;
+    }
+    .reviews-spotlight-card-rating {
+      font-family:var(--marker-font);
+      color:#26384f;
+      font-size:16px;
+      letter-spacing:.4px;
+      line-height:1;
+      transform:rotate(-2deg);
+    }
+    .reviews-spotlight-card-media {
+      font-family:var(--marker-font);
+      color:#4b6079;
+      font-size:12px;
+      letter-spacing:.4px;
+      text-transform:uppercase;
+      transform:rotate(-1deg);
+    }
+    .reviews-spotlight-card-title {
+      font-family:var(--marker-font);
+      font-size:17px;
+      line-height:1.1;
+      color:#223246;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .reviews-spotlight-card-quote {
+      color:#31455a;
+      font-family:var(--hand-font);
+      font-size:24px;
+      line-height:1.04;
+      display:-webkit-box;
+      -webkit-line-clamp:4;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .reviews-spotlight-card-signoff {
+      margin-top:2px;
+      color:#385069;
+      font-family:var(--hand-font);
+      font-size:22px;
+      line-height:1;
+    }
+    .reviews-spotlight-card-thumb-wrap {
+      position:absolute;
+      top:44px;
+      right:18px;
+      z-index:3;
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+    }
+    .reviews-spotlight-card-thumb {
+      width:100%;
+      max-width:86px;
+      aspect-ratio:3 / 4;
+      object-fit:cover;
+      border-radius:2px;
+      border:4px solid rgba(255,255,255,.92);
+      background:#fff;
+      box-shadow:0 10px 16px rgba(0,0,0,.22);
+      transform:rotate(5deg);
+    }
+    .reviews-spotlight-card-thumb-wrap::before {
+      display:none;
+    }
+    .reviews-spotlight-card.tone-sun {
+      background-image:url('images/reviews/note-yellow.png?v=20260623z');
+    }
+    .reviews-spotlight-card.tone-rose {
+      background-image:url('images/reviews/note-pink-real.png?v=20260623z');
+    }
+    .reviews-spotlight-card.tone-sky {
+      background-image:url('images/reviews/note-blue.png?v=20260623z');
+    }
+    .reviews-spotlight-card.tone-mint {
+      background-image:url('images/reviews/note-green-real.png?v=20260623z');
+    }
+    .reviews-spotlight-card.tone-cream {
+      background-image:url('images/reviews/note-cream.png?v=20260623z');
+    }
+    .filters { padding:12px; display:grid; gap:9px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .chip { border:1px solid var(--border); border-radius:999px; background:rgba(255,255,255,.02); color:var(--muted); padding:6px 10px; font-size:12px; font-weight:700; cursor:pointer; }
+    .chip.active,.chip:hover { color:var(--white); border-color:rgba(245,158,11,.55); background:rgba(245,158,11,.15); }
+    .sort { margin-left:auto; display:inline-flex; gap:8px; align-items:center; color:var(--muted); font-size:12px; font-weight:700; }
+    .sort select { border:1px solid var(--border); border-radius:9px; min-height:34px; background:#10224a; color:var(--white); padding:0 8px; }
+    .summary { color:var(--muted); font-size:13px; min-height:16px; }
+    #reviewsList { display:grid; gap:10px; }
+    .card { padding:10px; display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; }
+    .top { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .badge { border:1px solid var(--border); border-radius:999px; padding:3px 8px; font-size:11px; color:var(--muted); font-weight:700; }
+    .date { margin-left:auto; color:var(--muted); font-size:12px; }
+    .title { font-size:18px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:6px 0; }
+    .meta { color:var(--muted); font-size:13px; }
+    .stars { margin-top:6px; display:inline-flex; align-items:center; gap:8px; border:1px solid rgba(255,191,63,.3); background:rgba(255,191,63,.1); color:#ffbf3f; border-radius:999px; padding:3px 9px; font-size:12px; font-weight:800; }
+    .comment { margin-top:7px; color:#d9e5ff; font-size:13px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .art { border:1px solid var(--border); border-radius:9px; overflow:hidden; background:rgba(255,255,255,.05); min-height:112px; }
+    .art img { width:100%; height:100%; object-fit:cover; display:block; }
+    .empty { border:1px dashed var(--border); border-radius:14px; color:var(--muted); text-align:center; padding:16px; }
+
+    @media (max-width: 1100px) {
+      .top-nav { flex-wrap:wrap; justify-content:flex-end; }
+    }
+
+    @media (max-width: 860px) {
+      .top-nav { display:none; }
+      .header-actions { margin-left:auto; }
+    }
+
+    @media (max-width:760px) {
+      body { padding-bottom:86px; }
+      .container { width:calc(100% - 16px); }
+      .header-inner { gap:10px; }
+      .brand { font-size:18px; }
+      .brand img { width:31px; height:31px; }
+      .search-wrap { order:3; max-width:none; margin-left:0; width:100%; }
+      .header-actions { margin-left:auto; }
+      .auth-actions .btn { height:36px; padding:0 10px; border-radius:11px; }
+      #profileBtn span { display:none; }
+      .sort { margin-left:0; width:100%; justify-content:space-between; }
+      .card { grid-template-columns:minmax(0,1fr) 72px; }
+      .art { min-height:94px; }
+      .title { font-size:16px; }
+      .reviews-spotlight-shell { padding:22px 16px 20px; }
+      .reviews-spotlight-head {
+        display:grid;
+        grid-template-columns:1fr;
+        padding:0;
+      }
+      .reviews-spotlight-side {
+        justify-items:start;
+      }
+      .reviews-spotlight-stats { justify-content:flex-start; }
+      .reviews-spotlight-popover { display:none; }
+      .reviews-spotlight-stage {
+        min-height:390px;
+        display:block;
+        overflow:hidden;
+        padding:0;
+        width:100%;
+        margin:0;
+        background:url('images/reviews/board-photo.jpg?v=20260623z') center/cover no-repeat;
+        border-radius:22px;
+      }
+      .reviews-spotlight-card-layer {
+        position:absolute;
+        inset:0;
+      }
+      .reviews-spotlight-mobile-controls {
+        display:block;
+      }
+      .reviews-spotlight-card,
+      .reviews-spotlight-card.is-front,
+      .reviews-spotlight-card.is-right,
+      .reviews-spotlight-card.is-lower,
+      .reviews-spotlight-card.is-left {
+        position:absolute;
+        top:50% !important;
+        left:50% !important;
+        right:auto !important;
+        bottom:auto !important;
+        inset:auto;
+        width:min(78vw, 272px);
+        min-height:242px;
+        margin:0;
+        transform:translate(-50%, -50%) rotate(-4deg) !important;
+        opacity:0;
+        pointer-events:none;
+        display:none;
+      }
+      .reviews-spotlight-card { padding:32px 18px 22px; }
+      .reviews-spotlight-card.is-active {
+        display:block;
+        opacity:1;
+        pointer-events:auto;
+        z-index:5;
+      }
+      .reviews-spotlight-card.is-tearing-out,
+      .reviews-spotlight-card.is-tearing-in {
+        display:block;
+      }
+      .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:20px; }
+      .reviews-spotlight-card-body { padding-top:22px; padding-left:36px; padding-right:84px; gap:6px; }
+      .reviews-spotlight-card-rating { font-size:15px; }
+      .reviews-spotlight-card-media { font-size:12px; }
+      .reviews-spotlight-card-thumb-wrap { top:38px; right:12px; }
+      .reviews-spotlight-card-thumb { max-width:68px; transform:rotate(4deg); }
+      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:22px; }
+      .reviews-spotlight-card-signoff { font-size:20px; }
+      .reviews-spotlight-mobile-next {
+        right:12px;
+        bottom:12px;
+        min-height:36px;
+        padding:0 12px;
+        font-size:11px;
+      }
+      .reviews-spotlight-card.is-tearing-out {
+        animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
+        pointer-events:none;
+      }
+      .reviews-spotlight-card.is-tearing-in {
+        animation: noteTearIn .38s cubic-bezier(.2,.84,.28,1) both;
+        transform-origin:top center;
+      }
+      .reviews-spotlight-stats { width:100%; }
+
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: rgba(12, 24, 52, 0.95);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 10px 34px rgba(0,0,0,0.35);
+        z-index: 230;
+        padding: 6px;
+      }
+
+      .mobile-nav-item {
+        min-height: 48px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #c8d7f6;
+        font-size: 18px;
+        transition: color 0.2s ease, background 0.2s ease;
+      }
+
+      .mobile-nav-item.active,
+      .mobile-nav-item:hover {
+        color: var(--accent);
+        background: rgba(245, 158, 11, 0.16);
+      }
+
+      @keyframes noteTearOut {
+        0% { opacity:1; transform:translate(-50%, -50%) rotate(-4deg) scale(1); filter:drop-shadow(0 16px 22px rgba(0,0,0,.18)); }
+        55% { opacity:.84; transform:translate(-58%, -48%) rotate(-8deg) scale(.97); }
+        100% { opacity:0; transform:translate(-68%, -40%) rotate(-14deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+      }
+      @keyframes noteTearIn {
+        0% { opacity:0; transform:translate(-40%, -58%) rotate(9deg) scale(.9); filter:drop-shadow(0 4px 10px rgba(0,0,0,.08)); }
+        60% { opacity:1; transform:translate(-52%, -48%) rotate(-2deg) scale(1.02); }
+        100% { opacity:1; transform:translate(-50%, -50%) rotate(-4deg) scale(1); filter:drop-shadow(0 14px 20px rgba(0,0,0,.18)); }
+      }
+    }
+  </style>
+
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
+<script src="js/shared-header.js?v=20260705a" defer></script>
+  <noscript></noscript>
+
+  
+    <link rel="stylesheet" href="css/components.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+</head>
+<body>
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" decoding="async" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn" href="profile.html" id="profileBtn" style="display:none;">Profile</a>
+</div>
+  </div>
+</header>
+
+  <main class="container page">
+    <section class="reviews-spotlight-shell" aria-label="Review spotlight">
+      <div class="reviews-spotlight-head">
+        <div>
+          <h2 class="reviews-spotlight-heading">reviews board</h2>
+        </div>
+      </div>
+      <div class="reviews-spotlight-stage" id="reviewsSpotlightStage" aria-label="Floating review spotlight cards">
+        <div class="reviews-spotlight-card-layer" id="reviewsSpotlightCardLayer"></div>
+        <div class="reviews-spotlight-popover" id="reviewsSpotlightPopover" aria-live="polite">
+          <img class="reviews-spotlight-popover-thumb" id="reviewsSpotlightPopoverThumb" src="/newlogo.webp" alt="" loading="lazy" decoding="async" />
+          <div class="reviews-spotlight-popover-body">
+            <div class="reviews-spotlight-popover-meta" id="reviewsSpotlightPopoverMeta">Review card</div>
+            <div class="reviews-spotlight-popover-title" id="reviewsSpotlightPopoverTitle">Hover a note to inspect the review.</div>
+            <div class="reviews-spotlight-popover-stars" id="reviewsSpotlightPopoverStars">5 stars</div>
+            <div class="reviews-spotlight-popover-byline" id="reviewsSpotlightPopoverByline">Reviewer, date, and media data appear here.</div>
+            <div class="reviews-spotlight-popover-quote" id="reviewsSpotlightPopoverQuote"></div>
+            <a class="reviews-spotlight-popover-link" id="reviewsSpotlightPopoverLink" href="reviews.html">Open item <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+        </div>
+        <div class="reviews-spotlight-mobile-controls">
+          <button class="reviews-spotlight-mobile-next" id="reviewsSpotlightMobileNext" type="button">Next Note <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>
+    <section class="filters">
+      <div class="chips" id="mediaFilters">
+        <button class="chip active" type="button" data-media="all">All</button>
+        <button class="chip" type="button" data-media="movie">Movies</button>
+        <button class="chip" type="button" data-media="tv">TV</button>
+        <button class="chip" type="button" data-media="anime">Anime</button>
+        <button class="chip" type="button" data-media="game">Games</button>
+        <button class="chip" type="button" data-media="book">Books</button>
+        <button class="chip" type="button" data-media="music">Music</button>
+        <button class="chip" type="button" data-media="travel">Travel</button>
+        <div class="sort"><label for="sortSelect">Sort</label><select id="sortSelect"><option value="newest">Newest</option><option value="highest">Highest Rated</option><option value="lowest">Lowest Rated</option></select></div>
+      </div>
+      <div class="summary" id="summaryText"></div>
+    </section>
+    <section id="reviewsList"><div class="empty">Loading reviews...</div></section>
+  </main>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile sections">
+    <a class="mobile-nav-item" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+    <a class="mobile-nav-item" href="movies.html" aria-label="Movies"><i class="fa-solid fa-film"></i></a>
+    <a class="mobile-nav-item" href="tvshows.html" aria-label="TV Shows"><i class="fa-solid fa-tv"></i></a>
+    <a class="mobile-nav-item" href="animes.html" aria-label="Anime"><i class="fa-solid fa-dragon"></i></a>
+    <a class="mobile-nav-item" href="games.html" aria-label="Games"><i class="fa-solid fa-gamepad"></i></a>
+    <a class="mobile-nav-item" href="books.html" aria-label="Books"><i class="fa-solid fa-book"></i></a>
+    <a class="mobile-nav-item" href="music.html" aria-label="Music"><i class="fa-solid fa-music"></i></a>
+    <a class="mobile-nav-item" href="travel.html" aria-label="Travel"><i class="fa-solid fa-earth-americas"></i></a>
+    <a class="mobile-nav-item active" href="reviews.html" aria-label="Reviews"><i class="fa-solid fa-star"></i></a>
+  </nav>
+
+<script src="js/reviews-page.js?v=20260623z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
+  <script src="js/legal-consent.js?v=20260623z" defer></script>
+
+  <script src="/js/shared-components.js?v=20260623z" defer></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

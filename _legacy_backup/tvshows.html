@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  
+  <script src="/js/auth-gate.js?v=20260623z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260623z" defer></script>
+  <meta name="robots" content="index,follow" />
+  <title>Zo2y - TV Shows</title>
+<link rel="icon" href="/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
+  <meta name="description" content="Discover trending TV shows and save them to your TV lists." />
+  <link rel="preconnect" href="https://gfkhjbztayjyojsgdpgk.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/list-utils.js?v=20260705a" defer></script>
+<script src="js/index-list-menu-adapter.js?v=20260705a" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
+  <link rel="stylesheet" href="css/animations.css?v=20260623z">
+  <link rel="stylesheet" href="css/pages/category-shared.css?v=20260630d" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="css/pages/category-shared.css?v=20260630d"></noscript>
+  <style>
+    :root {
+      --bg: #0b1633;
+      --card: #132347;
+      --card-2: #172b58;
+      --muted: #8ca3c7;
+      --accent: #f59e0b;
+      --white: #fff;
+      --border: rgba(255,255,255,0.12);
+      --surface: rgba(12, 26, 57, 0.84);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background:
+        radial-gradient(circle at 18% -10%, rgba(245,158,11,0.18), transparent 35%),
+        radial-gradient(circle at 88% -14%, rgba(53,103,194,0.25), transparent 42%),
+        var(--bg);
+      color: var(--white);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-y: scroll;
+      padding-bottom: 18px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container { width: min(1240px, calc(100% - 28px)); margin: 0 auto; }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px) saturate(180%);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      flex-wrap: wrap;
+    }
+
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; }
+    .brand img { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; }
+
+    .search-wrap { flex: 1; min-width: 210px; max-width: 420px; position: relative; margin-left: 8px; }
+    .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 13px; }
+    .search {
+      width: 100%; height: 42px; border-radius: 999px; border: 1px solid var(--border); background: var(--card);
+      color: var(--white); padding: 0 14px 0 34px; outline: none;
+    }
+    .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(245,158,11,0.16); }
+
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .top-nav { display: inline-flex; align-items: center; gap: 8px; opacity: 0.92; }
+    .nav-pill {
+      border: 1px solid transparent; color: #e2ecff; background: transparent; border-radius: 999px; font-size: 12px;
+      font-weight: 600; padding: 8px 10px; transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+    .nav-pill.active, .nav-pill:hover { border-color: var(--border); color: var(--accent); background: rgba(255,255,255,0.04); }
+    .auth-actions { display: inline-flex; align-items: center; gap: 8px; }
+    .btn {
+      border: 1px solid var(--border); background: var(--card); color: var(--white); height: 40px; padding: 0 14px;
+      border-radius: 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    }
+    .btn-primary { background: var(--gradient); color: #0b1633; border: 0; }
+
+    .page-shell { margin-top: 18px; display: grid; gap: 16px; }
+
+    .hero {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: clamp(20px, 4vw, 34px);
+      background:
+        linear-gradient(120deg, rgba(10, 31, 56, 0.92), rgba(15, 44, 80, 0.7)),
+        url("https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=1600&q=80") center/cover;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+    }
+    .hero h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.04; }
+    .hero p { color: #d3e5ff; margin-top: 10px; max-width: 650px; line-height: 1.45; }
+    .hero-actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .media-spotlight {
+      width: 100%;
+    }
+
+    .media-spotlight[hidden] { display: none; }
+
+    .media-spotlight-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      min-height: 300px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) clamp(248px, 28vw, 360px);
+      gap: 0;
+      align-items: stretch;
+      background: linear-gradient(140deg, rgba(16, 31, 64, 0.96), rgba(8, 19, 41, 0.92));
+      box-shadow: 0 14px 36px rgba(0,0,0,0.26);
+    }
+
+    .media-spotlight-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38));
+      background-size: cover;
+      background-position: center center;
+    }
+
+    .media-spotlight-copy,
+    .media-spotlight-poster { position: relative; z-index: 1; }
+
+    .media-spotlight-copy {
+      padding: 22px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .media-spotlight-kicker {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(19,35,71,0.48);
+      color: #dbe7ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .media-spotlight-copy h2 { margin: 0; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.05; max-width: 12ch; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .media-spotlight-meta,
+    .media-spotlight-summary { margin: 0; color: var(--muted); line-height: 1.45; }
+
+    .media-spotlight-meta {
+      font-size: 13px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .media-spotlight-summary {
+      font-size: 14px;
+      max-width: 36ch;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .media-spotlight-poster {
+      padding: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      overflow: hidden;
+      height: 100%;
+      min-height: 100%;
+      border-left: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .media-spotlight-poster img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      border-radius: 0;
+      box-shadow: none;
+      background: rgba(255,255,255,0.04);
+      padding: 10px 12px;
+    }
+
+    .media-spotlight-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 4px; }
+
+    .section {
+      background: rgba(19, 35, 71, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.22);
+      overflow: hidden;
+    }
+    .section-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .section-head h2 { font-size: 23px; margin-bottom: 3px; }
+    .section-head p { color: var(--muted); font-size: 13px; }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 56px 56px;
+      gap: 12px;
+      max-width: 1240px;
+      margin: 12px auto 0;
+    }
+    .controls input, .controls select {
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: #10224a;
+      color: #fff;
+      padding: 0 18px;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .controls button, .pager button {
+      height: 56px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      padding: 0;
+      cursor: pointer;
+    }
+    .control-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(4, 10, 23, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .control-modal.show {
+      display: flex;
+    }
+    .control-modal-card {
+      width: min(480px, 100%);
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(19, 35, 71, 0.98), rgba(11, 23, 50, 0.98));
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+      padding: 16px;
+    }
+    .control-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .control-modal-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .control-modal-close {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .control-modal-grid select,
+    .control-modal-action {
+      width: 100%;
+      height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #10224a;
+      color: #fff;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+    .control-modal-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--card);
+      color: #fff;
+      cursor: pointer;
+    }
+    .control-icon-btn {
+      width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .grid {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(6, 156px);
+      gap: 11px;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .mini-btn {
+      height: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9);
+      color: #d7e8ff; font-size: 12px; padding: 0 10px; cursor: pointer;
+    }
+    .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .menu {
+      position: absolute;
+      right: 10px;
+      bottom: 44px;
+      width: 190px;
+      background: #0e284b;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+      padding: 8px;
+      display: none;
+      z-index: 12;
+    }
+    .menu.open { display: block; }
+    .menu button {
+      width: 100%; border: 1px solid var(--border); background: transparent; color: #eef4ff; border-radius: 8px;
+      padding: 8px; font-size: 12px; margin-bottom: 6px; text-align: left; cursor: pointer;
+    }
+    .menu button:last-child { margin-bottom: 0; }
+    .menu button:hover { border-color: var(--accent); color: var(--accent); }
+    .menu button[data-saved="1"] { border-color: rgba(248,113,113,0.85); background: rgba(239,68,68,0.12); color: #fecaca; }
+
+    .empty { color: var(--muted); font-size: 13px; padding: 20px; }
+
+    .pagination {
+      padding: 0 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .page-btn {
+      min-width: 44px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--white);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .page-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .page-info {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .modal {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+      background: rgba(6, 12, 28, 0.72); z-index: 240; padding: 16px;
+    }
+    .modal.active { display: flex; }
+    .modal-content {
+      width: min(420px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .modal-list { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; padding: 6px 0; }
+    .modal-list-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px;
+      border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); cursor: pointer;
+    }
+    .modal-list-item.active { border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
+    .modal-input { display: flex; gap: 8px; margin-top: 8px; }
+    .modal-input input {
+      flex: 1; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-2);
+      color: var(--white); padding: 0 10px;
+    }
+
+    @media (max-width: 860px) {
+      .top-nav { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      .container { width: calc(100% - 16px); }
+      body { padding-bottom: 86px; }
+      .search-wrap { order: 3; max-width: none; margin-left: 0; width: 100%; }
+      .grid { grid-template-columns: repeat(3, 110px); gap: 10px; justify-content: center; }
+      .media-spotlight-shell {
+        grid-template-columns: 1fr;
+      }
+      .media-spotlight-copy {
+        padding: 18px 18px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: flex-start;
+        min-width: 0;
+      }
+      .media-spotlight-poster {
+        padding: 18px 18px 18px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .menu-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      top: 0;
+      left: 0;
+      width: 100dvw;
+      height: 100dvh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      padding: 0;
+      align-items: center;
+      justify-content: center;
+    }
+    .menu-modal.active {
+      display: flex;
+    }
+    .menu-modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.42);
+    }
+    .menu-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .menu-modal-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+      margin: 0;
+    }
+    .menu-modal-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .menu-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+    }
+    .menu-modal-body {
+      padding: 16px 20px;
+    }
+    .menu-quick-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .menu-quick-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-quick-item:hover {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-quick-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-quick-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .menu-quick-left i {
+      width: 20px;
+      color: var(--accent);
+    }
+    .menu-quick-left span {
+      font-weight: 500;
+    }
+    .menu-quick-state {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .menu-custom-section {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+    .menu-custom-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .menu-create-list-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .menu-create-list-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .menu-custom-lists {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .menu-custom-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-custom-item:hover {
+      border-color: var(--accent);
+    }
+    .menu-custom-item.active {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.1);
+    }
+    .menu-custom-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .menu-custom-left i {
+      width: 18px;
+      color: var(--accent);
+      font-size: 14px;
+    }
+    .menu-custom-left span {
+      font-size: 14px;
+    }
+    .menu-custom-state {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .menu-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--white);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .menu-icon-option {
+      height: 44px;
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .menu-icon-option:hover {
+      border-color: var(--accent);
+    }
+    .menu-icon-option.selected {
+      border-color: var(--accent);
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .menu-icon-option i {
+      font-size: 18px;
+      color: var(--muted);
+    }
+    .menu-icon-option.selected i {
+      color: var(--accent);
+    }
+    .menu-modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .menu-btn {
+      flex: 1;
+      height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .menu-btn-secondary {
+      background: var(--card-2);
+      color: var(--white);
+    }
+    .menu-btn-secondary:hover {
+      border-color: var(--accent);
+    }
+    .menu-btn-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      color: #0b1633;
+      border: none;
+    }
+    .menu-btn-primary:hover {
+      opacity: 0.9;
+    }
+    .authenticated-only {
+      display: none;
+    }
+    body.authenticated .authenticated-only {
+      display: block;
+    }
+  </style>
+  <meta name="theme-color" content="#0b1633" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Zo2y" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <link rel="stylesheet" href="css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
+<script src="js/shared-header.js?v=20260705a" defer></script>
+  <noscript></noscript>
+
+  
+    <link rel="stylesheet" href="css/components.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+</head>
+<body>
+  <header class="zo2y-shared-header" role="banner" data-shared-header="1">
+  <div class="zo2y-shared-header-inner">
+    <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
+      <img src="/file.svg" alt="Logo" decoding="async" />
+    </a>
+    <div class="nav-search zo2y-shared-search">
+      <input id="globalSearch" class="nav-search-input zo2y-shared-search-input" type="search" placeholder="Search all media..." aria-label="Search all media" />
+      <button id="globalSearchBtn" class="nav-search-btn zo2y-shared-search-btn" type="button" aria-label="Search"><i class="fas fa-search"></i></button>
+      <div id="globalSearchSuggest" class="search-suggest zo2y-shared-suggest"></div>
+    </div>
+    <nav class="zo2y-shared-nav" aria-label="Primary navigation">
+      <a class="zo2y-shared-pill" data-nav-page="index" href="index.html">Home</a>
+      <a class="zo2y-shared-pill" data-nav-page="movies" href="movies.html">Movies</a>
+      <a class="zo2y-shared-pill" data-nav-page="tvshows" href="tvshows.html">TV</a>
+      <a class="zo2y-shared-pill" data-nav-page="animes" href="animes.html">Anime</a>
+      <a class="zo2y-shared-pill" data-nav-page="games" href="games.html">Games</a>
+      <a class="zo2y-shared-pill" data-nav-page="books" href="books.html">Books</a>
+      <a class="zo2y-shared-pill" data-nav-page="music" href="music.html">Music</a>
+      <a class="zo2y-shared-pill" data-nav-page="travel" href="travel.html">Travel</a>
+      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+    </nav>
+    <div class="zo2y-shared-auth">
+      <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
+      <a class="zo2y-shared-btn zo2y-shared-btn-primary" href="sign-up.html" id="signupBtn">Sign Up</a>
+      <a class="zo2y-shared-btn hidden" href="profile.html" id="profileBtn">Profile</a>
+</div>
+  </div>
+</header>
+
+  <main class="container page-shell">
+    <section class="hero">
+      <h1>TV shows</h1>
+      <p>Discover trending TV shows from around the world and save them to your TV lists.</p>
+      <div class="mt-2 text-xs text-muted opacity-86">source: TMDB. <a href="credits.html" class="text-accent">all credits</a></div>
+      <div class="hero-actions">
+        <!-- Refresh Picks removed -->
+      </div>
+    </section>
+    <section class="controls">
+      <input id="q" class="search-input" placeholder="Search TV shows, genres, years...">
+      <button id="tvshowsSearchBtn" class="control-icon-btn" type="button" aria-label="Search TV shows"><i class="fas fa-search"></i></button>
+      <button id="tvshowsFilterBtn" class="control-icon-btn" type="button" aria-label="Open TV show filters"><i class="fas fa-sliders-h"></i></button>
+    </section>
+    <div class="control-modal" id="tvshowsFilterModal" aria-hidden="true">
+      <div class="control-modal-card">
+        <div class="control-modal-head">
+          <div class="control-modal-title">Filter TV shows</div>
+          <button class="control-modal-close" id="tvshowsFilterCloseBtn" type="button" aria-label="Close TV show filters">&times;</button>
+        </div>
+        <div class="control-modal-grid">
+          <select id="genre"><option value="">All Genres</option></select>
+          <select id="year"><option value="">All Years</option></select>
+          <select id="sort">
+            <option value="popular">popular right now</option>
+            <option value="name">Name A-Z</option>
+            <option value="released">Release Date</option>
+          </select>
+          <button id="refresh" class="control-modal-action" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="media-spotlight" id="tvshowsSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="tvshowsSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured TV Show</div>
+          <h2 id="tvshowsSpotlightTitle">TV Show Title</h2>
+          <p class="media-spotlight-meta" id="tvshowsSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="tvshowsSpotlightSummary">TV show description goes here.</p>
+          <a class="media-spotlight-cta" id="tvshowsSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="tvshowsSpotlightImage" src="/images/fallback/tv.svg" alt="TV show poster" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>popular TV shows right now</h2>
+        <p>Trending TV shows across all genres.</p>
+      </div>
+      <div class="grid" id="tvshowsGrid"></div>
+      <div class="pagination">
+        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+      const supabaseConfig = window.__ZO2Y_SUPABASE_CONFIG || {};
+      const SUPABASE_URL = String(supabaseConfig.url || '').trim();
+      const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
+      const TMDB_PROXY_BASE = '/api/tmdb';
+      const POSTER_BASE = 'https://image.tmdb.org/t/p/w500';
+      const BACKDROP_BASE = 'https://image.tmdb.org/t/p/w1280';
+    const TMDB_PAGE_SIZE = 20;
+    let TVSHOWS_PAGE_SIZE = 30;
+
+    function computeGridPageSize() {
+      const grid = document.getElementById('tvshowsGrid');
+      if (!grid) return 18;
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length || 1;
+      const rows = 3;
+      return cols * rows;
+    }
+
+    let supabaseClient = null;
+    let currentUser = null;
+    const state = {
+      tvshows: [],
+      search: '',
+      genre: '',
+      year: '',
+      sort: 'popular',
+      page: 1,
+      totalPages: 1,
+      listStatusMap: new Map(),
+      pendingQuickOps: new Set()
+    };
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showToast(message, isError = false) {
+      const el = document.createElement('div');
+      el.style.position = 'fixed';
+      el.style.top = '16px';
+      el.style.right = '16px';
+      el.style.zIndex = '9999';
+      el.style.background = isError ? '#dc2626' : '#f59e0b';
+      el.style.color = '#fff';
+      el.style.padding = '10px 14px';
+      el.style.borderRadius = '10px';
+      el.style.fontSize = '13px';
+      el.textContent = message;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2200);
+    }
+
+    let searchDebounceTimer = null;
+    function normalizeQuery(query) {
+      return String(query || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function getQueryVariations(query) {
+      const normalized = normalizeQuery(query);
+      if (!normalized) return [];
+      
+      const variations = [normalized];
+      
+      // Try without spaces for compound words
+      if (normalized.includes(' ')) {
+        variations.push(normalized.replace(/\s+/g, ''));
+      }
+      
+      // Try with spaces if no spaces
+      if (!normalized.includes(' ') && normalized.length > 3) {
+        const spaced = normalized.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
+        if (spaced !== normalized.toLowerCase()) {
+          variations.push(spaced);
+        }
+      }
+      
+      return [...new Set(variations)];
+    }
+
+    function isDateWithinAcceptableRange(dateString) {
+      if (!dateString) return true;
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return true;
+      const now = new Date();
+      const twoYearsFromNow = new Date(now.getFullYear() + 2, now.getMonth(), now.getDate());
+      return date <= twoYearsFromNow;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    async function initFilters() {
+      const yearSelect = document.getElementById('year');
+      if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear; y >= 1900; y--) {
+          const opt = document.createElement('option');
+          opt.value = String(y);
+          opt.textContent = String(y);
+          yearSelect.appendChild(opt);
+        }
+      }
+      const genreSelect = document.getElementById('genre');
+      if (genreSelect) {
+        try {
+          const res = await fetch(`${TMDB_PROXY_BASE}/genre/tv/list?language=en`);
+          const json = await res.json();
+          if (Array.isArray(json.genres)) {
+            json.genres.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = String(g.id);
+              opt.textContent = g.name;
+              genreSelect.appendChild(opt);
+            });
+          }
+        } catch (e) {
+          console.error('Failed to load tv genres', e);
+        }
+      }
+    }
+
+    const TOP_POPULAR_TVSHOW_IDS = [
+      '1668', '1396', '1399', '1418', '1430', '1423', '1425', '1426', '1427', '1428',
+      '1429', '1431', '1432', '1433', '1434', '1435', '1436', '1437', '1438', '1439',
+      '1440', '1441', '1442', '1443', '1444', '1445', '1446', '1447', '1448', '1449',
+      '1450', '1451', '1452', '1453', '1454', '1455', '1456', '1457', '1458', '1459',
+      '1460', '1461', '1462', '1463', '1464', '1465', '1466', '1467', '1468', '1469',
+      '1470', '1471', '1472', '1473', '1474', '1475', '1476', '1477', '1478', '1479',
+      '1480', '1481', '1482', '1483', '1484', '1485', '1486', '1487', '1488', '1489',
+      '1490', '1491', '1492', '1493', '1494', '1495', '1496', '1497', '1498', '1499',
+      '1500', '1501', '1502', '1503', '1504', '1505', '1506', '1507', '1508', '1509',
+      '1510', '1511', '1512', '1513', '1514', '1515', '1516', '1517', '1518', '1519',
+      '1520', '1521', '1522', '1523', '1524', '1525', '1526', '1527', '1528', '1529',
+      '1530', '1531', '1532', '1533', '1534', '1535', '1536', '1537', '1538', '1539',
+      '1540', '1541', '1542', '1543', '1544', '1545', '1546', '1547', '1548', '1549',
+      '1550', '1551', '1552', '1553', '1554', '1555', '1556', '1557', '1558', '1559',
+      '1560', '1561', '1562', '1563', '1564', '1565', '1566', '1567', '1568', '1569',
+      '1570', '1571', '1572', '1573', '1574', '1575', '1576', '1577', '1578', '1579',
+      '1580', '1581', '1582', '1583', '1584', '1585', '1586', '1587', '1588', '1589',
+      '1590', '1591', '1592', '1593', '1594', '1595', '1596', '1597', '1598', '1599',
+      '1600', '1601', '1602', '1603', '1604', '1605', '1606', '1607', '1608', '1609',
+      '1610', '1611', '1612', '1613', '1614', '1615', '1616', '1617', '1618', '1619',
+      '1620', '1621', '1622', '1623', '1624', '1625', '1626', '1627', '1628', '1629',
+      '1630', '1631', '1632', '1633', '1634', '1635', '1636', '1637', '1638', '1639',
+      '1640', '1641', '1642', '1643', '1644', '1645', '1646', '1647', '1648', '1649',
+      '1650', '1651', '1652', '1653', '1654', '1655', '1656', '1657', '1658', '1659',
+      '1660', '1661', '1662', '1663', '1664', '1665', '1666', '1667', '1668', '1669',
+      '1670', '1671', '1672', '1673', '1674', '1675', '1676', '1677', '1678', '1679',
+      '1680', '1681', '1682', '1683', '1684', '1685', '1686', '1687', '1688', '1689',
+      '1690', '1691', '1692', '1693', '1694', '1695', '1696', '1697', '1698', '1699',
+      '1700', '1701', '1702', '1703', '1704', '1705', '1706', '1707', '1708', '1709',
+      '1710', '1711', '1712', '1713', '1714', '1715', '1716', '1717', '1718', '1719',
+      '1720', '1721', '1722', '1723', '1724', '1725', '1726', '1727', '1728', '1729',
+      '1730', '1731', '1732', '1733', '1734', '1735', '1736', '1737', '1738', '1739',
+      '1740', '1741', '1742', '1743', '1744', '1745', '1746', '1747', '1748', '1749',
+      '1750', '1751', '1752', '1753', '1754', '1755', '1756', '1757', '1758', '1759',
+      '1760', '1761', '1762', '1763', '1764', '1765', '1766', '1767', '1768', '1769',
+      '1770', '1771', '1772', '1773', '1774', '1775', '1776', '1777', '1778', '1779',
+      '1780', '1781', '1782', '1783', '1784', '1785', '1786', '1787', '1788', '1789',
+      '1790', '1791', '1792', '1793', '1794', '1795', '1796', '1797', '1798', '1799',
+      '1800', '1801', '1802', '1803', '1804', '1805', '1806', '1807', '1808', '1809',
+      '1810', '1811', '1812', '1813', '1814', '1815', '1816', '1817', '1818', '1819',
+      '1820', '1821', '1822', '1823', '1824', '1825', '1826', '1827', '1828', '1829',
+      '1830', '1831', '1832', '1833', '1834', '1835', '1836', '1837', '1838', '1839',
+      '1840', '1841', '1842', '1843', '1844', '1845', '1846', '1847', '1848', '1849',
+      '1850', '1851', '1852', '1853', '1854', '1855', '1856', '1857', '1858', '1859',
+      '1860', '1861', '1862', '1863', '1864', '1865', '1866', '1867', '1868', '1869',
+      '1870', '1871', '1872', '1873', '1874', '1875', '1876', '1877', '1878', '1879',
+      '1880', '1881', '1882', '1883', '1884', '1885', '1886', '1887', '1888', '1889',
+      '1890', '1891', '1892', '1893', '1894', '1895', '1896', '1897', '1898', '1899',
+      '1900', '1901', '1902', '1903', '1904', '1905', '1906', '1907', '1908', '1909',
+      '1910', '1911', '1912', '1913', '1914', '1915', '1916', '1917', '1918', '1919',
+      '1920', '1921', '1922', '1923', '1924', '1925', '1926', '1927', '1928', '1929',
+      '1930', '1931', '1932', '1933', '1934', '1935', '1936', '1937', '1938', '1939',
+      '1940', '1941', '1942', '1943', '1944', '1945', '1946', '1947', '1948', '1949',
+      '1950', '1951', '1952', '1953', '1954', '1955', '1956', '1957', '1958', '1959',
+      '1960', '1961', '1962', '1963', '1964', '1965', '1966', '1967', '1968', '1969',
+      '1970', '1971', '1972', '1973', '1974', '1975', '1976', '1977', '1978', '1979',
+      '1980', '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', '1989',
+      '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999',
+      '2000',
+      '848438', '968489', '933260', '956983', '872010', '912614', '940551', '787699', '848538',
+      '921636', '1072790', '1011985', '968051', '866398', '572802', '848378', '848438', '968489',
+      '933260', '956983', '872010', '912614', '940551', '787699', '848538', '921636', '1072790',
+      '1011985', '968051', '866398', '572802', '848378', '848438', '968489', '933260', '956983',
+      '872010', '912614', '940551', '787699', '848538', '921636', '1072790', '1011985', '968051',
+      '866398', '572802', '848378', '848438', '968489', '933260', '956983', '872010', '912614'
+    ];
+
+    async function loadTvshowsWithFallback(queryOverride = '') {
+      const query = String(queryOverride || state.search || '').trim();
+      let tvshows = [];
+      let apiTotalPages = 1;
+      let apiTotalResults = null;
+
+      TVSHOWS_PAGE_SIZE = computeGridPageSize();
+      const startIndex = (state.page - 1) * TVSHOWS_PAGE_SIZE;
+      const apiPageStart = Math.floor(startIndex / TMDB_PAGE_SIZE) + 1;
+      const withinOffset = startIndex % TMDB_PAGE_SIZE;
+      const needed = withinOffset + TVSHOWS_PAGE_SIZE;
+
+      const hasFilters = state.genre || state.year;
+      if (hasFilters && !query) {
+        // Use discover endpoint with genre/year/sort filters
+        try {
+          const params = new URLSearchParams({ language: 'en-US', page: String(apiPageStart) });
+          if (state.genre) params.set('with_genres', state.genre);
+          if (state.year) params.set('first_air_date_year', state.year);
+          if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
+          else params.set('sort_by', 'popularity.desc');
+          
+          const pool = [];
+          for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
+            params.set('page', String(p));
+            const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
+            const res = await fetch(url);
+            if (!res.ok) break;
+            const json = await res.json();
+            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+            apiTotalPages = json?.total_pages || apiTotalPages || 1;
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...filterNonAnime(tvResults));
+            if (!tvResults.length) break;
+          }
+          
+          // For name sort, sort client-side since discover doesn't support name sort
+          if (state.sort === 'name') {
+            pool.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+          }
+          
+          tvshows = pool;
+        } catch (_err) {
+          console.error('Failed to load tvshows with filters', _err);
+        }
+      } else if (!query) {
+        // Proper shuffling: shuffle between *current popular* TV shows.
+        try {
+          const pool = [];
+          for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
+            const url = `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`;
+            const res = await fetch(url);
+            if (!res.ok) break;
+            const json = await res.json();
+            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+            apiTotalPages = json?.total_pages || apiTotalPages || 1;
+            const tvResults = Array.isArray(json?.results) ? json.results : [];
+            pool.push(...filterNonAnime(tvResults));
+            if (!tvResults.length) break;
+          }
+          tvshows = shuffleArray(pool);
+        } catch (_err) {
+          console.error('Failed to load popular tvshows', _err);
+          // Fallback to trending if popular fails
+          try {
+            const pool = [];
+            for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
+              const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+              const res = await fetch(url);
+              if (!res.ok) break;
+              const json = await res.json();
+              if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+              apiTotalPages = json?.total_pages || apiTotalPages || 1;
+              const tvResults = Array.isArray(json?.results) ? json.results : [];
+              pool.push(...filterNonAnime(tvResults));
+              if (!tvResults.length) break;
+            }
+            tvshows = shuffleArray(pool);
+          } catch (_err2) {
+            console.error('Failed to load trending tvshows', _err2);
+          }
+        }
+      } else {
+        // Use multi-search for better accuracy (searches across movies, TV, people)
+        const variations = getQueryVariations(query);
+        for (const variation of variations) {
+          try {
+            const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const json = await res.json();
+              const results = Array.isArray(json?.results) ? json.results : [];
+              // Filter for TV shows only
+              const tvResults = results.filter((item) => item.media_type === 'tv');
+              const filteredTvshows = filterNonAnime(tvResults);
+              if (filteredTvshows.length > 0) {
+                tvshows = filteredTvshows;
+                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                apiTotalPages = json?.total_pages || 1;
+                break;
+              }
+            }
+          } catch (_err) {
+            console.error('Failed to load tvshows with multi-search variation:', variation, _err);
+          }
+        }
+        
+        // Fallback to TV-specific search if multi-search fails
+        if (tvshows.length === 0) {
+          for (const variation of variations) {
+            try {
+              const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
+              const res = await fetch(url);
+              if (res.ok) {
+                const json = await res.json();
+                const tvResults = Array.isArray(json?.results) ? json.results : [];
+                const filteredTvshows = filterNonAnime(tvResults);
+                if (filteredTvshows.length > 0) {
+                  tvshows = filteredTvshows;
+                  if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                  apiTotalPages = json?.total_pages || 1;
+                  break;
+                }
+              }
+            } catch (_err) {
+              console.error('Failed to load tvshows with variation:', variation, _err);
+            }
+          }
+        }
+      }
+
+      state.tvshows = tvshows.map((tvshow) => ({
+        id: String(tvshow.id || ''),
+        name: tvshow.name || tvshow.title || 'Unknown TV Show',
+        overview: tvshow.overview || '',
+        posterPath: tvshow.poster_path || '',
+        backdropPath: tvshow.backdrop_path || '',
+        firstAirDate: tvshow.first_air_date || '',
+        voteAverage: tvshow.vote_average || 0,
+        genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
+      })).filter((t) => t.id && isDateWithinAcceptableRange(t.firstAirDate));
+
+      if (!query && state.page === 1) {
+        state.tvshows = shuffleArray(state.tvshows);
+      }
+
+      state.tvshows = state.tvshows.slice(withinOffset, withinOffset + TVSHOWS_PAGE_SIZE);
+
+      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / TVSHOWS_PAGE_SIZE));
+      } else {
+        const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;
+        state.totalPages = Math.max(1, Math.ceil(roughTotal / TVSHOWS_PAGE_SIZE));
+      }
+    }
+
+    function debounceSearch(query) {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(async () => {
+        state.search = query;
+        state.page = 1;
+        await loadTvshowsWithFallback();
+        await loadListStatus();
+        renderGrid();
+      }, 400);
+    }
+
+    async function ensureSupabase() {
+      if (supabaseClient) return supabaseClient;
+      const authRuntime = window.ZO2Y_AUTH || null;
+      if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
+        await authRuntime.waitForSupabase(8000);
+      } else {
+        const startedAt = Date.now();
+        while (!(window.supabase && typeof window.supabase.createClient === 'function') && (Date.now() - startedAt) < 8000) {
+          await new Promise((resolve) => setTimeout(resolve, 40));
+        }
+      }
+      if (typeof window.__ZO2Y_ENSURE_SUPABASE_CLIENT === 'function') {
+        supabaseClient = await window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+        if (supabaseClient) return supabaseClient;
+      }
+      if (window.supabase && typeof window.supabase.createClient === 'function' && window.__ZO2Y_SUPABASE_CONFIG) {
+        supabaseClient = window.supabase.createClient(
+          window.__ZO2Y_SUPABASE_CONFIG.url,
+          window.__ZO2Y_SUPABASE_CONFIG.key,
+          { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+        );
+        window.__ZO2Y_SUPABASE_CLIENT = supabaseClient;
+        return supabaseClient;
+      }
+      return null;
+    }
+
+    async function initAuthUi() {
+      const client = await ensureSupabase();
+      if (!client) return;
+      const loginBtn = document.getElementById('loginBtn');
+      const signupBtn = document.getElementById('signupBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const { data } = await client.auth.getUser();
+      currentUser = data?.user || null;
+
+      if (currentUser) {
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (signupBtn) signupBtn.style.display = 'none';
+        if (profileBtn) {
+          profileBtn.style.display = 'inline-flex';
+          profileBtn.innerHTML = '<i class="fas fa-user"></i><span>Profile</span>';
+        }
+      } else {
+        if (loginBtn) loginBtn.style.display = 'inline-flex';
+        if (signupBtn) signupBtn.style.display = 'inline-flex';
+        if (profileBtn) profileBtn.style.display = 'none';
+      }
+    }
+
+    function filterNonAnime(tvResults) {
+      return (Array.isArray(tvResults) ? tvResults : []).filter(tv => {
+        const genreIds = Array.isArray(tv.genre_ids) ? tv.genre_ids : [];
+        const originCountry = Array.isArray(tv.origin_country) ? tv.origin_country : [];
+        const name = String(tv.name || '').toLowerCase();
+        const overview = String(tv.overview || '').toLowerCase();
+        
+        // Only filter out shows that are clearly Japanese anime
+        // Must have Japanese origin country AND either animation genre or anime keywords
+        const isJapaneseOrigin = originCountry.includes('JP');
+        const isAnimationGenre = genreIds.includes(16);
+        const hasAnimeKeywords = /anime|manga/.test(name + ' ' + overview);
+        
+        // Filter only if it's Japanese AND (animation genre OR anime keywords)
+        const isJapaneseAnime = isJapaneseOrigin && (isAnimationGenre || hasAnimeKeywords);
+        
+        return !isJapaneseAnime;
+      });
+    }
+
+    async function loadTvshows(queryOverride = '') {
+      await loadTvshowsWithFallback(queryOverride);
+    }
+
+    async function loadListStatus() {
+      state.listStatusMap = new Map();
+      if (!currentUser?.id || !state.tvshows.length) return;
+      const client = await ensureSupabase();
+      if (!client) return;
+      const ids = state.tvshows.map((tvshow) => tvshow.id);
+      if (!ids.length) return;
+      const { data } = await client
+        .from('tvshow_list_items')
+        .select('tvshow_id, list_type')
+        .eq('user_id', currentUser.id)
+        .in('tvshow_id', ids);
+      (data || []).forEach((row) => {
+        const id = String(row.tvshow_id || '');
+        if (!id) return;
+        if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
+        const bucket = state.listStatusMap.get(id);
+        if (row.list_type in bucket) bucket[row.list_type] = true;
+      });
+    }
+
+    function getTvshowListStatus(tvshowId) {
+      const id = String(tvshowId || '').trim();
+      const empty = { favorites: false, watched: false, watchlist: false };
+      if (!id) return empty;
+      if (!state.listStatusMap.has(id)) {
+        state.listStatusMap.set(id, { ...empty });
+      }
+      return state.listStatusMap.get(id);
+    }
+
+    function getTvshowCardExtra(tvshow) {
+      return '';
+    }
+
+    function renderTvshowSpotlight(tvshow) {
+      const section = document.getElementById('tvshowsSpotlight');
+      if (!section || !tvshow) return;
+      const bg = document.getElementById('tvshowsSpotlightBg');
+      const titleEl = document.getElementById('tvshowsSpotlightTitle');
+      const metaEl = document.getElementById('tvshowsSpotlightMeta');
+      const summaryEl = document.getElementById('tvshowsSpotlightSummary');
+      const imgEl = document.getElementById('tvshowsSpotlightImage');
+      const openEl = document.getElementById('tvshowsSpotlightOpen');
+      
+      const posterUrl = tvshow.posterPath ? `${POSTER_BASE}${tvshow.posterPath}` : '/images/fallback/tv.svg';
+      const backdropUrl = tvshow.backdropPath ? `${BACKDROP_BASE}${tvshow.backdropPath}` : posterUrl;
+      const year = tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD';
+      const rating = tvshow.voteAverage ? `Rating: ${tvshow.voteAverage.toFixed(1)}/10` : '';
+      
+      section.hidden = false;
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${backdropUrl}")`;
+      if (titleEl) titleEl.textContent = tvshow.name || 'TV Show Title';
+      if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'TV Show details';
+      if (summaryEl) summaryEl.textContent = tvshow.overview || 'No description available.';
+      if (imgEl) {
+        imgEl.src = posterUrl;
+        imgEl.alt = `${tvshow.name || 'TV Show'} poster`;
+      }
+      if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(tvshow.id)}`;
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById('tvshowsGrid');
+      const spotlight = document.getElementById('tvshowsSpotlight');
+      if (!grid) return;
+      
+      if (spotlight) spotlight.hidden = true;
+      
+      if (!state.tvshows.length) {
+        grid.innerHTML = '<div class="empty">No tvshows found.</div>';
+        updatePagination();
+        return;
+      }
+      grid.innerHTML = state.tvshows.map((tvshow) => {
+        let posterUrl = '';
+        if (tvshow.posterPath) {
+          posterUrl = `${POSTER_BASE}${tvshow.posterPath}`;
+        } else if (tvshow.backdropPath) {
+          posterUrl = `${BACKDROP_BASE}${tvshow.backdropPath}`;
+        }
+        const hasCover = posterUrl && posterUrl !== '/images/fallback/tv.svg';
+        return `
+        <article class="card" data-id="${escapeHtml(tvshow.id)}">
+          <div class="card-media">
+            ${hasCover ? `<img src="${escapeHtml(posterUrl)}" alt="${escapeHtml(tvshow.name)}" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'card-media-fallback\\'><i class=\\'fa-solid fa-tv\\'></i></div>';">` : '<div class="card-media-fallback"><i class="fa-solid fa-tv"></i></div>'}
+          </div>
+          <div class="card-meta">
+            <span class="card-type"><i class="fa-solid fa-tv"></i> TV Show</span>
+            <div class="card-meta-top">
+              <p class="card-name">${escapeHtml(tvshow.name)}</p>
+            </div>
+            <p class="card-sub">${escapeHtml(tvshow.firstAirDate ? new Date(tvshow.firstAirDate).getFullYear() : 'TBD')}</p>
+            <p class="card-extra">${escapeHtml(getTvshowCardExtra(tvshow))}</p>
+            <div class="card-actions">
+              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
+        </article>
+      `;
+      }).join('');
+
+      wireGridActions();
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const prevBtn = document.getElementById('prevPageBtn');
+      const nextBtn = document.getElementById('nextPageBtn');
+      const info = document.getElementById('pageInfo');
+      if (state.page > state.totalPages) state.page = state.totalPages;
+      if (state.page < 1) state.page = 1;
+      if (prevBtn) prevBtn.disabled = state.page <= 1;
+      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
+      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    }
+
+    async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
+      const tvshowId = String(itemId || '').trim();
+      if (!tvshowId) return { ok: false, saved: false };
+      const tvshow = state.tvshows.find((row) => String(row.id || '').trim() === tvshowId);
+      if (!tvshow) return { ok: false, saved: false };
+
+      const client = await ensureSupabase();
+      if (!client || !currentUser?.id) {
+        window.location.href = 'login.html';
+        return { ok: false, saved: false };
+      }
+
+      const status = getTvshowListStatus(tvshowId);
+      if (!(listType in status)) return { ok: false, saved: false };
+
+      const previousSaved = !!status[listType];
+      const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
+      const opKey = `${tvshowId}:${listType}`;
+      if (state.pendingQuickOps.has(opKey)) {
+        return { ok: false, saved: previousSaved };
+      }
+
+      state.pendingQuickOps.add(opKey);
+      status[listType] = nextSaved;
+      try {
+        if (nextSaved) {
+          const { error } = await client.from('tvshow_list_items').insert({
+            user_id: currentUser.id,
+            tvshow_id: tvshowId,
+            list_type: listType
+          });
+          if (error && String(error.code || '') !== '23505') throw error;
+          showToast('Added to list');
+        } else {
+          const { error } = await client
+            .from('tvshow_list_items')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('tvshow_id', tvshowId)
+            .eq('list_type', listType);
+          if (error) throw error;
+          showToast('Removed from list');
+        }
+        return { ok: true, saved: nextSaved };
+      } catch (error) {
+        console.error('TV show list toggle failed', error);
+        status[listType] = previousSaved;
+        showToast('Could not update list', true);
+        return { ok: false, saved: previousSaved };
+      } finally {
+        state.pendingQuickOps.delete(opKey);
+      }
+    }
+
+    function wireGridActions() {
+      document.querySelectorAll('.menu-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const card = btn.closest('.card');
+          if (!card) return;
+          if (typeof window.openIndexStyleListMenu === 'function') {
+            window.openIndexStyleListMenu(card);
+          }
+        });
+      });
+
+      document.querySelectorAll('.card').forEach((card) => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.menu-btn')) return;
+          const id = String(card.getAttribute('data-id') || '').trim();
+          if (!id) return;
+          window.location.href = `tvshow.html?id=${encodeURIComponent(id)}`;
+        });
+      });
+    }
+
+    async function loadPage() {
+      try {
+        await initAuthUi();
+        await loadTvshows();
+        await loadListStatus();
+        renderGrid();
+      } catch (_err) {
+        const grid = document.getElementById('tvshowsGrid');
+        if (grid) grid.innerHTML = '<div class="empty">TV shows feed unavailable right now.</div>';
+      }
+    }
+
+    // Refresh removed.
+    document.getElementById('tvshowsSearchBtn')?.addEventListener('click', async () => {
+      const query = String(document.getElementById('q')?.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('q')?.addEventListener('input', async (e) => {
+      const query = String(e.target.value || '').trim();
+      debounceSearch(query);
+    });
+    document.getElementById('tvshowsFilterBtn')?.addEventListener('click', () => {
+      document.getElementById('tvshowsFilterModal')?.classList.add('show');
+    });
+    document.getElementById('tvshowsFilterCloseBtn')?.addEventListener('click', () => {
+      document.getElementById('tvshowsFilterModal')?.classList.remove('show');
+    });
+    document.getElementById('genre')?.addEventListener('change', (e) => {
+      state.genre = String(e.target.value || '').trim();
+    });
+    document.getElementById('year')?.addEventListener('change', (e) => {
+      state.year = String(e.target.value || '').trim();
+    });
+    document.getElementById('sort')?.addEventListener('change', (e) => {
+      state.sort = String(e.target.value || 'popular').trim();
+    });
+    document.getElementById('refresh')?.addEventListener('click', async () => {
+      document.getElementById('tvshowsFilterModal')?.classList.remove('show');
+      await loadPage();
+    });
+    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
+      if (state.page <= 1) return;
+      state.page -= 1;
+      await loadTvshows();
+      await loadListStatus();
+      renderGrid();
+    });
+    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
+      if (state.page >= state.totalPages) return;
+      state.page += 1;
+      await loadTvshows();
+      await loadListStatus();
+      renderGrid();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.initUniversalSearch) {
+        const initSearch = () => window.initUniversalSearch({
+          input: '#globalSearch',
+          fallbackRoute: 'tvshows.html'
+        });
+        if (typeof window.requestIdleCallback === 'function') {
+          window.requestIdleCallback(initSearch, { timeout: 1500 });
+        } else {
+          window.setTimeout(initSearch, 0);
+        }
+      }
+      if (window.initIndexStyleListMenu) {
+        window.initIndexStyleListMenu({
+          mediaType: 'tv',
+          itemIdAttr: 'data-id',
+          getVisibleItemIds: () =>
+            Array.from(document.querySelectorAll('.card[data-id]'))
+              .map((card) => card.getAttribute('data-id'))
+              .filter(Boolean),
+          getQuickStatusForItem: (itemId) => {
+            const key = String(itemId || '').trim();
+            const status = state.listStatusMap.get(key);
+            return status ? { ...status } : null;
+          },
+          ensureClient: async () => {
+            if (supabaseClient) return supabaseClient;
+            await ensureSupabase();
+            return supabaseClient;
+          },
+          getCurrentUser: () => currentUser,
+          notify: (message, isError) => showToast(message, !!isError),
+          toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
+            toggleDefaultList(itemId, listType, card, nextSaved)
+        });
+      }
+      initFilters().then(() => loadPage());
+    });
+  </script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
+  <script src="js/legal-consent.js?v=20260623z" defer></script>
+
+  <script src="/js/shared-components.js?v=20260623z" defer></script>
+</body>
+</html>

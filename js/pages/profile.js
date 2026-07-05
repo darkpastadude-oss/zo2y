@@ -291,7 +291,11 @@
                     
                     const user = await resolveAuthenticatedProfileUser(supabase);
                     if (!user) { 
-                        window.location.href = "login.html"; 
+                        if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.redirectToLogin === 'function') {
+                            window.ZO2Y_AUTH.redirectToLogin(window.location.pathname + window.location.search + window.location.hash);
+                        } else {
+                            window.location.replace("login.html?next=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)); 
+                        }
                         return; 
                     }
                     
@@ -4810,22 +4814,65 @@
                 return null;
             }
 
-            async function fetchMusicDetails(trackId) {
-                const key = String(trackId || '').trim();
+            async function fetchBookDetails(bookId) {
+                const key = String(bookId || '').trim();
                 if (!key) return null;
-                if (musicCache.has(key)) return musicCache.get(key);
+                if (bookCache.has(key)) return bookCache.get(key);
                 try {
                     const { data, error } = await supabase
-                        .from('tracks')
-                        .select('id, name, artists, album_name, image_url, external_url, preview_url')
+                        .from('books')
+                        .select('id, title, author_name, cover_url, external_url')
                         .eq('id', key)
                         .maybeSingle();
                     if (error || !data) return null;
-                    musicCache.set(key, data);
+                    data.thumbnail = data.cover_url;
+                    bookCache.set(key, data);
                     return data;
                 } catch (_err) {
                     return null;
                 }
+            }
+
+            const resolveProfileBookRecord = fetchBookDetails;
+
+            async function fetchMusicDetails(artistId) {
+                const key = String(artistId || '').trim();
+                if (!key) return null;
+                if (musicCache.has(key)) return musicCache.get(key);
+                try {
+                    const { data, error } = await supabase
+                        .from('artists')
+                        .select('id, name, image_url, external_url')
+                        .eq('id', key)
+                        .maybeSingle();
+                    if (data) {
+                        musicCache.set(key, data);
+                        return data;
+                    }
+                } catch (_err) {
+                    // ignore and fallback
+                }
+                
+                try {
+                    const res = await fetch(`/api/music/artist/${key}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json.result) {
+                            const data = {
+                                id: json.result.id,
+                                name: json.result.title,
+                                image_url: json.result.image || '',
+                                external_url: json.result.externalUrl || ''
+                            };
+                            musicCache.set(key, data);
+                            return data;
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+                
+                return null;
             }
 
             function normalizeCountryCode(value) {
@@ -7759,12 +7806,12 @@ const alreadyActive = isMobile
                             rows.forEach((row, index) => {
                                 const id = String(row?.id || missingIds[index] || '').trim();
                                 if (!id) return;
-                                const imageUrl = String(row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
+                                const imageUrl = String(row?.cover_url || row?.thumbnail || '').trim() || FALLBACK_BOOK_IMAGE;
                                 writePreviewAssetCache(contentType, id, imageUrl);
                             });
                         } else if (contentType === 'music') {
                             const { data } = await supabase
-                                .from('tracks')
+                                .from('artists')
                                 .select('id, image_url')
                                 .in('id', missingIds);
                             (data || []).forEach((row) => {
@@ -8843,10 +8890,10 @@ const alreadyActive = isMobile
                     } else if (typeof rawAuthors === 'string') {
                         subtitle = rawAuthors;
                     } else {
-                        subtitle = row?.publisher || 'Unknown';
+                        subtitle = row?.author_name || row?.authors || 'Unknown';
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
-                    const image = row?.thumbnail || FALLBACK_BOOK_IMAGE;
+                    const image = row?.cover_url || row?.thumbnail || FALLBACK_BOOK_IMAGE;
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -9068,11 +9115,11 @@ const alreadyActive = isMobile
                 for (let i = 0; i < rankedTrackIds.length; i++) {
                     const trackId = rankedTrackIds[i];
                     const track = tracks[i];
-                    const title = track?.name || 'Track';
-                    const artists = String(track?.artists || 'Unknown Artist').trim() || 'Unknown Artist';
-                    const album = String(track?.album_name || 'Album').trim() || 'Album';
+                    const title = track?.name || 'Artist';
+                    const artists = '';
+                    const album = '';
                     const image = String(track?.image_url || '').trim() || '/newlogo.webp';
-                    const openUrl = trackId ? `song.html?id=${encodeURIComponent(trackId)}` : 'music.html';
+                    const openUrl = trackId ? `artist.html?id=${encodeURIComponent(trackId)}` : 'music.html';
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -9098,8 +9145,6 @@ const alreadyActive = isMobile
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
-                                <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(artists)}</span>
-                                <span><i class="fas fa-compact-disc"></i> ${ProfileManager.escapeHtml(album)}</span>
                             </div>
                             ${rankMarkup}
                         </div>
