@@ -4822,13 +4822,14 @@
                 try {
                     const { data } = await supabase
                         .from('books')
-                        .select('id, title, author_name, cover_url, external_url')
+                        .select('id, title, author_name, cover_url, thumbnail, external_url')
                         .eq('id', key)
                         .maybeSingle();
                     if (data) dbData = data;
                 } catch (_err) { }
                 
-                if (!dbData || !dbData.cover_url || String(dbData.cover_url).trim() === '') {
+                const dbCover = dbData?.cover_url || dbData?.thumbnail || '';
+                if (!dbData || !dbCover || String(dbCover).trim() === '') {
                     try {
                         const res = await fetch(`/api/books/${key}`);
                         if (res.ok) {
@@ -4851,7 +4852,8 @@
                 }
                 
                 if (dbData) {
-                    dbData.thumbnail = dbData.cover_url;
+                    dbData.thumbnail = dbData.cover_url || dbData.thumbnail || '';
+                    dbData.cover_url = dbData.cover_url || dbData.thumbnail || '';
                     bookCache.set(key, dbData);
                     return dbData;
                 }
@@ -7166,6 +7168,37 @@ const alreadyActive = isMobile
                 renderer();
             }
 
+            function wireProfileImageFallbacks(container) {
+                if (!container) return;
+                container.querySelectorAll('img').forEach((img) => {
+                    if (img.getAttribute('data-fallback-wired') === '1') return;
+                    img.setAttribute('data-fallback-wired', '1');
+                    const originalSrc = img.src;
+                    const isBook = originalSrc && (originalSrc.includes('/api/books/cover') || originalSrc.includes('covers.openlibrary.org'));
+                    let triedRaw = false;
+                    let triedFallback = false;
+                    img.onerror = function () {
+                        const cur = img.currentSrc || img.src || '';
+                        if (isBook && !triedRaw) {
+                            triedRaw = true;
+                            const m = cur.match(/[?&]url=([^&]+)/);
+                            if (m) {
+                                const decoded = decodeURIComponent(m[1]);
+                                if (decoded && decoded !== cur) {
+                                    img.src = decoded;
+                                    return;
+                                }
+                            }
+                        }
+                        if (!triedFallback) {
+                            triedFallback = true;
+                            img.onerror = null;
+                            img.src = '/newlogo.webp';
+                        }
+                    };
+                });
+            }
+
             function populateRailTrack(mediaType, previewUrls, totalItemCount) {
                 const desktopTrackId = getRailTrackId(mediaType, false);
                 const mobileTrackId = getRailTrackId(mediaType, true);
@@ -7182,6 +7215,7 @@ const alreadyActive = isMobile
                 ].forEach(({ track, isMobile }) => {
                     if (!track) return;
                     populateRailElement(track, isMobile, mediaType, previewUrls, totalItemCount, opts, page);
+                    wireProfileImageFallbacks(track);
                 });
             }
 
@@ -7823,10 +7857,12 @@ const alreadyActive = isMobile
                         if (railOpts.isBrand) baseClass += ' is-brand';
                         const wrapClass = isMobile ? 'mph2-poster-img-wrap' : 'pv2-poster-img-wrap';
                         const imgClass = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
+                        const isBookUrl = url && (url.includes('/api/books/cover') || url.includes('covers.openlibrary.org'));
+                        const rawFallback = isBookUrl ? (() => { const m = url.match(/[?&]url=([^&]+)/); return m ? decodeURIComponent(m[1]) : ''; })() : '';
                         html += `
                             <div class="${baseClass}" style="animation-delay: ${i * 40}ms">
                                 <div class="${wrapClass}">
-                                    <img class="${imgClass}" src="${url}" alt="Poster" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                                    <img class="${imgClass}" src="${url}" alt="Poster" loading="lazy" data-raw-fallback="${rawFallback}" onerror="if(!this.dataset.rawTried&&this.dataset.rawFallback){this.dataset.rawTried='1';this.src=this.dataset.rawFallback}else{this.onerror=null;this.src='/newlogo.webp'}">
                                 </div>
                             </div>
                         `;
@@ -7835,6 +7871,7 @@ const alreadyActive = isMobile
                 };
 
                 track.innerHTML = buildPreviewHtml(cachedPreviewItems);
+                wireProfileImageFallbacks(track);
 
                 if (previewIds.length) {
                     void getPreviewItems(previewIds, contentType)
@@ -7842,6 +7879,7 @@ const alreadyActive = isMobile
                             const nextHtml = buildPreviewHtml(resolvedPreviewItems);
                             if (track.innerHTML !== nextHtml) {
                                 track.innerHTML = nextHtml;
+                                wireProfileImageFallbacks(track);
                             }
                         })
                         .catch(() => {});
@@ -8999,12 +9037,15 @@ const alreadyActive = isMobile
                         )
                         : '';
 
+                    const isBookCover = image && (image.includes('/api/books/cover') || image.includes('covers.openlibrary.org'));
+                    const rawBookFallback = isBookCover ? (() => { const m = image.match(/[?&]url=([^&]+)/); return m ? decodeURIComponent(m[1]) : ''; })() : '';
+
                     const itemCard = document.createElement('div');
                     itemCard.className = 'collection-item-card';
                     itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='/newlogo.webp';">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" data-raw-fallback="${rawBookFallback}" onerror="if(!this.dataset.rawTried&&this.dataset.rawFallback){this.dataset.rawTried='1';this.src=this.dataset.rawFallback}else{this.onerror=null;this.src='/newlogo.webp'}">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
