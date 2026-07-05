@@ -1371,7 +1371,8 @@
       .is('list_type', null)
       .maybeSingle();
     if (existingItem) return true;
-    const { error } = await client.from(cfg.itemsTable).insert(row);
+    const conflictTarget = cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`;
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictTarget, ignoreDuplicates: true });
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     if (error && isConflictError(error)) return true;
     return !error;

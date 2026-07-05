@@ -6,7 +6,7 @@
     { table: 'anime_list_items', label: 'Anime list items' },
     { table: 'game_list_items', label: 'Game list items' },
     { table: 'book_list_items', label: 'Book list items' },
-    { table: 'music_list_items', label: 'Music list items' },
+    { table: 'artist_list_items', label: 'Artist list items' },
     { table: 'sports_list_items', label: 'Sports list items' },
     { table: 'travel_list_items', label: 'Travel list items' },
     { table: 'fashion_list_items', label: 'Fashion list items' },

@@ -256,7 +256,9 @@ const ProfileShowcase = (function () {
                 { id: 'readlist', title: 'Reading List', icon: 'bookmark' }
             ],
             music: [
-                { id: 'favorites', title: 'Favorites', icon: 'heart' }
+                { id: 'favorites', title: 'Favorites', icon: 'heart' },
+                { id: 'listened', title: 'Listened', icon: 'headphones' },
+                { id: 'listenlist', title: 'Listenlist', icon: 'bookmark' }
             ],
             travel: [
                 { id: 'favorites', title: 'Favorites', icon: 'heart' },
