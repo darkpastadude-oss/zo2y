@@ -4887,7 +4887,12 @@
             async function fetchMusicDetails(artistId) {
                 const key = String(artistId || '').trim();
                 if (!key) return null;
-                if (musicCache.has(key)) return musicCache.get(key);
+                if (musicCache.has(key)) {
+                    const cached = musicCache.get(key);
+                    if (cached) return cached;
+                    if (cached === null) return null;
+                }
+                let dbData = null;
                 try {
                     const { data, error } = await supabase
                         .from('artists')
@@ -4898,6 +4903,49 @@
                         musicCache.set(key, data);
                         return data;
                     }
+                    if (data) dbData = data;
+                } catch (_err) {
+                    // ignore and fallback
+                }
+                
+                try {
+                    const res = await fetch(`/api/music/artist/${key}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        if (json.result) {
+                            const merged = {
+                                id: json.result.id,
+                                name: json.result.title,
+                                image_url: json.result.image || '',
+                                external_url: json.result.externalUrl || ''
+                            };
+                            if (!merged.image_url && dbData) {
+                                merged.image_url = dbData.image_url || '';
+                                merged.name = merged.name || dbData.name || '';
+                            }
+                            musicCache.set(key, merged);
+                            return merged;
+                        }
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
+                try {
+                    const map = await getMusicArtistsMap();
+                    const match = map.get(key);
+                    if (match && match.image_url) {
+                        if (dbData) {
+                            match.name = match.name || dbData.name || '';
+                        }
+                        musicCache.set(key, match);
+                        return match;
+                    }
+                } catch (_e) {}
+
+                musicCache.set(key, null);
+                return null;
+            }
                     if (data && !data.image_url) {
                         musicCache.set(key, data);
                     }
