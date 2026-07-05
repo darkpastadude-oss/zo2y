@@ -1,24 +1,22 @@
 /* === SPA-LIKE TAB ROUTER === */
-/* Intercepts nav clicks, fetches new page, swaps content with crossfade. */
-/* Header/sidebar never re-render. */
+/* Smooth crossfade between pages. Header/sidebar never flash. */
+/* Content fades out → full navigation → new page fades in. */
 
 (function () {
   'use strict';
 
-  const TRANSITION_MS = 220;
-  const LOAD_BAR_DELAY = 180;
-  const SPA_ROUTES = new Set([
+  var FADE_OUT_MS = 180;
+  var SPA_ROUTES = new Set([
     'index', 'movies', 'tvshows', 'animes', 'games', 'books', 'music',
     'travel', 'sports', 'fashion', 'food', 'cars', 'reviews', 'profile'
   ]);
 
-  let isTransitioning = false;
-  let loadBarTimeout = null;
+  var isNavigating = false;
 
   function normalizePageName(pathname) {
-    const bodyNav = document.body && document.body.dataset && document.body.dataset.navPage;
+    var bodyNav = document.body && document.body.dataset && document.body.dataset.navPage;
     if (bodyNav) return String(bodyNav).toLowerCase();
-    const file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
+    var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     if (file === '' || file === 'index.html') return 'index';
     if (file.startsWith('movie')) return 'movies';
     if (file.startsWith('tvshow')) return 'tvshows';
@@ -53,65 +51,7 @@
     });
   }
 
-  function showLoadBar() {
-    document.body.classList.remove('app-ready');
-    document.body.classList.add('app-loading');
-  }
-
-  function hideLoadBar() {
-    document.body.classList.remove('app-loading');
-    document.body.classList.add('app-ready');
-    setTimeout(function () {
-      document.body.classList.remove('app-ready');
-    }, 350);
-  }
-
-  function extractContent(doc) {
-    var shell = doc.querySelector('.desktop-app-shell');
-    if (shell) {
-      var panel = shell.querySelector('.desktop-main-panel');
-      if (panel) return panel.innerHTML;
-    }
-    var main = doc.querySelector('main.container.page-shell');
-    if (main) return main.innerHTML;
-    main = doc.querySelector('main.page-shell');
-    if (main) return main.innerHTML;
-    main = doc.querySelector('.container.page-shell');
-    if (main) return main.innerHTML;
-    return null;
-  }
-
-  function extractScripts(doc) {
-    var scripts = [];
-    doc.querySelectorAll('script[src]').forEach(function (s) {
-      var src = s.getAttribute('src') || '';
-      if (src && !src.includes('shared-header.js') && !src.includes('supabase') &&
-          !src.includes('spa-router.js') && !src.includes('skeleton.js') &&
-          !src.includes('list-utils.js') && !src.includes('cover-cache.js') &&
-          !src.includes('img-fallback.js') && !src.includes('mobile-webapp.js') &&
-          !src.includes('mobile-app.css') && !src.includes('curated-media.js')) {
-        scripts.push(src);
-      }
-    });
-    return scripts;
-  }
-
-  function extractInlineScripts(doc) {
-    var scripts = [];
-    doc.querySelectorAll('script:not([src])').forEach(function (s) {
-      var text = s.textContent || '';
-      if (text.includes('DOMContentLoaded') || text.includes('loadBooks') ||
-          text.includes('loadMusic') || text.includes('loadGames') ||
-          text.includes('loadSports') || text.includes('loadReviews') ||
-          text.includes('initCategoryPage') || text.includes('initBrands') ||
-          text.includes('loadPage') || text.includes('initPage')) {
-        scripts.push(text);
-      }
-    });
-    return scripts;
-  }
-
-  function findMainContainer() {
+  function findMainPanel() {
     var shell = document.querySelector('.desktop-app-shell');
     if (shell) {
       var panel = shell.querySelector('.desktop-main-panel');
@@ -126,81 +66,45 @@
     return null;
   }
 
-  function swapContent(newHTML, targetPage) {
-    var container = findMainContainer();
-    if (!container) return;
+  function fadeOutAndNavigate(url) {
+    if (isNavigating) return;
+    isNavigating = true;
 
-    container.classList.add('is-transitioning-out');
-
-    setTimeout(function () {
-      container.innerHTML = newHTML;
-      container.classList.remove('is-transitioning-out');
-      container.classList.add('is-transitioning-in');
-
-      setTimeout(function () {
-        container.classList.remove('is-transitioning-in');
-      }, TRANSITION_MS + 50);
-
-      document.body.setAttribute('data-nav-page', targetPage);
-      setActiveNav(targetPage);
-
-      window.scrollTo({ top: 0, behavior: 'instant' });
-
-      window.dispatchEvent(new CustomEvent('spa:content-swapped', {
-        detail: { page: targetPage }
-      }));
-    }, TRANSITION_MS);
-  }
-
-  async function navigateTo(url, pushState) {
-    if (isTransitioning) return;
-    var targetURL = new URL(url, window.location.origin);
-    var targetPage = normalizePageName(targetURL.pathname);
-    var currentPage = normalizePageName(window.location.pathname);
-
-    if (targetPage === currentPage && !targetURL.search) return;
-    if (!SPA_ROUTES.has(targetPage)) {
+    var panel = findMainPanel();
+    if (!panel) {
       window.location.href = url;
       return;
     }
 
-    isTransitioning = true;
-    showLoadBar();
+    /* Mark session so new page knows to fade in */
+    try { sessionStorage.setItem('spa_navigating', '1'); } catch (_) {}
 
-    try {
-      var resp = await fetch(url, { credentials: 'same-origin' });
-      if (!resp.ok) throw new Error('Fetch failed');
-      var html = await resp.text();
+    panel.classList.add('is-transitioning-out');
 
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(html, 'text/html');
-      var content = extractContent(doc);
-
-      if (!content) {
-        window.location.href = url;
-        return;
-      }
-
-      swapContent(content, targetPage);
-
-      if (pushState !== false) {
-        history.pushState({ spa: true, page: targetPage }, '', url);
-      }
-
-      setTimeout(function () {
-        hideLoadBar();
-        isTransitioning = false;
-      }, TRANSITION_MS + 100);
-
-    } catch (e) {
-      hideLoadBar();
-      isTransitioning = false;
+    setTimeout(function () {
       window.location.href = url;
+    }, FADE_OUT_MS);
+  }
+
+  /* On new page load: if coming from SPA nav, fade in smoothly */
+  function fadeInOnLoad() {
+    var fromSPA = false;
+    try { fromSPA = sessionStorage.getItem('spa_navigating') === '1'; } catch (_) {}
+    if (fromSPA) {
+      try { sessionStorage.removeItem('spa_navigating'); } catch (_) {}
+      var panel = findMainPanel();
+      if (panel) {
+        panel.style.opacity = '0';
+        panel.classList.add('is-transitioning-in');
+        requestAnimationFrame(function () {
+          panel.style.opacity = '';
+        });
+      }
     }
   }
 
   document.addEventListener('click', function (e) {
-    if (isTransitioning) return;
+    if (isNavigating) return;
     var link = e.target.closest('a[href]');
     if (!link) return;
 
@@ -235,25 +139,20 @@
       return;
     }
 
-    navigateTo(href, true);
+    var currentPage = normalizePageName(window.location.pathname);
+    if (navPageName === currentPage) return;
+
+    fadeOutAndNavigate(href);
   }, { capture: true });
 
-  window.addEventListener('popstate', function (e) {
-    if (isTransitioning) return;
-    if (e.state && e.state.spa) {
-      navigateTo(window.location.href, false);
-    } else {
-      window.location.reload();
-    }
-  });
-
-  window.addEventListener('spa:content-swapped', function (e) {
-    var page = e.detail && e.detail.page;
-    if (page) {
-      setActiveNav(page);
+  window.addEventListener('popstate', function () {
+    var targetPage = normalizePageName(window.location.pathname);
+    if (SPA_ROUTES.has(targetPage)) {
+      fadeOutAndNavigate(window.location.href);
     }
   });
 
   document.body.classList.add('spa-ready');
+  fadeInOnLoad();
 
 })();

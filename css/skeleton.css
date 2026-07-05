@@ -2,26 +2,28 @@
 /* Shared skeleton components for all pages. Replace spinners/text with these. */
 
 /* === SPA PAGE TRANSITIONS === */
+/* Fade-out on old page, fade-in on new page load. */
 .main-container-transition,
 .page-shell,
 .desktop-main-panel {
-  transition: opacity 220ms ease, transform 220ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .is-transitioning-out {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(4px);
   pointer-events: none;
 }
 
+/* New page fade-in after SPA navigation */
 .is-transitioning-in {
-  animation: spaFadeIn 220ms ease forwards;
+  animation: spaFadeIn 280ms ease forwards;
 }
 
 @keyframes spaFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -35,6 +37,8 @@
     transition: none;
     animation: none;
   }
+  .is-transitioning-out { opacity: 0; }
+  .is-transitioning-in { opacity: 1; }
 }
 
 @keyframes skeletonShimmer {
