@@ -7835,13 +7835,17 @@ const alreadyActive = isMobile
                                 writePreviewAssetCache(contentType, id, imageUrl);
                             });
                         } else if (contentType === 'music') {
-                            const { data } = await supabase
-                                .from('artists')
-                                .select('id, image_url')
-                                .in('id', missingIds);
-                            (data || []).forEach((row) => {
-                                const id = String(row.id || '').trim();
-                                const imageUrl = row.image_url || '/newlogo.webp';
+                            const rows = await Promise.all(missingIds.map(async (id) => {
+                                try {
+                                    return await fetchMusicDetails(id);
+                                } catch (err) {
+                                    return null;
+                                }
+                            }));
+                            rows.forEach((row, index) => {
+                                const id = String(row?.id || missingIds[index] || '').trim();
+                                if (!id) return;
+                                const imageUrl = String(row?.image_url || '').trim() || FALLBACK_BOOK_IMAGE;
                                 writePreviewAssetCache(contentType, id, imageUrl);
                             });
                         } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {

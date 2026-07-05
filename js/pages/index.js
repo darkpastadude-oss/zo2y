@@ -3832,6 +3832,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
 
       const ensureLinkedMediaRecord = async (itemId) => {
+        const title = String(payload.title || '').trim();
+        const image = String(payload.image || '').trim();
+        const subtitle = String(payload.subtitle || '').trim();
+        if (mediaType === 'book') {
+          const row = { id: String(itemId || '').trim() };
+          if (title) row.title = title;
+          if (subtitle) row.author_name = subtitle;
+          if (image) row.cover_url = image;
+          if (row.id) { try { await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: true }); } catch (_e) {} }
+          return true;
+        }
+        if (mediaType === 'music' || mediaType === 'artist') {
+          const row = { id: String(itemId || '').trim() };
+          if (title) row.name = title;
+          if (image) row.image_url = image;
+          if (row.id) { try { await client.from('artists').upsert(row, { onConflict: 'id', ignoreDuplicates: true }); } catch (_e) {} }
+          return true;
+        }
         return true;
       };
 
@@ -3958,7 +3976,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .eq('list_type', listType).is('list_id', null)
               .maybeSingle();
             if (!existingCheck) {
-              const { error: insertError } = await client.from(table).insert(upsertRow);
+              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,${itemField},list_type,list_id`, ignoreDuplicates: true });
               if (insertError) {
                 const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
                 if (!isConflict) {
@@ -4005,7 +4023,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .eq('list_type', listType).is('list_id', null)
             .maybeSingle();
           if (!existingCheck2) {
-            const { error: insertError } = await client.from(table).insert(upsertRow2);
+            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,${itemField},list_type,list_id`, ignoreDuplicates: true });
             if (insertError) {
               const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
               if (!isConflict) {
