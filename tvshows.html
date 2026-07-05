@@ -1148,6 +1148,9 @@
         }
       }
 
+      const _seenTv = new Set();
+      tvshows = tvshows.filter(t => { const id = String(t.id || ''); if (!id || _seenTv.has(id)) return false; _seenTv.add(id); return true; });
+
       state.tvshows = tvshows.map((tvshow) => ({
         id: String(tvshow.id || ''),
         name: tvshow.name || tvshow.title || 'Unknown TV Show',

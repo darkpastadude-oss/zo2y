@@ -1198,7 +1198,7 @@
           else params.set('sort_by', 'popularity.desc');
           
           const pool = [];
-          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
+          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
             params.set('page', String(p));
             const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
             const res = await fetch(url);
@@ -1228,7 +1228,7 @@
         // Keep this feed "popular right now" and shuffle results for variety.
         const sortBy = 'popularity.desc';
         try {
-          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
+          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
             const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
             const res = await fetch(url);
             if (!res.ok) break;
@@ -1250,7 +1250,7 @@
           // Fallback to trending if discover fails
           try {
             animes = [];
-            for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < needed; p += 1) {
+            for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
               const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
               const res = await fetch(url);
               if (!res.ok) break;
@@ -1325,6 +1325,9 @@
           totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
         }
       }
+
+      const _seenAnime = new Set();
+      animes = animes.filter(a => { const id = String(a.id || ''); if (!id || _seenAnime.has(id)) return false; _seenAnime.add(id); return true; });
 
       state.animes = animes.map((anime) => ({
         id: String(anime.id || ''),

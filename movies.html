@@ -435,6 +435,9 @@
         }
       }
 
+      const _seenMovies = new Set();
+      movies = movies.filter(m => { const id = String(m.id || ''); if (!id || _seenMovies.has(id)) return false; _seenMovies.add(id); return true; });
+
       state.movies = movies.map((movie) => ({
         id: String(movie.id || ''),
         title: movie.title || movie.name || 'Unknown Movie',
