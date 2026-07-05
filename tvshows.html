@@ -1072,7 +1072,7 @@
           console.error('Failed to load tvshows with filters', _err);
         }
       } else if (!query) {
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular');
+        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
         if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
           tvshows = state._poolCache;
           if (state._poolCacheMeta) {

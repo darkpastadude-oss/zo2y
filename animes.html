@@ -1235,7 +1235,7 @@
         }
       } else if (!query) {
         const sortBy = 'popularity.desc';
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular');
+        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
         if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
           animes = state._poolCache;
           if (state._poolCacheMeta) {

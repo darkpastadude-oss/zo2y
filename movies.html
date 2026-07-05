@@ -355,7 +355,7 @@
           console.error('Failed to load movies with filters', _err);
         }
       } else if (!query) {
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular');
+        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
         if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
           movies = state._poolCache;
           if (state._poolCacheMeta) {
@@ -854,6 +854,15 @@
       }
       initFilters().then(() => loadPage());
     });
+
+    window.debugMoviesPage = function() {
+      console.log(`=== Page ${state.page} of ${state.totalPages} ===`);
+      console.log(`Grid size: ${MOVIES_PAGE_SIZE} | apiPageStart would be: ${Math.floor(((state.page - 1) * MOVIES_PAGE_SIZE) / TMDB_PAGE_SIZE) + 1}`);
+      state.movies.forEach((m, i) => {
+        console.log(`  ${(state.page - 1) * MOVIES_PAGE_SIZE + i + 1}. ${m.title} (${m.releaseDate || 'N/A'}) [id:${m.id}]`);
+      });
+      return state.movies.map(m => `${m.title} (${m.releaseDate || 'N/A'})`);
+    };
   </script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
   <script src="js/legal-consent.js?v=20260623z" defer></script>
