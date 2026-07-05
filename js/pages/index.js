@@ -5647,8 +5647,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         { key: 'tv', railId: 'tvRail', loader: loadTv, opts: { mediaType: 'tv' } },
         { key: 'anime', railId: 'animeRail', loader: loadAnime, opts: { mediaType: 'anime' } },
         ...(ENABLE_GAMES ? [{ key: 'game', railId: 'gamesRail', loader: loadGames, opts: { mediaType: 'game' }, timeoutMs: 12000 }] : []),
-        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         { key: 'book', railId: 'booksRail', loader: loadBooks, opts: { mediaType: 'book' }, timeoutMs: 12000 },
+        { key: 'music', railId: 'musicRail', loader: loadMusic, opts: { mediaType: 'music' }, timeoutMs: 12000 },
         ...(ENABLE_FASHION ? [{ key: 'fashion', railId: 'fashionRail', loader: loadFashionBrands, opts: { mediaType: 'fashion' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_FOOD ? [{ key: 'food', railId: 'foodRail', loader: loadFoodBrands, opts: { mediaType: 'food' }, timeoutMs: 12000 }] : []),
         ...(ENABLE_CARS ? [{ key: 'car', railId: 'carRail', loader: loadCarBrands, opts: { mediaType: 'car' }, timeoutMs: 12000 }] : []),
@@ -6310,6 +6310,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ? sanitizeHomeTravelItem(item)
           : item;
         if (!itemData) return '';
+        if (itemData.customHtml) {
+          return `
+            <article class="card" data-href="${escapeHtml(itemData.href || '')}" data-media-type="${escapeHtml(mediaTypeRaw)}" data-item-id="${escapeHtml(itemData.itemId || '')}" data-title="${escapeHtml(itemData.title || '')}" data-subtitle="${escapeHtml(itemData.subtitle || '')}" data-image="${escapeHtml(itemData.image || '')}">
+              ${itemData.customHtml}
+            </article>
+          `;
+        }
         const media = getHomeMediaMeta(mediaTypeRaw);
         const uniformMedia = !!opts?.uniformMedia;
         const landscape = !uniformMedia && (!!opts?.landscape || mediaTypeRaw === 'restaurant');
