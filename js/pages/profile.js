@@ -4931,6 +4931,26 @@
                     // ignore
                 }
 
+                if (dbData && dbData.name) {
+                    try {
+                        const searchRes = await fetch(`/api/music/search?q=${encodeURIComponent(dbData.name)}&limit=1`);
+                        if (searchRes.ok) {
+                            const searchJson = await searchRes.json();
+                            const match = searchJson.results && searchJson.results[0];
+                            if (match && match.image) {
+                                const found = {
+                                    id: key,
+                                    name: String(match.title || dbData.name || '').trim(),
+                                    image_url: String(match.image || '').trim(),
+                                    external_url: String(match.externalUrl || dbData.external_url || '').trim()
+                                };
+                                musicCache.set(key, found);
+                                return found;
+                            }
+                        }
+                    } catch (_e) {}
+                }
+
                 try {
                     const map = await getMusicArtistsMap();
                     const match = map.get(key);
@@ -4944,46 +4964,6 @@
                 } catch (_e) {}
 
                 musicCache.set(key, null);
-                return null;
-            }
-                    if (data && !data.image_url) {
-                        musicCache.set(key, data);
-                    }
-                } catch (_err) {
-                    // ignore and fallback
-                }
-                
-                try {
-                    const res = await fetch(`/api/music/artist/${key}`);
-                    if (res.ok) {
-                        const json = await res.json();
-                        if (json.result) {
-                            const data = {
-                                id: json.result.id,
-                                name: json.result.title,
-                                image_url: json.result.image || '',
-                                external_url: json.result.externalUrl || ''
-                            };
-                            musicCache.set(key, data);
-                            return data;
-                        }
-                    }
-                } catch (e) {
-                    // ignore
-                }
-
-                try {
-                    const map = await getMusicArtistsMap();
-                    const match = map.get(key);
-                    if (match && match.image_url) {
-                        musicCache.set(key, match);
-                        return match;
-                    }
-                } catch (_e) {}
-
-                if (!musicCache.has(key)) {
-                    musicCache.set(key, null);
-                }
                 return null;
             }
 
