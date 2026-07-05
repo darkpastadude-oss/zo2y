@@ -272,56 +272,47 @@ export default async function booksHandler(req, res) {
   if (section === "popular") {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
-    const queries = [
-      'author:"Colleen Hoover"',
-      'author:"Taylor Jenkins Reid"',
-      'author:"Rebecca Yarros"',
-      'author:"Ana Huang"',
-      'author:"Sarah J. Maas"',
-      'author:"Holly Black"',
-      'author:"Leigh Bardugo"',
-      'author:"Madeline Miller"',
-      'author:"Emily Henry"',
-      'author:"Rachel Gillig"',
-      'author:"Carola Lovering"',
-      'author:"Elly Griffiths"',
-      'author:"Freida McFadden"',
-      'author:"Italo Calvino"',
-      'author:"Fredrik Backman"',
-      'author:"V.E. Schwab"',
-      'author:"Stephanie Garber"',
-      'author:"Donna Tartt"',
-      'author:"Khaled Hosseini"',
-      'author:"Kazuo Ishiguro"'
+    const subjects = [
+      "fiction", "fantasy", "romance", "thriller", "mystery",
+      "science fiction", "horror", "historical fiction", "literary fiction",
+      "young adult", "nonfiction", "memoir", "biography", "poetry",
+      "adventure", "dystopia", "contemporary", "psychological thriller",
+      "magic", "suspense"
     ];
-    const numAuthors = Math.min(4, queries.length);
-    const shuffled = [...queries].sort(() => Math.random() - 0.5);
-    const selected = shuffled.slice(0, numAuthors);
+    const shuffledSubjects = [...subjects].sort(() => Math.random() - 0.5);
+    const pickedSubjects = shuffledSubjects.slice(0, 6);
     try {
       const seenTitles = new Set();
-      const authorCounts = {};
-      const maxPerAuthor = 3;
+      const authorSeen = new Set();
       const allBooks = [];
-      for (const q of selected) {
+      for (const subj of pickedSubjects) {
         if (allBooks.length >= limit) break;
         try {
-          const data = await openLibFetch("search.json", { q, limit: Math.ceil(limit * 1.5) });
+          const data = await openLibFetch("search.json", {
+            q: `subject:${subj}`,
+            sort: "rating",
+            limit: Math.ceil(limit * 2)
+          });
           const rawItems = data.docs || [];
           for (const doc of rawItems) {
             if (allBooks.length >= limit) break;
             if (!doc.title || !doc.cover_i) continue;
-            if ((doc.first_publish_year || 0) < 2000) continue;
+            if ((doc.first_publish_year || 0) < 2010) continue;
             const langs = Array.isArray(doc.language) ? doc.language : [];
             if (langs.length === 0 || !langs.includes('eng')) continue;
             const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
             if (seenTitles.has(norm)) continue;
             const authorKey = (doc.author_name?.[0] || '').toLowerCase();
-            if (authorCounts[authorKey] >= maxPerAuthor) continue;
+            if (!authorKey || authorSeen.has(authorKey)) continue;
+            authorSeen.add(authorKey);
             seenTitles.add(norm);
-            authorCounts[authorKey] = (authorCounts[authorKey] || 0) + 1;
             allBooks.push(mapOpenLibDoc(doc));
           }
         } catch (_) {}
+      }
+      for (let i = allBooks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allBooks[i], allBooks[j]] = [allBooks[j], allBooks[i]];
       }
       return res.json({ ok: true, books: allBooks, total: allBooks.length });
     } catch (e) {
