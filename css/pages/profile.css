@@ -3166,7 +3166,7 @@
                 left: 0;
                 right: 0;
                 height: 70px;
-                display: flex;
+                display: flex !important;
                 justify-content: space-around;
                 align-items: center;
                 background: var(--card);
@@ -7797,7 +7797,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 /* Ensure bottom nav stays above content */
 .mobile-bottom-nav {
-  z-index: 50;
+  display: none !important;
 }
 
 /* ============================================================
