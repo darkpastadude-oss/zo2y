@@ -435,15 +435,6 @@
     return `${SUPABASE_URL}/storage/v1/object/public/home-spotlights/${fallbackName}`;
   }
 
-  function normalizeBrandSearch(value) {
-    return String(value || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
-  }
-
   function buildBrandSpotlightPool(items = []) {
     const seen = new Set();
     return (Array.isArray(items) ? items : []).filter((brand) => {
@@ -628,15 +619,6 @@
       <option value="all">All ${escapeHtml(BRAND_LABEL)} Brands</option>
       ${categories.map((cat) => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join('')}
     `;
-  }
-
-  function normalizeBrandSearch(value) {
-    return String(value || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
   }
 
   function getFilteredBrands() {

@@ -7,9 +7,7 @@
             const TMDB_PROXY_BASE = "/api/tmdb";
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
-            const OPEN_LIBRARY_BASE = "https://openlibrary.org";
-            const OPEN_LIBRARY_PROXY_BASE = "/api/openlibrary";
-            const GOOGLE_BOOKS_PROXY_BASE = "/api/books";
+
             const FALLBACK_BOOK_IMAGE = "/newlogo.webp";
             const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
@@ -38,8 +36,7 @@
             let targetUser = null;
             let targetUserId = null;
             let isViewingOwnProfile = true;
-            const GAMES_DISABLED = false;
-            const ENABLE_RESTAURANTS = false;
+
             const DEFAULT_PROFILE_TAB = 'movies';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity', 'overview']);
             let currentPrimaryTab = 'overview';
@@ -131,7 +128,7 @@
                 movie: 'movie_lists',
                 tv: 'tv_lists',
                 anime: 'anime_lists',
-                ...(GAMES_DISABLED ? {} : { game: 'game_lists' }),
+                game: 'game_lists',
                 book: 'book_lists',
                 music: 'artist_lists',
                 travel: 'travel_lists',
@@ -143,7 +140,7 @@
                 movie: 'movie_list_items',
                 tv: 'tv_list_items',
                 anime: 'anime_list_items',
-                ...(GAMES_DISABLED ? {} : { game: 'game_list_items' }),
+                game: 'game_list_items',
                 book: 'book_list_items',
                 music: 'artist_list_items',
                 travel: 'travel_list_items',
@@ -155,7 +152,7 @@
                 movie: 'movie_id',
                 tv: 'tv_id',
                 anime: 'anime_id',
-                ...(GAMES_DISABLED ? {} : { game: 'game_id' }),
+                game: 'game_id',
                 book: 'book_id',
                 music: 'artist_id',
                 travel: 'country_code',
@@ -182,13 +179,13 @@
             let hasBoundStatsRealtimeLifecycle = false;
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
-                ['movies', 'tv', 'anime', ...(GAMES_DISABLED ? [] : ['games']), 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                ['movies', 'tv', 'anime', 'games', 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 'movie',
                 'tv',
                 'anime',
-                ...(GAMES_DISABLED ? [] : ['game']),
+                'game',
                 'book',
                 'music',
                 'travel',
@@ -201,7 +198,7 @@
                 movie: 'movies',
                 tv: 'tv',
                 anime: 'anime',
-                ...(GAMES_DISABLED ? {} : { game: 'games' }),
+                game: 'games',
                 book: 'books',
                 music: 'music',
                 travel: 'travel',
@@ -307,8 +304,6 @@
                         ProfileShowcase.init(supabase);
                     }
 
-                    disableGameFeatures();
-                    
                     const loadProfilePromise = loadProfile();
                     const communityInitPromise = (async () => {
                         communitySystem = createCommunitySystem();
@@ -379,38 +374,7 @@
                 setupMobileTabsHint();
             }
 
-            function disableGameFeatures() {
-                if (!GAMES_DISABLED) return;
 
-                const removeSelectors = [
-                    '.nav-tab[data-tab="games"]',
-                    '#games-tab',
-                    '#game-detail-view',
-                    '#createGameListBtn',
-                    '.mobile-tab[data-tab="games"]',
-                    '#mobileGamesSection',
-                    '#mobileGameDetailSection',
-                    '#mobileCreateGameListBtn',
-                    "button[onclick*=\"createListForType('games')\"]",
-                    "button[onclick*=\"createListForType('game')\"]",
-                    'button[onclick*="games.html"]',
-                    'a[href="games.html"]',
-                    'a[href="/games.html"]',
-                    '.list-icon-option[data-icon="game"]',
-                    '.edit-list-icon-option[data-icon="game"]'
-                ];
-                removeSelectors.forEach((selector) => {
-                    document.querySelectorAll(selector).forEach((el) => el.remove());
-                });
-
-                document.querySelectorAll("[onclick*=\"showTab('games')\"]").forEach((el) => {
-                    el.setAttribute('onclick', `ProfileManager.showTab('${DEFAULT_PROFILE_TAB}')`);
-                });
-
-                if (currentTab === 'games') {
-                    currentTab = DEFAULT_PROFILE_TAB;
-                }
-            }
 
             const RESERVED_PROFILE_USERNAMES = new Set([
                 'admin', 'api', 'app', 'auth', 'authcallback', 'blog', 'book', 'books',
@@ -580,7 +544,7 @@
                         { key: 'movies', fn: () => renderMovies(), enabled: true },
                         { key: 'tv', fn: () => renderTvShows(), enabled: true },
                         { key: 'anime', fn: () => renderAnimeShows(), enabled: true },
-                        { key: 'games', fn: () => renderGames(), enabled: !GAMES_DISABLED },
+                        { key: 'games', fn: () => renderGames(), enabled: true },
                         { key: 'books', fn: () => renderBooks(), enabled: true },
                         { key: 'music', fn: () => renderMusic(), enabled: true },
                         { key: 'sports', fn: () => renderSports(), enabled: true },
@@ -6807,7 +6771,7 @@
 
                 const handlers = {
                     movies: () => renderMovies(),
-                    ...(GAMES_DISABLED ? {} : { games: () => renderGames() }),
+                    games: () => renderGames(),
                     tv: () => renderTvShows(),
                     anime: () => renderAnimeShows(),
                     books: () => renderBooks(),
@@ -11375,7 +11339,6 @@ resetDetailPanels();
                 getShowcaseListId: getShowcaseListId,
                 getShowcaseListTitle: getShowcaseListTitle,
                 setShowcaseList: setShowcaseList,
-                setShowcaseOrder: setShowcaseOrder,
                 setShowcaseOrder: setShowcaseOrder,
                 backToProfile: backToProfile,
                 showShowcaseDetail: showShowcaseDetail,
