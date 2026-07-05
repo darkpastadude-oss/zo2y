@@ -6,6 +6,7 @@
   'use strict';
 
   var FADE_OUT_MS = 180;
+  var SAFETY_TIMEOUT_MS = 3000;
   var SPA_ROUTES = new Set([
     'index', 'movies', 'tvshows', 'animes', 'games', 'books', 'music',
     'travel', 'sports', 'fashion', 'food', 'cars', 'reviews', 'profile'
@@ -14,9 +15,8 @@
   var isNavigating = false;
 
   function normalizePageName(pathname) {
-    var bodyNav = document.body && document.body.dataset && document.body.dataset.navPage;
-    if (bodyNav) return String(bodyNav).toLowerCase();
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
+    file = file.split('?')[0].split('#')[0];
     if (file === '' || file === 'index.html') return 'index';
     if (file.startsWith('movie')) return 'movies';
     if (file.startsWith('tvshow')) return 'tvshows';
@@ -52,17 +52,19 @@
   }
 
   function findMainPanel() {
-    var shell = document.querySelector('.desktop-app-shell');
-    if (shell) {
-      var panel = shell.querySelector('.desktop-main-panel');
-      if (panel) return panel;
+    var selectors = [
+      '.desktop-app-shell .desktop-main-panel',
+      'main.container.page-shell',
+      'main.container.page',
+      'main.container',
+      'main.page-shell',
+      'main.page',
+      'main'
+    ];
+    for (var i = 0; i < selectors.length; i++) {
+      var el = document.querySelector(selectors[i]);
+      if (el) return el;
     }
-    var main = document.querySelector('main.container.page-shell');
-    if (main) return main;
-    main = document.querySelector('main.page-shell');
-    if (main) return main;
-    main = document.querySelector('.container.page-shell');
-    if (main) return main;
     return null;
   }
 
@@ -70,14 +72,15 @@
     if (isNavigating) return;
     isNavigating = true;
 
+    setTimeout(function () { isNavigating = false; }, SAFETY_TIMEOUT_MS);
+
+    try { sessionStorage.setItem('spa_navigating', '1'); } catch (_) {}
+
     var panel = findMainPanel();
     if (!panel) {
       window.location.href = url;
       return;
     }
-
-    /* Mark session so new page knows to fade in */
-    try { sessionStorage.setItem('spa_navigating', '1'); } catch (_) {}
 
     panel.classList.add('is-transitioning-out');
 
@@ -86,21 +89,28 @@
     }, FADE_OUT_MS);
   }
 
-  /* On new page load: if coming from SPA nav, fade in smoothly */
   function fadeInOnLoad() {
     var fromSPA = false;
     try { fromSPA = sessionStorage.getItem('spa_navigating') === '1'; } catch (_) {}
-    if (fromSPA) {
-      try { sessionStorage.removeItem('spa_navigating'); } catch (_) {}
-      var panel = findMainPanel();
-      if (panel) {
-        panel.style.opacity = '0';
-        panel.classList.add('is-transitioning-in');
-        requestAnimationFrame(function () {
-          panel.style.opacity = '';
-        });
-      }
-    }
+    if (!fromSPA) return;
+    try { sessionStorage.removeItem('spa_navigating'); } catch (_) {}
+
+    var panel = findMainPanel();
+    if (!panel) return;
+
+    panel.style.opacity = '0';
+    panel.style.transform = 'translateY(4px)';
+    void panel.offsetHeight;
+    panel.classList.add('is-transitioning-in');
+
+    setTimeout(function () {
+      panel.style.opacity = '';
+      panel.style.transform = '';
+    }, 100);
+
+    setTimeout(function () {
+      panel.classList.remove('is-transitioning-in');
+    }, 350);
   }
 
   document.addEventListener('click', function (e) {
@@ -128,9 +138,7 @@
       var target = new URL(href, window.location.origin);
       if (target.origin !== window.location.origin) return;
       if (!/\.html?$/.test(target.pathname) && target.pathname !== '/') return;
-    } catch (_) {
-      return;
-    }
+    } catch (_) { return; }
 
     e.preventDefault();
     var navPageName = navPage || normalizePageName(new URL(href, window.location.origin).pathname);
@@ -146,10 +154,8 @@
   }, { capture: true });
 
   window.addEventListener('popstate', function () {
-    var targetPage = normalizePageName(window.location.pathname);
-    if (SPA_ROUTES.has(targetPage)) {
-      fadeOutAndNavigate(window.location.href);
-    }
+    var pageName = normalizePageName(window.location.pathname);
+    setActiveNav(pageName);
   });
 
   document.body.classList.add('spa-ready');
