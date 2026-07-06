@@ -479,9 +479,30 @@
       const rv=_bridge&&typeof _bridge.getVisibleItemIds==='function'?_bridge.getVisibleItemIds():[];
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
-      if(dt&&lk.length&&vs.length){const data=await multiQuery(c,dt.table,`${dt.itemField},list_type`,'user_id',u.id,dt.itemField,vs,'list_type',lk);
-        const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'');const cur=sb.get(ik);if(cur&&!(lt in cur))cur[lt]=true});
-        sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));}
+      if(dt&&lk.length&&vs.length){
+        const sysKeys=lk.map(k=>window.ListUtils?.SYSTEM_LIST_KEY_MAP?.[String(k).toLowerCase()]||String(k).toLowerCase());
+        const uniqueSysKeys=[...new Set(sysKeys)];
+        const sysIdMap={}; const reverseSysIdMap={};
+        for(let i=0; i<lk.length; i++){
+          const sk=sysKeys[i]; const key=lk[i];
+          if(window.ListUtils && typeof window.ListUtils.resolveSystemListId==='function'){
+            const sid=await window.ListUtils.resolveSystemListId(c,sk);
+            if(sid){ sysIdMap[sk]=sid; reverseSysIdMap[sid]=reverseSysIdMap[sid]||[]; reverseSysIdMap[sid].push(key); }
+          }
+        }
+        const sidValues=Object.values(sysIdMap);
+        if(sidValues.length){
+          const data=await multiQuery(c,dt.table,`${dt.itemField},system_list_id`,'user_id',u.id,dt.itemField,vs,'system_list_id',sidValues);
+          const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{
+            const ik=String(r?.[dt.itemField]??'');const sid=r?.system_list_id;
+            if(sid && reverseSysIdMap[sid]){
+              const cur=sb.get(ik);
+              if(cur){ reverseSysIdMap[sid].forEach(k=>cur[k]=true); }
+            }
+          });
+          sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));
+        }
+      }
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const cfg=ListUtils.getListConfig(mt);const lids=cl.map(l=>l.id).filter(Boolean);if(!cfg||!lids.length||!vs.length)return;
       const data2=await multiQueryIn(c,cfg.itemsTable,`list_id,${cfg.itemIdField}`,lids,'list_id',cfg.itemIdField,vs);

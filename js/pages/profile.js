@@ -125,40 +125,40 @@
             const PROFILE_PIN_TABLE = 'profile_pinned_lists';
             const LIST_COLLAB_TABLE = 'list_collaborators';
             const CUSTOM_LIST_TABLES = {
-                movie: 'movie_lists',
-                tv: 'tv_lists',
-                anime: 'anime_lists',
-                game: 'game_lists',
-                book: 'book_lists',
-                music: 'artist_lists',
-                travel: 'travel_lists',
-                fashion: 'fashion_lists',
-                food: 'food_lists',
-                car: 'car_lists'
+                movie: 'user_lists',
+                tv: 'user_lists',
+                anime: 'user_lists',
+                game: 'user_lists',
+                book: 'user_lists',
+                music: 'user_lists',
+                travel: 'user_lists',
+                fashion: 'user_lists',
+                food: 'user_lists',
+                car: 'user_lists'
             };
             const MEDIA_ITEM_TABLES = {
-                movie: 'movie_list_items',
-                tv: 'tv_list_items',
-                anime: 'anime_list_items',
-                game: 'game_list_items',
-                book: 'book_list_items',
-                music: 'artist_list_items',
-                travel: 'travel_list_items',
-                fashion: 'fashion_list_items',
-                food: 'food_list_items',
-                car: 'car_list_items'
+                movie: 'list_items',
+                tv: 'list_items',
+                anime: 'list_items',
+                game: 'list_items',
+                book: 'list_items',
+                music: 'list_items',
+                travel: 'list_items',
+                fashion: 'list_items',
+                food: 'list_items',
+                car: 'list_items'
             };
             const MEDIA_ITEM_FIELDS = {
-                movie: 'movie_id',
-                tv: 'tv_id',
-                anime: 'anime_id',
-                game: 'game_id',
-                book: 'book_id',
-                music: 'artist_id',
-                travel: 'country_code',
-                fashion: 'brand_id',
-                food: 'brand_id',
-                car: 'brand_id'
+                movie: 'entity_id',
+                tv: 'entity_id',
+                anime: 'entity_id',
+                game: 'entity_id',
+                book: 'entity_id',
+                music: 'entity_id',
+                travel: 'entity_id',
+                fashion: 'entity_id',
+                food: 'entity_id',
+                car: 'entity_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {
@@ -1794,6 +1794,20 @@
                         return Promise.resolve();
                     }
                 }));
+            }
+
+            async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
+                if (window.ListService && typeof window.ListService.loadList === 'function') {
+                    try {
+                        const listData = await window.ListService.loadList(supabase, ownerUserId, contentType, listId);
+                        if (listData && listData.items) {
+                            return listData.items.map(i => i.item_id).filter(Boolean);
+                        }
+                    } catch (e) {
+                        console.error('Error in fetchMediaCollectionItemIds via ListService:', e);
+                    }
+                }
+                return [];
             }
 
             function getStatsRealtimeDefinitions(targetId) {
@@ -3985,55 +3999,6 @@
             }
 
             async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
-                const table = MEDIA_ITEM_TABLES[contentType];
-                const itemField = MEDIA_ITEM_FIELDS[contentType];
-                if (!table || !itemField) return [];
-
-                const safeListType = String(listType || '').toLowerCase();
-                const safeOwnerId = String(ownerUserId || '').trim();
-                const safeListId = String(listId || '').trim();
-                if (!safeListId) return [];
-
-                const runQuery = async (selectField, filterField) => {
-                    let query = supabase
-                        .from(table)
-                        .select(selectField)
-                        .eq(filterField, safeListId);
-                    if (safeListType === 'default') {
-                        query = query.eq('user_id', safeOwnerId);
-                    }
-                    return await query;
-                };
-
-                const primaryFilterField = safeListType === 'default' ? 'list_type' : 'list_id';
-                const fallbackFilterField = primaryFilterField === 'list_type' ? 'list_id' : 'list_type';
-
-                let result = await runQuery(itemField, primaryFilterField);
-                if (result?.error && isColumnMissingError(result.error, itemField)) {
-                    result = await runQuery('item_id', primaryFilterField);
-                }
-                if (result?.error && isColumnMissingError(result.error, primaryFilterField)) {
-                    result = await runQuery(itemField, fallbackFilterField);
-                    if (result?.error && isColumnMissingError(result.error, itemField)) {
-                        result = await runQuery('item_id', fallbackFilterField);
-                    }
-                }
-
-                const data = result?.data || [];
-                const error = result?.error || null;
-                if (error) throw error;
-
-                const unique = [];
-                const seen = new Set();
-                (data || []).forEach((row) => {
-                    const value = String(row?.[itemField] || row?.item_id || '').trim();
-                    if (!value || seen.has(value)) return;
-                    seen.add(value);
-                    unique.push(value);
-                });
-                return unique;
-            }
-
             function buildProfileUrl({ tab = null, collection = null, listId = null, listType = null, view = null } = {}) {
                 const currentParams = new URLSearchParams(window.location.search);
                 const nextParams = new URLSearchParams();
