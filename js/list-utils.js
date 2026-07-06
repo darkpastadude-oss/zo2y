@@ -1345,7 +1345,8 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const conflictTarget = cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`;
+      const isSplitIndex = ['fashion_list_items', 'food_list_items', 'travel_list_items', 'car_list_items'].includes(cfg.itemsTable);
+      const conflictTarget = isSplitIndex ? `list_id,${cfg.itemIdField}` : (cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`);
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
         onConflict: conflictTarget,
         ignoreDuplicates: false
@@ -1388,7 +1389,8 @@
       .is('list_type', null)
       .maybeSingle();
     if (existingItem) return true;
-    const conflictTarget = cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`;
+    const isSplitIndex = ['fashion_list_items', 'food_list_items', 'travel_list_items', 'car_list_items'].includes(cfg.itemsTable);
+    const conflictTarget = isSplitIndex ? `list_id,${cfg.itemIdField}` : (cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`);
     const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictTarget, ignoreDuplicates: true });
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     if (error && isConflictError(error)) return true;

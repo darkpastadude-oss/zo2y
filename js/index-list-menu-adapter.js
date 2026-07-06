@@ -227,7 +227,7 @@
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
     if(nextSaved){try{const cr={id:String(item.itemId||'').trim()};if(item.title){if(mt==='book')cr.title=item.title;else cr.name=item.title}if(item.image){if(mt==='book')cr.cover_url=item.image;else cr.image_url=item.image}if(item.subtitle&&mt==='book')cr.author_name=item.subtitle;if(cr.id){const pTable=mt==='book'?'books':'artists';await c.from(pTable).upsert(cr,{onConflict:'id'})}}catch(e){}}
     const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const{error}=await c.from(tbl.table).upsert(p,{onConflict:`user_id,${tbl.itemField},list_type,list_id`,ignoreDuplicates:true}); if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
+    if(nextSaved){const isSplitIndex=['fashion_list_items','food_list_items','travel_list_items','car_list_items'].includes(tbl.table);const conflictTarget=isSplitIndex?`user_id,${tbl.itemField},list_type`:`user_id,${tbl.itemField},list_type,list_id`;const{error}=await c.from(tbl.table).upsert(p,{onConflict:conflictTarget,ignoreDuplicates:true}); if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }
