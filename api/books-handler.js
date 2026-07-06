@@ -296,6 +296,7 @@ export default async function booksHandler(req, res) {
     const limit = Math.min(Number(query.limit) || 20, 40);
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
     const genre = String(query.genre || "").trim().toLowerCase();
+    const sort = String(query.sort || "").trim().toLowerCase();
 
     const genres = genre
       ? [genre]
@@ -312,12 +313,11 @@ export default async function booksHandler(req, res) {
     const seenIds = new Set();
     const seenTitles = new Set();
 
-    // Primary: Google Books API (trending/popular results)
     try {
       const fetches = genres.map(async (g) => {
         try {
-          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=relevance&maxResults=40&printType=books`;
-          return await fetchJson(url, { cacheKey: `gb:pop:${g}`, ttlMs: 600000 });
+          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=${sort === 'newest' ? 'newest' : 'relevance'}&maxResults=40&printType=books`;
+          return await fetchJson(url, { cacheKey: `gb:pop:${g}:${sort}`, ttlMs: 600000 });
         } catch (_) { return { items: [] }; }
       });
 
@@ -347,7 +347,6 @@ export default async function booksHandler(req, res) {
       }
     } catch (_) {}
 
-    // Fallback: Open Library /subjects/ endpoint
     if (allBooks.length < need) {
       const subjectFetches = genres.slice(0, 10).map(async (subj) => {
         try {
@@ -370,6 +369,14 @@ export default async function booksHandler(req, res) {
           allBooks.push(mapOpenLibSubjectDoc(doc));
         }
       }
+    }
+
+    if (sort === "newest") {
+      allBooks.sort((a, b) => {
+        const yearA = parseInt(a.volumeInfo?.publishedDate || a.year || "0") || 0;
+        const yearB = parseInt(b.volumeInfo?.publishedDate || b.year || "0") || 0;
+        return yearB - yearA;
+      });
     }
 
     const paged = allBooks.slice(startIndex, startIndex + limit);

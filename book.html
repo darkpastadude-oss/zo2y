@@ -820,11 +820,11 @@
     </div>
   </div>
 
-    <script src="js/list-utils.js?v=20260705a" defer></script>
+    <script src="js/list-utils.js?v=20260706aa" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/spa-router.js?v=1751720000" defer></script>
-<script src="js/index-list-menu-adapter.js?v=20260705a" defer></script>
-<script src="js/normalizers.js?v=20260623z"></script>
+<script src="js/index-list-menu-adapter.js?v=20260706aa" defer></script>
+<script src="js/normalizers.js?v=20260706aa"></script>
 <script src="js/unified-media-hero.js?v=20260623z"></script>
     <script src="js/review-interactions.js?v=20260623z" defer></script>
     <script>
@@ -888,11 +888,21 @@
         if (!cleanId) return null;
         try {
           const res = await fetch(`/api/books/volumes/${encodeURIComponent(cleanId)}`);
-          if (!res.ok) return null;
-          const data = await res.json();
-          const n = typeof window.normalizeBook === 'function' ? window.normalizeBook(data) : data;
-          return n && n.title ? n : null;
-        } catch (_) { return null; }
+          if (res.ok) {
+            const data = await res.json();
+            const n = typeof window.normalizeBook === 'function' ? window.normalizeBook(data) : data;
+            if (n && n.title) return n;
+          }
+        } catch (_) {}
+        try {
+          const gRes = await fetch(`https://www.googleapis.com/books/v1/volumes/${encodeURIComponent(cleanId)}`);
+          if (gRes.ok) {
+            const gData = await gRes.json();
+            const n = typeof window.normalizeBook === 'function' ? window.normalizeBook(gData) : gData;
+            if (n && n.title) return n;
+          }
+        } catch (_) {}
+        return null;
       }
 
       async function fetchRecommendations(bid) {

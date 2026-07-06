@@ -36,6 +36,7 @@ async function initAuthUi() {
 
 const state = {
   books: [],
+  seenIds: new Set(),
   query: "",
   genre: "",
   sort: "relevance",
@@ -47,6 +48,7 @@ const state = {
 };
 
 const PAGE_SIZE = 24;
+const MAX_PAGES = 5;
 
 function escapeHtml(v) {
   return String(v == null ? "" : v)
@@ -97,25 +99,27 @@ async function loadBooks(append) {
   if (!append) {
     grid.innerHTML = Skel.grid(PAGE_SIZE, 4);
     state.books = [];
+    state.seenIds = new Set();
     state.offset = 0;
     state.hasMore = true;
+    _booksLastRendered = 0;
   } else if (sentinel) {
-    sentinel.innerHTML = '<div class="loading-spinner"></div>';
+    sentinel.innerHTML = Skel.posterCard();
   }
 
   const q = state.query.trim();
   let url;
 
   if (q) {
-    const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
-    if (state.orderBy) params.set("orderBy", state.orderBy);
-    if (state.genre) params.set("q", `${q}+subject:${state.genre}`);
+    const searchQ = state.genre ? `${q} AND subject:${state.genre}` : q;
+    const params = new URLSearchParams({ q: searchQ, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
     url = `/api/books/search?${params}`;
     document.getElementById("gridTitle").textContent = `Search: "${q}"`;
     document.getElementById("gridDesc").textContent = "";
   } else {
     const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(state.offset) });
     if (state.genre) params.set("genre", state.genre);
+    if (state.sort === "newest") params.set("sort", "newest");
     url = `/api/books/popular?${params}`;
     document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
     document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
@@ -129,7 +133,12 @@ async function loadBooks(append) {
     if (abort.signal.aborted) return;
 
     const raw = data.items || data.books || [];
-    const newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+    const newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean).filter(b => {
+      const id = b.id || b.providerId || "";
+      if (!id || state.seenIds.has(id)) return false;
+      state.seenIds.add(id);
+      return true;
+    });
 
     if (append) {
       state.books = state.books.concat(newBooks);
@@ -137,9 +146,10 @@ async function loadBooks(append) {
       state.books = newBooks;
     }
 
+    const pageCount = Math.floor(state.offset / PAGE_SIZE) + 1;
     state.totalItems = data.total || state.books.length;
     state.offset = state.books.length;
-    state.hasMore = newBooks.length >= PAGE_SIZE && state.offset < state.totalItems;
+    state.hasMore = newBooks.length >= PAGE_SIZE && pageCount < MAX_PAGES;
 
     renderGrid(append);
     if (!append) await loadBookListStatus();
@@ -150,7 +160,7 @@ async function loadBooks(append) {
   } finally {
     state.loading = false;
     if (currentAbort === abort) currentAbort = null;
-    if (sentinel) sentinel.innerHTML = state.hasMore ? '' : '';
+    if (sentinel) sentinel.innerHTML = '';
   }
 }
 
@@ -167,10 +177,12 @@ function renderGrid(append) {
   const renderItems = append ? state.books.slice(_booksLastRendered) : state.books;
   const html = renderItems.map(b => {
     const coverUrl = b.image || b.cover || "/images/fallback/book.svg";
+    const bookId = b.id || b.providerId || "";
+    const href = (b.externalUrl || b.previewUrl || "") ? (b.externalUrl || b.previewUrl) : "book.html?id=" + encodeURIComponent(bookId);
     return `
-      <article class="card" data-id="${escapeHtml(b.id || b.providerId || "")}" data-title="${escapeHtml(b.title)}" data-author="${escapeHtml(b.author || b.authors || "")}">
+      <article class="card" data-id="${escapeHtml(bookId)}" data-title="${escapeHtml(b.title)}" data-author="${escapeHtml(b.author || b.authors || "")}">
         <div class="card-media cover">
-          <a href="book.html?id=${encodeURIComponent(b.id || b.providerId || "")}">
+          <a href="${escapeHtml(href)}" ${href.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='/images/fallback/book.svg'">
           </a>
         </div>
@@ -190,26 +202,8 @@ function renderGrid(append) {
     grid.insertAdjacentHTML("beforeend", html);
   } else {
     grid.innerHTML = html;
-    updateSpotlight(state.books[0]);
   }
   _booksLastRendered = state.books.length;
-}
-
-function updateSpotlight(book) {
-  const sec = document.getElementById("booksSpotlight");
-  if (!sec) return;
-  if (!book) { sec.hidden = true; return; }
-  sec.hidden = false;
-  document.getElementById("booksSpotlightTitle").textContent = book.title || "Unknown";
-  const year = book.year || "";
-  const author = book.author || book.authors || "Unknown Author";
-  document.getElementById("booksSpotlightMeta").textContent = year ? `${author} | ${year}` : author;
-  document.getElementById("booksSpotlightSummary").textContent = book.description || "No description available.";
-  const img = document.getElementById("booksSpotlightImage");
-  const bg = document.getElementById("booksSpotlightBg");
-  const coverUrl = book.image || book.cover || "/images/fallback/book.svg";
-  if (img) { img.src = coverUrl; img.onerror = function () { this.src = "/images/fallback/book.svg"; }; }
-  if (bg) bg.style.backgroundImage = `url("${coverUrl}")`;
 }
 
 let searchTimer = null;
@@ -242,6 +236,7 @@ function wireEvents() {
         if (val === lastQuery) return;
         lastQuery = val;
         state.query = val.trim();
+        state.seenIds = new Set();
         loadBooks(false);
       }, 350);
     });
@@ -256,6 +251,7 @@ function wireEvents() {
         state.sort = sortEl.value;
         state.orderBy = sortEl.value === "newest" ? "newest" : "relevance";
       }
+      state.seenIds = new Set();
       filterModal.setAttribute("aria-hidden", "true");
       loadBooks(false);
     });

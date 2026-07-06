@@ -9904,20 +9904,21 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (!res.ok) return [];
         const data = await res.json();
         const books = Array.isArray(data.books) ? data.books : [];
-        return books.slice(0, targetCount).map((item) => {
+        const normalized = books.map(b => (window.normalizeBook ? window.normalizeBook(b) : b)).filter(Boolean);
+        return normalized.slice(0, targetCount).map((item) => {
           const rawCover = String(item?.rawCover || '').trim();
           const proxyCover = String(item?.image || item?.cover || '').trim();
           const fallbackChain = [];
           if (proxyCover && proxyCover !== rawCover) fallbackChain.push(proxyCover);
           return {
             mediaType: 'book',
-            itemId: item.id || '',
+            itemId: item.id || item.providerId || '',
             title: String(item?.title || '').trim() || 'Untitled',
             subtitle: String(item?.subtitle || item?.author || 'Book').trim(),
             image: rawCover || proxyCover,
             fallbackImage: proxyCover || '',
             fallbackChain,
-            href: item?.externalUrl || 'books.html'
+            href: (item?.externalUrl || item?.previewUrl || '') ? (item.externalUrl || item.previewUrl) : 'books.html?id=' + encodeURIComponent(item.id || item.providerId || '')
           };
         });
       } catch (_) { return []; }
