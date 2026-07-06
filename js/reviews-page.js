@@ -6,13 +6,13 @@
   const FALLBACK_IMAGE = "/newlogo.webp";
   const REVIEW_LIMIT = 70;
   const SOURCES = [
-    { mediaType: "movie", table: "movie_reviews", idField: "movie_id", label: "Movie", icon: "fa-film" },
-    { mediaType: "tv", table: "tv_reviews", idField: "tv_id", label: "TV", icon: "fa-tv" },
-    { mediaType: "anime", table: "anime_reviews", idField: "anime_id", label: "Anime", icon: "fa-dragon" },
-    { mediaType: "game", table: "game_reviews", idField: "game_id", label: "Game", icon: "fa-gamepad" },
-    { mediaType: "book", table: "book_reviews", idField: "book_id", label: "Book", icon: "fa-book" },
-    { mediaType: "music", table: "music_reviews", idField: "track_id", label: "Music", icon: "fa-music" },
-    { mediaType: "travel", table: "travel_reviews", idField: "country_code", label: "Travel", icon: "fa-earth-americas" }
+    { mediaType: "movie", table: "reviews", idField: "entity_id", label: "Movie", icon: "fa-film" },
+    { mediaType: "tv", table: "reviews", idField: "entity_id", label: "TV", icon: "fa-tv" },
+    { mediaType: "anime", table: "reviews", idField: "entity_id", label: "Anime", icon: "fa-dragon" },
+    { mediaType: "game", table: "reviews", idField: "entity_id", label: "Game", icon: "fa-gamepad" },
+    { mediaType: "book", table: "reviews", idField: "entity_id", label: "Book", icon: "fa-book" },
+    { mediaType: "music", table: "reviews", idField: "entity_id", label: "Music", icon: "fa-music" },
+    { mediaType: "travel", table: "reviews", idField: "entity_id", label: "Travel", icon: "fa-earth-americas" }
   ];
   const LABEL_BY_MEDIA = Object.fromEntries(SOURCES.map((source) => [source.mediaType, source.label]));
   const ICON_BY_MEDIA = Object.fromEntries(SOURCES.map((source) => [source.mediaType, source.icon]));
@@ -199,27 +199,31 @@
   async function fetchSourceReviews(source) {
     if (!client) return [];
     try {
-      const { data, error } = await client
-        .from(source.table)
-        .select(`id, user_id, rating, comment, created_at, ${source.idField}`)
-        .order("created_at", { ascending: false })
-        .limit(REVIEW_LIMIT);
+      const migratedTypes = new Set(['book']);
+      if (!migratedTypes.has(source.mediaType)) {
+        const { data, error } = await client.from('reviews').select('id,user_id,rating,review_text,created_at,entity_id').order('created_at',{ascending:false}).limit(REVIEW_LIMIT);
+        if (error || !Array.isArray(data)) return [];
+        return data.map(row => ({
+          id: row.id, mediaType: source.mediaType, itemId: row.entity_id, userId: row.user_id,
+          rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
+          comment: String(row?.review_text || '').trim(), createdAt: row?.created_at || null
+        })).filter(r => r.itemId);
+      }
+      const hasContentSources = source.mediaType === 'book';
+      let selectStr = 'id,user_id,rating,review_text,created_at,entity_id';
+      if (hasContentSources) selectStr += ',content_sources!inner(entity_id,external_id)';
+      else selectStr += ',entities!inner(id,title)';
+      const { data, error } = await client.from(source.table).select(selectStr).order('created_at',{ascending:false}).limit(REVIEW_LIMIT);
       if (error || !Array.isArray(data)) return [];
-      return data
-        .map((row) => {
-          const itemId = String(row?.[source.idField] ?? "").trim();
-          if (!itemId) return null;
-          return {
-            id: `${source.mediaType}:${String(row?.id || itemId)}`,
-            mediaType: source.mediaType,
-            itemId,
-            userId: String(row?.user_id || "").trim(),
-            rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
-            comment: String(row?.comment || "").trim(),
-            createdAt: row?.created_at || null
-          };
-        })
-        .filter(Boolean);
+      return data.map(row => {
+        const itemId = hasContentSources ? String(row?.content_sources?.external_id || row?.entity_id || '').trim() : String(row?.entities?.title || row?.entity_id || '').trim();
+        if (!itemId) return null;
+        return {
+          id: `${source.mediaType}:${String(row?.id || itemId)}`, mediaType: source.mediaType, itemId,
+          userId: String(row?.user_id || '').trim(), rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
+          comment: String(row?.review_text || '').trim(), createdAt: row?.created_at || null
+        };
+      }).filter(Boolean);
     } catch (_error) {
       return [];
     }
@@ -253,35 +257,45 @@
 
   async function hydrateLocalMeta(rows) {
     if (!client) return;
-    const bookIds = Array.from(new Set(rows.filter((row) => row.mediaType === "book").map((row) => row.itemId))).filter(Boolean);
-    const trackIds = Array.from(new Set(rows.filter((row) => row.mediaType === "music").map((row) => row.itemId))).filter(Boolean);
+    const bookEntityIds = Array.from(new Set(rows.filter((row) => row.mediaType === "book").map((row) => row.itemId))).filter(Boolean);
+    const trackEntityIds = Array.from(new Set(rows.filter((row) => row.mediaType === "music").map((row) => row.itemId))).filter(Boolean);
 
-    if (bookIds.length) {
-      const { data } = await client.from("books").select("id,title,authors,thumbnail").in("id", bookIds.slice(0, 200));
-      (Array.isArray(data) ? data : []).forEach((row) => {
-        const id = String(row?.id || "").trim();
-        if (!id) return;
-        itemMeta.set(reviewKey("book", id), {
-          title: String(row?.title || `Book ${id}`).trim(),
-          subtitle: String(row?.authors || "Book").trim(),
-          image: safeHttps(row?.thumbnail || "") || FALLBACK_IMAGE,
-          href: `book.html?id=${encodeURIComponent(id)}`
+    if (bookEntityIds.length) {
+      const { data: csData } = await client.from("content_sources").select("entity_id,external_id").eq("provider", "openlibrary").in("entity_id", bookEntityIds.slice(0, 200));
+      const entityToExternal = new Map((csData || []).map(r => [r.entity_id, r.external_id]));
+      const bookIds = [...new Set(bookEntityIds.map(eid => entityToExternal.get(eid)).filter(Boolean))];
+      if (bookIds.length) {
+        const { data } = await client.from("books").select("id,title,authors,thumbnail").in("id", bookIds.slice(0, 200));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || "").trim();
+          if (!id) return;
+          itemMeta.set(reviewKey("book", id), {
+            title: String(row?.title || `Book ${id}`).trim(),
+            subtitle: String(row?.authors || "Book").trim(),
+            image: safeHttps(row?.thumbnail || "") || FALLBACK_IMAGE,
+            href: `book.html?id=${encodeURIComponent(id)}`
+          });
         });
-      });
+      }
     }
 
-    if (trackIds.length) {
-      const { data } = await client.from("tracks").select("id,name,artists,image_url,album_name").in("id", trackIds.slice(0, 200));
-      (Array.isArray(data) ? data : []).forEach((row) => {
-        const id = String(row?.id || "").trim();
-        if (!id) return;
-        itemMeta.set(reviewKey("music", id), {
-          title: String(row?.name || `Track ${id}`).trim(),
-          subtitle: String(row?.artists || row?.album_name || "Music").trim(),
-          image: safeHttps(row?.image_url || "") || FALLBACK_IMAGE,
-          href: `song.html?id=${encodeURIComponent(id)}`
+    if (trackEntityIds.length) {
+      const { data: csData } = await client.from("content_sources").select("entity_id,external_id").eq("provider", "spotify").in("entity_id", trackEntityIds.slice(0, 200));
+      const entityToExternal = new Map((csData || []).map(r => [r.entity_id, r.external_id]));
+      const trackIds = [...new Set(trackEntityIds.map(eid => entityToExternal.get(eid)).filter(Boolean))];
+      if (trackIds.length) {
+        const { data } = await client.from("tracks").select("id,name,artists,image_url,album_name").in("id", trackIds.slice(0, 200));
+        (Array.isArray(data) ? data : []).forEach((row) => {
+          const id = String(row?.id || "").trim();
+          if (!id) return;
+          itemMeta.set(reviewKey("music", id), {
+            title: String(row?.name || `Track ${id}`).trim(),
+            subtitle: String(row?.artists || row?.album_name || "Music").trim(),
+            image: safeHttps(row?.image_url || "") || FALLBACK_IMAGE,
+            href: `song.html?id=${encodeURIComponent(id)}`
+          });
         });
-      });
+      }
     }
   }
 

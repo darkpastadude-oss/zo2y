@@ -1,95 +1,99 @@
 (function () {
   const LIST_CONFIG = {
     movie: {
-      listTable: 'movie_lists',
-      itemsTable: 'movie_list_items',
-      itemIdField: 'movie_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-film'
+      defaultIcon: 'fas fa-film',
+      numericId: true
     },
     tv: {
-      listTable: 'tv_lists',
-      itemsTable: 'tv_list_items',
-      itemIdField: 'tv_id',
-      usesUserId: false,
-      defaultIcon: 'fas fa-tv'
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
+      usesUserId: true,
+      defaultIcon: 'fas fa-tv',
+      numericId: true
     },
     book: {
-      listTable: 'book_lists',
-      itemsTable: 'book_list_items',
-      itemIdField: 'book_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-book'
     },
     artist: {
-      listTable: 'artist_lists',
-      itemsTable: 'artist_list_items',
-      itemIdField: 'artist_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-microphone'
     },
     music: {
-      listTable: 'artist_lists',
-      itemsTable: 'artist_list_items',
-      itemIdField: 'artist_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-microphone'
     },
     anime: {
-      listTable: 'anime_lists',
-      itemsTable: 'anime_list_items',
-      itemIdField: 'anime_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-dragon'
+      defaultIcon: 'fas fa-dragon',
+      numericId: true
     },
     game: {
-      listTable: 'game_lists',
-      itemsTable: 'game_list_items',
-      itemIdField: 'game_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
-      defaultIcon: 'fas fa-gamepad'
+      defaultIcon: 'fas fa-gamepad',
+      numericId: true
     },
     travel: {
-      listTable: 'travel_lists',
-      itemsTable: 'travel_list_items',
-      itemIdField: 'country_code',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas'
     },
     fashion: {
-      listTable: 'fashion_lists',
-      itemsTable: 'fashion_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-shirt'
     },
     food: {
-      listTable: 'food_lists',
-      itemsTable: 'food_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-burger'
     },
     car: {
-      listTable: 'car_lists',
-      itemsTable: 'car_list_items',
-      itemIdField: 'brand_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-car'
     },
     sports: {
-      listTable: 'sports_lists',
-      itemsTable: 'sports_list_items',
-      itemIdField: 'team_id',
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
       disableCustomLists: false
     },
     restaurant: {
-      listTable: 'lists',
-      itemsTable: 'lists_restraunts',
-      itemIdField: 'restraunt_id',
-      usesUserId: false,
+      listTable: 'user_lists',
+      itemsTable: 'list_items',
+      itemIdField: 'entity_id',
+      usesUserId: true,
       defaultIcon: 'fas fa-clapperboard',
       filterTitles: ['Favorites', 'Visited', 'Want to Go']
     }
@@ -107,6 +111,88 @@
   const NUMERIC_MEDIA_TYPES = new Set(['movie', 'tv', 'anime', 'game']);
   const missingListTables = new Set();
   const missingItemTables = new Set();
+  const entityIdCache = new Map();
+  const systemListIdCache = new Map();
+
+  const ENTITY_CONFIG = {
+    movie: { entityType: 'movie', provider: null },
+    tv: { entityType: 'tv', provider: null },
+    anime: { entityType: 'anime', provider: null },
+    game: { entityType: 'game', provider: null },
+    book: { entityType: 'book', provider: 'openlibrary' },
+    artist: { entityType: 'music', provider: 'spotify' },
+    music: { entityType: 'music', provider: 'spotify' },
+    travel: { entityType: 'travel', provider: null },
+    fashion: { entityType: 'fashion', provider: null },
+    food: { entityType: 'food', provider: null },
+    car: { entityType: 'car', provider: null },
+    sports: { entityType: 'sport', provider: 'thesportsdb' },
+    restaurant: { entityType: 'restaurant', provider: null }
+  };
+
+  const SYSTEM_LIST_KEY_MAP = {
+    favorites: 'favorite',
+    reading: 'reading',
+    completed: 'completed',
+    wishlist: 'wishlist',
+    watchlist: 'wishlist',
+    plan_to_watch: 'backlog',
+    playing: 'playing',
+    backlog: 'backlog',
+    listening: 'listening',
+    owned: 'owned',
+    tried: 'tried',
+    want_to_try: 'wishlist',
+    visited: 'visited',
+    bucketlist: 'wishlist'
+  };
+
+  async function resolveSystemListId(client, key) {
+    const cacheKey = `sys:${key}`;
+    if (systemListIdCache.has(cacheKey)) return systemListIdCache.get(cacheKey);
+    const { data } = await client.from('system_lists').select('id').eq('key', key).maybeSingle();
+    if (data) { systemListIdCache.set(cacheKey, data.id); return data.id; }
+    return null;
+  }
+
+  async function resolveEntityId(client, type, itemId) {
+    const cfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
+    if (!cfg) return null;
+    const cacheKey = `${type}:${itemId}`;
+    if (entityIdCache.has(cacheKey)) return entityIdCache.get(cacheKey);
+    let entityId = null;
+    if (cfg.provider) {
+      const { data } = await client.from('content_sources').select('entity_id').eq('provider', cfg.provider).eq('external_id', String(itemId)).maybeSingle();
+      if (data) entityId = data.entity_id;
+    }
+    if (!entityId && !cfg.provider) {
+      const { data } = await client.from('entities').select('id').eq('title', String(itemId)).eq('entity_type_id', client.from('entity_types').select('id').eq('key', cfg.entityType)).maybeSingle();
+      if (data) entityId = data.id;
+    }
+    if (entityId) entityIdCache.set(cacheKey, entityId);
+    return entityId;
+  }
+
+  async function resolveEntityIds(client, type, itemIds) {
+    const cfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
+    if (!cfg || !itemIds.length) return {};
+    const cacheKeyPrefix = `${type}:`;
+    const uncached = itemIds.filter(id => !entityIdCache.has(cacheKeyPrefix + id));
+    if (uncached.length > 0 && cfg.provider) {
+      const chunks = [];
+      for (let i = 0; i < uncached.length; i += 60) chunks.push(uncached.slice(i, i + 60));
+      for (const chunk of chunks) {
+        const { data } = await client.from('content_sources').select('entity_id,external_id').eq('provider', cfg.provider).in('external_id', chunk.map(String));
+        if (data) data.forEach(r => entityIdCache.set(cacheKeyPrefix + r.external_id, r.entity_id));
+      }
+    }
+    const result = {};
+    itemIds.forEach(id => {
+      const eid = entityIdCache.get(cacheKeyPrefix + id);
+      if (eid) result[id] = eid;
+    });
+    return result;
+  }
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
     '#movieListsModal',
     '#tvListsModal',
@@ -1048,103 +1134,44 @@
     }
   }
 
+  async function ensureEntityRecord(client, provider, externalId, title, extra) {
+    if (!client || !provider || !externalId) return null;
+    const { data: existing } = await client.from('content_sources').select('entity_id').eq('provider', provider).eq('external_id', String(externalId)).maybeSingle();
+    if (existing) return existing.entity_id;
+    const { data: typeData } = await client.from('entity_types').select('id').eq('key', provider === 'openlibrary' ? 'book' : provider === 'spotify' ? 'music' : provider === 'thesportsdb' ? 'sport' : provider).maybeSingle();
+    if (!typeData) return null;
+    const { data: entity } = await client.from('entities').insert({ title: title || String(externalId), entity_type_id: typeData.id }, { onConflict: 'title,entity_type_id', ignoreDuplicates: true }).select('id').single();
+    if (!entity) {
+      const { data: existingEntity } = await client.from('entities').select('id').eq('title', title || String(externalId)).eq('entity_type_id', typeData.id).maybeSingle();
+      if (!existingEntity) return null;
+      await client.from('content_sources').insert({ entity_id: existingEntity.id, provider, external_id: String(externalId) }, { onConflict: 'entity_id,provider', ignoreDuplicates: true });
+      return existingEntity.id;
+    }
+    await client.from('content_sources').insert({ entity_id: entity.id, provider, external_id: String(externalId) }, { onConflict: 'entity_id,provider', ignoreDuplicates: true });
+    return entity.id;
+  }
+
   async function ensureBookRecord(client, payload) {
     const normalized = normalizeBookPayload(payload);
     if (!normalized) return false;
-
-    // Prefer direct writes (same pattern as other media types) and fall back to API only
-    // when RLS blocks direct upserts.
-    if (client && bookDirectWriteSupported !== false) {
-      try {
-        const { error } = await client.from('books').upsert({
-          id: normalized.id,
-          title: normalized.title,
-          authors: normalized.authors || '',
-          thumbnail: normalized.thumbnail || '',
-          published_date: normalized.published_date,
-          categories: normalized.categories,
-          description: normalized.description,
-          page_count: normalized.page_count,
-          publisher: normalized.publisher,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
-
-        if (!error) {
-          bookDirectWriteSupported = true;
-          return true;
-        }
-        if (isBookWritePermissionError(error)) {
-          bookDirectWriteSupported = false;
-          try {
-            if (!window.__ZO2Y_BOOKS_RLS_WARNED) {
-              window.__ZO2Y_BOOKS_RLS_WARNED = true;
-              console.warn('zo2y: books RLS blocked writes. Apply sql/books_rls_write_policy.sql in Supabase to allow authenticated inserts/updates on public.books.');
-            }
-          } catch (_warnErr) {}
-        } else {
-          // Non-RLS error: do not assume API can fix it (but try once).
-          bookDirectWriteSupported = true;
-        }
-      } catch (_err) {
-        // Network/runtime errors: do not permanently disable direct writes.
-      }
-    }
-
-    const synced = await syncBookRecordViaApi(normalized, client);
-    if (synced) return true;
-
-    // If the API is reachable but failing, don't spam repeated direct attempts in the same session.
-    if (bookSyncSupported !== false) return false;
-
-    if (!client || bookDirectWriteSupported === false) return false;
     try {
-      const { error } = await client.from('books').upsert({
-        id: normalized.id,
-        title: normalized.title,
-        authors: normalized.authors || '',
-        thumbnail: normalized.thumbnail || '',
-        published_date: normalized.published_date,
-        categories: normalized.categories,
-        description: normalized.description,
-        page_count: normalized.page_count,
-        publisher: normalized.publisher,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'id' });
-
-      if (error) {
-        if (isBookWritePermissionError(error)) {
-          bookDirectWriteSupported = false;
-        }
-        return false;
-      }
-
-      bookDirectWriteSupported = true;
-      return true;
-    } catch (_err) {
-      return false;
-    }
+      const eid = await ensureEntityRecord(client, 'openlibrary', normalized.id, normalized.title);
+      return !!eid;
+    } catch (_e) { return false; }
   }
 
   async function ensureTrackRecord(client, payload) {
     if (!client || !payload || !payload.id) return;
-    await client.from('tracks').upsert({
-      id: String(payload.id),
-      name: payload.name || payload.title || '',
-      artists: payload.artists || payload.subtitle || '',
-      image_url: payload.image_url || payload.image || '',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    try {
+      await ensureEntityRecord(client, 'spotify', String(payload.id), payload.name || payload.title || '');
+    } catch (_e) {}
   }
 
   async function ensureArtistRecord(client, payload) {
     if (!client || !payload || !payload.id) return;
-    await client.from('artists').upsert({
-      id: String(payload.id),
-      name: payload.name || payload.title || '',
-      image_url: payload.image_url || payload.image || '',
-      external_url: payload.external_url || '',
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    try {
+      await ensureEntityRecord(client, 'spotify', String(payload.id), payload.name || payload.title || '');
+    } catch (_e) {}
   }
 
   async function loadCustomLists(client, userId, type) {
@@ -1273,17 +1300,18 @@
 
   async function loadCustomListMembership(client, userId, type, itemId, listIds) {
     const cfg = getListConfig(type);
-    const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (!cfg || !client || !listIds || !listIds.length || normalizedItemId === null) return new Set();
+    if (!cfg || !client || !listIds || !listIds.length) return new Set();
     if (customListsDisabled(cfg)) return new Set();
     if (missingItemTables.has(cfg.itemsTable)) return new Set();
+    const entityId = await resolveEntityId(client, type, itemId);
+    if (!entityId) return new Set();
     try {
-      let query = client
+      const { data, error } = await client
         .from(cfg.itemsTable)
         .select('list_id')
-        .eq(cfg.itemIdField, normalizedItemId)
-        .in('list_id', listIds);
-      const { data, error } = await query;
+        .eq(cfg.itemIdField, entityId)
+        .in('list_id', listIds)
+        .is('system_list_id', null);
       if (error && isListTableMissingError(error, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
         return new Set();
@@ -1298,14 +1326,12 @@
 
   async function saveCustomListChanges(client, userId, type, itemId, selectedListIds, itemPayload) {
     const cfg = getListConfig(type);
-    const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (!cfg || !client || normalizedItemId === null) return;
+    if (!cfg || !client) return;
     if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
-    if (type === 'music' && normalizedItemId) {
-      try { await ensureArtistRecord(client, { id: normalizedItemId, ...(itemPayload || {}) }); } catch (_e) {}
-    }
+    const entityId = await resolveEntityId(client, type, itemId);
+    if (!entityId) return;
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
     if (listIds.length && !missingListTables.has(cfg.listTable)) {
@@ -1327,8 +1353,9 @@
       let del = client
         .from(cfg.itemsTable)
         .delete()
-        .eq(cfg.itemIdField, normalizedItemId)
-        .in('list_id', listIds);
+        .eq(cfg.itemIdField, entityId)
+        .in('list_id', listIds)
+        .is('system_list_id', null);
       const { error: deleteError } = await del;
       if (deleteError && isListTableMissingError(deleteError, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
@@ -1336,26 +1363,20 @@
       }
     }
     const inserts = listIds.map(listId => {
-      const row = { list_id: listId, list_type: null };
-      row[cfg.itemIdField] = normalizedItemId;
-      if (cfg.usesUserId) {
-        const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
-        row.user_id = ownerId || userId;
-      }
+      const row = { list_id: listId, system_list_id: null };
+      row[cfg.itemIdField] = entityId;
+      const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
+      row.user_id = ownerId || userId;
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const isSplitIndex = ['fashion_list_items', 'food_list_items', 'travel_list_items', 'car_list_items'].includes(cfg.itemsTable);
-      const conflictTarget = isSplitIndex ? `list_id,${cfg.itemIdField}` : (cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`);
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
-        onConflict: conflictTarget,
+        onConflict: 'list_id,entity_id',
         ignoreDuplicates: false
       });
       if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
       } else if (insertError && isConflictError(insertError)) {
-        // Idempotency: if the row already exists (double-click/retry/race), treat as success.
-        // The UI already reflects the desired final state.
         return;
       }
     }
@@ -1367,31 +1388,22 @@
     if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return false;
     if (userId) setTierSyncContext(client, userId);
-    const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (normalizedItemId === null) return false;
-    if (type === 'music' && normalizedItemId) {
-      try { await ensureArtistRecord(client, { id: normalizedItemId, ...(itemPayload || {}) }); } catch (_e) {}
-    }
+    const entityId = await resolveEntityId(client, type, itemId);
+    if (!entityId) return false;
     let ownerId = userId;
-    if (cfg.usesUserId) {
-      const { data: ownerRows } = await client
-        .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
-      if (ownerRows?.user_id) ownerId = ownerRows.user_id;
-    }
-    const row = { list_id: listId, list_type: null };
-    row[cfg.itemIdField] = normalizedItemId;
-    if (cfg.usesUserId) row.user_id = ownerId;
+    const { data: ownerRows } = await client
+      .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
+    if (ownerRows?.user_id) ownerId = ownerRows.user_id;
+    const row = { list_id: listId, system_list_id: null, entity_id: entityId, user_id: ownerId };
     const { data: existingItem } = await client
       .from(cfg.itemsTable)
       .select('id')
-      .eq(cfg.itemIdField, normalizedItemId)
+      .eq('entity_id', entityId)
       .eq('list_id', listId)
-      .is('list_type', null)
+      .is('system_list_id', null)
       .maybeSingle();
     if (existingItem) return true;
-    const isSplitIndex = ['fashion_list_items', 'food_list_items', 'travel_list_items', 'car_list_items'].includes(cfg.itemsTable);
-    const conflictTarget = isSplitIndex ? `list_id,${cfg.itemIdField}` : (cfg.usesUserId ? `user_id,${cfg.itemIdField},list_type,list_id` : `${cfg.itemIdField},list_type,list_id`);
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictTarget, ignoreDuplicates: true });
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,entity_id', ignoreDuplicates: true });
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     if (error && isConflictError(error)) return true;
     return !error;
@@ -1402,10 +1414,9 @@
     if (!cfg || !client || !userId) return false;
     if (customListsDisabled(cfg)) return false;
     if (missingItemTables.has(cfg.itemsTable)) return false;
-    const normalizedItemId = normalizeQueryableItemId(type, itemId);
-    if (normalizedItemId === null) return false;
-    let query = client.from(cfg.itemsTable).delete().eq(cfg.itemIdField, normalizedItemId).eq('list_id', listId);
-    if (cfg.usesUserId) query = query.eq('user_id', userId);
+    const entityId = await resolveEntityId(client, type, itemId);
+    if (!entityId) return false;
+    let query = client.from(cfg.itemsTable).delete().eq('entity_id', entityId).eq('list_id', listId).eq('user_id', userId).is('system_list_id', null);
     const { error } = await query;
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     return !error;
@@ -1420,46 +1431,24 @@
     const normalizedType = String(type || '').toLowerCase();
     const listKind = normalizeListKindValue(payload?.listKind, 'standard');
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
-    const dbListKind = listKind === 'tier' ? 'tier' : normalizedType;
-    let insertPayload = {
+    const insertPayload = {
       user_id: userId,
       title: payload.title,
-      icon: cfg.defaultIcon || 'fas fa-list',
-      list_kind: dbListKind,
       created_at: new Date().toISOString()
     };
-    if (cfg.listTable === 'lists') {
-      insertPayload = {
-        ...insertPayload,
-        description: payload.description || `My ${payload.title} list`,
-        is_default: false
-      };
-    }
     let data = null;
     let error = null;
 
-    const insertOnce = async (nextPayload) => client
+    const { data: result, error: insertError } = await client
       .from(cfg.listTable)
-      .insert(nextPayload)
+      .insert(insertPayload)
       .select('*')
       .single();
-
-    ({ data, error } = await insertOnce(insertPayload));
+    data = result;
+    error = insertError;
     if (error && isListTableMissingError(error, cfg.listTable)) {
       missingListTables.add(cfg.listTable);
       return null;
-    }
-    const message = String(error?.message || '').toLowerCase();
-    const details = String(error?.details || '').toLowerCase();
-    const missingListKindColumn = !!error && (
-      message.includes('list_kind') ||
-      details.includes('list_kind') ||
-      error.code === '42703'
-    );
-    if (missingListKindColumn) {
-      const retryPayload = { ...insertPayload };
-      delete retryPayload.list_kind;
-      ({ data, error } = await insertOnce(retryPayload));
     }
     if (error || !data) return null;
 
@@ -1473,11 +1462,9 @@
     if (customListsDisabled(cfg)) return false;
     if (missingListTables.has(cfg.listTable)) return false;
     setTierSyncContext(client, userId);
-    const payload = { title };
-    if (cfg.listTable === 'lists') payload.updated_at = new Date().toISOString();
     const { error } = await client
       .from(cfg.listTable)
-      .update(payload)
+      .update({ title })
       .eq('id', listId)
       .eq('user_id', userId);
     if (error && isListTableMissingError(error, cfg.listTable)) {
@@ -1509,18 +1496,29 @@
   async function loadMediaListItems(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
+    const entityCfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
     try {
-      const { data, error } = await client
-        .from(cfg.itemsTable)
-        .select('*')
-        .eq('user_id', userId);
+      let query;
+      if (entityCfg && entityCfg.provider) {
+        query = client
+          .from(cfg.itemsTable)
+          .select('*, content_sources!inner(entity_id,external_id)')
+          .eq('user_id', userId)
+          .eq('content_sources.provider', entityCfg.provider);
+      } else {
+        query = client
+          .from(cfg.itemsTable)
+          .select('*, entities!inner(id,title)')
+          .eq('user_id', userId);
+      }
+      const { data, error } = await query;
       if (error) {
         console.error(`Error in loadMediaListItems for type ${type}:`, error);
         return [];
       }
       return (data || []).map(row => ({
         ...row,
-        item_id: row[cfg.itemIdField]
+        item_id: row.content_sources?.external_id || row.entities?.title || row.entity_id
       }));
     } catch (err) {
       console.error(`Exception in loadMediaListItems for type ${type}:`, err);
@@ -1531,6 +1529,7 @@
   async function loadList(client, userId, type, listId) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return null;
+    const entityCfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
 
     const defaultListIds = new Set([
       'favorites', 'watched', 'watchlist', 'played', 'wishlist',
@@ -1544,18 +1543,22 @@
 
     if (isDefault) {
       title = getDefaultListTitle(listId);
-      const { data, error } = await client
+      const sysKey = SYSTEM_LIST_KEY_MAP[String(listId).toLowerCase()] || String(listId).toLowerCase();
+      const systemListId = await resolveSystemListId(client, sysKey);
+      if (!systemListId) return null;
+      const query = client
         .from(cfg.itemsTable)
-        .select('*')
+        .select('*, entities!inner(id,title)')
         .eq('user_id', userId)
-        .eq('list_type', listId);
+        .eq('system_list_id', systemListId)
+        .is('list_id', null);
+      const { data, error } = await query;
       if (error) {
         console.error(`Error in loadList for default list ${listId} (type ${type}):`, error);
         return null;
       }
       items = data || [];
     } else {
-      // Query the custom list row to verify it exists and get its title
       const { data: listRow, error: listError } = await client
         .from(cfg.listTable)
         .select('title')
@@ -1563,17 +1566,17 @@
         .maybeSingle();
 
       if (listError || !listRow) {
-        // Custom list does not exist anymore (e.g. deleted)
         return null;
       }
       title = listRow.title;
 
-      // Query custom list items
-      const { data, error } = await client
+      const query = client
         .from(cfg.itemsTable)
-        .select('*')
+        .select('*, entities!inner(id,title)')
         .eq('user_id', userId)
-        .eq('list_id', listId);
+        .eq('list_id', listId)
+        .is('system_list_id', null);
+      const { data, error } = await query;
       if (error) {
         console.error(`Error in loadList for custom list ${listId} (type ${type}):`, error);
         return null;
@@ -1583,7 +1586,7 @@
 
     const mappedItems = items.map(item => ({
       ...item,
-      item_id: item[cfg.itemIdField]
+      item_id: item.entities?.title || item.entity_id
     }));
 
     return {
@@ -1625,6 +1628,11 @@
     bindGlobalListUx,
     ensureBookRecord,
     ensureTrackRecord,
+    ensureEntityRecord,
+    resolveEntityId,
+    resolveSystemListId,
+    SYSTEM_LIST_KEY_MAP,
+    ENTITY_CONFIG,
     loadCustomLists,
     loadCustomListMembership,
     saveCustomListChanges,

@@ -313,6 +313,8 @@
   }
 
   // ── List status ─────────────────────────────────────────────────────────
+  function _chunk(a, n) { var c=[]; for(var i=0;i<a.length;i+=n) c.push(a.slice(i,i+n)); return c; }
+
   async function loadListStatus() {
     if (!state.currentUser?.id || !state.filtered.length) return;
     const supabase = await ensureSupabase();
@@ -321,13 +323,18 @@
     const codes = state.filtered.map(item => item.code);
     if (!codes.length) return;
 
-    const { data } = await supabase
-      .from('travel_list_items')
-      .select('country_code, list_type')
-      .eq('user_id', state.currentUser.id)
-      .in('country_code', codes);
+    var allRows = [];
+    var chunks = _chunk(codes, 60);
+    for (var i = 0; i < chunks.length; i++) {
+      var res = await supabase
+        .from('travel_list_items')
+        .select('country_code, list_type')
+        .eq('user_id', state.currentUser.id)
+        .in('country_code', chunks[i]);
+      if (res.data) allRows = allRows.concat(res.data);
+    }
 
-    (data || []).forEach(row => {
+    (allRows || []).forEach(row => {
       const code = String(row.country_code || '');
       if (!code) return;
       if (!state.listStatus.has(code)) {

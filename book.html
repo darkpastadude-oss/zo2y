@@ -1085,11 +1085,10 @@
         const statsContainer = document.getElementById('reviewsStats');
         if (!container || !statsContainer || !supabaseClient) return;
         container.innerHTML = Skel.reviewList(3);
-        const { data, error } = await supabaseClient
-          .from('book_reviews')
-          .select('*')
-          .eq('book_id', bookId)
-          .order('created_at', { ascending: false });
+        const _entityId = window.ListUtils ? await ListUtils.resolveEntityId(supabaseClient, 'book', bookId) : null;
+        window.__zo2yBookEntityId = _entityId;
+        const _reviewsQuery = _entityId ? supabaseClient.from('reviews').select('*').eq('entity_id', _entityId) : supabaseClient.from('reviews').select('*').eq('entity_id', '00000000-0000-0000-0000-000000000000');
+        const { data, error } = await _reviewsQuery.order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
           statsContainer.innerHTML = '<div class="reviews-empty">Error loading stats.</div>';
@@ -1220,7 +1219,7 @@
           await window.ZO2Y_REVIEW_INTERACTIONS.mount({
             container,
             reviews: reviewsToDisplay,
-            reviewSource: 'book_reviews',
+            reviewSource: 'reviews',
             mediaType: 'book',
             currentUser,
             supabaseClient,
@@ -1253,17 +1252,19 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { book_id: bookId, user_id: currentUser.id, rating: currentRating, comment };
+        const submitEntityId = window.ListUtils ? await ListUtils.resolveEntityId(supabaseClient, 'book', bookId) : (window.__zo2yBookEntityId || null);
+        if (!submitEntityId) { showNotification('Could not resolve entity', 'error'); return; }
+        const payload = { entity_id: submitEntityId, user_id: currentUser.id, rating: currentRating, review_text: comment };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
-            .from('book_reviews')
+            .from('reviews')
             .update(payload)
             .eq('id', editingReviewId);
           error = updateError;
         } else {
           const { error: insertError } = await supabaseClient
-            .from('book_reviews')
+            .from('reviews')
             .insert(payload);
           error = insertError;
         }
@@ -1286,14 +1287,14 @@
       window.editReview = async function (reviewId) {
         if (!supabaseClient) return;
         const { data: review } = await supabaseClient
-          .from('book_reviews')
+          .from('reviews')
           .select('*')
           .eq('id', reviewId)
           .single();
         if (!review) return;
         editingReviewId = reviewId;
         currentRating = review.rating;
-        document.getElementById('review-comment').value = review.comment || '';
+        document.getElementById('review-comment').value = review.review_text || '';
         updateStarDisplay();
         const submitText = document.querySelector('.submit-review-btn .btn-text');
         if (submitText) submitText.textContent = 'Update Review';
@@ -1308,7 +1309,7 @@
         }
         if (!confirm('Delete this review?')) return;
         const { error } = await supabaseClient
-          .from('book_reviews')
+          .from('reviews')
           .delete()
           .eq('id', reviewId);
         if (error) {
@@ -1488,13 +1489,29 @@
         const container = document.getElementById('movieListsContainer');
         if (!container || !supabaseClient || !currentUser) return;
         modalSelectedLists.clear();
-        const { data: lists } = await supabaseClient.from('book_lists').select('*').eq('user_id', currentUser.id);
-        const { data: existing } = await supabaseClient.from('book_list_items').select('list_id').eq('user_id', currentUser.id).eq('book_id', bookId);
+        let lists = [];
+        if (window.ListUtils && typeof ListUtils.loadCustomLists === 'function') {
+          lists = await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'book') || [];
+        } else {
+          const { data } = await supabaseClient.from('user_lists').select('*').eq('user_id', currentUser.id);
+          lists = data || [];
+        }
+        let existing = [];
+        if (window.ListUtils && typeof ListUtils.loadCustomListMembership === 'function') {
+          const listIds = lists.map(l => l.id).filter(Boolean);
+          existing = [...(await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'book', bookId, listIds))].map(id => ({ list_id: id }));
+        } else {
+          const entityId = window.__zo2yBookEntityId;
+          if (entityId) {
+            const { data } = await supabaseClient.from('list_items').select('list_id').eq('entity_id', entityId).is('system_list_id', null);
+            existing = data || [];
+          }
+        }
         const inLists = new Set((existing || []).map(i => i.list_id));
         (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.title); });
         container.innerHTML = (lists || []).map(l => `
           <div class="modal-list-item${modalSelectedLists.has(l.title) ? ' active' : ''}" data-name="${escapeHtml(l.title)}">
-            <span><i class="${l.icon || 'fas fa-book'}"></i> ${escapeHtml(l.title)}</span>
+            <span><i class="fas fa-book"></i> ${escapeHtml(l.title)}</span>
             <input type="checkbox" ${modalSelectedLists.has(l.title) ? 'checked' : ''}>
           </div>
         `).join('');
@@ -1516,20 +1533,22 @@
       async function saveMovieListChanges() {
         if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
         const toAdd = []; const toRemove = [];
-        const { data: existing } = await supabaseClient.from('book_lists').select('id, title').eq('user_id', currentUser.id);
+        const { data: existing } = await supabaseClient.from('user_lists').select('id, title').eq('user_id', currentUser.id);
         const existingNames = new Set((existing || []).map(l => l.title));
         modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
         existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
         for (const name of toAdd) {
-          const { data: newList } = await supabaseClient.from('book_lists').insert({ user_id: currentUser.id, title: name, icon: selectedIcon || 'fas fa-book' }).select().single();
-          if (newList) {
-             await supabaseClient.from('book_list_items').insert({ user_id: currentUser.id, book_id: bookId, list_id: newList.id, list_type: 'custom' });
+          const { data: newList } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, title: name }).select().single();
+          if (newList && window.ListUtils) {
+            await ListUtils.addItemToList(supabaseClient, currentUser.id, 'book', bookId, newList.id);
           }
         }
         if (toRemove.length) {
           for (const name of toRemove) {
             const list = (existing || []).find(l => l.title === name);
-            if (list) await supabaseClient.from('book_list_items').delete().eq('list_id', list.id).eq('book_id', bookId);
+            if (list && window.ListUtils) {
+              await ListUtils.removeItemFromList(supabaseClient, currentUser.id, 'book', bookId, list.id);
+            }
           }
         }
         showNotification('Lists updated', 'success');
@@ -1541,7 +1560,7 @@
         const name = input?.value?.trim();
         if (!name) { showNotification('Enter a list name', 'info'); return; }
         if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const { error } = await supabaseClient.from('book_lists').insert({ user_id: currentUser.id, title: name, icon: selectedIcon || 'fas fa-book' });
+        const { error } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, title: name });
         if (error) { showNotification('Could not create list', 'error'); return; }
         showNotification('List created', 'success');
         input.value = '';

@@ -13,17 +13,17 @@ const ProfileShowcase = (function () {
     let sb = null;
 
     const CUSTOM_LIST_TABLES = {
-        movie: 'movie_lists', tv: 'tv_lists', anime: 'anime_lists',
-        game: 'game_lists', book: 'book_lists', music: 'artist_lists',
-        travel: 'travel_lists', fashion: 'fashion_lists', food: 'food_lists',
-        car: 'car_lists', sports: 'sports_lists'
+        movie: 'user_lists', tv: 'user_lists', anime: 'user_lists',
+        game: 'user_lists', book: 'user_lists', music: 'user_lists',
+        travel: 'user_lists', fashion: 'user_lists', food: 'user_lists',
+        car: 'user_lists', sports: 'user_lists'
     };
 
     const ITEM_TABLES = {
-        movie: 'movie_list_items', tv: 'tv_list_items', anime: 'anime_list_items',
-        game: 'game_list_items', book: 'book_list_items', music: 'artist_list_items',
-        travel: 'travel_list_items', fashion: 'fashion_list_items',
-        food: 'food_list_items', car: 'car_list_items', sports: 'sports_list_items'
+        movie: 'list_items', tv: 'list_items', anime: 'list_items',
+        game: 'list_items', book: 'list_items', music: 'list_items',
+        travel: 'list_items', fashion: 'list_items',
+        food: 'list_items', car: 'list_items', sports: 'list_items'
     };
 
     const ITEM_FIELDS = {

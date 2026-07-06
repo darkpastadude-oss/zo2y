@@ -84,19 +84,19 @@
   };
 
   const DEFAULT_TABLE_BY_MEDIA = {
-    movie: { table: 'movie_list_items', itemField: 'movie_id' },
-    tv: { table: 'tv_list_items', itemField: 'tv_id' },
-    anime: { table: 'anime_list_items', itemField: 'anime_id' },
-    game: { table: 'game_list_items', itemField: 'game_id' },
-    travel: { table: 'travel_list_items', itemField: 'country_code' },
-    fashion: { table: 'fashion_list_items', itemField: 'brand_id' },
-    food: { table: 'food_list_items', itemField: 'brand_id' },
-    car: { table: 'car_list_items', itemField: 'brand_id' },
-    sports: { table: 'sports_list_items', itemField: 'team_id' },
-    restaurant: { table: 'lists_restraunts', itemField: 'restraunt_id' },
-    book: { table: 'book_list_items', itemField: 'book_id' },
-    artist: { table: 'artist_list_items', itemField: 'artist_id' },
-    music: { table: 'artist_list_items', itemField: 'artist_id' }
+    movie: { table: 'list_items', itemField: 'entity_id' },
+    tv: { table: 'list_items', itemField: 'entity_id' },
+    anime: { table: 'list_items', itemField: 'entity_id' },
+    game: { table: 'list_items', itemField: 'entity_id' },
+    travel: { table: 'list_items', itemField: 'entity_id' },
+    fashion: { table: 'list_items', itemField: 'entity_id' },
+    food: { table: 'list_items', itemField: 'entity_id' },
+    car: { table: 'list_items', itemField: 'entity_id' },
+    sports: { table: 'list_items', itemField: 'entity_id' },
+    restaurant: { table: 'list_items', itemField: 'entity_id' },
+    book: { table: 'list_items', itemField: 'entity_id' },
+    artist: { table: 'list_items', itemField: 'entity_id' },
+    music: { table: 'list_items', itemField: 'entity_id' }
   };
 
   const MEDIA_LIST_ICONS = {
@@ -225,10 +225,18 @@
     try { if(_bridge&&typeof _bridge.toggleDefaultList==='function'&&(!tbl?.table||!tbl?.itemField||_bridgeCanUseResolvedUser())){const r=await _bridge.toggleDefaultList({itemId:item.itemId,listType,card:STATE.currentCard,nextSaved,user});if(r&&typeof r.ok==='boolean'){if(r.ok)return r;if(isConflictLikeError(r?.error))return{ok:true,saved:!!nextSaved};return r}} }catch(e){}
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
-    if(nextSaved){try{const cr={id:String(item.itemId||'').trim()};if(item.title){if(mt==='book')cr.title=item.title;else cr.name=item.title}if(item.image){if(mt==='book')cr.cover_url=item.image;else cr.image_url=item.image}if(item.subtitle&&mt==='book')cr.author_name=item.subtitle;if(cr.id){const pTable=mt==='book'?'books':'artists';await c.from(pTable).upsert(cr,{onConflict:'id'})}}catch(e){}}
-    const p={user_id:user.id,list_type:listType}; p[tbl.itemField]=item.itemId;
-    if(nextSaved){const isSplitIndex=['fashion_list_items','food_list_items','travel_list_items','car_list_items'].includes(tbl.table);const conflictTarget=isSplitIndex?`user_id,${tbl.itemField},list_type`:`user_id,${tbl.itemField},list_type,list_id`;const{error}=await c.from(tbl.table).upsert(p,{onConflict:conflictTarget,ignoreDuplicates:true}); if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}}
-    const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq(tbl.itemField,item.itemId).eq('list_type',listType);
+    if(!window.ListUtils) return {ok:false,saved:false};
+    const entityId=await ListUtils.resolveEntityId(c,mt,item.itemId);
+    if(!entityId) return {ok:false,saved:false};
+    const sysKey=ListUtils.SYSTEM_LIST_KEY_MAP[String(listType).toLowerCase()]||String(listType).toLowerCase();
+    const systemListId=await ListUtils.resolveSystemListId(c,sysKey);
+    if(!systemListId) return {ok:false,saved:false};
+    if(nextSaved){
+      try{await ListUtils.ensureEntityRecord(c,ListUtils.ENTITY_CONFIG[mt]?.provider||'internal',String(item.itemId),item.title||'');}catch(e){}
+      const{error}=await c.from(tbl.table).upsert({user_id:user.id,entity_id:entityId,system_list_id:systemListId,list_id:null},{onConflict:'user_id,entity_id,system_list_id',ignoreDuplicates:true});
+      if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}
+    }
+    const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq('entity_id',entityId).eq('system_list_id',systemListId).is('list_id',null);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }
   async function getDefaultListStatusMap(id, keys) {
@@ -238,10 +246,28 @@
     const mt=getMediaType(); const tc=DEFAULT_TABLE_BY_MEDIA[mt];
     const bs=readBridgeQuickStatus(id,keys); if(bs) return bs;
     if(_bridge&&typeof _bridge.getDefaultListStatusMap==='function'){try{const r=await _bridge.getDefaultListStatusMap(normalizeItemIdValue(id),keys); if(r&&typeof r==='object') return cloneQuickStatus(r,keys)}catch(e){}}
-    if(!tc) return s;
-    try { const nid=normalizeQueryableItemIdValue(id); if(nid===null||nid===undefined) return s;
-      const{data}=await c.from(tc.table).select('list_type').eq('user_id',u.id).eq(tc.itemField,nid).in('list_type',keys);
-      (data||[]).forEach(r=>{const k=String(r.list_type||'');if(k in s)s[k]=true});
+    if(!tc||!window.ListUtils) return s;
+    try {
+      const entityId=await ListUtils.resolveEntityId(c,mt,id);
+      if(!entityId) return s;
+      const sysKeys=keys.map(k=>ListUtils.SYSTEM_LIST_KEY_MAP[String(k).toLowerCase()]||String(k).toLowerCase());
+      const uniqueSysKeys=[...new Set(sysKeys)];
+      const sysIdMap={};
+      for(const sk of uniqueSysKeys){
+        const sid=await ListUtils.resolveSystemListId(c,sk);
+        if(sid) sysIdMap[sk]=sid;
+      }
+      if(!Object.keys(sysIdMap).length) return s;
+      const sidValues=Object.values(sysIdMap);
+      const{data}=await c.from(tc.table).select('system_list_id').eq('user_id',u.id).eq('entity_id',entityId).in('system_list_id',sidValues).is('list_id',null);
+      if(data){
+        const activeSysIds=new Set(data.map(r=>r.system_list_id));
+        keys.forEach(k=>{
+          const sk=ListUtils.SYSTEM_LIST_KEY_MAP[String(k).toLowerCase()]||String(k).toLowerCase();
+          const sid=sysIdMap[sk];
+          if(sid&&activeSysIds.has(sid)) s[k]=true;
+        });
+      }
     }catch(e){}
     return s;
   }
@@ -418,19 +444,48 @@
     })();
   }
 
+  function chunkArray(arr, size) {
+    var chunks = [];
+    for (var i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
+    return chunks;
+  }
+
+  async function multiQuery(client, table, select, eqField, eqVal, inField, inVals, inField2, inVals2) {
+    var results = [];
+    var chunks = chunkArray(inVals, 60);
+    for (var i = 0; i < chunks.length; i++) {
+      var q = client.from(table).select(select).eq(eqField, eqVal).in(inField, chunks[i]);
+      if (inField2 && inVals2 && inVals2.length) q = q.in(inField2, inVals2);
+      var res = await q;
+      if (res.data) results = results.concat(res.data);
+    }
+    return results;
+  }
+
+  async function multiQueryIn(client, table, select, f1, v1, f2, v2) {
+    var results = [];
+    var chunks = chunkArray(v2, 60);
+    for (var i = 0; i < chunks.length; i++) {
+      var q = client.from(table).select(select).in(f1, v1).in(f2, chunks[i]);
+      var res = await q;
+      if (res.data) results = results.concat(res.data);
+    }
+    return results;
+  }
+
   async function primeScopeCaches() {
     const sk=getScopeKey();const mt=getMediaType();const u=await resolveAuthenticatedUser();if(!sk||!mt||!u?.id)return;if(CACHE.primingScopes.has(sk))return;CACHE.primingScopes.add(sk);
     try{const c=await ensureClient();if(!c)return;const qr=getQuickRowsForMenu();const lk=qr.map(r=>r.key).filter(Boolean);
       const rv=_bridge&&typeof _bridge.getVisibleItemIds==='function'?_bridge.getVisibleItemIds():[];
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
-      if(dt&&lk.length&&vs.length){const{data}=await c.from(dt.table).select(`${dt.itemField},list_type`).eq('user_id',u.id).in(dt.itemField,vs).in('list_type',lk);
+      if(dt&&lk.length&&vs.length){const data=await multiQuery(c,dt.table,`${dt.itemField},list_type`,'user_id',u.id,dt.itemField,vs,'list_type',lk);
         const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'');const cur=sb.get(ik);if(cur&&!(lt in cur))cur[lt]=true});
         sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));}
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const cfg=ListUtils.getListConfig(mt);const lids=cl.map(l=>l.id).filter(Boolean);if(!cfg||!lids.length||!vs.length)return;
-      const{data}=await c.from(cfg.itemsTable).select(`list_id,${cfg.itemIdField}`).in('list_id',lids).in(cfg.itemIdField,vs);
-      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data||[]).forEach(r=>{const ik=String(r?.[cfg.itemIdField]??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
+      const data2=await multiQueryIn(c,cfg.itemsTable,`list_id,${cfg.itemIdField}`,lids,'list_id',cfg.itemIdField,vs);
+      const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data2||[]).forEach(r=>{const ik=String(r?.[cfg.itemIdField]??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
       mb.forEach((m,ik)=>writeCachedMembership(ik,m));
     }catch(e){}finally{CACHE.primingScopes.delete(sk)}
   }
