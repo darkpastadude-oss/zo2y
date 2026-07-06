@@ -149,11 +149,7 @@
         <p>Trending movies across all genres.</p>
       </div>
       <div class="grid" id="moviesGrid"></div>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
+      <div id="scrollSentinel" style="height:1px;width:100%"></div>
     </section>
   </main>
 
@@ -179,12 +175,15 @@
     let currentUser = null;
     const state = {
       movies: [],
+      allMovies: [],
       search: '',
       genre: '',
       year: '',
       sort: 'popular',
-      page: 1,
-      totalPages: 1,
+      offset: 0,
+      totalItems: 0,
+      hasMore: true,
+      loading: false,
       listStatusMap: new Map(),
       pendingQuickOps: new Set(),
       _poolCache: null,
@@ -313,156 +312,176 @@
       '848378', '848438', '968489', '933260', '956983', '872010', '912614'
     ];
 
-    async function loadMoviesWithFallback(queryOverride = '') {
+    async function loadMoviesWithFallback(queryOverride = '', append = false) {
+      if (state.loading) return;
       const query = String(queryOverride || state.search || '').trim();
-      let movies = [];
-      let apiTotalPages = 1;
-      let apiTotalResults = null;
-      let totalFilteredCount = null;
+
+      state.loading = true;
+      const sentinel = document.getElementById('scrollSentinel');
+      const grid = document.getElementById('moviesGrid');
+
+      if (!append) {
+        state.movies = [];
+        state.allMovies = [];
+        state.offset = 0;
+        state.hasMore = true;
+        if (grid) grid.innerHTML = Skel ? Skel.grid(MOVIES_PAGE_SIZE || 30, 4) : '';
+        invalidatePoolCache();
+      } else if (sentinel) {
+        sentinel.innerHTML = '<div class="loading-spinner"></div>';
+      }
 
       MOVIES_PAGE_SIZE = computeGridPageSize();
-      const startIndex = (state.page - 1) * MOVIES_PAGE_SIZE;
-      const apiPageStart = Math.floor(startIndex / TMDB_PAGE_SIZE) + 1;
-      const withinOffset = startIndex % TMDB_PAGE_SIZE;
-      const needed = withinOffset + MOVIES_PAGE_SIZE;
+      let movies = [];
+      let apiTotalResults = null;
+      let apiTotalPages = 1;
 
-      const hasFilters = state.genre || state.year;
-      if (hasFilters && !query) {
-        // Use discover endpoint with genre/year/sort filters
-        try {
-          const params = new URLSearchParams({ language: 'en-US', page: String(apiPageStart) });
-          if (state.genre) params.set('with_genres', state.genre);
-          if (state.year) params.set('primary_release_year', state.year);
-          if (state.sort === 'released') params.set('sort_by', 'primary_release_date.desc');
-          else if (state.sort === 'name') params.set('sort_by', 'original_title.asc');
-          else params.set('sort_by', 'popularity.desc');
-          
-          const pool = [];
-          for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
-            params.set('page', String(p));
-            const url = `${TMDB_PROXY_BASE}/discover/movie?${params.toString()}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const batch = Array.isArray(json?.results) ? json.results : [];
-            pool.push(...batch);
-            if (!batch.length) break;
-          }
-          movies = pool;
-        } catch (_err) {
-          console.error('Failed to load movies with filters', _err);
-        }
-      } else if (!query) {
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
-        if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
-          movies = state._poolCache;
-          if (state._poolCacheMeta) {
-            apiTotalResults = state._poolCacheMeta.totalResults;
-            apiTotalPages = state._poolCacheMeta.totalPages;
-          }
-        } else {
-          try {
+      try {
+        if (!query && !state.genre && !state.year) {
+          const poolCacheKey = 'popular|' + (state.sort || 'popular');
+          if (!append && state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= MOVIES_PAGE_SIZE) {
+            movies = state._poolCache;
+            if (state._poolCacheMeta) {
+              apiTotalResults = state._poolCacheMeta.totalResults;
+              apiTotalPages = state._poolCacheMeta.totalPages;
+            }
+          } else {
+            const startPage = append ? Math.floor(state.offset / TMDB_PAGE_SIZE) + 1 : 1;
+            const endPage = startPage + 9;
             const pool = [];
             let fetchedTotalResults = null;
             let fetchedTotalPages = 1;
-            for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
-              const url = `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`;
-              const res = await fetch(url);
-              if (!res.ok) break;
-              const json = await res.json();
-              if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
-              fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
-              const batch = Array.isArray(json?.results) ? json.results : [];
-              pool.push(...batch);
-              if (!batch.length) break;
+            for (let p = startPage; p <= endPage; p += 1) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/movie/popular?language=en-US&page=${p}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
+                fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
+                const batch = Array.isArray(json?.results) ? json.results : [];
+                pool.push(...batch);
+                if (!batch.length || p >= fetchedTotalPages) break;
+              } catch (_) { break; }
             }
-            movies = pool;
-            state._poolCache = pool;
-            state._poolCacheKey = poolCacheKey;
-            state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
+            if (append) {
+              state.allMovies = state.allMovies.concat(pool);
+            } else {
+              state.allMovies = pool;
+              state._poolCache = pool;
+              state._poolCacheKey = poolCacheKey;
+              state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
+            }
+            movies = state.allMovies;
             apiTotalResults = fetchedTotalResults;
             apiTotalPages = fetchedTotalPages;
-          } catch (_err) {
-            console.error('Failed to load popular movies', _err);
-          // Fallback to trending if popular fails.
-          try {
-            const pool = [];
-            for (let p = apiPageStart; p <= apiPageStart + 5 && pool.length < Math.max(needed, 40); p += 1) {
-              const url = `${TMDB_PROXY_BASE}/trending/movie/week?page=${p}`;
-              const res = await fetch(url);
-              if (!res.ok) break;
-              const json = await res.json();
-              if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-              apiTotalPages = json?.total_pages || apiTotalPages || 1;
-              const batch = Array.isArray(json?.results) ? json.results : [];
-              pool.push(...batch);
-              if (!batch.length) break;
-            }
-            movies = pool;
-          } catch (_err2) {
-            console.error('Failed to load trending movies', _err2);
-          }
-        }
-        }
-      } else {
-        // Use multi-search for better accuracy (searches across movies, TV, people)
-        const variations = getQueryVariations(query);
-        for (const variation of variations) {
-          try {
-            const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              const results = Array.isArray(json?.results) ? json.results : [];
-              // Filter for movies only
-              const movieResults = results.filter((item) => item.media_type === 'movie');
-              if (movieResults.length > 0) {
-                movies = movieResults;
-                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                apiTotalPages = json?.total_pages || 1;
-                break;
-              }
-            }
-          } catch (_err) {
-            console.error('Failed to load movies with multi-search variation:', variation, _err);
-          }
-        }
-        
-        // Fallback to movie-specific search if multi-search fails
-        if (movies.length === 0) {
-          for (const variation of variations) {
-            try {
-              const url = `${TMDB_PROXY_BASE}/search/movie?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const json = await res.json();
-                const results = Array.isArray(json?.results) ? json.results : [];
-                if (results.length > 0) {
-                  movies = results;
-                  if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                  apiTotalPages = json?.total_pages || 1;
-                  break;
+            if (!pool.length) {
+              try {
+                const fallbackPool = [];
+                for (let p = startPage; p <= endPage; p += 1) {
+                  try {
+                    const url = `${TMDB_PROXY_BASE}/trending/movie/week?page=${p}`;
+                    const res = await fetch(url);
+                    if (!res.ok) break;
+                    const json = await res.json();
+                    if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                    const batch = Array.isArray(json?.results) ? json.results : [];
+                    fallbackPool.push(...batch);
+                    if (!batch.length) break;
+                  } catch (_) { break; }
                 }
-              }
-            } catch (_err) {
-              console.error('Failed to load movies with variation:', variation, _err);
+                if (append) {
+                  state.allMovies = state.allMovies.concat(fallbackPool);
+                } else {
+                  state.allMovies = fallbackPool;
+                }
+                movies = state.allMovies;
+              } catch (_) {}
             }
           }
+        } else if (query) {
+          if (!append) {
+            const variations = getQueryVariations(query);
+            for (const variation of variations) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=1`;
+                const res = await fetch(url);
+                if (res.ok) {
+                  const json = await res.json();
+                  const results = Array.isArray(json?.results) ? json.results : [];
+                  const movieResults = results.filter((item) => item.media_type === 'movie');
+                  if (movieResults.length > 0) {
+                    movies = movieResults;
+                    apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || 1;
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+            if (movies.length === 0) {
+              for (const variation of variations) {
+                try {
+                  const url = `${TMDB_PROXY_BASE}/search/movie?query=${encodeURIComponent(variation)}&page=1`;
+                  const res = await fetch(url);
+                  if (res.ok) {
+                    const json = await res.json();
+                    const results = Array.isArray(json?.results) ? json.results : [];
+                    if (results.length > 0) {
+                      movies = results;
+                      apiTotalResults = Number(json?.total_results ?? null);
+                      apiTotalPages = json?.total_pages || 1;
+                      break;
+                    }
+                  }
+                } catch (_) {}
+              }
+            }
+            state.allMovies = movies;
+          } else {
+            movies = state.allMovies;
+          }
+        } else {
+          if (!append) {
+            const params = new URLSearchParams({ language: 'en-US', page: '1' });
+            if (state.genre) params.set('with_genres', state.genre);
+            if (state.year) params.set('primary_release_year', state.year);
+            if (state.sort === 'released') params.set('sort_by', 'primary_release_date.desc');
+            else if (state.sort === 'name') params.set('sort_by', 'original_title.asc');
+            else params.set('sort_by', 'popularity.desc');
+            const pool = [];
+            for (let p = 1; p <= 10; p += 1) {
+              params.set('page', String(p));
+              try {
+                const url = `${TMDB_PROXY_BASE}/discover/movie?${params.toString()}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                const batch = Array.isArray(json?.results) ? json.results : [];
+                pool.push(...batch);
+                if (!batch.length || p >= apiTotalPages) break;
+              } catch (_) { break; }
+            }
+            state.allMovies = pool;
+            movies = pool;
+          } else {
+            movies = state.allMovies;
+          }
         }
-        // For search, estimate filtered count since multi-search includes all media types
-        if (movies.length > 0 && apiTotalResults != null) {
-          const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-          const filterRatio = movies.length / Math.min(fetchedRawCount, apiTotalResults);
-          totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
-        }
+      } catch (_err) {
+        console.error('Failed to load movies', _err);
       }
 
       const _seenMovies = new Set();
-      movies = movies.filter(m => { const id = String(m.id || ''); if (!id || _seenMovies.has(id)) return false; _seenMovies.add(id); return true; });
-
-      state.movies = movies.map((movie) => ({
+      const filtered = movies.filter(m => {
+        const id = String(m.id || '');
+        if (!id || _seenMovies.has(id)) return false;
+        _seenMovies.add(id);
+        return true;
+      }).map((movie) => ({
         id: String(movie.id || ''),
         title: movie.title || movie.name || 'Unknown Movie',
         overview: movie.overview || '',
@@ -473,24 +492,24 @@
         genreIds: Array.isArray(movie.genre_ids) ? movie.genre_ids : []
       })).filter((m) => m.id && isDateWithinAcceptableRange(m.releaseDate));
 
-      state.movies = state.movies.slice(withinOffset, withinOffset + MOVIES_PAGE_SIZE);
-
-      // Use estimated filtered count for pagination when searching
-      if (typeof totalFilteredCount === 'number' && Number.isFinite(totalFilteredCount) && totalFilteredCount > 0) {
-        state.totalPages = Math.max(1, Math.ceil(totalFilteredCount / MOVIES_PAGE_SIZE));
-      } else if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / MOVIES_PAGE_SIZE));
+      if (!append) {
+        state.totalItems = filtered.length;
+        state.movies = filtered.slice(0, MOVIES_PAGE_SIZE);
+        state.offset = state.movies.length;
       } else {
-        const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;
-        state.totalPages = Math.max(1, Math.ceil(roughTotal / MOVIES_PAGE_SIZE));
+        const newItems = filtered.slice(state.offset, state.offset + MOVIES_PAGE_SIZE);
+        state.movies = state.movies.concat(newItems);
+        state.offset = state.movies.length;
       }
+      state.hasMore = state.offset < state.totalItems && filtered.length > state.offset;
+      state.loading = false;
+      if (sentinel) sentinel.innerHTML = state.hasMore ? '' : '';
     }
 
     function debounceSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
-        state.page = 1;
         invalidatePoolCache();
         await loadMoviesWithFallback();
         await loadListStatus();
@@ -614,19 +633,18 @@
       if (openEl) openEl.href = `movie.html?id=${encodeURIComponent(movie.id)}`;
     }
 
-    function renderGrid() {
+    function renderGrid(append) {
       const grid = document.getElementById('moviesGrid');
       const spotlight = document.getElementById('moviesSpotlight');
       if (!grid) return;
       
       if (spotlight) spotlight.hidden = true;
       
-      if (!state.movies.length) {
+      if (!state.movies.length && !append) {
         grid.innerHTML = '<div class="empty">No movies found.</div>';
-        updatePagination();
         return;
       }
-      grid.innerHTML = state.movies.map((movie) => {
+      const html = state.movies.map((movie) => {
         let posterUrl = '';
         if (movie.posterPath) {
           posterUrl = `${POSTER_BASE}${movie.posterPath}`;
@@ -654,19 +672,25 @@
       `;
       }).join('');
 
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', html);
+      } else {
+        grid.innerHTML = html;
+      }
       wireGridActions();
-      updatePagination();
     }
 
-    function updatePagination() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    function setupInfiniteScroll() {
+      const sentinel = document.getElementById('scrollSentinel');
+      if (!sentinel) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !state.loading && state.hasMore) {
+            loadMoviesWithFallback('', true).then(() => loadListStatus()).then(() => renderGrid(true));
+          }
+        }
+      }, { rootMargin: '400px' });
+      observer.observe(sentinel);
     }
 
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
@@ -748,7 +772,7 @@
     async function loadPage() {
       try {
         await initAuthUi();
-        await loadMovies();
+        await loadMoviesWithFallback();
         await loadListStatus();
         renderGrid();
       } catch (_err) {
@@ -774,7 +798,6 @@
     });
     document.getElementById('genre')?.addEventListener('change', async (e) => {
       state.genre = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
@@ -782,7 +805,6 @@
     });
     document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
@@ -790,7 +812,6 @@
     });
     document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadMoviesWithFallback();
       await loadListStatus();
@@ -800,20 +821,6 @@
       invalidatePoolCache();
       document.getElementById('moviesFilterModal')?.classList.remove('show');
       await loadPage();
-    });
-    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
-      if (state.page <= 1) return;
-      state.page -= 1;
-      await loadMovies();
-      await loadListStatus();
-      renderGrid();
-    });
-    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
-      if (state.page >= state.totalPages) return;
-      state.page += 1;
-      await loadMovies();
-      await loadListStatus();
-      renderGrid();
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -853,13 +860,13 @@
         });
       }
       initFilters().then(() => loadPage());
+      setupInfiniteScroll();
     });
 
     window.debugMoviesPage = function() {
-      console.log(`=== Page ${state.page} of ${state.totalPages} ===`);
-      console.log(`Grid size: ${MOVIES_PAGE_SIZE} | apiPageStart would be: ${Math.floor(((state.page - 1) * MOVIES_PAGE_SIZE) / TMDB_PAGE_SIZE) + 1}`);
-      state.movies.forEach((m, i) => {
-        console.log(`  ${(state.page - 1) * MOVIES_PAGE_SIZE + i + 1}. ${m.title} (${m.releaseDate || 'N/A'}) [id:${m.id}]`);
+      console.log(`=== Movies: ${state.movies.length} rendered / ${state.totalItems} total, offset=${state.offset}, hasMore=${state.hasMore} ===`);
+      state.movies.slice(0, 10).forEach((m, i) => {
+        console.log(`  ${i + 1}. ${m.title} (${m.releaseDate || 'N/A'}) [id:${m.id}]`);
       });
       return state.movies.map(m => `${m.title} (${m.releaseDate || 'N/A'})`);
     };

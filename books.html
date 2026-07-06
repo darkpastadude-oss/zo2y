@@ -85,7 +85,6 @@
     <section class="hero">
       <h1>books</h1>
       <p>Bestsellers, new releases, fantasy, sci-fi, romance, mystery, BookTok favorites. Save anything to your reading lists.</p>
-      <div class="mt-2 text-xs text-muted opacity-86">source: Google Books API. <a href="credits.html" class="text-accent">all credits</a></div>
     </section>
 
     <section class="controls">
@@ -123,11 +122,7 @@
         <p id="gridDesc">Trending fiction and non-fiction across Zo2y.</p>
       </div>
       <div class="grid" id="booksGrid"></div>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
+      <div id="scrollSentinel" style="height:1px;width:100%"></div>
     </section>
   </main>
   <script src="js/pages/books.js?v=20260623z" defer></script>

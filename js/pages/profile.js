@@ -1916,6 +1916,11 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
+                        travelSavedCount,
+                        fashionSavedCount,
+                        foodSavedCount,
+                        carSavedCount,
+                        sportsSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
@@ -1929,6 +1934,11 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('artist_list_items', targetId),
+                        safeCountByUser('travel_list_items', targetId),
+                        safeCountByUser('fashion_list_items', targetId),
+                        safeCountByUser('food_list_items', targetId),
+                        safeCountByUser('car_list_items', targetId),
+                        safeCountByUser('sports_list_items', targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
@@ -1942,7 +1952,12 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0);
+                        + Number(musicSavedCount || 0)
+                        + Number(travelSavedCount || 0)
+                        + Number(fashionSavedCount || 0)
+                        + Number(foodSavedCount || 0)
+                        + Number(carSavedCount || 0)
+                        + Number(sportsSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
@@ -1970,6 +1985,11 @@
                         gameSavedCount,
                         bookSavedCount,
                         musicSavedCount,
+                        travelSavedCount,
+                        fashionSavedCount,
+                        foodSavedCount,
+                        carSavedCount,
+                        sportsSavedCount,
                         movieListsCount,
                         tvListsCount,
                         animeListsCount,
@@ -1998,6 +2018,11 @@
                         safeCountByUser('game_list_items', targetId),
                         safeCountByUser('book_list_items', targetId),
                         safeCountByUser('artist_list_items', targetId),
+                        safeCountByUser('travel_list_items', targetId),
+                        safeCountByUser('fashion_list_items', targetId),
+                        safeCountByUser('food_list_items', targetId),
+                        safeCountByUser('car_list_items', targetId),
+                        safeCountByUser('sports_list_items', targetId),
                         safeCountByUser('movie_lists', targetId),
                         safeCountByUser('tv_lists', targetId),
                         safeCountByUser('anime_lists', targetId),
@@ -2027,7 +2052,12 @@
                         + Number(animeSavedCount || 0)
                         + Number(gameSavedCount || 0)
                         + Number(bookSavedCount || 0)
-                        + Number(musicSavedCount || 0);
+                        + Number(musicSavedCount || 0)
+                        + Number(travelSavedCount || 0)
+                        + Number(fashionSavedCount || 0)
+                        + Number(foodSavedCount || 0)
+                        + Number(carSavedCount || 0)
+                        + Number(sportsSavedCount || 0);
                     const listsCount = Number(movieListsCount || 0)
                         + Number(tvListsCount || 0)
                         + Number(animeListsCount || 0)
@@ -4882,18 +4912,24 @@
                     if (res.ok) {
                         const json = await res.json();
                         if (json.result) {
-                            const merged = {
-                                id: json.result.id,
-                                name: json.result.title,
-                                image_url: json.result.image || '',
-                                external_url: json.result.externalUrl || ''
-                            };
-                            if (!merged.image_url && dbData) {
-                                merged.image_url = dbData.image_url || '';
-                                merged.name = merged.name || dbData.name || '';
+                            const apiName = String(json.result.title || '').trim().toLowerCase();
+                            const dbName = String(dbData?.name || '').trim().toLowerCase();
+                            if (dbName && apiName && apiName !== dbName) {
+                                // API returned a different artist (cross-platform ID mismatch) — skip
+                            } else {
+                                const merged = {
+                                    id: json.result.id,
+                                    name: json.result.title,
+                                    image_url: json.result.image || '',
+                                    external_url: json.result.externalUrl || ''
+                                };
+                                if (!merged.image_url && dbData) {
+                                    merged.image_url = dbData.image_url || '';
+                                    merged.name = merged.name || dbData.name || '';
+                                }
+                                musicCache.set(key, merged);
+                                return merged;
                             }
-                            musicCache.set(key, merged);
-                            return merged;
                         }
                     }
                 } catch (e) {
@@ -7906,12 +7942,10 @@ const alreadyActive = isMobile
                                 }
                             }));
                             rows.forEach((row, index) => {
-                                const id = String(row?.id || missingIds[index] || '').trim();
-                                if (!id) return;
+                                const queriedId = missingIds[index];
+                                if (!queriedId) return;
                                 const imageUrl = String(row?.image_url || '').trim();
-                                if (imageUrl) {
-                                    writePreviewAssetCache(contentType, id, imageUrl);
-                                }
+                                writePreviewAssetCache(contentType, queriedId, imageUrl || '/newlogo.webp');
                             });
                         } else if (contentType === 'fashion' || contentType === 'food' || contentType === 'car') {
                             const table = contentType === 'fashion'

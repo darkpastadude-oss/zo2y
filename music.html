@@ -127,11 +127,7 @@
           }
         })();
       </script>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
+      <div id="scrollSentinel" style="height:1px"></div>
     </section>
   </main>
 
@@ -145,13 +141,15 @@
     let currentUser = null;
     const state = {
       tracks: [],
+      allTracks: [],
+      offset: 0,
+      hasMore: true,
+      loading: false,
       search: '',
       genre: '',
       year: '',
       sort: 'popular',
       currentQuery: '',
-      page: 1,
-      totalPages: 1,
       listStatusMap: new Map(),
       pendingQuickOps: new Set()
     };
@@ -378,31 +376,33 @@
 
       if (!mergedLive.length) {
         state.tracks = [];
-        state.page = 1;
-        state.totalPages = 1;
+        state.allTracks = [];
+        state.offset = 0;
+        state.hasMore = false;
         return;
       }
 
-      state.tracks = mergedLive;
-      state.page = 1;
-      state.totalPages = Math.max(1, Math.ceil(mergedLive.length / MUSIC_PAGE_SIZE));
+      state.allTracks = mergedLive;
+      state.offset = 0;
+      state.hasMore = true;
+      state.tracks = state.allTracks.slice(0, MUSIC_PAGE_SIZE);
+      state.offset = state.tracks.length;
+      if (state.offset >= state.allTracks.length) state.hasMore = false;
     }
 
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
 
-    function renderGrid() {
+    function renderGrid(append) {
       const grid = document.getElementById('musicGrid');
       if (!grid) return;
-      if (!state.tracks.length) {
+      if (!state.tracks.length && !append) {
         updateMusicPageSpotlight([]);
         grid.innerHTML = '<div class="empty">No music right now.</div>';
-        updatePagination();
         return;
       }
       updateMusicPageSpotlight(state.tracks);
-      const start = (state.page - 1) * MUSIC_PAGE_SIZE;
-      const visibleItems = state.tracks.slice(start, start + MUSIC_PAGE_SIZE);
-      grid.innerHTML = visibleItems.map((item) => {
+      const visibleItems = append ? state.tracks.slice(state.offset - MUSIC_PAGE_SIZE) : state.tracks;
+      const html = visibleItems.map((item) => {
         const kind = String(item.kind || 'artist').toLowerCase();
         return `
         <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
@@ -425,19 +425,36 @@
       `;
       }).join('');
 
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', html);
+      } else {
+        grid.innerHTML = html;
+      }
       wireGridActions();
-      updatePagination();
     }
 
-    function updatePagination() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    function setupInfiniteScroll() {
+      const sentinel = document.getElementById('scrollSentinel');
+      if (!sentinel) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !state.loading && state.hasMore) {
+            state.loading = true;
+            const nextBatch = state.allTracks.slice(state.offset, state.offset + MUSIC_PAGE_SIZE);
+            if (nextBatch.length === 0) {
+              state.hasMore = false;
+              state.loading = false;
+              return;
+            }
+            state.tracks = state.tracks.concat(nextBatch);
+            state.offset += nextBatch.length;
+            if (state.offset >= state.allTracks.length) state.hasMore = false;
+            state.loading = false;
+            renderGrid(true);
+          }
+        }
+      }, { rootMargin: '400px' });
+      observer.observe(sentinel);
     }
 
     function wireGridActions() {
@@ -542,16 +559,6 @@
       state.currentQuery = String(e.target.value || '').trim();
       await loadPage();
     });
-    document.getElementById('prevPageBtn')?.addEventListener('click', () => {
-      if (state.page <= 1) return;
-      state.page -= 1;
-      renderGrid();
-    });
-    document.getElementById('nextPageBtn')?.addEventListener('click', () => {
-      if (state.page >= state.totalPages) return;
-      state.page += 1;
-      renderGrid();
-    });
 
     // Filter modal
     document.getElementById('musicFilterBtn')?.addEventListener('click', () => {
@@ -571,7 +578,6 @@
     });
     document.getElementById('musicRefresh')?.addEventListener('click', async () => {
       document.getElementById('musicFilterModal')?.classList.remove('show');
-      state.page = 1;
       await loadPage();
     });
 
@@ -613,7 +619,7 @@
           notify: (message, isError) => showToast(message, !!isError)
         });
       }
-      loadPage();
+      loadPage().then(() => setupInfiniteScroll());
     });
   </script>
 <link rel="stylesheet" href="css/pages/legal.css?v=20260623z">

@@ -809,11 +809,7 @@
         <p>Trending anime across all genres.</p>
       </div>
       <div class="grid" id="animesGrid"></div>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
+      <div id="scrollSentinel" style="height:1px;width:100%"></div>
     </section>
   </main>
 
@@ -839,12 +835,15 @@
     let currentUser = null;
     const state = {
       animes: [],
+      allAnimes: [],
       search: '',
       genre: '',
       year: '',
       sort: 'popular',
-      page: 1,
-      totalPages: 1,
+      offset: 0,
+      totalItems: 0,
+      hasMore: true,
+      loading: false,
       listStatusMap: new Map(),
       pendingQuickOps: new Set(),
       _poolCache: null,
@@ -1178,183 +1177,183 @@
       '866398', '572802', '848378', '848438', '968489', '933260', '956983', '872010', '912614'
     ];
 
-    async function loadAnimesWithFallback(queryOverride = '') {
+    async function loadAnimesWithFallback(queryOverride = '', append = false) {
+      if (state.loading) return;
       const query = String(queryOverride || state.search || '').trim();
-      let animes = [];
-      let apiTotalPages = 1;
-      let apiTotalResults = null;
-      let totalFilteredCount = null;
+
+      state.loading = true;
+      const sentinel = document.getElementById('scrollSentinel');
+      const grid = document.getElementById('animesGrid');
+
+      if (!append) {
+        state.animes = [];
+        state.allAnimes = [];
+        state.offset = 0;
+        state.hasMore = true;
+        if (grid) grid.innerHTML = Skel ? Skel.grid(ANIMES_PAGE_SIZE || 30, 4) : '';
+        invalidatePoolCache();
+      } else if (sentinel) {
+        sentinel.innerHTML = '<div class="loading-spinner"></div>';
+      }
 
       ANIMES_PAGE_SIZE = computeGridPageSize();
-      const startIndex = (state.page - 1) * ANIMES_PAGE_SIZE;
-      const apiPageStart = Math.floor(startIndex / TMDB_PAGE_SIZE) + 1;
-      const withinOffset = startIndex % TMDB_PAGE_SIZE;
-      const needed = withinOffset + ANIMES_PAGE_SIZE;
+      let animes = [];
+      let apiTotalResults = null;
+      let apiTotalPages = 1;
 
-      const hasFilters = state.genre || state.year;
-      if (hasFilters && state.genre) {
-        // Use discover with genre/year/sort filters (still anime-specific)
-        try {
-          const params = new URLSearchParams({
-            language: 'en-US',
-            with_genres: state.genre,
-            with_origin_country: 'JP',
-            'vote_count.gte': '50',
-            page: String(apiPageStart)
-          });
-          if (state.year) params.set('first_air_date_year', state.year);
-          if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
-          else params.set('sort_by', 'popularity.desc');
-          
-          const pool = [];
-          for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
-            params.set('page', String(p));
-            const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const tvResults = Array.isArray(json?.results) ? json.results : [];
-            const batch = filterAnime(tvResults);
-            animes = animes.concat(batch);
-            if (!tvResults.length) break;
-          }
-          
-          if (state.sort === 'name') {
-            animes.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-          }
-          
-          if (animes.length > 0 && apiTotalResults != null) {
-            const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-            const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
-            totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
-          }
-        } catch (_err) {
-          console.error('Failed to load anime with filters', _err);
-        }
-      } else if (!query) {
-        const sortBy = 'popularity.desc';
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
-        if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
-          animes = state._poolCache;
-          if (state._poolCacheMeta) {
-            apiTotalResults = state._poolCacheMeta.totalResults;
-            apiTotalPages = state._poolCacheMeta.totalPages;
-            totalFilteredCount = state._poolCacheMeta.filteredCount;
-          }
-        } else {
-          try {
+      try {
+        if (!query && (!state.genre || state.genre === '16')) {
+          const sortBy = 'popularity.desc';
+          const poolCacheKey = 'popular|' + (state.sort || 'popular');
+          if (!append && state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= ANIMES_PAGE_SIZE) {
+            animes = state._poolCache;
+            if (state._poolCacheMeta) {
+              apiTotalResults = state._poolCacheMeta.totalResults;
+              apiTotalPages = state._poolCacheMeta.totalPages;
+            }
+          } else {
+            const startPage = append ? Math.floor(state.offset / TMDB_PAGE_SIZE) + 1 : 1;
+            const endPage = startPage + 9;
+            const pool = [];
             let fetchedTotalResults = null;
             let fetchedTotalPages = 1;
-            for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
-              const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
-              const res = await fetch(url);
-              if (!res.ok) break;
-              const json = await res.json();
-              if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
-              fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
-              const tvResults = Array.isArray(json?.results) ? json.results : [];
-              const batch = filterAnime(tvResults);
-              animes = animes.concat(batch);
-              if (!tvResults.length) break;
+            for (let p = startPage; p <= endPage; p += 1) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/discover/tv?with_genres=16&with_origin_country=JP&vote_count.gte=50&sort_by=${sortBy}&page=${p}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
+                fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
+                const batch = filterAnime(Array.isArray(json?.results) ? json.results : []);
+                pool.push(...batch);
+                if (!batch.length || p >= fetchedTotalPages) break;
+              } catch (_) { break; }
             }
-            if (animes.length > 0 && fetchedTotalResults != null) {
-              const fetchedRawCount = (apiPageStart + Math.min(6, fetchedTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-              const filterRatio = animes.length / Math.min(fetchedRawCount, fetchedTotalResults);
-              totalFilteredCount = Math.floor(fetchedTotalResults * filterRatio);
+            if (append) {
+              state.allAnimes = state.allAnimes.concat(pool);
+            } else {
+              state.allAnimes = pool;
+              state._poolCache = pool;
+              state._poolCacheKey = poolCacheKey;
+              state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
             }
-            state._poolCache = animes;
-            state._poolCacheKey = poolCacheKey;
-            state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages, filteredCount: totalFilteredCount };
+            animes = state.allAnimes;
             apiTotalResults = fetchedTotalResults;
             apiTotalPages = fetchedTotalPages;
-          } catch (_err) {
-            console.error('Failed to load anime', _err);
-            // Fallback to trending if discover fails
-            try {
-              animes = [];
-              for (let p = apiPageStart; p <= apiPageStart + 6 && animes.length < Math.max(needed, 40); p += 1) {
-                const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+            if (!pool.length) {
+              try {
+                const fallbackPool = [];
+                for (let p = startPage; p <= endPage; p += 1) {
+                  try {
+                    const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+                    const res = await fetch(url);
+                    if (!res.ok) break;
+                    const json = await res.json();
+                    if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                    const batch = filterAnime(Array.isArray(json?.results) ? json.results : []);
+                    fallbackPool.push(...batch);
+                    if (!batch.length) break;
+                  } catch (_) { break; }
+                }
+                if (append) {
+                  state.allAnimes = state.allAnimes.concat(fallbackPool);
+                } else {
+                  state.allAnimes = fallbackPool;
+                }
+                animes = state.allAnimes;
+              } catch (_) {}
+            }
+          }
+        } else if (query) {
+          if (!append) {
+            const variations = getQueryVariations(query);
+            for (const variation of variations) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=1`;
+                const res = await fetch(url);
+                if (res.ok) {
+                  const json = await res.json();
+                  const results = Array.isArray(json?.results) ? json.results : [];
+                  const tvResults = results.filter((item) => item.media_type === 'tv');
+                  const filtered = filterAnime(tvResults);
+                  if (filtered.length > 0) {
+                    animes = filtered;
+                    apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || 1;
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+            if (animes.length === 0) {
+              for (const variation of variations) {
+                try {
+                  const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=1`;
+                  const res = await fetch(url);
+                  if (res.ok) {
+                    const json = await res.json();
+                    const filtered = filterAnime(Array.isArray(json?.results) ? json.results : []);
+                    if (filtered.length > 0) {
+                      animes = filtered;
+                      apiTotalResults = Number(json?.total_results ?? null);
+                      apiTotalPages = json?.total_pages || 1;
+                      break;
+                    }
+                  }
+                } catch (_) {}
+              }
+            }
+            state.allAnimes = animes;
+          } else {
+            animes = state.allAnimes;
+          }
+        } else {
+          if (!append) {
+            const params = new URLSearchParams({
+              language: 'en-US',
+              with_genres: state.genre || '16',
+              with_origin_country: 'JP',
+              'vote_count.gte': '50',
+              page: '1'
+            });
+            if (state.year) params.set('first_air_date_year', state.year);
+            if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
+            else params.set('sort_by', 'popularity.desc');
+            const pool = [];
+            for (let p = 1; p <= 10; p += 1) {
+              params.set('page', String(p));
+              try {
+                const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
                 const res = await fetch(url);
                 if (!res.ok) break;
                 const json = await res.json();
                 if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
                 apiTotalPages = json?.total_pages || apiTotalPages || 1;
-                const tvResults = Array.isArray(json?.results) ? json.results : [];
-                const batch = filterAnime(tvResults);
-                animes = animes.concat(batch);
-                if (!tvResults.length) break;
-              }
-              if (animes.length > 0 && apiTotalResults != null) {
-                const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-                const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
-                totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
-              }
-            } catch (_err2) {
-              console.error('Failed to load trending anime', _err2);
+                const batch = filterAnime(Array.isArray(json?.results) ? json.results : []);
+                pool.push(...batch);
+                if (!batch.length || p >= apiTotalPages) break;
+              } catch (_) { break; }
             }
+            if (state.sort === 'name') pool.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            state.allAnimes = pool;
+            animes = pool;
+          } else {
+            animes = state.allAnimes;
           }
         }
-      } else {
-        // Use multi-search for better accuracy (searches across movies, TV, people)
-        const variations = getQueryVariations(query);
-        for (const variation of variations) {
-          try {
-            const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              const results = Array.isArray(json?.results) ? json.results : [];
-              // Filter for TV shows only
-              const tvResults = results.filter((item) => item.media_type === 'tv');
-              const filteredAnimes = filterAnime(tvResults);
-              if (filteredAnimes.length > 0) {
-                animes = filteredAnimes;
-                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                apiTotalPages = json?.total_pages || 1;
-                break;
-              }
-            }
-          } catch (_err) {
-            console.error('Failed to load anime with multi-search variation:', variation, _err);
-          }
-        }
-        
-        // Fallback to TV-specific search if multi-search fails
-        if (animes.length === 0) {
-          for (const variation of variations) {
-            try {
-              const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const json = await res.json();
-                const tvResults = Array.isArray(json?.results) ? json.results : [];
-                const filteredAnimes = filterAnime(tvResults);
-                if (filteredAnimes.length > 0) {
-                  animes = filteredAnimes;
-                  if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                  apiTotalPages = json?.total_pages || 1;
-                  break;
-                }
-              }
-            } catch (_err) {
-              console.error('Failed to load anime with variation:', variation, _err);
-            }
-          }
-        }
-        // For search, use the filtered count directly since we fetch more pages
-        if (animes.length > 0 && apiTotalResults != null) {
-          const fetchedRawCount = (apiPageStart + Math.min(6, apiTotalPages - apiPageStart + 1)) * TMDB_PAGE_SIZE;
-          const filterRatio = animes.length / Math.min(fetchedRawCount, apiTotalResults);
-          totalFilteredCount = Math.floor(apiTotalResults * filterRatio);
-        }
+      } catch (_err) {
+        console.error('Failed to load anime', _err);
       }
 
       const _seenAnime = new Set();
-      animes = animes.filter(a => { const id = String(a.id || ''); if (!id || _seenAnime.has(id)) return false; _seenAnime.add(id); return true; });
-
-      state.animes = animes.map((anime) => ({
+      const filtered = animes.filter(a => {
+        const id = String(a.id || '');
+        if (!id || _seenAnime.has(id)) return false;
+        _seenAnime.add(id);
+        return true;
+      }).map((anime) => ({
         id: String(anime.id || ''),
         name: anime.name || anime.title || 'Unknown Anime',
         overview: anime.overview || '',
@@ -1365,24 +1364,24 @@
         genreIds: Array.isArray(anime.genre_ids) ? anime.genre_ids : []
       })).filter((a) => a.id && isDateWithinAcceptableRange(a.firstAirDate));
 
-      state.animes = state.animes.slice(withinOffset, withinOffset + ANIMES_PAGE_SIZE);
-
-      // Use estimated filtered count for pagination
-      if (typeof totalFilteredCount === 'number' && Number.isFinite(totalFilteredCount) && totalFilteredCount > 0) {
-        state.totalPages = Math.max(1, Math.ceil(totalFilteredCount / ANIMES_PAGE_SIZE));
-      } else if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / ANIMES_PAGE_SIZE));
+      if (!append) {
+        state.totalItems = filtered.length;
+        state.animes = filtered.slice(0, ANIMES_PAGE_SIZE);
+        state.offset = state.animes.length;
       } else {
-        const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;
-        state.totalPages = Math.max(1, Math.ceil(roughTotal / ANIMES_PAGE_SIZE));
+        const newItems = filtered.slice(state.offset, state.offset + ANIMES_PAGE_SIZE);
+        state.animes = state.animes.concat(newItems);
+        state.offset = state.animes.length;
       }
+      state.hasMore = state.offset < state.totalItems && filtered.length > state.offset;
+      state.loading = false;
+      if (sentinel) sentinel.innerHTML = state.hasMore ? '' : '';
     }
 
     function debounceSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
-        state.page = 1;
         invalidatePoolCache();
         await loadAnimesWithFallback();
         await loadListStatus();
@@ -1521,19 +1520,18 @@
       if (openEl) openEl.href = `anime.html?id=${encodeURIComponent(anime.id)}`;
     }
 
-    function renderGrid() {
+    function renderGrid(append) {
       const grid = document.getElementById('animesGrid');
       const spotlight = document.getElementById('animesSpotlight');
       if (!grid) return;
       
       if (spotlight) spotlight.hidden = true;
       
-      if (!state.animes.length) {
+      if (!state.animes.length && !append) {
         grid.innerHTML = '<div class="empty">No anime found.</div>';
-        updatePagination();
         return;
       }
-      grid.innerHTML = state.animes.map((anime) => {
+      const html = state.animes.map((anime) => {
         let posterUrl = '';
         if (anime.posterPath) {
           posterUrl = `${POSTER_BASE}${anime.posterPath}`;
@@ -1561,19 +1559,25 @@
       `;
       }).join('');
 
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', html);
+      } else {
+        grid.innerHTML = html;
+      }
       wireGridActions();
-      updatePagination();
     }
 
-    function updatePagination() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    function setupInfiniteScroll() {
+      const sentinel = document.getElementById('scrollSentinel');
+      if (!sentinel) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !state.loading && state.hasMore) {
+            loadAnimesWithFallback('', true).then(() => loadListStatus()).then(() => renderGrid(true));
+          }
+        }
+      }, { rootMargin: '400px' });
+      observer.observe(sentinel);
     }
 
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
@@ -1681,7 +1685,6 @@
     });
     document.getElementById('genre')?.addEventListener('change', async (e) => {
       state.genre = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadAnimesWithFallback();
       await loadListStatus();
@@ -1689,7 +1692,6 @@
     });
     document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadAnimesWithFallback();
       await loadListStatus();
@@ -1697,7 +1699,6 @@
     });
     document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadAnimesWithFallback();
       await loadListStatus();
@@ -1707,20 +1708,6 @@
       invalidatePoolCache();
       document.getElementById('animesFilterModal')?.classList.remove('show');
       await loadPage();
-    });
-    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
-      if (state.page <= 1) return;
-      state.page -= 1;
-      await loadAnimes();
-      await loadListStatus();
-      renderGrid();
-    });
-    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
-      if (state.page >= state.totalPages) return;
-      state.page += 1;
-      await loadAnimes();
-      await loadListStatus();
-      renderGrid();
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1759,14 +1746,17 @@
             toggleDefaultList(itemId, listType, card, nextSaved)
         });
       }
-      initFilters().then(() => loadPage());
+      initFilters().then(async () => {
+        await loadPage();
+        setupInfiniteScroll();
+      });
     });
 
     window.debugAnimesPage = function() {
-      console.log(`=== Page ${state.page} of ${state.totalPages} ===`);
-      console.log(`Grid size: ${ANIMES_PAGE_SIZE} | apiPageStart would be: ${Math.floor(((state.page - 1) * ANIMES_PAGE_SIZE) / TMDB_PAGE_SIZE) + 1}`);
+      console.log(`=== Anime Pool (offset: ${state.offset}, hasMore: ${state.hasMore}) ===`);
+      console.log(`Grid size: ${ANIMES_PAGE_SIZE} | Pool total: ${state.allAnimes.length}`);
       state.animes.forEach((a, i) => {
-        console.log(`  ${(state.page - 1) * ANIMES_PAGE_SIZE + i + 1}. ${a.name} (${a.firstAirDate || 'N/A'}) [id:${a.id}]`);
+        console.log(`  ${state.offset + i + 1}. ${a.name} (${a.firstAirDate || 'N/A'}) [id:${a.id}]`);
       });
       return state.animes.map(a => `${a.name} (${a.firstAirDate || 'N/A'})`);
     };

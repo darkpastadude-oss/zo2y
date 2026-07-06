@@ -28,7 +28,7 @@ const ProfileShowcase = (function () {
 
     const ITEM_FIELDS = {
         movie: 'movie_id', tv: 'tv_id', anime: 'anime_id',
-        game: 'game_id', book: 'book_id', music: 'track_id',
+        game: 'game_id', book: 'book_id',         music: 'artist_id',
         travel: 'country_code', fashion: 'brand_id', food: 'brand_id',
         car: 'brand_id', sports: 'team_id'
     };

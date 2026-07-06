@@ -272,34 +272,41 @@ export default async function booksHandler(req, res) {
   if (section === "popular") {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
-    const subjects = [
-      "fiction", "fantasy", "romance", "thriller", "mystery",
-      "science fiction", "horror", "historical fiction", "literary fiction",
-      "young adult", "nonfiction", "memoir", "biography", "poetry",
-      "adventure", "dystopia", "contemporary", "psychological thriller",
-      "magic", "suspense"
-    ];
-    const shuffledSubjects = [...subjects].sort(() => Math.random() - 0.5);
-    const pickedSubjects = shuffledSubjects.slice(0, 6);
+    const startIndex = Math.max(0, Number(query.startIndex) || 0);
+    const genre = String(query.genre || "").trim().toLowerCase();
+    const currentYear = new Date().getFullYear();
+    const subjects = genre
+      ? [genre]
+      : [
+          "fiction", "fantasy", "romance", "thriller", "mystery",
+          "science fiction", "horror", "young adult", "contemporary",
+          "memoir", "biography", "dystopia", "adventure", "poetry",
+          "psychological thriller", "suspense", "literary fiction",
+          "historical fiction", "humor", "graphic novel", "short stories",
+          "true crime", "science", "history", "philosophy", "self help"
+        ];
     try {
       const seenTitles = new Set();
       const authorSeen = new Set();
       const allBooks = [];
-      for (const subj of pickedSubjects) {
-        if (allBooks.length >= limit) break;
+      const need = startIndex + limit;
+      for (const subj of subjects) {
+        if (allBooks.length >= need) break;
         try {
           const data = await openLibFetch("search.json", {
             q: `subject:${subj}`,
-            sort: "rating",
-            limit: Math.ceil(limit * 2)
+            sort: "new",
+            limit: 80
           });
           const rawItems = data.docs || [];
           for (const doc of rawItems) {
-            if (allBooks.length >= limit) break;
+            if (allBooks.length >= need) break;
             if (!doc.title || !doc.cover_i) continue;
-            if ((doc.first_publish_year || 0) < 2010) continue;
+            const yr = doc.first_publish_year || 0;
+            if (yr < 2010 || yr > currentYear + 1) continue;
             const langs = Array.isArray(doc.language) ? doc.language : [];
             if (langs.length === 0 || !langs.includes('eng')) continue;
+            if (/[\u3000-\u9fff\uf900-\ufaff]/.test(doc.title)) continue;
             const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
             if (seenTitles.has(norm)) continue;
             const authorKey = (doc.author_name?.[0] || '').toLowerCase();
@@ -310,11 +317,8 @@ export default async function booksHandler(req, res) {
           }
         } catch (_) {}
       }
-      for (let i = allBooks.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allBooks[i], allBooks[j]] = [allBooks[j], allBooks[i]];
-      }
-      return res.json({ ok: true, books: allBooks, total: allBooks.length });
+      const paged = allBooks.slice(startIndex, startIndex + limit);
+      return res.json({ ok: true, books: paged, total: allBooks.length, startIndex, limit });
     } catch (e) {
       return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
     }

@@ -1136,6 +1136,17 @@
     }, { onConflict: 'id' });
   }
 
+  async function ensureArtistRecord(client, payload) {
+    if (!client || !payload || !payload.id) return;
+    await client.from('artists').upsert({
+      id: String(payload.id),
+      name: payload.name || payload.title || '',
+      image_url: payload.image_url || payload.image || '',
+      external_url: payload.external_url || '',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  }
+
   async function loadCustomLists(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
@@ -1292,6 +1303,9 @@
     if (customListsDisabled(cfg)) return;
     if (missingListTables.has(cfg.listTable) || missingItemTables.has(cfg.itemsTable)) return;
     if (userId) setTierSyncContext(client, userId);
+    if (type === 'music' && normalizedItemId) {
+      try { await ensureArtistRecord(client, { id: normalizedItemId, ...(itemPayload || {}) }); } catch (_e) {}
+    }
     const listIds = Array.isArray(selectedListIds) ? selectedListIds : [...(selectedListIds || [])];
     const ownerMap = new Map();
     if (listIds.length && !missingListTables.has(cfg.listTable)) {
@@ -1354,6 +1368,9 @@
     if (userId) setTierSyncContext(client, userId);
     const normalizedItemId = normalizeQueryableItemId(type, itemId);
     if (normalizedItemId === null) return false;
+    if (type === 'music' && normalizedItemId) {
+      try { await ensureArtistRecord(client, { id: normalizedItemId, ...(itemPayload || {}) }); } catch (_e) {}
+    }
     let ownerId = userId;
     if (cfg.usesUserId) {
       const { data: ownerRows } = await client

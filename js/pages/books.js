@@ -40,9 +40,9 @@ const state = {
   genre: "",
   sort: "relevance",
   orderBy: "relevance",
-  page: 1,
+  offset: 0,
   totalItems: 0,
-  totalPages: 1,
+  hasMore: true,
   loading: false
 };
 
@@ -83,7 +83,7 @@ async function loadBookListStatus() {
   });
 }
 
-async function loadBooks() {
+async function loadBooks(append) {
   if (state.loading) return;
   if (currentAbort) { currentAbort.abort(); }
   const abort = new AbortController();
@@ -91,28 +91,34 @@ async function loadBooks() {
 
   state.loading = true;
   const grid = document.getElementById("booksGrid");
+  const sentinel = document.getElementById("scrollSentinel");
   if (!grid) return;
 
-  grid.innerHTML = Skel.grid(PAGE_SIZE, 4);
+  if (!append) {
+    grid.innerHTML = Skel.grid(PAGE_SIZE, 4);
+    state.books = [];
+    state.offset = 0;
+    state.hasMore = true;
+  } else if (sentinel) {
+    sentinel.innerHTML = '<div class="loading-spinner"></div>';
+  }
 
   const q = state.query.trim();
-  const startIndex = (state.page - 1) * PAGE_SIZE;
   let url;
 
   if (q) {
-    const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), startIndex: String(startIndex) });
+    const params = new URLSearchParams({ q, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
     if (state.orderBy) params.set("orderBy", state.orderBy);
     if (state.genre) params.set("q", `${q}+subject:${state.genre}`);
     url = `/api/books/search?${params}`;
     document.getElementById("gridTitle").textContent = `Search: "${q}"`;
     document.getElementById("gridDesc").textContent = "";
   } else {
-    const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(startIndex) });
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(state.offset) });
     if (state.genre) params.set("genre", state.genre);
-    if (state.orderBy === "newest") { params.set("orderBy", "newest"); }
-    url = `/api/books/trending?${params}`;
-    document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "Popular Books";
-    document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books` : "Trending books from Google Books";
+    url = `/api/books/popular?${params}`;
+    document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
+    document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
   }
 
   try {
@@ -123,29 +129,39 @@ async function loadBooks() {
     if (abort.signal.aborted) return;
 
     const raw = data.items || data.books || [];
-    state.books = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+    const newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+
+    if (append) {
+      state.books = state.books.concat(newBooks);
+    } else {
+      state.books = newBooks;
+    }
+
     state.totalItems = data.total || state.books.length;
-    state.totalPages = Math.max(1, Math.ceil(state.totalItems / PAGE_SIZE));
-    renderGrid();
-    updatePagination();
+    state.offset = state.books.length;
+    state.hasMore = newBooks.length >= PAGE_SIZE && state.offset < state.totalItems;
+
+    renderGrid(append);
+    if (!append) await loadBookListStatus();
   } catch (err) {
     if (err.name === "AbortError") return;
     console.error(err);
-    grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
+    if (!append) grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
   } finally {
     state.loading = false;
     if (currentAbort === abort) currentAbort = null;
+    if (sentinel) sentinel.innerHTML = state.hasMore ? '' : '';
   }
 }
 
-function renderGrid() {
+function renderGrid(append) {
   const grid = document.getElementById("booksGrid");
   if (!grid) return;
-  if (!state.books.length) {
+  if (!state.books.length && !append) {
     grid.innerHTML = '<div class="empty">No books found.</div>';
     return;
   }
-  grid.innerHTML = state.books.map(b => {
+  const html = state.books.map(b => {
     const coverUrl = b.image || b.cover || "/images/fallback/book.svg";
     return `
       <article class="card" data-id="${escapeHtml(b.id || b.providerId || "")}" data-title="${escapeHtml(b.title)}" data-author="${escapeHtml(b.author || b.authors || "")}">
@@ -166,7 +182,12 @@ function renderGrid() {
       </article>
     `;
   }).join("");
-  updateSpotlight(state.books[0]);
+  if (append) {
+    grid.insertAdjacentHTML("beforeend", html);
+  } else {
+    grid.innerHTML = html;
+    updateSpotlight(state.books[0]);
+  }
 }
 
 function updateSpotlight(book) {
@@ -186,25 +207,27 @@ function updateSpotlight(book) {
   if (bg) bg.style.backgroundImage = `url("${coverUrl}")`;
 }
 
-function updatePagination() {
-  const prev = document.getElementById("prevPageBtn");
-  const next = document.getElementById("nextPageBtn");
-  const info = document.getElementById("pageInfo");
-  if (prev) prev.disabled = state.page <= 1;
-  if (next) next.disabled = state.page >= state.totalPages;
-  if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
-}
-
 let searchTimer = null;
 let lastQuery = "";
+
+function setupInfiniteScroll() {
+  const sentinel = document.getElementById("scrollSentinel");
+  if (!sentinel) return;
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && !state.loading && state.hasMore) {
+        loadBooks(true);
+      }
+    }
+  }, { rootMargin: "400px" });
+  observer.observe(sentinel);
+}
 
 function wireEvents() {
   const searchInput = document.getElementById("q");
   const filterModal = document.getElementById("booksFilterModal");
   const filterClose = document.getElementById("booksFilterCloseBtn");
   const refreshBtn = document.getElementById("refresh");
-  const prevBtn = document.getElementById("prevPageBtn");
-  const nextBtn = document.getElementById("nextPageBtn");
 
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -214,8 +237,7 @@ function wireEvents() {
         if (val === lastQuery) return;
         lastQuery = val;
         state.query = val.trim();
-        state.page = 1;
-        loadBooks();
+        loadBooks(false);
       }, 350);
     });
   }
@@ -229,9 +251,8 @@ function wireEvents() {
         state.sort = sortEl.value;
         state.orderBy = sortEl.value === "newest" ? "newest" : "relevance";
       }
-      state.page = 1;
       filterModal.setAttribute("aria-hidden", "true");
-      loadBooks();
+      loadBooks(false);
     });
   }
 
@@ -241,17 +262,6 @@ function wireEvents() {
 
   if (filterModal) {
     document.getElementById("booksFilterBtn")?.addEventListener("click", () => filterModal.setAttribute("aria-hidden", "false"));
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", () => {
-      if (state.page > 1) { state.page--; loadBooks(); window.scrollTo({ top: 0, behavior: "smooth" }); }
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener("click", () => {
-      if (state.page < state.totalPages) { state.page++; loadBooks(); window.scrollTo({ top: 0, behavior: "smooth" }); }
-    });
   }
 }
 
@@ -298,10 +308,11 @@ function initMenuBridge() {
 document.addEventListener("DOMContentLoaded", () => {
   const genreSelect = document.getElementById("genre");
   if (genreSelect) {
-    const genres = ["", "fiction", "fantasy", "romance", "thriller", "mystery", "science fiction", "history", "biography", "poetry", "self-help", "young adult", "horror", "comics", "cooking"];
+    const genres = ["", "fiction", "fantasy", "romance", "thriller", "mystery", "science fiction", "young adult", "horror", "contemporary", "memoir", "biography", "poetry", "adventure", "dystopia"];
     genreSelect.innerHTML = genres.map(g => `<option value="${g}">${g ? g.charAt(0).toUpperCase() + g.slice(1) : "All Genres"}</option>`).join("");
   }
   wireEvents();
   initMenuBridge();
-  initAuthUi().then(async () => { await loadBooks(); await loadBookListStatus(); });
+  setupInfiniteScroll();
+  initAuthUi().then(async () => { await loadBooks(false); });
 });

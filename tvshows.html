@@ -809,11 +809,7 @@
         <p>Trending TV shows across all genres.</p>
       </div>
       <div class="grid" id="tvshowsGrid"></div>
-      <div class="pagination">
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-      </div>
+      <div id="scrollSentinel" style="height:1px;width:100%"></div>
     </section>
   </main>
 
@@ -839,12 +835,15 @@
     let currentUser = null;
     const state = {
       tvshows: [],
+      allTvshows: [],
       search: '',
       genre: '',
       year: '',
       sort: 'popular',
-      page: 1,
-      totalPages: 1,
+      offset: 0,
+      totalItems: 0,
+      hasMore: true,
+      loading: false,
       listStatusMap: new Map(),
       pendingQuickOps: new Set(),
       _poolCache: null,
@@ -1026,156 +1025,176 @@
       '866398', '572802', '848378', '848438', '968489', '933260', '956983', '872010', '912614'
     ];
 
-    async function loadTvshowsWithFallback(queryOverride = '') {
+    async function loadTvshowsWithFallback(queryOverride = '', append = false) {
+      if (state.loading) return;
       const query = String(queryOverride || state.search || '').trim();
-      let tvshows = [];
-      let apiTotalPages = 1;
-      let apiTotalResults = null;
+
+      state.loading = true;
+      const sentinel = document.getElementById('scrollSentinel');
+      const grid = document.getElementById('tvshowsGrid');
+
+      if (!append) {
+        state.tvshows = [];
+        state.allTvshows = [];
+        state.offset = 0;
+        state.hasMore = true;
+        if (grid) grid.innerHTML = Skel ? Skel.grid(TVSHOWS_PAGE_SIZE || 30, 4) : '';
+        invalidatePoolCache();
+      } else if (sentinel) {
+        sentinel.innerHTML = '<div class="loading-spinner"></div>';
+      }
 
       TVSHOWS_PAGE_SIZE = computeGridPageSize();
-      const startIndex = (state.page - 1) * TVSHOWS_PAGE_SIZE;
-      const apiPageStart = Math.floor(startIndex / TMDB_PAGE_SIZE) + 1;
-      const withinOffset = startIndex % TMDB_PAGE_SIZE;
-      const needed = withinOffset + TVSHOWS_PAGE_SIZE;
+      let tvshows = [];
+      let apiTotalResults = null;
+      let apiTotalPages = 1;
 
-      const hasFilters = state.genre || state.year;
-      if (hasFilters && !query) {
-        // Use discover endpoint with genre/year/sort filters
-        try {
-          const params = new URLSearchParams({ language: 'en-US', page: String(apiPageStart) });
-          if (state.genre) params.set('with_genres', state.genre);
-          if (state.year) params.set('first_air_date_year', state.year);
-          if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
-          else params.set('sort_by', 'popularity.desc');
-          
-          const pool = [];
-          for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
-            params.set('page', String(p));
-            const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const json = await res.json();
-            if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-            apiTotalPages = json?.total_pages || apiTotalPages || 1;
-            const tvResults = Array.isArray(json?.results) ? json.results : [];
-            pool.push(...filterNonAnime(tvResults));
-            if (!tvResults.length) break;
-          }
-          
-          // For name sort, sort client-side since discover doesn't support name sort
-          if (state.sort === 'name') {
-            pool.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-          }
-          
-          tvshows = pool;
-        } catch (_err) {
-          console.error('Failed to load tvshows with filters', _err);
-        }
-      } else if (!query) {
-        const poolCacheKey = 'popular|' + (state.genre || '') + '|' + (state.year || '') + '|' + (state.sort || 'popular') + '|p' + apiPageStart;
-        if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= needed) {
-          tvshows = state._poolCache;
-          if (state._poolCacheMeta) {
-            apiTotalResults = state._poolCacheMeta.totalResults;
-            apiTotalPages = state._poolCacheMeta.totalPages;
-          }
-        } else {
-          try {
+      try {
+        if (!query && !state.genre && !state.year) {
+          const poolCacheKey = 'popular|' + (state.sort || 'popular');
+          if (!append && state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= TVSHOWS_PAGE_SIZE) {
+            tvshows = state._poolCache;
+            if (state._poolCacheMeta) {
+              apiTotalResults = state._poolCacheMeta.totalResults;
+              apiTotalPages = state._poolCacheMeta.totalPages;
+            }
+          } else {
+            const startPage = append ? Math.floor(state.offset / TMDB_PAGE_SIZE) + 1 : 1;
+            const endPage = startPage + 9;
             const pool = [];
             let fetchedTotalResults = null;
             let fetchedTotalPages = 1;
-            for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
-              const url = `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`;
-              const res = await fetch(url);
-              if (!res.ok) break;
-              const json = await res.json();
-              if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
-              fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
-              const tvResults = Array.isArray(json?.results) ? json.results : [];
-              pool.push(...filterNonAnime(tvResults));
-              if (!tvResults.length) break;
+            for (let p = startPage; p <= endPage; p += 1) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/tv/popular?language=en-US&page=${p}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (fetchedTotalResults == null) fetchedTotalResults = Number(json?.total_results ?? null);
+                fetchedTotalPages = json?.total_pages || fetchedTotalPages || 1;
+                const batch = Array.isArray(json?.results) ? json.results : [];
+                pool.push(...filterNonAnime(batch));
+                if (!batch.length || p >= fetchedTotalPages) break;
+              } catch (_) { break; }
             }
-            tvshows = pool;
-            state._poolCache = pool;
-            state._poolCacheKey = poolCacheKey;
-            state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
+            if (append) {
+              state.allTvshows = state.allTvshows.concat(pool);
+            } else {
+              state.allTvshows = pool;
+              state._poolCache = pool;
+              state._poolCacheKey = poolCacheKey;
+              state._poolCacheMeta = { totalResults: fetchedTotalResults, totalPages: fetchedTotalPages };
+            }
+            tvshows = state.allTvshows;
             apiTotalResults = fetchedTotalResults;
             apiTotalPages = fetchedTotalPages;
-          } catch (_err) {
-            console.error('Failed to load popular tvshows', _err);
-            // Fallback to trending if popular fails
-            try {
-              const pool = [];
-              for (let p = apiPageStart; p <= apiPageStart + 6 && pool.length < Math.max(needed, 40); p += 1) {
-                const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+            if (!pool.length) {
+              try {
+                const fallbackPool = [];
+                for (let p = startPage; p <= endPage; p += 1) {
+                  try {
+                    const url = `${TMDB_PROXY_BASE}/trending/tv/week?page=${p}`;
+                    const res = await fetch(url);
+                    if (!res.ok) break;
+                    const json = await res.json();
+                    if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                    const batch = Array.isArray(json?.results) ? json.results : [];
+                    fallbackPool.push(...filterNonAnime(batch));
+                    if (!batch.length) break;
+                  } catch (_) { break; }
+                }
+                if (append) {
+                  state.allTvshows = state.allTvshows.concat(fallbackPool);
+                } else {
+                  state.allTvshows = fallbackPool;
+                }
+                tvshows = state.allTvshows;
+              } catch (_) {}
+            }
+          }
+        } else if (query) {
+          if (!append) {
+            const variations = getQueryVariations(query);
+            for (const variation of variations) {
+              try {
+                const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=1`;
+                const res = await fetch(url);
+                if (res.ok) {
+                  const json = await res.json();
+                  const results = Array.isArray(json?.results) ? json.results : [];
+                  const tvResults = filterNonAnime(results.filter((item) => item.media_type === 'tv'));
+                  if (tvResults.length > 0) {
+                    tvshows = tvResults;
+                    apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || 1;
+                    break;
+                  }
+                }
+              } catch (_) {}
+            }
+            if (tvshows.length === 0) {
+              for (const variation of variations) {
+                try {
+                  const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=1`;
+                  const res = await fetch(url);
+                  if (res.ok) {
+                    const json = await res.json();
+                    const tvResults = filterNonAnime(Array.isArray(json?.results) ? json.results : []);
+                    if (tvResults.length > 0) {
+                      tvshows = tvResults;
+                      apiTotalResults = Number(json?.total_results ?? null);
+                      apiTotalPages = json?.total_pages || 1;
+                      break;
+                    }
+                  }
+                } catch (_) {}
+              }
+            }
+            state.allTvshows = tvshows;
+          } else {
+            tvshows = state.allTvshows;
+          }
+        } else {
+          if (!append) {
+            const params = new URLSearchParams({ language: 'en-US', page: '1' });
+            if (state.genre) params.set('with_genres', state.genre);
+            if (state.year) params.set('first_air_date_year', state.year);
+            if (state.sort === 'released') params.set('sort_by', 'first_air_date.desc');
+            else params.set('sort_by', 'popularity.desc');
+            const pool = [];
+            for (let p = 1; p <= 10; p += 1) {
+              params.set('page', String(p));
+              try {
+                const url = `${TMDB_PROXY_BASE}/discover/tv?${params.toString()}`;
                 const res = await fetch(url);
                 if (!res.ok) break;
                 const json = await res.json();
                 if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
                 apiTotalPages = json?.total_pages || apiTotalPages || 1;
-                const tvResults = Array.isArray(json?.results) ? json.results : [];
-                pool.push(...filterNonAnime(tvResults));
-                if (!tvResults.length) break;
-              }
-              tvshows = pool;
-            } catch (_err2) {
-              console.error('Failed to load trending tvshows', _err2);
+                const batch = Array.isArray(json?.results) ? json.results : [];
+                pool.push(...filterNonAnime(batch));
+                if (!batch.length || p >= apiTotalPages) break;
+              } catch (_) { break; }
             }
+            if (state.sort === 'name') pool.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            state.allTvshows = pool;
+            tvshows = pool;
+          } else {
+            tvshows = state.allTvshows;
           }
         }
-      } else {
-        // Use multi-search for better accuracy (searches across movies, TV, people)
-        const variations = getQueryVariations(query);
-        for (const variation of variations) {
-          try {
-            const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const json = await res.json();
-              const results = Array.isArray(json?.results) ? json.results : [];
-              // Filter for TV shows only
-              const tvResults = results.filter((item) => item.media_type === 'tv');
-              const filteredTvshows = filterNonAnime(tvResults);
-              if (filteredTvshows.length > 0) {
-                tvshows = filteredTvshows;
-                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                apiTotalPages = json?.total_pages || 1;
-                break;
-              }
-            }
-          } catch (_err) {
-            console.error('Failed to load tvshows with multi-search variation:', variation, _err);
-          }
-        }
-        
-        // Fallback to TV-specific search if multi-search fails
-        if (tvshows.length === 0) {
-          for (const variation of variations) {
-            try {
-              const url = `${TMDB_PROXY_BASE}/search/tv?query=${encodeURIComponent(variation)}&page=${apiPageStart}`;
-              const res = await fetch(url);
-              if (res.ok) {
-                const json = await res.json();
-                const tvResults = Array.isArray(json?.results) ? json.results : [];
-                const filteredTvshows = filterNonAnime(tvResults);
-                if (filteredTvshows.length > 0) {
-                  tvshows = filteredTvshows;
-                  if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
-                  apiTotalPages = json?.total_pages || 1;
-                  break;
-                }
-              }
-            } catch (_err) {
-              console.error('Failed to load tvshows with variation:', variation, _err);
-            }
-          }
-        }
+      } catch (_err) {
+        console.error('Failed to load tvshows', _err);
       }
 
       const _seenTv = new Set();
-      tvshows = tvshows.filter(t => { const id = String(t.id || ''); if (!id || _seenTv.has(id)) return false; _seenTv.add(id); return true; });
-
-      state.tvshows = tvshows.map((tvshow) => ({
+      const filtered = tvshows.filter(t => {
+        const id = String(t.id || '');
+        if (!id || _seenTv.has(id)) return false;
+        _seenTv.add(id);
+        return true;
+      }).map((tvshow) => ({
         id: String(tvshow.id || ''),
         name: tvshow.name || tvshow.title || 'Unknown TV Show',
         overview: tvshow.overview || '',
@@ -1186,21 +1205,24 @@
         genreIds: Array.isArray(tvshow.genre_ids) ? tvshow.genre_ids : []
       })).filter((t) => t.id && isDateWithinAcceptableRange(t.firstAirDate));
 
-      state.tvshows = state.tvshows.slice(withinOffset, withinOffset + TVSHOWS_PAGE_SIZE);
-
-      if (typeof apiTotalResults === 'number' && Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
-        state.totalPages = Math.max(1, Math.ceil(apiTotalResults / TVSHOWS_PAGE_SIZE));
+      if (!append) {
+        state.totalItems = filtered.length;
+        state.tvshows = filtered.slice(0, TVSHOWS_PAGE_SIZE);
+        state.offset = state.tvshows.length;
       } else {
-        const roughTotal = apiTotalPages * TMDB_PAGE_SIZE;
-        state.totalPages = Math.max(1, Math.ceil(roughTotal / TVSHOWS_PAGE_SIZE));
+        const newItems = filtered.slice(state.offset, state.offset + TVSHOWS_PAGE_SIZE);
+        state.tvshows = state.tvshows.concat(newItems);
+        state.offset = state.tvshows.length;
       }
+      state.hasMore = state.offset < state.totalItems && filtered.length > state.offset;
+      state.loading = false;
+      if (sentinel) sentinel.innerHTML = state.hasMore ? '' : '';
     }
 
     function debounceSearch(query) {
       if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(async () => {
         state.search = query;
-        state.page = 1;
         invalidatePoolCache();
         await loadTvshowsWithFallback();
         await loadListStatus();
@@ -1344,19 +1366,18 @@
       if (openEl) openEl.href = `tvshow.html?id=${encodeURIComponent(tvshow.id)}`;
     }
 
-    function renderGrid() {
+    function renderGrid(append) {
       const grid = document.getElementById('tvshowsGrid');
       const spotlight = document.getElementById('tvshowsSpotlight');
       if (!grid) return;
       
       if (spotlight) spotlight.hidden = true;
       
-      if (!state.tvshows.length) {
+      if (!state.tvshows.length && !append) {
         grid.innerHTML = '<div class="empty">No tvshows found.</div>';
-        updatePagination();
         return;
       }
-      grid.innerHTML = state.tvshows.map((tvshow) => {
+      const html = state.tvshows.map((tvshow) => {
         let posterUrl = '';
         if (tvshow.posterPath) {
           posterUrl = `${POSTER_BASE}${tvshow.posterPath}`;
@@ -1384,19 +1405,25 @@
       `;
       }).join('');
 
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', html);
+      } else {
+        grid.innerHTML = html;
+      }
       wireGridActions();
-      updatePagination();
     }
 
-    function updatePagination() {
-      const prevBtn = document.getElementById('prevPageBtn');
-      const nextBtn = document.getElementById('nextPageBtn');
-      const info = document.getElementById('pageInfo');
-      if (state.page > state.totalPages) state.page = state.totalPages;
-      if (state.page < 1) state.page = 1;
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
+    function setupInfiniteScroll() {
+      const sentinel = document.getElementById('scrollSentinel');
+      if (!sentinel) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !state.loading && state.hasMore) {
+            loadTvshowsWithFallback('', true).then(() => loadListStatus()).then(() => renderGrid(true));
+          }
+        }
+      }, { rootMargin: '400px' });
+      observer.observe(sentinel);
     }
 
     async function toggleDefaultList(itemId, listType, _card, forcedNextSaved) {
@@ -1504,7 +1531,6 @@
     });
     document.getElementById('genre')?.addEventListener('change', async (e) => {
       state.genre = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadTvshowsWithFallback();
       await loadListStatus();
@@ -1512,7 +1538,6 @@
     });
     document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadTvshowsWithFallback();
       await loadListStatus();
@@ -1520,7 +1545,6 @@
     });
     document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
-      state.page = 1;
       invalidatePoolCache();
       await loadTvshowsWithFallback();
       await loadListStatus();
@@ -1530,20 +1554,6 @@
       invalidatePoolCache();
       document.getElementById('tvshowsFilterModal')?.classList.remove('show');
       await loadPage();
-    });
-    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
-      if (state.page <= 1) return;
-      state.page -= 1;
-      await loadTvshows();
-      await loadListStatus();
-      renderGrid();
-    });
-    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
-      if (state.page >= state.totalPages) return;
-      state.page += 1;
-      await loadTvshows();
-      await loadListStatus();
-      renderGrid();
     });
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1583,13 +1593,14 @@
         });
       }
       initFilters().then(() => loadPage());
+      setupInfiniteScroll();
     });
 
     window.debugTvShowsPage = function() {
-      console.log(`=== Page ${state.page} of ${state.totalPages} ===`);
-      console.log(`Grid size: ${TVSHOWS_PAGE_SIZE} | apiPageStart would be: ${Math.floor(((state.page - 1) * TVSHOWS_PAGE_SIZE) / TMDB_PAGE_SIZE) + 1}`);
+      console.log(`=== TV Pool (offset: ${state.offset}, hasMore: ${state.hasMore}) ===`);
+      console.log(`Grid size: ${TVSHOWS_PAGE_SIZE} | Pool total: ${state.allTvshows.length}`);
       state.tvshows.forEach((t, i) => {
-        console.log(`  ${(state.page - 1) * TVSHOWS_PAGE_SIZE + i + 1}. ${t.name} (${t.firstAirDate || 'N/A'}) [id:${t.id}]`);
+        console.log(`  ${state.offset + i + 1}. ${t.name} (${t.firstAirDate || 'N/A'}) [id:${t.id}]`);
       });
       return state.tvshows.map(t => `${t.name} (${t.firstAirDate || 'N/A'})`);
     };

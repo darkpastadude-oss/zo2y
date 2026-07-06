@@ -1344,15 +1344,7 @@
         })();
       </script>
 
-      <div class="pagination">
-
-        <button class="page-btn" id="prevPageBtn" type="button" disabled><i class="fas fa-chevron-left"></i></button>
-
-        <div class="page-info" id="pageInfo">Page 1 of 1</div>
-
-        <button class="page-btn" id="nextPageBtn" type="button" disabled><i class="fas fa-chevron-right"></i></button>
-
-      </div>
+      <div id="scrollSentinel" style="height:1px"></div>
 
     </section>
 
@@ -1395,6 +1387,10 @@
     const state = {
 
       games: [],
+      allGames: [],
+      offset: 0,
+      hasMore: true,
+      loading: false,
 
       search: '',
 
@@ -1403,10 +1399,6 @@
       platform: '',
 
       sort: 'popular',
-
-      page: 1,
-
-      totalPages: 1,
 
       listStatusMap: new Map(),
 
@@ -1625,204 +1617,109 @@
       }
     }
 
-    async function loadGamesWithFallback() {
+    async function loadGamesWithFallback(append) {
+
+      if (append) {
+        if (state.loading || !state.hasMore) return;
+        state.loading = true;
+        GAMES_PAGE_SIZE = computeGridPageSize();
+        const nextBatch = state.allGames.slice(state.offset, state.offset + GAMES_PAGE_SIZE);
+        if (nextBatch.length === 0) {
+          state.hasMore = false;
+          state.loading = false;
+          return;
+        }
+        state.games = state.games.concat(nextBatch);
+        state.offset += nextBatch.length;
+        if (state.offset >= state.allGames.length) state.hasMore = false;
+        state.loading = false;
+        return;
+      }
 
       const query = String(state.search || '').trim();
 
       let games = [];
 
-      let apiTotalPages = 1;
-
-
-
       GAMES_PAGE_SIZE = computeGridPageSize();
-
-
 
       const client = await ensureSupabase();
 
       if (!client) {
-
         state.games = [];
-
-        state.totalPages = 1;
-
+        state.allGames = [];
+        state.offset = 0;
+        state.hasMore = false;
         return;
-
       }
 
-
-
       try {
-
         let dbQuery = client.from('games').select('*', { count: 'exact' });
 
-
-
         if (query) {
-
-          // Try search with variations
-
           const variations = getQueryVariations(query);
-
           let found = false;
 
-          
-
           for (const variation of variations) {
-
             try {
-
               let searchQuery = client.from('games').select('*', { count: 'exact' });
-
               searchQuery = searchQuery.ilike('title', `%${variation}%`);
 
-
-
-              if (state.genre) {
-
-                searchQuery = searchQuery.contains('extra', { genres: [{ slug: state.genre }] });
-
-              }
-
-
-
-              if (state.platform) {
-
-                searchQuery = searchQuery.contains('extra', { platforms: [{ slug: state.platform }] });
-
-              }
-
-
+              if (state.genre) searchQuery = searchQuery.contains('extra', { genres: [{ slug: state.genre }] });
+              if (state.platform) searchQuery = searchQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
               if (state.sort === 'name') {
-
                 searchQuery = searchQuery.order('title', { ascending: true });
-
               } else if (state.sort === 'released') {
-
                 searchQuery = searchQuery.order('release_date', { ascending: false, nullsFirst: false });
-
               } else {
-
                 searchQuery = searchQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
-
               }
 
-
-
-              // Fetch all results (no pagination) to sort by cover availability
-
-              const { data, error, count } = await searchQuery;
-
+              const { data, error } = await searchQuery;
               if (error) throw error;
-
-
-
               games = data || [];
-
-               apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-
-               found = true;
-
-               break;
-
+              found = true;
+              break;
             } catch (_err) {
-
               console.error('Failed to search games with variation:', variation, _err);
-
             }
-
           }
 
-          
-
           if (!found) {
-
-            // Fallback to Wikipedia search if no results from Supabase
             const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
             if (wikiGames && wikiGames.length) {
               games = wikiGames;
-              apiTotalPages = Math.max(1, Math.ceil(games.length / GAMES_PAGE_SIZE));
               found = true;
             } else {
               state.games = [];
-              state.totalPages = 1;
+              state.allGames = [];
+              state.offset = 0;
+              state.hasMore = false;
               return;
             }
-
           }
-
         } else {
+          if (state.genre) dbQuery = dbQuery.contains('extra', { genres: [{ slug: state.genre }] });
+          if (state.platform) dbQuery = dbQuery.contains('extra', { platforms: [{ slug: state.platform }] });
 
-          // Randomly choose between popular and newly released on each refresh
-
-          const useNewlyReleased = Math.random() > 0.5;
-
-          const effectiveSort = useNewlyReleased ? 'released' : 'popular';
-
-          
-
-          // Load all games when no search query (no pagination yet)
-
-          if (state.genre) {
-
-            dbQuery = dbQuery.contains('extra', { genres: [{ slug: state.genre }] });
-
-          }
-
-
-
-          if (state.platform) {
-
-            dbQuery = dbQuery.contains('extra', { platforms: [{ slug: state.platform }] });
-
-          }
-
-
-
-          if (effectiveSort === 'name') {
-
+          if (state.sort === 'name') {
             dbQuery = dbQuery.order('title', { ascending: true });
-
-          } else if (effectiveSort === 'released') {
-
+          } else if (state.sort === 'released') {
             dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false });
-
           } else {
-
             dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
-
           }
 
-
-
-          // Fetch all results (no pagination) to sort by cover availability
-
-          const { data, error, count } = await dbQuery;
-
+          const { data, error } = await dbQuery;
           if (error) throw error;
-
-
-
           games = data || [];
-
-           apiTotalPages = Math.max(1, Math.ceil((count || 0) / GAMES_PAGE_SIZE));
-
-         }
-
-       } catch (_err) {
-
+        }
+      } catch (_err) {
         console.error('Failed to load games', _err);
-
       }
 
-
-
       // Map games with cover resolution
-      // Handle both Supabase games and Wikipedia fallback games
-      state.games = games.map((game) => {
-        const isWiki = game.source === 'wikipedia';
+      let mapped = games.map((game) => {
         return {
           id: String(game.id || ''),
           name: game.title || game.name || humanizeGameSlug(game.slug) || 'Unknown Game',
@@ -1834,59 +1731,33 @@
           source: game.source || 'supabase'
         };
       }).filter((g) => {
-        // For Wikipedia games, don't filter by date range since dates might be incomplete
         if (g.source === 'wikipedia') return g.id && g.name;
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
-
-
-      // Front pages should be the games with locally sourced covers (official cover bucket).
-
+      // Sort: local covers first, then shuffle front pool
       const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
 
       if (!query) {
-
-        const withCover = state.games.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
-
+        const withCover = mapped.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
         const localCovers = withCover.filter((g) => isLocalCover(g.cover));
-
         const otherCovers = withCover.filter((g) => !isLocalCover(g.cover));
+        const noCover = mapped.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
 
-        const noCover = state.games.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
-
-
-
-        // Shuffle the "front pages" pool for variety, but keep local covers first.
-
-        const shouldShuffleFront = state.page <= 3;
-
-        state.games = [
-
-          ...(shouldShuffleFront ? shuffleArray(localCovers) : localCovers),
-
-          ...(shouldShuffleFront ? shuffleArray(otherCovers) : otherCovers),
-
+        mapped = [
+          ...shuffleArray(localCovers),
+          ...shuffleArray(otherCovers),
           ...noCover
-
         ];
-
       }
 
-
-
-      // Apply pagination after sorting (page size computed from grid so we never end on partial rows)
-
-      const rangeStart = (state.page - 1) * GAMES_PAGE_SIZE;
-
-      const rangeEnd = rangeStart + GAMES_PAGE_SIZE;
-
-      state.games = state.games.slice(rangeStart, rangeEnd);
-
-      
-
-      state.totalPages = apiTotalPages;
-
+      // Store full pool and render first page
+      state.allGames = mapped;
+      state.offset = 0;
+      state.hasMore = true;
+      state.games = state.allGames.slice(0, GAMES_PAGE_SIZE);
+      state.offset = state.games.length;
+      if (state.offset >= state.allGames.length) state.hasMore = false;
     }
 
 
@@ -1898,8 +1769,6 @@
       searchDebounceTimer = setTimeout(async () => {
 
         state.search = query;
-
-        state.page = 1;
 
         state.popularRotationKey = '';
         state.popularRotation = null;
@@ -2279,7 +2148,7 @@
 
 
 
-    function renderGrid() {
+    function renderGrid(append) {
 
       const grid = document.getElementById('gamesGrid');
 
@@ -2295,17 +2164,15 @@
 
       
 
-      if (!state.games.length) {
+      if (!state.games.length && !append) {
 
         grid.innerHTML = '<div class="empty">No games found.</div>';
-
-        updatePagination();
 
         return;
 
       }
 
-      grid.innerHTML = state.games.map((game) => {
+      const html = state.games.map((game) => {
 
         const coverUrl = game.cover || FALLBACK_IMAGE;
 
@@ -2332,12 +2199,13 @@
 
       }).join('');
 
-
+      if (append) {
+        grid.insertAdjacentHTML('beforeend', html);
+      } else {
+        grid.innerHTML = html;
+      }
 
       wireGridActions();
-
-      updatePagination();
-
       hydrateMissingCovers();
 
     }
@@ -2482,24 +2350,17 @@
 
 
 
-    function updatePagination() {
-
-      const prevBtn = document.getElementById('prevPageBtn');
-
-      const nextBtn = document.getElementById('nextPageBtn');
-
-      const info = document.getElementById('pageInfo');
-
-      if (state.page > state.totalPages) state.page = state.totalPages;
-
-      if (state.page < 1) state.page = 1;
-
-      if (prevBtn) prevBtn.disabled = state.page <= 1;
-
-      if (nextBtn) nextBtn.disabled = state.page >= state.totalPages;
-
-      if (info) info.textContent = `Page ${state.page} of ${state.totalPages}`;
-
+    function setupInfiniteScroll() {
+      const sentinel = document.getElementById('scrollSentinel');
+      if (!sentinel) return;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !state.loading && state.hasMore) {
+            loadGamesWithFallback(true).then(() => loadListStatus()).then(() => renderGrid(true));
+          }
+        }
+      }, { rootMargin: '400px' });
+      observer.observe(sentinel);
     }
 
 
@@ -2736,34 +2597,6 @@
 
     });
 
-    document.getElementById('prevPageBtn')?.addEventListener('click', async () => {
-
-      if (state.page <= 1) return;
-
-      state.page -= 1;
-
-      await loadGames();
-
-      await loadListStatus();
-
-      renderGrid();
-
-    });
-
-    document.getElementById('nextPageBtn')?.addEventListener('click', async () => {
-
-      if (state.page >= state.totalPages) return;
-
-      state.page += 1;
-
-      await loadGames();
-
-      await loadListStatus();
-
-      renderGrid();
-
-    });
-
 
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -2838,7 +2671,10 @@
 
       }
 
-      initGameFilters().then(() => loadPage());
+      initGameFilters().then(async () => {
+        await loadPage();
+        setupInfiniteScroll();
+      });
 
     });
 
