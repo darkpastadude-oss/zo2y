@@ -221,20 +221,39 @@ export default async function booksHandler(req, res) {
   }
 
   if (section === "search" || section === "volumes") {
-    setCache(res, { maxAge: 120, staleWhileRevalidate: 600 });
+    setCache(res, { maxAge: 300, staleWhileRevalidate: 600 });
     const q = String(query.q || "").trim();
     if (!q) return res.status(400).json({ ok: false, message: "Missing query" });
     const limit = Math.min(Number(query.limit) || 20, 40);
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
 
     try {
-      const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex });
-      const rawItems = data.docs || [];
-      const total = data.numFound || 0;
-      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
-      return res.json({ ok: true, books, total, items: books });
+      const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&orderBy=relevance&maxResults=${Math.min(limit, 40)}&startIndex=${startIndex}&printType=books`;
+      const data = await fetchJson(gbUrl, { cacheKey: `gb:search:${q}:${startIndex}`, ttlMs: 300000 });
+      const items = (data.items || []).map(item => {
+        const vi = item.volumeInfo || {};
+        const imageLinks = vi.imageLinks || {};
+        const rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
+        const cover = rawCover ? `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(vi.title || "")}&author=${encodeURIComponent((vi.authors || []).join(", "))}` : "";
+        return {
+          id: item.id || "",
+          volumeInfo: {
+            ...vi,
+            imageLinks: rawCover ? { ...imageLinks, thumbnail: cover } : imageLinks
+          }
+        };
+      });
+      return res.json({ ok: true, items, books: items, total: data.totalItems || 0 });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
+      try {
+        const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex });
+        const rawItems = data.docs || [];
+        const total = data.numFound || 0;
+        const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
+        return res.json({ ok: true, books, total, items: books });
+      } catch (_) {
+        return res.status(502).json({ ok: false, message: "Books API error", books: [], total: 0 });
+      }
     }
   }
 
@@ -270,57 +289,62 @@ export default async function booksHandler(req, res) {
   }
 
   if (section === "popular") {
-    setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
+    setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = Math.min(Number(query.limit) || 20, 40);
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
     const genre = String(query.genre || "").trim().toLowerCase();
-    const currentYear = new Date().getFullYear();
-    const subjects = genre
+
+    const genres = genre
       ? [genre]
       : [
           "fiction", "fantasy", "romance", "thriller", "mystery",
           "science fiction", "horror", "young adult", "contemporary",
           "memoir", "biography", "dystopia", "adventure", "poetry",
-          "psychological thriller", "suspense", "literary fiction",
-          "historical fiction", "humor", "graphic novel", "short stories",
-          "true crime", "science", "history", "philosophy", "self help"
+          "graphic novel", "true crime", "science", "history",
+          "philosophy", "self help"
         ];
+
     try {
-      const seenTitles = new Set();
-      const authorSeen = new Set();
       const allBooks = [];
+      const seenIds = new Set();
       const need = startIndex + limit;
-      for (const subj of subjects) {
-        if (allBooks.length >= need) break;
+
+      const fetches = genres.map(async (g) => {
         try {
-          const data = await openLibFetch("search.json", {
-            q: `subject:${subj}`,
-            sort: "new",
-            limit: 80
+          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=relevance&maxResults=40&printType=books`;
+          return await fetchJson(url, { cacheKey: `gb:pop:${g}`, ttlMs: 600000 });
+        } catch (_) { return { items: [] }; }
+      });
+
+      const results = await Promise.allSettled(fetches);
+
+      for (const result of results) {
+        if (allBooks.length >= need) break;
+        const data = result.status === "fulfilled" ? result.value : { items: [] };
+        for (const item of (data.items || [])) {
+          if (allBooks.length >= need) break;
+          const id = item.id || "";
+          if (!id || seenIds.has(id)) continue;
+          const vi = item.volumeInfo || {};
+          if (!vi.title) continue;
+          seenIds.add(id);
+          const imageLinks = vi.imageLinks || {};
+          const rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
+          const cover = rawCover ? `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(vi.title || "")}&author=${encodeURIComponent((vi.authors || []).join(", "))}` : "";
+          allBooks.push({
+            id,
+            volumeInfo: {
+              ...vi,
+              imageLinks: rawCover ? { ...imageLinks, thumbnail: cover } : imageLinks
+            }
           });
-          const rawItems = data.docs || [];
-          for (const doc of rawItems) {
-            if (allBooks.length >= need) break;
-            if (!doc.title || !doc.cover_i) continue;
-            const yr = doc.first_publish_year || 0;
-            if (yr < 2010 || yr > currentYear + 1) continue;
-            const langs = Array.isArray(doc.language) ? doc.language : [];
-            if (langs.length === 0 || !langs.includes('eng')) continue;
-            if (/[\u3000-\u9fff\uf900-\ufaff]/.test(doc.title)) continue;
-            const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
-            if (seenTitles.has(norm)) continue;
-            const authorKey = (doc.author_name?.[0] || '').toLowerCase();
-            if (!authorKey || authorSeen.has(authorKey)) continue;
-            authorSeen.add(authorKey);
-            seenTitles.add(norm);
-            allBooks.push(mapOpenLibDoc(doc));
-          }
-        } catch (_) {}
+        }
       }
+
       const paged = allBooks.slice(startIndex, startIndex + limit);
-      return res.json({ ok: true, books: paged, total: allBooks.length, startIndex, limit });
+      return res.json({ ok: true, items: paged, books: paged, total: allBooks.length });
     } catch (e) {
-      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
+      return res.status(502).json({ ok: false, message: "Books API error", items: [], books: [], total: 0 });
     }
   }
 

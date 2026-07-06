@@ -154,14 +154,18 @@ async function loadBooks(append) {
   }
 }
 
+let _booksLastRendered = 0;
+
 function renderGrid(append) {
   const grid = document.getElementById("booksGrid");
   if (!grid) return;
   if (!state.books.length && !append) {
     grid.innerHTML = '<div class="empty">No books found.</div>';
+    _booksLastRendered = 0;
     return;
   }
-  const html = state.books.map(b => {
+  const renderItems = append ? state.books.slice(_booksLastRendered) : state.books;
+  const html = renderItems.map(b => {
     const coverUrl = b.image || b.cover || "/images/fallback/book.svg";
     return `
       <article class="card" data-id="${escapeHtml(b.id || b.providerId || "")}" data-title="${escapeHtml(b.title)}" data-author="${escapeHtml(b.author || b.authors || "")}">
@@ -188,6 +192,7 @@ function renderGrid(append) {
     grid.innerHTML = html;
     updateSpotlight(state.books[0]);
   }
+  _booksLastRendered = state.books.length;
 }
 
 function updateSpotlight(book) {
