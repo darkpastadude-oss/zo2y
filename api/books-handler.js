@@ -157,10 +157,10 @@ export default async function booksHandler(req, res) {
   const pathParts = getPathParts(query);
   const section = String(pathParts[pathParts.length - 1] || "").toLowerCase();
 
-  const openLibFetch = async (endpoint, extraParams = {}) => {
+  const openLibFetch = async (endpoint, extraParams = {}, timeoutMs = 15000) => {
     const url = new URL(`${OPENLIB_BASE}/${endpoint}`);
     Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, String(v)));
-    return fetchJson(url.toString(), { cacheKey: `ol2:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000 });
+    return fetchJson(url.toString(), { cacheKey: `ol2:${endpoint}:${JSON.stringify(extraParams)}`, ttlMs: 300000, timeoutMs });
   };
 
   if (section === "cover") {
@@ -227,6 +227,7 @@ export default async function booksHandler(req, res) {
     const limit = Math.min(Number(query.limit) || 20, 40);
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
 
+    // Primary: Google Books API (trending/relevant results)
     try {
       const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&orderBy=relevance&maxResults=${Math.min(limit, 40)}&startIndex=${startIndex}&printType=books`;
       const data = await fetchJson(gbUrl, { cacheKey: `gb:search:${q}:${startIndex}`, ttlMs: 300000 });
@@ -244,17 +245,18 @@ export default async function booksHandler(req, res) {
         };
       });
       return res.json({ ok: true, items, books: items, total: data.totalItems || 0 });
-    } catch (e) {
-      try {
-        const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex });
-        const rawItems = data.docs || [];
-        const total = data.numFound || 0;
-        const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
-        return res.json({ ok: true, books, total, items: books });
-      } catch (_) {
-        return res.status(502).json({ ok: false, message: "Books API error", books: [], total: 0 });
-      }
-    }
+    } catch (_) {}
+
+    // Fallback: Open Library search
+    try {
+      const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex, sort: "rating" }, 15000);
+      const rawItems = data.docs || [];
+      const total = data.numFound || 0;
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
+      return res.json({ ok: true, books, total, items: books });
+    } catch (_) {}
+
+    return res.json({ ok: true, books: [], items: [], total: 0 });
   }
 
   if (section === "trending") {
@@ -278,7 +280,8 @@ export default async function booksHandler(req, res) {
     try {
       const data = await openLibFetch("search.json", {
         q: `first_publish_year:${currentYear} subject:fiction`,
-        limit: limit * 2
+        limit: limit * 2,
+        sort: "rating"
       });
       const rawItems = data.docs || [];
       const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
@@ -304,11 +307,13 @@ export default async function booksHandler(req, res) {
           "philosophy", "self help"
         ];
 
-    try {
-      const allBooks = [];
-      const seenIds = new Set();
-      const need = startIndex + limit;
+    const need = startIndex + limit;
+    const allBooks = [];
+    const seenIds = new Set();
+    const seenTitles = new Set();
 
+    // Primary: Google Books API (trending/popular results)
+    try {
       const fetches = genres.map(async (g) => {
         try {
           const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=relevance&maxResults=40&printType=books`;
@@ -340,29 +345,54 @@ export default async function booksHandler(req, res) {
           });
         }
       }
+    } catch (_) {}
 
-      const paged = allBooks.slice(startIndex, startIndex + limit);
-      return res.json({ ok: true, items: paged, books: paged, total: allBooks.length });
-    } catch (e) {
-      return res.status(502).json({ ok: false, message: "Books API error", items: [], books: [], total: 0 });
+    // Fallback: Open Library /subjects/ endpoint
+    if (allBooks.length < need) {
+      const subjectFetches = genres.slice(0, 10).map(async (subj) => {
+        try {
+          const data = await openLibFetch(`subjects/${subj}.json`, { limit: 80 }, 15000);
+          return { subj, works: data.works || [] };
+        } catch (_) { return { subj, works: [] }; }
+      });
+
+      const subjectResults = await Promise.allSettled(subjectFetches);
+      for (const result of subjectResults) {
+        if (allBooks.length >= need) break;
+        const data = result.status === "fulfilled" ? result.value : { works: [] };
+        for (const doc of data.works) {
+          if (allBooks.length >= need) break;
+          if (!doc.title || !doc.cover_id) continue;
+          if (/[\u3000-\u9fff\uf900-\ufaff]/.test(doc.title)) continue;
+          const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40);
+          if (seenTitles.has(norm)) continue;
+          seenTitles.add(norm);
+          allBooks.push(mapOpenLibSubjectDoc(doc));
+        }
+      }
     }
+
+    const paged = allBooks.slice(startIndex, startIndex + limit);
+    return res.json({ ok: true, items: paged, books: paged, total: allBooks.length });
   }
 
   if (section === "editors-picks") {
     setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = Math.min(Number(query.limit) || 12, 30);
-    try {
-      const data = await openLibFetch("search.json", {
-        q: `(subject:fantasy OR subject:thriller OR subject:romance OR subject:history)`,
-        sort: `rating`,
-        limit: limit * 2
-      });
-      const rawItems = data.docs || [];
-      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
-      return res.json({ ok: true, books, total: books.length });
-    } catch (e) {
-      return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });
+    const epAttempts = [
+      { q: `(subject:fantasy OR subject:thriller OR subject:romance OR subject:history)`, sort: "rating" },
+      { q: `subject:fantasy OR subject:thriller`, sort: "rating" },
+      { q: `subject:romance`, sort: "rating" }
+    ];
+    for (const attempt of epAttempts) {
+      try {
+        const data = await openLibFetch("search.json", { ...attempt, limit: limit * 2 });
+        const rawItems = data.docs || [];
+        const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
+        if (books.length > 0) return res.json({ ok: true, books, total: books.length });
+      } catch (_) {}
     }
+    return res.json({ ok: true, books: [], total: 0 });
   }
 
   if (section === "recommendations") {
@@ -375,7 +405,7 @@ export default async function booksHandler(req, res) {
       const subjectTerms = subjects.slice(0, 2).join(" OR ");
       const q = subjectTerms ? `subject:(${subjectTerms})` : "bestseller";
       
-      const data = await openLibFetch("search.json", { q, limit: 12 * 2 });
+      const data = await openLibFetch("search.json", { q, limit: 12 * 2, sort: "rating" });
       const items = (data.docs || []).filter(doc => doc.key !== `/works/${bookId}`);
       const books = items.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, 12);
       return res.json({ ok: true, books, total: books.length });
@@ -390,7 +420,7 @@ export default async function booksHandler(req, res) {
     try {
       const [workData, searchData] = await Promise.all([
         openLibFetch(`works/${encodeURIComponent(possibleVolumeId)}.json`),
-        openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1 })
+        openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1, sort: "rating" })
       ]);
       
       let baseDoc = (searchData.docs && searchData.docs[0]) || { key: `/works/${possibleVolumeId}` };
