@@ -139,9 +139,27 @@
     };
   }
 
+  var CONTENT_TYPE_LABELS = {
+    book: 'Books',
+    movie: 'Movies',
+    tv: 'TV',
+    anime: 'Anime',
+    game: 'Games',
+    music: 'Music',
+    artist: 'Artist',
+    sports: 'Sports',
+    travel: 'Travel',
+    fashion: 'Fashion',
+    food: 'Food',
+    car: 'Cars',
+    restaurant: 'Restaurant',
+    podcast: 'Podcast',
+    person: 'People'
+  };
+
   function createSearchResult(content, type) {
     return {
-      type: type,
+      type: CONTENT_TYPE_LABELS[type] || type,
       title: content.title,
       sub: buildSubtitle(content, type),
       image: content.image,
@@ -150,10 +168,14 @@
   }
 
   function buildSubtitle(content, type) {
-    var typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+    var typeLabel = CONTENT_TYPE_LABELS[type] || (type.charAt(0).toUpperCase() + type.slice(1));
     var parts = [typeLabel];
-    if (content.creators) parts.push(content.creators);
-    else if (content.releaseDate) parts.push(content.releaseDate.substring(0, 4));
+    var creator = content.creators || content.author || content.artists || '';
+    if (creator) parts.push(creator);
+    else {
+      var date = content.releaseDate || content.year || '';
+      if (date) parts.push(String(date).substring(0, 4));
+    }
     return parts.join(' \u00B7 ');
   }
 

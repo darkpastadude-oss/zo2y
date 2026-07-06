@@ -263,10 +263,15 @@ export default async function booksHandler(req, res) {
     setCache(res, { maxAge: 300, staleWhileRevalidate: 1800 });
     const limit = Math.min(Number(query.limit) || 20, 40);
     const genre = String(query.genre || "fiction").trim();
+    const currentYear = new Date().getFullYear();
     try {
-      const data = await openLibFetch(`subjects/${genre}.json`, { limit: limit * 2 });
-      const rawItems = data.works || [];
-      const books = rawItems.filter(doc => doc.title && doc.cover_id).map(mapOpenLibSubjectDoc).slice(0, limit);
+      const data = await openLibFetch("search.json", {
+        q: `subject:${genre} first_publish_year:[${currentYear - 10} TO ${currentYear}]`,
+        limit: limit * 2,
+        sort: "rating"
+      });
+      const rawItems = data.docs || [];
+      const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
       return res.json({ ok: true, books, total: books.length, genre });
     } catch (e) {
       return res.status(502).json({ ok: false, message: "OpenLibrary API error", books: [], total: 0 });

@@ -95,51 +95,90 @@
   BookProvider.prototype.mapToContent = function (raw) {
     if (!raw) return null;
     var vi = raw.volumeInfo || raw;
+    var title = String(vi.title || raw.title || '').trim();
+    if (!title) return null;
+
     var imageLinks = vi.imageLinks || {};
-    var rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || raw.image || raw.cover || '';
+    var rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || raw.image || raw.cover || raw.rawCover || '';
+    if (!rawCover && raw.cover_id) {
+      rawCover = 'https://covers.openlibrary.org/b/id/' + raw.cover_id + '-L.jpg';
+    }
     var image = rawCover ? Content.toHttps(rawCover) : '';
 
-    var authors = vi.authors || (vi.author ? [vi.author] : []);
-    var authorStr = Array.isArray(authors) ? authors.filter(Boolean).join(', ') : String(authors || '');
-    var publishedDate = vi.publishedDate || raw.year || '';
+    var rawAuthors = vi.authors || raw.authors || raw.author_name || (vi.author ? [vi.author] : []) || (raw.author ? [raw.author] : []);
+    var authorStr;
+    if (Array.isArray(rawAuthors)) {
+      authorStr = rawAuthors.map(function (a) {
+        if (a && typeof a === 'object') return String(a.name || a.title || '').trim();
+        return String(a || '').trim();
+      }).filter(Boolean).join(', ');
+    } else {
+      authorStr = String(rawAuthors || '').trim();
+    }
+
+    var publishedDate = vi.publishedDate || raw.releaseDate || raw.year || '';
+    if (!publishedDate && raw.first_publish_year) {
+      publishedDate = String(raw.first_publish_year);
+    }
     var year = publishedDate ? parseInt(String(publishedDate).substring(0, 4)) : null;
+
     var categories = vi.categories || vi.genres || vi.subject || [];
     var catArr = Content.toArray(categories);
 
     var genres = catArr.map(function (g) {
-      return typeof g === 'string' ? g : (g.name || String(g));
+      if (typeof g === 'string') return g;
+      if (typeof g === 'object' && g !== null) return g.name || String(g.name || '');
+      return '';
     }).filter(Boolean);
 
     var isbn = vi.isbn || (raw.volumeInfo && raw.volumeInfo.industryIdentifiers
       ? (raw.volumeInfo.industryIdentifiers.find(function (i) { return i.type === 'ISBN_13'; }) || {}).identifier
       : '') || '';
 
-    return Content.normalizeContent({
-      id: raw.id || '',
-      title: String(vi.title || '').trim(),
-      subtitle: String(vi.subtitle || '').trim(),
-      creators: authorStr,
+    var id = raw.id || '';
+    if (!id && raw.key) {
+      id = String(raw.key).replace('/works/', '').replace('/books/', '');
+    }
+
+    var extUrl = vi.infoLink || raw.externalUrl || raw.previewUrl || '';
+    if (!extUrl && raw.key) {
+      extUrl = 'https://openlibrary.org' + raw.key;
+    }
+
+    var pageCount = vi.pageCount || raw.pageCount || raw.number_of_pages_median || 0;
+    var rating = vi.averageRating || raw.rating || raw.ratings_average || 0;
+    var ratingsCount = vi.ratingsCount || raw.ratingsCount || raw.readinglog_count || raw.already_read_count || 0;
+
+    return {
+      id: id,
+      mediaType: 'book',
+      title: title,
+      subtitle: String(vi.subtitle || raw.subtitle || '').trim(),
       authors: authorStr,
-      description: vi.description || '',
-      image: image,
+      author: authorStr,
+      artist: authorStr,
+      year: year ? String(year) : '',
+      description: String(vi.description || raw.description || '').trim().replace(/<[^>]+>/g, ''),
       genres: genres,
+      categories: genres,
+      image: image || '/images/fallback/book.svg',
+      backdrop: image || '',
+      rating: Number(rating),
+      ratingsCount: Number(ratingsCount),
+      popularity: Number(vi.popularity || raw.popularity || 0),
+      language: String(vi.language || raw.language || '').trim(),
+      pageCount: Number(pageCount),
+      publisher: String(vi.publisher || raw.publisher || '').trim(),
+      albumType: '',
+      trackCount: 0,
+      previewUrl: String(vi.previewLink || raw.previewUrl || '').trim(),
+      externalUrl: String(extUrl).trim(),
       releaseDate: publishedDate,
-      language: String(vi.language || '').trim(),
-      rating: Number(vi.averageRating || 0),
-      ratingsCount: Number(vi.ratingsCount || 0),
-      pageCount: Number(vi.pageCount || 0),
-      publisher: String(vi.publisher || '').trim(),
-      externalUrl: String(vi.infoLink || '').trim(),
-      previewUrl: String(vi.previewLink || '').trim(),
-      provider: 'google-books',
-      providerId: raw.id || '',
-      externalIds: { isbn: isbn },
-      metadata: {
-        pageCount: Number(vi.pageCount || 0),
-        publisher: String(vi.publisher || '').trim(),
-        categories: genres
-      }
-    }, Content.CONTENT_TYPES.BOOK);
+      coverColor: '',
+      provider: raw._source || raw.provider || 'google-books',
+      providerId: id,
+      isbn: isbn ? [isbn] : (Array.isArray(vi.isbn) ? vi.isbn : [])
+    };
   };
 
   BookProvider.prototype.mapSearchResult = function (raw) {
