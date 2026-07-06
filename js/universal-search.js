@@ -383,27 +383,52 @@
     const cached = readCachedSuggestions(query);
     if (cached) return cached;
 
-    const jobs = [
-      searchTmdb(query, signal),
-      searchGames(query, signal),
-      searchBooks(query, signal),
-      searchMusic(query, signal),
-      searchTravel(query, signal),
-      searchSports(query, signal),
-      searchBrands(query, signal),
-      searchPeople(query, signal)
-    ];
+    const registry = window.Zo2yProviderRegistry;
+    let merged = [];
 
-    const settled = await Promise.allSettled(jobs.map((p) => withTimeout(p, REQUEST_TIMEOUT_MS, signal)));
-    const merged = [];
-    settled.forEach((result) => {
-      if (!result || result.status !== 'fulfilled') return;
-      const items = Array.isArray(result.value) ? result.value : [];
-      items.forEach((item) => {
-        if (!item || !item.title || !item.href) return;
-        merged.push(item);
+    if (registry && typeof registry.searchUniversal === 'function') {
+      try {
+        const providerResults = await withTimeout(
+          registry.searchUniversal(query, { limit: 8 }),
+          REQUEST_TIMEOUT_MS,
+          signal
+        );
+        if (providerResults) {
+          Object.keys(providerResults).forEach(function (type) {
+            const items = providerResults[type] || [];
+            items.forEach(function (item) {
+              if (!item || !item.title || !item.href) return;
+              merged.push(item);
+            });
+          });
+        }
+      } catch (_err) {
+        merged = [];
+      }
+    }
+
+    if (merged.length === 0) {
+      const jobs = [
+        searchTmdb(query, signal),
+        searchGames(query, signal),
+        searchBooks(query, signal),
+        searchMusic(query, signal),
+        searchTravel(query, signal),
+        searchSports(query, signal),
+        searchBrands(query, signal),
+        searchPeople(query, signal)
+      ];
+
+      const settled = await Promise.allSettled(jobs.map((p) => withTimeout(p, REQUEST_TIMEOUT_MS, signal)));
+      settled.forEach((result) => {
+        if (!result || result.status !== 'fulfilled') return;
+        const items = Array.isArray(result.value) ? result.value : [];
+        items.forEach((item) => {
+          if (!item || !item.title || !item.href) return;
+          merged.push(item);
+        });
       });
-    });
+    }
 
     // Compact: cap per type to keep dropdown readable.
     const byType = groupByType(merged);

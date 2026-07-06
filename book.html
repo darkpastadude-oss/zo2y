@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/skeleton.css">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/providers/index.js?v=20260706a" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -886,6 +887,12 @@
       async function fetchBookFromApi(vid) {
         const cleanId = String(vid || bookId || "").trim();
         if (!cleanId) return null;
+        if (window.Zo2yBookProvider) {
+          try {
+            const content = await window.Zo2yBookProvider.getById(cleanId);
+            if (content && content.title) return content;
+          } catch (_) {}
+        }
         try {
           const res = await fetch(`/api/books/volumes/${encodeURIComponent(cleanId)}`);
           if (res.ok) {
@@ -906,6 +913,11 @@
       }
 
       async function fetchRecommendations(bid) {
+        if (window.Zo2yBookProvider) {
+          try {
+            return await window.Zo2yBookProvider.getRecommendations(bid);
+          } catch (_) {}
+        }
         try {
           const res = await fetch(`/api/books/recommendations?id=${encodeURIComponent(bid)}`);
           if (!res.ok) return [];

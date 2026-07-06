@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/skeleton.css">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="js/providers/index.js?v=20260706a" defer></script>
   <script src="js/spa-router.js?v=1751720000" defer></script>
   <style>
     :root {
@@ -1202,13 +1203,24 @@
       async function load() {
         if (!id) return;
         let payload;
-        try {
-          payload = await tmdbFetch(`/movie/${id}?language=en&append_to_response=credits,videos,keywords,external_ids,images&include_image_language=en,null`);
-        } catch (error) {
-          document.getElementById('title').textContent = 'Movie unavailable';
-          document.getElementById('overview').textContent = 'We could not load this movie right now. Please try again in a moment.';
-          document.getElementById('meta').textContent = String(error?.message || 'TMDB unavailable');
-          throw error;
+        const provider = window.Zo2yMovieProvider;
+        if (provider && typeof provider.getRawById === 'function') {
+          try {
+            const result = await provider.getRawById(id, {
+              appendToResponse: 'credits,videos,keywords,external_ids,images'
+            });
+            if (result && result.raw) payload = result.raw;
+          } catch (_) {}
+        }
+        if (!payload) {
+          try {
+            payload = await tmdbFetch(`/movie/${id}?language=en&append_to_response=credits,videos,keywords,external_ids,images&include_image_language=en,null`);
+          } catch (error) {
+            document.getElementById('title').textContent = 'Movie unavailable';
+            document.getElementById('overview').textContent = 'We could not load this movie right now. Please try again in a moment.';
+            document.getElementById('meta').textContent = String(error?.message || 'TMDB unavailable');
+            throw error;
+          }
         }
         const data = payload || {};
         const credits = payload?.credits || {};

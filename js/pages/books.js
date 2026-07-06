@@ -108,60 +108,92 @@ async function loadBooks(append) {
   }
 
   const q = state.query.trim();
-  let url;
+  let newBooks = [];
+  let total = 0;
 
-  if (q) {
-    const searchQ = state.genre ? `${q} AND subject:${state.genre}` : q;
-    const params = new URLSearchParams({ q: searchQ, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
-    url = `/api/books/search?${params}`;
-    document.getElementById("gridTitle").textContent = `Search: "${q}"`;
-    document.getElementById("gridDesc").textContent = "";
-  } else {
-    const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(state.offset) });
-    if (state.genre) params.set("genre", state.genre);
-    if (state.sort === "newest") params.set("sort", "newest");
-    url = `/api/books/popular?${params}`;
-    document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
-    document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
+  const provider = window.Zo2yBookProvider;
+  if (provider) {
+    try {
+      let result;
+      if (q) {
+        document.getElementById("gridTitle").textContent = `Search: "${q}"`;
+        document.getElementById("gridDesc").textContent = "";
+        result = await provider.search(q, { limit: PAGE_SIZE, startIndex: state.offset });
+      } else {
+        document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
+        document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
+        result = await provider.getPopular({ limit: PAGE_SIZE, startIndex: state.offset, genre: state.genre, sort: state.sort });
+      }
+      if (result && abort.signal.aborted) return;
+      if (result && result.items) {
+        newBooks = result.items;
+        total = result.total || newBooks.length;
+      }
+    } catch (_) {}
   }
 
-  try {
-    const res = await fetch(url, { signal: abort.signal });
-    if (abort.signal.aborted) return;
-    if (!res.ok) throw new Error("API error");
-    const data = await res.json();
-    if (abort.signal.aborted) return;
-
-    const raw = data.items || data.books || [];
-    const newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean).filter(b => {
-      const id = b.id || b.providerId || "";
-      if (!id || state.seenIds.has(id)) return false;
-      state.seenIds.add(id);
-      return true;
-    });
-
-    if (append) {
-      state.books = state.books.concat(newBooks);
+  if (newBooks.length === 0) {
+    let url;
+    if (q) {
+      const searchQ = state.genre ? `${q} AND subject:${state.genre}` : q;
+      const params = new URLSearchParams({ q: searchQ, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
+      url = `/api/books/search?${params}`;
+      document.getElementById("gridTitle").textContent = `Search: "${q}"`;
+      document.getElementById("gridDesc").textContent = "";
     } else {
-      state.books = newBooks;
+      const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(state.offset) });
+      if (state.genre) params.set("genre", state.genre);
+      if (state.sort === "newest") params.set("sort", "newest");
+      url = `/api/books/popular?${params}`;
+      document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
+      document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
     }
 
-    const pageCount = Math.floor(state.offset / PAGE_SIZE) + 1;
-    state.totalItems = data.total || state.books.length;
-    state.offset = state.books.length;
-    state.hasMore = newBooks.length >= PAGE_SIZE && pageCount < MAX_PAGES;
+    try {
+      const res = await fetch(url, { signal: abort.signal });
+      if (abort.signal.aborted) return;
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      if (abort.signal.aborted) return;
 
-    renderGrid(append);
-    if (!append) await loadBookListStatus();
-  } catch (err) {
-    if (err.name === "AbortError") return;
-    console.error(err);
-    if (!append) grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
-  } finally {
-    state.loading = false;
-    if (currentAbort === abort) currentAbort = null;
-    if (sentinel) sentinel.innerHTML = '';
+      const raw = data.items || data.books || [];
+      newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+      total = data.total || newBooks.length;
+    } catch (err) {
+      if (err.name === "AbortError") return;
+      console.error(err);
+      if (!append) grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
+      state.loading = false;
+      if (currentAbort === abort) currentAbort = null;
+      if (sentinel) sentinel.innerHTML = '';
+      return;
+    }
   }
+
+  const filteredBooks = newBooks.filter(b => {
+    const id = b.id || b.providerId || "";
+    if (!id || state.seenIds.has(id)) return false;
+    state.seenIds.add(id);
+    return true;
+  });
+
+  if (append) {
+    state.books = state.books.concat(filteredBooks);
+  } else {
+    state.books = filteredBooks;
+  }
+
+  const pageCount = Math.floor(state.offset / PAGE_SIZE) + 1;
+  state.totalItems = total || state.books.length;
+  state.offset = state.books.length;
+  state.hasMore = filteredBooks.length >= PAGE_SIZE && pageCount < MAX_PAGES;
+
+  renderGrid(append);
+  if (!append) await loadBookListStatus();
+
+  state.loading = false;
+  if (currentAbort === abort) currentAbort = null;
+  if (sentinel) sentinel.innerHTML = '';
 }
 
 let _booksLastRendered = 0;
