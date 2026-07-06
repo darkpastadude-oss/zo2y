@@ -9,9 +9,9 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="/js/auth-gate.js?v=20260623z" defer></script>
+  <script src="/js/auth-gate.js?v=20260706z" defer></script>
 
-  <script src="/js/bootstrap-auth.js?v=20260623z" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260706z" defer></script>
 
   <meta name="robots" content="index,follow" />
 
@@ -30,8 +30,8 @@
   
   <link rel="stylesheet" href="/css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/shared-header.css?v=20260624a"></noscript>
-  <link rel="stylesheet" href="/css/global-lowercase.css?v=20260623z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/global-lowercase.css?v=20260623z"></noscript>
+  <link rel="stylesheet" href="/css/global-lowercase.css?v=20260706z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/css/global-lowercase.css?v=20260706z"></noscript>
   <link rel="icon" href="/favicon.ico" sizes="any" />
 
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
@@ -50,13 +50,13 @@
 
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
 
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260706z" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260706z"></noscript>
 
-  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <script src="/js/mobile-webapp.js?v=20260706z" defer></script>
 
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260706z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
 
   <script src="/js/list-utils.js?v=20260705a" defer></script>
   <script src="js/skeleton.js" defer></script>
@@ -1201,7 +1201,7 @@
 
 
     <link rel="stylesheet" href="css/components.css?v=1751700000z">
-    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260706z">
     <link rel="stylesheet" href="/css/pages/index.css?v=1751700000z">
 </head>
 
@@ -1353,8 +1353,8 @@
 
 
 
-  <script src="js/cover-cache.js?v=20260623z" defer></script>
-    <script src="js/pages/games-shared.js?v=20260623z" defer></script>
+  <script src="js/cover-cache.js?v=20260706z" defer></script>
+    <script src="js/pages/games-shared.js?v=20260706z" defer></script>
 
   <script>
 
@@ -2148,6 +2148,8 @@
 
 
 
+    let _gamesLastRendered = 0;
+
     function renderGrid(append) {
 
       const grid = document.getElementById('gamesGrid');
@@ -2168,11 +2170,15 @@
 
         grid.innerHTML = '<div class="empty">No games found.</div>';
 
+        _gamesLastRendered = 0;
+
         return;
 
       }
 
-      const html = state.games.map((game) => {
+      const renderItems = append ? state.games.slice(_gamesLastRendered) : state.games;
+
+      const html = renderItems.map((game) => {
 
         const coverUrl = game.cover || FALLBACK_IMAGE;
 
@@ -2206,6 +2212,7 @@
       }
 
       wireGridActions();
+      _gamesLastRendered = state.games.length;
       hydrateMissingCovers();
 
     }
@@ -2679,10 +2686,10 @@
     });
 
   </script>
-<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
-  <script src="js/legal-consent.js?v=20260623z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260706z">
+  <script src="js/legal-consent.js?v=20260706z" defer></script>
 
 
-  <script src="/js/shared-components.js?v=20260623z" defer></script>
+  <script src="/js/shared-components.js?v=20260706z" defer></script>
 </body>
 </html>
