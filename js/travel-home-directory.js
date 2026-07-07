@@ -327,15 +327,16 @@
     var chunks = _chunk(codes, 60);
     for (var i = 0; i < chunks.length; i++) {
       var res = await supabase
-        .from('travel_list_items')
-        .select('country_code, list_type')
+        .from('list_items')
+        .select('item_id, list_type')
         .eq('user_id', state.currentUser.id)
-        .in('country_code', chunks[i]);
+        .eq('media_type', 'travel')
+        .in('item_id', chunks[i]);
       if (res.data) allRows = allRows.concat(res.data);
     }
 
     (allRows || []).forEach(row => {
-      const code = String(row.country_code || '');
+      const code = String(row.item_id || '');
       if (!code) return;
       if (!state.listStatus.has(code)) {
         state.listStatus.set(code, { favorites: false, visited: false, bucketlist: false });
@@ -368,19 +369,21 @@
     try {
       if (nextSaved) {
         const { error } = await supabase
-          .from('travel_list_items')
+          .from('list_items')
           .insert({
             user_id: state.currentUser.id,
-            country_code: code,
+            item_id: code,
+            media_type: 'travel',
             list_type: listType
           });
         if (error && String(error.code || '') !== '23505') throw error;
       } else {
         const { error } = await supabase
-          .from('travel_list_items')
+          .from('list_items')
           .delete()
           .eq('user_id', state.currentUser.id)
-          .eq('country_code', code)
+          .eq('media_type', 'travel')
+          .eq('item_id', code)
           .eq('list_type', listType);
         if (error) throw error;
       }

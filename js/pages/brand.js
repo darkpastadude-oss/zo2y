@@ -19,9 +19,9 @@
     document.body.dataset.elevatedCategory = brandType;
   }
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: "fashion_list_items", itemField: "brand_id" },
-    food: { table: "food_list_items", itemField: "brand_id" },
-    car: { table: "car_list_items", itemField: "brand_id" },
+    fashion: { table: "list_items", itemField: "item_id", mediaType: "fashion" },
+    food: { table: "list_items", itemField: "item_id", mediaType: "food" },
+    car: { table: "list_items", itemField: "item_id", mediaType: "car" },
   };
 
   const CATEGORY_LABEL =
@@ -297,13 +297,14 @@
           showToast("Could not update list", "error");
           return result;
         }
-        const { table, itemField } = defaultListTable;
+        const { table, itemField, mediaType } = defaultListTable;
 
         if (nextSaved === false) {
           const { error: deleteError } = await client
             .from(table)
             .delete()
             .eq("user_id", currentUser.id)
+            .eq("media_type", mediaType)
             .eq(itemField, itemId)
             .eq("list_type", listType);
           if (deleteError) {
@@ -322,7 +323,7 @@
             showToast("Book info is unavailable right now.", "error");
             return result;
           }
-          const insertRow = { user_id: currentUser.id, list_type: listType };
+          const insertRow = { user_id: currentUser.id, media_type: mediaType, list_type: listType };
           insertRow[itemField] = itemId;
           const { error: insertError } = await client
             .from(table)
@@ -341,6 +342,7 @@
           .from(table)
           .select("id")
           .eq("user_id", currentUser.id)
+          .eq("media_type", mediaType)
           .eq(itemField, itemId)
           .eq("list_type", listType)
           .limit(1)
@@ -361,7 +363,7 @@
         }
 
         await ensureLinkedMediaRecord(itemId);
-        const insertRow = { user_id: currentUser.id, list_type: listType };
+        const insertRow = { user_id: currentUser.id, media_type: mediaType, list_type: listType };
         insertRow[itemField] = itemId;
         const { error: insertError } = await client
           .from(table)

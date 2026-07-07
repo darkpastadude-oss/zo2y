@@ -88,7 +88,7 @@
     try {
       const [listsRes, reviewsRes, plansRes] = await Promise.all([
         supabase.from('custom_lists').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('travel_reviews').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('media_type', 'travel'),
         supabase.from('travel_plans').select('id', { count: 'exact', head: true }).eq('user_id', userId)
       ]);
       const listsEl = document.getElementById('statLists');

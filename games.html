@@ -2035,17 +2035,19 @@
 
       const { data } = await client
 
-        .from('game_list_items')
+        .from('list_items')
 
-        .select('game_id, list_type')
+        .select('item_id, list_type')
 
         .eq('user_id', currentUser.id)
 
-        .in('game_id', ids);
+        .eq('media_type', 'game')
+
+        .in('item_id', ids);
 
       (data || []).forEach((row) => {
 
-        const id = String(row.game_id || '');
+        const id = String(row.item_id || '');
 
         if (!id) return;
 
@@ -2425,11 +2427,13 @@
 
         if (nextSaved) {
 
-          const { error } = await client.from('game_list_items').insert({
+          const { error } = await client.from('list_items').insert({
 
             user_id: currentUser.id,
 
-            game_id: gameId,
+            item_id: gameId,
+
+            media_type: 'game',
 
             list_type: listType
 
@@ -2443,13 +2447,15 @@
 
           const { error } = await client
 
-            .from('game_list_items')
+            .from('list_items')
 
             .delete()
 
             .eq('user_id', currentUser.id)
 
-            .eq('game_id', gameId)
+            .eq('item_id', gameId)
+
+            .eq('media_type', 'game')
 
             .eq('list_type', listType);
 

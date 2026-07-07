@@ -1468,12 +1468,13 @@
       const ids = state.animes.map((anime) => anime.id);
       if (!ids.length) return;
       const { data } = await client
-        .from('anime_list_items')
-        .select('anime_id, list_type')
+        .from('list_items')
+        .select('item_id, list_type')
         .eq('user_id', currentUser.id)
-        .in('anime_id', ids);
+        .eq('media_type', 'anime')
+        .in('item_id', ids);
       (data || []).forEach((row) => {
-        const id = String(row.anime_id || '');
+        const id = String(row.item_id || '');
         if (!id) return;
         if (!state.listStatusMap.has(id)) state.listStatusMap.set(id, { favorites: false, watched: false, watchlist: false });
         const bucket = state.listStatusMap.get(id);
@@ -1613,19 +1614,21 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('anime_list_items').insert({
+          const { error } = await client.from('list_items').insert({
             user_id: currentUser.id,
-            anime_id: animeId,
+            item_id: animeId,
+            media_type: 'anime',
             list_type: listType
           });
           if (error && String(error.code || '') !== '23505') throw error;
           showToast('Added to list');
         } else {
           const { error } = await client
-            .from('anime_list_items')
+            .from('list_items')
             .delete()
             .eq('user_id', currentUser.id)
-            .eq('anime_id', animeId)
+            .eq('item_id', animeId)
+            .eq('media_type', 'anime')
             .eq('list_type', listType);
           if (error) throw error;
           showToast('Removed from list');

@@ -406,10 +406,12 @@
     if (!client || !currentUser) return;
     try {
       const { data: rows } = await client
-        .from('user_favorite_teams')
-        .select('team_id')
-        .eq('user_id', currentUser.id);
-      favorites = new Set((rows || []).map(r => String(r.team_id)));
+        .from('list_items')
+        .select('item_id')
+        .eq('user_id', currentUser.id)
+        .eq('media_type', 'sports')
+        .eq('list_type', 'favorites');
+      favorites = new Set((rows || []).map(r => String(r.item_id)));
     } catch (_) {}
   }
 
@@ -485,8 +487,9 @@
     }
     try {
       if (favorites.has(team.id)) {
-        await client.from('user_favorite_teams').delete()
-          .eq('user_id', currentUser.id).eq('team_id', team.id);
+        await client.from('list_items').delete()
+          .eq('user_id', currentUser.id).eq('item_id', team.id)
+          .eq('media_type', 'sports').eq('list_type', 'favorites');
         favorites.delete(team.id);
         showToast('Removed from favorites.');
       } else {
@@ -495,9 +498,9 @@
           league: team.league || null, logo_url: getBadge(team),
           stadium: team.stadium || null
         }, { onConflict: 'id' });
-        await client.from('user_favorite_teams').upsert(
-          { user_id: currentUser.id, team_id: team.id },
-          { onConflict: 'user_id,team_id' }
+        await client.from('list_items').upsert(
+          { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' },
+          { onConflict: 'user_id,media_type,item_id,list_type,list_id' }
         );
         favorites.add(team.id);
         showToast('Team saved to your profile.');
@@ -741,8 +744,9 @@
         if (!client || !currentUser) return { ok: false };
         try {
           if (nextSaved === false) {
-            await client.from('user_favorite_teams').delete()
-              .eq('user_id', currentUser.id).eq('team_id', itemId);
+            await client.from('list_items').delete()
+              .eq('user_id', currentUser.id).eq('item_id', itemId)
+              .eq('media_type', 'sports').eq('list_type', 'favorites');
             favorites.delete(itemId);
             return { ok: true, saved: false };
           }
@@ -752,9 +756,9 @@
             sport: team.sport || null, league: team.league || null,
             logo_url: getBadge(team)
           }, { onConflict: 'id' });
-          await client.from('user_favorite_teams').upsert(
-            { user_id: currentUser.id, team_id: itemId },
-            { onConflict: 'user_id,team_id' }
+          await client.from('list_items').upsert(
+            { user_id: currentUser.id, media_type: 'sports', item_id: itemId, list_type: 'favorites' },
+            { onConflict: 'user_id,media_type,item_id,list_type,list_id' }
           );
           favorites.add(itemId);
           syncSaveButtons();

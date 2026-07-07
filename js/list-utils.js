@@ -422,7 +422,7 @@
     if (collaboratorTableSupported === false || readStorageObject('zo2y_collab_unsupported') === '1') return [];
     const { data, error } = await client
       .from(LIST_COLLAB_TABLE)
-      .select('media_type,list_id,list_owner_id,can_edit')
+      .select('media_type,list_uuid,list_owner_id,can_edit')
       .eq('media_type', safeType)
       .eq('collaborator_id', safeUserId);
     if (error) {
@@ -569,12 +569,12 @@
       .upsert({
         user_id: userId,
         media_type: safeType,
-        list_id: safeListId,
+        list_uuid: safeListId,
         list_kind: listKind,
         max_rank: maxRank,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id,media_type,list_id'
+        onConflict: 'user_id,media_type,list_uuid'
       });
     if (error) {
       if (isTierServerMissingError(error) || isTierServerPermissionError(error)) {
@@ -602,9 +602,9 @@
 
     let query = client
       .from(TIER_META_TABLE)
-      .select('user_id,list_id,list_kind,max_rank')
+      .select('user_id,list_uuid,list_kind,max_rank')
       .eq('media_type', safeType)
-      .in('list_id', safeListIds);
+      .in('list_uuid', safeListIds);
     const ownerId = String(ownerUserId || userId || '').trim();
     if (ownerId) {
       query = query.eq('user_id', ownerId);
@@ -1236,7 +1236,7 @@
         if (!sharedError && Array.isArray(rows)) {
           const collabById = new Map();
           collaboratorRows.forEach((row) => {
-            const key = String(row?.list_id || '').trim();
+      const key = String(row?.list_uuid || '').trim();
             if (!key) return;
             collabById.set(key, row);
           });

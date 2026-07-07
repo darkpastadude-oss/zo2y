@@ -1337,10 +1337,11 @@
       async function loadListStatus() {
         if (!supabaseClient || !currentUser || !tvId) return;
         const { data, error } = await supabaseClient
-          .from('anime_list_items')
+          .from('list_items')
           .select('list_type')
           .eq('user_id', currentUser.id)
-          .eq('anime_id', tvId);
+          .eq('item_id', tvId)
+          .eq('media_type', 'anime');
         if (error) return;
         listStatus.favorites = false;
         listStatus.watched = false;
@@ -1513,16 +1514,17 @@
         try {
           if (nextSaved) {
             const { error } = await supabaseClient
-              .from('anime_list_items')
-              .insert({ user_id: currentUser.id, anime_id: tvId, list_type: listType });
+              .from('list_items')
+              .insert({ user_id: currentUser.id, item_id: tvId, media_type: 'anime', list_type: listType });
             if (error && String(error.code || '') !== '23505') throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
-              .from('anime_list_items')
+              .from('list_items')
               .delete()
               .eq('user_id', currentUser.id)
-              .eq('anime_id', tvId)
+              .eq('item_id', tvId)
+              .eq('media_type', 'anime')
               .eq('list_type', listType);
             if (error) throw error;
             showNotification('Removed from list', 'info');
@@ -1620,9 +1622,10 @@
         if (!container || !statsContainer || !supabaseClient) return;
         container.innerHTML = Skel.reviewList(3);
         const { data, error } = await supabaseClient
-          .from('anime_reviews')
+          .from('reviews')
           .select('*')
-          .eq('anime_id', tvId)
+          .eq('item_id', tvId)
+          .eq('media_type', 'anime')
           .order('created_at', { ascending: false });
         if (error) {
           container.innerHTML = '<div class="reviews-empty">Error loading reviews.</div>';
@@ -1787,17 +1790,17 @@
           showNotification('Please select a rating', 'info');
           return;
         }
-        const payload = { anime_id: tvId, user_id: currentUser.id, rating: currentRating, comment };
+        const payload = { item_id: tvId, media_type: 'anime', user_id: currentUser.id, rating: currentRating, body: comment };
         let error = null;
         if (editingReviewId) {
           const { error: updateError } = await supabaseClient
-            .from('anime_reviews')
+            .from('reviews')
             .update(payload)
             .eq('id', editingReviewId);
           error = updateError;
         } else {
           const { error: insertError } = await supabaseClient
-            .from('anime_reviews')
+            .from('reviews')
             .insert(payload);
           error = insertError;
         }
@@ -1820,14 +1823,14 @@
       window.editReview = async function (reviewId) {
         if (!supabaseClient) return;
         const { data: review } = await supabaseClient
-          .from('anime_reviews')
+          .from('reviews')
           .select('*')
           .eq('id', reviewId)
           .single();
         if (!review) return;
         editingReviewId = reviewId;
         currentRating = review.rating;
-        document.getElementById('review-comment').value = review.comment || '';
+        document.getElementById('review-comment').value = review.body || '';
         updateStarDisplay();
         const submitText = document.querySelector('.submit-review-btn .btn-text');
         if (submitText) submitText.textContent = 'Update Review';
@@ -1842,7 +1845,7 @@
         }
         if (!confirm('Delete this review?')) return;
         const { error } = await supabaseClient
-          .from('anime_reviews')
+          .from('reviews')
           .delete()
           .eq('id', reviewId);
         if (error) {

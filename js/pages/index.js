@@ -311,24 +311,25 @@
     };
 
     const HOME_DEFAULT_LIST_TABLES = {
-      movie: { table: 'movie_list_items', itemField: 'movie_id' },
-      tv: { table: 'tv_list_items', itemField: 'tv_id' },
-      anime: { table: 'anime_list_items', itemField: 'anime_id' },
-      book: { table: 'book_list_items', itemField: 'book_id' },
-      artist: { table: 'artist_list_items', itemField: 'artist_id' },
-      music: { table: 'artist_list_items', itemField: 'artist_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'game_list_items', itemField: 'game_id' } } : {}),
-      travel: { table: 'travel_list_items', itemField: 'country_code' },
-      ...(ENABLE_FASHION ? { fashion: { table: 'fashion_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_FOOD ? { food: { table: 'food_list_items', itemField: 'brand_id' } } : {}),
-      ...(ENABLE_CARS ? { car: { table: 'car_list_items', itemField: 'brand_id' } } : {})
+      movie: { table: 'list_items', itemField: 'item_id', mediaType: 'movie' },
+      tv: { table: 'list_items', itemField: 'item_id', mediaType: 'tv' },
+      anime: { table: 'list_items', itemField: 'item_id', mediaType: 'anime' },
+      book: { table: 'list_items', itemField: 'item_id', mediaType: 'book' },
+      artist: { table: 'list_items', itemField: 'item_id', mediaType: 'music' },
+      music: { table: 'list_items', itemField: 'item_id', mediaType: 'music' },
+      ...(ENABLE_GAMES ? { game: { table: 'list_items', itemField: 'item_id', mediaType: 'game' } } : {}),
+      travel: { table: 'list_items', itemField: 'item_id', mediaType: 'travel' },
+      sports: { table: 'list_items', itemField: 'item_id', mediaType: 'sports' },
+      ...(ENABLE_FASHION ? { fashion: { table: 'list_items', itemField: 'item_id', mediaType: 'fashion' } } : {}),
+      ...(ENABLE_FOOD ? { food: { table: 'list_items', itemField: 'item_id', mediaType: 'food' } } : {}),
+      ...(ENABLE_CARS ? { car: { table: 'list_items', itemField: 'item_id', mediaType: 'car' } } : {})
     };
     const HOME_REVIEW_SIGNAL_TABLES = {
-      movie: { table: 'movie_reviews', itemField: 'movie_id' },
-      tv: { table: 'tv_reviews', itemField: 'tv_id' },
-      anime: { table: 'anime_reviews', itemField: 'anime_id' },
-      ...(ENABLE_GAMES ? { game: { table: 'game_reviews', itemField: 'game_id' } } : {}),
-      travel: { table: 'travel_reviews', itemField: 'country_code' }
+      movie: { table: 'reviews', itemField: 'item_id', mediaType: 'movie' },
+      tv: { table: 'reviews', itemField: 'item_id', mediaType: 'tv' },
+      anime: { table: 'reviews', itemField: 'item_id', mediaType: 'anime' },
+      ...(ENABLE_GAMES ? { game: { table: 'reviews', itemField: 'item_id', mediaType: 'game' } } : {}),
+      travel: { table: 'reviews', itemField: 'item_id', mediaType: 'travel' }
     };
     const HOME_FEED_CACHE_KEY = 'zo2y_v2_home_feed_cache';
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
@@ -3084,6 +3085,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const withCreatedAt = await client
           .from(cfg.table)
           .select(`${cfg.itemField}, user_id, list_type, created_at`)
+          .eq('media_type', cfg.mediaType)
           .in('user_id', userIds)
           .order('created_at', { ascending: false })
           .limit(220);
@@ -3096,6 +3098,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const withoutCreatedAt = await client
           .from(cfg.table)
           .select(`${cfg.itemField}, user_id, list_type, id`)
+          .eq('media_type', cfg.mediaType)
           .in('user_id', userIds)
           .order('id', { ascending: false })
           .limit(220);
@@ -3120,6 +3123,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         return client
           .from(cfg.table)
           .select(`${cfg.itemField}, rating, created_at`)
+          .eq('media_type', cfg.mediaType)
           .eq('user_id', homeCurrentUser.id)
           .gte('rating', 4)
           .order('created_at', { ascending: false })
@@ -3526,21 +3530,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const client = await ensureHomeSupabase();
       if (!client) return weights;
       try {
-        const [movieRes, tvRes, animeRes, gameRes, travelRes, listRes] = await Promise.all([
-          client.from('movie_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('tv_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id),
-          client.from('anime_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+        const [movieRes, tvRes, animeRes, gameRes, travelRes] = await Promise.all([
+          client.from('list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id).eq('media_type', 'movie'),
+          client.from('list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id).eq('media_type', 'tv'),
+          client.from('list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id).eq('media_type', 'anime')
             .then((res) => res)
             .catch(() => ({ count: 0 })),
           ENABLE_GAMES
-            ? client.from('game_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+            ? client.from('list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id).eq('media_type', 'game')
             : Promise.resolve({ count: 0 }),
-          client.from('travel_list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id)
+          client.from('list_items').select('id', { count: 'exact', head: true }).eq('user_id', homeCurrentUser.id).eq('media_type', 'travel')
             .then((res) => res)
             .catch(() => ({ count: 0 })),
         ]);
-
-        const listIds = Array.isArray(listRes?.data) ? listRes.data.map((row) => row.id).filter(Boolean) : [];
 
         const counts = {
           movie: Number(movieRes?.count || 0),
@@ -3824,20 +3826,24 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           let shouldSave = nextSaved;
           if (shouldSave === null || shouldSave === undefined) {
             const { data: existing } = await client
-              .from('user_favorite_teams')
+              .from('list_items')
               .select('id')
               .eq('user_id', activeUser.id)
-              .eq('team_id', teamId)
+              .eq('media_type', 'sports')
+              .eq('item_id', teamId)
+              .eq('list_type', 'favorites')
               .maybeSingle();
             shouldSave = !existing?.id;
           }
 
           if (!shouldSave) {
             const { error: deleteError } = await client
-              .from('user_favorite_teams')
+              .from('list_items')
               .delete()
               .eq('user_id', activeUser.id)
-              .eq('team_id', teamId);
+              .eq('media_type', 'sports')
+              .eq('item_id', teamId)
+              .eq('list_type', 'favorites');
             if (deleteError) {
               showHomeToast('Could not update list', true);
               return result;
@@ -3858,8 +3864,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           const { error: insertError } = await client
-            .from('user_favorite_teams')
-            .upsert({ user_id: activeUser.id, team_id: teamId }, { onConflict: 'user_id,team_id' });
+            .from('list_items')
+            .upsert({ user_id: activeUser.id, media_type: 'sports', item_id: teamId, list_type: 'favorites' }, { onConflict: 'user_id,media_type,item_id,list_type,list_id' });
           if (insertError) {
             showHomeToast('Could not update list', true);
             return result;
@@ -3888,6 +3894,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .from(table)
               .delete()
               .eq('user_id', activeUser.id)
+              .eq('media_type', mediaType)
               .eq(itemField, itemId)
               .eq('list_type', listType);
             if (deleteError) {
@@ -3907,15 +3914,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               showHomeToast('Book info is unavailable right now.', true);
               return result;
             }
-            const upsertRow = { user_id: activeUser.id, list_type: listType };
+            const upsertRow = { user_id: activeUser.id, media_type: mediaType, list_type: listType };
             upsertRow[itemField] = itemId;
             const { data: existingCheck } = await client
               .from(table).select('id')
-              .eq('user_id', activeUser.id).eq(itemField, itemId)
+              .eq('user_id', activeUser.id).eq('media_type', mediaType).eq(itemField, itemId)
               .eq('list_type', listType).is('list_id', null)
               .maybeSingle();
             if (!existingCheck) {
-              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,${itemField},list_type,list_id`, ignoreDuplicates: true });
+              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,media_type,${itemField},list_type,list_id`, ignoreDuplicates: true });
               if (insertError) {
                 const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
                 if (!isConflict) {
@@ -3936,6 +3943,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from(table)
             .select('id')
             .eq('user_id', activeUser.id)
+            .eq('media_type', mediaType)
             .eq(itemField, itemId)
             .eq('list_type', listType)
             .limit(1)
@@ -3954,15 +3962,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           }
 
           await ensureLinkedMediaRecord(itemId);
-          const upsertRow2 = { user_id: activeUser.id, list_type: listType };
+          const upsertRow2 = { user_id: activeUser.id, media_type: mediaType, list_type: listType };
           upsertRow2[itemField] = itemId;
           const { data: existingCheck2 } = await client
             .from(table).select('id')
-            .eq('user_id', activeUser.id).eq(itemField, itemId)
+            .eq('user_id', activeUser.id).eq('media_type', mediaType).eq(itemField, itemId)
             .eq('list_type', listType).is('list_id', null)
             .maybeSingle();
           if (!existingCheck2) {
-            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,${itemField},list_type,list_id`, ignoreDuplicates: true });
+            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,media_type,${itemField},list_type,list_id`, ignoreDuplicates: true });
             if (insertError) {
               const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
               if (!isConflict) {
@@ -4007,12 +4015,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const teamId = String(itemId || '').trim();
           if (!teamId) return status;
           const { data } = await client
-            .from('user_favorite_teams')
-            .select('team_id')
+            .from('list_items')
+            .select('item_id')
             .eq('user_id', activeUser.id)
-            .eq('team_id', teamId)
+            .eq('media_type', 'sports')
+            .eq('item_id', teamId)
+            .eq('list_type', 'favorites')
             .maybeSingle();
-          if (data?.team_id && 'favorites' in status) status.favorites = true;
+          if (data?.item_id && 'favorites' in status) status.favorites = true;
           return status;
         }
 
@@ -4025,6 +4035,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .from(table)
             .select('list_type')
             .eq('user_id', activeUser.id)
+            .eq('media_type', mediaType)
             .eq(itemField, normalizedItemId)
             .in('list_type', listKeys);
           (data || []).forEach((row) => {

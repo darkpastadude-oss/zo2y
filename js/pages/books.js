@@ -72,12 +72,13 @@ async function loadBookListStatus() {
   const ids = state.books.map((b) => b.id || b.providerId || "").filter(Boolean);
   if (!ids.length) return;
   const { data } = await client
-    .from('book_list_items')
-    .select('book_id, list_type')
+    .from('list_items')
+    .select('item_id, list_type')
+    .eq('media_type', 'book')
     .eq('user_id', currentUser.id)
-    .in('book_id', ids);
+    .in('item_id', ids);
   (data || []).forEach((row) => {
-    const id = String(row.book_id || "");
+    const id = String(row.item_id || "");
     if (!id) return;
     if (!bookListStatusMap.has(id)) bookListStatusMap.set(id, { favorites: false, read: false, readlist: false });
     const bucket = bookListStatusMap.get(id);

@@ -218,10 +218,11 @@
   async function loadListStatus() {
     if (!supabaseClient || !currentUser || !gameId) return;
     const { data, error } = await supabaseClient
-      .from('game_list_items')
+      .from('list_items')
       .select('list_type')
+      .eq('media_type', 'game')
       .eq('user_id', currentUser.id)
-      .eq('game_id', gameId);
+      .eq('item_id', gameId);
     if (error) return;
     listStatus.favorites = false;
     listStatus.watched = false;
@@ -265,17 +266,18 @@
     try {
       if (nextSaved) {
         const { error } = await supabaseClient
-          .from('game_list_items')
-          .insert({ user_id: currentUser.id, game_id: gameId, list_type: listType });
+          .from('list_items')
+          .insert({ user_id: currentUser.id, item_id: gameId, list_type: listType, media_type: 'game' });
         if (error && String(error.code || '') !== '23505') throw error;
         showNotification('Saved to list', 'success');
       } else {
         const { error } = await supabaseClient
-          .from('game_list_items')
+          .from('list_items')
           .delete()
           .eq('user_id', currentUser.id)
-          .eq('game_id', gameId)
-          .eq('list_type', listType);
+          .eq('item_id', gameId)
+          .eq('list_type', listType)
+          .eq('media_type', 'game');
         if (error) throw error;
         showNotification('Removed from list', 'info');
       }
