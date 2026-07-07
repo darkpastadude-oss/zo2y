@@ -149,16 +149,16 @@
                 car: 'list_items'
             };
             const MEDIA_ITEM_FIELDS = {
-                movie: 'entity_id',
-                tv: 'entity_id',
-                anime: 'entity_id',
-                game: 'entity_id',
-                book: 'entity_id',
-                music: 'entity_id',
-                travel: 'entity_id',
-                fashion: 'entity_id',
-                food: 'entity_id',
-                car: 'entity_id'
+                movie: 'item_id',
+                tv: 'item_id',
+                anime: 'item_id',
+                game: 'item_id',
+                book: 'item_id',
+                music: 'item_id',
+                travel: 'item_id',
+                fashion: 'item_id',
+                food: 'item_id',
+                car: 'item_id'
             };
             let manualProfileBadges = [];
             let profileStatsSnapshot = {

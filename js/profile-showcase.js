@@ -27,10 +27,10 @@ const ProfileShowcase = (function () {
     };
 
     const ITEM_FIELDS = {
-        movie: 'entity_id', tv: 'entity_id', anime: 'entity_id',
-        game: 'entity_id', book: 'entity_id', music: 'entity_id',
-        travel: 'entity_id', fashion: 'entity_id', food: 'entity_id',
-        car: 'entity_id', sports: 'entity_id'
+        movie: 'item_id', tv: 'item_id', anime: 'item_id',
+        game: 'item_id', book: 'item_id', music: 'item_id',
+        travel: 'item_id', fashion: 'item_id', food: 'item_id',
+        car: 'item_id', sports: 'item_id'
     };
 
     const DEFAULT_LIST_IDS = ['favorites', 'watched', 'watchlist'];
@@ -136,25 +136,16 @@ const ProfileShowcase = (function () {
         const itemField = ITEM_FIELDS[mediaType];
         if (!table || !itemField || !sb || !userId) return false;
 
-        let systemListId = null;
-        if (listType && listType !== 'custom' && window.ListUtils) {
-            const sysKey = window.ListUtils.SYSTEM_LIST_KEY_MAP?.[String(listType).toLowerCase()] || String(listType).toLowerCase();
-            systemListId = await window.ListUtils.resolveSystemListId(sb, sysKey);
-        }
+        const listTypeKey = (listType && listType !== 'custom') ? String(listType).toLowerCase() : null;
 
         const updates = orderedItemIds.map(async (itemId, index) => {
-            let entityIdToUpdate = itemId;
-            if (window.ListUtils) {
-                entityIdToUpdate = await window.ListUtils.resolveEntityId(sb, mediaType, itemId) || itemId;
-            }
-
             let query = sb.from(table)
                 .update({ display_order: index })
-                .eq(itemField, entityIdToUpdate)
+                .eq(itemField, itemId)
                 .eq('user_id', userId);
 
-            if (systemListId) {
-                query = query.eq('system_list_id', systemListId);
+            if (listTypeKey) {
+                query = query.eq('list_type', listTypeKey);
             } else if (listId) {
                 query = query.eq('list_id', listId);
             }
@@ -309,18 +300,14 @@ const ProfileShowcase = (function () {
     async function getItemCountForDefaultList(mediaType, listId, userId) {
         const table = ITEM_TABLES[mediaType];
         if (!table || !sb || !userId) return 0;
-        let systemListId = null;
-        if (window.ListUtils) {
-            const sysKey = window.ListUtils.SYSTEM_LIST_KEY_MAP?.[String(listId).toLowerCase()] || String(listId).toLowerCase();
-            systemListId = await window.ListUtils.resolveSystemListId(sb, sysKey);
-        }
-        if (!systemListId) return 0;
+        const listTypeKey = String(listId || '').toLowerCase();
+        if (!listTypeKey) return 0;
 
         const { count } = await sb
             .from(table)
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId)
-            .eq('system_list_id', systemListId)
+            .eq('list_type', listTypeKey)
             .is('list_id', null);
         return count || 0;
     }

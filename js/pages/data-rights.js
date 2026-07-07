@@ -1,30 +1,9 @@
 (() => {
   const TABLES_TO_EXPORT = [
     { table: 'user_profiles', label: 'Profile' },
-    { table: 'movie_list_items', label: 'Movie list items' },
-    { table: 'tv_list_items', label: 'TV list items' },
-    { table: 'anime_list_items', label: 'Anime list items' },
-    { table: 'game_list_items', label: 'Game list items' },
-    { table: 'book_list_items', label: 'Book list items' },
-    { table: 'artist_list_items', label: 'Artist list items' },
-    { table: 'sports_list_items', label: 'Sports list items' },
-    { table: 'travel_list_items', label: 'Travel list items' },
-    { table: 'fashion_list_items', label: 'Fashion list items' },
-    { table: 'food_list_items', label: 'Food list items' },
-    { table: 'car_list_items', label: 'Car list items' },
-    { table: 'custom_lists', label: 'Custom lists' },
-    { table: 'custom_list_items', label: 'Custom list items' },
-    { table: 'movie_reviews', label: 'Movie reviews' },
-    { table: 'tv_reviews', label: 'TV reviews' },
-    { table: 'anime_reviews', label: 'Anime reviews' },
-    { table: 'game_reviews', label: 'Game reviews' },
-    { table: 'book_reviews', label: 'Book reviews' },
-    { table: 'music_reviews', label: 'Music reviews' },
-    { table: 'sports_reviews', label: 'Sports reviews' },
-    { table: 'travel_reviews', label: 'Travel reviews' },
-    { table: 'fashion_reviews', label: 'Fashion reviews' },
-    { table: 'food_reviews', label: 'Food reviews' },
-    { table: 'car_reviews', label: 'Car reviews' },
+    { table: 'list_items', label: 'List items' },
+    { table: 'user_lists', label: 'Custom lists' },
+    { table: 'reviews', label: 'Reviews' },
     { table: 'travel_plans', label: 'Travel plans' }
   ];
 
@@ -87,7 +66,7 @@
   async function loadStats(supabase, userId) {
     try {
       const [listsRes, reviewsRes, plansRes] = await Promise.all([
-        supabase.from('custom_lists').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('user_lists').select('id', { count: 'exact', head: true }).eq('user_id', userId),
         supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('media_type', 'travel'),
         supabase.from('travel_plans').select('id', { count: 'exact', head: true }).eq('user_id', userId)
       ]);

@@ -8,9 +8,9 @@
   const BRAND_ICON = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
   const BRAND_TABLE = BRAND_TYPE === 'food' ? 'food_brands' : (BRAND_TYPE === 'car' ? 'car_brands' : 'fashion_brands');
   const HOME_DEFAULT_LIST_TABLES = {
-    fashion: { table: 'list_items', itemField: 'entity_id' },
-    food: { table: 'list_items', itemField: 'entity_id' },
-    car: { table: 'list_items', itemField: 'entity_id' }
+    fashion: { table: 'list_items', itemField: 'item_id' },
+    food: { table: 'list_items', itemField: 'item_id' },
+    car: { table: 'list_items', itemField: 'item_id' }
   };
 
 
@@ -525,29 +525,10 @@
         return result;
       }
 
-      const sysKey = (window.ListUtils && ListUtils.SYSTEM_LIST_KEY_MAP[String(listType).toLowerCase()]) || String(listType).toLowerCase();
-      const { data: sysList } = await client.from('system_lists').select('id').eq('key', sysKey).maybeSingle();
-      if (!sysList) return result;
-
-      let entityId;
-      if (window.ListUtils) {
-        entityId = await ListUtils.resolveEntityId(client, mediaType, itemId);
-      }
-      if (!entityId) {
-        const typeKey = mediaType === 'fashion' ? 'fashion' : mediaType === 'food' ? 'food' : 'car';
-        const { data: et } = await client.from('entity_types').select('id').eq('key', typeKey).maybeSingle();
-        if (et) {
-          const { data: ent } = await client.from('entities').select('id').eq('title', itemId).eq('entity_type_id', et.id).maybeSingle();
-          if (ent) entityId = ent.id;
-        }
-      }
-      if (!entityId) {
-        showBrandsToast('Could not add to list', true);
-        return result;
-      }
+      const listTypeKey = String(listType || 'favorites').toLowerCase();
 
       if (nextSaved === false) {
-        const { error: deleteError } = await client.from(table).delete().eq('user_id', currentUser.id).eq(itemField, entityId).eq('system_list_id', sysList.id).is('list_id', null);
+        const { error: deleteError } = await client.from(table).delete().eq('user_id', currentUser.id).eq('media_type', mediaType).eq('item_id', itemId).eq('list_type', listTypeKey).is('list_id', null);
         if (deleteError) { showBrandsToast('Could not update list', true); return result; }
         showBrandsToast('Removed from list');
         result.ok = true; result.saved = false;
@@ -555,14 +536,14 @@
       }
 
       if (nextSaved === true) {
-        const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, entity_id: entityId, system_list_id: sysList.id, list_id: null }, { onConflict: 'user_id,entity_id,system_list_id', ignoreDuplicates: true });
+        const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
         if (upsertError) { showBrandsToast('Could not add to list', true); return result; }
         showBrandsToast('Added to list');
         result.ok = true; result.saved = true;
         return result;
       }
 
-      const { data: existing } = await client.from(table).select('id').eq('user_id', currentUser.id).eq(itemField, entityId).eq('system_list_id', sysList.id).is('list_id', null).limit(1).maybeSingle();
+      const { data: existing } = await client.from(table).select('id').eq('user_id', currentUser.id).eq('media_type', mediaType).eq('item_id', itemId).eq('list_type', listTypeKey).is('list_id', null).limit(1).maybeSingle();
       if (existing?.id) {
         const { error: deleteError } = await client.from(table).delete().eq('id', existing.id);
         if (deleteError) { showBrandsToast('Could not update list', true); return result; }
@@ -571,7 +552,7 @@
         return result;
       }
 
-      const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, entity_id: entityId, system_list_id: sysList.id, list_id: null }, { onConflict: 'user_id,entity_id,system_list_id', ignoreDuplicates: true });
+      const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
       if (upsertError) { showBrandsToast('Could not add to list', true); return result; }
       showBrandsToast('Added to list');
       result.ok = true; result.saved = true;

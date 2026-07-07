@@ -3,7 +3,7 @@
     movie: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-film',
       numericId: true
@@ -11,7 +11,7 @@
     tv: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-tv',
       numericId: true
@@ -19,28 +19,28 @@
     book: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-book'
     },
     artist: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-microphone'
     },
     music: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-microphone'
     },
     anime: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-dragon',
       numericId: true
@@ -48,7 +48,7 @@
     game: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-gamepad',
       numericId: true
@@ -56,35 +56,35 @@
     travel: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-earth-americas'
     },
     fashion: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-shirt'
     },
     food: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-burger'
     },
     car: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-car'
     },
     sports: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-futbol',
       disableCustomLists: false
@@ -92,7 +92,7 @@
     restaurant: {
       listTable: 'user_lists',
       itemsTable: 'list_items',
-      itemIdField: 'entity_id',
+      itemIdField: 'item_id',
       usesUserId: true,
       defaultIcon: 'fas fa-clapperboard',
       filterTitles: ['Favorites', 'Visited', 'Want to Go']
@@ -1310,8 +1310,7 @@
         .from(cfg.itemsTable)
         .select('list_id')
         .eq(cfg.itemIdField, entityId)
-        .in('list_id', listIds)
-        .is('system_list_id', null);
+        .in('list_id', listIds);
       if (error && isListTableMissingError(error, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
         return new Set();
@@ -1354,8 +1353,7 @@
         .from(cfg.itemsTable)
         .delete()
         .eq(cfg.itemIdField, entityId)
-        .in('list_id', listIds)
-        .is('system_list_id', null);
+        .in('list_id', listIds);
       const { error: deleteError } = await del;
       if (deleteError && isListTableMissingError(deleteError, cfg.itemsTable)) {
         missingItemTables.add(cfg.itemsTable);
@@ -1363,7 +1361,7 @@
       }
     }
     const inserts = listIds.map(listId => {
-      const row = { list_id: listId, system_list_id: null };
+      const row = { list_id: listId };
       row[cfg.itemIdField] = entityId;
       const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
       row.user_id = ownerId || userId;
@@ -1371,7 +1369,7 @@
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
-        onConflict: 'list_id,entity_id',
+        onConflict: 'list_id,item_id',
         ignoreDuplicates: false
       });
       if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
@@ -1394,16 +1392,15 @@
     const { data: ownerRows } = await client
       .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
     if (ownerRows?.user_id) ownerId = ownerRows.user_id;
-    const row = { list_id: listId, system_list_id: null, entity_id: entityId, user_id: ownerId };
+    const row = { list_id: listId, item_id: entityId, user_id: ownerId };
     const { data: existingItem } = await client
       .from(cfg.itemsTable)
       .select('id')
-      .eq('entity_id', entityId)
+      .eq('item_id', entityId)
       .eq('list_id', listId)
-      .is('system_list_id', null)
       .maybeSingle();
     if (existingItem) return true;
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,entity_id', ignoreDuplicates: true });
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,item_id', ignoreDuplicates: true });
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     if (error && isConflictError(error)) return true;
     return !error;
@@ -1416,7 +1413,7 @@
     if (missingItemTables.has(cfg.itemsTable)) return false;
     const entityId = await resolveEntityId(client, type, itemId);
     if (!entityId) return false;
-    let query = client.from(cfg.itemsTable).delete().eq('entity_id', entityId).eq('list_id', listId).eq('user_id', userId).is('system_list_id', null);
+    let query = client.from(cfg.itemsTable).delete().eq('item_id', entityId).eq('list_id', listId).eq('user_id', userId);
     const { error } = await query;
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     return !error;
@@ -1548,9 +1545,9 @@
       if (!systemListId) return null;
       const query = client
         .from(cfg.itemsTable)
-        .select('*, entities!inner(id,title)')
+        .select('*')
         .eq('user_id', userId)
-        .eq('system_list_id', systemListId)
+        .eq('list_type', listId)
         .is('list_id', null);
       const { data, error } = await query;
       if (error) {
@@ -1572,10 +1569,9 @@
 
       const query = client
         .from(cfg.itemsTable)
-        .select('*, entities!inner(id,title)')
+        .select('*')
         .eq('user_id', userId)
-        .eq('list_id', listId)
-        .is('system_list_id', null);
+        .eq('list_id', listId);
       const { data, error } = await query;
       if (error) {
         console.error(`Error in loadList for custom list ${listId} (type ${type}):`, error);

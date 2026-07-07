@@ -84,19 +84,19 @@
   };
 
   const DEFAULT_TABLE_BY_MEDIA = {
-    movie: { table: 'list_items', itemField: 'entity_id' },
-    tv: { table: 'list_items', itemField: 'entity_id' },
-    anime: { table: 'list_items', itemField: 'entity_id' },
-    game: { table: 'list_items', itemField: 'entity_id' },
-    travel: { table: 'list_items', itemField: 'entity_id' },
-    fashion: { table: 'list_items', itemField: 'entity_id' },
-    food: { table: 'list_items', itemField: 'entity_id' },
-    car: { table: 'list_items', itemField: 'entity_id' },
-    sports: { table: 'list_items', itemField: 'entity_id' },
-    restaurant: { table: 'list_items', itemField: 'entity_id' },
-    book: { table: 'list_items', itemField: 'entity_id' },
-    artist: { table: 'list_items', itemField: 'entity_id' },
-    music: { table: 'list_items', itemField: 'entity_id' }
+    movie: { table: 'list_items', itemField: 'item_id' },
+    tv: { table: 'list_items', itemField: 'item_id' },
+    anime: { table: 'list_items', itemField: 'item_id' },
+    game: { table: 'list_items', itemField: 'item_id' },
+    travel: { table: 'list_items', itemField: 'item_id' },
+    fashion: { table: 'list_items', itemField: 'item_id' },
+    food: { table: 'list_items', itemField: 'item_id' },
+    car: { table: 'list_items', itemField: 'item_id' },
+    sports: { table: 'list_items', itemField: 'item_id' },
+    restaurant: { table: 'list_items', itemField: 'item_id' },
+    book: { table: 'list_items', itemField: 'item_id' },
+    artist: { table: 'list_items', itemField: 'item_id' },
+    music: { table: 'list_items', itemField: 'item_id' }
   };
 
   const MEDIA_LIST_ICONS = {
@@ -225,18 +225,13 @@
     try { if(_bridge&&typeof _bridge.toggleDefaultList==='function'&&(!tbl?.table||!tbl?.itemField||_bridgeCanUseResolvedUser())){const r=await _bridge.toggleDefaultList({itemId:item.itemId,listType,card:STATE.currentCard,nextSaved,user});if(r&&typeof r.ok==='boolean'){if(r.ok)return r;if(isConflictLikeError(r?.error))return{ok:true,saved:!!nextSaved};return r}} }catch(e){}
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
-    if(!window.ListUtils) return {ok:false,saved:false};
-    const entityId=await ListUtils.resolveEntityId(c,mt,item.itemId);
-    if(!entityId) return {ok:false,saved:false};
-    const sysKey=ListUtils.SYSTEM_LIST_KEY_MAP[String(listType).toLowerCase()]||String(listType).toLowerCase();
-    const systemListId=await ListUtils.resolveSystemListId(c,sysKey);
-    if(!systemListId) return {ok:false,saved:false};
+    const itemId=String(item.itemId||'').trim(); if(!itemId) return {ok:false,saved:false};
+    const listTypeKey=String(listType||'favorites').toLowerCase();
     if(nextSaved){
-      try{await ListUtils.ensureEntityRecord(c,ListUtils.ENTITY_CONFIG[mt]?.provider||'internal',String(item.itemId),item.title||'');}catch(e){}
-      const{error}=await c.from(tbl.table).upsert({user_id:user.id,entity_id:entityId,system_list_id:systemListId,list_id:null},{onConflict:'user_id,entity_id,system_list_id',ignoreDuplicates:true});
+      const{error}=await c.from(tbl.table).upsert({user_id:user.id,media_type:mt,item_id:itemId,list_type:listTypeKey},{onConflict:'user_id,media_type,item_id,list_type',ignoreDuplicates:true});
       if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}
     }
-    const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq('entity_id',entityId).eq('system_list_id',systemListId).is('list_id',null);
+    const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq('media_type',mt).eq('item_id',itemId).eq('list_type',listTypeKey).is('list_id',null);
     if(error) return{ok:false,saved:true,error}; return{ok:true,saved:false};
   }
   async function getDefaultListStatusMap(id, keys) {
@@ -248,24 +243,13 @@
     if(_bridge&&typeof _bridge.getDefaultListStatusMap==='function'){try{const r=await _bridge.getDefaultListStatusMap(normalizeItemIdValue(id),keys); if(r&&typeof r==='object') return cloneQuickStatus(r,keys)}catch(e){}}
     if(!tc||!window.ListUtils) return s;
     try {
-      const entityId=await ListUtils.resolveEntityId(c,mt,id);
-      if(!entityId) return s;
-      const sysKeys=keys.map(k=>ListUtils.SYSTEM_LIST_KEY_MAP[String(k).toLowerCase()]||String(k).toLowerCase());
-      const uniqueSysKeys=[...new Set(sysKeys)];
-      const sysIdMap={};
-      for(const sk of uniqueSysKeys){
-        const sid=await ListUtils.resolveSystemListId(c,sk);
-        if(sid) sysIdMap[sk]=sid;
-      }
-      if(!Object.keys(sysIdMap).length) return s;
-      const sidValues=Object.values(sysIdMap);
-      const{data}=await c.from(tc.table).select('system_list_id').eq('user_id',u.id).eq('entity_id',entityId).in('system_list_id',sidValues).is('list_id',null);
+      const itemId=String(id||'').trim(); if(!itemId) return s;
+      const listTypeKeys=keys.map(k=>String(k).toLowerCase());
+      const{data}=await c.from(tc.table).select('list_type').eq('user_id',u.id).eq('media_type',mt).eq('item_id',itemId).in('list_type',listTypeKeys).is('list_id',null);
       if(data){
-        const activeSysIds=new Set(data.map(r=>r.system_list_id));
+        const activeTypes=new Set(data.map(r=>r.list_type));
         keys.forEach(k=>{
-          const sk=ListUtils.SYSTEM_LIST_KEY_MAP[String(k).toLowerCase()]||String(k).toLowerCase();
-          const sid=sysIdMap[sk];
-          if(sid&&activeSysIds.has(sid)) s[k]=true;
+          if(activeTypes.has(String(k).toLowerCase())) s[k]=true;
         });
       }
     }catch(e){}
@@ -480,24 +464,15 @@
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
       const vks=new Set(vs.map(id=>String(id)));const dt=DEFAULT_TABLE_BY_MEDIA[mt];
       if(dt&&lk.length&&vs.length){
-        const sysKeys=lk.map(k=>window.ListUtils?.SYSTEM_LIST_KEY_MAP?.[String(k).toLowerCase()]||String(k).toLowerCase());
-        const uniqueSysKeys=[...new Set(sysKeys)];
-        const sysIdMap={}; const reverseSysIdMap={};
-        for(let i=0; i<lk.length; i++){
-          const sk=sysKeys[i]; const key=lk[i];
-          if(window.ListUtils && typeof window.ListUtils.resolveSystemListId==='function'){
-            const sid=await window.ListUtils.resolveSystemListId(c,sk);
-            if(sid){ sysIdMap[sk]=sid; reverseSysIdMap[sid]=reverseSysIdMap[sid]||[]; reverseSysIdMap[sid].push(key); }
-          }
-        }
-        const sidValues=Object.values(sysIdMap);
-        if(sidValues.length){
-          const data=await multiQuery(c,dt.table,`${dt.itemField},system_list_id`,'user_id',u.id,dt.itemField,vs,'system_list_id',sidValues);
+        const listTypeKeys=lk.map(k=>String(k).toLowerCase());
+        const uniqueListTypeKeys=[...new Set(listTypeKeys)];
+        if(uniqueListTypeKeys.length){
+          const data=await multiQuery(c,dt.table,`${dt.itemField},list_type`,'user_id',u.id,dt.itemField,vs,'list_type',uniqueListTypeKeys);
           const sb=new Map();vs.forEach(id=>sb.set(String(id),buildBlankQuickStatus(lk))); (data||[]).forEach(r=>{
-            const ik=String(r?.[dt.itemField]??'');const sid=r?.system_list_id;
-            if(sid && reverseSysIdMap[sid]){
+            const ik=String(r?.[dt.itemField]??'');const lt=String(r?.list_type||'').toLowerCase();
+            if(lt){
               const cur=sb.get(ik);
-              if(cur){ reverseSysIdMap[sid].forEach(k=>cur[k]=true); }
+              if(cur){ lk.forEach(k=>{ if(String(k).toLowerCase()===lt) cur[k]=true; }); }
             }
           });
           sb.forEach((s,ik)=>writeCachedQuickStatus(ik,s,lk));
