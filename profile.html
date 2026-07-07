@@ -5,21 +5,21 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <script src="js/list-utils.js?v=20260705b"></script>
+  <script src="js/list-utils.js?v=20260708a"></script>
   <script src="js/skeleton.js" defer></script>
   <script src="js/spa-router.js?v=1751720000" defer></script>
-  <script src="js/index-list-menu-adapter.js?v=20260705c"></script>
+  <script src="js/index-list-menu-adapter.js?v=20260708a"></script>
   <script src="js/pages/profile.js?v=20260705f" defer></script>
-  <script src="js/profile-showcase.js?v=20260705c" defer></script>
-  <script src="/js/auth-gate.js?v=20260705a" defer></script>
-  <script src="/js/bootstrap-auth.js?v=20260705a" defer></script>
+  <script src="js/profile-showcase.js?v=20260708a" defer></script>
+  <script src="/js/auth-gate.js?v=20260708a" defer></script>
+  <script src="/js/bootstrap-auth.js?v=20260708a" defer></script>
   <meta name="robots" content="index,follow" />
     <title>Zo2y - Profile</title>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260623z" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
     <script src="js/providers/index.js?v=20260706a" defer></script>
     <style>
 :root { --color-bg-primary: #0b1633; --color-bg-tertiary: #132347; --color-text-primary: #ffffff; --color-text-secondary: #cbd5e1; --color-accent: #f59e0b; --color-border: rgba(255,255,255,0.1); --color-bg-hover: #1a2c5a; --color-error: #ef4444; --color-success: #10b981; --color-warning: #f59e0b; --glass: rgba(255,255,255,0.03); --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.3); --shadow-lg: 0 8px 32px rgba(0,0,0,0.4); --transition: all 0.3s ease; --bg: var(--color-bg-primary); --card: var(--color-bg-tertiary); --muted: var(--color-text-secondary); --accent: var(--color-accent); --white: var(--color-text-primary); --border: var(--color-border); --bg-hover: var(--color-bg-hover); }
@@ -39,7 +39,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260705c">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260708a">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -47,19 +47,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Zo2y" />
-  <link rel="manifest" href="/manifest.webmanifest?v=20260623z" />
+  <link rel="manifest" href="/manifest.webmanifest?v=20260708a" />
   <link rel="apple-touch-icon" href="/images/apple-touch-icon-180.png" />
-  <link rel="stylesheet" href="/js/mobile-app.css?v=20260623z" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260623z"></noscript>
-  <script src="/js/mobile-webapp.js?v=20260623z" defer></script>
+  <link rel="stylesheet" href="/js/mobile-app.css?v=20260708a" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="/js/mobile-app.css?v=20260708a"></noscript>
+  <script src="/js/mobile-webapp.js?v=20260708a" defer></script>
   <link rel="stylesheet" href="css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
-<script src="js/shared-header.js?v=20260705a" defer></script>
+<script src="js/shared-header.js?v=20260708a" defer></script>
   <noscript></noscript>
 
   
     <link rel="stylesheet" href="css/components.css?v=1751700000z">
-    <link rel="stylesheet" href="css/global-lowercase.css?v=20260623z">
+    <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
 </head>
 <body data-nav-page="profile">
     <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -2392,18 +2392,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         </div>
     </div>
 
-    <script src="js/list-utils.js?v=20260705b" defer></script>
-    <script src="js/profile-showcase.js?v=20260705c" defer></script>
-    <script src="js/referral-utils.js?v=20260623z" defer></script>
-    <script src="js/igdb-client.js?v=20260623z" defer></script>
-    <script src="js/taste_identity.js?v=20260623z" defer></script>
-    <script src="js/cover-cache.js?v=20260623z" defer></script>
-    <script src="js/pages/games-shared.js?v=20260623z" defer></script>
+    <script src="js/list-utils.js?v=20260708a" defer></script>
+    <script src="js/profile-showcase.js?v=20260708a" defer></script>
+    <script src="js/referral-utils.js?v=20260708a" defer></script>
+    <script src="js/igdb-client.js?v=20260708a" defer></script>
+    <script src="js/taste_identity.js?v=20260708a" defer></script>
+    <script src="js/cover-cache.js?v=20260708a" defer></script>
+    <script src="js/pages/games-shared.js?v=20260708a" defer></script>
     <script src="js/pages/profile.js?v=20260705f" defer></script>
-<link rel="stylesheet" href="css/pages/legal.css?v=20260623z">
-  <script src="js/legal-consent.js?v=20260623z" defer></script>
+<link rel="stylesheet" href="css/pages/legal.css?v=20260708a">
+  <script src="js/legal-consent.js?v=20260708a" defer></script>
 
-  <script src="/js/shared-components.js?v=20260623z" defer></script>
+  <script src="/js/shared-components.js?v=20260708a" defer></script>
 
   <!-- ============================================================
        ProfileV2 — Overview, Banner, Rails, Mode Switch
