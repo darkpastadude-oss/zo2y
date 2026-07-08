@@ -226,9 +226,9 @@
   function renderListIcon(icon) {
     if (!icon) return '<i class="fas fa-list"></i>';
     if (icon.startsWith('http') || icon.startsWith('data:')) {
-      return \`<img src="\${escapeHtml(icon)}" class="tier-icon-img" alt="icon" style="width:20px;height:20px;object-fit:cover;border-radius:4px;">\`;
+      return `<img src="${escapeHtml(icon)}" class="tier-icon-img" alt="icon" style="width:20px;height:20px;object-fit:cover;border-radius:4px;">`;
     }
-    return \`<i class="\${escapeHtml(icon)}"></i>\`;
+    return `<i class="${escapeHtml(icon)}"></i>`;
   }
 
   async function loadCustomLists(mediaType) {
@@ -270,13 +270,13 @@
       customLists.forEach(list => {
         const item = document.createElement('div');
         item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
-        item.innerHTML = \`
-          <span>\${renderListIcon(list.icon)} \${escapeHtml(list.name || list.title)}</span>
+        item.innerHTML = `
+          <span>${renderListIcon(list.icon)} ${escapeHtml(list.name || list.title)}</span>
           <span class="modal-list-actions" style="display:inline-flex; align-items:center; gap:6px;">
-            <span>\${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
+            <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
             <button class="list-edit-btn" aria-label="Rename list" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px; padding:4px 8px; cursor:pointer;"><i class="fas fa-pen"></i></button>
           </span>
-        \`;
+        `;
         item.onclick = () => {
           if (modalSelectedLists.has(list.id)) {
             modalSelectedLists.delete(list.id);
@@ -394,7 +394,7 @@
     if (document.getElementById('unifiedListMenuStyles')) return;
     const style = document.createElement('style');
     style.id = 'unifiedListMenuStyles';
-    style.textContent = \`
+    style.textContent = `
       .unified-list-menu {
         position: absolute;
         z-index: 1000;
@@ -432,7 +432,7 @@
         inset: 0;
         z-index: 999;
       }
-    \`;
+    `;
     document.head.appendChild(style);
   }
 
@@ -489,20 +489,20 @@
     let html = '';
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
-      html += \`
-        <button class="list-action \${isActive ? 'active' : ''}" data-list="\${escapeHtml(r.key)}">
-          <i class="\${escapeHtml(r.icon)}"></i> 
-          <span>\${escapeHtml(r.label)}</span>
+      html += `
+        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}">
+          <i class="${escapeHtml(r.icon)}"></i> 
+          <span>${escapeHtml(r.label)}</span>
         </button>
-      \`;
+      `;
     });
     
-    html += \`
+    html += `
       <div style="height:1px; background:rgba(255,255,255,0.1); margin: 4px 0;"></div>
       <button class="list-action" data-list="custom">
         <i class="fas fa-list"></i> <span>Custom Lists...</span>
       </button>
-    \`;
+    `;
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
