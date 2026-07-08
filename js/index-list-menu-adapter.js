@@ -335,6 +335,30 @@
     let m = document.getElementById('itemMenuModal');
     if (!m) { m = document.createElement('div'); m.id = 'itemMenuModal'; m.className = 'menu-modal'; m.setAttribute('aria-hidden','true');
       m.innerHTML = `<div class="menu-modal-content"><div class="menu-modal-header"><h3 id="menuModalTitle">Add to List</h3><button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button></div><div class="menu-modal-body" id="menuModalBody"><div class="menu-quick-lists" id="menuQuickLists"></div><div class="menu-custom-section"><div class="menu-custom-header"><span>Your Custom Lists</span></div><div class="menu-custom-lists" id="menuCustomLists"></div></div></div></div>`; document.body.appendChild(m); }
+
+    let am = document.getElementById('adapterCustomListsModal');
+    if (!am) {
+      am = document.createElement('div'); am.id = 'adapterCustomListsModal'; am.className = 'menu-modal';
+      am.innerHTML = `
+        <div class="menu-modal-content">
+          <div class="menu-modal-header">
+            <h3>Manage Custom Lists</h3>
+            <button class="menu-modal-close" id="closeAdapterCustomListsBtn">&times;</button>
+          </div>
+          <div class="menu-modal-body">
+            <div class="menu-custom-lists" id="adapterCustomListsContainer"></div>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <input type="text" id="newAdapterCustomListName" placeholder="New list name..." maxlength="50" class="menu-input" style="margin-bottom:0;">
+              <button class="menu-btn menu-btn-primary" id="createAdapterCustomListBtn" style="padding:0 20px;">Create</button>
+            </div>
+            <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+              <button class="menu-btn menu-btn-primary" id="saveAdapterCustomListsBtn">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(am);
+    }
   }
   function syncMenuModalViewport(m) {
     if (!m || !m.classList.contains('active')) return;
@@ -343,10 +367,11 @@
     m.style.width = Math.max(0, Math.ceil(v?.width||window.innerWidth||document.documentElement.clientWidth||0))+'px';
     m.style.height = Math.max(0, Math.ceil(v?.height||window.innerHeight||document.documentElement.clientHeight||0))+'px';
   }
-  function syncActiveMenuModalViewports() { syncMenuModalViewport(document.getElementById('itemMenuModal')); }
+  function syncActiveMenuModalViewports() { syncMenuModalViewport(document.getElementById('itemMenuModal')); syncMenuModalViewport(document.getElementById('adapterCustomListsModal')); }
   function syncMenuModalBodyLock() {
     const m = document.getElementById('itemMenuModal'); const a = !!(m?.classList.contains('active'));
-    if (a) { syncActiveMenuModalViewports(); document.body.style.overflow='hidden'; document.documentElement.style.overflow='hidden'; }
+    const am = document.getElementById('adapterCustomListsModal'); const aa = !!(am?.classList.contains('active'));
+    if (a || aa) { syncActiveMenuModalViewports(); document.body.style.overflow='hidden'; document.documentElement.style.overflow='hidden'; }
     else { document.body.style.overflow=''; document.documentElement.style.overflow=''; }
   }
   function closeItemMenuModal() {
@@ -357,7 +382,7 @@
     syncMenuModalBodyLock();
     if (_lastFocusedTrigger && typeof _lastFocusedTrigger.focus === 'function' && document.contains(_lastFocusedTrigger)) { setTimeout(()=>{ try{_lastFocusedTrigger.focus({preventScroll:true})}catch(e){try{_lastFocusedTrigger.focus()}catch(e2){}} }, 0); }
   }
-  function closeAllItemMenuModals() { closeItemMenuModal(); }
+  function closeAllItemMenuModals() { closeItemMenuModal(); closeAdapterCustomListsModal(); }
 
   function renderItemMenuQuickLists() {
     const qc = document.getElementById('menuQuickLists'); if (!qc) return;
@@ -391,10 +416,10 @@
   function renderItemMenuCustomLists() {
     const cc=document.getElementById('menuCustomLists');const cs=cc?.closest('.menu-custom-section');if(!cc)return;
     if(!customListsEnabled()){if(cs)cs.style.display='none';cc.innerHTML='';return}
-    if(cs)cs.style.display='';if(!getCurrentUser()?.id){cc.innerHTML='<div class="menu-empty">Sign in to use custom lists.</div>';return}
-    if(!STATE.customLists.length){cc.innerHTML='<div class="menu-empty">No custom lists yet. Create one.</div>';return}
-    const fb=getMediaListFallbackIcon();cc.innerHTML=STATE.customLists.map(l=>{const a=STATE.selectedCustomLists.has(l.id);const b=STATE.pendingCustomListIds.has(String(l.id||'').trim());return `<div class="menu-custom-item ${a?'active':''}" data-list-id="${l.id}" aria-busy="${b?'true':'false'}"><div class="menu-custom-left">${window.ListUtils?ListUtils.renderListIcon(l.icon,fb):'<i class="'+fb+'"></i>'}<span>${escapeHtml(l.name||l.title||'Custom List')}</span></div><span class="menu-custom-state">${b?'Syncing':(a?'Saved':'Add')}</span></div>`}).join('');
-    cc.querySelectorAll('.menu-custom-item').forEach(n=>n.addEventListener('click',async()=>{const id=n.getAttribute('data-list-id');if(id)await toggleMenuCustomList(id)}));
+    if(cs)cs.style.display='';
+    cc.innerHTML = `<button type="button" class="menu-quick-item" id="openAdapterModalBtn" style="justify-content:center;"><span style="font-weight:600;"><i class="fas fa-list"></i> Manage Custom Lists</span></button>`;
+    const btn = document.getElementById('openAdapterModalBtn');
+    if(btn) btn.addEventListener('click', () => { closeItemMenuModal(); openAdapterCustomListsModal(); });
   }
   async function refreshItemMenuQuickStatus() { const it=STATE.currentItem; if(!it) return; const lk=STATE.quickRows.map(r=>r.key).filter(Boolean); STATE.quickStatus=await getDefaultListStatusMap(it.itemId,lk); writeCachedQuickStatus(it.itemId,STATE.quickStatus,lk); }
 
@@ -415,6 +440,41 @@
     STATE.selectedCustomLists=customListsEnabled()?await ListUtils.loadCustomListMembership(c,u.id,mt,it.itemId,lids):new Set();
     writeCachedMembership(it.itemId,STATE.selectedCustomLists); renderItemMenuQuickLists(); renderItemMenuCustomLists();
   }
+
+  let _adapterModalSelectedLists = new Set();
+  async function openAdapterCustomListsModal() {
+    const u = await resolveAuthenticatedUser(); if (!u) { redirectToLogin(); return; }
+    const mt = getMediaType(); const it = STATE.currentItem; if (!it || !it.itemId) return;
+    const c = await ensureClient(); if (!c || !window.ListUtils) return;
+    const modal = document.getElementById('adapterCustomListsModal');
+    const container = document.getElementById('adapterCustomListsContainer');
+    if (!modal || !container) return;
+    container.innerHTML = '<div class="menu-empty">Loading...</div>'; modal.classList.add('active');
+    STATE.customLists = await ListUtils.loadCustomLists(c, u.id, mt);
+    const listIds = STATE.customLists.map(l => l.id);
+    _adapterModalSelectedLists = await ListUtils.loadCustomListMembership(c, u.id, mt, it.itemId, listIds);
+    renderAdapterModalLists(); syncMenuModalBodyLock();
+    document.getElementById('closeAdapterCustomListsBtn').onclick = closeAdapterCustomListsModal;
+    document.getElementById('saveAdapterCustomListsBtn').onclick = async () => { await ListUtils.saveCustomListChanges(c, u.id, mt, it.itemId, [..._adapterModalSelectedLists]); closeAdapterCustomListsModal(); };
+    document.getElementById('createAdapterCustomListBtn').onclick = async () => {
+      const input = document.getElementById('newAdapterCustomListName'); if (!input || !input.value.trim()) return;
+      const title = input.value.trim(); const data = await ListUtils.createCustomList(c, u.id, mt, { title, icon: 'fas fa-film' });
+      if (data) { STATE.customLists.unshift(data); input.value = ''; renderAdapterModalLists(); }
+    };
+  }
+  function renderAdapterModalLists() {
+    const container = document.getElementById('adapterCustomListsContainer'); if (!container) return;
+    if (!STATE.customLists.length) { container.innerHTML = '<div class="menu-empty">No custom lists yet.</div>'; return; }
+    const fb = getMediaListFallbackIcon(); container.innerHTML = '';
+    STATE.customLists.forEach(list => {
+      const item = document.createElement('div'); const isActive = _adapterModalSelectedLists.has(list.id);
+      item.className = 'menu-custom-item' + (isActive ? ' active' : '');
+      item.innerHTML = `<div class="menu-custom-left">${window.ListUtils ? ListUtils.renderListIcon(list.icon, fb) : '<i class="'+fb+'"></i>'}<span>${escapeHtml(list.name || list.title || 'Custom List')}</span></div><span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>`;
+      item.onclick = (e) => { if (_adapterModalSelectedLists.has(list.id)) _adapterModalSelectedLists.delete(list.id); else _adapterModalSelectedLists.add(list.id); renderAdapterModalLists(); };
+      container.appendChild(item);
+    });
+  }
+  function closeAdapterCustomListsModal() { const modal = document.getElementById('adapterCustomListsModal'); if (modal) modal.classList.remove('active'); syncMenuModalBodyLock(); }
 
   async function toggleMenuCustomList(listId) {
     const it=STATE.currentItem;const u=await resolveAuthenticatedUser();if(!it||!u?.id||!window.ListUtils){redirectToLogin();return}
