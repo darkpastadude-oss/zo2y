@@ -1480,6 +1480,7 @@
         .from(cfg.itemsTable)
         .select('*')
         .eq('user_id', userId)
+        .eq('media_type', type)
         .eq('list_type', listId)
         .is('list_id', null);
       const { data, error } = await query;
@@ -1504,6 +1505,7 @@
         .from(cfg.itemsTable)
         .select('*')
         .eq('user_id', userId)
+        .eq('media_type', type)
         .eq('list_id', listId);
       const { data, error } = await query;
       if (error) {

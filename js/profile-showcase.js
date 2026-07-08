@@ -142,6 +142,7 @@ const ProfileShowcase = (function () {
             let query = sb.from(table)
                 .update({ position: index })
                 .eq(itemField, itemId)
+                .eq('media_type', mediaType)
                 .eq('user_id', userId);
 
             if (listTypeKey) {
@@ -304,6 +305,7 @@ const ProfileShowcase = (function () {
             .from(table)
             .select('*', { count: 'exact', head: true })
             .eq('user_id', userId)
+            .eq('media_type', mediaType)
             .eq('list_type', listTypeKey)
             .is('list_id', null);
         return count || 0;
