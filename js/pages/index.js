@@ -3149,7 +3149,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (!key) return;
 
           const sourceUserId = String(row?.user_id || '').trim();
-          const isOwn = sourceUserId === String(homeCurrentUser.id);
+          const isOwn = sourceUserId === String(homeCurrentUser?.id);
           const recency = getRecencyWeight(row?.created_at);
           const listWeight = getListTypeWeight(row?.list_type);
           const score = (isOwn ? 2.2 : 1.3) * recency + listWeight;
