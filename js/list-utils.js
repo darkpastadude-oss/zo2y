@@ -156,41 +156,12 @@
   }
 
   async function resolveEntityId(client, type, itemId) {
-    const cfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
-    if (!cfg) return null;
-    const cacheKey = `${type}:${itemId}`;
-    if (entityIdCache.has(cacheKey)) return entityIdCache.get(cacheKey);
-    let entityId = null;
-    if (cfg.provider) {
-      const { data } = await client.from('content_sources').select('entity_id').eq('provider', cfg.provider).eq('external_id', String(itemId)).maybeSingle();
-      if (data) entityId = data.entity_id;
-    }
-    if (!entityId && !cfg.provider) {
-      const { data } = await client.from('entities').select('id').eq('title', String(itemId)).eq('entity_type_id', client.from('entity_types').select('id').eq('key', cfg.entityType)).maybeSingle();
-      if (data) entityId = data.id;
-    }
-    if (entityId) entityIdCache.set(cacheKey, entityId);
-    return entityId;
+    return itemId;
   }
 
   async function resolveEntityIds(client, type, itemIds) {
-    const cfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
-    if (!cfg || !itemIds.length) return {};
-    const cacheKeyPrefix = `${type}:`;
-    const uncached = itemIds.filter(id => !entityIdCache.has(cacheKeyPrefix + id));
-    if (uncached.length > 0 && cfg.provider) {
-      const chunks = [];
-      for (let i = 0; i < uncached.length; i += 60) chunks.push(uncached.slice(i, i + 60));
-      for (const chunk of chunks) {
-        const { data } = await client.from('content_sources').select('entity_id,external_id').eq('provider', cfg.provider).in('external_id', chunk.map(String));
-        if (data) data.forEach(r => entityIdCache.set(cacheKeyPrefix + r.external_id, r.entity_id));
-      }
-    }
     const result = {};
-    itemIds.forEach(id => {
-      const eid = entityIdCache.get(cacheKeyPrefix + id);
-      if (eid) result[id] = eid;
-    });
+    itemIds.forEach(id => { result[id] = id; });
     return result;
   }
   const KNOWN_TIER_CREATE_MODAL_SELECTORS = [
@@ -1135,43 +1106,19 @@
   }
 
   async function ensureEntityRecord(client, provider, externalId, title, extra) {
-    if (!client || !provider || !externalId) return null;
-    const { data: existing } = await client.from('content_sources').select('entity_id').eq('provider', provider).eq('external_id', String(externalId)).maybeSingle();
-    if (existing) return existing.entity_id;
-    const { data: typeData } = await client.from('entity_types').select('id').eq('key', provider === 'openlibrary' ? 'book' : provider === 'spotify' ? 'music' : provider === 'thesportsdb' ? 'sport' : provider).maybeSingle();
-    if (!typeData) return null;
-    const { data: entity } = await client.from('entities').insert({ title: title || String(externalId), entity_type_id: typeData.id }, { onConflict: 'title,entity_type_id', ignoreDuplicates: true }).select('id').single();
-    if (!entity) {
-      const { data: existingEntity } = await client.from('entities').select('id').eq('title', title || String(externalId)).eq('entity_type_id', typeData.id).maybeSingle();
-      if (!existingEntity) return null;
-      await client.from('content_sources').insert({ entity_id: existingEntity.id, provider, external_id: String(externalId) }, { onConflict: 'entity_id,provider', ignoreDuplicates: true });
-      return existingEntity.id;
-    }
-    await client.from('content_sources').insert({ entity_id: entity.id, provider, external_id: String(externalId) }, { onConflict: 'entity_id,provider', ignoreDuplicates: true });
-    return entity.id;
+    return null;
   }
 
   async function ensureBookRecord(client, payload) {
-    const normalized = normalizeBookPayload(payload);
-    if (!normalized) return false;
-    try {
-      const eid = await ensureEntityRecord(client, 'openlibrary', normalized.id, normalized.title);
-      return !!eid;
-    } catch (_e) { return false; }
+    return false;
   }
 
   async function ensureTrackRecord(client, payload) {
-    if (!client || !payload || !payload.id) return;
-    try {
-      await ensureEntityRecord(client, 'spotify', String(payload.id), payload.name || payload.title || '');
-    } catch (_e) {}
+    return;
   }
 
   async function ensureArtistRecord(client, payload) {
-    if (!client || !payload || !payload.id) return;
-    try {
-      await ensureEntityRecord(client, 'spotify', String(payload.id), payload.name || payload.title || '');
-    } catch (_e) {}
+    return;
   }
 
   async function loadCustomLists(client, userId, type) {
@@ -1493,30 +1440,16 @@
   async function loadMediaListItems(client, userId, type) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId) return [];
-    const entityCfg = ENTITY_CONFIG[String(type || '').toLowerCase()];
     try {
-      let query;
-      if (entityCfg && entityCfg.provider) {
-        query = client
-          .from(cfg.itemsTable)
-          .select('*, content_sources!inner(entity_id,external_id)')
-          .eq('user_id', userId)
-          .eq('content_sources.provider', entityCfg.provider);
-      } else {
-        query = client
-          .from(cfg.itemsTable)
-          .select('*, entities!inner(id,title)')
-          .eq('user_id', userId);
-      }
-      const { data, error } = await query;
+      const { data, error } = await client
+        .from(cfg.itemsTable)
+        .select('*')
+        .eq('user_id', userId);
       if (error) {
         console.error(`Error in loadMediaListItems for type ${type}:`, error);
         return [];
       }
-      return (data || []).map(row => ({
-        ...row,
-        item_id: row.content_sources?.external_id || row.entities?.title || row.entity_id
-      }));
+      return data || [];
     } catch (err) {
       console.error(`Exception in loadMediaListItems for type ${type}:`, err);
       return [];
@@ -1580,15 +1513,10 @@
       items = data || [];
     }
 
-    const mappedItems = items.map(item => ({
-      ...item,
-      item_id: item.entities?.title || item.entity_id
-    }));
-
     return {
       title,
       mediaType: type,
-      items: mappedItems,
+      items,
       listId
     };
   }

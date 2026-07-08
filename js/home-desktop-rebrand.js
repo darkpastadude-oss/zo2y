@@ -11,13 +11,13 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
   const GAMES_DISABLED = false;
 
   const REVIEW_SOURCES = [
-    { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id', label: 'Movie' },
-    { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id', label: 'TV' },
-    { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id', label: 'Anime' },
-    { mediaType: 'game', table: 'game_reviews', idField: 'game_id', label: 'Game' },
-    { mediaType: 'book', table: 'book_reviews', idField: 'book_id', label: 'Book' },
-    { mediaType: 'music', table: 'music_reviews', idField: 'track_id', label: 'Music' },
-    { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code', label: 'Travel' }
+    { mediaType: 'movie', table: 'reviews', idField: 'item_id', label: 'Movie' },
+    { mediaType: 'tv', table: 'reviews', idField: 'item_id', label: 'TV' },
+    { mediaType: 'anime', table: 'reviews', idField: 'item_id', label: 'Anime' },
+    { mediaType: 'game', table: 'reviews', idField: 'item_id', label: 'Game' },
+    { mediaType: 'book', table: 'reviews', idField: 'item_id', label: 'Book' },
+    { mediaType: 'music', table: 'reviews', idField: 'item_id', label: 'Music' },
+    { mediaType: 'travel', table: 'reviews', idField: 'item_id', label: 'Travel' }
   ].filter((source) => !GAMES_DISABLED || source.mediaType !== 'game');
 
   const ENABLE_RESTAURANTS = false;
@@ -552,13 +552,14 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
     try {
       const { data, error } = await client
         .from(source.table)
-        .select(`id, user_id, rating, comment, created_at, ${source.idField}`)
+        .select('id, user_id, rating, body, created_at, item_id')
+        .eq('media_type', source.mediaType)
         .order('created_at', { ascending: false })
         .limit(REVIEW_LIMIT);
       if (error || !Array.isArray(data)) return [];
 
       return data.map((row) => {
-        const itemId = String(row?.[source.idField] || '').trim();
+        const itemId = String(row?.item_id || '').trim();
         if (!itemId) return null;
         return {
           id: `${source.mediaType}:${String(row?.id || itemId)}`,
@@ -566,7 +567,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
           itemId,
           userId: String(row?.user_id || '').trim(),
           rating: Math.max(0, Math.min(5, Number(row?.rating || 0))),
-          comment: String(row?.comment || '').trim(),
+          comment: String(row?.body || '').trim(),
           createdAt: row?.created_at || null
         };
       }).filter(Boolean);

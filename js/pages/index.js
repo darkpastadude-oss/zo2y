@@ -10251,11 +10251,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       ]
     };
     const LANDING_REVIEW_SOURCES = [
-      { mediaType: 'movie', table: 'movie_reviews', idField: 'movie_id' },
-      { mediaType: 'tv', table: 'tv_reviews', idField: 'tv_id' },
-      { mediaType: 'anime', table: 'anime_reviews', idField: 'anime_id' },
-      { mediaType: 'game', table: 'game_reviews', idField: 'game_id' },
-      { mediaType: 'travel', table: 'travel_reviews', idField: 'country_code' }
+      { mediaType: 'movie', table: 'reviews', idField: 'item_id' },
+      { mediaType: 'tv', table: 'reviews', idField: 'item_id' },
+      { mediaType: 'anime', table: 'reviews', idField: 'item_id' },
+      { mediaType: 'game', table: 'reviews', idField: 'item_id' },
+      { mediaType: 'travel', table: 'reviews', idField: 'item_id' }
     ];
 
     function normalizeLandingImageUrl(value) {
@@ -10891,14 +10891,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         LANDING_REVIEW_SOURCES.map(async (source) => {
           const { data, error } = await client
             .from(source.table)
-            .select(`id,user_id,rating,comment,created_at,${source.idField}`)
+            .select('id,user_id,rating,body,created_at,item_id')
+            .eq('media_type', source.mediaType)
             .order('created_at', { ascending: false })
             .limit(5);
           if (error || !Array.isArray(data)) return [];
           return data
             .map((row) => {
-              const itemId = String(row?.[source.idField] || '').trim();
-              const comment = String(row?.comment || '').trim();
+              const itemId = String(row?.item_id || '').trim();
+              const comment = String(row?.body || '').trim();
               if (!itemId || !comment) return null;
               return {
                 id: `${source.mediaType}:${String(row?.id || itemId)}`,
