@@ -398,26 +398,20 @@
       .list-menu {
         position: absolute;
         z-index: 1000;
-        background: var(--card, #0a1122);
-        border: 1px solid var(--border, rgba(255,255,255,0.1));
+        background: var(--card);
+        border: 1px solid var(--border);
         border-radius: 12px;
         padding: 10px;
         min-width: 220px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        box-shadow: var(--shadow);
         animation: fadeIn 0.15s ease-out;
       }
-      .list-menu-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--white, #fff);
-        margin-bottom: 12px;
-        padding-left: 6px;
-      }
+      .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
       .list-menu .list-action {
         width: 100%;
-        border: 1px solid var(--border, rgba(255,255,255,0.1));
+        border: 1px solid var(--border);
         background: transparent;
-        color: var(--white, #fff);
+        color: var(--white);
         border-radius: 10px;
         padding: 8px 10px;
         font-size: 13px;
@@ -429,21 +423,17 @@
         transition: all 0.2s ease;
         margin-bottom: 6px;
       }
-      .list-menu .list-action:last-child {
-        margin-bottom: 0;
-      }
-      .list-menu .list-action:hover {
-        border-color: var(--accent, #f59e0b);
-        color: var(--accent, #f59e0b);
-      }
+      .list-menu .list-action:last-child { margin-bottom: 0; }
+      .list-menu .list-action:hover { border-color: var(--accent); color: var(--accent); }
       .list-menu .list-action.active {
         background: rgba(245, 158, 11, 0.12);
-        border-color: var(--accent, #f59e0b);
-        color: var(--accent, #f59e0b);
+        border-color: var(--accent);
+        color: var(--accent);
       }
       .unified-list-menu-backdrop {
         position: fixed;
         inset: 0;
+        background: rgba(6, 12, 28, 0.55);
         z-index: 999;
       }
     `;
