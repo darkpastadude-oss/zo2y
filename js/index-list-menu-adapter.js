@@ -480,7 +480,7 @@
       }
       if(!window.ListUtils||!customListsEnabled())return;let cl=readCachedCustomLists();if(!cl.length){cl=await ListUtils.loadCustomLists(c,u.id,mt);writeCachedCustomLists(cl)}
       const cfg=ListUtils.getListConfig(mt);const lids=cl.map(l=>l.id).filter(Boolean);if(!cfg||!lids.length||!vs.length)return;
-      const data2=await multiQueryIn(c,cfg.itemsTable,`list_id,${cfg.itemIdField}`,lids,'list_id',cfg.itemIdField,vs);
+      const data2=await multiQueryIn(c,cfg.itemsTable,`list_id,${cfg.itemIdField}`,'list_id',lids,cfg.itemIdField,vs);
       const mb=new Map();vs.forEach(id=>mb.set(String(id),new Set()));(data2||[]).forEach(r=>{const ik=String(r?.[cfg.itemIdField]??'');if(!vks.has(ik))return;if(!mb.has(ik))mb.set(ik,new Set());mb.get(ik).add(r.list_id)});
       mb.forEach((m,ik)=>writeCachedMembership(ik,m));
     }catch(e){}finally{CACHE.primingScopes.delete(sk)}
