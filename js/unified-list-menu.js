@@ -401,31 +401,38 @@
         background: var(--card, #0a1122);
         border: 1px solid var(--border, rgba(255,255,255,0.1));
         border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        padding: 10px;
         min-width: 220px;
-        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         animation: fadeIn 0.15s ease-out;
       }
       .unified-list-menu .list-action {
         width: 100%;
-        padding: 12px 16px;
+        border: 1px solid var(--border, rgba(255,255,255,0.1));
+        background: transparent;
+        color: var(--white, #fff);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 13px;
+        cursor: pointer;
         display: flex;
         align-items: center;
-        gap: 12px;
-        background: transparent;
-        border: none;
-        color: var(--white, #fff);
-        font-size: 14px;
-        cursor: pointer;
-        text-align: left;
-        transition: background 0.2s, color 0.2s;
+        justify-content: space-between;
+        gap: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 6px;
+      }
+      .unified-list-menu .list-action:last-child {
+        margin-bottom: 0;
       }
       .unified-list-menu .list-action:hover {
-        background: rgba(255,255,255,0.1);
+        border-color: var(--accent, #f59e0b);
+        color: var(--accent, #f59e0b);
       }
       .unified-list-menu .list-action.active {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: var(--accent, #f59e0b);
         color: var(--accent, #f59e0b);
-        font-weight: 600;
       }
       .unified-list-menu-backdrop {
         position: fixed;
@@ -491,16 +498,17 @@
       const isActive = !!statusMap[r.key];
       html += `
         <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}">
-          <i class="${escapeHtml(r.icon)}"></i> 
-          <span>${escapeHtml(r.label)}</span>
+          <span style="display:inline-flex; align-items:center; gap:8px;"><i class="${escapeHtml(r.icon)}"></i> ${escapeHtml(r.label)}</span>
+          <span class="list-action-state">${isActive ? 'Saved' : 'Add'}</span>
         </button>
       `;
     });
     
     html += `
-      <div style="height:1px; background:rgba(255,255,255,0.1); margin: 4px 0;"></div>
+      <div style="height:1px; background:rgba(255,255,255,0.1); margin: 6px 0;"></div>
       <button class="list-action" data-list="custom">
-        <i class="fas fa-list"></i> <span>Custom Lists...</span>
+        <span style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-list"></i> Custom Lists...</span>
+        <span class="list-action-state">Open</span>
       </button>
     `;
     
