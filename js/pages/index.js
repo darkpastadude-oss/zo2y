@@ -3923,7 +3923,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .eq('list_type', listType).is('list_id', null)
               .maybeSingle();
             if (!existingCheck) {
-              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,media_type,${itemField},list_type`, ignoreDuplicates: true });
+              const { error: insertError } = await client.from(table).insert(upsertRow);
               if (insertError) {
                 const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
                 if (!isConflict) {
@@ -3971,7 +3971,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .eq('list_type', listType).is('list_id', null)
             .maybeSingle();
           if (!existingCheck2) {
-            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,media_type,${itemField},list_type`, ignoreDuplicates: true });
+            const { error: insertError } = await client.from(table).insert(upsertRow2);
             if (insertError) {
               const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
               if (!isConflict) {
@@ -4482,7 +4482,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
             <div class="menu-custom-left">
               ${window.ListUtils ? ListUtils.renderListIcon(list.icon, fb) : '<i class="'+fb+'"></i>'}
-              <span>${escapeHtml(list.name || 'Custom List')}</span>
+              <span>${escapeHtml(list.name || list.title || 'Custom List')}</span>
             </div>
             <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>

@@ -1158,6 +1158,7 @@
         .from(cfg.listTable)
         .select('*')
         .eq('user_id', userId)
+        .eq('media_type', type)
         .order('created_at', { ascending: false });
       if (error && isListTableMissingError(error, cfg.listTable)) {
         missingListTables.add(cfg.listTable);
