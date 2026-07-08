@@ -124,16 +124,16 @@
   function getQuickRowsForMenu() { return QUICK_ROWS_BY_TYPE[getMediaType()] || []; }
   function getScopeKey() {
     const uid = String(getCurrentUser()?.id || '').trim();
-    const mt = getMediaType();
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase();
     return uid && mt ? `${uid}:${mt}` : '';
   }
   function getScopeItemKey(id) { const k = getScopeKey(); return k ? `${k}:${_normIdKey(id)}` : ''; }
   function normalizeItemIdValue(id) {
-    const mt = getMediaType();
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase();
     return window.ListUtils ? ListUtils.coerceItemId(mt, id) : id;
   }
   function normalizeQueryableItemIdValue(id) {
-    const mt = getMediaType();
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase();
     if (window.ListUtils && typeof ListUtils.normalizeQueryableItemId === 'function') return ListUtils.normalizeQueryableItemId(mt, id);
     if (mt === 'movie' || mt === 'tv' || mt === 'game') { const n = Number(id); return Number.isFinite(n) ? n : null; }
     const s = String(id || '').trim(); return s || null;
@@ -202,7 +202,7 @@
     if(!authBootstrapReady()) await waitForAuthBootstrap(1200); await attemptSessionRecovery(c); u=await tr(); if(u?.id){syncBridgeCurrentUser(u);return u} return null;
   }
   function customListsEnabled() {
-    const mt=getMediaType(); if(!mt) return false;
+    const mt=String(item?.mediaType || STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); if(!mt) return false;
     if(!window.ListUtils||typeof ListUtils.getListConfig!=='function') return true;
     const cfg=ListUtils.getListConfig(mt); if(!cfg) return false; if(cfg.disableCustomLists) return false; if(!cfg.listTable||!cfg.itemsTable) return false;
     return true;
@@ -221,7 +221,7 @@
   }
   async function toggleDefaultListWithFallback(user, item, listType, nextSaved) {
     if(!user?.id||!item?.itemId) return {ok:false,saved:false};
-    const mt=getMediaType(); const tbl=DEFAULT_TABLE_BY_MEDIA[mt]; syncBridgeCurrentUser(user);
+    const mt=String(item?.mediaType || STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); const tbl=DEFAULT_TABLE_BY_MEDIA[mt]; syncBridgeCurrentUser(user);
     try { if(_bridge&&typeof _bridge.toggleDefaultList==='function'&&(!tbl?.table||!tbl?.itemField||_bridgeCanUseResolvedUser())){const r=await _bridge.toggleDefaultList({itemId:item.itemId,listType,card:STATE.currentCard,nextSaved,user});if(r&&typeof r.ok==='boolean'){if(r.ok)return r;if(isConflictLikeError(r?.error))return{ok:true,saved:!!nextSaved};return r}} }catch(e){}
     if(!tbl?.table||!tbl?.itemField) return {ok:false,saved:false};
     const c=await ensureClient(); if(!c) return {ok:false,saved:false};
@@ -238,7 +238,7 @@
     const s={}; (keys||[]).forEach(k=>s[k]=false);
     const u=await resolveAuthenticatedUser(); if(!u?.id||!keys?.length) return s;
     const c=await ensureClient(); if(!c) return s;
-    const mt=getMediaType(); const tc=DEFAULT_TABLE_BY_MEDIA[mt];
+    const mt=String(item?.mediaType || STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); const tc=DEFAULT_TABLE_BY_MEDIA[mt];
     const bs=readBridgeQuickStatus(id,keys); if(bs) return bs;
     if(_bridge&&typeof _bridge.getDefaultListStatusMap==='function'){try{const r=await _bridge.getDefaultListStatusMap(normalizeItemIdValue(id),keys); if(r&&typeof r==='object') return cloneQuickStatus(r,keys)}catch(e){}}
     if(!tc||!window.ListUtils) return s;
@@ -334,7 +334,25 @@
     if (window.ZO2Y_CUSTOM_LIST_MODAL && typeof window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals === 'function') { window.ZO2Y_CUSTOM_LIST_MODAL.ensureModals(); return; }
     let m = document.getElementById('itemMenuModal');
     if (!m) { m = document.createElement('div'); m.id = 'itemMenuModal'; m.className = 'menu-modal'; m.setAttribute('aria-hidden','true');
-      m.innerHTML = `<div class="menu-modal-content"><div class="menu-modal-header"><h3 id="menuModalTitle">Add to List</h3><button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button></div><div class="menu-modal-body" id="menuModalBody"><div class="menu-quick-lists" id="menuQuickLists"></div><div class="menu-custom-section"><div class="menu-custom-header"><span>Your Custom Lists</span></div><div class="menu-custom-lists" id="menuCustomLists"></div></div></div></div>`; document.body.appendChild(m); }
+      m.innerHTML = `<div class="menu-modal-content"><div class="menu-modal-header"><h3 id="menuModalTitle">Add to List</h3><button class="menu-modal-close" id="closeMenuModalBtn" aria-label="Close">&times;</button></div><div class="menu-modal-body" id="menuModalBody"><div class="menu-quick-lists" id="menuQuickLists"></div><div class="menu-custom-section"><div class="menu-custom-header"><span>Your Custom Lists</span></div><div class="menu-custom-lists" id="menuCustomLists"></div></div></div></div>
+        <div class="menu-modal" id="adapterCustomListsModal">
+          <div class="menu-modal-content" style="max-width: 400px;">
+            <div class="menu-modal-header">
+              <h3>Manage Custom Lists</h3>
+              <button class="menu-modal-close" id="closeAdapterCustomListsBtn">&times;</button>
+            </div>
+            <div class="menu-modal-body">
+              <div class="menu-custom-lists" id="adapterCustomListsContainer"></div>
+              <div style="margin-top:16px;display:flex;gap:8px;">
+                <input type="text" id="newAdapterCustomListName" placeholder="New list name..." maxlength="50" class="menu-input" style="margin-bottom:0; flex:1;">
+                <button class="menu-btn menu-btn-primary" id="createAdapterCustomListBtn" style="padding:0 20px;">Create</button>
+              </div>
+              <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+                <button class="menu-btn menu-btn-primary" id="saveAdapterCustomListsBtn">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>`; document.body.appendChild(m); }
 
     let am = document.getElementById('adapterCustomListsModal');
     if (!am) {
@@ -429,7 +447,7 @@
     const lk=STATE.quickRows.map(r=>r.key).filter(Boolean); STATE.quickStatus=readCachedQuickStatus(it.itemId,lk);
     if(!STATE.customLists.length){STATE.customLists=readCachedCustomLists();STATE.selectedCustomLists=readCachedMembership(it.itemId)}
     renderItemMenuQuickLists(); renderItemMenuCustomLists();
-    const u=await resolveAuthenticatedUser(); const mt=getMediaType();
+    const u=await resolveAuthenticatedUser(); const mt=String(item?.mediaType || STATE.currentItem?.mediaType || getMediaType()).toLowerCase();
     if(!customListsEnabled()){STATE.customLists=[];STATE.selectedCustomLists=new Set();renderItemMenuQuickLists();renderItemMenuCustomLists();return}
     if(!u?.id||!window.ListUtils){STATE.customLists=[];STATE.selectedCustomLists=new Set();renderItemMenuQuickLists();renderItemMenuCustomLists();return}
     const c=await ensureClient(); if(!c){STATE.customLists=[];STATE.selectedCustomLists=new Set();renderItemMenuQuickLists();renderItemMenuCustomLists();return}
@@ -444,7 +462,7 @@
   let _adapterModalSelectedLists = new Set();
   async function openAdapterCustomListsModal() {
     const u = await resolveAuthenticatedUser(); if (!u) { redirectToLogin(); return; }
-    const mt = getMediaType(); const it = STATE.currentItem; if (!it || !it.itemId) return;
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); const it = STATE.currentItem; if (!it || !it.itemId) return;
     const c = await ensureClient(); if (!c || !window.ListUtils) return;
     const modal = document.getElementById('adapterCustomListsModal');
     const container = document.getElementById('adapterCustomListsContainer');
@@ -459,6 +477,42 @@
     document.getElementById('createAdapterCustomListBtn').onclick = async () => {
       const input = document.getElementById('newAdapterCustomListName'); if (!input || !input.value.trim()) return;
       const title = input.value.trim(); const data = await ListUtils.createCustomList(c, u.id, mt, { title, icon: 'fas fa-film' });
+      if (data) { STATE.customLists.unshift(data); input.value = ''; renderAdapterModalLists(); }
+    };
+  }
+  function renderAdapterModalLists() {
+    const container = document.getElementById('adapterCustomListsContainer'); if (!container) return;
+    if (!STATE.customLists.length) { container.innerHTML = '<div class="menu-empty">No custom lists yet.</div>'; return; }
+    const fb = getMediaListFallbackIcon(); container.innerHTML = '';
+    STATE.customLists.forEach(list => {
+      const item = document.createElement('div'); const isActive = _adapterModalSelectedLists.has(list.id);
+      item.className = 'menu-custom-item' + (isActive ? ' active' : '');
+      item.innerHTML = `<div class="menu-custom-left">${window.ListUtils ? ListUtils.renderListIcon(list.icon, fb) : '<i class="'+fb+'"></i>'}<span>${escapeHtml(list.name || list.title || 'Custom List')}</span></div><span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>`;
+      item.onclick = (e) => { if (_adapterModalSelectedLists.has(list.id)) _adapterModalSelectedLists.delete(list.id); else _adapterModalSelectedLists.add(list.id); renderAdapterModalLists(); };
+      container.appendChild(item);
+    });
+  }
+  function closeAdapterCustomListsModal() { const modal = document.getElementById('adapterCustomListsModal'); if (modal) modal.classList.remove('active'); syncMenuModalBodyLock(); }
+
+
+  let _adapterModalSelectedLists = new Set();
+  async function openAdapterCustomListsModal() {
+    const u = await resolveAuthenticatedUser(); if (!u) { redirectToLogin(); return; }
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); const it = STATE.currentItem; if (!it || !it.itemId) return;
+    const c = await ensureClient(); if (!c || !window.ListUtils) return;
+    const modal = document.getElementById('adapterCustomListsModal');
+    const container = document.getElementById('adapterCustomListsContainer');
+    if (!modal || !container) return;
+    container.innerHTML = '<div class="menu-empty">Loading...</div>'; modal.classList.add('active');
+    STATE.customLists = await ListUtils.loadCustomLists(c, u.id, mt);
+    const listIds = STATE.customLists.map(l => l.id);
+    _adapterModalSelectedLists = await ListUtils.loadCustomListMembership(c, u.id, mt, it.itemId, listIds);
+    renderAdapterModalLists(); syncMenuModalBodyLock();
+    document.getElementById('closeAdapterCustomListsBtn').onclick = closeAdapterCustomListsModal;
+    document.getElementById('saveAdapterCustomListsBtn').onclick = async () => { await ListUtils.saveCustomListChanges(c, u.id, mt, it.itemId, [..._adapterModalSelectedLists]); closeAdapterCustomListsModal(); };
+    document.getElementById('createAdapterCustomListBtn').onclick = async () => {
+      const input = document.getElementById('newAdapterCustomListName'); if (!input || !input.value.trim()) return;
+      const title = input.value.trim(); const data = await ListUtils.createCustomList(c, u.id, mt, { title, icon: 'fas fa-list' });
       if (data) { STATE.customLists.unshift(data); input.value = ''; renderAdapterModalLists(); }
     };
   }
@@ -518,7 +572,7 @@
   }
 
   async function primeScopeCaches() {
-    const sk=getScopeKey();const mt=getMediaType();const u=await resolveAuthenticatedUser();if(!sk||!mt||!u?.id)return;if(CACHE.primingScopes.has(sk))return;CACHE.primingScopes.add(sk);
+    const sk=getScopeKey();const mt=String(item?.mediaType || STATE.currentItem?.mediaType || getMediaType()).toLowerCase();const u=await resolveAuthenticatedUser();if(!sk||!mt||!u?.id)return;if(CACHE.primingScopes.has(sk))return;CACHE.primingScopes.add(sk);
     try{const c=await ensureClient();if(!c)return;const qr=getQuickRowsForMenu();const lk=qr.map(r=>r.key).filter(Boolean);
       const rv=_bridge&&typeof _bridge.getVisibleItemIds==='function'?_bridge.getVisibleItemIds():[];
       const vs=[...new Set((Array.isArray(rv)?rv:[]).map(id=>normalizeQueryableItemIdValue(id)).filter(id=>id!==null&&id!==undefined&&String(id??'').trim()))];
@@ -553,7 +607,7 @@
     const item = getCardItem(card);
     if (!item || item.itemId === undefined || item.itemId === null || item.itemId === '') return;
     STATE.currentCard = card; STATE.currentItem = item;
-    const mt = getMediaType(); if (!mt) return;
+    const mt = String(STATE.currentItem?.mediaType || getMediaType()).toLowerCase(); if (!mt) return;
     STATE.quickRows = getQuickRowsForMenu(); const lk = STATE.quickRows.map(r=>r.key).filter(Boolean);
     STATE.quickStatus = readCachedQuickStatus(item.itemId, lk);
     STATE.pendingQuickKeys = new Set(); STATE.quickMutationVersions = {};
