@@ -1491,14 +1491,14 @@
     } else {
       const { data: listRow, error: listError } = await client
         .from(cfg.listTable)
-        .select('title')
+        .select('name')
         .eq('id', listId)
         .maybeSingle();
 
       if (listError || !listRow) {
         return null;
       }
-      title = listRow.title;
+      title = listRow.name || listRow.title;
 
       const query = client
         .from(cfg.itemsTable)

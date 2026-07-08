@@ -1,7 +1,7 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v269';
-const PAGE_CACHE = 'zo2y-pages-v218';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v270';
+const PAGE_CACHE = 'zo2y-pages-v219';
 const IMAGE_CACHE = 'zo2y-images-v56';
 const API_CACHE = 'zo2y-api-v38';
 const MOVIES_PAGE_VERSION = '20260418a';
@@ -52,7 +52,7 @@ const STATIC_ASSETS = [
   '/file.svg',
   '/sports.html',
   '/css/pages/sports-page.css?v=20260626a',
-  '/js/pages/sports.js?v=20260626b',
+  '/js/pages/sports.js?v=20260708a',
   '/fashion.html',
   '/food.html',
   '/cars.html',
@@ -62,12 +62,12 @@ const STATIC_ASSETS = [
   '/js/pages/brands.js?v=20260708b',
   '/js/pages/brand.js?v=20260708b',
   '/js/profile-showcase.js?v=20260708b',
-  '/js/pages/profile.js?v=20260708b',
+  '/js/pages/profile.js?v=20260708c',
   '/js/pages/reviews-page.js?v=20260708b',
   '/js/review-interactions.js?v=20260708b',
   '/team.html',
 
-  '/js/pages/team.js?v=20260601b',
+  '/js/pages/team.js?v=20260708a',
   '/images/patterns/open-book-01.svg',
   '/images/icons/star.svg',
   '/images/apple-touch-icon-180.png'

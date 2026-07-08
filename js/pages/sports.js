@@ -500,7 +500,7 @@
         }, { onConflict: 'id' });
         await client.from('list_items').upsert(
           { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' },
-          { onConflict: 'user_id,media_type,item_id,list_type,list_id' }
+          { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true }
         );
         favorites.add(team.id);
         showToast('Team saved to your profile.');
@@ -758,7 +758,7 @@
           }, { onConflict: 'id' });
           await client.from('list_items').upsert(
             { user_id: currentUser.id, media_type: 'sports', item_id: itemId, list_type: 'favorites' },
-            { onConflict: 'user_id,media_type,item_id,list_type,list_id' }
+            { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true }
           );
           favorites.add(itemId);
           syncSaveButtons();

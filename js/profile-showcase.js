@@ -180,12 +180,12 @@ const ProfileShowcase = (function () {
 
         const { data } = await sb
             .from(table)
-            .select('title')
+            .select('name')
             .eq('id', listId)
             .eq('user_id', userId)
             .maybeSingle();
 
-        return data?.title || null;
+        return data?.name || data?.title || null;
     }
 
     function getDefaultListTitle(listId) {
@@ -224,7 +224,7 @@ const ProfileShowcase = (function () {
                 .order('display_order', { ascending: true });
             if (data) {
                 for (const list of data) {
-                    result.push({ ...list, is_default: false });
+                    result.push({ ...list, title: list.name || list.title, is_default: false });
                 }
             }
         }

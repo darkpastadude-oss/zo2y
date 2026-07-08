@@ -3865,7 +3865,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           const { error: insertError } = await client
             .from('list_items')
-            .upsert({ user_id: activeUser.id, media_type: 'sports', item_id: teamId, list_type: 'favorites' }, { onConflict: 'user_id,media_type,item_id,list_type,list_id' });
+            .upsert({ user_id: activeUser.id, media_type: 'sports', item_id: teamId, list_type: 'favorites' }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
           if (insertError) {
             showHomeToast('Could not update list', true);
             return result;
@@ -3922,7 +3922,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               .eq('list_type', listType).is('list_id', null)
               .maybeSingle();
             if (!existingCheck) {
-              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,media_type,${itemField},list_type,list_id`, ignoreDuplicates: true });
+              const { error: insertError } = await client.from(table).upsert(upsertRow, { onConflict: `user_id,media_type,${itemField},list_type`, ignoreDuplicates: true });
               if (insertError) {
                 const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
                 if (!isConflict) {
@@ -3970,7 +3970,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             .eq('list_type', listType).is('list_id', null)
             .maybeSingle();
           if (!existingCheck2) {
-            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,media_type,${itemField},list_type,list_id`, ignoreDuplicates: true });
+            const { error: insertError } = await client.from(table).upsert(upsertRow2, { onConflict: `user_id,media_type,${itemField},list_type`, ignoreDuplicates: true });
             if (insertError) {
               const isConflict = String(insertError.code || '') === '23505' || Number(insertError.status || insertError.statusCode || 0) === 409;
               if (!isConflict) {

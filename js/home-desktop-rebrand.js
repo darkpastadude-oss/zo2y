@@ -1061,7 +1061,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
 
     listContainer.innerHTML = merged.map((list) => {
       const mediaType = String(list.mediaType || '').toLowerCase();
-      const title = escapeHtml(String(list.title || 'Custom List').trim() || 'Custom List');
+      const title = escapeHtml(String(list.name || list.title || 'Custom List').trim() || 'Custom List');
       const mediaLabel = escapeHtml(SIDEBAR_MEDIA_LABEL[mediaType] || 'Media');
       const href = escapeHtml(buildSidebarCustomListHref(mediaType, list.id));
       const icon = typeof window.ListUtils.renderListIcon === 'function'

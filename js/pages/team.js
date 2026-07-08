@@ -715,14 +715,16 @@
   async function loadFavoriteStatus() {
     if (!state.supabase || !state.currentUser || !state.team) return;
     const { data, error } = await state.supabase
-      .from("user_favorite_teams")
-      .select("team_id")
+      .from("list_items")
+      .select("item_id")
       .eq("user_id", state.currentUser.id)
-      .eq("team_id", state.team.id)
+      .eq("item_id", state.team.id)
+      .eq("media_type", "sports")
+      .eq("list_type", "favorites")
       .maybeSingle();
 
     if (error) return;
-    const isSaved = !!data?.team_id;
+    const isSaved = !!data?.item_id;
     state.favorites = new Set(isSaved ? [state.team.id] : []);
     updateSaveButton(isSaved);
   }
@@ -752,10 +754,10 @@
     }
 
     const { error: favoriteError } = await state.supabase
-      .from("user_favorite_teams")
+      .from("list_items")
       .upsert(
-        { user_id: state.currentUser.id, team_id: team.id },
-        { onConflict: "user_id,team_id" },
+        { user_id: state.currentUser.id, item_id: team.id, media_type: "sports", list_type: "favorites" },
+        { onConflict: "user_id,media_type,item_id,list_type", ignoreDuplicates: true },
       );
 
     if (favoriteError) {
@@ -769,10 +771,12 @@
   async function removeTeam(teamId) {
     if (!state.supabase || !state.currentUser) return false;
     const { error } = await state.supabase
-      .from("user_favorite_teams")
+      .from("list_items")
       .delete()
       .eq("user_id", state.currentUser.id)
-      .eq("team_id", teamId);
+      .eq("item_id", teamId)
+      .eq("media_type", "sports")
+      .eq("list_type", "favorites");
     if (error) {
       console.error("Favorite delete error", error);
       return false;

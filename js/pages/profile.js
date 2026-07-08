@@ -3998,7 +3998,6 @@
                 return merged;
             }
 
-            async function fetchMediaCollectionItemIds(contentType, ownerUserId, listId, listType = 'custom') {
             function buildProfileUrl({ tab = null, collection = null, listId = null, listType = null, view = null } = {}) {
                 const currentParams = new URLSearchParams(window.location.search);
                 const nextParams = new URLSearchParams();
@@ -6223,7 +6222,7 @@
                 if (!record) {
                     let { data, error } = await supabase
                         .from(config.table)
-                        .select('id, user_id, title, icon, list_kind')
+                        .select('id, user_id, name, icon, list_kind')
                         .eq('id', listId)
                         .single();
                     const message = String(error?.message || '').toLowerCase();
@@ -6236,7 +6235,7 @@
                     if (missingListKindColumn) {
                         ({ data, error } = await supabase
                             .from(config.table)
-                            .select('id, user_id, title, icon')
+                            .select('id, user_id, name, icon')
                             .eq('id', listId)
                             .single());
                     }
@@ -6415,7 +6414,7 @@
 
                 const { data: existingLists, error: existingError } = await supabase
                     .from(context.table)
-                    .select('id,title')
+                    .select('id,name')
                     .eq('user_id', currentUser.id);
                 if (existingError) {
                     showToast('Could not verify existing lists', 'error');
@@ -6423,7 +6422,7 @@
                 }
 
                 const alreadyExists = (existingLists || []).some((list) =>
-                    String(list.title || '').trim().toLowerCase() === normalizedTitle
+                    String(list.name || list.title || '').trim().toLowerCase() === normalizedTitle
                 );
                 if (alreadyExists) {
                     showToast('A list with this name already exists', 'warning');
@@ -6440,7 +6439,7 @@
 
                 const insertBase = {
                     user_id: currentUser.id,
-                    title: trimmedTitle,
+                    name: trimmedTitle,
                     icon,
                     list_kind: dbListKind,
                     created_at: new Date().toISOString()
@@ -6449,7 +6448,7 @@
                 const insertRow = async (payload, includeListKind = true) => supabase
                     .from(context.table)
                     .insert(payload)
-                    .select(includeListKind ? 'id,title,icon,list_kind' : 'id,title,icon')
+                    .select(includeListKind ? 'id,name,icon,list_kind' : 'id,name,icon')
                     .single();
 
                 const hasListKindColumnError = (error) => {
@@ -11105,7 +11104,7 @@ resetDetailPanels();
                         // Fetch list items with list info
                         const { data: listItems, error } = await supabase
                             .from(itemTable)
-                            .select(`*, ${listTable}(title, id)`)
+                            .select(`*, ${listTable}(name, id)`)
                             .eq('user_id', currentUser.id);
 
                         if (error) {
@@ -11169,7 +11168,7 @@ resetDetailPanels();
                 console.log('=== CHECKING FOR DUPLICATE LISTS ===');
                 
                 const { data: lists } = await supabase
-                    .from('lists')
+                    .from('user_lists')
                     .select('*')
                     .eq('user_id', currentUser.id)
                     .order('created_at');
@@ -11179,7 +11178,8 @@ resetDetailPanels();
                 
                 const titleCounts = {};
                 lists.forEach(list => {
-                    titleCounts[list.title] = (titleCounts[list.title] || 0) + 1;
+                    const name = list.name || list.title || '';
+                    titleCounts[name] = (titleCounts[name] || 0) + 1;
                 });
                 
                 console.log('Title counts:', titleCounts);
