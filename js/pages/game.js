@@ -267,11 +267,11 @@
       if (nextSaved) {
         const { error } = await supabaseClient
           .from('list_items')
-          .upsert({ user_id: currentUser.id, item_id: gameId, list_type: listType, media_type: 'game' }, {
-            onConflict: 'user_id,media_type,item_id,list_type',
-            ignoreDuplicates: true
-          });
-        if (error) throw error;
+          .insert({ user_id: currentUser.id, item_id: gameId, list_type: listType, media_type: 'game' });
+        if (error) {
+          if (String(error.code || '') === '23505') return;
+          throw error;
+        }
         showNotification('Saved to list', 'success');
       } else {
         const { error } = await supabaseClient

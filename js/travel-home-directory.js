@@ -370,16 +370,16 @@
       if (nextSaved) {
         const { error } = await supabase
           .from('list_items')
-          .upsert({
+          .insert({
             user_id: state.currentUser.id,
             item_id: code,
             media_type: 'travel',
             list_type: listType
-          }, {
-            onConflict: 'user_id,media_type,item_id,list_type',
-            ignoreDuplicates: true
           });
-        if (error) throw error;
+        if (error) {
+          if (String(error.code || '') === '23505') return;
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('list_items')

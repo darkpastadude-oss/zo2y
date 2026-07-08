@@ -3865,8 +3865,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
           const { error: insertError } = await client
             .from('list_items')
-            .upsert({ user_id: activeUser.id, media_type: 'sports', item_id: teamId, list_type: 'favorites' }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
+            .insert({ user_id: activeUser.id, media_type: 'sports', item_id: teamId, list_type: 'favorites' });
           if (insertError) {
+            if (String(insertError.code || '') === '23505') return result;
             showHomeToast('Could not update list', true);
             return result;
           }

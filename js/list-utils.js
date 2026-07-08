@@ -1315,14 +1315,10 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
-        onConflict: 'list_id,media_type,item_id',
-        ignoreDuplicates: false
-      });
-      if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
-        missingItemTables.add(cfg.itemsTable);
-      } else if (insertError && isConflictError(insertError)) {
-        return;
+      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
+      if (insertError) {
+        if (String(insertError.code || '') === '23505') return;
+        throw insertError;
       }
     }
   }
@@ -1347,10 +1343,12 @@
       .eq('list_id', listId)
       .maybeSingle();
     if (existingItem) return true;
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,media_type,item_id', ignoreDuplicates: true });
-    if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
-    if (error && isConflictError(error)) return true;
-    return !error;
+    const { error } = await client.from(cfg.itemsTable).insert(row);
+    if (error) {
+      if (String(error.code || '') === '23505') return true;
+      throw error;
+    }
+    return true;
   }
 
   async function removeItemFromList(client, userId, type, itemId, listId) {

@@ -1614,16 +1614,16 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('list_items').upsert({
+          const { error } = await client.from('list_items').insert({
             user_id: currentUser.id,
             item_id: animeId,
             media_type: 'anime',
             list_type: listType
-          }, {
-            onConflict: 'user_id,media_type,item_id,list_type',
-            ignoreDuplicates: true
           });
-          if (error) throw error;
+          if (error) {
+            if (String(error.code || '') === '23505') return;
+            throw error;
+          }
           showToast('Added to list');
         } else {
           const { error } = await client

@@ -498,10 +498,10 @@
           league: team.league || null, logo_url: getBadge(team),
           stadium: team.stadium || null
         }, { onConflict: 'id' });
-        await client.from('list_items').upsert(
-          { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' },
-          { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true }
+        const { error: insertErr } = await client.from('list_items').insert(
+          { user_id: currentUser.id, media_type: 'sports', item_id: team.id, list_type: 'favorites' }
         );
+        if (insertErr && String(insertErr.code || '') !== '23505') throw insertErr;
         favorites.add(team.id);
         showToast('Team saved to your profile.');
       }
@@ -756,10 +756,10 @@
             sport: team.sport || null, league: team.league || null,
             logo_url: getBadge(team)
           }, { onConflict: 'id' });
-          await client.from('list_items').upsert(
-            { user_id: currentUser.id, media_type: 'sports', item_id: itemId, list_type: 'favorites' },
-            { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true }
+          const { error: insertErr } = await client.from('list_items').insert(
+            { user_id: currentUser.id, media_type: 'sports', item_id: itemId, list_type: 'favorites' }
           );
+          if (insertErr && String(insertErr.code || '') !== '23505') throw insertErr;
           favorites.add(itemId);
           syncSaveButtons();
           return { ok: true, saved: true };

@@ -536,8 +536,12 @@
       }
 
       if (nextSaved === true) {
-        const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
-        if (upsertError) { showBrandsToast('Could not add to list', true); return result; }
+        const { error: upsertError } = await client.from(table).insert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey });
+        if (upsertError) {
+          if (String(upsertError.code || '') === '23505') return result;
+          showBrandsToast('Could not add to list', true);
+          return result;
+        }
         showBrandsToast('Added to list');
         result.ok = true; result.saved = true;
         return result;
@@ -552,8 +556,12 @@
         return result;
       }
 
-      const { error: upsertError } = await client.from(table).upsert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey }, { onConflict: 'user_id,media_type,item_id,list_type', ignoreDuplicates: true });
-      if (upsertError) { showBrandsToast('Could not add to list', true); return result; }
+      const { error: upsertError } = await client.from(table).insert({ user_id: currentUser.id, media_type: mediaType, item_id: itemId, list_type: listTypeKey });
+      if (upsertError) {
+        if (String(upsertError.code || '') === '23505') return result;
+        showBrandsToast('Could not add to list', true);
+        return result;
+      }
       showBrandsToast('Added to list');
       result.ok = true; result.saved = true;
       return result;

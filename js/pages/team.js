@@ -755,12 +755,12 @@
 
     const { error: favoriteError } = await state.supabase
       .from("list_items")
-      .upsert(
-        { user_id: state.currentUser.id, item_id: team.id, media_type: "sports", list_type: "favorites" },
-        { onConflict: "user_id,media_type,item_id,list_type", ignoreDuplicates: true },
+      .insert(
+        { user_id: state.currentUser.id, item_id: team.id, media_type: "sports", list_type: "favorites" }
       );
 
     if (favoriteError) {
+      if (String(favoriteError.code || '') === '23505') return true;
       console.error("Favorite upsert error", favoriteError);
       return false;
     }

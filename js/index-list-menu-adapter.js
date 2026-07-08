@@ -228,7 +228,7 @@
     const itemId=String(item.itemId||'').trim(); if(!itemId) return {ok:false,saved:false};
     const listTypeKey=String(listType||'favorites').toLowerCase();
     if(nextSaved){
-      const{error}=await c.from(tbl.table).upsert({user_id:user.id,media_type:mt,item_id:itemId,list_type:listTypeKey},{onConflict:'user_id,media_type,item_id,list_type',ignoreDuplicates:true});
+      const{error}=await c.from(tbl.table).insert({user_id:user.id,media_type:mt,item_id:itemId,list_type:listTypeKey});
       if(error){if(String(error.code||'')==='23505'||Number(error.status||error.statusCode||0)===409)return{ok:true,saved:true};return{ok:false,saved:false,error}} return{ok:true,saved:true}
     }
     const{error}=await c.from(tbl.table).delete().eq('user_id',user.id).eq('media_type',mt).eq('item_id',itemId).eq('list_type',listTypeKey).is('list_id',null);
