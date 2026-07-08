@@ -395,7 +395,7 @@
     const style = document.createElement('style');
     style.id = 'unifiedListMenuStyles';
     style.textContent = `
-      .unified-list-menu {
+      .list-menu {
         position: absolute;
         z-index: 1000;
         background: var(--card, #0a1122);
@@ -406,7 +406,14 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         animation: fadeIn 0.15s ease-out;
       }
-      .unified-list-menu .list-action {
+      .list-menu-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--white, #fff);
+        margin-bottom: 12px;
+        padding-left: 6px;
+      }
+      .list-menu .list-action {
         width: 100%;
         border: 1px solid var(--border, rgba(255,255,255,0.1));
         background: transparent;
@@ -422,14 +429,14 @@
         transition: all 0.2s ease;
         margin-bottom: 6px;
       }
-      .unified-list-menu .list-action:last-child {
+      .list-menu .list-action:last-child {
         margin-bottom: 0;
       }
-      .unified-list-menu .list-action:hover {
+      .list-menu .list-action:hover {
         border-color: var(--accent, #f59e0b);
         color: var(--accent, #f59e0b);
       }
-      .unified-list-menu .list-action.active {
+      .list-menu .list-action.active {
         background: rgba(245, 158, 11, 0.12);
         border-color: var(--accent, #f59e0b);
         color: var(--accent, #f59e0b);
@@ -461,13 +468,13 @@
     
     const backdrop = document.createElement('div');
     backdrop.id = 'unifiedListMenuBackdrop';
-    backdrop.className = 'unified-list-menu-backdrop';
+    backdrop.className = 'unified-list-menu-backdrop list-menu-backdrop active';
     document.body.appendChild(backdrop);
     
     const menu = document.createElement('div');
-    menu.className = 'unified-list-menu';
+    menu.className = 'list-menu open';
     
-    // Position menu near the button/card
+    // Position menu near the button/card (only applies on desktop since mobile-app.css overrides this)
     const rect = cardEl.getBoundingClientRect();
     let top = rect.top + window.scrollY + 40;
     let left = rect.right - 180;
@@ -493,7 +500,22 @@
       }
     }
     
+    let titleStr = '';
+    if (cardEl) {
+      const titleEl = cardEl.querySelector('.card-title, .title, .media-title');
+      if (titleEl) titleStr = titleEl.textContent.trim();
+    }
+    if (!titleStr) {
+      const h1 = document.querySelector('h1');
+      if (h1) titleStr = h1.textContent.trim();
+    }
+    
     let html = '';
+    if (titleStr) {
+      html += `<div class="list-menu-title">${escapeHtml(titleStr)}</div>`;
+    }
+    html += `<button class="zo2y-popup-close" id="unifiedListMenuCloseBtn"><i class="fas fa-times"></i></button>`;
+    
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
       html += `
@@ -506,8 +528,9 @@
     
     html += `
       <div style="height:1px; background:rgba(255,255,255,0.1); margin: 6px 0;"></div>
+      <div style="font-size: 12px; color: var(--muted); margin: 12px 0 6px 6px;">your custom lists</div>
       <button class="list-action" data-list="custom">
-        <span style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-list"></i> Custom Lists...</span>
+        <span style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-list"></i> Manage custom lists</span>
         <span class="list-action-state">Open</span>
       </button>
     `;
@@ -523,6 +546,9 @@
     };
     
     backdrop.addEventListener('click', closeMenu);
+    
+    const closeBtn = document.getElementById('unifiedListMenuCloseBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeMenu);
     
     menu.querySelectorAll('.list-action').forEach(btn => {
       btn.addEventListener('click', async (e) => {
