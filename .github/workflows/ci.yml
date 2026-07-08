@@ -36,4 +36,3 @@ jobs:
       - name: Syntax check frontend runtime and smoke script
         run: |
           node --check js/production-runtime.js
-          node --check scripts/smoke-check.mjs

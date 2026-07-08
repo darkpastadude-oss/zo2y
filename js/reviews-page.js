@@ -283,8 +283,9 @@
             href: `song.html?id=${encodeURIComponent(id)}`
           });
         });
+      }
+    }
   }
-}
 
   async function hydrateRemoteMeta(rows) {
     const tasks = [];

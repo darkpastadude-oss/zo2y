@@ -59,7 +59,6 @@
     await auth.waitForSupabase(8000);
     recoveryClient = auth.createClient({
       auth: {
-        storageKey: 'zo2y-auth-recovery-temp',
         detectSessionInUrl: false,
         autoRefreshToken: false
       }
