@@ -19,7 +19,7 @@
   <script src="js/list-utils.js?v=20260708a" defer></script>
   <script src="js/skeleton.js" defer></script>
   <script src="js/spa-router.js?v=1751720000" defer></script>
-<script src="js/unified-list-menu.js?v=20260708a" defer></script>
+<script src="js/unified-list-menu.js?v=20260709b" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=1751700000z">
@@ -1227,7 +1227,7 @@
         state.search = query;
         invalidatePoolCache();
         await loadTvshowsWithFallback();
-        await loadListStatus();
+        
         renderGrid();
       }, 400);
     }
@@ -1519,7 +1519,7 @@
       try {
         await initAuthUi();
         await loadTvshows();
-        await loadListStatus();
+        
         renderGrid();
       } catch (_err) {
         const grid = document.getElementById('tvshowsGrid');
@@ -1546,21 +1546,21 @@
       state.genre = String(e.target.value || '').trim();
       invalidatePoolCache();
       await loadTvshowsWithFallback();
-      await loadListStatus();
+      
       renderGrid();
     });
     document.getElementById('year')?.addEventListener('change', async (e) => {
       state.year = String(e.target.value || '').trim();
       invalidatePoolCache();
       await loadTvshowsWithFallback();
-      await loadListStatus();
+      
       renderGrid();
     });
     document.getElementById('sort')?.addEventListener('change', async (e) => {
       state.sort = String(e.target.value || 'popular').trim();
       invalidatePoolCache();
       await loadTvshowsWithFallback();
-      await loadListStatus();
+      
       renderGrid();
     });
     document.getElementById('refresh')?.addEventListener('click', async () => {
