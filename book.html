@@ -1265,7 +1265,7 @@
         } else {
           const { error: insertError } = await supabaseClient
             .from('reviews')
-            .insert(payload);
+            .upsert(payload, { onConflict: 'user_id,media_type,item_id', ignoreDuplicates: true });
           error = insertError;
         }
         if (error) {
@@ -1294,7 +1294,7 @@
         if (!review) return;
         editingReviewId = reviewId;
         currentRating = review.rating;
-        document.getElementById('review-comment').value = review.review_text || '';
+        document.getElementById('review-comment').value = review.body || '';
         updateStarDisplay();
         const submitText = document.querySelector('.submit-review-btn .btn-text');
         if (submitText) submitText.textContent = 'Update Review';
@@ -1508,11 +1508,11 @@
           }
         }
         const inLists = new Set((existing || []).map(i => i.list_id));
-        (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.title); });
+        (lists || []).forEach(l => { if (inLists.has(l.id)) modalSelectedLists.add(l.name); });
         container.innerHTML = (lists || []).map(l => `
-          <div class="modal-list-item${modalSelectedLists.has(l.title) ? ' active' : ''}" data-name="${escapeHtml(l.title)}">
-            <span><i class="fas fa-book"></i> ${escapeHtml(l.title)}</span>
-            <input type="checkbox" ${modalSelectedLists.has(l.title) ? 'checked' : ''}>
+          <div class="modal-list-item${modalSelectedLists.has(l.name) ? ' active' : ''}" data-name="${escapeHtml(l.name)}">
+            <span><i class="fas fa-book"></i> ${escapeHtml(l.name)}</span>
+            <input type="checkbox" ${modalSelectedLists.has(l.name) ? 'checked' : ''}>
           </div>
         `).join('');
         container.querySelectorAll('.modal-list-item').forEach(el => {
@@ -1533,19 +1533,26 @@
       async function saveMovieListChanges() {
         if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
         const toAdd = []; const toRemove = [];
-        const { data: existing } = await supabaseClient.from('user_lists').select('id, title').eq('user_id', currentUser.id);
-        const existingNames = new Set((existing || []).map(l => l.title));
+        const { data: existing } = await supabaseClient.from('user_lists').select('id, name').eq('user_id', currentUser.id);
+        const existingNames = new Set((existing || []).map(l => l.name));
         modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
         existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
         for (const name of toAdd) {
-          const { data: newList } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, title: name }).select().single();
+          let newList = null;
+          const { data: inserted, error: insertErr } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, name: name, media_type: 'book' }).select().single();
+          if (insertErr && String(insertErr.code || '') === '23505') {
+            const { data: existing } = await supabaseClient.from('user_lists').select('*').eq('user_id', currentUser.id).eq('media_type', 'book').eq('name', name).maybeSingle();
+            newList = existing;
+          } else {
+            newList = inserted;
+          }
           if (newList && window.ListUtils) {
             await ListUtils.addItemToList(supabaseClient, currentUser.id, 'book', bookId, newList.id);
           }
         }
         if (toRemove.length) {
           for (const name of toRemove) {
-            const list = (existing || []).find(l => l.title === name);
+            const list = (existing || []).find(l => l.name === name);
             if (list && window.ListUtils) {
               await ListUtils.removeItemFromList(supabaseClient, currentUser.id, 'book', bookId, list.id);
             }
@@ -1560,8 +1567,8 @@
         const name = input?.value?.trim();
         if (!name) { showNotification('Enter a list name', 'info'); return; }
         if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const { error } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, title: name });
-        if (error) { showNotification('Could not create list', 'error'); return; }
+        const { error } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, name: name, media_type: 'book' });
+        if (error && String(error.code || '') !== '23505') { showNotification('Could not create list', 'error'); return; }
         showNotification('List created', 'success');
         input.value = '';
         if (typeof loadMovieListsModal === 'function') loadMovieListsModal();

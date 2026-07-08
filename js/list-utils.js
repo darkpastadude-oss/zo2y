@@ -1240,7 +1240,7 @@
     }
 
     if (cfg.filterTitles && cfg.filterTitles.length) {
-      return combined.filter(list => !cfg.filterTitles.includes(list.title));
+      return combined.filter(list => !cfg.filterTitles.includes(list.name));
     }
     return combined;
   }
@@ -1308,7 +1308,7 @@
       }
     }
     const inserts = listIds.map(listId => {
-      const row = { list_id: listId };
+      const row = { list_id: listId, media_type: type };
       row[cfg.itemIdField] = entityId;
       const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
       row.user_id = ownerId || userId;
@@ -1316,7 +1316,7 @@
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
       const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, {
-        onConflict: 'list_id,item_id',
+        onConflict: 'list_id,media_type,item_id',
         ignoreDuplicates: false
       });
       if (insertError && isListTableMissingError(insertError, cfg.itemsTable)) {
@@ -1339,7 +1339,7 @@
     const { data: ownerRows } = await client
       .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
     if (ownerRows?.user_id) ownerId = ownerRows.user_id;
-    const row = { list_id: listId, item_id: entityId, user_id: ownerId };
+    const row = { list_id: listId, media_type: type, item_id: entityId, user_id: ownerId };
     const { data: existingItem } = await client
       .from(cfg.itemsTable)
       .select('id')
@@ -1347,7 +1347,7 @@
       .eq('list_id', listId)
       .maybeSingle();
     if (existingItem) return true;
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,item_id', ignoreDuplicates: true });
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: 'list_id,media_type,item_id', ignoreDuplicates: true });
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     if (error && isConflictError(error)) return true;
     return !error;
@@ -1377,7 +1377,8 @@
     const maxRank = normalizeTierMaxRank(payload?.maxRank);
     const insertPayload = {
       user_id: userId,
-      title: payload.title,
+      name: payload.title,
+      media_type: normalizedType,
       created_at: new Date().toISOString()
     };
     let data = null;
@@ -1408,7 +1409,7 @@
     setTierSyncContext(client, userId);
     const { error } = await client
       .from(cfg.listTable)
-      .update({ title })
+      .update({ name: title })
       .eq('id', listId)
       .eq('user_id', userId);
     if (error && isListTableMissingError(error, cfg.listTable)) {

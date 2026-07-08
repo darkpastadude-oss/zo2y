@@ -4481,7 +4481,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           <div class="menu-custom-item ${isActive ? 'active' : ''}" data-list-id="${list.id}">
             <div class="menu-custom-left">
               ${window.ListUtils ? ListUtils.renderListIcon(list.icon, fb) : '<i class="'+fb+'"></i>'}
-              <span>${escapeHtml(list.title || 'Custom List')}</span>
+              <span>${escapeHtml(list.name || 'Custom List')}</span>
             </div>
             <span class="menu-custom-state">${isActive ? 'Saved' : 'Add'}</span>
           </div>
@@ -4715,7 +4715,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const isActive = homeCustomListState.selectedLists.has(list.id);
         item.className = `modal-list-item${isActive ? ' active' : ''}`;
         item.innerHTML = `
-          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.title}</span>
+          <span>${window.ListUtils ? ListUtils.renderListIcon(list.icon, homeCustomListState.selectedIcon) : ''} ${list.name || list.title}</span>
           <span class="modal-list-actions">
             <span>${isActive ? 'Saved' : 'Add'}</span>
             <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
@@ -4736,7 +4736,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (editBtn) {
           editBtn.onclick = (e) => {
             e.stopPropagation();
-            renameHomeList(list.id, list.title);
+            renameHomeList(list.id, list.name || list.title);
           };
         }
         container.appendChild(item);

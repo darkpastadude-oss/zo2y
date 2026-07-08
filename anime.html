@@ -1381,7 +1381,7 @@
             const item = document.createElement('div');
             item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
             item.innerHTML = `
-              <span>${renderListIcon(list.icon)} ${list.title}</span>
+              <span>${renderListIcon(list.icon)} ${list.name}</span>
               <span class="modal-list-actions">
                 <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
                 <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
@@ -1400,7 +1400,7 @@
             if (editBtn) {
               editBtn.onclick = (e) => {
                 e.stopPropagation();
-                renameMovieList(list.id, list.title);
+                renameMovieList(list.id, list.name || list.title);
               };
             }
             container.appendChild(item);
@@ -1515,8 +1515,11 @@
           if (nextSaved) {
             const { error } = await supabaseClient
               .from('list_items')
-              .insert({ user_id: currentUser.id, item_id: tvId, media_type: 'anime', list_type: listType });
-            if (error && String(error.code || '') !== '23505') throw error;
+              .upsert({ user_id: currentUser.id, item_id: tvId, media_type: 'anime', list_type: listType }, {
+                onConflict: 'user_id,media_type,item_id,list_type',
+                ignoreDuplicates: true
+              });
+            if (error) throw error;
             showNotification('Saved to list', 'success');
           } else {
             const { error } = await supabaseClient
@@ -1801,7 +1804,7 @@
         } else {
           const { error: insertError } = await supabaseClient
             .from('reviews')
-            .insert(payload);
+            .upsert(payload, { onConflict: 'user_id,media_type,item_id', ignoreDuplicates: true });
           error = insertError;
         }
         if (error) {

@@ -2645,11 +2645,11 @@
                             if (!table) return;
                             const { data } = await supabase
                                 .from(table)
-                                .select('id, title')
-                                .in('id', ids);
-                            (data || []).forEach((row) => {
-                                const key = `${mediaType}:${String(row.id || '').trim()}`;
-                                const title = String(row.title || '').trim();
+                            .select('id, name')
+                            .in('id', ids);
+                        (data || []).forEach((row) => {
+                            const key = `${mediaType}:${String(row.id || '').trim()}`;
+                            const title = String(row.name || '').trim();
                                 if (title) listMap.set(key, title);
                             });
                         }));
@@ -2786,8 +2786,8 @@
                         const listCreateTasks = customListSources.map(async (source) => {
                             const rows = await this.fetchRowsWithCreatedAtFallback(
                                 source.table,
-                                'id, user_id, title, created_at',
-                                'id, user_id, title',
+                                'id, user_id, name, created_at',
+                                'id, user_id, name',
                                 actorIds,
                                 20
                             );
@@ -2804,7 +2804,7 @@
                                 metadata: {
                                     source_table: source.table,
                                     fallback: true,
-                                    list_title: String(row.title || '').trim()
+                                    list_title: String(row.name || '').trim()
                                 },
                                 created_at: row.created_at || null
                             }));
@@ -5141,7 +5141,7 @@
 
                 const allLists = [
                     ...defaultLists,
-                    ...customLists.map(l => ({ id: l.id, title: l.title, icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' }))
+                    ...customLists.map(l => ({ id: l.id, title: l.name || l.title, icon: l.icon || 'fas fa-film', description: l.description || 'Custom list', type: 'custom' }))
                 ];
 
                 const listMovieMap = new Map();
@@ -5256,9 +5256,9 @@
                             canEdit: ownerUserId === currentUserId
                         });
                     }
-                    if (titleEl) titleEl.textContent = data?.title || 'Movies';
+                    if (titleEl) titleEl.textContent = data?.name || 'Movies';
                     if (descEl) descEl.textContent = data?.description || 'Custom list';
-                    if (mobileTitle) mobileTitle.textContent = data?.title || 'Movies';
+                    if (mobileTitle) mobileTitle.textContent = data?.name || 'Movies';
                     if (mobileDesc) mobileDesc.textContent = data?.description || 'Custom list';
                     const canEdit = canEditCustomCollection('movie', listId, data || null);
                     const canDelete = canDeleteCustomCollection('movie', listId, data || null);
@@ -5556,7 +5556,7 @@
                 return TierListMeta.detect(type, list, itemsCount);
             }
             function getCollectionTitleWithKind(type, list, listType) {
-                const baseTitle = String(list?.title || '');
+                const baseTitle = String(list?.name || list?.title || '');
                 if (listType !== 'custom') return baseTitle;
                 const tierMeta = getTierMetaForList(type, list, 0);
                 if (!tierMeta.isTier) return baseTitle;
@@ -6270,7 +6270,7 @@
                 };
 
                 const nameInput = document.getElementById('editMediaListName');
-                if (nameInput) nameInput.value = record.title || '';
+                if (nameInput) nameInput.value = record.name || '';
                 setEditMediaListIcon(config.fallback);
                 setEditMediaListModalMode(config, false);
                 showModal('editMediaListModal');
@@ -6440,6 +6440,7 @@
                 const insertBase = {
                     user_id: currentUser.id,
                     name: trimmedTitle,
+                    media_type: context.type,
                     icon,
                     list_kind: dbListKind,
                     created_at: new Date().toISOString()
@@ -6566,7 +6567,7 @@
                     ? ListUtils.normalizeTierMaxRank(tierState.maxRank)
                     : null;
                 const updatePayload = {
-                    title,
+                    name: title,
                     icon: enforcedIcon,
                     list_kind: normalizedKind === 'tier' ? 'tier' : editingMediaList.type
                 };
@@ -6586,7 +6587,7 @@
                     .eq('id', editingMediaList.id);
 
                 if (hasListKindColumnError(error)) {
-                    const fallbackPayload = { title, icon };
+                    const fallbackPayload = { name: title, icon };
                     ({ error } = await supabase
                         .from(editingMediaList.table)
                         .update(fallbackPayload)
@@ -7592,20 +7593,27 @@ const alreadyActive = isMobile
                 };
 
                 try {
-                    const { data, error } = await supabase
+                    const { data: listRows, error: listError } = await supabase
                         .from('list_items')
-                        .select('item_id, teams (id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url)')
+                        .select('item_id')
                         .eq('media_type', 'sports')
                         .eq('list_type', 'favorites')
                         .eq('user_id', userId)
                         .order('created_at', { ascending: false });
 
-                    if (error) throw error;
+                    if (listError) throw listError;
                     if (renderToken !== renderSportsToken) return;
 
-                    const teams = (data || [])
-                        .map((row) => row?.teams || row?.team || row)
-                        .filter(Boolean);
+                    const teamIds = (listRows || []).map(r => r.item_id).filter(Boolean);
+                    let teams = [];
+                    if (teamIds.length) {
+                        const { data: teamRows } = await supabase
+                            .from('teams')
+                            .select('id, name, sport, league, logo_url, banner_url, stadium, stadium_url, jersey_url, fanart_url')
+                            .in('id', teamIds);
+                        const teamMap = new Map((teamRows || []).map(t => [String(t.id), t]));
+                        teams = teamIds.map(id => teamMap.get(String(id))).filter(Boolean);
+                    }
 
                     if (!teams.length) {
                         renderEmptyState();

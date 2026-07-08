@@ -7,7 +7,7 @@
  * Tables used:
  *   profile_showcase  — which lists are shown on profile per media type
  *   *_lists          — display_order column for list ordering
- *   *_list_items     — display_order column for item ordering
+ *   list_items       — position column for item ordering
  */
 const ProfileShowcase = (function () {
     let sb = null;
@@ -140,7 +140,7 @@ const ProfileShowcase = (function () {
 
         const updates = orderedItemIds.map(async (itemId, index) => {
             let query = sb.from(table)
-                .update({ display_order: index })
+                .update({ position: index })
                 .eq(itemField, itemId)
                 .eq('user_id', userId);
 
@@ -285,12 +285,9 @@ const ProfileShowcase = (function () {
                 { id: 'owned', title: 'Owned', icon: 'check' }
             ],
             sports: [
-                // Sports uses a fundamentally different architecture from other categories.
-                // Instead of the standard *_list_items table pattern, sports stores
-                // team favorites in a dedicated `user_favorite_teams` junction table
-                // and renders them directly via renderSports(). The sports_lists table
-                // and sports_list_items table exist in the schema but are not used by
-                // the profile rendering pipeline. This single default list is intentional.
+                // Sports stores team favorites in the unified list_items table with
+                // media_type='sports'. This single default list is intentional for the
+                // profile rendering pipeline.
                 { id: 'favorites', title: 'Favorites', icon: 'heart' }
             ]
         };
