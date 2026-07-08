@@ -857,10 +857,10 @@
       let reviews = [];
       let currentSort = 'latest';
       const listStatus = { favorites: false, watched: false, watchlist: false };
-      const pendingListOps = new Set();
-      let customLists = [];
-      let modalSelectedLists = new Set();
-      let selectedIcon = 'fas fa-film';
+      
+      
+      
+      
 
       function optimizeRemoteImage(url, { width = 560, quality = 74, height = 0, fit = 'cover' } = {}) {
         const raw = String(url || '').trim();
@@ -1420,214 +1420,23 @@
         });
       }
 
-      async function loadListStatus() {
-        if (!supabaseClient || !currentUser || !movieId) return;
-        const { data, error } = await supabaseClient
-          .from('list_items')
-          .select('list_type')
-          .eq('user_id', currentUser.id)
-          .eq('item_id', movieId)
-          .eq('media_type', 'movie');
-        if (error) return;
-        listStatus.favorites = false;
-        listStatus.watched = false;
-        listStatus.watchlist = false;
-        (data || []).forEach(item => {
-          if (listStatus[item.list_type] !== undefined) {
-            listStatus[item.list_type] = true;
-          }
-        });
-        updateListMenuUI();
-      }
+      
 
-      async function loadCustomLists() {
-        if (!supabaseClient || !currentUser || !window.ListUtils) return [];
-        return await ListUtils.loadCustomLists(supabaseClient, currentUser.id, 'movie');
-      }
+      
 
-      async function openMovieListsModal() {
-        if (!currentUser) {
-          showNotification('Please sign in to manage lists', 'info');
-          return;
-        }
-        const modal = document.getElementById('movieListsModal');
-        const container = document.getElementById('movieListsContainer');
-        if (!modal || !container) return;
-        container.innerHTML = Skel.chips(4);
-        customLists = await loadCustomLists();
-        const listIds = customLists.map(l => l.id);
-        modalSelectedLists = window.ListUtils
-          ? await ListUtils.loadCustomListMembership(supabaseClient, currentUser.id, 'movie', movieId, listIds)
-          : new Set();
-        container.innerHTML = '';
-        if (!customLists.length) {
-          container.innerHTML = '<div class="chip">No custom lists yet.</div>';
-        } else {
-          customLists.forEach(list => {
-            const item = document.createElement('div');
-            item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
-            item.innerHTML = `
-              <span>${renderListIcon(list.icon)} ${list.name}</span>
-              <span class="modal-list-actions">
-                <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
-                <button class="list-edit-btn" aria-label="Rename list"><i class="fas fa-pen"></i></button>
-              </span>
-            `;
-            item.onclick = () => {
-              if (modalSelectedLists.has(list.id)) {
-                modalSelectedLists.delete(list.id);
-              } else {
-                modalSelectedLists.add(list.id);
-              }
-              item.classList.toggle('active');
-              item.querySelector('.modal-list-actions span').textContent = modalSelectedLists.has(list.id) ? 'Saved' : 'Add';
-            };
-            const editBtn = item.querySelector('.list-edit-btn');
-            if (editBtn) {
-              editBtn.onclick = (e) => {
-                e.stopPropagation();
-                renameMovieList(list.id, list.name || list.title);
-              };
-            }
-            container.appendChild(item);
-          });
-        }
-        modal.classList.add('active');
-      }
+      
 
-      async function saveMovieListChanges() {
-        if (!supabaseClient || !currentUser || !movieId) return;
-        if (window.ListUtils) {
-          await ListUtils.saveCustomListChanges(
-            supabaseClient,
-            currentUser.id,
-            'movie',
-            movieId,
-            [...modalSelectedLists]
-          );
-        }
-        showNotification('Lists updated', 'success');
-        closeMovieListsModal();
-      }
+      
 
-      function closeMovieListsModal() {
-        const modal = document.getElementById('movieListsModal');
-        if (modal) modal.classList.remove('active');
-      }
+      
 
-      async function createMovieList() {
-        const input = document.getElementById('newMovieListName');
-        if (!input || !input.value.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const title = input.value.trim();
-        const modal = document.getElementById('movieListsModal');
-        const tierState = window.ListUtils && modal
-          ? ListUtils.readTierCreateState(modal)
-          : { listKind: 'standard', maxRank: null };
-        const data = window.ListUtils
-          ? await ListUtils.createCustomList(supabaseClient, currentUser.id, 'movie', {
-            title,
-            icon: selectedIcon || 'fas fa-film',
-          listKind: tierState.listKind,
-          maxRank: tierState.maxRank
-          })
-          : null;
-        if (!data) {
-          showNotification('Could not create list', 'error');
-          return;
-        }
-        input.value = '';
-        if (window.ListUtils && modal) ListUtils.resetTierCreateState(modal);
-        customLists.unshift(data);
-        openMovieListsModal();
-      }
+      
 
-      async function renameMovieList(listId, currentTitle) {
-        const nextTitle = prompt('Rename list', currentTitle || '');
-        if (!nextTitle || !nextTitle.trim()) return;
-        if (!supabaseClient || !currentUser) return;
-        const ok = window.ListUtils
-          ? await ListUtils.renameCustomList(supabaseClient, currentUser.id, 'movie', listId, nextTitle.trim())
-          : false;
-        if (!ok) {
-          showNotification('Could not rename list', 'error');
-          return;
-        }
-        customLists = customLists.map(l => l.id === listId ? { ...l, title: nextTitle.trim() } : l);
-        openMovieListsModal();
-      }
+      
 
-      function updateListMenuUI() {
-        const menu = document.getElementById('movieListMenu');
-        if (!menu) return;
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          const listType = btn.getAttribute('data-list');
-          const state = btn.querySelector('.list-action-state');
-          if (listType === 'custom') {
-            btn.classList.remove('active');
-            btn.removeAttribute('aria-busy');
-            btn.style.pointerEvents = '';
-            btn.style.opacity = '';
-            if (state) state.textContent = 'Open';
-            return;
-          }
-          const isActive = !!listStatus[listType];
-          const opKey = `${String(movieId || '')}:${listType}`;
-          const isPending = pendingListOps.has(opKey);
-          btn.classList.toggle('active', isActive);
-          if (state) state.textContent = isActive ? 'Saved' : 'Add';
-          btn.setAttribute('aria-busy', isPending ? 'true' : 'false');
-          btn.style.pointerEvents = isPending ? 'none' : '';
-          btn.style.opacity = isPending ? '0.72' : '';
-        });
-      }
+      
 
-      async function toggleList(listType, forcedNextSaved) {
-        if (!currentUser) {
-          showNotification('Please sign in to save movies', 'info');
-          return { ok: false, saved: false };
-        }
-        if (!movieId || !(listType in listStatus)) return { ok: false, saved: false };
-        const opKey = `${String(movieId)}:${listType}`;
-        if (pendingListOps.has(opKey)) return { ok: false, saved: !!listStatus[listType] };
-
-        const previousSaved = !!listStatus[listType];
-        const nextSaved = typeof forcedNextSaved === 'boolean' ? forcedNextSaved : !previousSaved;
-        pendingListOps.add(opKey);
-        listStatus[listType] = nextSaved;
-        updateListMenuUI();
-
-        try {
-          if (nextSaved) {
-            const { error } = await supabaseClient
-              .from('list_items')
-              .insert({ user_id: currentUser.id, item_id: movieId, media_type: 'movie', list_type: listType });
-            if (error) {
-              if (String(error.code || '') === '23505') return;
-              throw error;
-            }
-            showNotification('Saved to list', 'success');
-          } else {
-            const { error } = await supabaseClient
-              .from('list_items')
-              .delete()
-              .eq('user_id', currentUser.id)
-              .eq('item_id', movieId)
-              .eq('media_type', 'movie')
-              .eq('list_type', listType);
-            if (error) throw error;
-            showNotification('Removed from list', 'info');
-          }
-          return { ok: true, saved: nextSaved };
-        } catch (error) {
-          listStatus[listType] = previousSaved;
-          showNotification('Could not update list', 'error');
-          return { ok: false, saved: previousSaved };
-        } finally {
-          pendingListOps.delete(opKey);
-          updateListMenuUI();
-        }
-      }
+      
 
       function bindUnifiedListMenu() {
         const menuBtn = document.getElementById('addWatchlistBtn');
@@ -2106,6 +1915,19 @@ const url = new URL('movies.html', window.location.href);
   <script src="js/legal-consent.js?v=20260708a" defer></script>
 
   <script src="/js/shared-components.js?v=20260708a" defer></script>
+
+<script>
+  window.toggleList = function(listType, nextSaved) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+  window.toggleDefaultList = function(arg) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+</script>
 </body>
 </html>
 

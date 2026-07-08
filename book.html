@@ -820,9 +820,9 @@
       let bookInfo = null;
       let currentSort = 'latest';
       const listStatus = {};
-      let customLists = [];
-      let modalSelectedLists = new Set();
-      let selectedIcon = 'fas fa-book';
+      
+      
+      
       let bookSyncWarned = false;
 
       function escapeHtml(v) {
@@ -1503,54 +1503,11 @@
         });
       }
 
-      function closeMovieListsModal() {
-        const modal = document.getElementById('movieListsModal');
-        if (modal) modal.classList.remove('active');
-      }
+      
 
-      async function saveMovieListChanges() {
-        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const toAdd = []; const toRemove = [];
-        const { data: existing } = await supabaseClient.from('user_lists').select('id, name').eq('user_id', currentUser.id);
-        const existingNames = new Set((existing || []).map(l => l.name));
-        modalSelectedLists.forEach(name => { if (!existingNames.has(name)) toAdd.push(name); });
-        existingNames.forEach(name => { if (!modalSelectedLists.has(name)) toRemove.push(name); });
-        for (const name of toAdd) {
-          let newList = null;
-          const { data: inserted, error: insertErr } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, name: name, media_type: 'book' }).select().single();
-          if (insertErr && String(insertErr.code || '') === '23505') {
-            const { data: existing } = await supabaseClient.from('user_lists').select('*').eq('user_id', currentUser.id).eq('media_type', 'book').eq('name', name).maybeSingle();
-            newList = existing;
-          } else {
-            newList = inserted;
-          }
-          if (newList && window.ListUtils) {
-            await ListUtils.addItemToList(supabaseClient, currentUser.id, 'book', bookId, newList.id);
-          }
-        }
-        if (toRemove.length) {
-          for (const name of toRemove) {
-            const list = (existing || []).find(l => l.name === name);
-            if (list && window.ListUtils) {
-              await ListUtils.removeItemFromList(supabaseClient, currentUser.id, 'book', bookId, list.id);
-            }
-          }
-        }
-        showNotification('Lists updated', 'success');
-        closeMovieListsModal();
-      }
+      
 
-      async function createMovieList() {
-        const input = document.getElementById('newMovieListName');
-        const name = input?.value?.trim();
-        if (!name) { showNotification('Enter a list name', 'info'); return; }
-        if (!supabaseClient || !currentUser) { showNotification('Please sign in', 'info'); return; }
-        const { error } = await supabaseClient.from('user_lists').insert({ user_id: currentUser.id, name: name, media_type: 'book' });
-        if (error && String(error.code || '') !== '23505') { showNotification('Could not create list', 'error'); return; }
-        showNotification('List created', 'success');
-        input.value = '';
-        if (typeof loadMovieListsModal === 'function') loadMovieListsModal();
-      }
+      
 
       window.ZO2Y_CUSTOM_LIST_MODAL = {
          openModal: async () => {
@@ -1590,6 +1547,19 @@
   <script src="js/legal-consent.js?v=20260708a" defer></script>
 
   <script src="/js/shared-components.js?v=20260708a" defer></script>
+
+<script>
+  window.toggleList = function(listType, nextSaved) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+  window.toggleDefaultList = function(arg) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+</script>
 </body>
 </html>
 

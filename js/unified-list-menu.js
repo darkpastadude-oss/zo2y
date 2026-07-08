@@ -36,7 +36,7 @@
     window.UnifiedListMenu.openMenu(triggerEl, itemId, mediaType);
   };
 })();
-\n// js/components/unified-list-menu.js
+// js/components/unified-list-menu.js
 (function () {
   const QUICK_ROWS_BY_TYPE = {
     movie: [

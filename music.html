@@ -631,6 +631,19 @@
   <script src="js/legal-consent.js?v=20260708a" defer></script>
 
   <script src="/js/shared-components.js?v=20260708a" defer></script>
+
+<script>
+  window.toggleList = function(listType, nextSaved) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+  window.toggleDefaultList = function(arg) {
+    if (typeof window.openIndexStyleListMenu === 'function') {
+      window.openIndexStyleListMenu(document.activeElement || document.body);
+    }
+  };
+</script>
 </body>
 </html>
 
