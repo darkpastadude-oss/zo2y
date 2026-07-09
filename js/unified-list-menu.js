@@ -396,45 +396,181 @@
     style.id = 'unifiedListMenuStyles';
     style.textContent = `
       .list-menu {
-        position: absolute;
-        z-index: 1000;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 10px;
-        min-width: 220px;
-        box-shadow: var(--shadow);
-        animation: fadeIn 0.15s ease-out;
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 10000 !important;
+        background: var(--card, #132347);
+        border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+        border-radius: 20px;
+        padding: 0;
+        width: 100%;
+        max-width: 380px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+        animation: menuModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
       }
-      .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+      @keyframes menuModalFlyUp {
+        from { opacity: 0; transform: translate(-50%, calc(-50% + 24px)) scale(0.98); }
+        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      }
+      .list-menu-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+      }
+      .list-menu-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--white, #fff);
+        margin: 0;
+      }
+      .list-menu-close {
+        background: transparent;
+        border: none;
+        color: var(--muted, #8ca3c7);
+        font-size: 24px;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .list-menu-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--white, #fff);
+      }
+      .list-menu-body {
+        padding: 16px 20px;
+      }
+      .list-menu-quick-lists {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
       .list-menu .list-action {
         width: 100%;
-        border: 1px solid var(--border);
-        background: transparent;
-        color: var(--white);
-        border-radius: 10px;
-        padding: 8px 10px;
-        font-size: 13px;
+        border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+        background: var(--card-2, #172b58);
+        color: var(--text, #fff);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
-        transition: all 0.2s ease;
-        margin-bottom: 6px;
+        gap: 12px;
+        transition: background-color 0.18s, border-color 0.18s, transform 0.12s, box-shadow 0.18s, opacity 0.18s;
+        margin-bottom: 0;
+        min-height: 48px;
+        font: inherit;
+        text-align: left;
+        appearance: none;
+        -webkit-appearance: none;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        position: relative;
+        overflow: hidden;
+        will-change: transform;
       }
       .list-menu .list-action:last-child { margin-bottom: 0; }
-      .list-menu .list-action:hover { border-color: var(--accent); color: var(--accent); }
+      .list-menu .list-action:hover {
+        border-color: var(--accent, #f59e0b);
+        background: rgba(245, 158, 11, 0.1);
+      }
+      .list-menu .list-action:active {
+        transform: scale(0.985);
+      }
       .list-menu .list-action.active {
-        background: rgba(245, 158, 11, 0.12);
-        border-color: var(--accent);
-        color: var(--accent);
+        border-color: var(--accent, #f59e0b);
+        background: rgba(245, 158, 11, 0.15);
+      }
+      .list-menu .list-action[aria-busy="true"] {
+        opacity: 0.72;
+        pointer-events: none;
+      }
+      .list-action-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .list-action-left i {
+        width: 20px;
+        color: var(--accent, #f59e0b);
+      }
+      .list-action-left span {
+        font-weight: 500;
+        color: var(--white, #fff);
+      }
+      .list-action-state {
+        color: var(--accent, #f59e0b);
+        font-size: 13px;
+        font-weight: 600;
+        transition: transform 0.18s, opacity 0.18s;
+      }
+      .list-menu .list-action.active .list-action-state {
+        transform: translateY(-0.5px);
+      }
+      .list-menu-custom-section {
+        border-top: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+        padding-top: 16px;
+      }
+      .list-menu-custom-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        color: var(--muted, #8ca3c7);
+        font-size: 14px;
+      }
+      .list-menu-custom-lists {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 200px;
+        overflow-y: auto;
       }
       .unified-list-menu-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(6, 12, 28, 0.55);
-        z-index: 999;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(5px);
+        z-index: 9999;
+      }
+      @media (max-width: 768px) {
+        .list-menu {
+          width: calc(100vw - 14px) !important;
+          max-width: 100vw !important;
+          max-height: min(80dvh, 740px) !important;
+          border-radius: 18px !important;
+        }
+        .list-menu-header { padding: 14px 16px; }
+        .list-menu-title { font-size: 17px; }
+        .list-menu-close { width: 40px; height: 40px; font-size: 26px; }
+        .list-menu-body { padding: 12px 14px 16px; }
+        .list-menu-quick-lists, .list-menu-custom-lists { gap: 10px; }
+        .list-menu-custom-lists { max-height: min(38dvh, 340px); }
+        .list-menu .list-action { min-height: 48px; padding: 12px 14px; border-radius: 13px; }
+        .list-action-left span { font-size: 15px; }
+      }
+      @media (pointer: coarse) {
+        .list-menu .list-action { min-height: 56px; }
+        .list-menu-close { width: 44px; height: 44px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .list-menu .list-action { transition: none !important; }
+        .list-action-state { transition: none !important; }
       }
     `;
     document.head.appendChild(style);
@@ -501,29 +637,32 @@
     }
     
     let html = '';
-    if (titleStr) {
-      html += `<div class="list-menu-title">${escapeHtml(titleStr)}</div>`;
-    }
-    html += `<button class="zo2y-popup-close" id="unifiedListMenuCloseBtn"><i class="fas fa-times"></i></button>`;
+    html += `<div class="list-menu-header">`;
+    html += `<h3 class="list-menu-title">${escapeHtml(titleStr || 'Add to List')}</h3>`;
+    html += `<button class="list-menu-close" id="unifiedListMenuCloseBtn" aria-label="Close">&times;</button>`;
+    html += `</div>`;
+    html += `<div class="list-menu-body">`;
+    html += `<div class="list-menu-quick-lists">`;
     
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
       html += `
-        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}">
-          <span style="display:inline-flex; align-items:center; gap:8px;"><i class="${escapeHtml(r.icon)}"></i> ${escapeHtml(r.label)}</span>
+        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}" aria-busy="false">
+          <div class="list-action-left"><i class="${escapeHtml(r.icon)}"></i><span>${escapeHtml(r.label)}</span></div>
           <span class="list-action-state">${isActive ? 'Saved' : 'Add'}</span>
         </button>
       `;
     });
     
-    html += `
-      <div style="height:1px; background:rgba(255,255,255,0.1); margin: 6px 0;"></div>
-      <div style="font-size: 12px; color: var(--muted); margin: 12px 0 6px 6px;">your custom lists</div>
-      <button class="list-action" data-list="custom">
-        <span style="display:inline-flex; align-items:center; gap:8px;"><i class="fas fa-list"></i> Manage custom lists</span>
-        <span class="list-action-state">Open</span>
-      </button>
-    `;
+    html += `</div>`;
+    html += `<div class="list-menu-custom-section">`;
+    html += `<div class="list-menu-custom-header"><span>Your Custom Lists</span></div>`;
+    html += `<div class="list-menu-custom-lists">`;
+    html += `<button class="list-action" data-list="custom">`;
+    html += `<div class="list-action-left"><i class="fas fa-list"></i><span>Manage custom lists</span></div>`;
+    html += `<span class="list-action-state">Open</span>`;
+    html += `</button>`;
+    html += `</div></div></div>`;
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
@@ -539,6 +678,8 @@
     
     const closeBtn = document.getElementById('unifiedListMenuCloseBtn');
     if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+    const headerEl = menu.querySelector('.list-menu-header');
+    if (headerEl) headerEl.addEventListener('click', (e) => { if (e.target === headerEl) closeMenu(); });
     
     menu.querySelectorAll('.list-action').forEach(btn => {
       btn.addEventListener('click', async (e) => {

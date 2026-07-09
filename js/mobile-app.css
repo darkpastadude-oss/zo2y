@@ -376,7 +376,7 @@ body.zo2y-popup-open {
   z-index: 4490 !important;
 }
 
-.list-menu.open,
+.list-menu.open:not(:has(.list-menu-header)),
 .rail-menu.open,
 .menu.open {
   position: fixed !important;
@@ -396,7 +396,7 @@ body.zo2y-popup-open {
 
 .list-menu .list-menu-title,
 .rail-menu .rail-menu-title {
-  padding-right: 38px;
+  padding-right: 0;
 }
 
 .modal[id*="ListsModal"],
@@ -451,7 +451,7 @@ body.zo2y-popup-open {
 }
 
 @media (min-width: 901px) {
-  .list-menu.open,
+  .list-menu.open:not(:has(.list-menu-header)),
   .rail-menu.open,
   .menu.open {
     top: 18px !important;

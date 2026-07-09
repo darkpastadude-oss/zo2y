@@ -462,7 +462,7 @@ const APP_RUNTIME_VERSION = '20260612c';
   const ensureMenuCloseButtons = (scope = document) => {
     if (!scope || !scope.querySelectorAll) return;
     scope.querySelectorAll(LIST_MENU_SELECTOR).forEach((menu) => {
-      if (menu.querySelector('.zo2y-popup-close')) return;
+      if (menu.querySelector('.zo2y-popup-close') || menu.querySelector('.list-menu-close')) return;
       const closeBtn = document.createElement('button');
       closeBtn.type = 'button';
       closeBtn.className = 'zo2y-popup-close';
@@ -501,7 +501,7 @@ const APP_RUNTIME_VERSION = '20260612c';
       const target = event.target;
       if (!target || !target.closest) return;
 
-      const menuCloseBtn = target.closest('.zo2y-popup-close');
+      const menuCloseBtn = target.closest('.zo2y-popup-close') || target.closest('.list-menu-close');
       if (menuCloseBtn) {
         event.preventDefault();
         event.stopPropagation();
