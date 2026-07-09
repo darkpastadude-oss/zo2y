@@ -15,6 +15,9 @@
   var isNavigating = false;
 
   function normalizePageName(pathname) {
+    var override = document && document.body && document.body.dataset && document.body.dataset.navPage;
+    if (override) return String(override).toLowerCase();
+
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     file = file.split('?')[0].split('#')[0];
     if (file === '' || file === 'index.html') return 'index';
