@@ -127,56 +127,6 @@
       transition: all 0.2s ease;
     }
     .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .list-menu {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      width: 220px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: #0f2547;
-      box-shadow: 0 14px 32px rgba(0,0,0,0.35);
-      padding: 10px;
-      display: none;
-      z-index: 130;
-    }
-    .list-menu.open { display: block; }
-    .list-menu-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(6, 12, 28, 0.55);
-      z-index: 120;
-      display: none;
-    }
-    .list-menu-backdrop.active { display: block; }
-    .list-menu-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-    .list-action {
-      width: 100%;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      transition: all 0.2s ease;
-      margin-bottom: 6px;
-    }
-    .list-action:last-child { margin-bottom: 0; }
-    .list-action:hover { border-color: var(--accent); color: var(--accent); }
-    .list-action.active {
-      background: rgba(245,158,11,0.16);
-      border-color: rgba(245,158,11,0.82);
-      color: #fff2d6;
-    }
-    .list-action[aria-busy="true"] {
-      opacity: 0.72;
-      pointer-events: none;
-    }
     .status { margin-top: 10px; color: var(--muted); font-size: 13px; }
     .error { color: #fecaca; }
     .album-tracks {
@@ -421,6 +371,7 @@
   
     <link rel="stylesheet" href="css/components.css?v=20260708a">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
+    <link rel="stylesheet" href="css/list.css?v=20260709a">
 </head>
 <body>
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
