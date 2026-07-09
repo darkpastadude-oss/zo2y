@@ -10574,14 +10574,14 @@ resetDetailPanels();
                 showModal('createListTypeModal');
             }
 
-            function createListForType(type) {
+            async function createListForType(type) {
                 closeModal('createListTypeModal');
-                const tabMap = { movies: 'movies', tv: 'tv', anime: 'anime', games: 'games', books: 'books', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'cars' };
-                const typeMap = { movies: 'movie', tv: 'tv', anime: 'anime', games: 'game', books: 'book', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'car' };
+                const tabMap = { movies: 'movies', movie: 'movies', tv: 'tv', anime: 'anime', games: 'games', game: 'games', books: 'books', book: 'books', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'cars', car: 'cars' };
+                const typeMap = { movies: 'movie', movie: 'movie', tv: 'tv', anime: 'anime', games: 'game', game: 'game', books: 'book', book: 'book', music: 'music', travel: 'travel', fashion: 'fashion', food: 'food', cars: 'car', car: 'car' };
                 const normalized = String(type || '').toLowerCase();
                 const tab = tabMap[normalized];
                 const mediaType = typeMap[normalized];
-                if (tab && mediaType) { showTab(tab); createListByType(mediaType); }
+                if (tab && mediaType) { await showTab(tab); createListByType(mediaType); }
             }
 
             // ===== MOBILE MENU FUNCTIONS =====
