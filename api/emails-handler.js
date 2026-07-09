@@ -248,7 +248,7 @@ export default async function handler(req, res) {
       const name = normalizeText(body?.name, 120);
       const reminderText = normalizeText(body?.reminderText, 2000);
       const actionUrl = String(body?.actionUrl || process.env.APP_BASE_URL || "https://zo2y.com").trim();
-      const actionLabel = normalizeText(body?.actionLabel || "Open Zo2y", 120);
+      const actionLabel = normalizeText(body?.actionLabel || "open zo2y", 120);
 
       if (!to || !isValidEmail(to)) {
         return json(res, 400, { message: "Valid email is required" });
@@ -276,7 +276,7 @@ export default async function handler(req, res) {
       const recipients = Array.isArray(body?.recipients) ? body.recipients : [];
       const reminderText = normalizeText(body?.reminderText, 2000);
       const actionUrl = String(body?.actionUrl || process.env.APP_BASE_URL || "https://zo2y.com").trim();
-      const actionLabel = normalizeText(body?.actionLabel || "Open Zo2y", 120);
+      const actionLabel = normalizeText(body?.actionLabel || "open zo2y", 120);
 
       if (!recipients.length) {
         return json(res, 400, { message: "recipients is required" });

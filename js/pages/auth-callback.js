@@ -80,6 +80,16 @@
         next: auth.readRequestedNextPath(window.location.search)
       });
 
+      if (flow === 'signup' && session.access_token) {
+        fetch('/api/auth/welcome-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + session.access_token
+          }
+        }).catch(function () {});
+      }
+
       if (statusText) statusText.textContent = 'Opening Zo2y...';
       log('OAuth callback completed for user ' + session.user.id);
 

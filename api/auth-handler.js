@@ -1,5 +1,5 @@
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
-import { sendVerificationEmail, emailConfigured } from "../backend/lib/email/service.js";
+import { sendVerificationEmail, sendWelcomeEmail, emailConfigured } from "../backend/lib/email/service.js";
 import {
   getClientIp,
   hashValue,
@@ -558,6 +558,18 @@ async function handlePasswordSignup(req, res) {
           has_action_link: Boolean(actionLink)
         });
       }
+      try {
+        await sendWelcomeEmail({
+          to: email,
+          name: email.split("@")[0],
+          appUrl: getBaseUrl()
+        });
+      } catch (welcomeErr) {
+        // eslint-disable-next-line no-console
+        console.error("welcome_email_failed", {
+          message: String(welcomeErr?.message || welcomeErr)
+        });
+      }
     } else {
       // eslint-disable-next-line no-console
       console.error("verification_email_skipped", {
@@ -826,6 +838,57 @@ async function handleCaptchaChallenge(req, res) {
   }, req);
 }
 
+async function handleWelcomeEmail(req, res) {
+  if (!requireMethod(req, res, "POST")) return;
+  if (!checkOrigin(req, res)) return;
+
+  return constantTimeResponse(async () => {
+    const admin = getSupabaseAdminClient();
+    if (!admin) {
+      return { status: 500, body: { success: false, message: "Service unavailable." } };
+    }
+
+    const authHeader = String(req.headers["authorization"] || "").trim();
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    if (!token) {
+      return { status: 401, body: { success: false, message: "Missing auth token." } };
+    }
+
+    const { data: userData, error: userError } = await admin.auth.getUser(token);
+    if (userError || !userData?.user) {
+      return { status: 401, body: { success: false, message: "Invalid auth token." } };
+    }
+
+    const user = userData.user;
+    const email = normalizeEmail(user.email);
+    if (!email) {
+      return { status: 400, body: { success: false, message: "No email on file." } };
+    }
+
+    if (!emailConfigured()) {
+      return { status: 200, body: { success: true, message: "Email not configured." } };
+    }
+
+    try {
+      await sendWelcomeEmail({
+        to: email,
+        name: user.user_metadata?.full_name || user.user_metadata?.name || email.split("@")[0],
+        appUrl: getBaseUrl()
+      });
+    } catch (emailErr) {
+      // eslint-disable-next-line no-console
+      console.error("welcome_email_failed", {
+        message: String(emailErr?.message || emailErr),
+        user_id: user.id
+      });
+    }
+
+    return { status: 200, body: { success: true } };
+  }).then((result) => {
+    if (result && result.body) jsonResponse(res, result.status, result.body, req);
+  });
+}
+
 export default async function handler(req, res) {
   try {
     const query = readQuery(req);
@@ -842,6 +905,9 @@ export default async function handler(req, res) {
     }
     if (section === "password-signup" && method === "POST") {
       return handlePasswordSignup(req, res);
+    }
+    if (section === "welcome-email" && method === "POST") {
+      return handleWelcomeEmail(req, res);
     }
     if (section === "resend-verification" && method === "POST") {
       return handleResendVerification(req, res);
