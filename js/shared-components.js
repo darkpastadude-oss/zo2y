@@ -24,6 +24,22 @@
   const TOAST_CONTAINER_HTML = `
     <div class="toast-container" id="toastContainer"></div>`;
 
+  const FOOTER_HTML = `
+    <footer class="zo2y-footer">
+      <div class="zo2y-footer-inner">
+        <span class="zo2y-footer-brand">&copy; ${COPY_YEAR} ${SITE_NAME}</span>
+        <nav class="zo2y-footer-links" aria-label="Legal">
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="data.html">Your data</a>
+          <a href="dmca.html">DMCA</a>
+          <a href="support.html">Support</a>
+          <a href="credits.html">Credits</a>
+        </nav>
+      </div>
+    </footer>`;
+
   function ensureMenuModalStyles() {
     if (document.getElementById('zo2ySharedMenuModalStyle')) return;
     const style = document.createElement('style');
@@ -33,6 +49,13 @@
       .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
     `;
     document.head.appendChild(style);
+  }
+
+  function injectFooter() {
+    if (document.querySelector('.zo2y-footer')) return;
+    const footer = document.createElement('div');
+    footer.innerHTML = FOOTER_HTML;
+    document.body.appendChild(footer.firstElementChild);
   }
 
   function injectItemMenuModal() {
@@ -102,8 +125,15 @@
 
   function init() {
     const path = location.pathname;
+    
     const isAuthPage = /\/(sign-up|login|auth-callback|onboarding|update-password|clear-auth)(\.html)?\/?$/.test(path);
-    if (!isAuthPage) injectFooter();
+    const isProfilePage = /\/profile(\.html)?\/?$/.test(path);
+    const isLandingPage = path === '/' || path === '' || /\/index(\.html)?\/?$/.test(path);
+
+    if (!isAuthPage && !isProfilePage && !isLandingPage) {
+      injectFooter();
+    }
+    
     injectItemMenuModal();
     injectToastContainer();
     injectLightboxModal();
