@@ -869,36 +869,7 @@
     if (!modal || typeof modal.querySelector !== 'function') return null;
     let block = modal.querySelector('.zo2y-tier-create');
     if (block) return block;
-    const firstInput = modal.querySelector('input[id^="new"][id$="ListName"], #newListNameInput, #editMediaListName, #listName');
-    if (!firstInput) return null;
-
-    const anchor = modal.querySelector('.icon-options, .menu-icon-grid, .menu-modal-actions, .modal-actions, .form-actions');
-    block = document.createElement('div');
-    block.className = 'zo2y-tier-create';
-    block.innerHTML = `
-      <div class="zo2y-tier-label">List Type</div>
-      <input type="hidden" class="zo2y-tier-kind-value" value="standard">
-      <div class="zo2y-tier-kind-row">
-        <button type="button" class="zo2y-tier-kind-btn active" data-list-kind="standard">Standard</button>
-        <button type="button" class="zo2y-tier-kind-btn" data-list-kind="tier">Tier List</button>
-      </div>
-    `;
-
-    if (anchor && anchor.parentNode) {
-      anchor.parentNode.insertBefore(block, anchor);
-    } else {
-      const host = firstInput.closest('.modal-content, .menu-modal-body, .modal-body') || modal;
-      host.appendChild(block);
-    }
-
-    block.querySelectorAll('.zo2y-tier-kind-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        setTierCreateKind(block, button.getAttribute('data-list-kind'));
-      });
-    });
-
-    setTierCreateKind(block, 'standard');
-    return block;
+    return null;
   }
 
   function readTierCreateState(modal) {

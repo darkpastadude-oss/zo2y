@@ -50,8 +50,12 @@
   to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
-/* Kill any JS-injected close button inside menu-modal content */
-.menu-modal-content > .zo2y-popup-close { display: none !important; }
+/* Hide JS-injected close buttons by default; show only when parent is active */
+.zo2y-popup-close { display: none !important; }
+.zo2y-overlay-close { display: none !important; }
+.list-menu.open > .zo2y-popup-close,
+.rail-menu.open > .zo2y-popup-close { display: inline-flex !important; }
+.modal.active .zo2y-overlay-close { display: inline-flex !important; }
 
 /* --------------------------------------------------------------------------
    Menu Modal Header

@@ -29,7 +29,7 @@ const APP_RUNTIME_VERSION = '20260612c';
   const LIST_MENU_SELECTOR = '.list-menu, .rail-menu';
   const OPEN_LIST_MENU_SELECTOR = '.list-menu.open, .rail-menu.open';
   const LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"], #customListsModal, #actionsModal';
-  const OPEN_LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active';
+  const OPEN_LIST_MODAL_SELECTOR = '.modal[id*="ListsModal"].active, #customListsModal.active, #actionsModal.active, #editMediaListModal.active';
   const NATIVE_MENU_BACKDROP_SELECTOR = '.list-menu-backdrop.active, .rail-menu-backdrop.active';
   const GENERIC_SCROLL_LOCK_OVERLAY_SELECTOR = [
     '.menu-modal.active',
@@ -384,6 +384,7 @@ const APP_RUNTIME_VERSION = '20260612c';
 
   const clearInlineScrollLocks = () => {
     if (!document.body || !document.documentElement) return;
+    if (document.querySelector('.modal.active, .confirm-modal.active, .menu-modal.active')) return;
     const bodyOverflow = String(document.body.style.overflow || '').trim().toLowerCase();
     const bodyOverflowY = String(document.body.style.overflowY || '').trim().toLowerCase();
     const docOverflow = String(document.documentElement.style.overflow || '').trim().toLowerCase();

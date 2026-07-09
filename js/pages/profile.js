@@ -10110,6 +10110,8 @@ const alreadyActive = isMobile
                 if (!cfg) return;
                 if (leaveCollectionRoute(cfg.route)) return;
                 currentMediaDetail = null;
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) { categoryView.style.display = 'none'; }
                 const isMobile = window.innerWidth <= 768;
                 if (isMobile) {
                     const detailSection = document.getElementById(cfg.mobileDetail);
