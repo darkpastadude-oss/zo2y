@@ -124,7 +124,9 @@
   };
 
   function init() {
-    injectFooter();
+    const path = location.pathname;
+    const isAuthPage = /\/(sign-up|login|auth-callback)\.html$/.test(path);
+    if (!isAuthPage) injectFooter();
     injectItemMenuModal();
     injectToastContainer();
     injectLightboxModal();
