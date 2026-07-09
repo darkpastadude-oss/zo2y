@@ -228,13 +228,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  function renderListIcon(icon) {
-    if (!icon) return '<i class="fas fa-list"></i>';
-    if (icon.startsWith('http') || icon.startsWith('data:')) {
-      return `<img src="${escapeHtml(icon)}" class="tier-icon-img" alt="icon" style="width:20px;height:20px;object-fit:cover;border-radius:4px;">`;
-    }
-    return `<i class="${escapeHtml(icon)}"></i>`;
-  }
+  
 
   async function loadCustomLists(mediaType) {
     const client = await ensureClient();
@@ -276,7 +270,7 @@
         const item = document.createElement('div');
         item.className = 'modal-list-item' + (modalSelectedLists.has(list.id) ? ' active' : '');
         item.innerHTML = `
-          <span>${renderListIcon(list.icon)} ${escapeHtml(list.name || list.title)}</span>
+          <span>${(window.ListUtils ? window.ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>')} ${escapeHtml(list.name || list.title)}</span>
           <span class="modal-list-actions" style="display:inline-flex; align-items:center; gap:6px;">
             <span>${modalSelectedLists.has(list.id) ? 'Saved' : 'Add'}</span>
             <button class="list-edit-btn" aria-label="Rename list" style="background:transparent; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px; padding:4px 8px; cursor:pointer;"><i class="fas fa-pen"></i></button>
@@ -395,53 +389,6 @@
   /* QUICK LISTS MENU (Popup) */
   
 
-  function injectMenuStyles() {
-    if (document.getElementById('unifiedListMenuStyles10111d3')) return;
-    const s = document.createElement('style');
-    s.id = 'unifiedListMenuStyles10111d3';
-    s.textContent = `
-      .menu-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(3,10,28,.65);backdrop-filter:blur(4px);z-index:999999;opacity:0;pointer-events:none;transition:opacity .2s;padding:20px}
-      .menu-modal.active{opacity:1;pointer-events:auto}
-      .menu-modal-content{background:var(--card,#060c1c);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:16px;width:100%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px) scale(.98);transition:all .28s cubic-bezier(.2,.9,.2,1);will-change:transform,opacity}
-      .menu-modal.active .menu-modal-content{transform:translateY(0) scale(1)}
-      .menu-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.12))}
-      .menu-modal-header h3{font-size:18px;font-weight:600;color:var(--white,#fff);margin:0}
-      .menu-modal-close{background:transparent;border:none;color:var(--muted,#8ca3c7);font-size:24px;cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
-      .menu-modal-close:hover{background:rgba(255,255,255,.1);color:var(--white,#fff)}
-      .menu-modal-body{padding:16px 20px}
-      .menu-quick-lists{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-      .menu-quick-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 16px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:12px;color:var(--text,#fff);cursor:pointer;font:inherit;text-align:left;appearance:none;-webkit-appearance:none;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;position:relative;overflow:hidden;transition:background-color .18s,border-color .18s,transform .12s,box-shadow .18s,opacity .18s;will-change:transform}
-      .menu-quick-item::after{content:"";position:absolute;inset:-35%;pointer-events:none;opacity:0;transform:scale(.4);background:radial-gradient(circle at 30% 30%,rgba(245,158,11,.35),rgba(245,158,11,0) 55%),radial-gradient(circle at 70% 40%,rgba(255,184,77,.28),rgba(255,184,77,0) 60%),radial-gradient(circle at 50% 80%,rgba(255,255,255,.12),rgba(255,255,255,0) 55%);filter:blur(0)}
-      .menu-quick-item:hover{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.1)}
-      .menu-quick-item:active{transform:scale(.985)}
-      .menu-quick-item:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(245,158,11,.22)}
-      .menu-quick-item.active{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.15)}
-      .menu-quick-item[aria-busy=true]{opacity:.72;pointer-events:none}
-      .menu-quick-left{display:flex;align-items:center;gap:12px}
-      .menu-quick-left i{width:20px;color:var(--accent,#f59e0b)}
-      .menu-quick-left span{font-weight:500;color:var(--white,#fff)}
-      .menu-quick-state{color:var(--accent,#f59e0b);font-size:13px;font-weight:600;transition:transform .18s,opacity .18s}
-      .menu-quick-item.active .menu-quick-state{transform:translateY(-.5px)}
-      .menu-custom-section{border-top:1px solid var(--border,rgba(255,255,255,.12));padding-top:16px}
-      .menu-custom-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--muted,#8ca3c7);font-size:14px}
-      .menu-custom-lists{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto}
-      .menu-custom-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:10px;cursor:pointer;transition:all .2s}
-      .menu-custom-item:hover{border-color:var(--accent,#f59e0b)}
-      .menu-custom-item.active{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.1)}
-      .menu-custom-item[aria-busy=true]{opacity:.82}
-      .menu-custom-left{display:flex;align-items:center;gap:10px}
-      .menu-custom-left i{width:18px;color:var(--accent,#f59e0b);font-size:14px}
-      .menu-custom-left span{font-size:14px;color:var(--white,#fff)}
-      .menu-custom-state{color:var(--accent,#f59e0b);font-size:12px;font-weight:600}
-      .menu-input{width:100%;padding:12px 16px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:12px;color:var(--white,#fff);font-size:14px;margin-bottom:16px}
-      .menu-input:focus{outline:none;border-color:var(--accent,#f59e0b)}
-      .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
-      @media(max-width:768px){.menu-modal{align-items:center;justify-content:center;background:rgba(3,10,28,.8);backdrop-filter:blur(8px)}.menu-modal-content{position:absolute;top:50%;left:50%;width:calc(100vw - 14px);max-width:100vw;max-height:min(80dvh,740px);border-radius:18px;transform:translate(-50%,-50%)}.menu-modal-header{padding:14px 16px}.menu-modal-header h3{font-size:17px}.menu-modal-close{width:40px;height:40px;font-size:26px}.menu-modal-body{padding:12px 14px 16px}.menu-quick-lists,.menu-custom-lists{gap:10px}.menu-custom-lists{max-height:min(38dvh,340px)}.menu-quick-item,.menu-custom-item{min-height:48px;padding:12px 14px;border-radius:13px}.menu-quick-left span,.menu-custom-left span{font-size:15px}}
-      @media(pointer:coarse){.menu-quick-item,.menu-custom-item{min-height:56px}.menu-modal-close{width:44px;height:44px}}
-    `;
-    document.head.appendChild(s);
-  }
-
   let activeMenuEl = null;
 
   async function openQuickListMenu(cardEl, itemId, mediaType) {
@@ -457,7 +404,7 @@
       return;
     }
     
-    injectMenuStyles();
+    
     
     const menu = document.createElement('div');
     menu.id = 'unifiedListMenuModal';
@@ -542,7 +489,7 @@
           const isInList = membership.has(list.id);
           const btn = document.createElement('button');
           btn.className = 'menu-custom-item' + (isInList ? ' active' : '');
-          btn.innerHTML = '<div class="menu-custom-left">' + renderListIcon(list.icon) + '<span>' + escapeHtml(list.name || list.title) + '</span></div><span class="menu-custom-state">' + (isInList ? 'saved' : 'add') + '</span>';
+          btn.innerHTML = '<div class="menu-custom-left">' + (window.ListUtils ? window.ListUtils.renderListIcon(list.icon, 'fas fa-list') : '<i class="fas fa-list"></i>') + '<span>' + escapeHtml(list.name || list.title) + '</span></div><span class="menu-custom-state">' + (isInList ? 'saved' : 'add') + '</span>';
           btn.addEventListener('click', async () => {
             btn.setAttribute('aria-busy', 'true');
             try {
@@ -645,6 +592,8 @@
     toggleQuickList: toggleQuickList
   };
 })();
+
+
 
 
 
