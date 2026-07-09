@@ -13,10 +13,15 @@
       return;
     }
     
-    const card = triggerEl.closest('.card, .media-card, .list-item') || triggerEl;
+    const card = triggerEl.closest('.card, .media-card, .list-item, .rail-card, .poster-card, [data-item-id], [data-id]') || triggerEl;
     
-    let itemId = card.getAttribute('data-item-id') || card.getAttribute('data-id');
-    let mediaType = card.getAttribute('data-media-type');
+    let itemId = card.getAttribute('data-item-id') || card.getAttribute('data-id') || card.getAttribute('data-list-id');
+    let mediaType = card.getAttribute('data-media-type') || card.getAttribute('data-type') || card.getAttribute('data-kind');
+
+    if (!itemId) {
+      const btn = triggerEl.closest('[data-item-id], [data-id]');
+      if (btn) itemId = btn.getAttribute('data-item-id') || btn.getAttribute('data-id');
+    }
 
     if (!itemId && _bridge && typeof _bridge.getVisibleItemIds === 'function') {
       const ids = _bridge.getVisibleItemIds();
@@ -409,8 +414,8 @@
         animation: menuModalFlyUp 0.2s cubic-bezier(0.22, 1, 0.36, 1);
       }
       @keyframes menuModalFlyUp {
-        from { opacity: 0; transform: translateY(12px) scale(0.97); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+        from { opacity: 0; transform: translate(-50%, -50%) translateY(12px) scale(0.97); }
+        to { opacity: 1; transform: translate(-50%, -50%) translateY(0) scale(1); }
       }
       .list-menu-header {
         display: flex;
@@ -554,17 +559,10 @@
     const menu = document.createElement('div');
     menu.className = 'list-menu';
     
-    // Position menu near the button/card
-    const rect = cardEl.getBoundingClientRect();
-    let top = rect.bottom + 6;
-    let left = rect.left;
-    if (left + 320 > window.innerWidth) left = window.innerWidth - 330;
-    if (left < 10) left = 10;
-    if (top + 280 > window.innerHeight) top = rect.top - 280;
-    if (top < 10) top = 10;
-    
-    menu.style.top = top + 'px';
-    menu.style.left = left + 'px';
+    // Center menu in viewport
+    menu.style.top = '50%';
+    menu.style.left = '50%';
+    menu.style.transform = 'translate(-50%, -50%)';
     
     const rows = QUICK_ROWS_BY_TYPE[mediaType] || [];
     
@@ -584,8 +582,13 @@
     
     let titleStr = '';
     if (cardEl) {
-      const titleEl = cardEl.querySelector('.card-title, .title, .media-title');
+      const titleEl = cardEl.querySelector('.card-title, .title, .media-title, h2, h3');
       if (titleEl) titleStr = titleEl.textContent.trim();
+      if (!titleStr) titleStr = cardEl.getAttribute('data-title') || cardEl.getAttribute('title') || '';
+      if (!titleStr) {
+        const inner = cardEl.querySelector('img');
+        if (inner) titleStr = inner.getAttribute('alt') || '';
+      }
     }
     if (!titleStr) {
       const h1 = document.querySelector('h1');
@@ -610,11 +613,60 @@
     
     html += `<div class="list-menu-custom-section">`;
     html += `<div class="list-menu-custom-header">your custom lists</div>`;
+    html += `<div class="list-menu-custom-lists" id="unifiedListMenuCustomLists"></div>`;
     html += `</div>`;
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
     activeMenuEl = menu;
+    
+    // Load and render custom lists
+    (async () => {
+      const customContainer = menu.querySelector('#unifiedListMenuCustomLists');
+      if (!customContainer) return;
+      try {
+        const lists = await loadCustomLists(mediaType);
+        if (!lists.length) {
+          customContainer.innerHTML = '<div style="color:var(--muted,#8ca3c7);font-size:13px;padding:4px 0;">No custom lists yet.</div>';
+          return;
+        }
+        const listIds = lists.map(l => l.id);
+        const membership = client
+          ? await window.ListUtils.loadCustomListMembership(client, user.id, mediaType, itemId, listIds)
+          : new Set();
+        customContainer.innerHTML = '';
+        lists.forEach(list => {
+          const isInList = membership.has(list.id);
+          const btn = document.createElement('button');
+          btn.className = 'list-action' + (isInList ? ' active' : '');
+          btn.innerHTML = `
+            <div class="list-action-left">${renderListIcon(list.icon)}<span>${escapeHtml(list.name || list.title)}</span></div>
+            <span class="list-action-state">${isInList ? 'Saved' : 'Add'}</span>
+          `;
+          btn.addEventListener('click', async () => {
+            btn.setAttribute('aria-busy', 'true');
+            try {
+              if (isInList) {
+                await window.ListUtils.removeItemFromList(client, user.id, mediaType, itemId, list.id);
+                btn.classList.remove('active');
+                btn.querySelector('.list-action-state').textContent = 'Add';
+              } else {
+                await window.ListUtils.addItemToList(client, user.id, mediaType, itemId, list.id);
+                btn.classList.add('active');
+                btn.querySelector('.list-action-state').textContent = 'Saved';
+              }
+            } catch (err) {
+              console.error('Custom list toggle error:', err);
+              showToast('Could not update list', 'error');
+            }
+            btn.setAttribute('aria-busy', 'false');
+          });
+          customContainer.appendChild(btn);
+        });
+      } catch (err) {
+        console.error('Failed to load custom lists:', err);
+      }
+    })();
     
     const closeMenu = () => {
       menu.remove();
