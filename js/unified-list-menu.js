@@ -396,181 +396,135 @@
     style.id = 'unifiedListMenuStyles';
     style.textContent = `
       .list-menu {
-        position: fixed !important;
-        top: 50% !important;
-        left: 50% !important;
-        right: auto !important;
-        bottom: auto !important;
-        transform: translate(-50%, -50%) !important;
-        z-index: 10000 !important;
+        position: fixed;
+        z-index: 4500;
         background: var(--card, #132347);
         border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-        border-radius: 20px;
-        padding: 0;
-        width: 100%;
-        max-width: 380px;
-        max-height: 80vh;
+        border-radius: 16px;
+        padding: 14px 14px 12px;
+        width: min(92vw, 320px);
+        max-height: 70vh;
         overflow-y: auto;
-        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
-        animation: menuModalFlyUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+        box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+        animation: menuModalFlyUp 0.2s cubic-bezier(0.22, 1, 0.36, 1);
       }
       @keyframes menuModalFlyUp {
-        from { opacity: 0; transform: translate(-50%, calc(-50% + 24px)) scale(0.98); }
-        to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        from { opacity: 0; transform: translateY(12px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
       }
       .list-menu-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 20px;
-        border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+        padding: 0 2px 10px;
       }
       .list-menu-title {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
         color: var(--white, #fff);
         margin: 0;
+        line-height: 1.2;
       }
       .list-menu-close {
         background: transparent;
         border: none;
         color: var(--muted, #8ca3c7);
-        font-size: 24px;
+        font-size: 18px;
         cursor: pointer;
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        transition: all 0.2s;
+        border-radius: 6px;
+        transition: all 0.15s;
+        flex-shrink: 0;
       }
       .list-menu-close:hover {
-        background: rgba(255, 255, 255, 0.1);
         color: var(--white, #fff);
       }
       .list-menu-body {
-        padding: 16px 20px;
+        padding: 0;
       }
       .list-menu-quick-lists {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        margin-bottom: 20px;
+        gap: 6px;
       }
       .list-menu .list-action {
         width: 100%;
         border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-        background: var(--card-2, #172b58);
+        background: transparent;
         color: var(--text, #fff);
         border-radius: 12px;
-        padding: 12px 16px;
+        padding: 10px 12px;
         font-size: 14px;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        transition: background-color 0.18s, border-color 0.18s, transform 0.12s, box-shadow 0.18s, opacity 0.18s;
-        margin-bottom: 0;
-        min-height: 48px;
+        gap: 10px;
+        transition: border-color 0.18s, background-color 0.18s;
+        min-height: 42px;
         font: inherit;
         text-align: left;
         appearance: none;
         -webkit-appearance: none;
         -webkit-tap-highlight-color: transparent;
         user-select: none;
-        position: relative;
-        overflow: hidden;
-        will-change: transform;
       }
       .list-menu .list-action:last-child { margin-bottom: 0; }
       .list-menu .list-action:hover {
         border-color: var(--accent, #f59e0b);
-        background: rgba(245, 158, 11, 0.1);
       }
       .list-menu .list-action:active {
         transform: scale(0.985);
       }
       .list-menu .list-action.active {
         border-color: var(--accent, #f59e0b);
-        background: rgba(245, 158, 11, 0.15);
-      }
-      .list-menu .list-action[aria-busy="true"] {
-        opacity: 0.72;
-        pointer-events: none;
+        background: rgba(245, 158, 11, 0.12);
       }
       .list-action-left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
       }
       .list-action-left i {
-        width: 20px;
+        width: 18px;
         color: var(--accent, #f59e0b);
+        font-size: 14px;
+        text-align: center;
       }
       .list-action-left span {
         font-weight: 500;
         color: var(--white, #fff);
+        font-size: 14px;
       }
       .list-action-state {
         color: var(--accent, #f59e0b);
         font-size: 13px;
         font-weight: 600;
-        transition: transform 0.18s, opacity 0.18s;
-      }
-      .list-menu .list-action.active .list-action-state {
-        transform: translateY(-0.5px);
       }
       .list-menu-custom-section {
-        border-top: 1px solid var(--border, rgba(255, 255, 255, 0.12));
-        padding-top: 16px;
+        border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+        margin-top: 10px;
+        padding-top: 10px;
       }
       .list-menu-custom-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
         color: var(--muted, #8ca3c7);
-        font-size: 14px;
+        font-size: 13px;
+        margin-bottom: 8px;
       }
       .list-menu-custom-lists {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        max-height: 200px;
-        overflow-y: auto;
+        gap: 6px;
       }
       .unified-list-menu-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(5px);
-        z-index: 9999;
-      }
-      @media (max-width: 768px) {
-        .list-menu {
-          width: calc(100vw - 14px) !important;
-          max-width: 100vw !important;
-          max-height: min(80dvh, 740px) !important;
-          border-radius: 18px !important;
-        }
-        .list-menu-header { padding: 14px 16px; }
-        .list-menu-title { font-size: 17px; }
-        .list-menu-close { width: 40px; height: 40px; font-size: 26px; }
-        .list-menu-body { padding: 12px 14px 16px; }
-        .list-menu-quick-lists, .list-menu-custom-lists { gap: 10px; }
-        .list-menu-custom-lists { max-height: min(38dvh, 340px); }
-        .list-menu .list-action { min-height: 48px; padding: 12px 14px; border-radius: 13px; }
-        .list-action-left span { font-size: 15px; }
-      }
-      @media (pointer: coarse) {
-        .list-menu .list-action { min-height: 56px; }
-        .list-menu-close { width: 44px; height: 44px; }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .list-menu .list-action { transition: none !important; }
-        .list-action-state { transition: none !important; }
+        background: rgba(6, 12, 28, 0.55);
+        z-index: 4499;
       }
     `;
     document.head.appendChild(style);
@@ -598,14 +552,16 @@
     document.body.appendChild(backdrop);
     
     const menu = document.createElement('div');
-    menu.className = 'list-menu open';
+    menu.className = 'list-menu';
     
-    // Position menu near the button/card (only applies on desktop since mobile-app.css overrides this)
+    // Position menu near the button/card
     const rect = cardEl.getBoundingClientRect();
-    let top = rect.top + window.scrollY + 40;
-    let left = rect.right - 180;
+    let top = rect.bottom + 6;
+    let left = rect.left;
+    if (left + 320 > window.innerWidth) left = window.innerWidth - 330;
     if (left < 10) left = 10;
-    if (top + 200 > window.innerHeight + window.scrollY) top = rect.top + window.scrollY - 200;
+    if (top + 280 > window.innerHeight) top = rect.top - 280;
+    if (top < 10) top = 10;
     
     menu.style.top = top + 'px';
     menu.style.left = left + 'px';
@@ -638,11 +594,9 @@
     
     let html = '';
     html += `<div class="list-menu-header">`;
-    html += `<h3 class="list-menu-title">${escapeHtml(titleStr || 'Add to List')}</h3>`;
+    html += `<div class="list-menu-title">${escapeHtml(titleStr || 'Add to List')}</div>`;
     html += `<button class="list-menu-close" id="unifiedListMenuCloseBtn" aria-label="Close">&times;</button>`;
     html += `</div>`;
-    html += `<div class="list-menu-body">`;
-    html += `<div class="list-menu-quick-lists">`;
     
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
@@ -654,15 +608,9 @@
       `;
     });
     
-    html += `</div>`;
     html += `<div class="list-menu-custom-section">`;
-    html += `<div class="list-menu-custom-header"><span>Your Custom Lists</span></div>`;
-    html += `<div class="list-menu-custom-lists">`;
-    html += `<button class="list-action" data-list="custom">`;
-    html += `<div class="list-action-left"><i class="fas fa-list"></i><span>Manage custom lists</span></div>`;
-    html += `<span class="list-action-state">Open</span>`;
-    html += `</button>`;
-    html += `</div></div></div>`;
+    html += `<div class="list-menu-custom-header">your custom lists</div>`;
+    html += `</div>`;
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
