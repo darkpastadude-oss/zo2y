@@ -393,59 +393,61 @@
   }
   
   /* QUICK LISTS MENU (Popup) */
-  let activeMenuEl = null;
+  
 
   function injectMenuStyles() {
-    if (document.getElementById('unifiedListMenuStyles')) return;
-    const style = document.createElement('style');
-    style.id = 'unifiedListMenuStyles';
-    style.textContent = `
-      .unified-list-menu {
-        position: absolute;
-        z-index: 1000;
-        background: var(--card, #0a1122);
-        border: 1px solid var(--border, rgba(255,255,255,0.1));
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        min-width: 220px;
-        overflow: hidden;
-        animation: fadeIn 0.15s ease-out;
-      }
-      .unified-list-menu .list-action {
-        width: 100%;
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: transparent;
-        border: none;
-        color: var(--white, #fff);
-        font-size: 14px;
-        cursor: pointer;
-        text-align: left;
-        transition: background 0.2s, color 0.2s;
-      }
-      .unified-list-menu .list-action:hover {
-        background: rgba(255,255,255,0.1);
-      }
-      .unified-list-menu .list-action.active {
-        color: var(--accent, #f59e0b);
-        font-weight: 600;
-      }
-      .unified-list-menu-backdrop {
-        position: fixed;
-        inset: 0;
-        z-index: 999;
-      }
+    if (document.getElementById('unifiedListMenuStyles10111d3')) return;
+    const s = document.createElement('style');
+    s.id = 'unifiedListMenuStyles10111d3';
+    s.textContent = `
+      .menu-modal{display:flex;align-items:center;justify-content:center;position:fixed;inset:0;background:rgba(3,10,28,.65);backdrop-filter:blur(4px);z-index:999999;opacity:0;pointer-events:none;transition:opacity .2s;padding:20px}
+      .menu-modal.active{opacity:1;pointer-events:auto}
+      .menu-modal-content{background:var(--card,#060c1c);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:16px;width:100%;max-width:400px;box-shadow:0 12px 40px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);display:flex;flex-direction:column;overflow:hidden;transform:translateY(16px) scale(.98);transition:all .28s cubic-bezier(.2,.9,.2,1);will-change:transform,opacity}
+      .menu-modal.active .menu-modal-content{transform:translateY(0) scale(1)}
+      .menu-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border,rgba(255,255,255,.12))}
+      .menu-modal-header h3{font-size:18px;font-weight:600;color:var(--white,#fff);margin:0}
+      .menu-modal-close{background:transparent;border:none;color:var(--muted,#8ca3c7);font-size:24px;cursor:pointer;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
+      .menu-modal-close:hover{background:rgba(255,255,255,.1);color:var(--white,#fff)}
+      .menu-modal-body{padding:16px 20px}
+      .menu-quick-lists{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+      .menu-quick-item{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 16px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:12px;color:var(--text,#fff);cursor:pointer;font:inherit;text-align:left;appearance:none;-webkit-appearance:none;min-height:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;position:relative;overflow:hidden;transition:background-color .18s,border-color .18s,transform .12s,box-shadow .18s,opacity .18s;will-change:transform}
+      .menu-quick-item::after{content:"";position:absolute;inset:-35%;pointer-events:none;opacity:0;transform:scale(.4);background:radial-gradient(circle at 30% 30%,rgba(245,158,11,.35),rgba(245,158,11,0) 55%),radial-gradient(circle at 70% 40%,rgba(255,184,77,.28),rgba(255,184,77,0) 60%),radial-gradient(circle at 50% 80%,rgba(255,255,255,.12),rgba(255,255,255,0) 55%);filter:blur(0)}
+      .menu-quick-item:hover{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.1)}
+      .menu-quick-item:active{transform:scale(.985)}
+      .menu-quick-item:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(245,158,11,.22)}
+      .menu-quick-item.active{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.15)}
+      .menu-quick-item[aria-busy=true]{opacity:.72;pointer-events:none}
+      .menu-quick-left{display:flex;align-items:center;gap:12px}
+      .menu-quick-left i{width:20px;color:var(--accent,#f59e0b)}
+      .menu-quick-left span{font-weight:500;color:var(--white,#fff)}
+      .menu-quick-state{color:var(--accent,#f59e0b);font-size:13px;font-weight:600;transition:transform .18s,opacity .18s}
+      .menu-quick-item.active .menu-quick-state{transform:translateY(-.5px)}
+      .menu-custom-section{border-top:1px solid var(--border,rgba(255,255,255,.12));padding-top:16px}
+      .menu-custom-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:var(--muted,#8ca3c7);font-size:14px}
+      .menu-custom-lists{display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto}
+      .menu-custom-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:10px;cursor:pointer;transition:all .2s}
+      .menu-custom-item:hover{border-color:var(--accent,#f59e0b)}
+      .menu-custom-item.active{border-color:var(--accent,#f59e0b);background:rgba(245,158,11,.1)}
+      .menu-custom-item[aria-busy=true]{opacity:.82}
+      .menu-custom-left{display:flex;align-items:center;gap:10px}
+      .menu-custom-left i{width:18px;color:var(--accent,#f59e0b);font-size:14px}
+      .menu-custom-left span{font-size:14px;color:var(--white,#fff)}
+      .menu-custom-state{color:var(--accent,#f59e0b);font-size:12px;font-weight:600}
+      .menu-input{width:100%;padding:12px 16px;background:var(--card-2,#172b58);border:1px solid var(--border,rgba(255,255,255,.12));border-radius:12px;color:var(--white,#fff);font-size:14px;margin-bottom:16px}
+      .menu-input:focus{outline:none;border-color:var(--accent,#f59e0b)}
+      .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
+      @media(max-width:768px){.menu-modal{align-items:center;justify-content:center;background:rgba(3,10,28,.8);backdrop-filter:blur(8px)}.menu-modal-content{position:absolute;top:50%;left:50%;width:calc(100vw - 14px);max-width:100vw;max-height:min(80dvh,740px);border-radius:18px;transform:translate(-50%,-50%)}.menu-modal-header{padding:14px 16px}.menu-modal-header h3{font-size:17px}.menu-modal-close{width:40px;height:40px;font-size:26px}.menu-modal-body{padding:12px 14px 16px}.menu-quick-lists,.menu-custom-lists{gap:10px}.menu-custom-lists{max-height:min(38dvh,340px)}.menu-quick-item,.menu-custom-item{min-height:48px;padding:12px 14px;border-radius:13px}.menu-quick-left span,.menu-custom-left span{font-size:15px}}
+      @media(pointer:coarse){.menu-quick-item,.menu-custom-item{min-height:56px}.menu-modal-close{width:44px;height:44px}}
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(s);
   }
+
+  let activeMenuEl = null;
 
   async function openQuickListMenu(cardEl, itemId, mediaType) {
     if (activeMenuEl) {
       activeMenuEl.remove();
-      const b = document.getElementById('unifiedListMenuBackdrop');
-      if (b) b.remove();
+      activeMenuEl = null;
     }
     
     const user = await ensureUser();
@@ -457,27 +459,11 @@
     
     injectMenuStyles();
     
-    const backdrop = document.createElement('div');
-    backdrop.id = 'unifiedListMenuBackdrop';
-    backdrop.className = 'unified-list-menu-backdrop';
-    document.body.appendChild(backdrop);
-    
     const menu = document.createElement('div');
-    menu.className = 'unified-list-menu';
+    menu.id = 'unifiedListMenuModal';
+    menu.className = 'menu-modal active';
+    menu.setAttribute('aria-hidden', 'false');
     
-    // Position menu near the button/card
-    const rect = cardEl ? cardEl.getBoundingClientRect() : { top: window.innerHeight / 2, right: window.innerWidth / 2 };
-    let top = rect.top + window.scrollY + 40;
-    let left = rect.right - 180;
-    if (left < 10) left = 10;
-    if (top + 200 > window.innerHeight + window.scrollY) top = rect.top + window.scrollY - 200;
-    
-    menu.style.top = top + 'px';
-    menu.style.left = left + 'px';
-    
-    const rows = QUICK_ROWS_BY_TYPE[mediaType] || [];
-    
-    // Load current status using ONLY list_items
     let statusMap = {};
     const client = await ensureClient();
     if (client) {
@@ -491,52 +477,126 @@
       }
     }
     
+    let titleStr = '';
+    if (cardEl) {
+      const titleEl = cardEl.querySelector('.card-title, .title, .media-title, h2, h3');
+      if (titleEl) titleStr = titleEl.textContent.trim();
+      if (!titleStr) titleStr = cardEl.getAttribute('data-title') || cardEl.getAttribute('title') || '';
+      if (!titleStr) {
+        const inner = cardEl.querySelector('img');
+        if (inner) titleStr = inner.getAttribute('alt') || '';
+      }
+    }
+    if (!titleStr) {
+      const h1 = document.querySelector('h1');
+      if (h1) titleStr = h1.textContent.trim();
+    }
+    
+    const rows = QUICK_ROWS_BY_TYPE[mediaType] || [];
+    
     let html = '';
+    html += '<div class="menu-modal-content">';
+    html += '  <div class="menu-modal-header">';
+    html += '    <h3 id="menuModalTitle">' + escapeHtml(titleStr || 'Add to List') + '</h3>';
+    html += '    <button class="menu-modal-close" id="unifiedListMenuCloseBtn" aria-label="Close">&times;</button>';
+    html += '  </div>';
+    html += '  <div class="menu-modal-body" id="menuModalBody">';
+    
+    html += '    <div class="menu-quick-lists" id="menuQuickLists">';
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
-      html += `
-        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}">
-          <i class="${escapeHtml(r.icon)}"></i> 
-          <span>${escapeHtml(r.label)}</span>
-        </button>
-      `;
+      html += '<button type="button" class="menu-quick-item ' + (isActive ? 'active' : '') + '" data-list="' + escapeHtml(r.key) + '" aria-busy="false">';
+      html += '  <div class="menu-quick-left"><i class="' + escapeHtml(r.icon) + '"></i><span>' + escapeHtml(r.label) + '</span></div>';
+      html += '  <span class="menu-quick-state">' + (isActive ? 'saved' : 'add') + '</span>';
+      html += '</button>';
     });
+    html += '    </div>';
     
-    html += `
-      <div style="height:1px; background:rgba(255,255,255,0.1); margin: 4px 0;"></div>
-      <button class="list-action" data-list="custom">
-        <i class="fas fa-list"></i> <span>Custom Lists...</span>
-      </button>
-    `;
+    html += '    <div class="menu-custom-section">';
+    html += '      <div class="menu-custom-header"><span>your custom lists</span></div>';
+    html += '      <div class="menu-custom-lists" id="unifiedListMenuCustomLists"></div>';
+    html += '    </div>';
+    
+    html += '  </div>';
+    html += '</div>';
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
     activeMenuEl = menu;
     
+    (async () => {
+      const customContainer = menu.querySelector('#unifiedListMenuCustomLists');
+      if (!customContainer) return;
+      try {
+        const lists = await loadCustomLists(mediaType);
+        if (!lists.length) {
+          customContainer.innerHTML = '<div style="color:var(--muted,#8ca3c7);font-size:13px;padding:4px 0;">No custom lists yet.</div>';
+          return;
+        }
+        const listIds = lists.map(l => l.id);
+        const membership = client
+          ? await window.ListUtils.loadCustomListMembership(client, user.id, mediaType, itemId, listIds)
+          : new Set();
+        customContainer.innerHTML = '';
+        lists.forEach(list => {
+          const isInList = membership.has(list.id);
+          const btn = document.createElement('button');
+          btn.className = 'menu-custom-item' + (isInList ? ' active' : '');
+          btn.innerHTML = '<div class="menu-custom-left">' + renderListIcon(list.icon) + '<span>' + escapeHtml(list.name || list.title) + '</span></div><span class="menu-custom-state">' + (isInList ? 'saved' : 'add') + '</span>';
+          btn.addEventListener('click', async () => {
+            btn.setAttribute('aria-busy', 'true');
+            try {
+              if (isInList) {
+                await window.ListUtils.removeItemFromList(client, user.id, mediaType, itemId, list.id);
+                btn.classList.remove('active');
+                btn.querySelector('.menu-custom-state').textContent = 'add';
+                membership.delete(list.id);
+              } else {
+                await window.ListUtils.addItemToList(client, user.id, mediaType, itemId, list.id);
+                btn.classList.add('active');
+                btn.querySelector('.menu-custom-state').textContent = 'saved';
+                membership.add(list.id);
+              }
+            } catch (err) {
+              console.error('Custom list toggle error:', err);
+              showToast('Could not update list', 'error');
+            }
+            btn.setAttribute('aria-busy', 'false');
+          });
+          customContainer.appendChild(btn);
+        });
+      } catch (err) {
+        console.error('Failed to load custom lists:', err);
+      }
+    })();
+    
     const closeMenu = () => {
-      menu.remove();
-      backdrop.remove();
+      if (activeMenuEl) activeMenuEl.remove();
       activeMenuEl = null;
     };
     
-    backdrop.addEventListener('click', closeMenu);
+    menu.addEventListener('click', (e) => {
+      if (e.target === menu) closeMenu();
+    });
     
-    menu.querySelectorAll('.list-action').forEach(btn => {
+    const closeBtn = document.getElementById('unifiedListMenuCloseBtn');
+    if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+    
+    menu.querySelectorAll('.menu-quick-item').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const listType = btn.getAttribute('data-list');
-        closeMenu();
-        if (listType === 'custom') {
-          openListsModal(itemId, mediaType);
-        } else {
-          // Toggle Quick List
-          const isAdding = !statusMap[listType];
-          await toggleQuickList(itemId, mediaType, listType, isAdding);
-        }
+        
+        const isActive = btn.classList.contains('active');
+        const nextActive = !isActive;
+        btn.classList.toggle('active', nextActive);
+        btn.querySelector('.menu-quick-state').textContent = nextActive ? 'saved' : 'add';
+        
+        await toggleQuickList(itemId, mediaType, listType, nextActive);
       });
     });
   }
-  
+
   async function toggleQuickList(itemId, mediaType, listType, isAdding) {
     const client = await ensureClient();
     const user = await ensureUser();
@@ -585,3 +645,6 @@
     toggleQuickList: toggleQuickList
   };
 })();
+
+
+
