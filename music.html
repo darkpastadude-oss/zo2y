@@ -418,13 +418,12 @@
             <span class="card-type"><i class="fa-solid fa-microphone"></i> Artist</span>
             <div class="card-meta-top">
               <p class="card-name">${escapeHtml(item.name)}</p>
+              <div class="card-menu-wrap">
+                <button class="card-menu-btn authenticated-only" type="button" aria-label="Open list menu" onclick="window.openIndexStyleListMenu(this); event.preventDefault(); event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
             </div>
             <p class="card-sub">${escapeHtml(item.subtitle)}</p>
             <p class="card-extra">${escapeHtml(getMusicCardExtra(item))}</p>
-            <div class="card-actions">
-              <span></span>
-              <button class="menu-btn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-            </div>
           </div>
         </article>
       `;
@@ -473,7 +472,7 @@
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
           
-          if (e.target.closest('.menu-btn')) {
+          if (e.target.closest('.card-menu-btn')) {
             e.preventDefault();
             e.stopPropagation();
             if (typeof window.openIndexStyleListMenu === 'function') {

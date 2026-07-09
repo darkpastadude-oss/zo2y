@@ -442,7 +442,32 @@
             }
             state.allMovies = movies;
           } else {
-            movies = state.allMovies;
+            const nextPage = Math.floor(state.offset / TMDB_PAGE_SIZE) + 1;
+            if (nextPage <= 500) {
+              const variations = getQueryVariations(query);
+              const pool = [];
+              for (const variation of variations) {
+                for (let p = nextPage; p <= Math.min(nextPage + 9, 500); p += 1) {
+                  try {
+                    const url = `${TMDB_PROXY_BASE}/search/multi?query=${encodeURIComponent(variation)}&page=${p}`;
+                    const res = await fetch(url);
+                    if (!res.ok) break;
+                    const json = await res.json();
+                    if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                    apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                    const results = Array.isArray(json?.results) ? json.results : [];
+                    const movieResults = results.filter((item) => item.media_type === 'movie');
+                    pool.push(...movieResults);
+                    if (!results.length || p >= apiTotalPages) break;
+                  } catch (_) { break; }
+                }
+                if (pool.length) break;
+              }
+              state.allMovies = state.allMovies.concat(pool);
+              movies = state.allMovies;
+            } else {
+              movies = state.allMovies;
+            }
           }
         } else {
           if (!append) {
@@ -470,6 +495,30 @@
             state.allMovies = pool;
             movies = pool;
           } else {
+            const startPage = Math.floor(state.offset / TMDB_PAGE_SIZE) + 1;
+            const endPage = startPage + 9;
+            const params = new URLSearchParams({ language: 'en-US', page: String(startPage) });
+            if (state.genre) params.set('with_genres', state.genre);
+            if (state.year) params.set('primary_release_year', state.year);
+            if (state.sort === 'released') params.set('sort_by', 'primary_release_date.desc');
+            else if (state.sort === 'name') params.set('sort_by', 'original_title.asc');
+            else params.set('sort_by', 'popularity.desc');
+            const pool = [];
+            for (let p = startPage; p <= endPage; p += 1) {
+              params.set('page', String(p));
+              try {
+                const url = `${TMDB_PROXY_BASE}/discover/movie?${params.toString()}`;
+                const res = await fetch(url);
+                if (!res.ok) break;
+                const json = await res.json();
+                if (apiTotalResults == null) apiTotalResults = Number(json?.total_results ?? null);
+                apiTotalPages = json?.total_pages || apiTotalPages || 1;
+                const batch = Array.isArray(json?.results) ? json.results : [];
+                pool.push(...batch);
+                if (!batch.length || p >= apiTotalPages) break;
+              } catch (_) { break; }
+            }
+            state.allMovies = state.allMovies.concat(pool);
             movies = state.allMovies;
           }
         }
@@ -499,7 +548,11 @@
         state.movies = filtered.slice(0, MOVIES_PAGE_SIZE);
         state.offset = state.movies.length;
       } else {
-        state.totalItems = state.totalItems || filtered.length;
+        if (Number.isFinite(apiTotalResults) && apiTotalResults > 0) {
+          state.totalItems = apiTotalResults;
+        } else {
+          state.totalItems = Math.max(state.totalItems, filtered.length);
+        }
         const newItems = filtered.slice(state.offset, state.offset + MOVIES_PAGE_SIZE);
         state.movies = state.movies.concat(newItems);
         state.offset = state.movies.length;
@@ -669,12 +722,12 @@
             <span class="card-type"><i class="fa-solid fa-film"></i> Movie</span>
             <div class="card-meta-top">
               <p class="card-name">${escapeHtml(movie.title)}</p>
+              <div class="card-menu-wrap">
+                <button class="card-menu-btn authenticated-only" type="button" aria-label="Open list menu" onclick="window.openIndexStyleListMenu(this); event.preventDefault(); event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
             </div>
             <p class="card-sub">${escapeHtml(movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'TBD')}</p>
             <p class="card-extra">${escapeHtml(getMovieCardExtra(movie))}</p>
-            <div class="card-actions">
-              <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-            </div>
           </div>
         </article>
       `;
@@ -762,7 +815,7 @@
     }
 
     function wireGridActions() {
-      document.querySelectorAll('.menu-btn').forEach((btn) => {
+      document.querySelectorAll('.card-menu-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           const card = btn.closest('.card');
@@ -775,7 +828,7 @@
 
       document.querySelectorAll('.card').forEach((card) => {
         card.addEventListener('click', (e) => {
-          if (e.target.closest('.menu-btn')) return;
+          if (e.target.closest('.card-menu-btn')) return;
           const id = String(card.getAttribute('data-id') || '').trim();
           if (!id) return;
           window.location.href = `movie.html?id=${encodeURIComponent(id)}`;

@@ -334,6 +334,9 @@ body.authenticated .authenticated-only { display: block; }
     top: 8px;
     right: 10px;
   }
+  .grid .card-menu-wrap {
+    flex-shrink: 0;
+  }
 }
 @media (max-width: 600px) {
   .grid {
