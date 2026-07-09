@@ -36,7 +36,6 @@ const LOGIN_LOCKOUT_THRESHOLD = 8;
 const LOGIN_LOCKOUT_MS = 15 * 60_000;
 
 const MIN_RESPONSE_DELAY_MS = 220;
-const MAX_RESPONSE_DELAY_MS = 480;
 
 function nowMs() { return Date.now(); }
 
@@ -135,13 +134,12 @@ function jsonResponse(res, status, body, req) {
 }
 
 async function constantTimeResponse(responder) {
-  // Pad responses to a fixed-ish window so timing-based email
-  // enumeration is harder.
+  // Pad responses to a minimum window so timing-based email
+  // enumeration is harder. Always wait for the responder to complete
+  // first — never race it against a short timeout, otherwise the real
+  // response gets discarded and the client sees a generic error.
   const startedAt = nowMs();
-  const result = await Promise.race([
-    Promise.resolve().then(responder),
-    new Promise((resolve) => setTimeout(() => resolve({ status: 200, body: { ok: true, padded: true } }), MAX_RESPONSE_DELAY_MS))
-  ]);
+  const result = await Promise.resolve().then(responder);
   const elapsed = nowMs() - startedAt;
   const remaining = Math.max(0, MIN_RESPONSE_DELAY_MS - elapsed);
   await new Promise((resolve) => setTimeout(resolve, remaining));
