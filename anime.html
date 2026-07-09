@@ -1076,6 +1076,9 @@
         if (backdropPath) {
           config.backdropUrl = buildBackdropUrl(backdropPath, 'original');
         }
+        if (!config.backdropUrl) {
+          config.backdropUrl = 'images/anime-hero.jpg';
+        }
         if (data.poster_path) {
           config.posterUrl = buildBackdropUrl(data.poster_path, 'w500');
         }

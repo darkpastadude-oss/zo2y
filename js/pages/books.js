@@ -221,12 +221,14 @@ function renderGrid(append) {
         </div>
         <div class="card-meta">
           <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
-          <div class="card-meta-top"><p class="card-name">${escapeHtml(b.title)}</p></div>
+          <div class="card-meta-top">
+            <p class="card-name">${escapeHtml(b.title)}</p>
+            <div class="card-menu-wrap">
+              <button class="card-menu-btn" type="button" aria-label="Open list menu" onclick="window.openIndexStyleListMenu(this); event.preventDefault(); event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+          </div>
           <p class="card-sub">${escapeHtml(b.author || b.authors || "Unknown Author")}</p>
           <p class="card-extra">${b.year ? escapeHtml(String(b.year)) : ""}${b.pageCount ? ` | ${b.pageCount} pages` : ""}</p>
-          <div class="card-actions">
-            <button class="icon-btn menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-          </div>
         </div>
       </article>
     `;
@@ -328,7 +330,7 @@ function initMenuBridge() {
       notify: function (msg, isErr) { showToast(msg, !!isErr); }
     });
     document.body.addEventListener("click", e => {
-      const btn = e.target.closest(".menu-btn");
+      const btn = e.target.closest(".card-menu-btn");
       if (btn) {
         e.preventDefault();
         e.stopPropagation();
