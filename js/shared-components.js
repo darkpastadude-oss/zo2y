@@ -125,7 +125,7 @@
 
   function init() {
     const path = location.pathname;
-    const isAuthPage = /\/(sign-up|login|auth-callback)\.html$/.test(path);
+    const isAuthPage = /\/(sign-up|login|auth-callback|onboarding|update-password)\.html$/.test(path);
     if (!isAuthPage) injectFooter();
     injectItemMenuModal();
     injectToastContainer();
