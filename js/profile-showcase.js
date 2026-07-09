@@ -222,6 +222,7 @@ const ProfileShowcase = (function () {
                 .from(table)
                 .select('*')
                 .eq('user_id', userId)
+                .eq('media_type', mediaType)
                 .order('display_order', { ascending: true });
             if (data) {
                 for (const list of data) {
