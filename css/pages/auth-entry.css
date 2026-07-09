@@ -530,3 +530,10 @@ body[data-auth-variant]::before {
 .auth-consent-row a:hover {
   border-bottom-style: solid;
 }
+
+.zo2y-footer,
+.zo2y-footer-inner,
+.zo2y-footer-brand,
+.zo2y-footer-links {
+  display: none !important;
+}
