@@ -551,8 +551,21 @@ async function handlePasswordSignup(req, res) {
         });
       } catch (emailErr) {
         // eslint-disable-next-line no-console
-        console.error("verification_email_failed", String(emailErr?.message || emailErr));
+        console.error("verification_email_failed", {
+          message: String(emailErr?.message || emailErr),
+          has_resend_key: Boolean(process.env.RESEND_API_KEY),
+          email_from: String(process.env.EMAIL_FROM || "").slice(0, 50),
+          has_action_link: Boolean(actionLink)
+        });
       }
+    } else {
+      // eslint-disable-next-line no-console
+      console.error("verification_email_skipped", {
+        has_action_link: Boolean(actionLink),
+        email_configured: emailConfigured(),
+        has_resend_key: Boolean(process.env.RESEND_API_KEY),
+        email_from: String(process.env.EMAIL_FROM || "").slice(0, 50)
+      });
     }
 
     await logAudit("signup_success", "ok", req, {
