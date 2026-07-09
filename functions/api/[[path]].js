@@ -42,6 +42,7 @@ const ROUTE_HANDLERS = new Map([
   ["health", healthHandler],
   ["home-feed", homeFeedHandler],
   ["igdb", igdbHandler],
+  ["igdb-handler", igdbHandler],
   ["logo", logoHandler],
   ["music", musicHandler],
   ["openlibrary", openlibraryHandler],

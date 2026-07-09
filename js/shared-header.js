@@ -963,7 +963,12 @@ const HEADER_HTML = `
       setTimeout(onTransitionEnd, 300);
     };
 
-    const closeDrawer = () => setDrawerState(false);
+    const closeDrawer = () => {
+      if (document.activeElement && drawer.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+      setDrawerState(false);
+    };
 
     menuBtn.addEventListener('click', () => {
       const open = drawer.classList.contains('open');
