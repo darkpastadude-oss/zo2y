@@ -395,6 +395,52 @@
   /* QUICK LISTS MENU (Popup) */
   let activeMenuEl = null;
 
+  function injectMenuStyles() {
+    if (document.getElementById('unifiedListMenuStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'unifiedListMenuStyles';
+    style.textContent = `
+      .unified-list-menu {
+        position: absolute;
+        z-index: 1000;
+        background: var(--card, #0a1122);
+        border: 1px solid var(--border, rgba(255,255,255,0.1));
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        min-width: 220px;
+        overflow: hidden;
+        animation: fadeIn 0.15s ease-out;
+      }
+      .unified-list-menu .list-action {
+        width: 100%;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: transparent;
+        border: none;
+        color: var(--white, #fff);
+        font-size: 14px;
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.2s, color 0.2s;
+      }
+      .unified-list-menu .list-action:hover {
+        background: rgba(255,255,255,0.1);
+      }
+      .unified-list-menu .list-action.active {
+        color: var(--accent, #f59e0b);
+        font-weight: 600;
+      }
+      .unified-list-menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   async function openQuickListMenu(cardEl, itemId, mediaType) {
     if (activeMenuEl) {
       activeMenuEl.remove();
@@ -409,18 +455,25 @@
       return;
     }
     
+    injectMenuStyles();
+    
     const backdrop = document.createElement('div');
     backdrop.id = 'unifiedListMenuBackdrop';
-    backdrop.className = 'unified-list-menu-backdrop list-menu-backdrop active';
+    backdrop.className = 'unified-list-menu-backdrop';
     document.body.appendChild(backdrop);
     
     const menu = document.createElement('div');
-    menu.className = 'list-menu';
+    menu.className = 'unified-list-menu';
     
-    // Center menu in viewport
-    menu.style.top = '50%';
-    menu.style.left = '50%';
-    menu.style.transform = 'translate(-50%, -50%)';
+    // Position menu near the button/card
+    const rect = cardEl ? cardEl.getBoundingClientRect() : { top: window.innerHeight / 2, right: window.innerWidth / 2 };
+    let top = rect.top + window.scrollY + 40;
+    let left = rect.right - 180;
+    if (left < 10) left = 10;
+    if (top + 200 > window.innerHeight + window.scrollY) top = rect.top + window.scrollY - 200;
+    
+    menu.style.top = top + 'px';
+    menu.style.left = left + 'px';
     
     const rows = QUICK_ROWS_BY_TYPE[mediaType] || [];
     
@@ -438,93 +491,27 @@
       }
     }
     
-    let titleStr = '';
-    if (cardEl) {
-      const titleEl = cardEl.querySelector('.card-title, .title, .media-title, h2, h3');
-      if (titleEl) titleStr = titleEl.textContent.trim();
-      if (!titleStr) titleStr = cardEl.getAttribute('data-title') || cardEl.getAttribute('title') || '';
-      if (!titleStr) {
-        const inner = cardEl.querySelector('img');
-        if (inner) titleStr = inner.getAttribute('alt') || '';
-      }
-    }
-    if (!titleStr) {
-      const h1 = document.querySelector('h1');
-      if (h1) titleStr = h1.textContent.trim();
-    }
-    
     let html = '';
-    html += `<div class="list-menu-header">`;
-    html += `<div class="list-menu-title">${escapeHtml(titleStr || 'Add to List')}</div>`;
-    html += `<button class="list-menu-close" id="unifiedListMenuCloseBtn" aria-label="Close">&times;</button>`;
-    html += `</div>`;
-    
     rows.forEach(r => {
       const isActive = !!statusMap[r.key];
       html += `
-        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}" aria-busy="false">
-          <div class="list-action-left"><i class="${escapeHtml(r.icon)}"></i><span>${escapeHtml(r.label)}</span></div>
-          <span class="list-action-state">${isActive ? 'Saved' : 'Add'}</span>
+        <button class="list-action ${isActive ? 'active' : ''}" data-list="${escapeHtml(r.key)}">
+          <i class="${escapeHtml(r.icon)}"></i> 
+          <span>${escapeHtml(r.label)}</span>
         </button>
       `;
     });
     
-    html += `<div class="list-menu-custom-section">`;
-    html += `<div class="list-menu-custom-header">your custom lists</div>`;
-    html += `<div class="list-menu-custom-lists" id="unifiedListMenuCustomLists"></div>`;
-    html += `</div>`;
+    html += `
+      <div style="height:1px; background:rgba(255,255,255,0.1); margin: 4px 0;"></div>
+      <button class="list-action" data-list="custom">
+        <i class="fas fa-list"></i> <span>Custom Lists...</span>
+      </button>
+    `;
     
     menu.innerHTML = html;
     document.body.appendChild(menu);
     activeMenuEl = menu;
-    
-    // Load and render custom lists
-    (async () => {
-      const customContainer = menu.querySelector('#unifiedListMenuCustomLists');
-      if (!customContainer) return;
-      try {
-        const lists = await loadCustomLists(mediaType);
-        if (!lists.length) {
-          customContainer.innerHTML = '<div style="color:var(--muted,#8ca3c7);font-size:13px;padding:4px 0;">No custom lists yet.</div>';
-          return;
-        }
-        const listIds = lists.map(l => l.id);
-        const membership = client
-          ? await window.ListUtils.loadCustomListMembership(client, user.id, mediaType, itemId, listIds)
-          : new Set();
-        customContainer.innerHTML = '';
-        lists.forEach(list => {
-          const isInList = membership.has(list.id);
-          const btn = document.createElement('button');
-          btn.className = 'list-action' + (isInList ? ' active' : '');
-          btn.innerHTML = `
-            <div class="list-action-left">${renderListIcon(list.icon)}<span>${escapeHtml(list.name || list.title)}</span></div>
-            <span class="list-action-state">${isInList ? 'Saved' : 'Add'}</span>
-          `;
-          btn.addEventListener('click', async () => {
-            btn.setAttribute('aria-busy', 'true');
-            try {
-              if (isInList) {
-                await window.ListUtils.removeItemFromList(client, user.id, mediaType, itemId, list.id);
-                btn.classList.remove('active');
-                btn.querySelector('.list-action-state').textContent = 'Add';
-              } else {
-                await window.ListUtils.addItemToList(client, user.id, mediaType, itemId, list.id);
-                btn.classList.add('active');
-                btn.querySelector('.list-action-state').textContent = 'Saved';
-              }
-            } catch (err) {
-              console.error('Custom list toggle error:', err);
-              showToast('Could not update list', 'error');
-            }
-            btn.setAttribute('aria-busy', 'false');
-          });
-          customContainer.appendChild(btn);
-        });
-      } catch (err) {
-        console.error('Failed to load custom lists:', err);
-      }
-    })();
     
     const closeMenu = () => {
       menu.remove();
@@ -533,11 +520,6 @@
     };
     
     backdrop.addEventListener('click', closeMenu);
-    
-    const closeBtn = document.getElementById('unifiedListMenuCloseBtn');
-    if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-    const headerEl = menu.querySelector('.list-menu-header');
-    if (headerEl) headerEl.addEventListener('click', (e) => { if (e.target === headerEl) closeMenu(); });
     
     menu.querySelectorAll('.list-action').forEach(btn => {
       btn.addEventListener('click', async (e) => {
