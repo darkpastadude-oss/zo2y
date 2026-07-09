@@ -2,22 +2,6 @@
   const SITE_NAME = 'Zo2y';
   const COPY_YEAR = 2026;
 
-  const FOOTER_HTML = `
-    <footer class="zo2y-footer">
-      <div class="zo2y-footer-inner">
-        <span class="zo2y-footer-brand">&copy; ${COPY_YEAR} ${SITE_NAME}</span>
-        <nav class="zo2y-footer-links" aria-label="Legal">
-          <a href="privacy.html">Privacy</a>
-          <a href="terms.html">Terms</a>
-          <a href="cookies.html">Cookies</a>
-          <a href="data.html">Your data</a>
-          <a href="dmca.html">DMCA</a>
-          <a href="support.html">Support</a>
-          <a href="credits.html">Credits</a>
-        </nav>
-      </div>
-    </footer>`;
-
   const ITEM_MENU_MODAL_HTML = `
     <div id="itemMenuModal" class="menu-modal" aria-hidden="true">
       <div class="menu-modal-content">
@@ -49,13 +33,6 @@
       .menu-empty{text-align:center;padding:20px;color:var(--muted,#8ca3c7);font-size:14px;background:var(--card-2,#172b58);border-radius:12px;border:1px dashed var(--border,rgba(255,255,255,.12))}
     `;
     document.head.appendChild(style);
-  }
-
-  function injectFooter() {
-    if (document.querySelector('.zo2y-footer')) return;
-    const footer = document.createElement('div');
-    footer.innerHTML = FOOTER_HTML;
-    document.body.appendChild(footer.firstElementChild);
   }
 
   function injectItemMenuModal() {
@@ -125,7 +102,7 @@
 
   function init() {
     const path = location.pathname;
-    const isAuthPage = /\/(sign-up|login|auth-callback|onboarding|update-password)\.html$/.test(path);
+    const isAuthPage = /\/(sign-up|login|auth-callback|onboarding|update-password|clear-auth)(\.html)?\/?$/.test(path);
     if (!isAuthPage) injectFooter();
     injectItemMenuModal();
     injectToastContainer();
