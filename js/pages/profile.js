@@ -4784,10 +4784,18 @@
                 try {
                     const { data } = await supabase
                         .from('books')
-                        .select('id, title, author_name, cover_url, thumbnail, external_url')
+                        .select('id, title, authors, thumbnail')
                         .eq('id', key)
                         .maybeSingle();
-                    if (data) dbData = data;
+                    if (data) {
+                        dbData = {
+                            id: data.id,
+                            title: data.title,
+                            author_name: data.authors,
+                            cover_url: data.thumbnail,
+                            thumbnail: data.thumbnail
+                        };
+                    }
                 } catch (_err) { }
                 
                 const dbCover = dbData?.cover_url || dbData?.thumbnail || '';
@@ -4858,8 +4866,8 @@
                 let dbData = null;
                 try {
                     const { data, error } = await supabase
-                        .from('artists')
-                        .select('id, name, image_url, external_url')
+                        .from('tracks')
+                        .select('id, name, artists, image_url, external_url')
                         .eq('id', key)
                         .maybeSingle();
                     if (data && data.image_url) {
@@ -4872,25 +4880,23 @@
                 }
                 
                 try {
-                    const res = await fetch(`/api/music/artist/${key}`);
+                    const res = await fetch(`/api/music/tracks/${key}?market=US`);
                     if (res.ok) {
                         const json = await res.json();
-                        if (json.result) {
-                            const apiName = String(json.result.title || '').trim().toLowerCase();
+                        if (json.id) {
+                            const norm = typeof window.normalizeTrack === 'function' ? window.normalizeTrack(json) : json;
+                            const apiName = String(norm.title || norm.name || '').trim().toLowerCase();
                             const dbName = String(dbData?.name || '').trim().toLowerCase();
                             if (dbName && apiName && apiName !== dbName) {
-                                // API returned a different artist (cross-platform ID mismatch) — skip
+                                // API returned a different track (cross-platform ID mismatch) — skip
                             } else {
                                 const merged = {
-                                    id: json.result.id,
-                                    name: json.result.title,
-                                    image_url: json.result.image || '',
-                                    external_url: json.result.externalUrl || ''
+                                    id: json.id,
+                                    name: norm.title || norm.name,
+                                    artists: norm.artists || '',
+                                    image_url: norm.image || '',
+                                    external_url: norm.externalUrl || json.external_urls?.spotify || ''
                                 };
-                                if (!merged.image_url && dbData) {
-                                    merged.image_url = dbData.image_url || '';
-                                    merged.name = merged.name || dbData.name || '';
-                                }
                                 musicCache.set(key, merged);
                                 return merged;
                             }

@@ -15,9 +15,6 @@
   var isNavigating = false;
 
   function normalizePageName(pathname) {
-    var override = document && document.body && document.body.dataset && document.body.dataset.navPage;
-    if (override) return String(override).toLowerCase();
-
     var file = String(pathname || '').split('/').pop().toLowerCase() || 'index.html';
     file = file.split('?')[0].split('#')[0];
     if (file === '' || file === 'index.html') return 'index';
@@ -43,6 +40,12 @@
     if (file.startsWith('country')) return 'country-detail';
     if (file.startsWith('brand')) return 'brand-detail';
     return 'index';
+  }
+
+  function getCurrentPageName() {
+    var override = document && document.body && document.body.dataset && document.body.dataset.navPage;
+    if (override) return String(override).toLowerCase();
+    return normalizePageName(window.location.pathname);
   }
 
   function setActiveNav(pageName) {
@@ -158,14 +161,14 @@
       return;
     }
 
-    var currentPage = normalizePageName(window.location.pathname);
+    var currentPage = getCurrentPageName();
     if (navPageName === currentPage) return;
 
     fadeOutAndNavigate(href);
   }, { capture: true });
 
   window.addEventListener('popstate', function () {
-    var pageName = normalizePageName(window.location.pathname);
+    var pageName = getCurrentPageName();
     setActiveNav(pageName);
   });
 
