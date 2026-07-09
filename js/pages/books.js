@@ -224,7 +224,7 @@ function renderGrid(append) {
           <div class="card-meta-top">
             <p class="card-name">${escapeHtml(b.title)}</p>
             <div class="card-menu-wrap">
-              <button class="card-menu-btn" type="button" aria-label="Open list menu" onclick="window.openIndexStyleListMenu(this); event.preventDefault(); event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button>
+              <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
             </div>
           </div>
           <p class="card-sub">${escapeHtml(b.author || b.authors || "Unknown Author")}</p>

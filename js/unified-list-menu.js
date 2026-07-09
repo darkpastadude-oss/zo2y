@@ -30,6 +30,14 @@
     if (!mediaType && _bridge && _bridge.mediaType) {
       mediaType = _bridge.mediaType;
     }
+
+    if ((!itemId || !mediaType) && _bridge && typeof _bridge.getItemFromCard === 'function') {
+      const info = _bridge.getItemFromCard(card);
+      if (info) {
+        if (!itemId && info.itemId) itemId = info.itemId;
+        if (!mediaType && info.mediaType) mediaType = info.mediaType;
+      }
+    }
     
     if (!mediaType) mediaType = 'movie';
 
