@@ -122,37 +122,41 @@
   async function ensureClient() {
     if (_supabaseClient) return _supabaseClient;
     if (_config && typeof _config.ensureClient === 'function') {
-      _supabaseClient = await _config.ensureClient();
+      try { _supabaseClient = await _config.ensureClient(); } catch (_) {}
       if (_supabaseClient) return _supabaseClient;
     }
-    if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.ensureClient === 'function') {
-      _supabaseClient = await window.ZO2Y_AUTH.ensureClient();
-    } else if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT) {
-      _supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
-    } else if (window.supabase) {
-      _supabaseClient = window.supabase;
-    }
+    try {
+      if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.ensureClient === 'function') {
+        _supabaseClient = await window.ZO2Y_AUTH.ensureClient();
+      } else if (window.__ZO2Y_ENSURE_SUPABASE_CLIENT) {
+        _supabaseClient = window.__ZO2Y_ENSURE_SUPABASE_CLIENT();
+      } else if (window.supabase) {
+        _supabaseClient = window.supabase;
+      }
+    } catch (_) {}
     return _supabaseClient;
   }
 
   async function ensureUser() {
     if (_currentUser && _currentUser.id) return _currentUser;
     if (_config && typeof _config.getCurrentUser === 'function') {
-      _currentUser = _config.getCurrentUser();
+      try { _currentUser = _config.getCurrentUser(); } catch (_) {}
     }
     if (!_currentUser || !_currentUser.id) {
       if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.getUser === 'function') {
-        _currentUser = window.ZO2Y_AUTH.getUser();
+        try { _currentUser = window.ZO2Y_AUTH.getUser(); } catch (_) {}
       }
     }
     if (!_currentUser || !_currentUser.id) {
-      var client = await ensureClient();
-      if (client && client.auth) {
-        var sessionResult = await client.auth.getSession();
-        if (sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
-          _currentUser = sessionResult.data.session.user;
+      try {
+        var client = await ensureClient();
+        if (client && client.auth) {
+          var sessionResult = await client.auth.getSession();
+          if (sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
+            _currentUser = sessionResult.data.session.user;
+          }
         }
-      }
+      } catch (_) {}
     }
     return _currentUser;
   }
