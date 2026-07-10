@@ -230,7 +230,7 @@
     function getMusicSpotlightHref(item) {
       const id = String(item?.id || '').trim();
       if (!id) return '#';
-      return `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(item?.source || 'spotify'))}`;
+      return `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(item?.source || 'spotify'))}&name=${encodeURIComponent(String(item?.name || ''))}&image=${encodeURIComponent(String(item?.image || ''))}`;
     }
 
     function pickMusicSpotlightPool(items = []) {
@@ -482,8 +482,9 @@
             }
             return;
           }
-          
-          window.location.href = `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(card.getAttribute('data-source') || 'spotify'))}`;
+          const artistName = String(card.querySelector('.card-name')?.textContent || '').trim();
+          const artistImg = String(card.querySelector('.card-media img')?.src || '').trim();
+          window.location.href = `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(card.getAttribute('data-source') || 'spotify'))}&name=${encodeURIComponent(artistName)}&image=${encodeURIComponent(artistImg)}`;
         });
       });
 

@@ -335,7 +335,7 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_SESSION_LOADED_KEY = 'zo2y_home_session_loaded';
     const HOME_SESSION_LOADED_MAX_AGE_MS = 1000 * 60 * 60;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v14';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v15';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_MOVIES_ITEMS_CACHE_KEY = 'zo2y_home_movies_items_v1';
     const HOME_MOVIES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -351,7 +351,7 @@
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v6';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v7';
+    const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v8';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_GAMES_ITEMS_CACHE_KEY = 'zo2y_home_games_items_v2';
     const HOME_GAMES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -9842,7 +9842,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             extra: 'Artist',
             image,
             fallbackImage: '',
-            href: 'artist.html?id=' + encodeURIComponent(item.id || '') + '&provider=' + encodeURIComponent(item.provider || 'spotify')
+            href: 'artist.html?id=' + encodeURIComponent(item.id || '') + '&provider=' + encodeURIComponent(item.provider || 'spotify') + '&name=' + encodeURIComponent(title) + '&image=' + encodeURIComponent(image)
           };
         });
         _log('rail items:', railItems.length);

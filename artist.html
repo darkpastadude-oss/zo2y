@@ -391,10 +391,24 @@
       }
 
       async function fetchArtist(id) {
-        const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}`);
-        if (!res.ok) return null;
-        const data = await res.json();
-        return data?.result || data || null;
+        try {
+          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && (data.result || data.id)) return data.result || data;
+          }
+        } catch (_) {}
+        const fallbackName = params.get('name');
+        if (fallbackName) {
+          return {
+            id: id,
+            title: fallbackName,
+            subtitle: 'Music',
+            image: params.get('image') || '',
+            provider: artistProvider
+          };
+        }
+        return null;
       }
 
       async function fetchTopTracks(id) {
