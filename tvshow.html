@@ -522,6 +522,15 @@
         border-radius: 8px;
       }
     }
+    .provider-group { margin-bottom: 15px; }
+    .provider-label { font-size: 0.85rem; color: var(--text2); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .provider-icons { display: flex; gap: 10px; flex-wrap: wrap; }
+    .provider-logo { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .recommendations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; margin-top: 10px; }
+    .rec-card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: transform 0.2s; }
+    .rec-card:hover { transform: translateY(-4px); }
+    .rec-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .rec-title { font-size: 0.9rem; font-weight: 500; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -635,6 +644,18 @@
         <h3 class="elevated-section-title">Details</h3>
       </div>
       <div id="details" class="elevated-list"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Where to Watch</h3>
+      </div>
+      <div id="whereToWatch"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">You might also like...</h3>
+      </div>
+      <div id="recommendations" class="recommendations-grid"></div>
     </div>
   </div>
 
@@ -1046,7 +1067,7 @@
         if (!id) return;
         let payload;
         try {
-          payload = await tmdbFetch(`/tv/${id}?language=en&append_to_response=credits,videos,keywords,external_ids,images&include_image_language=en,null`);
+          payload = await tmdbFetch(`/tv/${id}?language=en&append_to_response=credits,videos,keywords,external_ids,images,watch/providers,recommendations&include_image_language=en,null`);
         } catch (error) {
           document.getElementById('title').textContent = 'TV show unavailable';
           document.getElementById('overview').textContent = 'We could not load this TV show right now. Please try again in a moment.';
@@ -1217,6 +1238,58 @@
           castEl.innerHTML = cast.length
             ? cast.map(p => renderPerson({ name: p.name, sub: p.character || 'Actor' }, 'Actor')).join('')
             : fallbackPerson('Actor');
+        }
+
+        const watchProviders = data['watch/providers']?.results?.US || {};
+        const whereToWatchEl = document.getElementById('whereToWatch');
+        if (whereToWatchEl) {
+          const stream = (watchProviders.flatrate || []).map(p => `<img src="https://image.tmdb.org/t/p/original${p.logo_path}" title="${p.provider_name}" class="provider-logo" alt="${p.provider_name}">`);
+          const buy = (watchProviders.buy || []).map(p => `<img src="https://image.tmdb.org/t/p/original${p.logo_path}" title="${p.provider_name}" class="provider-logo" alt="${p.provider_name}">`);
+          const rent = (watchProviders.rent || []).map(p => `<img src="https://image.tmdb.org/t/p/original${p.logo_path}" title="${p.provider_name}" class="provider-logo" alt="${p.provider_name}">`);
+          let html = '';
+          if (stream.length) html += `<div class="provider-group"><div class="provider-label">Stream</div><div class="provider-icons">${stream.join('')}</div></div>`;
+          if (rent.length) html += `<div class="provider-group"><div class="provider-label">Rent</div><div class="provider-icons">${rent.join('')}</div></div>`;
+          if (buy.length) html += `<div class="provider-group"><div class="provider-label">Buy</div><div class="provider-icons">${buy.join('')}</div></div>`;
+          if (!html) html = '<div style="color:var(--md-text-3);padding:16px;">No streaming data available.</div>';
+          whereToWatchEl.innerHTML = html;
+        }
+
+        const recommendationsEl = document.getElementById('recommendations');
+        if (recommendationsEl) {
+          const recs = (data.recommendations?.results || []).slice(0, 10);
+          if (recs.length) {
+            recommendationsEl.innerHTML = recs.map(r => `
+              <a href="tvshow.html?id=${r.id}" class="rec-card">
+                <img src="${r.poster_path ? 'https://image.tmdb.org/t/p/w500' + r.poster_path : '/images/placeholder.jpg'}" alt="${escapeHtml(r.title || r.name)}" loading="lazy">
+                <div class="rec-title">${escapeHtml(r.title || r.name)}</div>
+              </a>
+            `).join('');
+          } else {
+            recommendationsEl.innerHTML = '<div style="color:var(--md-text-3);padding:20px;grid-column:1/-1;">No recommendations found.</div>';
+          }
+        }
+
+        if (externals && externals.imdb_id) {
+          fetch(`/api/omdb?i=${externals.imdb_id}`)
+            .then(r => r.json())
+            .then(omdbData => {
+              if (omdbData && !omdbData.error) {
+                const imdbRating = omdbData.imdbRating && omdbData.imdbRating !== 'N/A' ? omdbData.imdbRating : null;
+                const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
+                const rtRating = rt ? rt.Value : null;
+                if (imdbRating || rtRating) {
+                  const metaGridEl = document.getElementById('metaGrid');
+                  if (metaGridEl) {
+                    let ratingHtml = '<div class="elevated-detail-card"><div class="elevated-detail-title"><i class="fas fa-star-half-stroke"></i> External Ratings</div><div class="elevated-detail-value" style="display:flex;gap:12px;align-items:center;margin-top:6px;">';
+                    if (imdbRating) ratingHtml += `<span title="IMDb Rating" style="display:inline-flex;align-items:center;gap:4px;font-size:0.9rem;"><i class="fa-brands fa-imdb" style="color:#f5c518;font-size:1.4em;"></i> ${imdbRating}</span>`;
+                    if (rtRating) ratingHtml += `<span title="Rotten Tomatoes" style="display:inline-flex;align-items:center;gap:4px;font-size:0.9rem;"><span style="color:#fa320a;font-weight:bold;background:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🍅</span> ${rtRating}</span>`;
+                    ratingHtml += '</div></div>';
+                    metaGridEl.insertAdjacentHTML('beforeend', ratingHtml);
+                  }
+                }
+              }
+            })
+            .catch(console.error);
         }
       }
 

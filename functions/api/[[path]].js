@@ -8,6 +8,7 @@ import homeFeedHandler from "../../api/home-feed.js";
 import igdbHandler from "../../api/igdb-handler.js";
 import logoHandler from "../../api/logo.js";
 import musicHandler from "../../api/music-handler.js";
+import omdbHandler from "../../api/omdb-handler.js";
 import openlibraryHandler from "../../api/openlibrary-handler.js";
 import restcountriesHandler from "../../api/restcountries-handler.js";
 import sportsdbHandler from "../../api/sportsdb-handler.js";
@@ -45,6 +46,7 @@ const ROUTE_HANDLERS = new Map([
   ["igdb-handler", igdbHandler],
   ["logo", logoHandler],
   ["music", musicHandler],
+  ["omdb", omdbHandler],
   ["openlibrary", openlibraryHandler],
   ["restcountries", restcountriesHandler],
   ["sportsdb", sportsdbHandler],
