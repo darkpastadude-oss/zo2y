@@ -164,6 +164,7 @@
         String(raw.strFanart4 || "").trim(),
       ].filter(Boolean),
       stadiumThumb: String(raw.strStadiumThumb || "").trim(),
+      stadiumArt: String(raw.strStadiumArt || "").trim(),
       jersey:
         String(raw.strEquipment || "").trim() ||
         String(raw.strJersey || "").trim(),
@@ -484,13 +485,28 @@
 
     const SPORT_BACKDROPS = Array.from({ length: 8 }, (_, i) => `/assets/backdrops/sports/${String(i + 1).padStart(2, "0")}.jpg`);
 
+    const isImageUrl = (url) => {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      if (/\.(jpg|jpeg|png|webp)(\?|$)/i.test(u)) return true;
+      if (/images\.thesportsdb\.com|img\.thesportsdb/i.test(u)) return true;
+      return false;
+    };
+
+    const backdrop =
+      (isImageUrl(team.stadiumThumb) ? team.stadiumThumb : null) ||
+      (isImageUrl(team.stadiumArt) ? team.stadiumArt : null) ||
+      (isImageUrl(team.banner) ? team.banner : null) ||
+      (isImageUrl(team.fanart) ? team.fanart : null) ||
+      SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
+
     const config = {
       type: "team",
       title: team.name || "Team",
       description: team.description || "",
       posterUrl: team.badge || FALLBACK_BADGE,
       posterFit: "contain",
-      backdropUrl: SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length],
+      backdropUrl: backdrop,
       metadata: [],
       actions: [],
     };
