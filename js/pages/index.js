@@ -9842,7 +9842,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             extra: 'Artist',
             image,
             fallbackImage: '',
-            href: item?.externalUrl || 'music.html'
+            href: 'artist.html?id=' + encodeURIComponent(item.id || '') + '&provider=' + encodeURIComponent(item.provider || 'spotify')
           };
         });
         _log('rail items:', railItems.length);

@@ -230,7 +230,7 @@
     function getMusicSpotlightHref(item) {
       const id = String(item?.id || '').trim();
       if (!id) return '#';
-      return `song.html?artist_id=${encodeURIComponent(id)}`;
+      return `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(item?.source || 'spotify'))}`;
     }
 
     function pickMusicSpotlightPool(items = []) {
@@ -483,7 +483,7 @@
             return;
           }
           
-          window.location.href = `song.html?artist_id=${encodeURIComponent(id)}`;
+          window.location.href = `artist.html?id=${encodeURIComponent(id)}&provider=${encodeURIComponent(String(card.getAttribute('data-source') || 'spotify'))}`;
         });
       });
 

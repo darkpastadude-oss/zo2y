@@ -485,6 +485,21 @@
 
     const SPORT_BACKDROPS = Array.from({ length: 8 }, (_, i) => `/assets/backdrops/sports/${String(i + 1).padStart(2, "0")}.jpg`);
 
+    const STADIUM_OVERRIDES = {
+      "ac milan": "/assets/backdrops/sports/san-siro.jpg",
+      "inter milan": "/assets/backdrops/sports/san-siro.jpg",
+      "manchester united": "/assets/backdrops/sports/old-trafford.jpg",
+      "arsenal": "/assets/backdrops/sports/emirates.jpg",
+      "liverpool": "/assets/backdrops/sports/anfield.jpg",
+      "chelsea": "/assets/backdrops/sports/stamford-bridge.jpg",
+      "tottenham hotspur": "/assets/backdrops/sports/tottenham.jpg",
+      "manchester city": "/assets/backdrops/sports/etihad.jpg",
+      "juventus": "/assets/backdrops/sports/allianz.jpg",
+      "napoli": "/assets/backdrops/sports/maradona.jpg",
+      "roma": "/assets/backdrops/sports/olimpico.jpg",
+      "lazio": "/assets/backdrops/sports/olimpico.jpg",
+    };
+
     const isImageUrl = (url) => {
       if (!url) return false;
       const u = String(url).toLowerCase();
@@ -493,7 +508,9 @@
       return false;
     };
 
+    const teamKey = (team.name || "").toLowerCase().trim();
     const backdrop =
+      (STADIUM_OVERRIDES[teamKey] || null) ||
       (isImageUrl(team.stadiumThumb) ? team.stadiumThumb : null) ||
       (isImageUrl(team.stadiumArt) ? team.stadiumArt : null) ||
       SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];

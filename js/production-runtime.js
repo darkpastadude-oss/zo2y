@@ -309,50 +309,6 @@
     window.addEventListener("pagehide", sendVitals);
   }
 
-  function renderConsentBanner() {
-    if (getConsent()) return;
-    const banner = document.createElement("aside");
-    banner.setAttribute("aria-label", "Analytics consent");
-    banner.style.position = "fixed";
-    banner.style.left = "16px";
-    banner.style.right = "16px";
-    banner.style.bottom = "16px";
-    banner.style.zIndex = "99999";
-    banner.style.background = "rgba(11,22,51,0.95)";
-    banner.style.border = "1px solid rgba(255,255,255,0.18)";
-    banner.style.borderRadius = "12px";
-    banner.style.padding = "12px";
-    banner.style.color = "#fff";
-    banner.style.backdropFilter = "blur(6px)";
-    banner.innerHTML = `
-      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
-        <div style="font-size:13px;line-height:1.4;max-width:860px;">
-          We use anonymous analytics to improve feed quality and reliability.
-          See <a href="privacy.html" style="color:#f59e0b;">Privacy</a>.
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button type="button" data-consent="deny" style="background:#132347;color:#fff;border:1px solid rgba(255,255,255,0.2);padding:8px 10px;border-radius:8px;cursor:pointer;">Decline</button>
-          <button type="button" data-consent="allow" style="background:#f59e0b;color:#0b1633;border:none;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;">Allow analytics</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(banner);
-
-    banner.addEventListener("click", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
-      const action = target.getAttribute("data-consent");
-      if (!action) return;
-      if (action === "allow") {
-        setConsent("granted");
-        track("consent_granted", { source: "banner" }, { essential: true });
-      } else {
-        setConsent("denied");
-      }
-      banner.remove();
-    });
-  }
-
   function setupFunnelTracking() {
     const sessionStorage = getSessionStorage();
     if (sessionStorage && !sessionStorage.getItem(SESSION_STARTED_KEY)) {
@@ -611,7 +567,6 @@
     setupWebVitals();
     setupFunnelTracking();
     const runDeferredUiWork = () => {
-      renderConsentBanner();
       setupDuplicateCardCleanup();
     };
     if (typeof window.requestIdleCallback === "function") {

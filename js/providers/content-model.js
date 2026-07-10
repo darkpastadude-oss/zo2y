@@ -187,7 +187,7 @@
       anime: 'anime',
       game: 'game',
       music: 'song',
-      artist: 'music',
+      artist: 'artist',
       sports: 'team',
       travel: 'country',
       fashion: 'brand',
