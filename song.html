@@ -817,8 +817,7 @@
     }
 
     function initAlbumTrackKebabMenu() {
-      if (!window.initIndexStyleListMenu) return;
-      window.initIndexStyleListMenu({
+      window.ListModal && window.ListModal.initBridge({
         mediaType: 'music',
         itemIdAttr: 'data-track-id',
         getVisibleItemIds: () =>
@@ -928,19 +927,7 @@
 <script src="js/review-interactions.js?v=20260709i" defer></script>
 
   <script src="/js/shared-components.js?v=20260709i" defer></script>
-
-<script>
-  window.toggleList = function(listType, nextSaved) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-  window.toggleDefaultList = function(arg) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-</script>
+  <script src="/js/components/list-modal.js?v=20260710a" defer></script>
 </body>
 </html>
 

@@ -400,27 +400,6 @@
       font-size: 13px;
     }
 
-    .modal {
-      position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
-      background: rgba(6, 12, 28, 0.72); z-index: 240; padding: 16px;
-    }
-    .modal.active { display: flex; }
-    .modal-content {
-      width: min(420px, 100%); background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px;
-    }
-    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .modal-list { display: grid; gap: 8px; max-height: 260px; overflow-y: auto; padding: 6px 0; }
-    .modal-list-item {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px;
-      border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.03); cursor: pointer;
-    }
-    .modal-list-item.active { border-color: var(--accent); background: rgba(245, 158, 11, 0.12); }
-    .modal-input { display: flex; gap: 8px; margin-top: 8px; }
-    .modal-input input {
-      flex: 1; height: 38px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-2);
-      color: var(--white); padding: 0 10px;
-    }
-
     @media (max-width: 860px) {
       .top-nav { display: none; }
     }
@@ -1426,6 +1405,7 @@
   <script src="js/legal-consent.js?v=20260709i" defer></script>
 
   <script src="/js/shared-components.js?v=20260709i" defer></script>
+  <script src="/js/components/list-modal.js?v=20260710a" defer></script>
 </body>
 </html>
 

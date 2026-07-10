@@ -598,32 +598,30 @@
           window.setTimeout(initSearch, 0);
         }
       }
-      if (window.initIndexStyleListMenu) {
-        window.initIndexStyleListMenu({
-          mediaType: 'music',
-          itemIdAttr: 'data-id',
-          getVisibleItemIds: () =>
-            Array.from(document.querySelectorAll('.card[data-id]'))
-              .map((card) => card.getAttribute('data-id'))
-              .filter(Boolean),
-          getQuickStatusForItem: () => null,
-          getItemFromCard: (card) => {
-            return {
-              mediaType: 'music',
-              itemId: String(card.getAttribute('data-id') || '').trim(),
-              title: String(card.querySelector('.card-name')?.textContent || 'Artist').trim(),
-              subtitle: String(card.querySelector('.card-sub')?.textContent || '').trim(),
-              image: String(card.querySelector('img')?.getAttribute('src') || '').trim()
-            };
-          },
-          ensureClient: async () => {
-            if (supabaseClient) return supabaseClient;
-            return await ensureSupabase();
-          },
-          getCurrentUser: () => currentUser,
-          notify: (message, isError) => showToast(message, !!isError)
-        });
-      }
+      window.ListModal && window.ListModal.initBridge({
+        mediaType: 'music',
+        itemIdAttr: 'data-id',
+        getVisibleItemIds: () =>
+          Array.from(document.querySelectorAll('.card[data-id]'))
+            .map((card) => card.getAttribute('data-id'))
+            .filter(Boolean),
+        getQuickStatusForItem: () => null,
+        getItemFromCard: (card) => {
+          return {
+            mediaType: 'music',
+            itemId: String(card.getAttribute('data-id') || '').trim(),
+            title: String(card.querySelector('.card-name')?.textContent || 'Artist').trim(),
+            subtitle: String(card.querySelector('.card-sub')?.textContent || '').trim(),
+            image: String(card.querySelector('img')?.getAttribute('src') || '').trim()
+          };
+        },
+        ensureClient: async () => {
+          if (supabaseClient) return supabaseClient;
+          return await ensureSupabase();
+        },
+        getCurrentUser: () => currentUser,
+        notify: (message, isError) => showToast(message, !!isError)
+      });
       loadPage().then(() => setupInfiniteScroll());
     });
   </script>
@@ -631,19 +629,7 @@
   <script src="js/legal-consent.js?v=20260709L" defer></script>
 
   <script src="/js/shared-components.js?v=20260709L" defer></script>
-
-<script>
-  window.toggleList = function(listType, nextSaved) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-  window.toggleDefaultList = function(arg) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-</script>
+  <script src="/js/components/list-modal.js?v=20260710a" defer></script>
 </body>
 </html>
 

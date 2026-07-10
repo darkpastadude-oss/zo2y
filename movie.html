@@ -298,103 +298,6 @@
     .notification.error { background: var(--error); color: white; }
     .notification.info { background: var(--info); color: white; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-      padding: 20px;
-    }
-    .modal.active { display: flex; }
-    .modal-content {
-      width: 100%;
-      max-width: 520px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .modal-title { font-size: 18px; font-weight: 700; }
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--white);
-      font-size: 22px;
-      cursor: pointer;
-    }
-    .modal-list {
-      display: grid;
-      gap: 8px;
-      max-height: 240px;
-      overflow: auto;
-      margin-bottom: 12px;
-    }
-    .modal-list-item {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-    }
-    .modal-list-actions { display: inline-flex; gap: 6px; align-items: center; }
-    .list-edit-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .list-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .modal-list-item.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(245, 158, 11, 0.12);
-    }
-    .modal-input {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .modal-input input {
-      flex: 1;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1f40;
-      color: var(--white);
-      outline: none;
-    }
-    .icon-options { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .icon-option {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--white);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .icon-option.selected { border-color: var(--accent); color: var(--accent); }
     .reviews-stats {
       background: var(--card);
       padding: 20px;
@@ -1202,7 +1105,19 @@
 
         if (window.renderUnifiedMediaHero) {
           window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);
-          bindUnifiedListMenu();
+          window.ListModal && window.ListModal.init('movie', {
+            itemId: movieId,
+            title: String(document.getElementById('title')?.textContent || 'Movie').trim(),
+            subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
+            image: String(document.getElementById('poster')?.getAttribute('src') || '').trim(),
+            buttonSelector: '#addWatchlistBtn',
+            ensureClient: async function () {
+              if (supabaseClient) return supabaseClient;
+              return initSupabase();
+            },
+            getCurrentUser: function () { return currentUser; },
+            notify: function (msg, isErr) { showNotification(msg, isErr ? 'error' : 'success'); }
+          });
           wireHeroActions();
         }
 
@@ -1317,36 +1232,6 @@
       
 
       
-
-      function bindUnifiedListMenu() {
-        const menuBtn = document.getElementById('addWatchlistBtn');
-        if (!menuBtn || !movieId || !window.initIndexStyleListMenu) return;
-
-        window.initIndexStyleListMenu({
-          mediaType: 'movie',
-          itemIdAttr: 'data-item-id',
-          getVisibleItemIds: () => movieId ? [movieId] : [],
-          getQuickStatusForItem: (itemId) => {
-            const numericId = Number(itemId);
-            if (Number.isFinite(numericId) && numericId !== movieId) return null;
-            return { ...listStatus };
-          },
-          getItemFromCard: () => ({
-            mediaType: 'movie',
-            itemId: movieId,
-            title: String(document.getElementById('title')?.textContent || 'Movie').trim(),
-            subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
-            image: String(document.getElementById('poster')?.getAttribute('src') || '').trim()
-          }),
-          ensureClient: async () => {
-            if (supabaseClient) return supabaseClient;
-            return initSupabase();
-          },
-          getCurrentUser: () => currentUser,
-          notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-          toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
-        });
-      }
 
       async function initReviewSystem() {
         if (!supabaseClient || !movieId) return;
@@ -1759,20 +1644,6 @@ const url = new URL('movies.html', window.location.href);
         await initSupabase();
         initPageSearch();
         wireTrailerLightbox();
-        const closeListsBtn = document.getElementById('closeMovieListsBtn');
-        const saveListsBtn = document.getElementById('saveMovieListsBtn');
-        const createListBtn = document.getElementById('createMovieListBtn');
-        const iconOptions = document.querySelectorAll('#movieListIconOptions .icon-option');
-        if (closeListsBtn) closeListsBtn.addEventListener('click', closeMovieListsModal);
-        if (saveListsBtn) saveListsBtn.addEventListener('click', saveMovieListChanges);
-        if (createListBtn) createListBtn.addEventListener('click', createMovieList);
-        iconOptions.forEach(btn => {
-          btn.addEventListener('click', () => {
-            iconOptions.forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            selectedIcon = btn.getAttribute('data-icon') || 'fas fa-film';
-          });
-        });
         await initAuth();
         await load();
         await initReviewSystem();
@@ -1792,19 +1663,7 @@ const url = new URL('movies.html', window.location.href);
   <script src="js/legal-consent.js?v=20260709L" defer></script>
 
   <script src="/js/shared-components.js?v=20260709L" defer></script>
-
-<script>
-  window.toggleList = function(listType, nextSaved) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-  window.toggleDefaultList = function(arg) {
-    if (typeof window.openIndexStyleListMenu === 'function') {
-      window.openIndexStyleListMenu(document.activeElement || document.body);
-    }
-  };
-</script>
+  <script src="/js/components/list-modal.js?v=20260710a" defer></script>
 </body>
 </html>
 
