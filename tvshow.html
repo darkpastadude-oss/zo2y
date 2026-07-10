@@ -1119,8 +1119,8 @@
           config.metadata.push({ type: 'rating', value: data.vote_average.toFixed(1) });
         }
 
-        config.actions.push({ id: 'watchTrailerBtn', icon: 'fa-solid fa-play', label: 'watch trailer', primary: true });
-        config.actions.push({ id: 'addWatchlistBtn', icon: 'fa-solid fa-bookmark', label: 'add to list' });
+        config.actions.push({ id: 'addWatchlistBtn', icon: 'fa-solid fa-bookmark', label: 'add to list', primary: true });
+        config.actions.push({ id: 'watchTrailerBtn', icon: 'fa-solid fa-play', label: 'watch trailer' });
 
         if (window.renderUnifiedMediaHero) {
           window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);

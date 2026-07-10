@@ -595,10 +595,10 @@
           config.metadata.push({ type: 'year', value: `${formatCount(artistData.followers)} followers` });
         }
 
+        config.actions.push({ id: 'addListBtn', icon: 'fa-solid fa-bookmark', label: 'Add to list', primary: true });
         if (externalUrl) {
-          config.actions.push({ id: 'openExternalBtn', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Open on ' + (String(artistData.provider || '').charAt(0).toUpperCase() + String(artistData.provider || '').slice(1) || 'Source'), primary: true });
+          config.actions.push({ id: 'openExternalBtn', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Open on ' + (String(artistData.provider || '').charAt(0).toUpperCase() + String(artistData.provider || '').slice(1) || 'Source') });
         }
-        config.actions.push({ id: 'addListBtn', icon: 'fa-solid fa-bookmark', label: 'Add to list' });
 
         if (window.renderUnifiedMediaHero) {
           window.renderUnifiedMediaHero(document.getElementById('unifiedHeroContainer'), config);

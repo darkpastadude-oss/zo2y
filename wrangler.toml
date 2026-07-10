@@ -12,4 +12,5 @@ mode = "smart"
 APP_BASE_URL = "https://zo2y.com"
 SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co"
 SUPABASE_PROJECT_REF = "gfkhjbztayjyojsgdpgk"
+OMDB_API_KEY = "a57d8799"
 # SUPABASE_ANON_KEY set via: wrangler pages secret put SUPABASE_ANON_KEY --project-name zo2y
