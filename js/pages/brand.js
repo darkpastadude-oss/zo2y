@@ -1021,6 +1021,39 @@
     ],
   };
 
+  const _u = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1920&q=80`;
+  const BRAND_BACKDROPS = {
+    "mcdonald's": [_u("photo-1540224648289-f6978d4469fd"), _u("photo-1603880280599-b4d4c83f3c88"), _u("photo-1749384704611-67137f9caae9")],
+    "mcdonalds": [_u("photo-1540224648289-f6978d4469fd"), _u("photo-1603880280599-b4d4c83f3c88"), _u("photo-1749384704611-67137f9caae9")],
+    "burger king": [_u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327"), _u("photo-1565299624946-b28f40a0ae38")],
+    "wendy's": [_u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327"), _u("photo-1565299624946-b28f40a0ae38")],
+    "kfc": [_u("photo-1682970078535-cd0cf994ee96"), _u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327")],
+    "subway": [_u("photo-1509722747041-616f39b57569"), _u("photo-1553909489-cd47e0907980"), _u("photo-1414235077428-338989a2e8c0")],
+    "starbucks": [_u("photo-1626367240696-f8f538e47b8c"), _u("photo-1579005161819-3439e8f7e451"), _u("photo-1509042239860-f550ce710b93")],
+    "domino's": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
+    "dominos": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
+    "pizza hut": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
+    "bmw": [_u("photo-1741889823656-c056b0c43749"), _u("photo-1768352725353-d498db8a1722"), _u("photo-1762880101027-3ffde0211100")],
+    "porsche": [_u("photo-1747127552258-9f09aae4f9bb"), _u("photo-1771071890455-f681dcfb8708"), _u("photo-1503376780353-7e6692767b70")],
+    "mercedes-benz": [_u("photo-1741087583560-30705d5b2fa4"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
+    "mercedes": [_u("photo-1741087583560-30705d5b2fa4"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
+    "audi": [_u("photo-1747000239166-4d336a458a18"), _u("photo-1743264533229-c22d34e2fc5f"), _u("photo-1503376780353-7e6692767b70")],
+    "ferrari": [_u("photo-1749542119776-55f1caae0a6f"), _u("photo-1773004365409-b80ce2172922"), _u("photo-1544636331-e26879cd4d9b")],
+    "lamborghini": [_u("photo-1544636331-e26879cd4d9b"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
+    "tesla": [_u("photo-1560958089-b8a1929cea89"), _u("photo-1549317661-bd32c8ce0afa"), _u("photo-1502877338535-766e1452684a")],
+    "nike": [_u("photo-170599796447-acfa8f31da50"), _u("photo-15791966446-c61de437fc66"), _u("photo-1577983156459-59be31b0d11c")],
+    "adidas": [_u("photo-1593287073863-c992914cb3e3"), _u("photo-1618545647089-da834ede280c"), _u("photo-1558191053-c03db2757e3d")],
+    "gucci": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1747069340536-4db7b52b8a73"), _u("photo-1515886657613-9f3515b0c78f")],
+    "louis vuitton": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b")],
+    "prada": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b")],
+    "zara": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
+    "h&m": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
+    "hm": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
+    "boohoo": [_u("photo-1515886657613-9f3515b0c78f"), _u("photo-1496747611176-843222e1e57c"), _u("photo-1469334031218-e382a71b716b")],
+    "shein": [_u("photo-1515886657613-9f3515b0c78f"), _u("photo-1496747611176-843222e1e57c"), _u("photo-1529139574466-a303027c1d8b")],
+    "primark": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1483985988355-763728e1935b")],
+  };
+
   let brandHeroConfig = null;
 
   function renderBrandHeroConfig(brand, wiki) {
@@ -1068,7 +1101,14 @@
       return null;
     };
 
-    if (wiki) {
+    const brandKey = (brand.name || "").toLowerCase().trim();
+    if (BRAND_BACKDROPS[brandKey]) {
+      const imgs = BRAND_BACKDROPS[brandKey];
+      brandHeroConfig.backdropUrl = imgs[hashName(brand.name || "") % imgs.length];
+      brandHeroConfig.backdropImages = imgs;
+    }
+
+    if (wiki && !brandHeroConfig.backdropUrl) {
       const heroImg = pickFirstNonLogo(
         wiki.photoImage,
         wiki.heroImage,
