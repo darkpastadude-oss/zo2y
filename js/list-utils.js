@@ -259,6 +259,7 @@
       const match = raw.match(/>([^<]+)</);
       if (match && match[1]) raw = match[1].trim();
     }
+    if (raw.startsWith('<')) return raw;
     const ICON_MAP = {
       movie:'fas fa-film', tv:'fas fa-tv', anime:'fas fa-dragon',
       game:'fas fa-gamepad', book:'fas fa-book', artist:'fas fa-microphone', music:'fas fa-music',
@@ -270,7 +271,10 @@
     };
     const key = raw.toLowerCase().trim();
     if (ICON_MAP[key]) return `<i class="${ICON_MAP[key]}"></i>`;
-    return raw;
+    if (/[\u{1F300}-\u{1FFFF}]/u.test(raw) || /[\u2600-\u27BF]/u.test(raw)) {
+      return `<span style="font-size:16px;line-height:1">${raw}</span>`;
+    }
+    return `<i class="${fallback}"></i>`;
   }
 
   function hideMediaTypeIconPickers(root = document) {

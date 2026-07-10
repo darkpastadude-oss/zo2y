@@ -12,13 +12,13 @@
   display: none;
   position: fixed;
   z-index: 10000;
-  top: 0;
-  left: 0;
-  width: 100dvw;
-  height: 100dvh;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
   padding: 0;
+  margin: 0;
   align-items: center;
   justify-content: center;
 }
@@ -920,10 +920,13 @@ body.zo2y-popup-open {
   display: none;
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
   z-index: 10000;
   padding: 0;
+  margin: 0;
   align-items: center;
   justify-content: center;
 }

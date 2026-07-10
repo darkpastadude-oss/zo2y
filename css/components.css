@@ -358,6 +358,8 @@
 
         /* Unified custom-list modal (matches index/menu adapter UI) */
         #createListModal.menu-modal {
+            position: fixed;
+            inset: 0;
             z-index: var(--z-max);
             background: rgba(6, 12, 28, 0.72);
             backdrop-filter: blur(4px);
