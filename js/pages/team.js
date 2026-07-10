@@ -533,6 +533,8 @@
       "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1461896836934-bd45ba8a002c?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1920&q=80",
     ];
     const sportFallback = SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
 

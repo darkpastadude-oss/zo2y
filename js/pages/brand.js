@@ -671,8 +671,12 @@
 
     try {
       let title = "";
-      // Try just the brand name first (works best for well-known brands)
-      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&format=json&origin=*&srlimit=3`;
+      const categorySearchHint =
+        brandType === "fashion" ? " fashion clothing brand" :
+        brandType === "food" ? " food restaurant chain" :
+        brandType === "car" ? " automobile car manufacturer" : "";
+      const enrichedName = name + categorySearchHint;
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(enrichedName)}&format=json&origin=*&srlimit=3`;
       const search = await fetch(searchUrl);
       const searchData = await search.json();
       const results = searchData?.query?.search || [];
@@ -825,24 +829,28 @@
             (p.images || []).forEach((img) => titles.push(img.title || "")),
           );
           // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
-          // Also exclude buildings/factories/headquarters/plants/people/CEO for car brands
-          // so we prefer actual product photos (the cars themselves).
           const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay/i;
+            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement/i;
           const candidates = titles.filter(
             (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
           );
-          // For food brands, prefer images that look like actual food
-          const isFoodBrand = /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(brandType + " " + (brand.name || ""));
-          const FOOD_BOOST = /food|dish|meal|plate|cuisine|restaurant|cafe|coffee|burger|pizza|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|menu|chef|kitchen|cooking|grill|fry|bake|oven|stove|fresh|organic|fruit|vegetable|meat|seafood|recipe/i;
-          const PRODUCT_BOOST =
-            /front|side|rear|view|press|show|model|sedan|coupe|suv|truck|hatch|wagon|roadster|convertible|hybrid|electric|gt|racing|race|track|motor|auto|vehicle|\b\d{4}\b/i;
+          const combinedType = brandType + " " + (brand.name || "");
+          const isFoodBrand = /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(combinedType);
+          const isFashionBrand = /fashion|clothing|apparel|retail|style/i.test(combinedType);
+          const FOOD_BOOST = /food|dish|meal|plate|cuisine|restaurant|cafe|coffee|burger|pizza|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|menu|chef|kitchen|cooking|grill|fry|bake|oven|stove|fresh|organic|fruit|vegetable|meat|seafood|recipe|sandwich|fries|chicken|wings|taco|burrito|ramen|steak|bbq|sauce|cheese|bread|pastry|donut|ice.cream|smoothie|milkshake|latte|espresso/i;
+          const FASHION_BOOST = /fashion|clothing|apparel|runway|editorial|outfit|dress|denim|leather|cotton|knitwear|textile|wear|collection|couture|garment|jacket|coat|shoe|sneaker|boot|accessori|handbag|watch|jewel|silk|wool|cashmere|lace|fabric|stitch|model|style|portrait|lookbook|mannequin|boutique|atelier/i;
+          const PRODUCT_BOOST = /front|side|rear|view|press|show|model|sedan|coupe|suv|truck|hatch|wagon|roadster|convertible|hybrid|electric|gt|racing|race|track|motor|auto|vehicle|\b\d{4}\b/i;
           const ranked = candidates.slice().sort((a, b) => {
-            let aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
-            let bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
+            let aScore = 2, bScore = 2;
             if (isFoodBrand) {
-              aScore = FOOD_BOOST.test(a) ? 0 : (aScore === 0 ? 1 : 2);
-              bScore = FOOD_BOOST.test(b) ? 0 : (bScore === 0 ? 1 : 2);
+              aScore = FOOD_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
+              bScore = FOOD_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
+            } else if (isFashionBrand) {
+              aScore = FASHION_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
+              bScore = FASHION_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
+            } else {
+              aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
+              bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
             }
             return aScore - bScore;
           });
@@ -914,6 +922,45 @@
     return brand;
   }
 
+  function hashName(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  const CATEGORY_FALLBACK_BACKDROPS = {
+    food: [
+      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80",
+    ],
+    fashion: [
+      "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=80",
+    ],
+    car: [
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1920&q=80",
+    ],
+  };
+
   let brandHeroConfig = null;
 
   function renderBrandHeroConfig(brand, wiki) {
@@ -966,15 +1013,9 @@
       }
     }
 
-    const CATEGORY_FALLBACK_BACKDROPS = {
-      food: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
-      fashion: "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1920&q=80",
-      car: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
-      cars: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80"
-    };
-
     if (!brandHeroConfig.backdropUrl) {
-      brandHeroConfig.backdropUrl = CATEGORY_FALLBACK_BACKDROPS[brandType] || "";
+      const arr = CATEGORY_FALLBACK_BACKDROPS[brandType] || CATEGORY_FALLBACK_BACKDROPS.food;
+      brandHeroConfig.backdropUrl = arr[hashName(brand.name || "") % arr.length];
     }
 
     if (brand.category)
