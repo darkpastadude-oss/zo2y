@@ -427,28 +427,6 @@
     }
   }
 
-  function applyBackdrop(url) {
-    if (!url) return;
-    const safeUrl = String(url).replace(/"/g, '\\"');
-    const style = `url("${safeUrl}") center 20% / cover no-repeat`;
-    if (dom.backdrop) {
-      dom.backdrop.style.background = style;
-    }
-    if (dom.backdropBlur) {
-      dom.backdropBlur.style.background = style;
-    }
-    if (dom.hero) {
-      dom.hero.classList.remove("is-no-backdrop");
-      dom.hero.classList.add("is-loaded");
-    }
-    const wc = window.__zo2yWikiCache;
-    if (wc && typeof wc.preloadImage === "function") {
-      try {
-        wc.preloadImage(url);
-      } catch (_) {}
-    }
-  }
-
   function renderTags(tags) {
     if (!dom.tags) return;
     const list = (Array.isArray(tags) ? tags : [])
@@ -671,13 +649,7 @@
 
     try {
       let title = "";
-      const categorySearchHint =
-        brandType === "fashion" ? " fashion campaign" :
-        brandType === "food" ? " meal" :
-        brandType === "car" ? " lineup" :
-        brandType === "sport" ? " stadium crowd" : "";
-      const enrichedName = name + categorySearchHint;
-      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(enrichedName)}&format=json&origin=*&srlimit=3`;
+      const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&format=json&origin=*&srlimit=3`;
       const search = await fetch(searchUrl);
       const searchData = await search.json();
       const results = searchData?.query?.search || [];
@@ -688,7 +660,6 @@
         );
         title = exact ? exact.title : results[0].title;
       }
-      // Fallback: try with category + "company" if first search found nothing relevant
       if (!title) {
         const fbUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + " " + CATEGORY_LABEL + " company")}&format=json&origin=*&srlimit=1`;
         const fbRes = await fetch(fbUrl);
@@ -696,13 +667,8 @@
         const fbResults = fbData?.query?.search || [];
         if (fbResults.length) title = fbResults[0].title;
       }
-      // Fallback: try REST summary directly with title variations
       if (!title) {
-        const variations = [
-          name,
-          `${name} (company)`,
-          `${name} (${CATEGORY_LABEL})`,
-        ];
+        const variations = [name, `${name} (company)`, `${name} (${CATEGORY_LABEL})`];
         for (const variation of variations) {
           try {
             const summaryRes = await fetch(
@@ -715,94 +681,7 @@
                 break;
               }
             }
-          } catch (_e) {
-            /* continue */
-          }
-        }
-      }
-      // Fallback: try Wikidata P18 image search via SPARQL
-      if (!title) {
-        try {
-          const sparql = `
-            SELECT ?item ?itemLabel ?image WHERE {
-              ?item rdfs:label "${name}"@en .
-              ?item wdt:P18 ?image .
-              SERVICE wikibase:label { bd:serviceParam wikibase:language "en" . }
-            } LIMIT 1
-          `;
-          const sparqlUrl = `https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`;
-          const sparqlRes = await fetch(sparqlUrl, {
-            headers: { "User-Agent": "Zo2yBrandBackdrop/1.0" },
-          });
-          if (sparqlRes.ok) {
-            const sparqlData = await sparqlRes.json();
-            const bindings = sparqlData?.results?.bindings || [];
-            if (bindings.length) {
-              const imageUrl = bindings[0].image?.value;
-              if (imageUrl) {
-                // Convert Wikimedia Commons URL to direct image URL
-                const commonsMatch = imageUrl.match(/\/wiki\/File:(.+)/);
-                if (commonsMatch) {
-                  const fileName = decodeURIComponent(commonsMatch[1]);
-                  const directUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=1600`;
-                  const result = {
-                    title: name,
-                    description: "",
-                    thumbnail: directUrl,
-                    heroImage: directUrl,
-                    photoImage: directUrl,
-                    url: imageUrl,
-                    wikiSource: name,
-                  };
-                  wikipediaCache.set(name, result);
-                  if (wc) wc.setWiki(name, result);
-                  return result;
-                }
-              }
-            }
-          }
-        } catch (_e) {
-          /* Wikidata fallback is best-effort */
-        }
-      }
-      // Fallback: try Wikipedia commons category search
-      if (!title) {
-        try {
-          const _searchType = brandType + " " + (brand.name || "");
-          const productHints =
-            /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(_searchType) ? " meal" :
-            /fashion|clothing|apparel|retail|style/i.test(_searchType) ? " fashion campaign" :
-            /car|auto/i.test(_searchType) ? " lineup" :
-            /sport|team/i.test(_searchType) ? " stadium crowd" : "";
-          const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + productHints)}&srnamespace=6&format=json&origin=*&srlimit=15`;
-          const categoryRes = await fetch(commonsSearchUrl);
-          if (categoryRes.ok) {
-            const categoryData = await categoryRes.json();
-            const categoryResults = categoryData?.query?.search || [];
-            // Find first jpg/jpeg/webp that isn't a logo
-            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat|building|headquarters|hq|factory|plant|office|warehouse|campus|storefront|store|mall|exterior|facade|entrance|architecture|sign|neon|poster|billboard|advertisement|person|people|ceo|founder|portrait|chart|graph|diagram|map|silhouette|outline|vector|clipart|watermark/i;
-            for (const result of categoryResults) {
-              const pageTitle = result.title || "";
-              if (/\.(jpg|jpeg|webp)$/i.test(pageTitle) && !COMMONS_SKIP.test(pageTitle)) {
-                const fileName = pageTitle.replace(/^File:/, "");
-                const directUrl = `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=1600`;
-                const wikiResult = {
-                  title: name,
-                  description: "",
-                  thumbnail: directUrl,
-                  heroImage: directUrl,
-                  photoImage: directUrl,
-                  url: `https://commons.wikimedia.org/wiki/${encodeURIComponent(pageTitle)}`,
-                  wikiSource: name,
-                };
-                wikipediaCache.set(name, wikiResult);
-                if (wc) wc.setWiki(name, wikiResult);
-                return wikiResult;
-              }
-            }
-          }
-        } catch (_e) {
-          /* commons fallback is best-effort */
+          } catch (_e) {}
         }
       }
       if (!title) {
@@ -814,138 +693,12 @@
         `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
       );
       const summary = await summaryRes.json();
-      // Prefer original image for backdrops; fall back to thumbnail
-      const heroImage =
-        summary.originalimage?.source || summary.thumbnail?.source || "";
-
-      // Look for a real photo (shoes, car, food, clothing) by listing page images
-      // and picking the first non-SVG, non-icon image.
-      let photoImage = "";
-      try {
-        const imagesRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=40&format=json&origin=*`,
-        );
-        if (imagesRes.ok) {
-          const imagesData = await imagesRes.json();
-          const pages = imagesData?.query?.pages
-            ? Object.values(imagesData.query.pages)
-            : [];
-          const titles = [];
-          pages.forEach((p) =>
-            (p.images || []).forEach((img) => titles.push(img.title || "")),
-          );
-          // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
-          const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement|exterior|facade|entrance|door|window|roof|ceiling|floor|tile|brick|concrete|steel|glass|sign|neon|awning|canopy|patio|terrace|balcony|staircase|elevator|corridor|hallway|atrium|foyer|garage|drive.*thru|drive.thru|takeout|packaging|box|bag|wrapper|cup|napkin|tray|receipt|uniform|hat|cap|visor|apron|lanyard|id.*card|silhouette|outline|vector|clipart|clip.art|watermark|copyright|trademark|registered/i;
-          const candidates = titles.filter(
-            (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
-          );
-          const combinedType = brandType + " " + (brand.name || "");
-          const isFoodBrand = /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(combinedType);
-          const isFashionBrand = /fashion|clothing|apparel|retail|style/i.test(combinedType);
-          const isSportsBrand = /sport|team/i.test(brandType);
-          const FOOD_BOOST = /meal|burger|pizza|chicken|fries|food|dish|plate|cuisine|restaurant|cafe|coffee|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|chef|kitchen|cooking|grill|sandwich|wings|taco|steak|bbq|cheese|pastry|milkshake|latte|espresso|promo|campaign|official|press/i;
-          const FASHION_BOOST = /campaign|collection|runway|outfit|editorial|clothing|apparel|couture|fashion|model|lookbook|look|style|denim|leather|dress|jacket|coat|shoe|sneaker|accessori|handbag|watch|jewel|silk|wool|cashmere|fabric|stitch|boutique|atelier|official|press|promo/i;
-          const PRODUCT_BOOST = /lineup|performance|coupe|sedan|suv|racing|motorsport|front|side|rear|press|show|model|hybrid|electric|gt|race|track|motor|vehicle|\b\d{4}\b|official|promo/i;
-          const SPORTS_BOOST = /stadium|arena|crowd|celebration|match|trophy|fans|player|goal|victory|league|team|club|sport|pitch|court|field|kit|jersey|action|official|press/i;
-          const ranked = candidates.slice().sort((a, b) => {
-            let aScore = 3, bScore = 3;
-            if (isFoodBrand) {
-              aScore = FOOD_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
-              bScore = FOOD_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
-            } else if (isFashionBrand) {
-              aScore = FASHION_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
-              bScore = FASHION_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
-            } else if (isSportsBrand) {
-              aScore = SPORTS_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
-              bScore = SPORTS_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
-            } else {
-              aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
-              bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
-            }
-            return aScore - bScore;
-          });
-          // Resolve the first 8 candidates to URLs
-          const slice = ranked.slice(0, 8);
-          if (slice.length) {
-            const urlsRes = await fetch(
-              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join("|")}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`,
-            );
-            if (urlsRes.ok) {
-              const urlsData = await urlsRes.json();
-              const urlPages = urlsData?.query?.pages
-                ? Object.values(urlsData.query.pages)
-                : [];
-              // pick the first one that is reasonably large
-              for (const p of urlPages) {
-                const info = p.imageinfo && p.imageinfo[0];
-                if (info && info.url && info.width >= 400) {
-                  photoImage = info.url;
-                  break;
-                }
-              }
-            }
-          }
-        }
-        // If no good photoImage found, try a product-specific Wikipedia search
-        if (!photoImage) {
-          try {
-            const productSearch =
-              isFoodBrand ? `${name} meal` :
-              isFashionBrand ? `${name} fashion campaign` :
-              `${name} lineup`;
-            const prodSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(productSearch)}&format=json&origin=*&srlimit=5`;
-            const prodRes = await fetch(prodSearchUrl);
-            if (prodRes.ok) {
-              const prodData = await prodRes.json();
-              const prodResults = prodData?.query?.search || [];
-              for (const r of prodResults) {
-                const rTitle = r.title || "";
-                if (rTitle.toLowerCase() === title.toLowerCase()) continue;
-                try {
-                  const rImgRes = await fetch(
-                    `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(rTitle)}&prop=images&imlimit=20&format=json&origin=*`,
-                  );
-                  if (!rImgRes.ok) continue;
-                  const rImgData = await rImgRes.json();
-                  const rPages = rImgData?.query?.pages ? Object.values(rImgData.query.pages) : [];
-                  const rTitles = [];
-                  rPages.forEach((p) => (p.images || []).forEach((img) => rTitles.push(img.title || "")));
-                  const rCandidates = rTitles.filter(
-                    (t) => /\.(jpg|jpeg|webp)$/i.test(t) && !SKIP.test(t) && (isFoodBrand ? FOOD_BOOST.test(t) : isFashionBrand ? FASHION_BOOST.test(t) : PRODUCT_BOOST.test(t)),
-                  );
-                  if (rCandidates.length) {
-                    const rUrlRes = await fetch(
-                      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(rCandidates[0])}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`,
-                    );
-                    if (rUrlRes.ok) {
-                      const rUrlData = await rUrlRes.json();
-                      const rUrlPages = rUrlData?.query?.pages ? Object.values(rUrlData.query.pages) : [];
-                      for (const p of rUrlPages) {
-                        const info = p.imageinfo && p.imageinfo[0];
-                        if (info && info.url && info.width >= 400) {
-                          photoImage = info.url;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  if (photoImage) break;
-                } catch (_re) { /* continue */ }
-              }
-            }
-          } catch (_pe) { /* product search is best-effort */ }
-        }
-      } catch (_e) {
-        /* photo lookup is best-effort */
-      }
-
       const result = {
         title: summary.title || title,
         description: summary.extract || "",
         thumbnail: summary.thumbnail?.source || "",
-        heroImage,
-        photoImage, // a real photo (shoes, car, food, clothing) when available
+        heroImage: summary.originalimage?.source || summary.thumbnail?.source || "",
+        photoImage: "",
         url: summary.content_urls?.desktop?.page || "",
         wikiSource: title,
       };
@@ -988,70 +741,11 @@
     return Math.abs(h);
   }
 
-  const CATEGORY_FALLBACK_BACKDROPS = {
-    food: [
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1920&q=80",
-    ],
-    fashion: [
-      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=80",
-    ],
-    car: [
-      "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1920&q=80",
-    ],
-  };
-
-  const _u = (id) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1920&q=80`;
-  const BRAND_BACKDROPS = {
-    "mcdonald's": [_u("photo-1540224648289-f6978d4469fd"), _u("photo-1603880280599-b4d4c83f3c88"), _u("photo-1749384704611-67137f9caae9")],
-    "mcdonalds": [_u("photo-1540224648289-f6978d4469fd"), _u("photo-1603880280599-b4d4c83f3c88"), _u("photo-1749384704611-67137f9caae9")],
-    "burger king": [_u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327"), _u("photo-1565299624946-b28f40a0ae38")],
-    "wendy's": [_u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327"), _u("photo-1565299624946-b28f40a0ae38")],
-    "kfc": [_u("photo-1682970078535-cd0cf994ee96"), _u("photo-1568901346375-23c9450c58cd"), _u("photo-1476224203421-9ac39bcb3327")],
-    "subway": [_u("photo-1509722747041-616f39b57569"), _u("photo-1553909489-cd47e0907980"), _u("photo-1414235077428-338989a2e8c0")],
-    "starbucks": [_u("photo-1626367240696-f8f538e47b8c"), _u("photo-1579005161819-3439e8f7e451"), _u("photo-1509042239860-f550ce710b93")],
-    "domino's": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
-    "dominos": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
-    "pizza hut": [_u("photo-1746710222392-599916b1d986"), _u("photo-1774806189017-f4c1f2760ad2"), _u("photo-1565299624946-b28f40a0ae38")],
-    "bmw": [_u("photo-1741889823656-c056b0c43749"), _u("photo-1768352725353-d498db8a1722"), _u("photo-1762880101027-3ffde0211100")],
-    "porsche": [_u("photo-1747127552258-9f09aae4f9bb"), _u("photo-1771071890455-f681dcfb8708"), _u("photo-1503376780353-7e6692767b70")],
-    "mercedes-benz": [_u("photo-1741087583560-30705d5b2fa4"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
-    "mercedes": [_u("photo-1741087583560-30705d5b2fa4"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
-    "audi": [_u("photo-1747000239166-4d336a458a18"), _u("photo-1743264533229-c22d34e2fc5f"), _u("photo-1503376780353-7e6692767b70")],
-    "ferrari": [_u("photo-1749542119776-55f1caae0a6f"), _u("photo-1773004365409-b80ce2172922"), _u("photo-1544636331-e26879cd4d9b")],
-    "lamborghini": [_u("photo-1544636331-e26879cd4d9b"), _u("photo-1503376780353-7e6692767b70"), _u("photo-1552519507-da3b142c6e3d")],
-    "tesla": [_u("photo-1560958089-b8a1929cea89"), _u("photo-1549317661-bd32c8ce0afa"), _u("photo-1502877338535-766e1452684a")],
-    "nike": [_u("photo-170599796447-acfa8f31da50"), _u("photo-15791966446-c61de437fc66"), _u("photo-1577983156459-59be31b0d11c")],
-    "adidas": [_u("photo-1593287073863-c992914cb3e3"), _u("photo-1618545647089-da834ede280c"), _u("photo-1558191053-c03db2757e3d")],
-    "gucci": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1747069340536-4db7b52b8a73"), _u("photo-1515886657613-9f3515b0c78f")],
-    "louis vuitton": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b")],
-    "prada": [_u("photo-1554902433-a4188d481bd9"), _u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b")],
-    "zara": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
-    "h&m": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
-    "hm": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1515886657613-9f3515b0c78f")],
-    "boohoo": [_u("photo-1515886657613-9f3515b0c78f"), _u("photo-1496747611176-843222e1e57c"), _u("photo-1469334031218-e382a71b716b")],
-    "shein": [_u("photo-1515886657613-9f3515b0c78f"), _u("photo-1496747611176-843222e1e57c"), _u("photo-1529139574466-a303027c1d8b")],
-    "primark": [_u("photo-1490481651871-ab68de25d43d"), _u("photo-1469334031218-e382a71b716b"), _u("photo-1483985988355-763728e1935b")],
+  const CATEGORY_BACKDROPS = {
+    food: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/food/${String(i + 1).padStart(2, "0")}.jpg`),
+    fashion: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/fashion/${String(i + 1).padStart(2, "0")}.jpg`),
+    car: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/cars/${String(i + 1).padStart(2, "0")}.jpg`),
+    sports: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/sports/${String(i + 1).padStart(2, "0")}.jpg`),
   };
 
   let brandHeroConfig = null;
@@ -1069,60 +763,9 @@
       actions: [],
     };
 
-    const isLogoUrl = (url) => {
-      if (!url) return false;
-      const u = String(url).toLowerCase();
-      const brandLogo = String(brand.logo || "").toLowerCase();
-      if (brandLogo && u.includes(brandLogo)) return true;
-      if (u === brandLogo) return true;
-      return (
-        /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
-          u,
-        ) || /\.(svg)$/i.test(u)
-      );
-    };
-
-    const isBuildingUrl = (url) => {
-      if (!url) return false;
-      const u = String(url).toLowerCase();
-      return /building|headquarters|factory|plant|office|warehouse|campus|exterior|facade|storefront|store|mall|architecture|entrance|lobby|parking|drive.*thru/i.test(u);
-    };
-
-    const pickFirstNonLogo = (...candidates) => {
-      for (const c of candidates) {
-        if (!c) continue;
-        if (Array.isArray(c)) {
-          const found = c.find((x) => x && !isLogoUrl(x) && !isBuildingUrl(x));
-          if (found) return found;
-        } else if (!isLogoUrl(c) && !isBuildingUrl(c)) {
-          return c;
-        }
-      }
-      return null;
-    };
-
-    const brandKey = (brand.name || "").toLowerCase().trim();
-    if (BRAND_BACKDROPS[brandKey]) {
-      const imgs = BRAND_BACKDROPS[brandKey];
-      brandHeroConfig.backdropUrl = imgs[hashName(brand.name || "") % imgs.length];
-      brandHeroConfig.backdropImages = imgs;
-    }
-
-    if (wiki && !brandHeroConfig.backdropUrl) {
-      const heroImg = pickFirstNonLogo(
-        wiki.photoImage,
-        wiki.heroImage,
-        wiki.thumbnail,
-      );
-      if (heroImg) {
-        brandHeroConfig.backdropUrl = heroImg;
-      }
-    }
-
-    if (!brandHeroConfig.backdropUrl) {
-      const arr = CATEGORY_FALLBACK_BACKDROPS[brandType] || CATEGORY_FALLBACK_BACKDROPS.food;
-      brandHeroConfig.backdropUrl = arr[hashName(brand.name || "") % arr.length];
-    }
+    const arr = CATEGORY_BACKDROPS[brandType] || CATEGORY_BACKDROPS.food;
+    brandHeroConfig.backdropUrl = arr[hashName(brand.name || "") % arr.length];
+    brandHeroConfig.backdropImages = arr;
 
     if (brand.category)
       brandHeroConfig.metadata.push({ type: "genre", value: brand.category });
@@ -1307,33 +950,6 @@
         );
       }
     };
-  }
-
-  async function applyWikipediaBackdrop(brand) {
-    if (!brand) return;
-    const wiki = await fetchWikipedia(brand);
-    if (!wiki) return;
-    mergeWikiIntoBrand(brand, wiki);
-    if (wiki.thumbnail) {
-      applyBackdrop(wiki.thumbnail);
-    } else if (wiki.url) {
-      // Try to fetch a Wikipedia image via REST summary
-      try {
-        const title = wiki.wikiSource || wiki.title;
-        if (title) {
-          const summaryRes = await fetch(
-            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
-          );
-          if (summaryRes.ok) {
-            const summary = await summaryRes.json();
-            const image =
-              summary.originalimage?.source || summary.thumbnail?.source;
-            if (image) applyBackdrop(image);
-          }
-        }
-      } catch (_e) {}
-    }
-    return wiki;
   }
 
   function openListMenuFromCard() {

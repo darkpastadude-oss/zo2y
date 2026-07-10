@@ -482,64 +482,18 @@
     const container = document.getElementById("unifiedHeroContainer");
     if (!container) return;
 
+    const SPORT_BACKDROPS = Array.from({ length: 8 }, (_, i) => `/assets/backdrops/sports/${String(i + 1).padStart(2, "0")}.jpg`);
+
     const config = {
       type: "team",
       title: team.name || "Team",
       description: team.description || "",
       posterUrl: team.badge || FALLBACK_BADGE,
       posterFit: "contain",
-      backdropUrl: "",
+      backdropUrl: SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length],
       metadata: [],
       actions: [],
     };
-
-    const isLogoUrl = (url) => {
-      if (!url) return false;
-      const u = String(url).toLowerCase();
-      const teamBadge = String(team.badge || "").toLowerCase();
-      if (teamBadge && (u.includes(teamBadge) || teamBadge.includes(u)))
-        return true;
-      return (
-        /logo|icon|wordmark|seal|flag|svg|coat|emblem|badge|crest|monogram|trademark/.test(
-          u,
-        ) || /\.(svg)$/i.test(u)
-      );
-    };
-
-    const pickFirstNonLogo = (...candidates) => {
-      for (const c of candidates) {
-        if (!c) continue;
-        if (Array.isArray(c)) {
-          const found = c.find((x) => x && !isLogoUrl(x));
-          if (found) return found;
-        } else if (!isLogoUrl(c)) {
-          return c;
-        }
-      }
-      return null;
-    };
-
-    const backdrop = pickFirstNonLogo(
-      team.banner,
-      team.fanart,
-      team.stadiumThumb,
-      team.wikiPhoto,
-      team.wikiHero,
-      wiki ? wiki.photoImage || wiki.heroImage || wiki.thumbnail : null,
-    );
-    const SPORT_BACKDROPS = [
-      "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1461896836934-bd45ba8a002c?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1920&q=80",
-    ];
-    const sportFallback = SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
-
-    config.backdropUrl =
-      backdrop || sportFallback;
 
     if (team.league)
       config.metadata.push({
@@ -865,58 +819,6 @@
         }
       } catch (_e) {}
 
-      let photoImage = "";
-      try {
-        const imagesRes = await fetch(
-          `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=images&imlimit=40&format=json&origin=*`,
-        );
-        if (imagesRes.ok) {
-          const imagesData = await imagesRes.json();
-          const pages = imagesData?.query?.pages
-            ? Object.values(imagesData.query.pages)
-            : [];
-          const titles = [];
-          pages.forEach((p) =>
-            (p.images || []).forEach((img) => titles.push(img.title || "")),
-          );
-          const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|map\s*of|locator|wikidata|comm\.svg|coat|emblem|building|headquarters|factory|office|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|chart|graph|diagram/i;
-          const candidates = titles.filter(
-            (t) =>
-              /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
-          );
-          const PRODUCT_BOOST =
-            /stadium|arena|ground|pitch|field|court|kit|jersey|shirt|uniform|players?|team|lineup|squad|training|match|game|action|celebration|trophy|\b\d{4}\b/i;
-          const ranked = candidates.slice().sort((a, b) => {
-            const aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
-            const bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
-            return aScore - bScore;
-          });
-          const slice = ranked.slice(0, 8);
-          if (slice.length) {
-            const urlsRes = await fetch(
-              `https://en.wikipedia.org/w/api.php?action=query&titles=${slice.map(encodeURIComponent).join("|")}&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=1920&format=json&origin=*`,
-            );
-            if (urlsRes.ok) {
-              const urlsData = await urlsRes.json();
-              const urlPages = urlsData?.query?.pages
-                ? Object.values(urlsData.query.pages)
-                : [];
-              let bestPhoto = null;
-              let bestWidth = 0;
-              for (const p of urlPages) {
-                const info = p.imageinfo && p.imageinfo[0];
-                if (info && info.url && info.width >= 400 && info.width > bestWidth) {
-                  bestWidth = info.width;
-                  bestPhoto = info.url;
-                }
-              }
-              if (bestPhoto) photoImage = bestPhoto;
-            }
-          }
-        }
-      } catch (_e) {}
-
       const result = {
         title: summaryData.title || title,
         description: summaryData.extract || "",
@@ -925,7 +827,7 @@
           summaryData.originalimage?.source ||
           summaryData.thumbnail?.source ||
           "",
-        photoImage,
+        photoImage: "",
         logoImage,
         url: summaryData.content_urls?.desktop?.page || "",
         wikiSource: title,
