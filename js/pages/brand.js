@@ -1196,8 +1196,10 @@
   }
 
   function wireActions() {
-    if (dom.saveBtn) {
-      dom.saveBtn.addEventListener("click", (event) => {
+    var saveBtn = document.getElementById("brandSaveBtn");
+    if (saveBtn && !saveBtn.dataset.zo2yWired) {
+      saveBtn.dataset.zo2yWired = "1";
+      saveBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         openListMenuFromCard();
       });
@@ -1290,6 +1292,13 @@
 
     brandData = brand;
     updateHero(brand);
+
+    if (dom.actionCard) {
+      dom.actionCard.dataset.itemId = brand.id || brand.slug || '';
+      dom.actionCard.dataset.mediaType = brandType;
+    }
+    wireActions();
+
     renderInfoGrid(brand, null);
     renderSocial(brand, null);
 
@@ -1305,6 +1314,7 @@
       }
       // Re-render hero with wiki data for backdrop image
       renderBrandHeroConfig(brand, wiki);
+      wireActions();
       renderInfoGrid(brand, wiki);
       renderSocial(brand, wiki);
     }
