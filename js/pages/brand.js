@@ -672,9 +672,10 @@
     try {
       let title = "";
       const categorySearchHint =
-        brandType === "fashion" ? " fashion clothing brand" :
-        brandType === "food" ? " food restaurant chain" :
-        brandType === "car" ? " automobile car manufacturer" : "";
+        brandType === "fashion" ? " fashion campaign" :
+        brandType === "food" ? " meal" :
+        brandType === "car" ? " lineup" :
+        brandType === "sport" ? " stadium crowd" : "";
       const enrichedName = name + categorySearchHint;
       const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(enrichedName)}&format=json&origin=*&srlimit=3`;
       const search = await fetch(searchUrl);
@@ -769,16 +770,17 @@
         try {
           const _searchType = brandType + " " + (brand.name || "");
           const productHints =
-            /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(_searchType) ? " food meal" :
-            /fashion|clothing|apparel|retail|style/i.test(_searchType) ? " fashion clothing" :
-            /car|auto/i.test(_searchType) ? " car vehicle" : "";
+            /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(_searchType) ? " meal" :
+            /fashion|clothing|apparel|retail|style/i.test(_searchType) ? " fashion campaign" :
+            /car|auto/i.test(_searchType) ? " lineup" :
+            /sport|team/i.test(_searchType) ? " stadium crowd" : "";
           const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + productHints)}&srnamespace=6&format=json&origin=*&srlimit=15`;
           const categoryRes = await fetch(commonsSearchUrl);
           if (categoryRes.ok) {
             const categoryData = await categoryRes.json();
             const categoryResults = categoryData?.query?.search || [];
             // Find first jpg/jpeg/webp that isn't a logo
-            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat|building|headquarters|hq|factory|plant|office|warehouse|campus|storefront|store|mall|exterior|facade|entrance|architecture|sign|neon|poster|billboard|advertisement|person|people|ceo|founder|portrait|chart|graph|diagram|map/i;
+            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat|building|headquarters|hq|factory|plant|office|warehouse|campus|storefront|store|mall|exterior|facade|entrance|architecture|sign|neon|poster|billboard|advertisement|person|people|ceo|founder|portrait|chart|graph|diagram|map|silhouette|outline|vector|clipart|watermark/i;
             for (const result of categoryResults) {
               const pageTitle = result.title || "";
               if (/\.(jpg|jpeg|webp)$/i.test(pageTitle) && !COMMONS_SKIP.test(pageTitle)) {
@@ -834,24 +836,29 @@
           );
           // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
           const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement|exterior|facade|entrance|door|window|roof|ceiling|floor|tile|brick|concrete|steel|glass|sign|neon|awning|canopy|patio|terrace|balcony|staircase|elevator|corridor|hallway|atrium|lobby|foyer|lobby|garage|drive.*thru|drive.thru|takeout|packaging|box|bag|wrapper|cup|napkin|tray|receipt|uniform|hat|cap|visor|apron|badge|lanyard|id.*card/i;
+            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement|exterior|facade|entrance|door|window|roof|ceiling|floor|tile|brick|concrete|steel|glass|sign|neon|awning|canopy|patio|terrace|balcony|staircase|elevator|corridor|hallway|atrium|foyer|garage|drive.*thru|drive.thru|takeout|packaging|box|bag|wrapper|cup|napkin|tray|receipt|uniform|hat|cap|visor|apron|lanyard|id.*card|silhouette|outline|vector|clipart|clip.art|watermark|copyright|trademark|registered/i;
           const candidates = titles.filter(
             (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
           );
           const combinedType = brandType + " " + (brand.name || "");
           const isFoodBrand = /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(combinedType);
           const isFashionBrand = /fashion|clothing|apparel|retail|style/i.test(combinedType);
-          const FOOD_BOOST = /food|dish|meal|plate|cuisine|restaurant|cafe|coffee|burger|pizza|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|menu|chef|kitchen|cooking|grill|fry|bake|oven|stove|fresh|organic|fruit|vegetable|meat|seafood|recipe|sandwich|fries|chicken|wings|taco|burrito|ramen|steak|bbq|sauce|cheese|bread|pastry|donut|ice.cream|smoothie|milkshake|latte|espresso/i;
-          const FASHION_BOOST = /fashion|clothing|apparel|runway|editorial|outfit|dress|denim|leather|cotton|knitwear|textile|wear|collection|couture|garment|jacket|coat|shoe|sneaker|boot|accessori|handbag|watch|jewel|silk|wool|cashmere|lace|fabric|stitch|model|style|portrait|lookbook|mannequin|boutique|atelier/i;
-          const PRODUCT_BOOST = /front|side|rear|view|press|show|model|sedan|coupe|suv|truck|hatch|wagon|roadster|convertible|hybrid|electric|gt|racing|race|track|motor|auto|vehicle|\b\d{4}\b/i;
+          const isSportsBrand = /sport|team/i.test(brandType);
+          const FOOD_BOOST = /meal|burger|pizza|chicken|fries|food|dish|plate|cuisine|restaurant|cafe|coffee|sushi|noodle|salad|dessert|cake|bakery|chocolate|drink|beverage|chef|kitchen|cooking|grill|sandwich|wings|taco|steak|bbq|cheese|pastry|milkshake|latte|espresso|promo|campaign|official|press/i;
+          const FASHION_BOOST = /campaign|collection|runway|outfit|editorial|clothing|apparel|couture|fashion|model|lookbook|look|style|denim|leather|dress|jacket|coat|shoe|sneaker|accessori|handbag|watch|jewel|silk|wool|cashmere|fabric|stitch|boutique|atelier|official|press|promo/i;
+          const PRODUCT_BOOST = /lineup|performance|coupe|sedan|suv|racing|motorsport|front|side|rear|press|show|model|hybrid|electric|gt|race|track|motor|vehicle|\b\d{4}\b|official|promo/i;
+          const SPORTS_BOOST = /stadium|arena|crowd|celebration|match|trophy|fans|player|goal|victory|league|team|club|sport|pitch|court|field|kit|jersey|action|official|press/i;
           const ranked = candidates.slice().sort((a, b) => {
-            let aScore = 2, bScore = 2;
+            let aScore = 3, bScore = 3;
             if (isFoodBrand) {
               aScore = FOOD_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
               bScore = FOOD_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
             } else if (isFashionBrand) {
               aScore = FASHION_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
               bScore = FASHION_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
+            } else if (isSportsBrand) {
+              aScore = SPORTS_BOOST.test(a) ? 0 : (PRODUCT_BOOST.test(a) ? 1 : 2);
+              bScore = SPORTS_BOOST.test(b) ? 0 : (PRODUCT_BOOST.test(b) ? 1 : 2);
             } else {
               aScore = PRODUCT_BOOST.test(a) ? 0 : 1;
               bScore = PRODUCT_BOOST.test(b) ? 0 : 1;
@@ -884,9 +891,9 @@
         if (!photoImage) {
           try {
             const productSearch =
-              isFoodBrand ? `${name} food dish meal` :
-              isFashionBrand ? `${name} fashion clothing collection` :
-              `${name} car vehicle model`;
+              isFoodBrand ? `${name} meal` :
+              isFashionBrand ? `${name} fashion campaign` :
+              `${name} lineup`;
             const prodSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(productSearch)}&format=json&origin=*&srlimit=5`;
             const prodRes = await fetch(prodSearchUrl);
             if (prodRes.ok) {
@@ -984,21 +991,21 @@
   const CATEGORY_FALLBACK_BACKDROPS = {
     food: [
       "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1920&q=80",
     ],
     fashion: [
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=80",
     ],
@@ -1006,11 +1013,11 @@
       "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
     ],
   };
 
