@@ -565,14 +565,12 @@
         />
       </div>
       <div class="card-meta">
-        <div class="card-meta-header">
-          <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
+        <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
+        <div class="card-meta-top">
+          <p class="card-name">${escapeHtml(title)}</p>
           <div class="card-menu-wrap">
             <button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
           </div>
-        </div>
-        <div class="card-meta-top">
-          <p class="card-name">${escapeHtml(title)}</p>
         </div>
         <p class="card-sub">${escapeHtml(subtitle)}</p>
         <p class="card-extra">${escapeHtml(extra)}</p>

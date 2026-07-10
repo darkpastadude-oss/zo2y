@@ -496,8 +496,6 @@
     const backdrop =
       (isImageUrl(team.stadiumThumb) ? team.stadiumThumb : null) ||
       (isImageUrl(team.stadiumArt) ? team.stadiumArt : null) ||
-      (isImageUrl(team.banner) ? team.banner : null) ||
-      (isImageUrl(team.fanart) ? team.fanart : null) ||
       SPORT_BACKDROPS[(team.name || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0) % SPORT_BACKDROPS.length];
 
     const config = {
