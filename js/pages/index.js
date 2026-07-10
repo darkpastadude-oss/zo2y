@@ -4630,14 +4630,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         itemModal.classList.add('active');
         itemModal.setAttribute('aria-hidden', 'false');
         syncMenuModalViewport(itemModal);
-        // Center the modal content
-        const content = itemModal.querySelector('.menu-modal-content');
-        if (content) {
-          content.style.position = 'absolute';
-          content.style.top = '50%';
-          content.style.left = '50%';
-          content.style.transform = 'translate(-50%, -50%)';
-        }
         playHomeMenuModalFlyUp(itemModal);
       }
       syncMenuModalBodyLock();

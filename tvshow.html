@@ -1303,81 +1303,6 @@
         }
       }
 
-      function ensureListMenuBackdrop() {
-        let backdrop = document.getElementById('listMenuBackdrop');
-        if (!backdrop) {
-          backdrop = document.createElement('div');
-          backdrop.id = 'listMenuBackdrop';
-          backdrop.className = 'list-menu-backdrop';
-          backdrop.addEventListener('click', closeAllListMenus);
-          document.body.appendChild(backdrop);
-        }
-        return backdrop;
-      }
-
-      function showListMenuBackdrop() {
-        const backdrop = ensureListMenuBackdrop();
-        backdrop.classList.add('active');
-      }
-
-      function hideListMenuBackdrop() {
-        const backdrop = document.getElementById('listMenuBackdrop');
-        if (backdrop) backdrop.classList.remove('active');
-      }
-
-      function closeAllListMenus() {
-        const menu = document.getElementById('movieListMenu');
-        if (menu) menu.classList.remove('open');
-        hideListMenuBackdrop();
-      }
-
-      function wireListMenu() {
-        const menuBtn = document.getElementById('movieMenuBtn');
-        const menu = document.getElementById('movieListMenu');
-        if (!menuBtn || !menu) return;
-        menuBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const wasOpen = menu.classList.contains('open');
-          closeAllListMenus();
-          if (!wasOpen) {
-            menu.classList.add('open');
-            showListMenuBackdrop();
-          }
-        });
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.menu-wrapper') && !e.target.closest('.list-menu')) {
-            closeAllListMenus();
-          }
-        });
-        menu.querySelectorAll('.list-action').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const listType = btn.getAttribute('data-list');
-            if (listType === 'custom') {
-              closeAllListMenus();
-              openMovieListsModal();
-              return;
-            }
-            await toggleList(listType);
-            closeAllListMenus();
-          });
-        });
-      }
-
-      
-
-      
-
-      
-
-      
-
-      
-
-      
-
-      
-
       
 
       
@@ -1823,9 +1748,6 @@
         await initSupabase();
         initPageSearch();
         wireTrailerLightbox();
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape') closeAllListMenus();
-        });
         const closeListsBtn = document.getElementById('closeMovieListsBtn');
         const saveListsBtn = document.getElementById('saveMovieListsBtn');
         const createListBtn = document.getElementById('createMovieListBtn');

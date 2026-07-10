@@ -27,10 +27,6 @@
 }
 
 .menu-modal-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background: var(--card, #132347);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
   border-radius: 20px;
@@ -46,8 +42,8 @@
 }
 
 @keyframes menuModalFlyUp {
-  from { opacity: 0; transform: translate(-50%, calc(-50% + 24px)) scale(0.98); }
-  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Hide JS-injected close buttons by default; show only when parent is active */
@@ -808,14 +804,10 @@ body.zo2y-popup-open {
     backdrop-filter: blur(8px);
   }
   .menu-modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
     width: calc(100vw - 14px);
     max-width: 100vw;
     max-height: min(80dvh, 740px);
     border-radius: 18px;
-    transform: translate(-50%, -50%);
   }
   .menu-modal-header {
     padding: 14px 16px;
@@ -939,10 +931,6 @@ body.zo2y-popup-open {
   display: flex;
 }
 #editMediaListModal .menu-modal-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background: var(--card, #132347);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
   border-radius: 20px;
