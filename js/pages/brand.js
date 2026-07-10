@@ -767,14 +767,18 @@
       // Fallback: try Wikipedia commons category search
       if (!title) {
         try {
-          // Search for commons category with brand name (prefer real photos, not logos)
-          const categorySearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&srnamespace=6&format=json&origin=*&srlimit=10`;
-          const categoryRes = await fetch(categorySearchUrl);
+          const _searchType = brandType + " " + (brand.name || "");
+          const productHints =
+            /food|restaurant|pizza|burger|coffee|tea|snack|bakery|cafe|chocolate|candy|ice.cream|fast.food/i.test(_searchType) ? " food meal" :
+            /fashion|clothing|apparel|retail|style/i.test(_searchType) ? " fashion clothing" :
+            /car|auto/i.test(_searchType) ? " car vehicle" : "";
+          const commonsSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name + productHints)}&srnamespace=6&format=json&origin=*&srlimit=15`;
+          const categoryRes = await fetch(commonsSearchUrl);
           if (categoryRes.ok) {
             const categoryData = await categoryRes.json();
             const categoryResults = categoryData?.query?.search || [];
             // Find first jpg/jpeg/webp that isn't a logo
-            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat/i;
+            const COMMONS_SKIP = /logo|icon|wordmark|seal|flag|svg|emblem|badge|crest|monogram|trademark|coat|building|headquarters|hq|factory|plant|office|warehouse|campus|storefront|store|mall|exterior|facade|entrance|architecture|sign|neon|poster|billboard|advertisement|person|people|ceo|founder|portrait|chart|graph|diagram|map/i;
             for (const result of categoryResults) {
               const pageTitle = result.title || "";
               if (/\.(jpg|jpeg|webp)$/i.test(pageTitle) && !COMMONS_SKIP.test(pageTitle)) {
@@ -830,7 +834,7 @@
           );
           // Filter: only jpg/jpeg/webp, exclude .svg, icons, logos, wordmarks
           const SKIP =
-            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement/i;
+            /logo|icon|wordmark|seal|flag|svg|building|headquarters|hq|factory|plant|office|warehouse|campus|exhibit|booth|stand|person|people|ceo|founder|portrait|signature|trademark|monogram|badge|crest|emblem|chart|graph|diagram|map|locator|infographic|protest|rally|crowd|march|demonstration|wall|graffiti|street.*art|mural|urban.*decay|storefront|store|mall|shop.*interior|retail.*space|parking|lobby|reception|interior.*design|architecture|poster|billboard|advertisement|exterior|facade|entrance|door|window|roof|ceiling|floor|tile|brick|concrete|steel|glass|sign|neon|awning|canopy|patio|terrace|balcony|staircase|elevator|corridor|hallway|atrium|lobby|foyer|lobby|garage|drive.*thru|drive.thru|takeout|packaging|box|bag|wrapper|cup|napkin|tray|receipt|uniform|hat|cap|visor|apron|badge|lanyard|id.*card/i;
           const candidates = titles.filter(
             (t) => /\.(jpg|jpeg|JPG|JPEG|webp|WEBP)$/i.test(t) && !SKIP.test(t),
           );
@@ -875,6 +879,55 @@
               }
             }
           }
+        }
+        // If no good photoImage found, try a product-specific Wikipedia search
+        if (!photoImage) {
+          try {
+            const productSearch =
+              isFoodBrand ? `${name} food dish meal` :
+              isFashionBrand ? `${name} fashion clothing collection` :
+              `${name} car vehicle model`;
+            const prodSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(productSearch)}&format=json&origin=*&srlimit=5`;
+            const prodRes = await fetch(prodSearchUrl);
+            if (prodRes.ok) {
+              const prodData = await prodRes.json();
+              const prodResults = prodData?.query?.search || [];
+              for (const r of prodResults) {
+                const rTitle = r.title || "";
+                if (rTitle.toLowerCase() === title.toLowerCase()) continue;
+                try {
+                  const rImgRes = await fetch(
+                    `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(rTitle)}&prop=images&imlimit=20&format=json&origin=*`,
+                  );
+                  if (!rImgRes.ok) continue;
+                  const rImgData = await rImgRes.json();
+                  const rPages = rImgData?.query?.pages ? Object.values(rImgData.query.pages) : [];
+                  const rTitles = [];
+                  rPages.forEach((p) => (p.images || []).forEach((img) => rTitles.push(img.title || "")));
+                  const rCandidates = rTitles.filter(
+                    (t) => /\.(jpg|jpeg|webp)$/i.test(t) && !SKIP.test(t) && (isFoodBrand ? FOOD_BOOST.test(t) : isFashionBrand ? FASHION_BOOST.test(t) : PRODUCT_BOOST.test(t)),
+                  );
+                  if (rCandidates.length) {
+                    const rUrlRes = await fetch(
+                      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(rCandidates[0])}&prop=imageinfo&iiprop=url|size&iiurlwidth=1600&format=json&origin=*`,
+                    );
+                    if (rUrlRes.ok) {
+                      const rUrlData = await rUrlRes.json();
+                      const rUrlPages = rUrlData?.query?.pages ? Object.values(rUrlData.query.pages) : [];
+                      for (const p of rUrlPages) {
+                        const info = p.imageinfo && p.imageinfo[0];
+                        if (info && info.url && info.width >= 400) {
+                          photoImage = info.url;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  if (photoImage) break;
+                } catch (_re) { /* continue */ }
+              }
+            }
+          } catch (_pe) { /* product search is best-effort */ }
         }
       } catch (_e) {
         /* photo lookup is best-effort */
@@ -930,34 +983,34 @@
 
   const CATEGORY_FALLBACK_BACKDROPS = {
     food: [
-      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=1920&q=80",
     ],
     fashion: [
-      "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1920&q=80",
     ],
     car: [
-      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=1920&q=80",
-      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80",
       "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1920&q=80",
+      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1920&q=80",
     ],
   };
 
@@ -989,13 +1042,19 @@
       );
     };
 
+    const isBuildingUrl = (url) => {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      return /building|headquarters|factory|plant|office|warehouse|campus|exterior|facade|storefront|store|mall|architecture|entrance|lobby|parking|drive.*thru/i.test(u);
+    };
+
     const pickFirstNonLogo = (...candidates) => {
       for (const c of candidates) {
         if (!c) continue;
         if (Array.isArray(c)) {
-          const found = c.find((x) => x && !isLogoUrl(x));
+          const found = c.find((x) => x && !isLogoUrl(x) && !isBuildingUrl(x));
           if (found) return found;
-        } else if (!isLogoUrl(c)) {
+        } else if (!isLogoUrl(c) && !isBuildingUrl(c)) {
           return c;
         }
       }
