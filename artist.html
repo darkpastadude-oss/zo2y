@@ -392,7 +392,8 @@
 
       async function fetchArtist(id) {
         try {
-          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}`);
+          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(params.get('name') || '')}`;
+          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}${qs}`);
           if (res.ok) {
             const data = await res.json();
             if (data && (data.result || data.id)) return data.result || data;
@@ -411,18 +412,20 @@
         return null;
       }
 
-      async function fetchTopTracks(id) {
+      async function fetchTopTracks(id, artistName) {
         try {
-          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/top-tracks`);
+          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(artistName || params.get('name') || '')}`;
+          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/top-tracks${qs}`);
           if (!res.ok) return [];
           const data = await res.json();
           return data?.tracks || [];
         } catch (_) { return []; }
       }
 
-      async function fetchAlbums(id) {
+      async function fetchAlbums(id, artistName) {
         try {
-          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/albums`);
+          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(artistName || params.get('name') || '')}`;
+          const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/albums${qs}`);
           if (!res.ok) return [];
           const data = await res.json();
           return data?.albums || [];
@@ -629,8 +632,8 @@
 
         // Fetch and render top tracks and albums in parallel
         const [tracks, albums] = await Promise.all([
-          fetchTopTracks(artistId),
-          fetchAlbums(artistId)
+          fetchTopTracks(artistId, artistName),
+          fetchAlbums(artistId, artistName)
         ]);
 
         renderTopTracks(tracks);
