@@ -729,18 +729,11 @@
     card.dataset.image = image;
     card.dataset.listImage = image;
 
-    const showMenu = typeof window.openIndexStyleListMenu === 'function';
-    const trailingControl = showMenu
-      ? `
-        <div class="card-menu-wrap">
-          <button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
-        </div>
-      `
-      : `
-        <div class="card-menu-wrap">
-          <a class="card-open-link" href="${escapeHtml(href)}" aria-label="Open brand"><i class="fas fa-arrow-up-right-from-square"></i></a>
-        </div>
-      `;
+    const trailingControl = `
+      <div class="card-menu-wrap">
+        <button class="card-menu-btn" type="button" aria-label="Add to lists"><i class="fas fa-ellipsis-v"></i></button>
+      </div>
+    `;
 
     const iconClass = BRAND_TYPE === 'food' ? 'fa-burger' : (BRAND_TYPE === 'car' ? 'fa-car' : 'fa-shirt');
     const label = BRAND_TYPE === 'food' ? 'Food' : (BRAND_TYPE === 'car' ? 'Cars' : 'Fashion');

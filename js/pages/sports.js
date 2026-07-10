@@ -580,10 +580,12 @@
     `;
 
     const menuBtn = card.querySelector('.card-menu-btn');
-    if (menuBtn && typeof window.openIndexStyleListMenu === 'function') {
+    if (menuBtn) {
       menuBtn.addEventListener('click', e => {
         e.stopPropagation();
-        window.openIndexStyleListMenu(card);
+        if (typeof window.openIndexStyleListMenu === 'function') {
+          window.openIndexStyleListMenu(card);
+        }
       });
     }
 
