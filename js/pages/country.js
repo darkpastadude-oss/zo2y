@@ -969,23 +969,6 @@
     if (imgEl && state.flag) imgEl.src = state.flag;
   }
 
-  function initMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== "function") return;
-    window.initIndexStyleListMenu({
-      mediaType: "travel",
-      getCurrentUser: () => state.currentUser,
-      ensureClient: ensureSupabase,
-      notify: (message, isError) =>
-        showToast(message, isError ? "error" : "success"),
-    });
-    if (
-      window.ListUtils &&
-      typeof window.ListUtils.bindGlobalListUx === "function"
-    ) {
-      window.ListUtils.bindGlobalListUx();
-    }
-  }
-
   /* ---------- Country loading ---------- */
   function showMissingCodeView() {
     if (ui.guideSection) ui.guideSection.hidden = true;
@@ -1229,7 +1212,6 @@
 
       await loadCountry();
       await initAuth();
-      initMenuBridge();
     } catch (err) {
       console.error("Country page init failed:", err);
       showToast("Unable to load country details.", "error");

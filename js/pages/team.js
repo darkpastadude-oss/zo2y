@@ -199,24 +199,6 @@
     }
   }
 
-  function initMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== "function") return;
-    window.initIndexStyleListMenu({
-      mediaType: "sports",
-      getCurrentUser: () => state.currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList,
-      notify: (message, isError) =>
-        showToast(message, isError ? "error" : "success"),
-    });
-    if (
-      window.ListUtils &&
-      typeof window.ListUtils.bindGlobalListUx === "function"
-    ) {
-      window.ListUtils.bindGlobalListUx();
-    }
-  }
-
   function getSportIcon(sport) {
     const norm = String(sport || "")
       .toLowerCase()
@@ -599,37 +581,8 @@
 
     if (window.renderUnifiedMediaHero) {
       window.renderUnifiedMediaHero(container, config);
-      bindUnifiedListMenu(team, config);
+
     }
-  }
-
-  function bindUnifiedListMenu(team, config) {
-    const saveBtn = document.getElementById("teamSaveBtn");
-    if (!saveBtn || !window.initIndexStyleListMenu) return;
-
-    window.initIndexStyleListMenu({
-      mediaType: "sports",
-      itemIdAttr: "data-item-id",
-      getVisibleItemIds: () => (team.id ? [team.id] : []),
-      getQuickStatusForItem: () => null,
-      getCurrentUser: () => state.currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList,
-      notify: (message, isError) =>
-        showToast(message, isError ? "error" : "success"),
-      getItemFromCard: () => ({
-        mediaType: "sports",
-        itemId: team.id,
-        title: config.title,
-        subtitle: "",
-        posterUrl: config.posterUrl,
-      }),
-    });
-
-    saveBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.openIndexStyleListMenu(saveBtn);
-    });
   }
 
   function setHero(team, wiki) {
@@ -1258,14 +1211,6 @@
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
     await ensureSupabase();
     await initAuth();
-    initMenuBridge();
-    const saveBtn = document.getElementById("teamSaveBtn");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", (event) => {
-        event.preventDefault();
-        openListMenuFromCard();
-      });
-    }
     await loadTeam();
   }
 

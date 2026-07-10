@@ -155,7 +155,16 @@
           document.getElementById("unifiedHeroContainer"),
           config
         );
-        bindUnifiedListMenu(config);
+        var saveBtn = document.getElementById('gameSaveBtn');
+        if (saveBtn) {
+          saveBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (gameId) {
+              ListModal.open(gameId, 'game');
+            }
+          });
+        }
       }
 
       if (els.aboutBody) {
@@ -293,41 +302,6 @@
       pendingListOps.delete(opKey);
       updateListMenuUI();
     }
-  }
-
-  function bindUnifiedListMenu(config) {
-    const saveBtn = document.getElementById('gameSaveBtn');
-    if (!saveBtn || !gameId || !window.initIndexStyleListMenu) return;
-
-    window.initIndexStyleListMenu({
-      mediaType: 'game',
-      itemIdAttr: 'data-item-id',
-      getVisibleItemIds: () => gameId ? [gameId] : [],
-      getQuickStatusForItem: (itemId) => {
-        if (itemId !== gameId) return null;
-        return { ...listStatus };
-      },
-      getItemFromCard: () => ({
-        mediaType: 'game',
-        itemId: gameId,
-        title: config.title,
-        subtitle: config.metadata.find(m => m.type === 'year')?.value || '',
-        image: config.posterUrl
-      }),
-      ensureClient: async () => {
-        if (supabaseClient) return supabaseClient;
-        return initSupabase();
-      },
-      getCurrentUser: () => currentUser,
-      notify: (message, isError) => showNotification(message, isError ? 'error' : 'success'),
-      toggleDefaultList: async ({ listType, nextSaved }) => toggleList(listType, nextSaved)
-    });
-
-    saveBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      window.openIndexStyleListMenu(saveBtn);
-    });
   }
 
   (async function init() {

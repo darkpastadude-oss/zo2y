@@ -1022,37 +1022,8 @@
         document.getElementById("unifiedHeroContainer"),
         brandHeroConfig,
       );
-      bindUnifiedListMenu(brand, brandHeroConfig);
+
     }
-  }
-
-  function bindUnifiedListMenu(brand, config) {
-    const saveBtn = document.getElementById("brandSaveBtn");
-    if (!saveBtn || !window.initIndexStyleListMenu) return;
-
-    window.initIndexStyleListMenu({
-      mediaType: brandType,
-      itemIdAttr: "data-item-id",
-      getVisibleItemIds: () => brand.id ? [brand.id] : [],
-      getQuickStatusForItem: () => null,
-      getCurrentUser: () => currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList,
-      notify: (message, isError) =>
-        showToast(message, isError ? "error" : "success"),
-      getItemFromCard: () => ({
-        mediaType: brandType,
-        itemId: brand.id,
-        title: config.title,
-        subtitle: "",
-        posterUrl: config.posterUrl
-      })
-    });
-
-    saveBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.openIndexStyleListMenu(saveBtn);
-    });
   }
 
   function updateHero(brand) {
@@ -1224,24 +1195,6 @@
     }
   }
 
-  function initMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== "function") return;
-    window.initIndexStyleListMenu({
-      mediaType: brandType,
-      getCurrentUser: () => currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList,
-      notify: (message, isError) =>
-        showToast(message, isError ? "error" : "success"),
-    });
-    if (
-      window.ListUtils &&
-      typeof window.ListUtils.bindGlobalListUx === "function"
-    ) {
-      window.ListUtils.bindGlobalListUx();
-    }
-  }
-
   function wireActions() {
     if (dom.saveBtn) {
       dom.saveBtn.addEventListener("click", (event) => {
@@ -1324,7 +1277,6 @@
   async function boot() {
     setCategoryAccent();
     await loadSession();
-    initMenuBridge();
     wireActions();
 
     const brand = await fetchBrand();

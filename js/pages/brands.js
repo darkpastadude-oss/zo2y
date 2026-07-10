@@ -890,23 +890,6 @@
     void ensureBrandBackgroundManifest().then(() => updateBrandSpotlight(getFilteredBrands()));
   }
 
-  function initMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== 'function') return;
-    window.initIndexStyleListMenu({
-      mediaType: BRAND_TYPE,
-      getCurrentUser: () => currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList,
-      notify: (message, isError) => {
-        if (typeof window.showToast === 'function') window.showToast(message, isError ? 'error' : 'success');
-        else if (isError) console.error(message);
-      }
-    });
-    if (window.ListUtils && typeof window.ListUtils.bindGlobalListUx === 'function') {
-      window.ListUtils.bindGlobalListUx();
-    }
-  }
-
   function wireEvents() {
     if (searchInput) {
       searchInput.addEventListener('input', renderGrid);
@@ -951,7 +934,6 @@
     initPageMeta();
     wireEvents();
     await loadSession();
-    initMenuBridge();
     await loadBrands();
   }
 

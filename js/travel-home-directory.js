@@ -446,26 +446,6 @@
     });
   }
 
-  function wireListMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== 'function') return;
-    window.initIndexStyleListMenu({
-      mediaType: 'travel',
-      itemIdAttr: 'data-code',
-      getVisibleItemIds: () => Array.from(document.querySelectorAll('.travel-card[data-code]'))
-        .map((node) => node.getAttribute('data-code'))
-        .filter(Boolean),
-      getQuickStatusForItem: (id) => {
-        const status = state.listStatus.get(id);
-        return status ? { ...status } : null;
-      },
-      ensureClient: async () => ensureSupabase(),
-      getCurrentUser: () => state.currentUser,
-      notify: (message, errorLike) => showToast(message, !!errorLike),
-      toggleDefaultList: async ({ itemId, listType, card, nextSaved }) =>
-        toggleTravelItem(itemId, listType, card)
-    });
-  }
-
   function showToast(message, isError = false) {
     const el = document.createElement('div');
     el.className = `travel-toast ${isError ? 'err' : 'ok'}`;
@@ -588,7 +568,6 @@
     });
 
     wireTravelActions();
-    wireListMenuBridge();
   }
 
   function init() {

@@ -1,7 +1,6 @@
 /* ==========================================================================
-   css/list.css — Definitive unified list-menu + popup CSS
-   Single source of truth for ALL pages: index, detail, category, brand, profile.
-   Based on the old index-list-menu-adapter.js reference look (commit d3a8d85).
+   css/list-modal.css — Single source of truth for ALL list modal styles.
+   Extracted from css/list.css.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -407,7 +406,6 @@
 
 /* ==========================================================================
    2. LIST-MENU — Compact quick-action popup (inline card menu)
-   Used by: unified-list-menu.js openQuickListMenu()
    ========================================================================== */
 .list-menu {
   position: fixed;

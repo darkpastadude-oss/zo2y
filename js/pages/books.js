@@ -301,46 +301,6 @@ function wireEvents() {
   }
 }
 
-function initMenuBridge() {
-  if (window.initIndexStyleListMenu && !window.__ZO2Y_BOOKS_LIST_BRIDGE) {
-    window.__ZO2Y_BOOKS_LIST_BRIDGE = true;
-    window.initIndexStyleListMenu({
-      mediaType: "book",
-      itemIdAttr: "data-id",
-      getItemFromCard: function (card) {
-        if (!card) return null;
-        return {
-          mediaType: "book",
-          itemId: card.getAttribute("data-id") || "",
-          title: card.getAttribute("data-title") || "",
-          subtitle: card.getAttribute("data-author") || "",
-          image: card.querySelector("img")?.getAttribute("src") || ""
-        };
-      },
-      getVisibleItemIds: function () {
-        return Array.from(document.querySelectorAll('.card[data-id]')).map(c => c.getAttribute("data-id")).filter(Boolean);
-      },
-      getQuickStatusForItem: function (itemId) {
-        const key = String(itemId || "").trim();
-        const status = bookListStatusMap.get(key);
-        return status ? { ...status } : null;
-      },
-      ensureClient: async function () { return await ensureSupabase(); },
-      getCurrentUser: function () { return currentUser || null; },
-      notify: function (msg, isErr) { showToast(msg, !!isErr); }
-    });
-    document.body.addEventListener("click", e => {
-      const btn = e.target.closest(".card-menu-btn");
-      if (btn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const card = btn.closest(".card");
-        if (card && window.openIndexStyleListMenu) window.openIndexStyleListMenu(card);
-      }
-    });
-  }
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const genreSelect = document.getElementById("genre");
   if (genreSelect) {
@@ -348,7 +308,6 @@ document.addEventListener("DOMContentLoaded", () => {
     genreSelect.innerHTML = genres.map(g => `<option value="${g}">${g ? g.charAt(0).toUpperCase() + g.slice(1) : "All Genres"}</option>`).join("");
   }
   wireEvents();
-  initMenuBridge();
   setupInfiniteScroll();
   initAuthUi().then(async () => { await loadBooks(false); });
 });

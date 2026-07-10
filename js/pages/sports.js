@@ -733,44 +733,6 @@
     }
   }
 
-  function initMenuBridge() {
-    if (typeof window.initIndexStyleListMenu !== 'function') return;
-    window.initIndexStyleListMenu({
-      mediaType: 'sports',
-      getCurrentUser: () => currentUser,
-      ensureClient: ensureSupabase,
-      toggleDefaultList: async ({ itemId, listType, nextSaved }) => {
-        const client = ensureSupabase();
-        if (!client || !currentUser) return { ok: false };
-        try {
-          if (nextSaved === false) {
-            await client.from('list_items').delete()
-              .eq('user_id', currentUser.id).eq('item_id', itemId)
-              .eq('media_type', 'sports').eq('list_type', 'favorites');
-            favorites.delete(itemId);
-            return { ok: true, saved: false };
-          }
-          const team = allTeams.find(t => t.id === itemId) || {};
-          await client.from('teams').upsert({
-            id: itemId, name: team.name || '',
-            sport: team.sport || null, league: team.league || null,
-            logo_url: getBadge(team)
-          }, { onConflict: 'id' });
-          const { error: insertErr } = await client.from('list_items').insert(
-            { user_id: currentUser.id, media_type: 'sports', item_id: itemId, list_type: 'favorites' }
-          );
-          if (insertErr && String(insertErr.code || '') !== '23505') throw insertErr;
-          favorites.add(itemId);
-          syncSaveButtons();
-          return { ok: true, saved: true };
-        } catch (_) {
-          return { ok: false };
-        }
-      },
-      notify: (msg, isError) => showToast(msg, isError)
-    });
-  }
-
   const NATIONAL_TEAMS = [
     { id: 'nat-ar', name: 'Argentina', sport: 'Football', league: 'FIFA World Cup', stadium: 'Estadio Monumental', logo_url: '/assets/logos/football/national-teams/ar.png' },
     { id: 'nat-br', name: 'Brazil', sport: 'Football', league: 'FIFA World Cup', stadium: 'Maracanã', logo_url: '/assets/logos/football/national-teams/br.png' },
@@ -875,7 +837,6 @@
     const client = await ensureSupabase();
     await seedNationalTeams(client);
     await loadSession();
-    initMenuBridge();
     await loadFavorites();
     allTeams = await loadTeams();
     populateFilters();
