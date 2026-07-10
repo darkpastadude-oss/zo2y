@@ -448,46 +448,6 @@ const HEADER_HTML = `
 
     const mobilePage = isMobileContentPage(window.location.pathname);
     document.body.setAttribute('data-zo2y-compact-header', mobilePage ? '1' : '0');
-
-
-
-    const activePage = normalizePageName(window.location.pathname);
-
-    document.querySelectorAll('[data-nav-page]').forEach((link) => {
-      const page = String(link.getAttribute('data-nav-page') || '');
-      if (!page) return;
-      const active = page === activePage;
-      link.classList.toggle('active', active);
-      if (active) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
-    });
-
-    document.querySelectorAll('[data-nav-group]').forEach((group) => {
-      const hasActive = !!group.querySelector('[data-nav-page].active');
-      group.classList.toggle('active', hasActive);
-      const toggle = group.querySelector('.zo2y-nav-toggle');
-      if (toggle) toggle.classList.toggle('active', hasActive);
-    });
-
-    // Restore persisted mobile accordion states (user preference).
-    // Falls back to auto-open if the accordion contains the active page
-    // and no user preference has been saved yet.
-    const storedStates = (() => { try { return JSON.parse(sessionStorage.getItem(getAccordionStorageKey())); } catch (_e) { return null; } })();
-    const hasPersistedStates = storedStates && typeof storedStates === 'object';
-    document.querySelectorAll('.zo2y-mobile-accordion').forEach((accordion) => {
-      const panel = accordion.querySelector('.zo2y-mobile-accordion-panel');
-      const toggle = accordion.querySelector('.zo2y-mobile-accordion-toggle');
-      const label = toggle?.textContent?.trim() || '';
-      let shouldOpen;
-      if (hasPersistedStates && label && label in storedStates) {
-        shouldOpen = !!storedStates[label];
-      } else {
-        shouldOpen = !!accordion.querySelector('[data-nav-page].active');
-      }
-      accordion.classList.toggle('open', shouldOpen);
-      if (toggle) toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-      if (panel) panel.style.maxHeight = '';
-    });
   }
 
   function ensureSupabaseClient() {
@@ -1270,44 +1230,6 @@ const HEADER_HTML = `
     } catch (_err) {}
   }
 
-  function wireMobileLogoLinks() {
-    const isMobile = window.matchMedia && window.matchMedia('(max-width: 1024px)').matches;
-    if (!isMobile) return;
-
-    const logoLinks = document.querySelectorAll('.zo2y-shared-brand, .zo2y-mobile-wordmark, .zo2y-mobile-drawer-brand, .zo2y-desktop-rail-brand');
-    logoLinks.forEach((link) => {
-      if (link.dataset.zo2yLogoClickWired === '1') return;
-      link.dataset.zo2yLogoClickWired = '1';
-
-      const shouldForceHome = () => {
-        const href = link.getAttribute('href');
-        return href && (href === 'index.html' || href === '/index.html' || href === '/');
-      };
-
-      const forceHome = (event) => {
-        if (!shouldForceHome()) return;
-        if (event) {
-          try { event.preventDefault(); } catch (_e) {}
-          try { event.stopPropagation(); } catch (_e) {}
-          try { event.stopImmediatePropagation(); } catch (_e) {}
-        }
-        // Navigate immediately (fixes "first tap plays animation, second tap navigates")
-        window.location.assign('index.html');
-      };
-
-      // Prefer pointer/touch start so we redirect on the first tap.
-      link.addEventListener('pointerdown', forceHome, { capture: true });
-      link.addEventListener('touchstart', forceHome, { capture: true, passive: false });
-
-      link.addEventListener('click', (event) => {
-        const href = link.getAttribute('href');
-        if (href && (href === 'index.html' || href === '/index.html' || href === '/')) {
-          forceHome(event);
-        }
-      }, { capture: true });
-    });
-  }
-
   function wireSearchButton() {
     const warmSearch = () => {
       void loadUniversalSearchScript();
@@ -1416,7 +1338,7 @@ const HEADER_HTML = `
         wireMobileAccordions();
         wireDesktopRailCollapse();
         wireAuthStateSync();
-        wireMobileLogoLinks();
+        if (window.Navigation) window.Navigation.init();
         void syncAuthHeaderState();
       }, { once: true });
       return;
@@ -1435,7 +1357,7 @@ const HEADER_HTML = `
     wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
-    wireMobileLogoLinks();
+    if (window.Navigation) window.Navigation.init();
     window.addEventListener('zo2y-auth-gate-verified', () => {
       void syncAuthHeaderState();
     });

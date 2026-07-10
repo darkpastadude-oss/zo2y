@@ -61,10 +61,12 @@
 
   <script src="/js/list-utils.js?v=20260710a" defer></script>
   <script src="js/skeleton.js" defer></script>
-  <script src="js/spa-router.js?v=20260709i" defer></script>
+  <script src="js/components/navigation.js?v=20260710c" defer></script>
 
-  <script src="/js/shared-header.js?v=20260709i" defer></script>
-  <style>
+  <script src="/js/shared-header.js?v=20260710c" defer></script>
+
+    <script src="/js/components/list-modal.js?v=20260710c" defer></script>
+    <style>
 
     :root {
 
@@ -2160,8 +2162,7 @@
 
 
   <script src="/js/shared-components.js?v=20260710b" defer></script>
-  <script src="/js/components/list-modal.js?v=20260710b" defer></script>
-  <script>ListModal.init('game');</script>
+<script>document.addEventListener('DOMContentLoaded',function(){ListModal.init('game');});</script>
 </body>
 </html>
 
