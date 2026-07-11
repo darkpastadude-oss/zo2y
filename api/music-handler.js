@@ -587,6 +587,31 @@ export default async function handler(req, res) {
       if (bio) {
         finalResult.biography = bio;
       }
+
+      if (spotifyWorks && finalResult.provider !== "spotify" && finalResult.title) {
+        try {
+          const spotifyMatch = await spotifySearchArtists(finalResult.title, 5);
+          const match = spotifyMatch.find(a => a.title.toLowerCase() === finalResult.title.toLowerCase())
+            || spotifyMatch[0];
+          if (match) {
+            finalResult.spotifyId = match.id;
+            finalResult.images = match.images || [];
+            if (!finalResult.image && match.image) finalResult.image = match.image;
+            finalResult.popularity = match.popularity;
+            finalResult.followers = match.followers;
+            finalResult.genres = match.genres || [];
+            finalResult.externalUrl = finalResult.externalUrl || match.externalUrl;
+          }
+        } catch (_) {}
+      }
+
+      if (!finalResult.images && finalResult.image) {
+        finalResult.images = [];
+      }
+      if (!finalResult.genres) {
+        finalResult.genres = [];
+      }
+
       return res.json({ ok: true, result: finalResult });
     }
 
