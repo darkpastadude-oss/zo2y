@@ -29,7 +29,7 @@ const COMMON_HEADERS = {
   // defensive (in case an attacker is tricked into rendering a JSON
   // response as HTML). It also tells the browser where to send
   // violations.
-  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; report-uri /api/csp-report",
+  "Content-Security-Policy": "default-src 'none'; connect-src https://www.omdbapi.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; report-uri /api/csp-report",
   "Reporting-Endpoints": 'csp-endpoint="/api/csp-report"',
   "Origin-Agent-Cluster": "?1"
 };
