@@ -793,7 +793,44 @@
     return null;
   }
 
+  const HARDCODED_BACKDROPS = {
+    "nike": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop",
+    "adidas": "https://images.unsplash.com/photo-1518002171953-a080ee817e1f?q=80&w=2070&auto=format&fit=crop",
+    "zara": "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
+    "uniqlo": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2070&auto=format&fit=crop",
+    "hm": "https://images.unsplash.com/photo-1489987707023-afc232dce9f2?q=80&w=2070&auto=format&fit=crop",
+    "gucci": "https://images.unsplash.com/photo-1558769132-cb1fac0840db?q=80&w=2070&auto=format&fit=crop",
+    "prada": "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=2015&auto=format&fit=crop",
+    "louis-vuitton": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=2069&auto=format&fit=crop",
+    "supreme": "https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=2069&auto=format&fit=crop",
+    "off-white": "https://images.unsplash.com/photo-1552346154-21d32810baa3?q=80&w=2050&auto=format&fit=crop",
+    "balenciaga": "https://images.unsplash.com/photo-1618355280206-8d69781bbba9?q=80&w=2070&auto=format&fit=crop",
+    "mcdonalds": "https://images.unsplash.com/photo-1626315865239-2ce1338a0f5a?q=80&w=2070&auto=format&fit=crop",
+    "kfc": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?q=80&w=2070&auto=format&fit=crop",
+    "burger-king": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1899&auto=format&fit=crop",
+    "subway": "https://images.unsplash.com/photo-1619881589316-56c7f9e6b587?q=80&w=1974&auto=format&fit=crop",
+    "taco-bell": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1980&auto=format&fit=crop",
+    "dominos": "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=2070&auto=format&fit=crop",
+    "pizza-hut": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1981&auto=format&fit=crop",
+    "starbucks": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=2070&auto=format&fit=crop",
+    "chipotle": "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?q=80&w=2071&auto=format&fit=crop",
+    "chick-fil-a": "https://images.unsplash.com/photo-1606755962773-d324e0a13086?q=80&w=1887&auto=format&fit=crop",
+    "wendys": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?q=80&w=2080&auto=format&fit=crop",
+    "shake-shack": "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop",
+    "bmw": "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
+    "tesla": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=2071&auto=format&fit=crop",
+    "ford": "https://images.unsplash.com/photo-1551830116-d86927d3b0d2?q=80&w=2070&auto=format&fit=crop",
+    "porsche": "https://images.unsplash.com/photo-1503376760388-12e3e566ce00?q=80&w=2070&auto=format&fit=crop",
+    "audi": "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2069&auto=format&fit=crop",
+    "mercedes-benz": "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?q=80&w=2070&auto=format&fit=crop",
+    "lamborghini": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop"
+  };
+
   async function fetchWikiHeroBackdrop(brand) {
+    if (brand.slug && HARDCODED_BACKDROPS[brand.slug]) {
+      return HARDCODED_BACKDROPS[brand.slug];
+    }
+
     const wikiTitle = brand.wiki?.title || brand.name;
     if (!wikiTitle) return "";
 
