@@ -155,12 +155,15 @@ function normalizeSpotifyArtist(artist) {
   if (!artist) return null;
   const images = artist.images || [];
   const image = images.length > 0 ? images[0].url : "";
+  const genres = artist.genres || [];
   return {
     id: String(artist.id || ""),
     mediaType: "artist",
     title: String(artist.name || "").trim(),
-    subtitle: String((artist.genres || []).slice(0, 2).join(", ") || "Music").trim(),
+    subtitle: String(genres.slice(0, 2).join(", ") || "Music").trim(),
     image: image,
+    images: images.map(img => ({ url: img.url, width: img.width, height: img.height })),
+    genres: genres,
     popularity: Number(artist.popularity || 0),
     followers: Number(artist.followers?.total || 0),
     externalUrl: String(artist.external_urls?.spotify || "").trim(),

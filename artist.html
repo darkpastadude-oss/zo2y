@@ -25,17 +25,17 @@
       --bg: #0b1633;
       --card: #132347;
       --muted: #8ca3c7;
-      --accent: #f59e0b;
+      --accent: #1db954;
       --glass: rgba(255,255,255,0.03);
       --white: #ffffff;
       --border: rgba(255,255,255,0.1);
-      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
+      --gradient: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
       --shadow: 0 10px 30px rgba(0,0,0,0.3);
       --success: #10b981;
       --error: #ef4444;
       --info: #3b82f6;
       --surface: rgba(19, 35, 71, 0.6);
-      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+      --radial-glow: radial-gradient(circle at 50% 0%, rgba(29, 185, 84, 0.15) 0%, transparent 70%);
       --text2: #9fb0cf;
       --input-bg: #0f1f40;
       --input-text: #ffffff;
@@ -43,6 +43,8 @@
       --btn-text: #0b1633;
       --nav-shadow: rgba(255,255,255,0.08);
       --nav-bg: #0f1f40;
+      --music-green: #1db954;
+      --music-green-dim: rgba(29, 185, 84, 0.15);
     }
     * { box-sizing: border-box; }
     body {
@@ -87,20 +89,83 @@
     .notification.info { background: var(--info); color: white; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Artist-specific: square poster */
+    /* Artist-specific: circular poster */
     .elevated-media-page .umh-poster-frame {
       aspect-ratio: 1 / 1;
       border-radius: 50%;
+      border: 3px solid rgba(29, 185, 84, 0.4);
+      box-shadow: 0 0 30px rgba(29, 185, 84, 0.2);
     }
     .elevated-media-page .umh-poster {
       border-radius: 50%;
+    }
+
+    /* Music accent: Spotify green on buttons and links */
+    [data-elevated-category="music"] .umh-actions-bar .umh-action-btn.primary {
+      background: var(--gradient) !important;
+      color: var(--btn-text) !important;
+    }
+    [data-elevated-category="music"] .elevated-section-title {
+      border-left: 3px solid var(--music-green);
+      padding-left: 12px;
+    }
+
+    /* Genre tags in hero meta row */
+    .artist-genre-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--music-green-dim);
+      color: var(--music-green);
+      border: 1px solid rgba(29, 185, 84, 0.25);
+      white-space: nowrap;
+    }
+
+    /* Hero biography */
+    .artist-hero-bio {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text2);
+      max-height: 80px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 8px;
+    }
+    .artist-hero-bio.expanded {
+      max-height: none;
+    }
+    .artist-hero-bio-toggle {
+      color: var(--music-green);
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 4px 0;
+      font-weight: 500;
+    }
+    .artist-hero-bio-toggle:hover {
+      text-decoration: underline;
+    }
+
+    /* Quick facts: music green accent */
+    [data-elevated-category="music"] .elevated-detail-card {
+      border: 1px solid rgba(29, 185, 84, 0.12);
+    }
+    [data-elevated-category="music"] .elevated-detail-card:hover {
+      border-color: rgba(29, 185, 84, 0.3);
+      box-shadow: 0 4px 16px rgba(29, 185, 84, 0.08);
+    }
+    [data-elevated-category="music"] .elevated-detail-title {
+      color: var(--music-green);
     }
 
     /* Top tracks list */
     .artist-tracks-list {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
     .artist-track-row {
       display: grid;
@@ -108,20 +173,24 @@
       gap: 12px;
       align-items: center;
       padding: 10px 12px;
-      border-radius: 10px;
-      transition: background 0.2s ease;
+      border-radius: 8px;
+      transition: all 0.2s ease;
       cursor: pointer;
       text-decoration: none;
       color: inherit;
     }
     .artist-track-row:hover {
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(29, 185, 84, 0.08);
+    }
+    .artist-track-row:hover .artist-track-num {
+      color: var(--music-green);
     }
     .artist-track-num {
       font-size: 14px;
       font-weight: 600;
       color: var(--muted);
       text-align: center;
+      transition: color 0.2s;
     }
     .artist-track-art {
       width: 48px;
@@ -140,6 +209,9 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .artist-track-row:hover .artist-track-title {
+      color: var(--music-green);
     }
     .artist-track-sub {
       font-size: 12px;
@@ -166,21 +238,31 @@
       flex-direction: column;
       gap: 10px;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: all 0.25s ease;
       text-decoration: none;
       color: inherit;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
     }
     .artist-album-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-6px);
+      background: rgba(29, 185, 84, 0.06);
+      border-color: rgba(29, 185, 84, 0.15);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
     }
     .artist-album-cover {
       width: 100%;
       aspect-ratio: 1 / 1;
-      border-radius: 10px;
+      border-radius: 8px;
       object-fit: cover;
       background: var(--nav-bg);
       border: 1px solid var(--border);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    .artist-album-card:hover .artist-album-cover {
+      box-shadow: 0 8px 24px rgba(29, 185, 84, 0.15);
     }
     .artist-album-title {
       font-size: 14px;
@@ -192,7 +274,7 @@
     .artist-album-meta {
       font-size: 12px;
       color: var(--muted);
-      margin-top: -6px;
+      margin-top: -4px;
     }
 
     /* Empty states */
@@ -201,6 +283,11 @@
       padding: 40px 20px;
       color: var(--muted);
       font-size: 14px;
+    }
+
+    /* Section dividers */
+    .elevated-content + .elevated-content {
+      margin-top: 8px;
     }
 
     @media (max-width: 768px) {
@@ -216,6 +303,12 @@
       .artist-track-art {
         width: 40px;
         height: 40px;
+      }
+      .artist-album-card {
+        padding: 6px;
+      }
+      .artist-hero-bio {
+        max-height: 60px;
       }
     }
   </style>
@@ -240,11 +333,11 @@
 
   <link rel="stylesheet" href="css/components.css?v=20260710a">
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
-  <link rel="stylesheet" href="css/unified-media-hero.css?v=20260711">
+  <link rel="stylesheet" href="css/unified-media-hero.css?v=20260711b">
   <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
   <script src="js/unified-media-hero.js?v=20260711" defer></script>
 </head>
-<body class="elevated-media-page">
+<body class="elevated-media-page" data-elevated-category="music">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
   <div class="zo2y-shared-header-inner">
     <a class="zo2y-shared-brand" href="index.html" aria-label="Home">
@@ -293,6 +386,7 @@
     <div class="elevated-section">
       <div class="elevated-section-head">
         <h3 class="elevated-section-title">Popular Tracks</h3>
+        <span class="elevated-section-sub" id="tracksSub"></span>
       </div>
       <div id="topTracks" class="artist-tracks-list"></div>
     </div>
@@ -303,6 +397,7 @@
     <div class="elevated-section">
       <div class="elevated-section-head">
         <h3 class="elevated-section-title">Discography</h3>
+        <span class="elevated-section-sub" id="albumsSub"></span>
       </div>
       <div id="albums" class="artist-albums-grid"></div>
     </div>
@@ -456,23 +551,24 @@
         const metaGrid = document.getElementById('metaGrid');
         if (!metaGrid) return;
         const items = [];
+        const allGenres = artist.genres || [];
         const subtitle = String(artist.subtitle || '').trim();
-        if (subtitle && subtitle !== 'Music') {
+
+        // Show all genres
+        if (allGenres.length > 0) {
+          items.push({ icon: 'fas fa-tags', title: 'Genres', value: allGenres.join(', ') });
+        } else if (subtitle && subtitle !== 'Music') {
           items.push({ icon: 'fas fa-tags', title: 'Genre', value: subtitle });
         }
+
         if (typeof artist.popularity === 'number' && artist.popularity > 0) {
           items.push({ icon: 'fas fa-fire', title: 'Popularity', value: `${artist.popularity}/100` });
         }
         if (typeof artist.followers === 'number' && artist.followers > 0) {
           items.push({ icon: 'fas fa-users', title: 'Followers', value: formatCount(artist.followers) });
         }
-        const provider = String(artist.provider || artistProvider || '').trim();
-        if (provider) {
-          const providerLabel = provider.charAt(0).toUpperCase() + provider.slice(1);
-          items.push({ icon: 'fas fa-music', title: 'Source', value: providerLabel });
-        }
         if (artist.formedYear && artist.formedYear !== "0") {
-          items.push({ icon: 'fas fa-calendar-alt', title: 'Formed', value: artist.formedYear });
+          items.push({ icon: 'fas fa-calendar-alt', title: 'Active since', value: artist.formedYear });
         }
         if (artist.origin) {
           items.push({ icon: 'fas fa-globe', title: 'Origin', value: artist.origin });
@@ -499,12 +595,11 @@
           bioContainer.innerHTML = `
             <div class="elevated-section">
               <div class="elevated-section-head">
-                <h3 class="elevated-section-title">Biography</h3>
+                <h3 class="elevated-section-title">About</h3>
               </div>
-              <div style="font-size:15px;line-height:1.6;color:var(--text2);white-space:pre-wrap;">${escapeHtml(artist.biography)}</div>
+              <div style="font-size:15px;line-height:1.7;color:var(--text2);white-space:pre-wrap;">${escapeHtml(artist.biography)}</div>
             </div>
           `;
-          // Insert right after quick facts
           const quickFacts = document.getElementById('metaGrid').closest('.elevated-content');
           quickFacts.insertAdjacentElement('afterend', bioContainer);
         }
@@ -514,10 +609,11 @@
         const container = document.getElementById('topTracks');
         if (!container) return;
         if (!tracks.length) {
-          container.innerHTML = '<div class="artist-empty"><i class="fas fa-music" style="font-size:24px;opacity:0.4;margin-bottom:8px;display:block;"></i>No tracks available</div>';
+          const section = container.closest('.elevated-content');
+          if (section) section.style.display = 'none';
           return;
         }
-        container.innerHTML = tracks.slice(0, 10).map((track, i) => {
+        container.innerHTML = tracks.slice(0, 5).map((track, i) => {
           const title = escapeHtml(String(track.title || track.name || 'Track'));
           const artist = escapeHtml(String(track.artist || ''));
           const image = escapeHtml(String(track.image || ''));
@@ -542,7 +638,8 @@
         const container = document.getElementById('albums');
         if (!container) return;
         if (!albums.length) {
-          container.innerHTML = '<div class="artist-empty"><i class="fas fa-compact-disc" style="font-size:24px;opacity:0.4;margin-bottom:8px;display:block;"></i>No albums available</div>';
+          const section = container.closest('.elevated-content');
+          if (section) section.style.display = 'none';
           return;
         }
         container.innerHTML = albums.map(album => {
@@ -597,33 +694,57 @@
         const artistGenre = String(artistData.subtitle || 'Music').trim();
         const externalUrl = String(artistData.externalUrl || '').trim();
 
+        // Pick the largest Spotify image for the backdrop (1200px+)
+        const spotifyImages = artistData.images || [];
+        let backdropImage = '';
+        if (spotifyImages.length > 0) {
+          // Spotify images are sorted largest-first
+          backdropImage = spotifyImages[0].url || '';
+        }
+        // Fallback: AudioDB banner, then profile image
+        if (!backdropImage) backdropImage = artistData.banner || artistImage;
+
+        // Genre list
+        const allGenres = artistData.genres || [];
+
         document.title = `Zo2y - ${artistName}`;
 
         // Build hero config (same pattern as movie.html)
+        // Use a placeholder description so the wrapper is rendered; we replace it with the real bio
         const config = {
           type: 'artist',
           typeLabel: 'Artist Spotlight',
           title: artistName,
           posterUrl: artistImage,
-          backdropUrl: artistData.banner || artistImage,
-          description: '',
+          backdropUrl: backdropImage,
+          description: artistData.biography ? ' ' : '',
           metadata: [],
           actions: []
         };
 
-        if (artistGenre && artistGenre !== 'Music') {
+        // Genre tags
+        if (allGenres.length > 0) {
+          allGenres.slice(0, 5).forEach(g => {
+            config.metadata.push({ type: 'genre', value: g });
+          });
+        } else if (artistGenre && artistGenre !== 'Music') {
           config.metadata.push({ type: 'genre', value: artistGenre });
         }
+
+        // Popularity
         if (typeof artistData.popularity === 'number' && artistData.popularity > 0) {
           config.metadata.push({ type: 'rating', value: `${artistData.popularity}/100` });
         }
+
+        // Followers
         if (typeof artistData.followers === 'number' && artistData.followers > 0) {
           config.metadata.push({ type: 'year', value: `${formatCount(artistData.followers)} followers` });
         }
 
         config.actions.push({ id: 'addListBtn', icon: 'fa-solid fa-bookmark', label: 'Add to list', primary: true });
         if (externalUrl) {
-          config.actions.push({ id: 'openExternalBtn', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Open on ' + (String(artistData.provider || '').charAt(0).toUpperCase() + String(artistData.provider || '').slice(1) || 'Source') });
+          const providerLabel = String(artistData.provider || '').charAt(0).toUpperCase() + String(artistData.provider || '').slice(1);
+          config.actions.push({ id: 'openExternalBtn', icon: 'fa-solid fa-arrow-up-right-from-square', label: 'Listen on ' + (providerLabel || 'Source') });
         }
 
         if (window.renderUnifiedMediaHero) {
@@ -635,11 +756,35 @@
             if (extBtn) extBtn.dataset.url = externalUrl;
           }
 
+          // Add biography to hero description area
+          if (artistData.biography) {
+            const descWrap = document.querySelector('.umh-description-wrap');
+            if (descWrap) {
+              const bioText = String(artistData.biography).trim();
+              const shortBio = bioText.split('\n').slice(0, 2).join(' ');
+              descWrap.innerHTML = `
+                <div class="artist-hero-bio" id="artistBio">${escapeHtml(shortBio)}</div>
+                ${bioText.length > 200 ? '<button class="artist-hero-bio-toggle" id="bioToggle">Show more</button>' : ''}
+              `;
+              const toggleBtn = document.getElementById('bioToggle');
+              if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                  const bioEl = document.getElementById('artistBio');
+                  if (bioEl) {
+                    const expanded = bioEl.classList.toggle('expanded');
+                    toggleBtn.textContent = expanded ? 'Show less' : 'Show more';
+                    if (expanded) bioEl.textContent = bioText;
+                  }
+                });
+              }
+            }
+          }
+
           // Init list modal
           window.ListModal && window.ListModal.init('music', {
             itemId: artistId,
             title: artistName,
-            subtitle: artistGenre,
+            subtitle: allGenres.length > 0 ? allGenres.join(', ') : artistGenre,
             image: artistImage,
             buttonSelector: '#addListBtn',
             ensureClient: async function () {
@@ -651,6 +796,17 @@
           });
 
           wireHeroActions();
+
+          // Apply backdrop styling: gradient overlay + subtle blur
+          const backdropEl = document.querySelector('.umh-backdrop');
+          if (backdropEl) {
+            backdropEl.style.filter = 'blur(6px) brightness(0.6)';
+            backdropEl.style.transform = 'scale(1.05)';
+          }
+          const overlayEl = document.querySelector('.umh-backdrop-overlay');
+          if (overlayEl) {
+            overlayEl.style.background = 'linear-gradient(180deg, rgba(11,22,51,0.3) 0%, rgba(11,22,51,0.85) 70%, rgba(11,22,51,1) 100%)';
+          }
         }
 
         // Render quick facts
@@ -665,13 +821,25 @@
         renderTopTracks(tracks);
         renderAlbums(albums);
 
-        // If we got albums, and we don't have a banner, use the first album cover as a better backdrop
-        if (!artistData.banner && albums.length > 0 && albums[0].image) {
+        // Update section subtitles
+        const tracksSub = document.getElementById('tracksSub');
+        if (tracksSub && tracks.length > 0) {
+          tracksSub.textContent = `Top ${Math.min(tracks.length, 5)}`;
+        }
+        const albumsSub = document.getElementById('albumsSub');
+        if (albumsSub && albums.length > 0) {
+          albumsSub.textContent = `${albums.length} release${albums.length === 1 ? '' : 's'}`;
+        }
+
+        // If we still don't have a good backdrop, try album covers
+        if (!artistData.banner && !backdropImage && albums.length > 0 && albums[0].image) {
           const backdropEl = document.querySelector('.umh-backdrop');
           if (backdropEl) {
             const albumImage = String(albums[0].image || '').trim();
             if (albumImage && albumImage !== artistImage) {
               backdropEl.style.backgroundImage = `url('${albumImage}')`;
+              backdropEl.style.filter = 'blur(6px) brightness(0.6)';
+              backdropEl.style.transform = 'scale(1.05)';
             }
           }
         }
