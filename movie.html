@@ -1294,11 +1294,18 @@
               console.log('[DEBUG] OMDB Response:', omdbData);
               if (omdbData && (omdbData.Response !== 'False' && !omdbData.error)) {
                 const imdbRating = omdbData.imdbRating && omdbData.imdbRating !== 'N/A' ? omdbData.imdbRating : null;
+                const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
+                const rtRating = rt ? rt.Value : null;
                 
-                if (imdbRating) {
+                if (imdbRating || rtRating) {
                   const metaRow = document.querySelector('.umh-meta-row');
                   if (metaRow) {
-                    metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="IMDb Rating" style="display:inline-flex;align-items:center;gap:4px;"><i class="fa-brands fa-imdb" style="color:#fcd34d;font-size:1.2em;"></i> ${imdbRating}</span>`);
+                    if (imdbRating) {
+                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="IMDb Rating" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#fcd34d;background:rgba(252,211,77,0.15);border:1px solid rgba(252,211,77,0.3);"><i class="fa-brands fa-imdb" style="font-size:1.3em;"></i> ${imdbRating}</span>`);
+                    }
+                    if (rtRating) {
+                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="Rotten Tomatoes" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#f87171;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);"><span style="font-size:1.1em;line-height:1;">🍅</span> ${rtRating}</span>`);
+                    }
                   }
                 }
               }
