@@ -20,6 +20,23 @@ const DEFAULT_GENRES = [
   "punk", "folk", "blues", "classical"
 ];
 
+async function getWikipediaBio(artistName) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=4&exlimit=1&titles=${encodeURIComponent(artistName)}&explaintext=1&format=json&redirects=1`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return "";
+    const data = await res.json();
+    const pages = data.query?.pages || {};
+    const pageId = Object.keys(pages)[0];
+    if (pageId && pageId !== '-1') {
+      return String(pages[pageId].extract || "");
+    }
+  } catch (_) {}
+  return "";
+}
+
 async function getAudioDbArtist(artistName) {
   try {
     const controller = new AbortController();
@@ -548,8 +565,14 @@ export default async function handler(req, res) {
 
     if (finalResult) {
       const adb = await getAudioDbArtist(finalResult.title);
+      let bio = "";
+      try { bio = await getWikipediaBio(finalResult.title); } catch (_) {}
+      
       if (adb) {
         finalResult = { ...finalResult, ...adb };
+      }
+      if (bio) {
+        finalResult.biography = bio;
       }
       return res.json({ ok: true, result: finalResult });
     }
