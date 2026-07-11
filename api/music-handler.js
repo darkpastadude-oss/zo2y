@@ -391,7 +391,7 @@ export default async function handler(req, res) {
       if (spotifyWorks) {
         try {
           const st = await spotifyFetch(`artists/${id}/top-tracks?market=US`);
-          if (st && st.tracks) {
+          if (st && st.tracks && st.tracks.length > 0) {
             const tracks = st.tracks.map(t => ({
               id: String(t.id || ""),
               title: String(t.name || ""),
@@ -405,6 +405,29 @@ export default async function handler(req, res) {
             return res.json({ ok: true, tracks });
           }
         } catch (_) {}
+        const artistName = String(query.name || "").trim();
+        if (artistName) {
+          try {
+            const match = await spotifySearchArtists(artistName, 5);
+            const best = match.find(a => a.title.toLowerCase() === artistName.toLowerCase()) || match[0];
+            if (best && best.id) {
+              const st2 = await spotifyFetch(`artists/${best.id}/top-tracks?market=US`);
+              if (st2 && st2.tracks && st2.tracks.length > 0) {
+                const tracks = st2.tracks.map(t => ({
+                  id: String(t.id || ""),
+                  title: String(t.name || ""),
+                  artist: (t.artists || []).map(a => a.name).join(", "),
+                  image: String(t.album?.images?.[0]?.url || ""),
+                  duration_ms: Number(t.duration_ms || 0),
+                  previewUrl: String(t.preview_url || ""),
+                  externalUrl: String(t.external_urls?.spotify || ""),
+                  trackNumber: Number(t.track_number || 0)
+                }));
+                return res.json({ ok: true, tracks });
+              }
+            }
+          } catch (_) {}
+        }
       }
       
       const artistName = String(query.name || "").trim();
@@ -444,7 +467,7 @@ export default async function handler(req, res) {
       if (spotifyWorks) {
         try {
           const sa = await spotifyFetch(`artists/${id}/albums?include_groups=album,single&market=US&limit=20`);
-          if (sa && sa.items) {
+          if (sa && sa.items && sa.items.length > 0) {
             const albums = sa.items.map(a => ({
               id: String(a.id || ""),
               title: String(a.name || ""),
@@ -457,6 +480,28 @@ export default async function handler(req, res) {
             return res.json({ ok: true, albums });
           }
         } catch (_) {}
+        const artistName = String(query.name || "").trim();
+        if (artistName) {
+          try {
+            const match = await spotifySearchArtists(artistName, 5);
+            const best = match.find(a => a.title.toLowerCase() === artistName.toLowerCase()) || match[0];
+            if (best && best.id) {
+              const sa2 = await spotifyFetch(`artists/${best.id}/albums?include_groups=album,single&market=US&limit=20`);
+              if (sa2 && sa2.items && sa2.items.length > 0) {
+                const albums = sa2.items.map(a => ({
+                  id: String(a.id || ""),
+                  title: String(a.name || ""),
+                  image: String(a.images?.[0]?.url || ""),
+                  releaseDate: String(a.release_date || ""),
+                  totalTracks: Number(a.total_tracks || 0),
+                  type: String(a.album_type || "album"),
+                  externalUrl: String(a.external_urls?.spotify || "")
+                }));
+                return res.json({ ok: true, albums });
+              }
+            }
+          } catch (_) {}
+        }
       }
 
       const artistName = String(query.name || "").trim();
