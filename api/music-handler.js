@@ -20,6 +20,28 @@ const DEFAULT_GENRES = [
   "punk", "folk", "blues", "classical"
 ];
 
+async function getAudioDbArtist(artistName) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`https://www.theaudiodb.com/api/v1/json/2/search.php?s=${encodeURIComponent(artistName)}`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data && data.artists && data.artists.length > 0) {
+      const a = data.artists[0];
+      return {
+        biography: String(a.strBiographyEN || ""),
+        banner: String(a.strArtistFanart || a.strArtistBanner || ""),
+        formedYear: String(a.intFormedYear || ""),
+        origin: String(a.strCountry || ""),
+        style: String(a.strStyle || a.strGenre || "")
+      };
+    }
+  } catch (_) {}
+  return null;
+}
+
 function setResponseCache(res, opts = {}) {
   const maxAge = Math.max(0, Number(opts.maxAge) || 300);
   const swr = Math.max(0, Number(opts.staleWhileRevalidate) || 900);
@@ -355,7 +377,7 @@ export default async function handler(req, res) {
         } catch (_) {}
       }
       
-      const artistName = String(query.name || "").trim();
+      const artistName = String(query.name || decodeURIComponent(query.path?.split('/').pop() || '') || "").trim();
       if (artistName) {
         try {
           const controller = new AbortController();
@@ -407,7 +429,7 @@ export default async function handler(req, res) {
         } catch (_) {}
       }
 
-      const artistName = String(query.name || "").trim();
+      const artistName = String(query.name || decodeURIComponent(query.path?.split('/').pop() || '') || "").trim();
       if (artistName) {
         try {
           const controller = new AbortController();
@@ -438,85 +460,99 @@ export default async function handler(req, res) {
       return res.json({ ok: true, albums: [] });
     }
 
+    let finalResult = null;
+
     const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
     if (spotifyWorks) {
       try {
         const spotifyArtists = await spotifyGetArtistsByIds([id]);
         if (spotifyArtists.length > 0) {
-          return res.json({ ok: true, result: spotifyArtists[0] });
+          finalResult = spotifyArtists[0];
         }
       } catch (_) {}
     }
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-      const res2 = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=musicArtist`, {
-        signal: controller.signal,
-        headers: { "User-Agent": "Mozilla/5.0" }
-      });
-      clearTimeout(timeout);
-      if (res2.ok) {
-        const json = await res2.json();
-        const artist = json.results && json.results[0];
-        if (artist && artist.artistName) {
-          let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
-          if (!image) {
-            try {
-              const trackCtrl = new AbortController();
-              const trackTimeout = setTimeout(() => trackCtrl.abort(), 5000);
-              const trackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.artistName)}&entity=musicTrack&limit=1`, {
-                signal: trackCtrl.signal,
-                headers: { "User-Agent": "Mozilla/5.0" }
-              });
-              clearTimeout(trackTimeout);
-              if (trackRes.ok) {
-                const trackJson = await trackRes.json();
-                const track = trackJson.results && trackJson.results[0];
-                if (track && track.artworkUrl100) {
-                  image = String(track.artworkUrl100).replace("100x100bb.jpg", "600x600bb.jpg");
-                }
-              }
-            } catch (_) {}
-          }
-          return res.json({ ok: true, result: {
-            id: String(artist.artistId || id),
-            mediaType: "artist",
-            title: String(artist.artistName || "").trim(),
-            subtitle: String(artist.primaryGenreName || "Music").trim(),
-            image,
-            externalUrl: String(artist.artistLinkUrl || "").trim(),
-            provider: "apple"
-          }});
-        }
-      }
-    } catch (_) {}
-
-    try {
-      if (String(query.provider || "").trim().toLowerCase() !== "apple") {
+    if (!finalResult) {
+      try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
-        const res3 = await fetch(`https://api.deezer.com/artist/${encodeURIComponent(id)}`, {
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const res2 = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=musicArtist`, {
           signal: controller.signal,
           headers: { "User-Agent": "Mozilla/5.0" }
         });
         clearTimeout(timeout);
-        if (res3.ok) {
-          const dz = await res3.json();
-          if (dz && dz.name) {
-            return res.json({ ok: true, result: {
-              id: String(dz.id || id),
+        if (res2.ok) {
+          const json = await res2.json();
+          const artist = json.results && json.results[0];
+          if (artist && artist.artistName) {
+            let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
+            if (!image) {
+              try {
+                const trackCtrl = new AbortController();
+                const trackTimeout = setTimeout(() => trackCtrl.abort(), 5000);
+                const trackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.artistName)}&entity=musicTrack&limit=1`, {
+                  signal: trackCtrl.signal,
+                  headers: { "User-Agent": "Mozilla/5.0" }
+                });
+                clearTimeout(trackTimeout);
+                if (trackRes.ok) {
+                  const trackJson = await trackRes.json();
+                  const track = trackJson.results && trackJson.results[0];
+                  if (track && track.artworkUrl100) {
+                    image = String(track.artworkUrl100).replace("100x100bb.jpg", "600x600bb.jpg");
+                  }
+                }
+              } catch (_) {}
+            }
+            finalResult = {
+              id: String(artist.artistId || id),
               mediaType: "artist",
-              title: String(dz.name || "").trim(),
-              subtitle: "Music",
-              image: String(dz.picture_xl || dz.picture_big || dz.picture_medium || ""),
-              externalUrl: String(dz.link || "").trim(),
-              provider: "deezer"
-            }});
+              title: String(artist.artistName || "").trim(),
+              subtitle: String(artist.primaryGenreName || "Music").trim(),
+              image,
+              externalUrl: String(artist.artistLinkUrl || "").trim(),
+              provider: "apple"
+            };
           }
         }
+      } catch (_) {}
+    }
+
+    if (!finalResult) {
+      try {
+        if (String(query.provider || "").trim().toLowerCase() !== "apple") {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+          const res3 = await fetch(`https://api.deezer.com/artist/${encodeURIComponent(id)}`, {
+            signal: controller.signal,
+            headers: { "User-Agent": "Mozilla/5.0" }
+          });
+          clearTimeout(timeout);
+          if (res3.ok) {
+            const dz = await res3.json();
+            if (dz && dz.name) {
+              finalResult = {
+                id: String(dz.id || id),
+                mediaType: "artist",
+                title: String(dz.name || "").trim(),
+                subtitle: "Music",
+                image: String(dz.picture_xl || dz.picture_big || dz.picture_medium || ""),
+                externalUrl: String(dz.link || "").trim(),
+                provider: "deezer"
+              };
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (finalResult) {
+      const adb = await getAudioDbArtist(finalResult.title);
+      if (adb) {
+        finalResult = { ...finalResult, ...adb };
       }
-    } catch (_) {}
+      return res.json({ ok: true, result: finalResult });
+    }
 
     return res.status(404).json({ message: "Artist not found" });
   }

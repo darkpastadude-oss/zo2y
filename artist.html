@@ -471,6 +471,15 @@
           const providerLabel = provider.charAt(0).toUpperCase() + provider.slice(1);
           items.push({ icon: 'fas fa-music', title: 'Source', value: providerLabel });
         }
+        if (artist.formedYear && artist.formedYear !== "0") {
+          items.push({ icon: 'fas fa-calendar-alt', title: 'Formed', value: artist.formedYear });
+        }
+        if (artist.origin) {
+          items.push({ icon: 'fas fa-globe', title: 'Origin', value: artist.origin });
+        }
+        if (artist.style) {
+          items.push({ icon: 'fas fa-guitar', title: 'Style', value: artist.style });
+        }
         metaGrid.innerHTML = items.map(i => `
           <div class="elevated-detail-card">
             <div class="elevated-detail-title"><i class="${i.icon}"></i> ${escapeHtml(i.title)}</div>
@@ -481,6 +490,23 @@
         const subEl = document.getElementById('metaGridSub');
         if (subEl && items.length) {
           subEl.textContent = `${items.length} data point${items.length === 1 ? '' : 's'}`;
+        }
+        
+        if (artist.biography) {
+          const bioContainer = document.createElement('div');
+          bioContainer.className = 'elevated-content';
+          bioContainer.style.marginTop = '20px';
+          bioContainer.innerHTML = `
+            <div class="elevated-section">
+              <div class="elevated-section-head">
+                <h3 class="elevated-section-title">Biography</h3>
+              </div>
+              <div style="font-size:15px;line-height:1.6;color:var(--text2);white-space:pre-wrap;">${escapeHtml(artist.biography)}</div>
+            </div>
+          `;
+          // Insert right after quick facts
+          const quickFacts = document.getElementById('metaGrid').closest('.elevated-content');
+          quickFacts.insertAdjacentElement('afterend', bioContainer);
         }
       }
 
@@ -579,7 +605,7 @@
           typeLabel: 'Artist Spotlight',
           title: artistName,
           posterUrl: artistImage,
-          backdropUrl: artistImage,
+          backdropUrl: artistData.banner || artistImage,
           description: '',
           metadata: [],
           actions: []
@@ -639,8 +665,8 @@
         renderTopTracks(tracks);
         renderAlbums(albums);
 
-        // If we got albums, use the first album cover as a better backdrop
-        if (albums.length > 0 && albums[0].image) {
+        // If we got albums, and we don't have a banner, use the first album cover as a better backdrop
+        if (!artistData.banner && albums.length > 0 && albums[0].image) {
           const backdropEl = document.querySelector('.umh-backdrop');
           if (backdropEl) {
             const albumImage = String(albums[0].image || '').trim();
