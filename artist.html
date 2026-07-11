@@ -25,17 +25,17 @@
       --bg: #0b1633;
       --card: #132347;
       --muted: #8ca3c7;
-      --accent: #1db954;
+      --accent: #f59e0b;
       --glass: rgba(255,255,255,0.03);
       --white: #ffffff;
       --border: rgba(255,255,255,0.1);
-      --gradient: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+      --gradient: linear-gradient(135deg, #f59e0b 0%, #ffb84d 100%);
       --shadow: 0 10px 30px rgba(0,0,0,0.3);
       --success: #10b981;
       --error: #ef4444;
       --info: #3b82f6;
       --surface: rgba(19, 35, 71, 0.6);
-      --radial-glow: radial-gradient(circle at 50% 0%, rgba(29, 185, 84, 0.15) 0%, transparent 70%);
+      --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
       --text2: #9fb0cf;
       --input-bg: #0f1f40;
       --input-text: #ffffff;
@@ -43,8 +43,6 @@
       --btn-text: #0b1633;
       --nav-shadow: rgba(255,255,255,0.08);
       --nav-bg: #0f1f40;
-      --music-green: #1db954;
-      --music-green-dim: rgba(29, 185, 84, 0.15);
     }
     * { box-sizing: border-box; }
     body {
@@ -93,21 +91,9 @@
     .elevated-media-page .umh-poster-frame {
       aspect-ratio: 1 / 1;
       border-radius: 50%;
-      border: 3px solid rgba(29, 185, 84, 0.4);
-      box-shadow: 0 0 30px rgba(29, 185, 84, 0.2);
     }
     .elevated-media-page .umh-poster {
       border-radius: 50%;
-    }
-
-    /* Music accent: Spotify green on buttons and links */
-    [data-elevated-category="music"] .umh-actions-bar .umh-action-btn.primary {
-      background: var(--gradient) !important;
-      color: var(--btn-text) !important;
-    }
-    [data-elevated-category="music"] .elevated-section-title {
-      border-left: 3px solid var(--music-green);
-      padding-left: 12px;
     }
 
     /* Genre tags in hero meta row */
@@ -117,9 +103,9 @@
       border-radius: 20px;
       font-size: 12px;
       font-weight: 500;
-      background: var(--music-green-dim);
-      color: var(--music-green);
-      border: 1px solid rgba(29, 185, 84, 0.25);
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(245, 158, 11, 0.25);
       white-space: nowrap;
     }
 
@@ -137,7 +123,7 @@
       max-height: none;
     }
     .artist-hero-bio-toggle {
-      color: var(--music-green);
+      color: var(--accent);
       font-size: 13px;
       cursor: pointer;
       border: none;
@@ -149,16 +135,9 @@
       text-decoration: underline;
     }
 
-    /* Quick facts: music green accent */
-    [data-elevated-category="music"] .elevated-detail-card {
-      border: 1px solid rgba(29, 185, 84, 0.12);
-    }
-    [data-elevated-category="music"] .elevated-detail-card:hover {
-      border-color: rgba(29, 185, 84, 0.3);
-      box-shadow: 0 4px 16px rgba(29, 185, 84, 0.08);
-    }
+    /* Quick facts cards */
     [data-elevated-category="music"] .elevated-detail-title {
-      color: var(--music-green);
+      color: var(--accent);
     }
 
     /* Top tracks list */
@@ -180,10 +159,10 @@
       color: inherit;
     }
     .artist-track-row:hover {
-      background: rgba(29, 185, 84, 0.08);
+      background: rgba(245, 158, 11, 0.06);
     }
     .artist-track-row:hover .artist-track-num {
-      color: var(--music-green);
+      color: var(--accent);
     }
     .artist-track-num {
       font-size: 14px;
@@ -211,7 +190,7 @@
       text-overflow: ellipsis;
     }
     .artist-track-row:hover .artist-track-title {
-      color: var(--music-green);
+      color: var(--accent);
     }
     .artist-track-sub {
       font-size: 12px;
@@ -248,8 +227,8 @@
     }
     .artist-album-card:hover {
       transform: translateY(-6px);
-      background: rgba(29, 185, 84, 0.06);
-      border-color: rgba(29, 185, 84, 0.15);
+      background: rgba(245, 158, 11, 0.05);
+      border-color: rgba(245, 158, 11, 0.15);
       box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
     }
     .artist-album-cover {
@@ -260,9 +239,6 @@
       background: var(--nav-bg);
       border: 1px solid var(--border);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-    }
-    .artist-album-card:hover .artist-album-cover {
-      box-shadow: 0 8px 24px rgba(29, 185, 84, 0.15);
     }
     .artist-album-title {
       font-size: 14px;
@@ -800,12 +776,8 @@
           // Apply backdrop styling: gradient overlay + subtle blur
           const backdropEl = document.querySelector('.umh-backdrop');
           if (backdropEl) {
-            backdropEl.style.filter = 'blur(6px) brightness(0.6)';
+            backdropEl.style.filter = 'blur(6px) brightness(0.5)';
             backdropEl.style.transform = 'scale(1.05)';
-          }
-          const overlayEl = document.querySelector('.umh-backdrop-overlay');
-          if (overlayEl) {
-            overlayEl.style.background = 'linear-gradient(180deg, rgba(11,22,51,0.3) 0%, rgba(11,22,51,0.85) 70%, rgba(11,22,51,1) 100%)';
           }
         }
 
