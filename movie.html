@@ -1289,6 +1289,16 @@
                 const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
                 const rtRating = rt ? rt.Value : null;
                 if (imdbRating || rtRating) {
+                  const metaRow = document.querySelector('.umh-meta-row');
+                  if (metaRow) {
+                    if (imdbRating) {
+                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="IMDb Rating"><i class="fa-brands fa-imdb" style="color:#f5c518;font-size:1.2em;"></i> ${imdbRating}</span>`);
+                    }
+                    if (rtRating) {
+                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="Rotten Tomatoes"><span style="color:#fa320a;font-weight:bold;background:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;line-height:1;">🍅</span> ${rtRating}</span>`);
+                    }
+                  }
+
                   const metaGridEl = document.getElementById('metaGrid');
                   if (metaGridEl) {
                     let ratingHtml = '<div class="elevated-detail-card"><div class="elevated-detail-title"><i class="fas fa-star-half-stroke"></i> External Ratings</div><div class="elevated-detail-value" style="display:flex;gap:12px;align-items:center;margin-top:6px;">';
