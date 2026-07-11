@@ -1282,9 +1282,16 @@
 
         if (externals && externals.imdb_id) {
           fetch(`/api/omdb?i=${externals.imdb_id}`)
-            .then(r => r.json())
+            .then(r => {
+              if (!r.ok) throw new Error('Backend API failed');
+              return r.json();
+            })
+            .catch(err => {
+              console.warn('/api/omdb failed, falling back to direct OMDB fetch...', err);
+              return fetch(`https://www.omdbapi.com/?apikey=a57d8799&i=${externals.imdb_id}`).then(r => r.json());
+            })
             .then(omdbData => {
-              if (omdbData && !omdbData.error) {
+              if (omdbData && (omdbData.Response !== 'False' && !omdbData.error)) {
                 const imdbRating = omdbData.imdbRating && omdbData.imdbRating !== 'N/A' ? omdbData.imdbRating : null;
                 const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
                 const rtRating = rt ? rt.Value : null;
