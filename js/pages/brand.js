@@ -741,12 +741,84 @@
     return Math.abs(h);
   }
 
-  const CATEGORY_BACKDROPS = {
-    food: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/food/${String(i + 1).padStart(2, "0")}.jpg`),
-    fashion: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/fashion/${String(i + 1).padStart(2, "0")}.jpg`),
-    car: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/cars/${String(i + 1).padStart(2, "0")}.jpg`),
-    sports: Array.from({ length: 8 }, (_, i) => `/assets/backdrops/sports/${String(i + 1).padStart(2, "0")}.jpg`),
-  };
+  const MIN_HERO_SCORE = 15;
+
+  function generateHeroSearchQuery(brandName, brandType) {
+    const name = String(brandName || "").trim();
+    if (!name) return "";
+    const type = String(brandType || "").toLowerCase();
+    if (type === "car" || type === "cars") return `${name} automotive press photo`;
+    if (type === "fashion") return `${name} fashion campaign`;
+    if (type === "food") return `${name} meal hero shot`;
+    if (type === "sport" || type === "sports") return `${name} stadium crowd`;
+    return name;
+  }
+
+  function scoreHeroImage(imageName, brandType, width, height) {
+    let score = 0;
+    const text = String(imageName || "").toLowerCase().replace(/_/g, " ");
+
+    if (/(official|press|campaign)/.test(text)) score += 50;
+    if (/(car|vehicle|burger|pizza|clothing|runway|jersey|stadium|team|meal)/.test(text)) score += 40;
+    if (width >= 1200 && height >= 675) score += 20;
+    if (/(hero|lineup|racing|editorial|action|celebration)/.test(text)) score += 15;
+
+    if (/(building|headquarters|hq|office)/.test(text)) score -= 100;
+    if (/(storefront|mall|retail)/.test(text)) score -= 80;
+    if (/(factory|warehouse|plant)/.test(text)) score -= 80;
+    if (/(van|bus|vintage|classic)/.test(text)) score -= 100;
+    if (/(person|founder|ceo|portrait)/.test(text)) score -= 50;
+
+    return score;
+  }
+
+  function selectBestHeroImage(images, brandType) {
+    let bestImg = null;
+    let bestScore = -Infinity;
+    if (!images || !images.length) return null;
+
+    for (const img of images) {
+      const score = scoreHeroImage(img.title || img.url || "", brandType, img.width || 0, img.height || 0);
+      if (score > bestScore) {
+        bestScore = score;
+        bestImg = img;
+      }
+    }
+
+    if (bestScore >= MIN_HERO_SCORE) return bestImg;
+    return null;
+  }
+
+  async function fetchWikiHeroBackdrop(brand) {
+    const query = generateHeroSearchQuery(brand.name, brandType);
+    if (!query) return "";
+
+    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=20&prop=imageinfo&iiprop=url|size&format=json&origin=*`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return "";
+      const data = await res.json();
+      if (!data?.query?.pages) return "";
+
+      const candidates = [];
+      Object.values(data.query.pages).forEach((p) => {
+        const info = p.imageinfo && p.imageinfo[0];
+        if (info && info.url) {
+          candidates.push({
+            title: p.title,
+            url: info.url,
+            width: info.width || 0,
+            height: info.height || 0,
+          });
+        }
+      });
+
+      const best = selectBestHeroImage(candidates, brandType);
+      return best ? best.url : "";
+    } catch (_e) {
+      return "";
+    }
+  }
 
   let brandHeroConfig = null;
 
@@ -763,9 +835,7 @@
       actions: [],
     };
 
-    const arr = CATEGORY_BACKDROPS[brandType] || CATEGORY_BACKDROPS.food;
-    brandHeroConfig.backdropUrl = arr[hashName(brand.name || "") % arr.length];
-    brandHeroConfig.backdropImages = arr;
+    brandHeroConfig.backdropUrl = brand.heroBackdropUrl || "";
 
     if (brand.category)
       brandHeroConfig.metadata.push({ type: "genre", value: brand.category });
@@ -1080,6 +1150,14 @@
       wireActions();
       renderInfoGrid(brand, wiki);
       renderSocial(brand, wiki);
+    }
+    
+    // Also try to fetch dynamic hero image from Wikipedia files
+    const backdropUrl = await fetchWikiHeroBackdrop(brand);
+    if (backdropUrl) {
+      brand.heroBackdropUrl = backdropUrl;
+      renderBrandHeroConfig(brand, wiki || null);
+      wireActions();
     }
 
     // Related brands — non-blocking
