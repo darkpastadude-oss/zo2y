@@ -355,7 +355,7 @@ async function fetchHomeArtists(targetCount = 12) {
   }
 
   artists = dedupeById(artists);
-  artists = shuffle(artists);
+  artists.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
   if (artists.length > 0) {
     ARTIST_CACHE.set(cacheKey, { items: artists, ts: Date.now() });
@@ -390,272 +390,268 @@ export default async function handler(req, res) {
       const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
       const artistName = String(query.name || "").trim();
 
-      if (spotifyWorks) {
-        try {
-          const st = await spotifyFetch(`artists/${id}/top-tracks?market=US`);
-          if (st && st.tracks && st.tracks.length > 0) {
-            const tracks = st.tracks.map(t => ({
-              id: String(t.id || ""),
-              title: String(t.name || ""),
-              artist: (t.artists || []).map(a => a.name).join(", "),
-              image: String(t.album?.images?.[0]?.url || ""),
-              duration_ms: Number(t.duration_ms || 0),
-              previewUrl: String(t.preview_url || ""),
-              externalUrl: String(t.external_urls?.spotify || ""),
-              trackNumber: Number(t.track_number || 0)
-            }));
-            return res.json({ ok: true, tracks });
-          }
-        } catch (_) {}
-        if (artistName) {
-          try {
-            const searchUrl = new URL(`${SPOTIFY_API}/search`);
-            searchUrl.search = `q=${encodeURIComponent(artistName)}&type=artist&limit=1`;
-            const token = await getSpotifyToken();
-            if (token) {
+      const mapSpotifyTracks = (tracks) => (tracks || []).map(t => ({
+        id: String(t.id || ""),
+        title: String(t.name || ""),
+        artist: (t.artists || []).map(a => a.name).join(", "),
+        image: String(t.album?.images?.[0]?.url || ""),
+        duration_ms: Number(t.duration_ms || 0),
+        previewUrl: String(t.preview_url || ""),
+        externalUrl: String(t.external_urls?.spotify || ""),
+        trackNumber: Number(t.track_number || 0)
+      }));
+
+      const mapiTunesTracks = (results) => (results || []).map(t => ({
+        id: String(t.trackId || ""),
+        title: String(t.trackName || ""),
+        artist: String(t.artistName || ""),
+        image: String(t.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
+        duration_ms: Number(t.trackTimeMillis || 0),
+        previewUrl: String(t.previewUrl || ""),
+        externalUrl: String(t.trackViewUrl || ""),
+        trackNumber: Number(t.trackNumber || 0)
+      }));
+
+      const spotifyByIdPromise = spotifyWorks
+        ? spotifyFetch(`artists/${id}/top-tracks?market=US`).then(st => {
+            if (st?.tracks?.length > 0) return mapSpotifyTracks(st.tracks);
+            return null;
+          }).catch(() => null)
+        : Promise.resolve(null);
+
+      const spotifyByNamePromise = (spotifyWorks && artistName)
+        ? (async () => {
+            try {
+              const searchUrl = new URL(`${SPOTIFY_API}/search`);
+              searchUrl.search = `q=${encodeURIComponent(artistName)}&type=artist&limit=1`;
+              const token = await getSpotifyToken();
+              if (!token) return null;
               const ctrl = new AbortController();
-              const to = setTimeout(() => ctrl.abort(), 6000);
+              const to = setTimeout(() => ctrl.abort(), 4000);
               const sRes = await fetch(searchUrl.toString(), {
                 headers: { Authorization: `Bearer ${token}` },
                 signal: ctrl.signal
               });
               clearTimeout(to);
-              if (sRes.ok) {
-                const sData = await sRes.json();
-                const found = sData?.artists?.items?.[0];
-                if (found && found.id && found.id !== id) {
-                  const st2 = await spotifyFetch(`artists/${found.id}/top-tracks?market=US`);
-                  if (st2 && st2.tracks && st2.tracks.length > 0) {
-                    const tracks = st2.tracks.map(t => ({
-                      id: String(t.id || ""),
-                      title: String(t.name || ""),
-                      artist: (t.artists || []).map(a => a.name).join(", "),
-                      image: String(t.album?.images?.[0]?.url || ""),
-                      duration_ms: Number(t.duration_ms || 0),
-                      previewUrl: String(t.preview_url || ""),
-                      externalUrl: String(t.external_urls?.spotify || ""),
-                      trackNumber: Number(t.track_number || 0)
-                    }));
-                    return res.json({ ok: true, tracks });
-                  }
-                }
+              if (!sRes.ok) return null;
+              const sData = await sRes.json();
+              const found = sData?.artists?.items?.[0];
+              if (found?.id && found.id !== id) {
+                const st2 = await spotifyFetch(`artists/${found.id}/top-tracks?market=US`);
+                if (st2?.tracks?.length > 0) return mapSpotifyTracks(st2.tracks);
               }
-            }
-          } catch (_) {}
-        }
-      }
-      
-      const artistName = String(query.name || "").trim();
-      if (artistName) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 6000);
-          const res2 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=musicTrack&limit=10`, {
-            signal: controller.signal,
+            } catch (_) {}
+            return null;
+          })()
+        : Promise.resolve(null);
+
+      const itunesPromise = artistName
+        ? fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=musicTrack&limit=10`, {
+            signal: AbortSignal.timeout(5000),
             headers: { "User-Agent": "Mozilla/5.0" }
-          });
-          clearTimeout(timeout);
-          if (res2.ok) {
-            const json = await res2.json();
-            if (json && json.results) {
-              const tracks = json.results.map(t => ({
-                id: String(t.trackId || ""),
-                title: String(t.trackName || ""),
-                artist: String(t.artistName || ""),
-                image: String(t.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
-                duration_ms: Number(t.trackTimeMillis || 0),
-                previewUrl: String(t.previewUrl || ""),
-                externalUrl: String(t.trackViewUrl || ""),
-                trackNumber: Number(t.trackNumber || 0)
-              }));
-              return res.json({ ok: true, tracks });
-            }
-          }
-        } catch (_) {}
-      }
-      
-      return res.json({ ok: true, tracks: [] });
+          }).then(r => r.ok ? r.json() : null).then(j => j?.results?.length ? mapiTunesTracks(j.results) : null).catch(() => null)
+        : Promise.resolve(null);
+
+      const [spotifyById, spotifyByName, itunesTracks] = await Promise.all([spotifyByIdPromise, spotifyByNamePromise, itunesPromise]);
+      const tracks = spotifyById || spotifyByName || itunesTracks || [];
+      return res.json({ ok: true, tracks });
     }
 
     if (subRoute === "albums") {
       const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
       const artistName = String(query.name || "").trim();
 
-      if (spotifyWorks) {
-        try {
-          const sa = await spotifyFetch(`artists/${id}/albums?include_groups=album,single&market=US&limit=20`);
-          if (sa && sa.items && sa.items.length > 0) {
-            const albums = sa.items.map(a => ({
-              id: String(a.id || ""),
-              title: String(a.name || ""),
-              image: String(a.images?.[0]?.url || ""),
-              releaseDate: String(a.release_date || ""),
-              totalTracks: Number(a.total_tracks || 0),
-              type: String(a.album_type || "album"),
-              externalUrl: String(a.external_urls?.spotify || "")
-            }));
-            return res.json({ ok: true, albums });
-          }
-        } catch (_) {}
-        if (artistName) {
-          try {
-            const searchUrl = new URL(`${SPOTIFY_API}/search`);
-            searchUrl.search = `q=${encodeURIComponent(artistName)}&type=artist&limit=1`;
-            const token = await getSpotifyToken();
-            if (token) {
+      const mapSpotifyAlbums = (items) => (items || []).map(a => ({
+        id: String(a.id || ""),
+        title: String(a.name || ""),
+        image: String(a.images?.[0]?.url || ""),
+        releaseDate: String(a.release_date || ""),
+        totalTracks: Number(a.total_tracks || 0),
+        type: String(a.album_type || "album"),
+        externalUrl: String(a.external_urls?.spotify || "")
+      }));
+
+      const mapITunesAlbums = (results) => (results || []).map(a => ({
+        id: String(a.collectionId || ""),
+        title: String(a.collectionName || ""),
+        image: String(a.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
+        releaseDate: String(a.releaseDate || ""),
+        totalTracks: Number(a.trackCount || 0),
+        type: (String(a.collectionType || "Album").toLowerCase() === "album") ? "album" : "single",
+        externalUrl: String(a.collectionViewUrl || "")
+      }));
+
+      const spotifyByIdPromise = spotifyWorks
+        ? spotifyFetch(`artists/${id}/albums?include_groups=album,single&market=US&limit=20`).then(sa => {
+            if (sa?.items?.length > 0) return mapSpotifyAlbums(sa.items);
+            return null;
+          }).catch(() => null)
+        : Promise.resolve(null);
+
+      const spotifyByNamePromise = (spotifyWorks && artistName)
+        ? (async () => {
+            try {
+              const searchUrl = new URL(`${SPOTIFY_API}/search`);
+              searchUrl.search = `q=${encodeURIComponent(artistName)}&type=artist&limit=1`;
+              const token = await getSpotifyToken();
+              if (!token) return null;
               const ctrl = new AbortController();
-              const to = setTimeout(() => ctrl.abort(), 6000);
+              const to = setTimeout(() => ctrl.abort(), 4000);
               const sRes = await fetch(searchUrl.toString(), {
                 headers: { Authorization: `Bearer ${token}` },
                 signal: ctrl.signal
               });
               clearTimeout(to);
-              if (sRes.ok) {
-                const sData = await sRes.json();
-                const found = sData?.artists?.items?.[0];
-                if (found && found.id && found.id !== id) {
-                  const sa2 = await spotifyFetch(`artists/${found.id}/albums?include_groups=album,single&market=US&limit=20`);
-                  if (sa2 && sa2.items && sa2.items.length > 0) {
-                    const albums = sa2.items.map(a => ({
-                      id: String(a.id || ""),
-                      title: String(a.name || ""),
-                      image: String(a.images?.[0]?.url || ""),
-                      releaseDate: String(a.release_date || ""),
-                      totalTracks: Number(a.total_tracks || 0),
-                      type: String(a.album_type || "album"),
-                      externalUrl: String(a.external_urls?.spotify || "")
-                    }));
-                    return res.json({ ok: true, albums });
-                  }
-                }
+              if (!sRes.ok) return null;
+              const sData = await sRes.json();
+              const found = sData?.artists?.items?.[0];
+              if (found?.id && found.id !== id) {
+                const sa2 = await spotifyFetch(`artists/${found.id}/albums?include_groups=album,single&market=US&limit=20`);
+                if (sa2?.items?.length > 0) return mapSpotifyAlbums(sa2.items);
               }
-            }
-          } catch (_) {}
-        }
-      }
+            } catch (_) {}
+            return null;
+          })()
+        : Promise.resolve(null);
 
-      const artistName = String(query.name || "").trim();
-      if (artistName) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 6000);
-          const res2 = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=album&limit=20`, {
-            signal: controller.signal,
+      const itunesPromise = artistName
+        ? fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artistName)}&entity=album&limit=20`, {
+            signal: AbortSignal.timeout(5000),
             headers: { "User-Agent": "Mozilla/5.0" }
-          });
-          clearTimeout(timeout);
-          if (res2.ok) {
-            const json = await res2.json();
-            if (json && json.results) {
-              const albums = json.results.map(a => ({
-                id: String(a.collectionId || ""),
-                title: String(a.collectionName || ""),
-                image: String(a.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg"),
-                releaseDate: String(a.releaseDate || ""),
-                totalTracks: Number(a.trackCount || 0),
-                type: (String(a.collectionType || "Album").toLowerCase() === "album") ? "album" : "single",
-                externalUrl: String(a.collectionViewUrl || "")
-              }));
-              return res.json({ ok: true, albums });
-            }
-          }
-        } catch (_) {}
-      }
-      
-      return res.json({ ok: true, albums: [] });
+          }).then(r => r.ok ? r.json() : null).then(j => j?.results?.length ? mapITunesAlbums(j.results) : null).catch(() => null)
+        : Promise.resolve(null);
+
+      const [spotifyById, spotifyByName, itunesAlbums] = await Promise.all([spotifyByIdPromise, spotifyByNamePromise, itunesPromise]);
+      const albums = spotifyById || spotifyByName || itunesAlbums || [];
+      return res.json({ ok: true, albums });
     }
 
     let finalResult = null;
 
     const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
-    if (spotifyWorks) {
-      try {
-        const spotifyArtists = await spotifyGetArtistsByIds([id]);
-        if (spotifyArtists.length > 0) {
-          finalResult = spotifyArtists[0];
-        }
-      } catch (_) {}
-    }
 
-    if (!finalResult) {
+    const spotifyByIdPromise = spotifyWorks
+      ? spotifyGetArtistsByIds([id]).then(a => a.length > 0 ? a[0] : null).catch(() => null)
+      : Promise.resolve(null);
+
+    const itunesPromise = (async () => {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 6000);
+        const timeout = setTimeout(() => controller.abort(), 5000);
         const res2 = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(id)}&entity=musicArtist`, {
           signal: controller.signal,
           headers: { "User-Agent": "Mozilla/5.0" }
         });
         clearTimeout(timeout);
-        if (res2.ok) {
-          const json = await res2.json();
-          const artist = json.results && json.results[0];
-          if (artist && artist.artistName) {
-            let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
-            if (!image) {
-              try {
-                const trackCtrl = new AbortController();
-                const trackTimeout = setTimeout(() => trackCtrl.abort(), 5000);
-                const trackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.artistName)}&entity=musicTrack&limit=1`, {
-                  signal: trackCtrl.signal,
-                  headers: { "User-Agent": "Mozilla/5.0" }
-                });
-                clearTimeout(trackTimeout);
-                if (trackRes.ok) {
-                  const trackJson = await trackRes.json();
-                  const track = trackJson.results && trackJson.results[0];
-                  if (track && track.artworkUrl100) {
-                    image = String(track.artworkUrl100).replace("100x100bb.jpg", "600x600bb.jpg");
-                  }
-                }
-              } catch (_) {}
+        if (!res2.ok) return null;
+        const json = await res2.json();
+        const artist = json.results && json.results[0];
+        if (!artist || !artist.artistName) return null;
+        let image = String(artist.artworkUrl100 || "").replace("100x100bb.jpg", "600x600bb.jpg");
+        if (!image) {
+          try {
+            const trackCtrl = new AbortController();
+            const trackTimeout = setTimeout(() => trackCtrl.abort(), 4000);
+            const trackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(artist.artistName)}&entity=musicTrack&limit=1`, {
+              signal: trackCtrl.signal,
+              headers: { "User-Agent": "Mozilla/5.0" }
+            });
+            clearTimeout(trackTimeout);
+            if (trackRes.ok) {
+              const trackJson = await trackRes.json();
+              const track = trackJson.results && trackJson.results[0];
+              if (track?.artworkUrl100) {
+                image = String(track.artworkUrl100).replace("100x100bb.jpg", "600x600bb.jpg");
+              }
             }
-            finalResult = {
-              id: String(artist.artistId || id),
-              mediaType: "artist",
-              title: String(artist.artistName || "").trim(),
-              subtitle: String(artist.primaryGenreName || "Music").trim(),
-              image,
-              externalUrl: String(artist.artistLinkUrl || "").trim(),
-              provider: "apple"
-            };
-          }
+          } catch (_) {}
         }
-      } catch (_) {}
-    }
+        return {
+          id: String(artist.artistId || id),
+          mediaType: "artist",
+          title: String(artist.artistName || "").trim(),
+          subtitle: String(artist.primaryGenreName || "Music").trim(),
+          image,
+          externalUrl: String(artist.artistLinkUrl || "").trim(),
+          provider: "apple"
+        };
+      } catch (_) { return null; }
+    })();
 
-    if (!finalResult) {
-      try {
-        if (String(query.provider || "").trim().toLowerCase() !== "apple") {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 5000);
-          const res3 = await fetch(`https://api.deezer.com/artist/${encodeURIComponent(id)}`, {
-            signal: controller.signal,
-            headers: { "User-Agent": "Mozilla/5.0" }
-          });
-          clearTimeout(timeout);
-          if (res3.ok) {
+    const isNotApple = String(query.provider || "").trim().toLowerCase() !== "apple";
+    const deezerPromise = isNotApple
+      ? (async () => {
+          try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000);
+            const res3 = await fetch(`https://api.deezer.com/artist/${encodeURIComponent(id)}`, {
+              signal: controller.signal,
+              headers: { "User-Agent": "Mozilla/5.0" }
+            });
+            clearTimeout(timeout);
+            if (!res3.ok) return null;
             const dz = await res3.json();
-            if (dz && dz.name) {
-              finalResult = {
-                id: String(dz.id || id),
-                mediaType: "artist",
-                title: String(dz.name || "").trim(),
-                subtitle: "Music",
-                image: String(dz.picture_xl || dz.picture_big || dz.picture_medium || ""),
-                externalUrl: String(dz.link || "").trim(),
-                provider: "deezer"
-              };
-            }
-          }
-        }
-      } catch (_) {}
-    }
+            if (!dz?.name) return null;
+            return {
+              id: String(dz.id || id),
+              mediaType: "artist",
+              title: String(dz.name || "").trim(),
+              subtitle: "Music",
+              image: String(dz.picture_xl || dz.picture_big || dz.picture_medium || ""),
+              externalUrl: String(dz.link || "").trim(),
+              provider: "deezer"
+            };
+          } catch (_) { return null; }
+        })()
+      : Promise.resolve(null);
+
+    const [spotifyResult, itunesResult, deezerResult] = await Promise.all([spotifyByIdPromise, itunesPromise, deezerPromise]);
+    finalResult = spotifyResult || itunesResult || deezerResult;
 
     if (finalResult) {
-      const adb = await getAudioDbArtist(finalResult.title);
-      let bio = "";
-      try { bio = await getWikipediaBio(finalResult.title); } catch (_) {}
-      
+      const artistTitle = finalResult.title;
+
+      const [adb, bio, spotifyEnrichment, deezerImage] = await Promise.all([
+        getAudioDbArtist(artistTitle).catch(() => null),
+        getWikipediaBio(artistTitle).catch(() => ""),
+        (spotifyWorks && finalResult.provider !== "spotify" && artistTitle)
+          ? (async () => {
+              try {
+                const searchUrl = new URL(`${SPOTIFY_API}/search`);
+                searchUrl.search = `q=${encodeURIComponent(artistTitle)}&type=artist&limit=1`;
+                const token = await getSpotifyToken();
+                if (!token) return null;
+                const ctrl = new AbortController();
+                const to = setTimeout(() => ctrl.abort(), 5000);
+                const sRes = await fetch(searchUrl.toString(), {
+                  headers: { Authorization: `Bearer ${token}` },
+                  signal: ctrl.signal
+                });
+                clearTimeout(to);
+                if (!sRes.ok) return null;
+                const sData = await sRes.json();
+                return sData?.artists?.items?.[0] || null;
+              } catch (_) { return null; }
+            })()
+          : Promise.resolve(null),
+        (!finalResult.image && artistTitle)
+          ? (async () => {
+              try {
+                const ctrl = new AbortController();
+                const to = setTimeout(() => ctrl.abort(), 4000);
+                const r = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(artistTitle)}&limit=1`, {
+                  signal: ctrl.signal,
+                  headers: { "User-Agent": "Mozilla/5.0" }
+                });
+                clearTimeout(to);
+                if (!r.ok) return null;
+                const j = await r.json();
+                return j.data?.[0]?.picture_xl || null;
+              } catch (_) { return null; }
+            })()
+          : Promise.resolve(null)
+      ]);
+
       if (adb) {
         finalResult = { ...finalResult, ...adb };
       }
@@ -663,38 +659,23 @@ export default async function handler(req, res) {
         finalResult.biography = bio;
       }
 
-      if (spotifyWorks && finalResult.provider !== "spotify" && finalResult.title) {
-        try {
-          const searchUrl = new URL(`${SPOTIFY_API}/search`);
-          searchUrl.search = `q=${encodeURIComponent(finalResult.title)}&type=artist&limit=1`;
-          const token = await getSpotifyToken();
-          if (token) {
-            const ctrl = new AbortController();
-            const to = setTimeout(() => ctrl.abort(), 6000);
-            const sRes = await fetch(searchUrl.toString(), {
-              headers: { Authorization: `Bearer ${token}` },
-              signal: ctrl.signal
-            });
-            clearTimeout(to);
-            if (sRes.ok) {
-              const sData = await sRes.json();
-              const found = sData?.artists?.items?.[0];
-              if (found) {
-                finalResult.spotifyId = found.id;
-                finalResult.images = (found.images || []).map(img => ({ url: img.url, width: img.width, height: img.height }));
-                if (!finalResult.image && found.images?.[0]?.url) finalResult.image = found.images[0].url;
-                finalResult.popularity = Number(found.popularity || 0);
-                finalResult.followers = Number(found.followers?.total || 0);
-                finalResult.genres = found.genres || [];
-                finalResult.externalUrl = finalResult.externalUrl || String(found.external_urls?.spotify || "").trim();
-              }
-            }
-          }
-        } catch (_) {}
+      if (spotifyEnrichment) {
+        const found = spotifyEnrichment;
+        finalResult.spotifyId = found.id;
+        finalResult.images = (found.images || []).map(img => ({ url: img.url, width: img.width, height: img.height }));
+        if (!finalResult.image && found.images?.[0]?.url) finalResult.image = found.images[0].url;
+        finalResult.popularity = Number(found.popularity || 0);
+        finalResult.followers = Number(found.followers?.total || 0);
+        finalResult.genres = found.genres || [];
+        finalResult.externalUrl = finalResult.externalUrl || String(found.external_urls?.spotify || "").trim();
+      }
+
+      if (!finalResult.image && deezerImage) {
+        finalResult.image = deezerImage;
       }
 
       if (!finalResult.images && finalResult.image) {
-        finalResult.images = [];
+        finalResult.images = [{ url: finalResult.image, width: 0, height: 0 }];
       }
       if (!finalResult.genres) {
         finalResult.genres = [];
