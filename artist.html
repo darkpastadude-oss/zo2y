@@ -412,9 +412,9 @@
         return null;
       }
 
-      async function fetchTopTracks(id, artistName) {
+      async function fetchTopTracks(id, name) {
         try {
-          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(artistName || params.get('name') || '')}`;
+          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(name || params.get('name') || '')}&bust=${Date.now()}`;
           const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/top-tracks${qs}`);
           if (!res.ok) return [];
           const data = await res.json();
@@ -422,9 +422,9 @@
         } catch (_) { return []; }
       }
 
-      async function fetchAlbums(id, artistName) {
+      async function fetchAlbums(id, name) {
         try {
-          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(artistName || params.get('name') || '')}`;
+          const qs = `?provider=${encodeURIComponent(artistProvider)}&name=${encodeURIComponent(name || params.get('name') || '')}&bust=${Date.now()}`;
           const res = await fetch(`${MUSIC_API_BASE}/artist/${encodeURIComponent(id)}/albums${qs}`);
           if (!res.ok) return [];
           const data = await res.json();
@@ -658,8 +658,8 @@
 
         // Fetch and render top tracks and albums in parallel
         const [tracks, albums] = await Promise.all([
-          fetchTopTracks(artistId, artistName),
-          fetchAlbums(artistId, artistName)
+          fetchTopTracks(artistId, artistData.title || artistName),
+          fetchAlbums(artistId, artistData.title || artistName)
         ]);
 
         renderTopTracks(tracks);

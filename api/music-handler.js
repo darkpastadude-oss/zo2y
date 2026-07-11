@@ -394,7 +394,7 @@ export default async function handler(req, res) {
         } catch (_) {}
       }
       
-      const artistName = String(query.name || decodeURIComponent(query.path?.split('/').pop() || '') || "").trim();
+      const artistName = String(query.name || "").trim();
       if (artistName) {
         try {
           const controller = new AbortController();
@@ -446,7 +446,7 @@ export default async function handler(req, res) {
         } catch (_) {}
       }
 
-      const artistName = String(query.name || decodeURIComponent(query.path?.split('/').pop() || '') || "").trim();
+      const artistName = String(query.name || "").trim();
       if (artistName) {
         try {
           const controller = new AbortController();
