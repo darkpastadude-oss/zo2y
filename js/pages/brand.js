@@ -784,10 +784,10 @@
   }
 
   async function fetchWikiHeroBackdrop(brand) {
-    const query = generateHeroSearchQuery(brand.name, brandType);
-    if (!query) return "";
+    const wikiTitle = brand.wiki?.title || brand.name;
+    if (!wikiTitle) return "";
 
-    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=20&prop=imageinfo&iiprop=url|size&format=json&origin=*`;
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&format=json&origin=*`;
     try {
       const res = await fetch(url);
       if (!res.ok) return "";
