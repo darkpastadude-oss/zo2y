@@ -58,7 +58,7 @@
     const html = `
       <div class="umh-container">
         <div class="umh-backdrop-wrap">
-          <div class="umh-backdrop" style="background-image: url('${escapeHtml(backdropUrl)}')"></div>
+          <div class="umh-backdrop" ${backdropUrl ? `style="background-image: url('${escapeHtml(backdropUrl)}')"` : ''}></div>
           <div class="umh-backdrop-overlay"></div>
         </div>
         <div class="umh-content-wrapper">
