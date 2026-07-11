@@ -9822,7 +9822,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const targetCount = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
       _log('loadMusic start, targetCount=' + targetCount);
       try {
-        const url = '/api/music/artists?limit=' + (targetCount * 2);
+        const url = '/api/music/artists?limit=' + Math.min(targetCount * 4, 100);
         _log('fetching:', url);
         const res = await fetch(url, { signal });
         _log('response status:', res.status);

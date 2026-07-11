@@ -33,7 +33,7 @@ async function getWikipediaBio(artistName) {
       
       const extController = new AbortController();
       const extTimeout = setTimeout(() => extController.abort(), 4000);
-      const extRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=4&exlimit=1&titles=${encodeURIComponent(title)}&explaintext=1&format=json`, { signal: extController.signal });
+      const extRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=6&exlimit=1&titles=${encodeURIComponent(title)}&explaintext=1&format=json`, { signal: extController.signal });
       clearTimeout(extTimeout);
       if (!extRes.ok) return "";
       const extData = await extRes.json();
@@ -45,6 +45,50 @@ async function getWikipediaBio(artistName) {
     }
   } catch (_) {}
   return "";
+}
+
+async function getWikipediaAwards(artistName) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistName + ' musician awards')}&utf8=&format=json&srlimit=1`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const title = data.query?.search?.[0]?.title;
+    if (!title) return [];
+
+    const ctrl2 = new AbortController();
+    const to2 = setTimeout(() => ctrl2.abort(), 4000);
+    const pageRes = await fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=wikitext&format=json`, { signal: ctrl2.signal });
+    clearTimeout(to2);
+    if (!pageRes.ok) return [];
+    const pageData = await pageRes.json();
+    const wikitext = pageData.parse?.wikitext?.["*"] || "";
+
+    const awards = [];
+    const awardPatterns = [
+      / Grammy(?:s| Awards?)?(?:\s|:|-)*([^\n\]|]{5,80})/gi,
+      / Brit Award[s]?(?:\s|:|-)*([^\n\]|]{5,80})/gi,
+      / MTV Video Music Award[s]?(?:\s|:|-)*([^\n\]|]{5,80})/gi,
+      / American Music Award[s]?(?:\s|:|-)*([^\n\]|]{5,80})/gi,
+      / Billboard Music Award[s]?(?:\s|:|-)*([^\n\]|]{5,80})/gi,
+      / (?:Golden Globe|Emmy|Oscar|Academy Award)[s]?(?:\s|:|-)*([^\n\]|]{5,80})/gi
+    ];
+    for (const pat of awardPatterns) {
+      let m;
+      while ((m = pat.exec(wikitext)) !== null) {
+        const raw = (m[0] || "").trim().replace(/\[\[|\]\]/g, "").replace(/\{\{[^}]*\}\}/g, "").trim();
+        if (raw.length > 5 && raw.length < 120 && !awards.includes(raw)) {
+          awards.push(raw);
+        }
+        if (awards.length >= 6) break;
+      }
+      if (awards.length >= 6) break;
+    }
+    return awards;
+  } catch (_) {}
+  return [];
 }
 
 async function getAudioDbArtist(artistName) {
@@ -180,21 +224,27 @@ async function spotifySearchArtists(query, limit = 50) {
 const POPULAR_ARTIST_IDS = [
   "66CXWjxzNUsdJxJ2JdwvnR", "1Xyo4u8uXC1ZmMpatF05PJ", "0Y5tJX1MQlPlqiwlOH1tJY",
   "74KM79TiuVKeVCqs8QtBqB", "4Q8iWy4kM9yHy3WEsqYKcK", "6KImCVD70vtIoJWnq6nGn3",
-  "1HY2Jd0NmPuamShAr6KMms", "0du5cEVh5yTK9QJze8zA0C", "246dkJv52ZmvvB3MU3EfWD",
-  "6eUKZXaKkcviH0Ku9w2n3V", "4dpARuHxo51G3z768sgnrY", "0vn82ciwoffRj4fPM57RRz",
-  "1vCWHaC5f2uS3yhpwWbIA6", "7cPv8Q080UGh7Q4uxU0qQc", "1dfeR4HaWDbWqFHLkxsg1d",
-  "4gzpq5DPGxSnKTe4SA8HAU", "3WrFJ7ztbogyGnTHbHJFl2", "1RyvyyTE3bv76ynp8GV1CD",
-  "5K4W6rqBFWDnAN6FQUkS6x", "7ouG8Zh9LKboamobBmvrqL", "3Nrfpe0tUJi4K4DXYWgMUX",
-  "1uNFoZAHGPtTmQ8EzALuQI", "1XyzdFpbj67yiDUZ1JWQnA", "0EmeFodog0B6cWt2Tl4JDl",
-  "3q7HBObVc0L8jNeTe5Gofh", "53Xhw976x0cJV354YqJXRW", "0qtk0OhDkVaH2MoIhZ0UOo",
-  "4r63FHU0t8eEYzTRzRt0Zp", "3EclbrCbNnNeaLVNRtPBz", "4kI8iiVn0PpoaEGMlCp1MF",
-  "0gPlYImhkx45dkZDqCLcQX", "4yvcSjfuuPCcSYzB+oUm0n", "4xRYI6IsDOsa8yz3RgHaw3",
-  "2CIMQHirSU0MQaakyelNZW", "3sgXDLRjZ0t5nAeHxFWHnQ", "4STHE9QIsOUL7Ih5kW1Vf3",
-  "0iEtIznC4noha2kHvbYrNH", "09C0xjtosZaytableMvJcW", "3hV2JqIHtiGIF1ME5SjQXC",
+  "0du5cEVh5yTK9QJze8zA0C", "246dkJv52ZmvvB3MU3EfWD", "6eUKZXaKkcviH0Ku9w2n3V",
+  "4dpARuHxo51G3z768sgnrY", "0vn82ciwoffRj4fPM57RRz", "1vCWHaC5f2uS3yhpwWbIA6",
+  "7cPv8Q080UGh7Q4uxU0qQc", "1dfeR4HaWDbWqFHLkxsg1d", "4gzpq5DPGxSnKTe4SA8HAU",
+  "3WrFJ7ztbogyGnTHbHJFl2", "1RyvyyTE3bv76ynp8GV1CD", "5K4W6rqBFWDnAN6FQUkS6x",
+  "7ouG8Zh9LKboamobBmvrqL", "3Nrfpe0tUJi4K4DXYWgMUX", "1uNFoZAHGPtTmQ8EzALuQI",
+  "1XyzdFpbj67yiDUZ1JWQnA", "0EmeFodog0B6cWt2Tl4JDl", "3q7HBObVc0L8jNeTe5Gofh",
+  "53Xhw976x0cJV354YqJXRW", "0qtk0OhDkVaH2MoIhZ0UOo", "4r63FHU0t8eEYzTRzRt0Zp",
+  "3EclbrCbNnNeaLVNRtPBz", "4kI8iiVn0PpoaEGMlCp1MF", "0gPlYImhkx45dkZDqCLcQX",
+  "2CIMQHirSU0MQaakyelNZW", "3sgXDLRjZ0t5nAeHxFWHnQ", "0iEtIznC4noha2kHvbYrNH",
   "4qwqE4EdtN5bLFO1hZ1mWD", "6olE6TJLqED3rqDCT0FyPh", "707St7h4p1Ajd84lVNKX4p",
   "23zg3TcMrWgg9Oh63tZPbO", "66aHtG9YF2Ti0JL26cIeKj", "4kSGhnmKgXbk5D8yXDbCgF",
-  "6FfCtQCECycRrLrfoSFkQF", "20q1BFx3gHkDBkYDoHpn0V", "536HYn9LbcNPRXEM2HqDk2",
-  "0aXZ8AHBfvq3nJU5CQ36uk"
+  "6FfCtQCECycRrLrfoSFkQF", "20q1BFx3gHkDBkYDoHpn0V", "0aXZ8AHBfvq3nJU5CQ36uk",
+  "1McMsnEejThpGok6JWZRqQ", "6jJ0s89tiDPPoa1SpI3SRe", "3MZsFRqBjxrBAVcSLciBep",
+  "31W5EJLfxmBbbRBSP8eJ3G", "3TVXtAsR1Inumwj472S9r4", "0q2uXVWzmK8dMeeY0TbzdM",
+  "5pKCCKExv19v88KDPLtpGc", "4q2ewH8kmxVr6LfqpYOCeK", "3jK93B5Fb8rXRYgG7dmOeD",
+  "7tFiyTwD0nx5a1eklYtX2J", "2tIP7SsRs7vjIcLrU85W8J", "7dlKq5SVDTEKcCkZKvMv4s",
+  "698hFmZKNfBYDISdOyTqlE", "4gOc8jDQcuROcSrYI98K8S", "1QRj3gnk2uCLl8ZMtkV8J1",
+  "77DAW7WNYDeJhU25kTn6n6", "0F5IxAkVtmfvJw71aE0xXr", "0VRj0Oco1CfDy7h2Scl30d",
+  "5Z9qGl6fxHfKnKw9cUY1zR", "536HYn9LbcNPRXEM2HqDk2", "1dNOFKRn2VY2pY9dC5HvXF",
+  "2d0XoOkT0dNAvfB1eY69PJ", "3hV2JqIHtiGIF1ME5SjQXC", "4STHE9QIsOUL7Ih5kW1Vf3",
+  "09C0xjtosZaytableMvJcW"
 ];
 
 async function spotifyGetArtistsByIds(ids) {
@@ -319,9 +369,19 @@ async function fetchHomeArtists(targetCount = 12) {
 
   if (spotifyWorks) {
     try {
-      const ids = shuffle(POPULAR_ARTIST_IDS).slice(0, targetCount + 10);
+      const ids = shuffle(POPULAR_ARTIST_IDS).slice(0, Math.min(targetCount + 10, 50));
       const spotifyArtists = await spotifyGetArtistsByIds(ids);
       artists.push(...spotifyArtists);
+    } catch (e) {}
+  }
+
+  if (artists.length < targetCount) {
+    try {
+      const extraIds = shuffle(POPULAR_ARTIST_IDS).slice(0, Math.min(targetCount, 50));
+      const extraArtists = await spotifyGetArtistsByIds(extraIds);
+      for (const a of extraArtists) {
+        if (!artists.find(x => x.id === a.id)) artists.push(a);
+      }
     } catch (e) {}
   }
 
@@ -611,7 +671,7 @@ export default async function handler(req, res) {
     if (finalResult) {
       const artistTitle = finalResult.title;
 
-      const [adb, bio, spotifyEnrichment, deezerImage] = await Promise.all([
+      const [adb, bio, spotifyEnrichment, deezerImage, awards] = await Promise.all([
         getAudioDbArtist(artistTitle).catch(() => null),
         getWikipediaBio(artistTitle).catch(() => ""),
         (spotifyWorks && finalResult.provider !== "spotify" && artistTitle)
@@ -649,7 +709,8 @@ export default async function handler(req, res) {
                 return j.data?.[0]?.picture_xl || null;
               } catch (_) { return null; }
             })()
-          : Promise.resolve(null)
+          : Promise.resolve(null),
+        getWikipediaAwards(artistTitle).catch(() => [])
       ]);
 
       if (adb) {
@@ -679,6 +740,9 @@ export default async function handler(req, res) {
       }
       if (!finalResult.genres) {
         finalResult.genres = [];
+      }
+      if (awards && awards.length > 0) {
+        finalResult.awards = awards;
       }
 
       return res.json({ ok: true, result: finalResult });

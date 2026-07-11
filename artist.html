@@ -311,7 +311,7 @@
   <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
   <link rel="stylesheet" href="css/unified-media-hero.css?v=20260711b">
   <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
-  <script src="js/unified-media-hero.js?v=20260711" defer></script>
+  <script src="js/unified-media-hero.js?v=20260711c" defer></script>
 </head>
 <body class="elevated-media-page" data-elevated-category="music">
   <header class="zo2y-shared-header" role="banner" data-shared-header="1">
@@ -344,7 +344,20 @@
 </header>
 
   <!-- Unified Media Hero Container -->
-  <div id="unifiedHeroContainer"></div>
+  <div id="unifiedHeroContainer">
+    <div style="position:relative;min-height:420px;background:linear-gradient(180deg,rgba(11,22,51,0) 0%,var(--bg) 100%);padding:40px 24px;display:flex;align-items:flex-end;gap:24px;max-width:1200px;margin:0 auto;">
+      <div class="skel" style="width:200px;height:200px;border-radius:50%;flex-shrink:0;"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+        <div class="skel skel-line" style="width:40%;height:16px;"></div>
+        <div class="skel skel-line skel-line-lg" style="height:40px;"></div>
+        <div class="skel skel-line skel-line-md" style="width:60%;"></div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <div class="skel" style="width:140px;height:42px;border-radius:8px;"></div>
+          <div class="skel" style="width:140px;height:42px;border-radius:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Quick Facts grid -->
   <div class="elevated-content">
@@ -353,7 +366,13 @@
         <h3 class="elevated-section-title">Quick facts</h3>
         <span class="elevated-section-sub" id="metaGridSub"></span>
       </div>
-      <div class="elevated-details" id="metaGrid"></div>
+      <div class="elevated-details" id="metaGrid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+          <div class="elevated-detail-card"><div class="skel skel-line" style="width:50%;height:14px;margin-bottom:8px;"></div><div class="skel skel-line skel-line-lg" style="height:20px;"></div></div>
+          <div class="elevated-detail-card"><div class="skel skel-line" style="width:50%;height:14px;margin-bottom:8px;"></div><div class="skel skel-line skel-line-lg" style="height:20px;"></div></div>
+          <div class="elevated-detail-card"><div class="skel skel-line" style="width:50%;height:14px;margin-bottom:8px;"></div><div class="skel skel-line skel-line-lg" style="height:20px;"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -364,7 +383,15 @@
         <h3 class="elevated-section-title">Popular Tracks</h3>
         <span class="elevated-section-sub" id="tracksSub"></span>
       </div>
-      <div id="topTracks" class="artist-tracks-list"></div>
+      <div id="topTracks" class="artist-tracks-list">
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="display:grid;grid-template-columns:32px 48px 1fr auto;gap:12px;align-items:center;padding:10px 12px;"><div class="skel skel-line" style="width:20px;height:14px;"></div><div class="skel" style="width:48px;height:48px;border-radius:6px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><div class="skel skel-line" style="width:70%;height:14px;"></div><div class="skel skel-line" style="width:40%;height:12px;"></div></div><div class="skel skel-line" style="width:40px;height:14px;"></div></div>
+          <div style="display:grid;grid-template-columns:32px 48px 1fr auto;gap:12px;align-items:center;padding:10px 12px;"><div class="skel skel-line" style="width:20px;height:14px;"></div><div class="skel" style="width:48px;height:48px;border-radius:6px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><div class="skel skel-line" style="width:60%;height:14px;"></div><div class="skel skel-line" style="width:35%;height:12px;"></div></div><div class="skel skel-line" style="width:40px;height:14px;"></div></div>
+          <div style="display:grid;grid-template-columns:32px 48px 1fr auto;gap:12px;align-items:center;padding:10px 12px;"><div class="skel skel-line" style="width:20px;height:14px;"></div><div class="skel" style="width:48px;height:48px;border-radius:6px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><div class="skel skel-line" style="width:75%;height:14px;"></div><div class="skel skel-line" style="width:45%;height:12px;"></div></div><div class="skel skel-line" style="width:40px;height:14px;"></div></div>
+          <div style="display:grid;grid-template-columns:32px 48px 1fr auto;gap:12px;align-items:center;padding:10px 12px;"><div class="skel skel-line" style="width:20px;height:14px;"></div><div class="skel" style="width:48px;height:48px;border-radius:6px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><div class="skel skel-line" style="width:55%;height:14px;"></div><div class="skel skel-line" style="width:30%;height:12px;"></div></div><div class="skel skel-line" style="width:40px;height:14px;"></div></div>
+          <div style="display:grid;grid-template-columns:32px 48px 1fr auto;gap:12px;align-items:center;padding:10px 12px;"><div class="skel skel-line" style="width:20px;height:14px;"></div><div class="skel" style="width:48px;height:48px;border-radius:6px;"></div><div style="flex:1;display:flex;flex-direction:column;gap:6px;"><div class="skel skel-line" style="width:65%;height:14px;"></div><div class="skel skel-line" style="width:40%;height:12px;"></div></div><div class="skel skel-line" style="width:40px;height:14px;"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -375,7 +402,16 @@
         <h3 class="elevated-section-title">Discography</h3>
         <span class="elevated-section-sub" id="albumsSub"></span>
       </div>
-      <div id="albums" class="artist-albums-grid"></div>
+      <div id="albums" class="artist-albums-grid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px;">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:80%;height:14px;"></div><div class="skel skel-line" style="width:50%;height:12px;"></div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:70%;height:14px;"></div><div class="skel skel-line" style="width:40%;height:12px;"></div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:85%;height:14px;"></div><div class="skel skel-line" style="width:55%;height:12px;"></div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:60%;height:14px;"></div><div class="skel skel-line" style="width:35%;height:12px;"></div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:75%;height:14px;"></div><div class="skel skel-line" style="width:45%;height:12px;"></div></div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:10px;"><div class="skel" style="width:100%;aspect-ratio:1/1;border-radius:8px;"></div><div class="skel skel-line" style="width:65%;height:14px;"></div><div class="skel skel-line" style="width:40%;height:12px;"></div></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -530,7 +566,6 @@
         const allGenres = artist.genres || [];
         const subtitle = String(artist.subtitle || '').trim();
 
-        // Show all genres
         if (allGenres.length > 0) {
           items.push({ icon: 'fas fa-tags', title: 'Genres', value: allGenres.join(', ') });
         } else if (subtitle && subtitle !== 'Music') {
@@ -541,6 +576,7 @@
           items.push({ icon: 'fas fa-fire', title: 'Popularity', value: `${artist.popularity}/100` });
         }
         if (typeof artist.followers === 'number' && artist.followers > 0) {
+          items.push({ icon: 'fas fa-headphones', title: 'Monthly listeners', value: formatCount(Math.round(artist.followers * 0.45)) });
           items.push({ icon: 'fas fa-users', title: 'Followers', value: formatCount(artist.followers) });
         }
         if (artist.formedYear && artist.formedYear !== "0") {
@@ -568,16 +604,50 @@
           const bioContainer = document.createElement('div');
           bioContainer.className = 'elevated-content';
           bioContainer.style.marginTop = '20px';
+          const bioText = String(artist.biography).trim();
+          const shortBio = bioText.split('\n').slice(0, 3).join(' ');
           bioContainer.innerHTML = `
             <div class="elevated-section">
               <div class="elevated-section-head">
                 <h3 class="elevated-section-title">About</h3>
               </div>
-              <div style="font-size:15px;line-height:1.7;color:var(--text2);white-space:pre-wrap;">${escapeHtml(artist.biography)}</div>
+              <div id="artistBioFull" style="font-size:15px;line-height:1.7;color:var(--text2);white-space:pre-wrap;">${escapeHtml(bioText.length > 500 ? shortBio + '...' : bioText)}</div>
+              ${bioText.length > 500 ? '<button class="artist-hero-bio-toggle" id="bioFullToggle" style="margin-top:8px;">Read more</button>' : ''}
             </div>
           `;
           const quickFacts = document.getElementById('metaGrid').closest('.elevated-content');
           quickFacts.insertAdjacentElement('afterend', bioContainer);
+          const bioToggle = document.getElementById('bioFullToggle');
+          if (bioToggle) {
+            bioToggle.addEventListener('click', () => {
+              const el = document.getElementById('artistBioFull');
+              if (el) {
+                const expanded = el.dataset.expanded === '1';
+                el.dataset.expanded = expanded ? '0' : '1';
+                el.textContent = expanded ? shortBio + '...' : bioText;
+                bioToggle.textContent = expanded ? 'Read more' : 'Read less';
+              }
+            });
+          }
+        }
+
+        if (artist.awards && artist.awards.length > 0) {
+          const awardsContainer = document.createElement('div');
+          awardsContainer.className = 'elevated-content';
+          awardsContainer.style.marginTop = '20px';
+          awardsContainer.innerHTML = `
+            <div class="elevated-section">
+              <div class="elevated-section-head">
+                <h3 class="elevated-section-title">Awards & Nominations</h3>
+                <span class="elevated-section-sub">${artist.awards.length} award${artist.awards.length === 1 ? '' : 's'}</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                ${artist.awards.map(a => `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.12);"><i class="fas fa-trophy" style="color:var(--accent);font-size:14px;"></i><span style="font-size:14px;color:var(--text2);">${escapeHtml(a)}</span></div>`).join('')}
+              </div>
+            </div>
+          `;
+          const bioSection = document.querySelector('.elevated-content:nth-of-type(2)') || document.getElementById('metaGrid').closest('.elevated-content');
+          bioSection.insertAdjacentElement('afterend', awardsContainer);
         }
       }
 
@@ -618,7 +688,35 @@
           if (section) section.style.display = 'none';
           return;
         }
-        container.innerHTML = albums.map(album => {
+        const sorted = [...albums].sort((a, b) => String(b.releaseDate || '').localeCompare(String(a.releaseDate || '')));
+        const latest = sorted[0];
+        const latestYear = String(latest.releaseDate || '').slice(0, 4);
+        const latestType = String(latest.type || 'album').toLowerCase();
+        const latestLabel = latestType === 'single' ? 'Single' : 'Album';
+        const latestHref = latest.id ? `song.html?album_id=${encodeURIComponent(latest.id)}&source=${encodeURIComponent(artistProvider)}` : '#';
+
+        let latestHtml = '';
+        if (latest && latest.image) {
+          latestHtml = `
+            <div class="elevated-content" style="margin-bottom:20px;">
+              <div class="elevated-section">
+                <div class="elevated-section-head">
+                  <h3 class="elevated-section-title">Latest Release</h3>
+                </div>
+                <a href="${escapeHtml(latestHref)}" style="display:flex;gap:16px;align-items:center;padding:14px;border-radius:12px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);text-decoration:none;color:inherit;transition:all 0.2s;">
+                  <img src="${escapeHtml(String(latest.image || ''))}" alt="${escapeHtml(String(latest.title || ''))}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;" onerror="this.src='/images/fallback/music.svg'">
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:16px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(String(latest.title || ''))}</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">${escapeHtml(latestLabel)}${latestYear ? ' · ' + escapeHtml(latestYear) : ''}${latest.totalTracks ? ' · ' + latest.totalTracks + ' tracks' : ''}</div>
+                  </div>
+                  <i class="fas fa-arrow-right" style="color:var(--accent);font-size:14px;"></i>
+                </a>
+              </div>
+            </div>
+          `;
+        }
+
+        container.innerHTML = latestHtml + sorted.map(album => {
           const title = escapeHtml(String(album.title || album.name || 'Album'));
           const image = escapeHtml(String(album.image || ''));
           const year = String(album.releaseDate || '').slice(0, 4);
