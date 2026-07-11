@@ -4878,6 +4878,26 @@
                 } catch (_err) {
                     // ignore and fallback
                 }
+
+                try {
+                    const res = await fetch(`/api/music/artist/${encodeURIComponent(key)}?bust=${Date.now()}`);
+                    if (res.ok) {
+                        const json = await res.json();
+                        const r = json?.result;
+                        if (r && (r.image || (r.images && r.images.length > 0))) {
+                            const artistImage = r.image || (r.images && r.images[0] && r.images[0].url) || '';
+                            const merged = {
+                                id: key,
+                                name: String(r.title || r.name || dbData?.name || '').trim(),
+                                artists: String(r.subtitle || '').trim(),
+                                image_url: artistImage,
+                                external_url: String(r.externalUrl || '').trim()
+                            };
+                            musicCache.set(key, merged);
+                            return merged;
+                        }
+                    }
+                } catch (_e) {}
                 
                 try {
                     const res = await fetch(`/api/music/tracks/${key}?market=US`);
