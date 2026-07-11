@@ -1119,9 +1119,7 @@
           const dur = hours > 0 ? `${hours}h ${mins}m` : `${mins} min`;
           config.metadata.push({ type: 'runtime', value: dur });
         }
-        if (data.vote_average) {
-          config.premiumRatings = `<div class="umh-rating-block is-tmdb"><div class="umh-rating-label"><i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i> TMDB</div><div class="umh-rating-score score-tmdb">${data.vote_average.toFixed(1)}</div></div>`;
-        }
+
         if (Array.isArray(data.genres) && data.genres[0]) {
           config.metadata.push({ type: 'genre', value: data.genres[0].name });
         }
@@ -1296,31 +1294,11 @@
               console.log('[DEBUG] OMDB Response:', omdbData);
               if (omdbData && (omdbData.Response !== 'False' && !omdbData.error)) {
                 const imdbRating = omdbData.imdbRating && omdbData.imdbRating !== 'N/A' ? omdbData.imdbRating : null;
-                const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
-                const rtRating = rt ? rt.Value : null;
-                const metascore = omdbData.Metascore && omdbData.Metascore !== 'N/A' ? omdbData.Metascore : null;
                 
-                if (imdbRating || rtRating || metascore) {
-                  const premiumRow = document.getElementById('premiumRatingsRow');
-                  if (premiumRow) {
-                    if (imdbRating) {
-                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label"><i class="fa-brands fa-imdb" style="color:#fcd34d;font-size:1.2em;"></i> IMDb</div><div class="umh-rating-score score-imdb">${imdbRating}</div></div>`);
-                    }
-                    if (rtRating) {
-                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label">Tomatometer</div><div class="umh-rating-score score-rt">${rtRating}</div></div>`);
-                    }
-                    if (metascore) {
-                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label"><span style="border-radius:50%;border:1px solid #fcd34d;width:18px;height:18px;color:#fcd34d;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:10px;">m</span> Metacritic</div><div class="umh-rating-score score-meta">${metascore}</div></div>`);
-                    }
-                  }
-
-                  const metaGridEl = document.getElementById('metaGrid');
-                  if (metaGridEl) {
-                    let ratingHtml = '<div class="elevated-detail-card"><div class="elevated-detail-title"><i class="fas fa-star-half-stroke"></i> External Ratings</div><div class="elevated-detail-value" style="display:flex;gap:12px;align-items:center;margin-top:6px;">';
-                    if (imdbRating) ratingHtml += `<span title="IMDb Rating" style="display:inline-flex;align-items:center;gap:4px;font-size:0.9rem;"><i class="fa-brands fa-imdb" style="color:#f5c518;font-size:1.4em;"></i> ${imdbRating}</span>`;
-                    if (rtRating) ratingHtml += `<span title="Rotten Tomatoes" style="display:inline-flex;align-items:center;gap:4px;font-size:0.9rem;"><span style="color:#fa320a;font-weight:bold;background:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;">🍅</span> ${rtRating}</span>`;
-                    ratingHtml += '</div></div>';
-                    metaGridEl.insertAdjacentHTML('beforeend', ratingHtml);
+                if (imdbRating) {
+                  const metaRow = document.querySelector('.umh-meta-row');
+                  if (metaRow) {
+                    metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="IMDb Rating" style="display:inline-flex;align-items:center;gap:4px;"><i class="fa-brands fa-imdb" style="color:#fcd34d;font-size:1.2em;"></i> ${imdbRating}</span>`);
                   }
                 }
               }
