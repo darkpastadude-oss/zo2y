@@ -745,12 +745,6 @@
 
   function generateHeroSearchQuery(brandName, brandType) {
     const name = String(brandName || "").trim();
-    if (!name) return "";
-    const type = String(brandType || "").toLowerCase();
-    if (type === "car" || type === "cars") return `${name} automotive press photo`;
-    if (type === "fashion") return `${name} fashion campaign`;
-    if (type === "food") return `${name} meal hero shot`;
-    if (type === "sport" || type === "sports") return `${name} stadium crowd`;
     return name;
   }
 
