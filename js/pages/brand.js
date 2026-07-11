@@ -752,16 +752,22 @@
     let score = 0;
     const text = String(imageName || "").toLowerCase().replace(/_/g, " ");
 
-    if (/(official|press|campaign)/.test(text)) score += 50;
+    if (/(official|press|campaign|factory)/.test(text)) score += 50;
     if (/(car|vehicle|burger|pizza|clothing|runway|jersey|stadium|team|meal)/.test(text)) score += 40;
     if (width >= 1200 && height >= 675) score += 20;
-    if (/(hero|lineup|racing|editorial|action|celebration)/.test(text)) score += 15;
+    if (/(hero|lineup|racing|editorial|action|celebration|concept)/.test(text)) score += 15;
 
     if (/(building|headquarters|hq|office)/.test(text)) score -= 100;
     if (/(storefront|mall|retail)/.test(text)) score -= 80;
-    if (/(factory|warehouse|plant)/.test(text)) score -= 80;
+    if (/(warehouse|plant)/.test(text)) score -= 80;
     if (/(van|bus|vintage|classic)/.test(text)) score -= 100;
     if (/(person|founder|ceo|portrait)/.test(text)) score -= 50;
+
+    if (brandType === "car" || brandType === "cars") {
+      if (!/(factory|official|press|concept|lineup|racing)/.test(text)) {
+        score -= 50;
+      }
+    }
 
     return score;
   }
@@ -787,7 +793,7 @@
     const wikiTitle = brand.wiki?.title || brand.name;
     if (!wikiTitle) return "";
 
-    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&format=json&origin=*`;
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&generator=images&gimlimit=50&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&format=json&origin=*`;
     try {
       const res = await fetch(url);
       if (!res.ok) return "";
@@ -797,12 +803,12 @@
       const candidates = [];
       Object.values(data.query.pages).forEach((p) => {
         const info = p.imageinfo && p.imageinfo[0];
-        if (info && info.url) {
+        if (info && (info.thumburl || info.url)) {
           candidates.push({
             title: p.title,
-            url: info.url,
-            width: info.width || 0,
-            height: info.height || 0,
+            url: info.thumburl || info.url,
+            width: info.thumbwidth || info.width || 0,
+            height: info.thumbheight || info.height || 0,
           });
         }
       });
