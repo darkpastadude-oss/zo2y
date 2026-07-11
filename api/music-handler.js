@@ -22,16 +22,26 @@ const DEFAULT_GENRES = [
 
 async function getWikipediaBio(artistName) {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
-    const res = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=4&exlimit=1&titles=${encodeURIComponent(artistName)}&explaintext=1&format=json&redirects=1`, { signal: controller.signal });
-    clearTimeout(timeout);
-    if (!res.ok) return "";
-    const data = await res.json();
-    const pages = data.query?.pages || {};
-    const pageId = Object.keys(pages)[0];
-    if (pageId && pageId !== '-1') {
-      return String(pages[pageId].extract || "");
+    const searchController = new AbortController();
+    const searchTimeout = setTimeout(() => searchController.abort(), 4000);
+    const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(artistName + ' musician')}&utf8=&format=json&srlimit=1`, { signal: searchController.signal });
+    clearTimeout(searchTimeout);
+    if (!searchRes.ok) return "";
+    const searchData = await searchRes.json();
+    if (searchData.query && searchData.query.search && searchData.query.search.length > 0) {
+      const title = searchData.query.search[0].title;
+      
+      const extController = new AbortController();
+      const extTimeout = setTimeout(() => extController.abort(), 4000);
+      const extRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=4&exlimit=1&titles=${encodeURIComponent(title)}&explaintext=1&format=json`, { signal: extController.signal });
+      clearTimeout(extTimeout);
+      if (!extRes.ok) return "";
+      const extData = await extRes.json();
+      const pages = extData.query?.pages || {};
+      const pageId = Object.keys(pages)[0];
+      if (pageId && pageId !== '-1') {
+        return String(pages[pageId].extract || "");
+      }
     }
   } catch (_) {}
   return "";
