@@ -4400,6 +4400,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           image: item.image || ''
         };
       }
+      if (mediaType === 'music' || mediaType === 'artist') {
+        return {
+          name: item.title || '',
+          image: item.image || '',
+          url: item.href || ''
+        };
+      }
       return null;
     }
 

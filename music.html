@@ -47,7 +47,7 @@
 <noscript><link rel="stylesheet" href="css/shared-header.css?v=20260624a"></noscript>
 <script src="js/shared-header.js?v=20260710c" defer></script>
 
-    <script src="/js/components/list-modal.js?v=20260710d" defer></script>
+    <script src="/js/components/list-modal.js?v=20260710e" defer></script>
     <noscript></noscript>
 
   
@@ -412,7 +412,7 @@
       const html = renderItems.map((item) => {
         const kind = String(item.kind || 'artist').toLowerCase();
         return `
-        <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}">
+        <article class="card" data-id="${escapeHtml(item.id)}" data-kind="${escapeHtml(kind)}" data-source="${escapeHtml(item.source || '')}" data-external="${escapeHtml(item.external_url || '')}" data-title="${escapeHtml(item.name || '')}" data-image="${escapeHtml(item.image || '')}" data-subtitle="${escapeHtml(item.subtitle || '')}">
           <div class="card-media">
             ${item.image ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy">` : ''}
           </div>

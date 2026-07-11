@@ -4863,6 +4863,18 @@
                     const cached = musicCache.get(key);
                     if (cached) return cached;
                 }
+                const cachedMetadata = window.ListUtils ? window.ListUtils.getCachedSavedItemMetadata('music', key) : null;
+                if (cachedMetadata && cachedMetadata.image) {
+                    const cachedData = {
+                        id: key,
+                        name: cachedMetadata.name || '',
+                        artists: '',
+                        image_url: cachedMetadata.image,
+                        external_url: cachedMetadata.url || ''
+                    };
+                    musicCache.set(key, cachedData);
+                    return cachedData;
+                }
                 let dbData = null;
                 try {
                     const { data, error } = await supabase

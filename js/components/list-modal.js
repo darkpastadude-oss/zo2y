@@ -315,7 +315,7 @@
         var nextActive = !wasActive;
         btn.classList.toggle('active', nextActive);
         btn.querySelector('.menu-quick-state').textContent = nextActive ? 'saved' : 'add';
-        await toggleQuickList(itemId, mediaType, listType, nextActive);
+        await toggleQuickList(itemId, mediaType, listType, nextActive, cardEl);
       });
       quickListsEl.appendChild(btn);
     });
@@ -323,7 +323,7 @@
     var customContainer = document.getElementById('unifiedListMenuCustomLists');
     customContainer.innerHTML = '<div style="color:var(--muted,#8ca3c7);font-size:13px;padding:4px 0;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
-    loadCustomListsForMenu(mediaType, itemId, customContainer);
+    loadCustomListsForMenu(mediaType, itemId, customContainer, cardEl);
 
     var closeMenu = function () {
       if (_activeMenuEl) {
@@ -345,7 +345,7 @@
     }
   }
 
-  async function loadCustomListsForMenu(mediaType, itemId, container) {
+  async function loadCustomListsForMenu(mediaType, itemId, container, cardEl) {
     try {
       var lists = await loadCustomLists(mediaType);
       var client = await ensureClient();
@@ -375,7 +375,24 @@
               btn.querySelector('.menu-custom-state').textContent = 'add';
               membership.delete(list.id);
             } else {
-              await window.ListUtils.addItemToList(client, user.id, mediaType, itemId, list.id);
+              var itemPayload = null;
+              if (cardEl) {
+                var cardImage = cardEl.getAttribute('data-image') || cardEl.getAttribute('data-list-image') || '';
+                var cardTitle = cardEl.getAttribute('data-title') || '';
+                var cardHref = cardEl.getAttribute('data-href') || '';
+                if (!cardTitle) {
+                  var titleEl = cardEl.querySelector('.card-title, .title, .media-title, h2, h3');
+                  if (titleEl) cardTitle = titleEl.textContent.trim();
+                }
+                if (!cardTitle) {
+                  var innerImg = cardEl.querySelector('img');
+                  if (innerImg) cardTitle = innerImg.getAttribute('alt') || '';
+                }
+                if (cardImage || cardTitle) {
+                  itemPayload = { name: cardTitle, image: cardImage, url: cardHref };
+                }
+              }
+              await window.ListUtils.addItemToList(client, user.id, mediaType, itemId, list.id, itemPayload);
               btn.classList.add('active');
               btn.querySelector('.menu-custom-state').textContent = 'saved';
               membership.add(list.id);
@@ -394,7 +411,7 @@
     }
   }
 
-  async function toggleQuickList(itemId, mediaType, listType, isAdding) {
+  async function toggleQuickList(itemId, mediaType, listType, isAdding, cardEl) {
     var client = await ensureClient();
     var user = await ensureUser();
     if (!client || !user) return;
@@ -416,6 +433,26 @@
           .is('list_id', null);
         var insertResult = await client.from('list_items').insert(payload);
         if (insertResult && insertResult.error) throw insertResult.error;
+        if (cardEl && window.ListUtils) {
+          var cardImage = cardEl.getAttribute('data-image') || cardEl.getAttribute('data-list-image') || '';
+          var cardTitle = cardEl.getAttribute('data-title') || '';
+          var cardHref = cardEl.getAttribute('data-href') || '';
+          if (!cardImage) {
+            var imgEl = cardEl.querySelector('.card-media img, img');
+            if (imgEl) cardImage = imgEl.getAttribute('src') || '';
+          }
+          if (!cardTitle) {
+            var titleEl = cardEl.querySelector('.card-name, .card-title, .title, .media-title, h2, h3');
+            if (titleEl) cardTitle = titleEl.textContent.trim();
+          }
+          if (!cardTitle) {
+            var innerImg = cardEl.querySelector('img');
+            if (innerImg) cardTitle = innerImg.getAttribute('alt') || '';
+          }
+          if (cardImage || cardTitle) {
+            window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle, image: cardImage, url: cardHref });
+          }
+        }
         showToast('Added to list');
       } else {
         var deleteResult = await client.from('list_items').delete()

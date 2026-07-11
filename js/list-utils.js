@@ -308,6 +308,50 @@
     } catch (_error) {}
   }
 
+  const SAVED_ITEMS_CACHE_KEY = 'zo2y_saved_items_v1';
+  const SAVED_ITEMS_CACHE_TTL = 1000 * 60 * 60 * 24 * 365; // 1 year
+
+  function readSavedItemsCache() {
+    const cached = readStorageObject(SAVED_ITEMS_CACHE_KEY);
+    if (!cached.ts || (Date.now() - cached.ts) > SAVED_ITEMS_CACHE_TTL) {
+      return {};
+    }
+    return cached.items || {};
+  }
+
+  function writeSavedItemsCache(items) {
+    writeStorageObject(SAVED_ITEMS_CACHE_KEY, { ts: Date.now(), items });
+  }
+
+  function cacheSavedItemMetadata(mediaType, itemId, metadata) {
+    if (!mediaType || !itemId || !metadata) return;
+    const items = readSavedItemsCache();
+    const key = `${mediaType}:${itemId}`;
+    items[key] = {
+      name: metadata.name || '',
+      image: metadata.image || '',
+      url: metadata.url || ''
+    };
+    writeSavedItemsCache(items);
+  }
+
+  function getCachedSavedItemMetadata(mediaType, itemId) {
+    if (!mediaType || !itemId) return null;
+    const items = readSavedItemsCache();
+    const key = `${mediaType}:${itemId}`;
+    return items[key] || null;
+  }
+
+  function removeCachedSavedItem(mediaType, itemId) {
+    if (!mediaType || !itemId) return;
+    const items = readSavedItemsCache();
+    const key = `${mediaType}:${itemId}`;
+    if (items[key]) {
+      delete items[key];
+      writeSavedItemsCache(items);
+    }
+  }
+
   function withTimeout(promise, timeoutMs, fallbackValue) {
     const safeTimeoutMs = Number(timeoutMs);
     if (!promise || !Number.isFinite(safeTimeoutMs) || safeTimeoutMs <= 0) {
@@ -1293,8 +1337,16 @@
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
       const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
       if (insertError) {
-        if (String(insertError.code || '') === '23505') return;
+        if (String(insertError.code || '') === '23505') {
+          if (itemPayload && itemPayload.name) {
+            cacheSavedItemMetadata(type, entityId, itemPayload);
+          }
+          return;
+        }
         throw insertError;
+      }
+      if (itemPayload && itemPayload.name) {
+        cacheSavedItemMetadata(type, entityId, itemPayload);
       }
     }
   }
@@ -1318,11 +1370,24 @@
       .eq('item_id', entityId)
       .eq('list_id', listId)
       .maybeSingle();
-    if (existingItem) return true;
+    if (existingItem) {
+      if (itemPayload && itemPayload.name) {
+        cacheSavedItemMetadata(type, entityId, itemPayload);
+      }
+      return true;
+    }
     const { error } = await client.from(cfg.itemsTable).insert(row);
     if (error) {
-      if (String(error.code || '') === '23505') return true;
+      if (String(error.code || '') === '23505') {
+        if (itemPayload && itemPayload.name) {
+          cacheSavedItemMetadata(type, entityId, itemPayload);
+        }
+        return true;
+      }
       throw error;
+    }
+    if (itemPayload && itemPayload.name) {
+      cacheSavedItemMetadata(type, entityId, itemPayload);
     }
     return true;
   }
@@ -1542,7 +1607,10 @@
     createCustomList,
     renameCustomList,
     loadMediaListItems,
-    loadList
+    loadList,
+    cacheSavedItemMetadata,
+    getCachedSavedItemMetadata,
+    removeCachedSavedItem
   };
 
   window.ListService = ListService;
