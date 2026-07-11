@@ -757,16 +757,20 @@
     if (width >= 1200 && height >= 675) score += 20;
     if (/(hero|lineup|racing|editorial|action|celebration|concept)/.test(text)) score += 15;
 
-    if (/(building|headquarters|hq|office)/.test(text)) score -= 100;
-    if (/(storefront|mall|retail)/.test(text)) score -= 80;
-    if (/(warehouse|plant)/.test(text)) score -= 80;
-    if (/(van|bus|vintage|classic)/.test(text)) score -= 100;
-    if (/(person|founder|ceo|portrait)/.test(text)) score -= 50;
+    // Strict penalties for buildings, signs, and old photos
+    if (/(building|headquarters|hq|office|farms|storefront|mall|retail|warehouse|plant|center|centre|exterior|facade|sign|logo)/.test(text)) score -= 200;
+    if (/(van|bus|vintage|classic|bw|black_and_white|18\d\d|19[0-6]\d|history|antique|old)/.test(text)) score -= 200;
+    if (/(person|founder|ceo|portrait)/.test(text)) score -= 100;
 
+    // Strict category requirements
     if (brandType === "car" || brandType === "cars") {
-      if (!/(factory|official|press|concept|lineup|racing)/.test(text)) {
-        score -= 50;
-      }
+      if (!/(factory|official|press|concept|lineup|racing)/.test(text)) score -= 50;
+    }
+    if (brandType === "food") {
+      if (!/(pizza|burger|meal|food|chicken|fries|menu|product|hero|shot)/.test(text)) score -= 50;
+    }
+    if (brandType === "fashion") {
+      if (!/(campaign|runway|model|clothing|editorial|collection|lookbook|apparel|photoshoot|show)/.test(text)) score -= 50;
     }
 
     return score;
