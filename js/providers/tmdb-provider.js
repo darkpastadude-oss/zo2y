@@ -131,7 +131,7 @@
     var url = this.apiBase + '/' + this.tmdbMediaType + '/' + encodeURIComponent(id) +
       '?language=en&append_to_response=' + append + '&include_image_language=en,null';
 
-    return this._fetchJson(url, { cacheKey: this.name + ':detail:' + id, ttlMs: 30 * 60 * 1000 })
+    return this._fetchJson(url, { cacheKey: this.name + ':detail_v2:' + id, ttlMs: 30 * 60 * 1000 })
       .then(function (raw) {
         return {
           raw: raw,

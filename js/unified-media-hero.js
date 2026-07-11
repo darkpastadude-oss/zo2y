@@ -75,6 +75,9 @@
           <div class="umh-title-meta">
             <h1 class="umh-title">${escapeHtml(title)}</h1>
             <div class="umh-meta-row">${metaHtml}</div>
+            <div class="umh-premium-ratings" id="premiumRatingsRow">
+              ${config.premiumRatings ? config.premiumRatings : ''}
+            </div>
           </div>
 
           <div class="umh-actions-desc">

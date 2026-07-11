@@ -1116,7 +1116,7 @@
           config.metadata.push({ type: 'genre', value: data.genres[0].name.toLowerCase() });
         }
         if (data.vote_average) {
-          config.metadata.push({ type: 'rating', value: data.vote_average.toFixed(1) });
+          config.premiumRatings = `<div class="umh-rating-block is-tmdb"><div class="umh-rating-label"><i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i> TMDB</div><div class="umh-rating-score score-tmdb">${data.vote_average.toFixed(1)}</div></div>`;
         }
 
         config.actions.push({ id: 'addWatchlistBtn', icon: 'fa-solid fa-bookmark', label: 'add to list', primary: true });
@@ -1269,29 +1269,37 @@
           }
         }
 
+        console.log('[DEBUG] Externals payload:', externals);
         if (externals && externals.imdb_id) {
+          console.log('[DEBUG] Fetching OMDB for imdb_id:', externals.imdb_id);
           fetch(`/api/omdb?i=${externals.imdb_id}`)
             .then(r => {
               if (!r.ok) throw new Error('Backend API failed');
               return r.json();
             })
             .catch(err => {
-              console.warn('/api/omdb failed, falling back to direct OMDB fetch...', err);
+              console.warn('[DEBUG] /api/omdb failed, falling back to direct OMDB fetch...', err);
               return fetch(`https://www.omdbapi.com/?apikey=a57d8799&i=${externals.imdb_id}`).then(r => r.json());
             })
             .then(omdbData => {
+              console.log('[DEBUG] OMDB Response:', omdbData);
               if (omdbData && (omdbData.Response !== 'False' && !omdbData.error)) {
                 const imdbRating = omdbData.imdbRating && omdbData.imdbRating !== 'N/A' ? omdbData.imdbRating : null;
                 const rt = (omdbData.Ratings || []).find(r => r.Source === 'Rotten Tomatoes');
                 const rtRating = rt ? rt.Value : null;
-                if (imdbRating || rtRating) {
-                  const metaRow = document.querySelector('.umh-meta-row');
-                  if (metaRow) {
+                const metascore = omdbData.Metascore && omdbData.Metascore !== 'N/A' ? omdbData.Metascore : null;
+                
+                if (imdbRating || rtRating || metascore) {
+                  const premiumRow = document.getElementById('premiumRatingsRow');
+                  if (premiumRow) {
                     if (imdbRating) {
-                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="IMDb Rating"><i class="fa-brands fa-imdb" style="color:#f5c518;font-size:1.2em;"></i> ${imdbRating}</span>`);
+                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label"><i class="fa-brands fa-imdb" style="color:#fcd34d;font-size:1.2em;"></i> IMDb</div><div class="umh-rating-score score-imdb">${imdbRating}</div></div>`);
                     }
                     if (rtRating) {
-                      metaRow.insertAdjacentHTML('beforeend', `<span class="umh-meta-chip" title="Rotten Tomatoes"><span style="color:#fa320a;font-weight:bold;background:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;line-height:1;">🍅</span> ${rtRating}</span>`);
+                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label">Tomatometer</div><div class="umh-rating-score score-rt">${rtRating}</div></div>`);
+                    }
+                    if (metascore) {
+                      premiumRow.insertAdjacentHTML('beforeend', `<div class="umh-rating-block"><div class="umh-rating-label"><span style="border-radius:50%;border:1px solid #fcd34d;width:18px;height:18px;color:#fcd34d;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:10px;">m</span> Metacritic</div><div class="umh-rating-score score-meta">${metascore}</div></div>`);
                     }
                   }
 
