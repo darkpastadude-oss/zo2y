@@ -228,13 +228,6 @@
   const LOGO_CACHE_BUST = '20260712d';
 
   function resolveLogo(value, domain, name) {
-    const domainRaw = String(domain || '').trim();
-    
-    // Always prioritize Clearbit API if we have a valid domain
-    if (domainRaw && /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domainRaw)) {
-      return '/api/logo?domain=' + encodeURIComponent(domainRaw) + '&size=256&mode=logo';
-    }
-
     const direct = String(value || '').trim();
     if (direct) {
       let url;
@@ -252,10 +245,12 @@
     if (title) {
       const params = new URLSearchParams();
       params.set('title', title);
+      const domainRaw = String(domain || '').trim();
       if (domainRaw) params.set('domain', domainRaw);
       params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
+    const domainRaw = String(domain || '').trim();
     const candidate = domainRaw;
     if (!candidate) return '';
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
