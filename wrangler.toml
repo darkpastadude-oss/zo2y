@@ -14,3 +14,6 @@ SUPABASE_URL = "https://gfkhjbztayjyojsgdpgk.supabase.co"
 SUPABASE_PROJECT_REF = "gfkhjbztayjyojsgdpgk"
 OMDB_API_KEY = "a57d8799"
 # SUPABASE_ANON_KEY set via: wrangler pages secret put SUPABASE_ANON_KEY --project-name zo2y
+
+[build.environment]
+NODE_VERSION = "20"
