@@ -252,12 +252,10 @@
     if (title) {
       const params = new URLSearchParams();
       params.set('title', title);
-      const domainRaw = String(domain || '').trim();
       if (domainRaw) params.set('domain', domainRaw);
       params.set('mode', 'logo');
       return '/api/logo?' + params.toString();
     }
-    const domainRaw = String(domain || '').trim();
     const candidate = domainRaw;
     if (!candidate) return '';
     if (/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(candidate)) {
