@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260712d";
+  const LOGO_CACHE_BUST = "20260712e";
 
   function resolveLogo(value, domain, name) {
     const domainRaw = String(domain || "").trim();
@@ -983,10 +983,6 @@
     const covers = await getBrandCovers();
     if (brand.id && covers[brand.id]) {
       return covers[brand.id];
-    }
-
-    if (brand.slug && HARDCODED_BACKDROPS[brand.slug]) {
-      return HARDCODED_BACKDROPS[brand.slug];
     }
 
     const wikiTitle = brand.wiki?.title || brand.name;
