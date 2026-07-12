@@ -6563,11 +6563,11 @@
                     if (hasAddedDivider) return;
                     const dividerContainer = document.createElement('div');
                     dividerContainer.style.marginBottom = '24px';
-                    
-                    const headerRow = document.createElement('div');
+                          const headerRow = document.createElement('div');
                     headerRow.style.display = 'flex';
-                    headerRow.style.justifyContent = 'space-between';
+                    headerRow.style.justifyContent = 'flex-start';
                     headerRow.style.alignItems = 'center';
+                    headerRow.style.gap = '8px';
                     headerRow.style.marginBottom = '8px';
 
                     const customListsTitle = document.createElement('div');
@@ -6583,16 +6583,18 @@
                         addBtn.style.background = 'transparent';
                         addBtn.style.border = 'none';
                         addBtn.style.color = 'var(--color-accent)';
-                        addBtn.style.fontSize = '1.25rem';
+                        addBtn.style.fontSize = '1.1rem';
                         addBtn.style.cursor = 'pointer';
                         addBtn.style.padding = '0';
+                        addBtn.style.display = 'flex';
+                        addBtn.style.alignItems = 'center';
                         addBtn.onclick = () => {
                             if (window.ProfileManager && window.ProfileManager.createListForType) {
                                 window.ProfileManager.createListForType(mediaType);
                             }
                         };
                         headerRow.appendChild(addBtn);
-                    }
+                    }               
 
                     const divider = document.createElement('div');
                     divider.style.height = '1px';
@@ -6975,19 +6977,45 @@
                                         const dividerContainer = document.createElement('div');
                                         dividerContainer.style.marginBottom = '24px';
                                         
+                                        const headerRow = document.createElement('div');
+                                        headerRow.style.display = 'flex';
+                                        headerRow.style.justifyContent = 'flex-start';
+                                        headerRow.style.alignItems = 'center';
+                                        headerRow.style.gap = '8px';
+                                        headerRow.style.marginBottom = '8px';
+
                                         const customListsTitle = document.createElement('div');
                                         customListsTitle.innerText = 'custom lists';
                                         customListsTitle.style.color = 'var(--muted)';
                                         customListsTitle.style.fontSize = '0.85rem';
                                         customListsTitle.style.fontWeight = '600';
-                                        customListsTitle.style.marginBottom = '8px';
+                                        headerRow.appendChild(customListsTitle);
+
+                                        if (isViewingOwnProfile) {
+                                            const addBtn = document.createElement('button');
+                                            addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                                            addBtn.style.background = 'transparent';
+                                            addBtn.style.border = 'none';
+                                            addBtn.style.color = 'var(--color-accent)';
+                                            addBtn.style.fontSize = '1.1rem';
+                                            addBtn.style.cursor = 'pointer';
+                                            addBtn.style.padding = '0';
+                                            addBtn.style.display = 'flex';
+                                            addBtn.style.alignItems = 'center';
+                                            addBtn.onclick = () => {
+                                                if (window.ProfileManager && window.ProfileManager.createListForType) {
+                                                    window.ProfileManager.createListForType(mappedTab);
+                                                }
+                                            };
+                                            headerRow.appendChild(addBtn);
+                                        }
                                         
                                         const divider = document.createElement('div');
                                         divider.style.height = '1px';
                                         divider.style.background = 'var(--border)';
                                         divider.style.opacity = '0.5';
                                         
-                                        dividerContainer.appendChild(customListsTitle);
+                                        dividerContainer.appendChild(headerRow);
                                         dividerContainer.appendChild(divider);
                                         container.appendChild(dividerContainer);
                                         hasAddedDivider = true;
