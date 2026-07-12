@@ -36,7 +36,7 @@
   }
 
   const LIGHTBOX_MODAL_HTML = `
-    <div id="galleryLightbox" class="lightbox-modal" aria-hidden="true">
+    <div id="galleryLightbox" class="lightbox-modal" aria-hidden="true" style="display: none;">
       <div class="lightbox-header">
         <button class="lightbox-close" id="lightboxCloseBtn" aria-label="Close lightbox">&times;</button>
       </div>
@@ -54,6 +54,7 @@
     if (closeBtn && lightbox) {
       closeBtn.addEventListener('click', () => {
         lightbox.classList.remove('active');
+        lightbox.style.display = 'none';
         lightbox.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
       });
@@ -72,6 +73,7 @@
       </div>
     `).join('');
 
+    lightbox.style.display = 'flex';
     lightbox.classList.add('active');
     lightbox.removeAttribute('aria-hidden');
     document.body.style.overflow = 'hidden';
