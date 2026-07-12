@@ -419,7 +419,8 @@
   async function ensureBrandBackgroundManifest() {
     if (brandBackgroundManifest) return brandBackgroundManifest;
     if (brandBackgroundManifestPromise) return brandBackgroundManifestPromise;
-    const manifestUrl = `${SUPABASE_URL}/storage/v1/object/public/brand-backgrounds/manifest/brand-backgrounds.json`;
+    // Load the auto-generated pexels covers mapping instead of the old broken manifest
+    const manifestUrl = `/assets/data/brand_covers.json?v=20260712f`;
     brandBackgroundManifestPromise = fetch(manifestUrl, { headers: { Accept: 'application/json' } })
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => {
@@ -433,11 +434,10 @@
   }
 
   function getBrandSpotlightBackground(brand) {
-    const slug = String(brand?.slug || '').trim().toLowerCase();
-    const direct = slug && brandBackgroundManifest?.[BRAND_TABLE]
-      ? String(brandBackgroundManifest[BRAND_TABLE][slug] || '').trim()
-      : '';
+    const id = brand?.id;
+    const direct = id && brandBackgroundManifest ? brandBackgroundManifest[id] : '';
     if (direct) return direct;
+    
     const fallbackName = BRAND_TYPE === 'food' ? 'food.jpg' : (BRAND_TYPE === 'car' ? 'cars.jpg' : 'fashion.jpg');
     return `${SUPABASE_URL}/storage/v1/object/public/home-spotlights/${fallbackName}`;
   }
