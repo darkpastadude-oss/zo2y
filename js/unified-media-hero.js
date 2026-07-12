@@ -64,7 +64,7 @@
         <div class="umh-content-wrapper">
           <div class="umh-poster-frame ${posterUrl ? '' : 'is-missing'}">
             ${posterUrl ? `
-              <img class="umh-poster ${posterFit === 'contain' ? 'umh-poster-contain' : ''}" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" onload="this.closest('.umh-poster-frame').classList.remove('is-missing')" onerror="this.style.display='none'; this.closest('.umh-poster-frame').classList.add('is-missing')">
+              <img class="umh-poster ${posterFit === 'contain' ? 'umh-poster-contain' : ''}" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title)} poster" loading="eager" referrerpolicy="no-referrer" onload="this.closest('.umh-poster-frame').classList.remove('is-missing')" onerror="this.style.display='none'; this.closest('.umh-poster-frame').classList.add('is-missing')">
             ` : ''}
             <div class="umh-poster-fallback">
               <i class="fa-solid fa-image fa-2x"></i>

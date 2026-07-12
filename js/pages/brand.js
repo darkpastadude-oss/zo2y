@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260622a";
+  const LOGO_CACHE_BUST = "20260712a";
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || "").trim();
@@ -957,7 +957,26 @@
     "vauxhall": "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=2070&auto=format&fit=crop"
   };
 
+  let brandCoversCache = null;
+  async function getBrandCovers() {
+    if (brandCoversCache !== null) return brandCoversCache;
+    try {
+      const res = await fetch("/assets/data/brand_covers.json");
+      if (res.ok) {
+        brandCoversCache = await res.json();
+        return brandCoversCache;
+      }
+    } catch(e) {}
+    brandCoversCache = {};
+    return brandCoversCache;
+  }
+
   async function fetchWikiHeroBackdrop(brand) {
+    const covers = await getBrandCovers();
+    if (brand.id && covers[brand.id]) {
+      return covers[brand.id];
+    }
+
     if (brand.slug && HARDCODED_BACKDROPS[brand.slug]) {
       return HARDCODED_BACKDROPS[brand.slug];
     }
