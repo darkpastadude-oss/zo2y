@@ -117,9 +117,17 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260712b";
+  const LOGO_CACHE_BUST = "20260712c";
 
   function resolveLogo(value, domain, name) {
+    const domainRaw = String(domain || "").trim();
+    
+    // Always prioritize Clearbit API if we have a valid domain, as it guarantees a proper logo
+    // and avoids Wikipedia returning stores/screenshots instead of logos.
+    if (domainRaw && /^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domainRaw)) {
+      return "/api/logo?domain=" + encodeURIComponent(domainRaw) + "&size=256&mode=logo";
+    }
+
     const direct = String(value || "").trim();
     if (direct) {
       let url;
