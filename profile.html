@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -98,8 +98,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <div class="container">
             <div class="pv2-category-header">
                 <div class="pv2-category-header-top">
-                    <button class="btn pv2-category-back" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> <span id="pv2CategoryBackText">Overview</span>
+                    <button class="pv2-category-back" onclick="ProfileManager.backToProfile()" style="background: transparent; border: none; color: #ff6b00; padding: 0; font-size: 1.25rem; cursor: pointer;">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
                 </div>
                 
@@ -107,11 +107,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <p class="category-subtitle" id="pv2CategorySubtitle">Organize your favorites</p>
                 
                 <div class="pv2-category-actions">
-                    <button class="btn pv2-category-create" id="pv2CategoryCreateBtn">
-                        <i class="fas fa-plus"></i> <span class="pv2-category-create-text">Create List</span>
+                    <button class="pv2-category-create" id="pv2CategoryCreateBtn" style="background: transparent; border: none; color: #ff6b00; padding: 0; font-size: 1.25rem; cursor: pointer;">
+                        <i class="fas fa-plus"></i>
                     </button>
-                    <button class="btn pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()">
-                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i> <span id="pv2CategoryBrowseText">Browse</span>
+                    <button class="pv2-category-browse" id="pv2CategoryBrowseBtn" onclick="ProfileManager.browseCategory()" style="background: transparent; border: none; color: #ff6b00; padding: 0; font-size: 1.25rem; cursor: pointer;">
+                        <i id="pv2CategoryBrowseIcon" class="fas fa-search"></i>
                     </button>
                 </div>
             </div>
