@@ -6555,34 +6555,72 @@
                 if (!userId) return;
                 const allLists = await window.ProfileShowcase.getAllListsForType(mediaType, userId);
                 container.innerHTML = '';
-                if (!allLists || allLists.length === 0) {
-                    container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">📺 nothing here yet</div>';
-                    return;
-                }
+                
                 const isMobile = window.innerWidth <= 768;
                 let hasAddedDivider = false;
-                const hasDefault = allLists.some(l => l.is_default);
+                
+                const addDivider = () => {
+                    if (hasAddedDivider) return;
+                    const dividerContainer = document.createElement('div');
+                    dividerContainer.style.marginBottom = '24px';
+                    
+                    const headerRow = document.createElement('div');
+                    headerRow.style.display = 'flex';
+                    headerRow.style.justifyContent = 'space-between';
+                    headerRow.style.alignItems = 'center';
+                    headerRow.style.marginBottom = '8px';
+
+                    const customListsTitle = document.createElement('div');
+                    customListsTitle.innerText = 'custom lists';
+                    customListsTitle.style.color = 'var(--muted)';
+                    customListsTitle.style.fontSize = '0.85rem';
+                    customListsTitle.style.fontWeight = '600';
+                    headerRow.appendChild(customListsTitle);
+
+                    if (isViewingOwnProfile) {
+                        const addBtn = document.createElement('button');
+                        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                        addBtn.style.background = 'transparent';
+                        addBtn.style.border = 'none';
+                        addBtn.style.color = 'var(--color-accent)';
+                        addBtn.style.fontSize = '1.25rem';
+                        addBtn.style.cursor = 'pointer';
+                        addBtn.style.padding = '0';
+                        addBtn.onclick = () => {
+                            if (window.ProfileManager && window.ProfileManager.createListForType) {
+                                window.ProfileManager.createListForType(mediaType);
+                            }
+                        };
+                        headerRow.appendChild(addBtn);
+                    }
+
+                    const divider = document.createElement('div');
+                    divider.style.height = '1px';
+                    divider.style.background = 'var(--border)';
+                    divider.style.opacity = '0.5';
+
+                    dividerContainer.appendChild(headerRow);
+                    dividerContainer.appendChild(divider);
+                    container.appendChild(dividerContainer);
+                    hasAddedDivider = true;
+                };
+
+                if (!allLists || allLists.length === 0) {
+                    container.innerHTML = '<div class="rail-empty-inline" style="text-align:center; padding-bottom: 24px;">📺 nothing here yet</div>';
+                    if (isViewingOwnProfile) addDivider();
+                    return;
+                }
+                
                 for (const list of allLists) {
-                    if (hasDefault && !list.is_default && !hasAddedDivider) {
-                        const dividerContainer = document.createElement('div');
-                        dividerContainer.style.marginBottom = '24px';
-                        const customListsTitle = document.createElement('div');
-                        customListsTitle.innerText = 'custom lists';
-                        customListsTitle.style.color = 'var(--muted)';
-                        customListsTitle.style.fontSize = '0.85rem';
-                        customListsTitle.style.fontWeight = '600';
-                        customListsTitle.style.marginBottom = '8px';
-                        const divider = document.createElement('div');
-                        divider.style.height = '1px';
-                        divider.style.background = 'var(--border)';
-                        divider.style.opacity = '0.5';
-                        dividerContainer.appendChild(customListsTitle);
-                        dividerContainer.appendChild(divider);
-                        container.appendChild(dividerContainer);
-                        hasAddedDivider = true;
+                    if (!list.is_default) {
+                        addDivider();
                     }
                     const rail = await createCollectionCard(list, mediaType, isMobile, userId);
                     if (rail) container.appendChild(rail);
+                }
+                
+                if (isViewingOwnProfile && !hasAddedDivider) {
+                    addDivider();
                 }
             }
 
