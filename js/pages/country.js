@@ -956,8 +956,8 @@
 
   function ensureActionCard() {
     if (!ui.actionCard) return;
-    ui.actionCard.setAttribute("data-item-id", state.code || "");
-    ui.actionCard.setAttribute("data-media-type", "travel");
+    ui.actionCard.dataset.itemId = state.code || "";
+    ui.actionCard.dataset.mediaType = "travel";
     const titleEl = ui.actionCard.querySelector(".action-card-title");
     if (titleEl) titleEl.textContent = state.name || "Country";
     const metaEl = ui.actionCard.querySelector(".card-meta");
@@ -1154,9 +1154,9 @@
         ui.mapBtn = document.getElementById("countryMapBtn");
       }
 
+      ensureActionCard();
       renderInfoGrid();
       renderGuide();
-      ensureActionCard();
       updateSaveButton(false);
 
       renderGallery(countryGalleryCache.get(state.code) || [], state.name);
