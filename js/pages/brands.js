@@ -225,7 +225,7 @@
     return supabaseClient;
   }
 
-  const LOGO_CACHE_BUST = '20260712a';
+  const LOGO_CACHE_BUST = '20260712b';
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || '').trim();

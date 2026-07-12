@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260712a";
+  const LOGO_CACHE_BUST = "20260712b";
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || "").trim();
@@ -961,7 +961,7 @@
   async function getBrandCovers() {
     if (brandCoversCache !== null) return brandCoversCache;
     try {
-      const res = await fetch("/assets/data/brand_covers.json");
+      const res = await fetch("/assets/data/brand_covers.json?v=" + LOGO_CACHE_BUST);
       if (res.ok) {
         brandCoversCache = await res.json();
         return brandCoversCache;
