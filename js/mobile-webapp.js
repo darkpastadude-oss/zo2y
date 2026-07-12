@@ -721,7 +721,7 @@ const APP_RUNTIME_VERSION = '20260612c';
         return;
       }
       void resetZo2yCachesIfNeeded().finally(() => {
-    navigator.serviceWorker.register('/sw.js?v=20260712b').catch(() => {
+    navigator.serviceWorker.register('/sw.js?v=20260712c').catch(() => {
         // silent fail to avoid runtime noise
         });
       });
