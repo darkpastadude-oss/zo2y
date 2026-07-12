@@ -6966,62 +6966,72 @@
                         if (userId && window.ProfileShowcase) {
                             window.ProfileShowcase.getAllListsForType(mappedTab, userId).then(async allLists => {
                                 container.innerHTML = '';
+                                let hasAddedDivider = false;
+                                const addDivider = () => {
+                                    if (hasAddedDivider) return;
+                                    const dividerContainer = document.createElement('div');
+                                    dividerContainer.style.marginBottom = '24px';
+                                    
+                                    const headerRow = document.createElement('div');
+                                    headerRow.style.display = 'flex';
+                                    headerRow.style.justifyContent = 'flex-start';
+                                    headerRow.style.alignItems = 'center';
+                                    headerRow.style.gap = '8px';
+                                    headerRow.style.marginBottom = '8px';
+
+                                    const customListsTitle = document.createElement('div');
+                                    customListsTitle.innerText = 'custom lists';
+                                    customListsTitle.style.color = 'var(--muted)';
+                                    customListsTitle.style.fontSize = '0.85rem';
+                                    customListsTitle.style.fontWeight = '600';
+                                    headerRow.appendChild(customListsTitle);
+
+                                    if (isViewingOwnProfile) {
+                                        const addBtn = document.createElement('button');
+                                        addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+                                        addBtn.style.background = 'transparent';
+                                        addBtn.style.border = 'none';
+                                        addBtn.style.color = 'var(--color-accent)';
+                                        addBtn.style.fontSize = '1.1rem';
+                                        addBtn.style.cursor = 'pointer';
+                                        addBtn.style.padding = '0';
+                                        addBtn.style.display = 'flex';
+                                        addBtn.style.alignItems = 'center';
+                                        addBtn.onclick = () => {
+                                            if (window.ProfileManager && window.ProfileManager.createListForType) {
+                                                window.ProfileManager.createListForType(mappedTab);
+                                            }
+                                        };
+                                        headerRow.appendChild(addBtn);
+                                    }
+                                    
+                                    const divider = document.createElement('div');
+                                    divider.style.height = '1px';
+                                    divider.style.background = 'var(--border)';
+                                    divider.style.opacity = '0.5';
+                                    
+                                    dividerContainer.appendChild(headerRow);
+                                    dividerContainer.appendChild(divider);
+                                    container.appendChild(dividerContainer);
+                                    hasAddedDivider = true;
+                                };
+
                                 if (!allLists || allLists.length === 0) {
-                                    container.innerHTML = '<div class="rail-empty-inline" style="text-align:center;">📺 nothing here yet</div>';
+                                    container.innerHTML = '<div class="rail-empty-inline" style="text-align:center; padding-bottom: 24px;">📺 nothing here yet</div>';
+                                    if (isViewingOwnProfile) addDivider();
                                     return;
                                 }
-                                let hasAddedDivider = false;
-                                const hasDefault = allLists.some(l => l.is_default);
+                                
                                 for (const list of allLists) {
-                                    if (hasDefault && !list.is_default && !hasAddedDivider) {
-                                        const dividerContainer = document.createElement('div');
-                                        dividerContainer.style.marginBottom = '24px';
-                                        
-                                        const headerRow = document.createElement('div');
-                                        headerRow.style.display = 'flex';
-                                        headerRow.style.justifyContent = 'flex-start';
-                                        headerRow.style.alignItems = 'center';
-                                        headerRow.style.gap = '8px';
-                                        headerRow.style.marginBottom = '8px';
-
-                                        const customListsTitle = document.createElement('div');
-                                        customListsTitle.innerText = 'custom lists';
-                                        customListsTitle.style.color = 'var(--muted)';
-                                        customListsTitle.style.fontSize = '0.85rem';
-                                        customListsTitle.style.fontWeight = '600';
-                                        headerRow.appendChild(customListsTitle);
-
-                                        if (isViewingOwnProfile) {
-                                            const addBtn = document.createElement('button');
-                                            addBtn.innerHTML = '<i class="fas fa-plus"></i>';
-                                            addBtn.style.background = 'transparent';
-                                            addBtn.style.border = 'none';
-                                            addBtn.style.color = 'var(--color-accent)';
-                                            addBtn.style.fontSize = '1.1rem';
-                                            addBtn.style.cursor = 'pointer';
-                                            addBtn.style.padding = '0';
-                                            addBtn.style.display = 'flex';
-                                            addBtn.style.alignItems = 'center';
-                                            addBtn.onclick = () => {
-                                                if (window.ProfileManager && window.ProfileManager.createListForType) {
-                                                    window.ProfileManager.createListForType(mappedTab);
-                                                }
-                                            };
-                                            headerRow.appendChild(addBtn);
-                                        }
-                                        
-                                        const divider = document.createElement('div');
-                                        divider.style.height = '1px';
-                                        divider.style.background = 'var(--border)';
-                                        divider.style.opacity = '0.5';
-                                        
-                                        dividerContainer.appendChild(headerRow);
-                                        dividerContainer.appendChild(divider);
-                                        container.appendChild(dividerContainer);
-                                        hasAddedDivider = true;
+                                    if (!list.is_default) {
+                                        addDivider();
                                     }
                                     const rail = await createCollectionCard(list, mappedTab, isMobile, userId);
-                                    container.appendChild(rail);
+                                    if (rail) container.appendChild(rail);
+                                }
+                                
+                                if (isViewingOwnProfile && !hasAddedDivider) {
+                                    addDivider();
                                 }
                             }).catch(err => {
                                 console.error(err);

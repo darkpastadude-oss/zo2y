@@ -129,6 +129,9 @@
         direct.startsWith("data:")
       ) {
         url = direct;
+      } else if (direct.includes(".png") || direct.includes(".svg") || direct.includes(".jpg")) {
+        // Automatically resolve seeded Wikipedia filenames
+        url = `https://commons.wikimedia.org/wiki/Special:FilePath/${direct}?width=256`;
       } else {
         url = `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${direct}`;
       }
