@@ -5,7 +5,7 @@
   const SUPABASE_KEY = String(supabaseConfig.key || "").trim();
   const FALLBACK_BADGE = "/file.svg";
   const FALLBACK_IMAGE = "/newlogo.webp";
-  const SPORTS_COVERS_URL = "/assets/data/sports_covers.json?v=20260713a";
+  const SPORTS_COVERS_URL = "/assets/data/sports_covers.json?v=20260713h";
   let sportsCovers = null;
 
   const state = {

@@ -389,7 +389,7 @@
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
-    const HOME_SPORTS_COVERS_URL = '/assets/data/sports_covers.json?v=20260713a';
+    const HOME_SPORTS_COVERS_URL = '/assets/data/sports_covers.json?v=20260713h';
     let homeSportsCovers = null;
     let homeSportsCoversPromise = null;
     async function getHomeSportsCovers() {
