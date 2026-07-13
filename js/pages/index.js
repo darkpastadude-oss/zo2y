@@ -9575,7 +9575,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
         const categories = {};
         for (const t of curated) {
-          const cat = t.sport === 'Soccer' ? 'soccer' : t.sport === 'Basketball' ? 'basketball' : t.sport === 'Football' ? 'football' : 'other';
+          const s = (t.sport || '').toLowerCase();
+          const cat = s === 'soccer' ? 'soccer' : s === 'basketball' ? 'basketball' : s === 'football' ? 'football' : s === 'baseball' ? 'baseball' : s === 'hockey' ? 'hockey' : s === 'motorsport' ? 'motorsport' : 'other';
           if (!categories[cat]) categories[cat] = [];
           categories[cat].push(t);
         }
@@ -9598,17 +9599,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           let added = false;
           for (const cat of order) {
             const arr = categories[cat] || [];
-            const idx = round % arr.length;
-            for (let i = 0; i < arr.length; i++) {
-              const t = arr[(idx + i) % arr.length];
-              if (selected.length >= target) break;
-              const key = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-              if (used.has(key)) continue;
-              used.add(key);
-              selected.push(t);
-              added = true;
-            }
+            if (round >= arr.length) continue;
+            const t = arr[round];
             if (selected.length >= target) break;
+            const key = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (used.has(key)) continue;
+            used.add(key);
+            selected.push(t);
+            added = true;
           }
           if (!added) break;
           round++;

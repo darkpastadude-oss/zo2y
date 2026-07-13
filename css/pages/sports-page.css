@@ -54,6 +54,10 @@
   object-position: center;
   background: transparent;
   border-radius: 8px;
+  padding: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  margin: 12px;
 }
 
 .sports-search-tags {
