@@ -60,6 +60,14 @@
   margin: 12px;
 }
 
+.sports-grid .card-media.card-media--dark {
+  background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+}
+
+.sports-grid .card-media.card-media--dark img {
+  background: transparent;
+}
+
 .sports-search-tags {
   margin-top: 12px;
   display: flex;

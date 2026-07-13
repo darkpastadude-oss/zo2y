@@ -6,7 +6,7 @@
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
   const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
-  const LOGO_CACHE_BUST = '20260713f';
+  const LOGO_CACHE_BUST = '20260713g';
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
@@ -567,9 +567,11 @@
     const extra = team.sport ? team.sport.toLowerCase() : ' ';
 
     const sportIcon = getSportIcon(team.sport);
+    const isDark = /motorsport|f1/i.test(team.sport);
+    const mediaClass = isDark ? 'card-media card-media--dark' : 'card-media card-media--light';
 
     card.innerHTML = `
-      <div class="card-media card-media--light">
+      <div class="${mediaClass}">
         <img
           src="${escapeHtml(badgeUrl)}"
           data-fallback-image="${FALLBACK_BADGE}"
