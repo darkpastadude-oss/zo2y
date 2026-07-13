@@ -6,7 +6,7 @@
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
   const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
-  const LOGO_CACHE_BUST = '20260626a';
+  const LOGO_CACHE_BUST = '20260713d';
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
@@ -181,9 +181,9 @@
   ]);
 
   const SPORT_PRIORITY = {
-    'football': 1, 'soccer': 1, 'motorsport': 2, 'mma': 3, 'basketball': 4,
-    'american football': 5, 'baseball': 6, 'ice hockey': 7, 'hockey': 7,
-    'rugby': 8, 'cricket': 9, 'boxing': 10, 'kickboxing': 11, 'other': 12
+    'soccer': 1, 'football': 1, 'basketball': 2, 'american football': 3,
+    'baseball': 4, 'ice hockey': 5, 'hockey': 5, 'motorsport': 6, 'f1': 6,
+    'mma': 7, 'rugby': 8, 'cricket': 9, 'boxing': 10, 'kickboxing': 11, 'other': 12
   };
 
   const LEAGUE_ALIASES = {
@@ -533,6 +533,22 @@
     showToast._t = setTimeout(() => el.classList.remove('show'), 2800);
   }
 
+  function getSportIcon(sport) {
+    const s = normalize(sport);
+    if (s.includes('basketball')) return 'fa-basketball';
+    if (s.includes('football') || s.includes('american football')) return 'fa-football';
+    if (s.includes('baseball')) return 'fa-baseball';
+    if (s.includes('hockey') || s.includes('ice hockey')) return 'fa-hockey-puck';
+    if (s.includes('motorsport') || s.includes('f1')) return 'fa-flag-checkered';
+    if (s.includes('tennis')) return 'fa-table-tennis-paddle-ball';
+    if (s.includes('golf')) return 'fa-golf-ball-tee';
+    if (s.includes('cricket')) return 'fa-cricket-bat';
+    if (s.includes('mma') || s.includes('ufc')) return 'fa-hand-fist';
+    if (s.includes('boxing')) return 'fa-mitten';
+    if (s.includes('rugby')) return 'fa-football';
+    return 'fa-futbol';
+  }
+
   function createCard(team) {
     const badge = getBadge(team);
     const badgeUrl = badge.includes('?') ? badge : `${badge}?v=${LOGO_CACHE_BUST}`;
@@ -552,6 +568,8 @@
     const subtitle = team.league || 'Sports';
     const extra = team.sport ? team.sport.toLowerCase() : ' ';
 
+    const sportIcon = getSportIcon(team.sport);
+
     card.innerHTML = `
       <div class="card-media card-media--light">
         <img
@@ -565,7 +583,7 @@
         />
       </div>
       <div class="card-meta">
-        <span class="card-type"><i class="fa-solid fa-futbol"></i> Sports</span>
+        <span class="card-type"><i class="fa-solid ${sportIcon}"></i> ${escapeHtml(extra)}</span>
         <div class="card-meta-top">
           <p class="card-name">${escapeHtml(title)}</p>
           <div class="card-menu-wrap">
@@ -573,7 +591,6 @@
           </div>
         </div>
         <p class="card-sub">${escapeHtml(subtitle)}</p>
-        <p class="card-extra">${escapeHtml(extra)}</p>
       </div>
     `;
 

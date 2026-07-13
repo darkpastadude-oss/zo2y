@@ -49,9 +49,11 @@
   padding: 0;
 }
 
-.sports-grid .card-media img {
+.sports-grid .card-media.card-media--light img {
   object-fit: contain;
-  background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+  object-position: center;
+  background: transparent;
+  border-radius: 8px;
 }
 
 .sports-search-tags {
