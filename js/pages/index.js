@@ -6201,8 +6201,6 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (mediaTypeRaw === 'game') mediaClasses.push('game-poster');
         if (mediaTypeRaw === 'travel') mediaClasses.push('travel-photo');
         if (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') mediaClasses.push('brand-cover');
-        const brandBgUrl = (mediaTypeRaw === 'fashion' || mediaTypeRaw === 'food' || mediaTypeRaw === 'car' || mediaTypeRaw === 'sports') ? (itemData.backgroundImage || '') : '';
-        if (brandBgUrl) mediaClasses.push('brand-cover--photo');
         if (restaurantComposite) mediaClasses.push('restaurant-composite');
         if (hasVisualImage) mediaClasses.push('is-loading-media');
         if (restaurantComposite && !coverImage && !logo) return '';
@@ -6256,10 +6254,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
               <a class="card-open-link" href="${href}" ${opensExternal ? 'target="_blank" rel="noopener"' : ''} aria-label="Open item"><i class="fas fa-arrow-up-right-from-square"></i></a>
             </div>
           `;
-        const brandBgStyle = brandBgUrl && /^https?:\/\//i.test(brandBgUrl) ? ` style="--brand-bg:url(&quot;${brandBgUrl}&quot;)"` : '';
         return `
           <article class="card" data-href="${href}" data-media-type="${mediaType}" data-item-id="${itemId}" data-title="${title}" data-subtitle="${subtitle}" data-image="${image}" data-list-image="${listImage}">
-            <div class="${mediaClasses.join(' ')}"${brandBgStyle}>
+            <div class="${mediaClasses.join(' ')}">
               ${mediaHtml}
             </div>
             <div class="card-meta">

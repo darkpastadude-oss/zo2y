@@ -208,18 +208,6 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   box-sizing: border-box;
 }
-.card-media.brand-cover.brand-cover--photo {
-  background: var(--brand-bg, none) center/cover no-repeat !important;
-}
-.card-media.brand-cover.brand-cover--photo::before,
-.card-media.brand-cover.brand-cover--photo.is-loading-media::before {
-  background: transparent !important;
-}
-.card-media.brand-cover.brand-cover--photo img {
-  position: relative;
-  z-index: 1;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.18));
-}
 .card-media.card-media--light {
   background: linear-gradient(180deg, rgba(245, 247, 252, 0.98), rgba(226, 232, 244, 0.96));
 }
@@ -235,16 +223,6 @@ a { color: inherit; text-decoration: none; }
 }
 .rail.unified-rail .card-media.brand-cover img {
   background: transparent;
-}
-.rail.unified-rail .card-media.brand-cover.brand-cover--photo {
-  background: var(--brand-bg, none) center/cover no-repeat !important;
-}
-.rail.unified-rail .card-media.brand-cover.brand-cover--photo::before,
-.rail.unified-rail .card-media.brand-cover.brand-cover--photo.is-loading-media::before {
-  background: transparent !important;
-}
-.rail.unified-rail .card-media.brand-cover.brand-cover--photo img {
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.18));
 }
 
 .mini-btn { height: 32px; border-radius: 9px; border: 1px solid var(--border); background: rgba(15,39,72,0.9); color: #d7e8ff; font-size: 12px; padding: 0 10px; cursor: pointer; }
