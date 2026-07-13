@@ -754,8 +754,10 @@ export default async function handler(req, res) {
   if (section === "artists") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = clampInt(query.limit, 1, 50, 20);
-    const artists = await fetchHomeArtists(limit);
-    return res.json({ count: artists.length, results: artists.slice(0, limit), source: "multi" });
+    const offset = clampInt(query.offset, 0, 500, 0);
+    const artists = await fetchHomeArtists(Math.min(offset + limit + 10, 200));
+    const sliced = artists.slice(offset, offset + limit);
+    return res.json({ count: artists.length, offset, limit, results: sliced, hasMore: offset + limit < artists.length, source: "multi" });
   }
 
   if (section === "search") {

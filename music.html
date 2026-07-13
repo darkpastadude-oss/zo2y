@@ -316,7 +316,7 @@
 
     let loadAbort = null;
 
-    async function loadTracks(queryOverride = '') {
+    async function loadTracks(queryOverride = '', append = false) {
       if (loadAbort) loadAbort.abort();
       const abort = new AbortController();
       loadAbort = abort;
@@ -324,23 +324,26 @@
       const query = String(queryOverride || state.currentQuery || '').trim();
       const q = encodeURIComponent(query);
       let artistRows = [];
+      let totalCount = 0;
+      let apiHasMore = false;
 
       try {
         if (query) {
-          const res = await fetch(`/api/music/search?q=${q}&limit=36`, { signal: abort.signal });
+          const res = await fetch(`/api/music/search?q=${q}&limit=50`, { signal: abort.signal });
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
             artistRows = Array.isArray(json.results) ? json.results : [];
           }
         } else {
-          const params = new URLSearchParams({ limit: '50' });
+          const params = new URLSearchParams({ limit: '50', offset: String(state.offset) });
           const res = await fetch(`/api/music/artists?${params}`, { signal: abort.signal });
-          
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
             artistRows = Array.isArray(json.results) ? json.results : [];
+            totalCount = json.count || 0;
+            apiHasMore = !!json.hasMore;
           }
         }
       } catch (_err) {
@@ -350,7 +353,7 @@
       const mappedArtists = mapArtistRowsToItems(artistRows);
       const mergedLive = dedupeArtists(mappedArtists);
 
-      if (!mergedLive.length) {
+      if (!mergedLive.length && !append) {
         state.tracks = [];
         state.allTracks = [];
         state.offset = 0;
@@ -358,12 +361,16 @@
         return;
       }
 
-      state.allTracks = mergedLive;
-      state.offset = 0;
-      state.hasMore = true;
-      state.tracks = state.allTracks.slice(0, MUSIC_PAGE_SIZE);
-      state.offset = state.tracks.length;
-      if (state.offset >= state.allTracks.length) state.hasMore = false;
+      if (append) {
+        state.allTracks = state.allTracks.concat(mergedLive);
+        state.offset = state.allTracks.length;
+      } else {
+        state.allTracks = mergedLive;
+        state.offset = mergedLive.length;
+        state.tracks = [];
+        _musicLastRendered = 0;
+      }
+      state.hasMore = query ? (state.offset < 36 * 4) : apiHasMore;
     }
 
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
@@ -419,17 +426,20 @@
         for (const entry of entries) {
           if (entry.isIntersecting && !state.loading && state.hasMore) {
             state.loading = true;
-            const nextBatch = state.allTracks.slice(state.offset, state.offset + MUSIC_PAGE_SIZE);
-            if (nextBatch.length === 0) {
-              state.hasMore = false;
+            const prevOffset = state.offset;
+            loadTracks('', true).then(() => {
+              const newItems = state.allTracks.slice(prevOffset);
+              if (newItems.length === 0) {
+                state.hasMore = false;
+                state.loading = false;
+                return;
+              }
+              state.tracks = state.tracks.concat(newItems);
               state.loading = false;
-              return;
-            }
-            state.tracks = state.tracks.concat(nextBatch);
-            state.offset += nextBatch.length;
-            if (state.offset >= state.allTracks.length) state.hasMore = false;
-            state.loading = false;
-            renderGrid(true);
+              renderGrid(true);
+            }).catch(() => {
+              state.loading = false;
+            });
           }
         }
       }, { rootMargin: '400px' });
@@ -496,6 +506,9 @@
         await initAuthUi();
         await loadTracks(state.currentQuery);
         applyClientSort();
+        state.tracks = state.allTracks.slice(0, MUSIC_PAGE_SIZE);
+        _musicLastRendered = 0;
+        if (state.tracks.length >= state.allTracks.length) state.hasMore = false;
         renderGrid();
       } catch (_err) {
         const grid = document.getElementById('musicGrid');
@@ -505,13 +518,15 @@
 
     function applyClientSort() {
       if (state.sort === 'name') {
-        state.tracks.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        state.allTracks.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
       } else if (state.sort === 'released') {
-        state.tracks.sort((a, b) => {
+        state.allTracks.sort((a, b) => {
           const da = String(a.release_date || '').trim() || '0';
           const db = String(b.release_date || '').trim() || '0';
           return db.localeCompare(da);
         });
+      } else {
+        state.allTracks.sort((a, b) => (Number(b.popularity) || 0) - (Number(a.popularity) || 0));
       }
     }
 
