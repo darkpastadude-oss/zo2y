@@ -6,7 +6,7 @@
   const FALLBACK_BADGE = '/file.svg';
   const LOCAL_MANIFEST_URL = '/assets/sports-badges/local-manifest.json';
   const LOGO_MAPPING_URL = '/assets/logos/logo-mapping.json';
-  const LOGO_CACHE_BUST = '20260713e';
+  const LOGO_CACHE_BUST = '20260713f';
 
   const BADGE_OVERRIDES = {
     'atletico madrid': '/assets/logos/football/spanish-la-liga/atleticomadrid.png',
@@ -464,44 +464,17 @@
     const nameNorm = normalize(team.name);
     const sportNorm = normalize(team.sport);
     let score = 0;
-    if (POPULAR_TEAMS.has(nameNorm)) score += 2000;
-    const sportPrio = SPORT_PRIORITY[sportNorm] || 12;
-    score += (13 - sportPrio) * 100;
+    if (POPULAR_TEAMS.has(nameNorm)) score += 1000;
     return score;
   }
 
   function sortTeams(teams) {
-    const groups = {};
-    for (const t of teams) {
-      const cat = normalize(t.sport) || 'other';
-      if (!groups[cat]) groups[cat] = [];
-      groups[cat].push(t);
-    }
-    for (const cat of Object.keys(groups)) {
-      groups[cat].sort((a, b) => scoreTeam(b) - scoreTeam(a) || a.name.localeCompare(b.name));
-    }
-    const order = ['soccer', 'football', 'basketball', 'american football', 'baseball', 'hockey', 'ice hockey', 'motorsport', 'f1'];
-    const used = new Set();
-    const result = [];
-    let round = 0;
-    const catKeys = [...order.filter(k => groups[k]), ...Object.keys(groups).filter(k => !order.includes(k))];
-    while (round < 500) {
-      let added = false;
-      for (const cat of catKeys) {
-        const arr = groups[cat] || [];
-        if (round >= arr.length) continue;
-        const t = arr[round];
-        const key = normalize(t.name) + '|' + normalize(t.league);
-        if (!used.has(key)) {
-          used.add(key);
-          result.push(t);
-          added = true;
-        }
-      }
-      if (!added) break;
-      round++;
-    }
-    return result;
+    return [...teams].sort((a, b) => {
+      const scoreA = scoreTeam(a);
+      const scoreB = scoreTeam(b);
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return a.name.localeCompare(b.name);
+    });
   }
 
   async function toggleFavorite(team) {

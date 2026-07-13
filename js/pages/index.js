@@ -9573,44 +9573,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           } catch (_) {}
         }
 
-        const categories = {};
-        for (const t of curated) {
-          const s = (t.sport || '').toLowerCase();
-          const cat = s === 'soccer' ? 'soccer' : s === 'basketball' ? 'basketball' : s === 'football' ? 'football' : s === 'baseball' ? 'baseball' : s === 'hockey' ? 'hockey' : s === 'motorsport' ? 'motorsport' : 'other';
-          if (!categories[cat]) categories[cat] = [];
-          categories[cat].push(t);
-        }
-
-        const keys = Object.keys(categories);
-        for (const cat of keys) {
-          const arr = categories[cat];
-          for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-          }
-        }
-
-        const order = ['soccer', 'basketball', 'football', 'baseball', 'hockey', 'motorsport'];
-        const selected = [];
-        const used = new Set();
-
-        let round = 0;
-        while (selected.length < target) {
-          let added = false;
-          for (const cat of order) {
-            const arr = categories[cat] || [];
-            if (round >= arr.length) continue;
-            const t = arr[round];
-            if (selected.length >= target) break;
-            const key = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-            if (used.has(key)) continue;
-            used.add(key);
-            selected.push(t);
-            added = true;
-          }
-          if (!added) break;
-          round++;
-        }
+        const selected = curated.slice(0, target);
 
         return selected.map((t, index) => {
           const sport = t.sport || '';
