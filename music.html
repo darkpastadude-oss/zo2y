@@ -16,12 +16,12 @@
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/providers/index.js?v=20260709L" defer></script>
-  <script src="js/list-utils.js?v=20260711b"></script>
-  <script src="js/skeleton.js"></script>
+  <script src="js/list-utils.js?v=20260711b" defer></script>
+  <script src="js/skeleton.js" defer></script>
   <script src="js/components/navigation.js?v=20260710c" defer></script>
 
-<script src="js/normalizers.js?v=20260709L"></script>
-<script src="js/unified-media-hero.js?v=20260711b"></script>
+<script src="js/normalizers.js?v=20260709L" defer></script>
+<script src="js/unified-media-hero.js?v=20260711b" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"></noscript>
   <link rel="stylesheet" href="css/animations.css?v=1751700000z">
@@ -324,25 +324,23 @@
       const query = String(queryOverride || state.currentQuery || '').trim();
       const q = encodeURIComponent(query);
       let artistRows = [];
-      let totalCount = 0;
       let apiHasMore = false;
 
       try {
         if (query) {
-          const res = await fetch(`/api/music/search?q=${q}&limit=50`, { signal: abort.signal });
+          const res = await fetch(`/api/music/search?q=${q}&limit=${MUSIC_PAGE_SIZE * 2}`, { signal: abort.signal });
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
             artistRows = Array.isArray(json.results) ? json.results : [];
           }
         } else {
-          const params = new URLSearchParams({ limit: '50', offset: String(state.offset) });
+          const params = new URLSearchParams({ limit: String(MUSIC_PAGE_SIZE * 3), offset: String(state.offset) });
           const res = await fetch(`/api/music/artists?${params}`, { signal: abort.signal });
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
             artistRows = Array.isArray(json.results) ? json.results : [];
-            totalCount = json.count || 0;
             apiHasMore = !!json.hasMore;
           }
         }
@@ -362,7 +360,7 @@
       }
 
       if (append) {
-        state.allTracks = state.allTracks.concat(mergedLive);
+        state.allTracks = dedupeArtists(state.allTracks.concat(mergedLive));
         state.offset = state.allTracks.length;
       } else {
         state.allTracks = mergedLive;
@@ -370,7 +368,11 @@
         state.tracks = [];
         _musicLastRendered = 0;
       }
-      state.hasMore = query ? (state.offset < 36 * 4) : apiHasMore;
+      if (query) {
+        state.hasMore = state.offset < 36 * 4;
+      } else {
+        state.hasMore = apiHasMore;
+      }
     }
 
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
@@ -426,23 +428,16 @@
         for (const entry of entries) {
           if (entry.isIntersecting && !state.loading && state.hasMore) {
             state.loading = true;
-            const prevOffset = state.offset;
             loadTracks('', true).then(() => {
-              const newItems = state.allTracks.slice(prevOffset);
-              if (newItems.length === 0) {
-                state.hasMore = false;
-                state.loading = false;
-                return;
-              }
-              state.tracks = state.tracks.concat(newItems);
+              state.tracks = state.allTracks.slice(0, state.tracks.length + MUSIC_PAGE_SIZE);
               state.loading = false;
-              renderGrid(true);
+              renderGrid();
             }).catch(() => {
               state.loading = false;
             });
           }
         }
-      }, { rootMargin: '400px' });
+      }, { rootMargin: '600px' });
       observer.observe(sentinel);
     }
 
@@ -504,11 +499,12 @@
         const grid = document.getElementById('musicGrid');
         if (grid && typeof Skel !== 'undefined') grid.innerHTML = Skel.grid(MUSIC_PAGE_SIZE || 24, 4);
         await initAuthUi();
+        state.offset = 0;
+        state.hasMore = true;
         await loadTracks(state.currentQuery);
         applyClientSort();
         state.tracks = state.allTracks.slice(0, MUSIC_PAGE_SIZE);
         _musicLastRendered = 0;
-        if (state.tracks.length >= state.allTracks.length) state.hasMore = false;
         renderGrid();
       } catch (_err) {
         const grid = document.getElementById('musicGrid');

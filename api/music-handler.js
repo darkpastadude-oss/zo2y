@@ -362,7 +362,7 @@ async function getArtistsFromRss(limit = 20) {
 async function fetchHomeArtists(targetCount = 12) {
   const cacheKey = "home_artists";
   const cached = ARTIST_CACHE.get(cacheKey);
-  if (cached && (Date.now() - cached.ts) < ARTIST_CACHE_TTL) return cached.items;
+  if (cached && (Date.now() - cached.ts) < ARTIST_CACHE_TTL && cached.items.length >= targetCount) return cached.items;
 
   let artists = [];
   const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
@@ -377,7 +377,7 @@ async function fetchHomeArtists(targetCount = 12) {
 
   if (artists.length < targetCount) {
     try {
-      const extraIds = shuffle(POPULAR_ARTIST_IDS).slice(0, Math.min(targetCount, 50));
+      const extraIds = shuffle(POPULAR_ARTIST_IDS).filter(id => !artists.find(a => a.id === id)).slice(0, Math.min(targetCount, 50));
       const extraArtists = await spotifyGetArtistsByIds(extraIds);
       for (const a of extraArtists) {
         if (!artists.find(x => x.id === a.id)) artists.push(a);
@@ -387,7 +387,7 @@ async function fetchHomeArtists(targetCount = 12) {
 
   if (artists.length < targetCount) {
     try {
-      const rssArtists = await getArtistsFromRss(30);
+      const rssArtists = await getArtistsFromRss(Math.max(targetCount, 40));
       const rssOnly = rssArtists.filter(r => !artists.find(a => a.title.toLowerCase() === r.title.toLowerCase()));
       if (rssOnly.length) {
         const names = [...new Set(rssOnly.map(a => a.title))];

@@ -142,7 +142,7 @@ a { color: inherit; text-decoration: none; }
 .card {
   border: 1px solid var(--border);
   border-radius: 14px; overflow: hidden; background: var(--card-2);
-  min-height: 232px; display: flex; flex-direction: column; position: relative;
+  min-height: 200px; display: flex; flex-direction: column; position: relative;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 .card:hover {
@@ -175,10 +175,10 @@ a { color: inherit; text-decoration: none; }
 
 .card-meta-top { order: 1; display: flex; align-items: flex-start; gap: 6px; margin-bottom: 2px; }
 
-.card-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px; margin-bottom: 0; }
-.card-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px; margin-bottom: 0; }
-.card-sub { order: 3; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 17px; }
-.card-extra { order: 4; margin-top: 4px; color: #a9b9da; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 32px; }
+.card-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0; }
+.card-title { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0; }
+.card-sub { order: 3; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-extra { order: 4; margin-top: 4px; color: #a9b9da; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-extra.placeholder { visibility: hidden; }
 
 .card-actions { position: absolute; top: 9px; right: 9px; z-index: 2; display: flex; gap: 0; margin-top: 0; }
