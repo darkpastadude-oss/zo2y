@@ -94,7 +94,7 @@
         title: (game.name || "Unknown Game").replace(/\s*\(video game\)/i, ""),
         posterUrl: game.cover || "/images/fallback/game.svg",
         posterFit: "contain",
-        backdropUrl: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80",
+        backdropUrl: game.hero || game.background_image || game.cover || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80",
         description: game.description || "Explore more details about this game.",
         metadata: [],
         actions: [

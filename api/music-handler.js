@@ -215,8 +215,8 @@ function normalizeSpotifyArtist(artist) {
   };
 }
 
-async function spotifySearchArtists(query, limit = 50) {
-  const data = await spotifyFetch("search", { q: query, type: "artist", limit: String(limit) });
+async function spotifySearchArtists(query, limit = 50, offset = 0) {
+  const data = await spotifyFetch("search", { q: query, type: "artist", limit: String(limit), offset: String(offset) });
   if (!data || !data.artists) return [];
   return (data.artists.items || []).map(normalizeSpotifyArtist).filter(Boolean);
 }
@@ -309,11 +309,11 @@ async function deezerSearchArtists(names) {
   return results;
 }
 
-async function deezerSearchArtistsByQuery(query, limit = 10) {
+async function deezerSearchArtistsByQuery(query, limit = 10, offset = 0) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 6000);
-    const res = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=${limit}`, {
+    const res = await fetch(`https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=${limit}&index=${offset}`, {
       signal: controller.signal,
       headers: { "User-Agent": "Mozilla/5.0" }
     });
@@ -753,11 +753,40 @@ export default async function handler(req, res) {
 
   if (section === "artists") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const limit = clampInt(query.limit, 1, 50, 20);
-    const offset = clampInt(query.offset, 0, 500, 0);
-    const artists = await fetchHomeArtists(Math.min(offset + limit + 10, 200));
-    const sliced = artists.slice(offset, offset + limit);
-    return res.json({ count: artists.length, offset, limit, results: sliced, hasMore: offset + limit < artists.length, source: "multi" });
+    const limit = clampInt(query.limit, 1, 50, 24);
+    const offset = clampInt(query.offset, 0, 1000, 0);
+
+    let artists = [];
+    const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
+
+    if (spotifyWorks) {
+      try {
+        const queryStr = 'genre:"pop" OR genre:"rap" OR genre:"hip hop" OR genre:"latin" OR genre:"rock" OR genre:"r&b"';
+        const spotifyArtists = await spotifySearchArtists(queryStr, limit, offset);
+        artists.push(...spotifyArtists);
+      } catch (e) {}
+    }
+
+    if (!artists.length) {
+      try {
+        const dzRes = await fetch(`https://api.deezer.com/chart/0/artists?limit=${limit}`);
+        const dzJson = await dzRes.json();
+        artists.push(...(dzJson.data || []).map(a => ({
+          id: String(a.id),
+          mediaType: "artist",
+          title: String(a.name),
+          subtitle: "Music",
+          image: String(a.picture_xl || a.picture_big),
+          popularity: 0,
+          provider: "deezer"
+        })));
+      } catch (e) {}
+    }
+
+    artists = dedupeById(artists);
+    artists.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+
+    return res.json({ count: artists.length, offset, limit, results: artists, hasMore: artists.length === limit, source: "multi" });
   }
 
   if (section === "search") {
@@ -765,13 +794,14 @@ export default async function handler(req, res) {
     const q = String(query.q || "").trim().slice(0, 200);
     if (!q) return res.status(400).json({ message: "Missing q parameter" });
     const limit = clampInt(query.limit, 1, 50, 20);
+    const offset = clampInt(query.offset, 0, 1000, 0);
 
     let artists = [];
 
     const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
     if (spotifyWorks) {
       try {
-        artists = await spotifySearchArtists(q, limit);
+        artists = await spotifySearchArtists(q, limit, offset);
       } catch (_) {}
     }
 
@@ -795,12 +825,12 @@ export default async function handler(req, res) {
 
     if (!artists.length) {
       try {
-        artists = await deezerSearchArtistsByQuery(q, limit);
+        artists = await deezerSearchArtistsByQuery(q, limit, offset);
       } catch (_) {}
     }
 
     artists = dedupeById(artists);
-    return res.json({ count: artists.length, limit, offset: 0, results: artists.slice(0, limit) });
+    return res.json({ count: artists.length, limit, offset, results: artists });
   }
 
   setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });

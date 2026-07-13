@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -328,11 +328,12 @@
 
       try {
         if (query) {
-          const res = await fetch(`/api/music/search?q=${q}&limit=${MUSIC_PAGE_SIZE * 2}`, { signal: abort.signal });
+          const res = await fetch(`/api/music/search?q=${q}&limit=${MUSIC_PAGE_SIZE * 2}&offset=${state.offset}`, { signal: abort.signal });
           if (abort.signal.aborted) return;
           if (res?.ok) {
             const json = await res.json();
             artistRows = Array.isArray(json.results) ? json.results : [];
+            apiHasMore = !!json.hasMore;
           }
         } else {
           const params = new URLSearchParams({ limit: String(MUSIC_PAGE_SIZE * 3), offset: String(state.offset) });
@@ -368,11 +369,7 @@
         state.tracks = [];
         _musicLastRendered = 0;
       }
-      if (query) {
-        state.hasMore = state.offset < 36 * 4;
-      } else {
-        state.hasMore = apiHasMore;
-      }
+      state.hasMore = apiHasMore;
     }
 
     function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
@@ -431,7 +428,7 @@
             loadTracks('', true).then(() => {
               state.tracks = state.allTracks.slice(0, state.tracks.length + MUSIC_PAGE_SIZE);
               state.loading = false;
-              renderGrid();
+              renderGrid(true);
             }).catch(() => {
               state.loading = false;
             });
