@@ -413,7 +413,7 @@
     if (brandBackgroundManifest) return brandBackgroundManifest;
     if (brandBackgroundManifestPromise) return brandBackgroundManifestPromise;
     // Load the auto-generated pexels covers mapping instead of the old broken manifest
-    const manifestUrl = `/assets/data/brand_covers.json?v=20260712f`;
+    const manifestUrl = `/assets/data/brand_covers.json?v=20260713a`;
     brandBackgroundManifestPromise = fetch(manifestUrl, { headers: { Accept: 'application/json' } })
       .then((response) => response.ok ? response.json() : null)
       .then((payload) => {

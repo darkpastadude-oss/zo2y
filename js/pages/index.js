@@ -389,6 +389,22 @@
     const HOME_SPORTS_ITEMS_CACHE_KEY = 'zo2y_home_sports_items_v6';
     const HOME_SPORTS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_SPORTS_ASSET_MANIFEST_URL = `${SUPABASE_URL}/storage/v1/object/public/sports-assets/manifest/sports-assets.json`;
+    const HOME_SPORTS_COVERS_URL = '/assets/data/sports_covers.json?v=20260713a';
+    let homeSportsCovers = null;
+    let homeSportsCoversPromise = null;
+    async function getHomeSportsCovers() {
+      if (homeSportsCovers) return homeSportsCovers;
+      if (homeSportsCoversPromise) return homeSportsCoversPromise;
+      homeSportsCoversPromise = (async () => {
+        try {
+          const res = await fetch(HOME_SPORTS_COVERS_URL, { signal: AbortSignal.timeout(3000) });
+          if (!res.ok) return null;
+          homeSportsCovers = await res.json();
+          return homeSportsCovers;
+        } catch { return null; } finally { homeSportsCoversPromise = null; }
+      })();
+      return homeSportsCoversPromise;
+    }
     const HOME_PRECOMPUTED_FETCH_TIMEOUT_MS = 600;
     const HOME_HTTP_CACHE_TTL_MS = 1000 * 60 * 5;
     const HOME_PRECOMPUTE_TABLE = 'home_spotlight_cache';
@@ -1926,7 +1942,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       };
     }
 
-      function mapHomeSportsItem(row, fallbackIndex = 0) {
+      function mapHomeSportsItem(row, fallbackIndex = 0, covers) {
       const title = String(row?.name || '').trim() || 'Team';
       const sport = String(row?.sport || '').trim();
       const league = String(row?.league || '').trim();
@@ -1937,6 +1953,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const href = `team.html?id=${encodeURIComponent(itemId)}&team=${encodeURIComponent(title)}`;
       const sportsFallback = '/images/fallback/sports.svg';
       const image = logo || sportsFallback;
+      const stadiumBg = covers?.[title] || '';
       return {
         mediaType: 'sports',
         itemId,
@@ -1945,8 +1962,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         extra,
         image,
         listImage: image,
-        backgroundImage: image,
-        spotlightImage: image,
+        backgroundImage: stadiumBg || image,
+        spotlightImage: stadiumBg || image,
         spotlightMediaImage: image,
         spotlightMediaFit: 'contain',
         spotlightMediaShape: 'square',
@@ -9622,6 +9639,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const client = await ensureHomeSupabase();
         const target = Math.max(4, Math.min(16, Number(getHomeChannelTargetItems() || HOME_CHANNEL_TARGET_ITEMS)));
         const curated = getHomeCuratedTeams();
+        const covers = await getHomeSportsCovers();
 
         const logoLookup = {};
         if (client) {
@@ -9701,7 +9719,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const normalizedName = t.name.toLowerCase().replace(/[^a-z0-9]/g, '');
           const logoUrl = logoLookup[normalizedName] || t.local || '';
           return {
-            ...mapHomeSportsItem({ name: t.name, sport, league, logo: logoUrl || '' }, index),
+            ...mapHomeSportsItem({ name: t.name, sport, league, logo: logoUrl || '' }, index, covers),
             subtitle: league || sport || 'Sports',
             extra: sport || ''
           };

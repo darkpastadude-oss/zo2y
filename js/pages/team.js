@@ -5,6 +5,8 @@
   const SUPABASE_KEY = String(supabaseConfig.key || "").trim();
   const FALLBACK_BADGE = "/file.svg";
   const FALLBACK_IMAGE = "/newlogo.webp";
+  const SPORTS_COVERS_URL = "/assets/data/sports_covers.json?v=20260713a";
+  let sportsCovers = null;
 
   const state = {
     supabase: null,
@@ -509,7 +511,9 @@
     };
 
     const teamKey = (team.name || "").toLowerCase().trim();
+    const pexelsStadium = sportsCovers?.[team.name] || '';
     const backdrop =
+      pexelsStadium ||
       (STADIUM_OVERRIDES[teamKey] || null) ||
       (isImageUrl(team.stadiumThumb) ? team.stadiumThumb : null) ||
       (isImageUrl(team.stadiumArt) ? team.stadiumArt : null) ||
@@ -1146,6 +1150,7 @@
     if (ui.body) ui.body.dataset.elevatedCategory = "team";
     await ensureSupabase();
     await initAuth();
+    sportsCovers = await fetch(SPORTS_COVERS_URL).then(r => r.ok ? r.json() : null).catch(() => null);
     await loadTeam();
   }
 

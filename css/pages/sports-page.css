@@ -34,8 +34,24 @@
 .sports-grid {
   margin-top: 22px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 180px));
+  grid-template-columns: repeat(auto-fill, 156px);
   gap: 16px;
+}
+
+.sports-grid .card {
+  height: 332px;
+  min-height: 332px;
+}
+
+.sports-grid .card-media {
+  aspect-ratio: 2/3;
+  height: 216px;
+  padding: 0;
+}
+
+.sports-grid .card-media img {
+  object-fit: contain;
+  background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
 }
 
 .sports-search-tags {
@@ -146,6 +162,16 @@
   .sports-grid {
     grid-template-columns: repeat(3, 1fr) !important;
     gap: 8px !important;
+  }
+
+  .sports-grid .card {
+    height: auto;
+    min-height: auto;
+  }
+
+  .sports-grid .card-media {
+    aspect-ratio: 2/3;
+    height: auto;
   }
 
   .sports-search-tags {
