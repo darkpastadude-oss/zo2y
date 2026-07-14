@@ -529,7 +529,14 @@
           e.preventDefault();
           const idx = Number(btn.getAttribute('data-index'));
           const item = suggestions[idx];
-          if (item?.href) window.location.href = item.href;
+          if (!item?.href) return;
+          // Enforce book results always go to book.html, never to openlibrary.org
+          if (item.type === 'Books' && /openlibrary\.org/i.test(item.href)) {
+            const bookId = new URL(item.href, window.location.origin).searchParams.get('id');
+            window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
+            return;
+          }
+          window.location.href = item.href;
         });
       });
       position();
@@ -590,7 +597,14 @@
       } else if (e.key === 'Enter' && activeIndex >= 0) {
         e.preventDefault();
         const item = suggestions[activeIndex];
-        if (item?.href) window.location.href = item.href;
+        if (!item?.href) return;
+        // Enforce book results always go to book.html, never to openlibrary.org
+        if (item.type === 'Books' && /openlibrary\.org/i.test(item.href)) {
+          const bookId = new URL(item.href, window.location.origin).searchParams.get('id');
+          window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
+          return;
+        }
+        window.location.href = item.href;
       }
     });
 

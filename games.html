@@ -26,7 +26,7 @@
   <style>:root{--color-bg-primary:#0b1633;--color-bg-secondary:#111827;--color-bg-tertiary:#132347;--color-bg-elevated:#172b58;--color-text-primary:#fff;--color-text-secondary:#8ca3c7;--color-accent:#f59e0b;--color-accent-hover:#ffb84d;--color-border:rgba(255,255,255,0.12);--color-border-hover:rgba(255,255,255,0.18);--color-success:#10b981;--gradient:linear-gradient(135deg,#f59e0b 0%,#ffb84d 100%);--surface:rgba(12,26,57,0.84);--shadow:0 10px 25px rgba(0,0,0,0.2);--desktop-sidebar-expanded:280px;--desktop-sidebar-collapsed:72px;--desktop-shell-gap:24px;--bg:var(--color-bg-primary);--bg-2:var(--color-bg-secondary);--card:var(--color-bg-tertiary);--card-2:var(--color-bg-elevated);--white:var(--color-text-primary);--muted:var(--color-text-secondary);--accent:var(--color-accent);--accent-strong:var(--color-accent-hover);--border:var(--color-border);--ok:var(--color-success)}*{box-sizing:border-box;margin:0;padding:0}html,body{min-height:100%;direction:ltr;background:var(--bg);color:var(--white);font-family:Inter,system-ui,-apple-system,sans-serif;overflow-x:hidden}body{margin:0;padding:0;overflow-y:scroll;padding-bottom:18px}</style>
 <link rel="stylesheet" href="/css/pages/category-shared.css?v=20260630d" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/category-shared.css?v=20260630d"></noscript>
-<noscript><link rel="stylesheet" href="/css/pages/index.css?v=1751700000z"></noscript>
+<noscript><link rel="stylesheet" href="/css/pages/index.css?v=20260714a"></noscript>
   
   <link rel="stylesheet" href="/css/shared-header.css?v=20260624a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/shared-header.css?v=20260624a"></noscript>
@@ -735,6 +735,50 @@
 
       <div class="section-head">
 
+        <h2>new releases</h2>
+
+        <p>Fresh games from this year.</p>
+
+      </div>
+
+      <div class="grid" id="newReleasesGrid"></div>
+      <script>
+        (function() {
+          var g = document.getElementById('newReleasesGrid');
+          if (g && !g.children.length) {
+            g.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(12, 4) : '';
+          }
+        })();
+      </script>
+
+    </section>
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <h2>trending now</h2>
+
+        <p>Popular games gaining traction this week.</p>
+
+      </div>
+
+      <div class="grid" id="trendingGrid"></div>
+      <script>
+        (function() {
+          var g = document.getElementById('trendingGrid');
+          if (g && !g.children.length) {
+            g.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(12, 4) : '';
+          }
+        })();
+      </script>
+
+    </section>
+
+    <section class="section">
+
+      <div class="section-head">
+
         <h2>popular games right now</h2>
 
         <p>Trending games across all platforms.</p>
@@ -760,8 +804,8 @@
 
 
 
-  <script src="js/cover-cache.js?v=20260709i" defer></script>
-    <script src="js/pages/games-shared.js?v=20260709i" defer></script>
+  <script src="js/cover-cache.js?v=20260714d" defer></script>
+    <script src="js/pages/games-shared.js?v=20260714c" defer></script>
 
   <script>
 
@@ -784,6 +828,31 @@
     // Cache for fetched cover URLs to avoid repeated API calls
 
     const coverCache = new Map();
+
+    // Cache for IGDB browse results to avoid repeated API calls
+    const IGDB_BROWSE_CACHE_PREFIX = 'zo2y_igdb_browse_v1:';
+    const IGDB_BROWSE_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
+
+    function readIgdbBrowseCache(query) {
+      try {
+        const key = IGDB_BROWSE_CACHE_PREFIX + String(query || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Date.now() - (parsed?.t || 0) > IGDB_BROWSE_CACHE_TTL) {
+          localStorage.removeItem(key);
+          return null;
+        }
+        return parsed?.data || null;
+      } catch (_) { return null; }
+    }
+
+    function writeIgdbBrowseCache(query, data) {
+      try {
+        const key = IGDB_BROWSE_CACHE_PREFIX + String(query || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        localStorage.setItem(key, JSON.stringify({ t: Date.now(), data }));
+      } catch (_) {}
+    }
 
 
 
@@ -969,6 +1038,13 @@
 
     }
 
+    function normalizeGameCoverUrl(value) {
+      const raw = String(value || '').trim();
+      if (!raw || raw === '[object Object]') return '';
+      if (raw.startsWith('//')) return `https:${raw}`;
+      return toHttpsUrl(raw);
+    }
+
 
 
     async function initGameFilters() {
@@ -1120,6 +1196,50 @@
           const { data, error } = await dbQuery;
           if (error) throw error;
           games = data || [];
+
+          // Supplement from IGDB/Wikipedia for games not in Supabase
+          if (!state.genre && !state.platform) {
+            try {
+              const cacheKey = 'browse_all_v2';
+              let igdbGames = readIgdbBrowseCache(cacheKey);
+
+              if (!igdbGames) {
+                const igdbUrl = new URL('/api/igdb/games', window.location.origin);
+                igdbUrl.searchParams.set('page', '1');
+                igdbUrl.searchParams.set('page_size', '40');
+                igdbUrl.searchParams.set('min_rating_count', '50');
+                igdbUrl.searchParams.set('rev', 'wiki20260714a');
+                const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
+                if (igdbRes.ok) {
+                  const igdbData = await igdbRes.json();
+                  igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
+                  writeIgdbBrowseCache(cacheKey, igdbGames);
+                } else {
+                  igdbGames = [];
+                }
+              }
+
+              const existingTitles = new Set(games.map(g => String(g.title || '').toLowerCase()));
+              const igdbNew = [];
+              for (const row of igdbGames) {
+                const title = String(row.title || row.name || '').trim();
+                if (!title || existingTitles.has(title.toLowerCase())) continue;
+                existingTitles.add(title.toLowerCase());
+                igdbNew.push({
+                  id: row.id || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+                  title: title,
+                  description: row.description || row.summary || '',
+                  cover_url: row.cover || row.image || '',
+                  release_date: row.firstReleaseDate || row.released || '',
+                  rating: row.rating || 0,
+                  rating_count: 10000,
+                  extra: row.extra || { genres: row.genres || [], platforms: row.platforms || [] },
+                  source: 'wikipedia'
+                });
+              }
+              games = igdbNew.concat(games);
+            } catch (_igdbErr) { /* continue with Supabase data */ }
+          }
         }
       } catch (_err) {
         console.error('Failed to load games', _err);
@@ -1142,16 +1262,18 @@
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
-      // Sort: local covers first, then shuffle front pool
+      // Sort: trending (IGDB/Wikipedia) first, then local covers, then no-cover
       const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
 
       if (!query) {
         const withCover = mapped.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
-        const localCovers = withCover.filter((g) => isLocalCover(g.cover));
-        const otherCovers = withCover.filter((g) => !isLocalCover(g.cover));
+        const trending = withCover.filter((g) => g.source === 'wikipedia' || g.source === 'igdb');
+        const localCovers = withCover.filter((g) => isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb');
+        const otherCovers = withCover.filter((g) => !isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb');
         const noCover = mapped.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
 
         mapped = [
+          ...shuffleArray(trending),
           ...shuffleArray(localCovers),
           ...shuffleArray(otherCovers),
           ...noCover
@@ -1312,6 +1434,45 @@
       }
 
       
+
+      // Try covers array from extra
+
+      const coversArr = row?.extra?.covers;
+
+      if (Array.isArray(coversArr)) {
+        for (const c of coversArr) {
+          const url = String(c || '').trim();
+          if (url && url !== '[object Object]') {
+            return toHttpsUrl(url.startsWith('//') ? `https:${url}` : url);
+          }
+        }
+      }
+
+      // Try official_covers array
+
+      const officialCovers = row?.extra?.official_covers;
+
+      if (Array.isArray(officialCovers)) {
+        for (const c of officialCovers) {
+          const url = String(c || '').trim();
+          if (url && url !== '[object Object]') {
+            return toHttpsUrl(url.startsWith('//') ? `https:${url}` : url);
+          }
+        }
+      }
+
+      // Try cover_candidates array
+
+      const candidates = row?.extra?.cover_candidates;
+
+      if (Array.isArray(candidates)) {
+        for (const c of candidates) {
+          const url = String(c || '').trim();
+          if (url && url !== '[object Object]') {
+            return toHttpsUrl(url.startsWith('//') ? `https:${url}` : url);
+          }
+        }
+      }
 
       // Try Steam cover if steam_appid is available
 
@@ -1633,13 +1794,9 @@
 
     async function hydrateMissingCovers() {
 
-      // Fill missing covers on demand for visible items (no local seeding/storage).
-
       const api = window.__zo2yGamesShared;
 
       if (!api?.fetchCoverForTitle && !api?.searchGamesFromWikipedia) return;
-
-
 
       if (coverHydrateAbort) coverHydrateAbort.abort();
 
@@ -1647,13 +1804,26 @@
 
       const signal = coverHydrateAbort.signal;
 
-
+      // Clear stale no-cover marks so popular games get another chance
+      try {
+        const NO_COVER_PREFIX = 'zo2y_game_nocover_v1:';
+        const sevenDaysAgo = Date.now() - (1000 * 60 * 60 * 24 * 7);
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith(NO_COVER_PREFIX)) {
+            try {
+              const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+              if (Number(parsed?.t || 0) < sevenDaysAgo) localStorage.removeItem(key);
+            } catch (_) { localStorage.removeItem(key); }
+          }
+        }
+      } catch (_) {}
 
       const runBatch = async () => {
 
         const candidates = state.games
 
-          .filter((g) => !g.name || g.name === 'Unknown Game' || !g.cover || g.cover === FALLBACK_IMAGE)
+          .filter((g) => !g.cover || g.cover === FALLBACK_IMAGE)
 
           .filter((g) => {
 
@@ -1663,11 +1833,9 @@
 
           })
 
-          .slice(0, Math.max(18, Math.min(60, GAMES_PAGE_SIZE)));
+          .slice(0, Math.max(30, Math.min(80, GAMES_PAGE_SIZE)));
 
         if (!candidates.length) return false;
-
-
 
         let filled = 0;
 
@@ -1713,11 +1881,143 @@
 
             }
 
+            if (!g.cover || g.cover === FALLBACK_IMAGE) return;
+
+            filled += 1;
+
+            const card = document.querySelector(`.card[data-item-id="${CSS.escape(String(g.id))}"]`);
+
+            const img = card ? card.querySelector('img') : null;
+
+            const titleEl = card ? card.querySelector('.card-name, .card-title') : null;
+
+            if (img && g.cover) {
+
+              img.removeAttribute('onerror');
+
+              img.classList.remove('is-loading-media');
+
+              img.src = g.cover;
+
+            }
+
+            if (titleEl && g.name) {
+
+              titleEl.textContent = g.name;
+
+            }
+
+          })
+
+        );
+
+        return filled > 0;
+
+      };
+
+      for (let i = 0; i < 8; i += 1) {
+
+        const did = await runBatch();
+
+        if (!did) break;
+
+        if (signal.aborted) break;
+
+        await new Promise((resolve) => {
+
+          if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 400 });
+
+          else window.setTimeout(resolve, 80);
+
+        });
+
+      }
+
+    }
+
+              } catch (_err) {}
+
+            }
+
+            if ((!g.cover || g.cover === FALLBACK_IMAGE) && api.fetchCoverForTitle && searchTitle) {
+
+              const cover = await api.fetchCoverForTitle(String(g.name || searchTitle).trim(), signal);
+
+              if (cover) g.cover = cover;
+
+            }
+
+            if (!g.cover || g.cover === FALLBACK_IMAGE) return;
+
+            filled += 1;
+
+            const card = document.querySelector(`.card[data-item-id="${CSS.escape(String(g.id))}"]`);
+
+            const img = card ? card.querySelector('img') : null;
+
+            const titleEl = card ? card.querySelector('.card-name, .card-title') : null;
+
+            if (img && g.cover) {
+
+              img.removeAttribute('onerror');
+
+              img.src = g.cover;
+
+              img.classList.remove('is-loading-media');
+
+            }
+
+            if (titleEl && g.name) {
+
+              titleEl.textContent = g.name;
+
+            }
+
+          })
+
+        );
+
+        return filled > 0;
+
+      };
+
+      for (let i = 0; i < 8; i += 1) {
+
+        const did = await runBatch();
+
+        if (!did) break;
+
+        if (signal.aborted) break;
+
+        await new Promise((resolve) => {
+
+          if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(() => resolve(), { timeout: 400 });
+
+          else window.setTimeout(resolve, 80);
+
+        });
+
+      }
+
+    }
+
+              } catch (_err) {}
+
+            }
+
+            if ((!g.cover || g.cover === FALLBACK_IMAGE) && api.fetchCoverForTitle && searchTitle) {
+
+              const cover = await api.fetchCoverForTitle(String(g.name || searchTitle).trim(), signal);
+
+              if (cover) g.cover = cover;
+
+            }
+
             if ((!g.cover || g.cover === FALLBACK_IMAGE) && (!g.name || g.name === 'Unknown Game')) return;
 
             filled += 1;
 
-            const card = document.querySelector(`.card[data-id="${CSS.escape(String(g.id))}"]`);
+            const card = document.querySelector(`.card[data-item-id="${CSS.escape(String(g.id))}"]`);
 
             const img = card ? card.querySelector('img') : null;
             const titleEl = card ? card.querySelector('.card-name, .card-title') : null;
@@ -1896,9 +2196,13 @@
 
 
 
-    function wireGridActions() {
+    function wireGridActions(scope) {
 
-      document.querySelectorAll('.card-menu-btn').forEach((btn) => {
+      const root = scope || document;
+
+      root.querySelectorAll('.card-menu-btn:not([data-wired])').forEach((btn) => {
+
+        btn.setAttribute('data-wired', '1');
 
         btn.addEventListener('click', (e) => {
 
@@ -1920,7 +2224,9 @@
 
 
 
-      document.querySelectorAll('.card').forEach((card) => {
+      root.querySelectorAll('.card:not([data-click-wired])').forEach((card) => {
+
+        card.setAttribute('data-click-wired', '1');
 
         card.addEventListener('click', (e) => {
 
@@ -1946,7 +2252,7 @@
 
         await initAuthUi();
 
-        await loadGames();
+        await Promise.all([loadGames(), loadNewReleases(), loadTrendingGames()]);
 
         
 
@@ -1960,6 +2266,227 @@
 
       }
 
+    }
+
+    async function loadTrendingGames() {
+      const grid = document.getElementById('trendingGrid');
+      if (!grid) return;
+      try {
+        let games = [];
+
+        // Fetch trending from IGDB/Wikipedia
+        try {
+          const cacheKey = 'trending_v2';
+          let igdbGames = readIgdbBrowseCache(cacheKey);
+
+          if (!igdbGames) {
+            const igdbUrl = new URL('/api/igdb/games', window.location.origin);
+            igdbUrl.searchParams.set('page', '1');
+            igdbUrl.searchParams.set('page_size', '40');
+            igdbUrl.searchParams.set('min_rating_count', '50');
+            igdbUrl.searchParams.set('rev', 'wiki20260714a');
+            const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
+            if (igdbRes.ok) {
+              const igdbData = await igdbRes.json();
+              igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
+              writeIgdbBrowseCache(cacheKey, igdbGames);
+            } else {
+              igdbGames = [];
+            }
+          }
+
+          for (const row of igdbGames) {
+            const title = String(row.title || row.name || '').trim();
+            const rowId = String(row.id || '');
+            if (!title) continue;
+            games.push({
+              id: rowId || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+              name: title,
+              cover: normalizeGameCoverUrl(row.cover || row.image || ''),
+              firstReleaseDate: row.firstReleaseDate || row.released || '',
+              rating: row.rating || 0,
+              genres: Array.isArray(row.genres) ? row.genres : []
+            });
+          }
+        } catch (_) {}
+
+        // Also pull from Supabase for high-rating games
+        const client = await ensureSupabase();
+        if (client) {
+          try {
+            const { data, error } = await client.from('games')
+              .select('*')
+              .order('rating_count', { ascending: false })
+              .order('rating', { ascending: false })
+              .limit(30);
+            if (!error && Array.isArray(data)) {
+              const existingTitles = new Set(games.map(g => g.name.toLowerCase()));
+              for (const g of data) {
+                const title = String(g.title || g.name || '').trim();
+                if (!title || existingTitles.has(title.toLowerCase())) continue;
+                existingTitles.add(title.toLowerCase());
+                games.push({
+                  id: String(g.id || ''),
+                  name: title,
+                  cover: resolveGameCover(g),
+                  firstReleaseDate: g.release_date || '',
+                  rating: g.rating || 0,
+                  genres: Array.isArray(g.extra?.genres) ? g.extra.genres : []
+                });
+              }
+            }
+          } catch (_) {}
+        }
+
+        if (!games.length) { grid.innerHTML = ''; return; }
+
+        // Filter to games with covers, shuffle, take 18
+        const withCovers = games.filter(g => g.cover && g.cover !== FALLBACK_IMAGE);
+        const shuffled = shuffleArray(withCovers).slice(0, 18);
+
+        const html = shuffled.map(game => {
+          const coverUrl = game.cover || FALLBACK_IMAGE;
+          const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
+          const genreText = (Array.isArray(game.genres) ? game.genres : []).slice(0, 2).map(g => g?.name || g || '').filter(Boolean).join(' | ');
+          return `
+          <article class="card" data-href="game.html?id=${escapeHtml(game.id)}" data-media-type="game" data-item-id="${escapeHtml(game.id)}" data-title="${escapeHtml(game.name)}" data-subtitle="${escapeHtml(year)}" data-image="${escapeHtml(coverUrl)}" data-list-image="${escapeHtml(coverUrl)}">
+            <div class="card-media game-poster is-loading-media">
+              <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
+            </div>
+            <div class="card-meta">
+              <span class="card-type"><i class="fa-solid fa-gamepad"></i> Game</span>
+              <div class="card-meta-top">
+                <p class="card-name">${escapeHtml(game.name)}</p>
+                <div class="card-menu-wrap">
+                  <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+              </div>
+              <p class="card-sub">${escapeHtml(year)}</p>
+              ${genreText ? `<p class="card-extra">${escapeHtml(genreText)}</p>` : ''}
+            </div>
+          </article>`;
+        }).join('');
+        grid.innerHTML = html;
+        wireGridActions(grid);
+      } catch (_err) {
+        grid.innerHTML = '';
+      }
+    }
+
+    async function loadNewReleases() {
+      const grid = document.getElementById('newReleasesGrid');
+      if (!grid) return;
+      try {
+        const client = await ensureSupabase();
+        const currentYear = new Date().getFullYear();
+        let games = [];
+
+        if (client) {
+          try {
+            const { data, error } = await client.from('games')
+              .select('*')
+              .gte('release_date', `${currentYear}-01-01`)
+              .lte('release_date', `${currentYear}-12-31`)
+              .order('release_date', { ascending: false })
+              .order('rating_count', { ascending: false })
+              .limit(24);
+            if (!error && Array.isArray(data)) {
+              games = data.map(g => ({
+                id: String(g.id || ''),
+                name: g.title || g.name || 'Unknown Game',
+                cover: resolveGameCover(g),
+                firstReleaseDate: g.release_date || '',
+                rating: g.rating || 0,
+                genres: Array.isArray(g.extra?.genres) ? g.extra.genres : []
+              })).filter(g => g.id && g.name);
+            }
+          } catch (_) {}
+        }
+
+        // Supplement from IGDB/Wikipedia for current year games not in Supabase
+        try {
+          const cacheKey = `newreleases_${currentYear}`;
+          let igdbGames = readIgdbBrowseCache(cacheKey);
+
+          if (!igdbGames) {
+            const igdbUrl = new URL('/api/igdb/games', window.location.origin);
+            igdbUrl.searchParams.set('page', '1');
+            igdbUrl.searchParams.set('page_size', '40');
+            igdbUrl.searchParams.set('ordering', '-released');
+            igdbUrl.searchParams.set('dates', `${currentYear}-01-01,${currentYear}-12-31`);
+            igdbUrl.searchParams.set('rev', 'wiki20260714a');
+            const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
+            if (igdbRes.ok) {
+              const igdbData = await igdbRes.json();
+              igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
+              writeIgdbBrowseCache(cacheKey, igdbGames);
+            } else {
+              igdbGames = [];
+            }
+          }
+
+          const existingIds = new Set(games.map(g => g.id));
+          const existingTitles = new Set(games.map(g => g.name.toLowerCase()));
+          for (const row of igdbGames) {
+            const title = String(row.title || row.name || '').trim();
+            const rowId = String(row.id || '');
+            if (!title) continue;
+            if (existingIds.has(rowId) || existingTitles.has(title.toLowerCase())) continue;
+            existingIds.add(rowId);
+            existingTitles.add(title.toLowerCase());
+            games.push({
+              id: rowId || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
+              name: title,
+              cover: normalizeGameCoverUrl(row.cover || row.image || ''),
+              firstReleaseDate: row.firstReleaseDate || row.released || '',
+              rating: row.rating || 0,
+              genres: Array.isArray(row.genres) ? row.genres : []
+            });
+          }
+        } catch (_) {}
+
+        if (!games.length) { grid.innerHTML = ''; return; }
+
+        // Sort: games with covers first, then by release date desc
+        games.sort((a, b) => {
+          const aHas = a.cover && a.cover !== FALLBACK_IMAGE ? 1 : 0;
+          const bHas = b.cover && b.cover !== FALLBACK_IMAGE ? 1 : 0;
+          if (aHas !== bHas) return bHas - aHas;
+          return String(b.firstReleaseDate || '').localeCompare(String(a.firstReleaseDate || ''));
+        });
+
+        // Shuffle the top pool to show variety
+        const withCovers = games.filter(g => g.cover && g.cover !== FALLBACK_IMAGE);
+        const noCovers = games.filter(g => !g.cover || g.cover === FALLBACK_IMAGE);
+        const shuffled = [...shuffleArray(withCovers).slice(0, 18), ...noCovers.slice(0, 6)];
+
+        const html = shuffled.map(game => {
+          const coverUrl = game.cover || FALLBACK_IMAGE;
+          const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
+          const genreText = (Array.isArray(game.genres) ? game.genres : []).slice(0, 2).map(g => g?.name || g || '').filter(Boolean).join(' | ');
+          return `
+          <article class="card" data-href="game.html?id=${escapeHtml(game.id)}" data-media-type="game" data-item-id="${escapeHtml(game.id)}" data-title="${escapeHtml(game.name)}" data-subtitle="${escapeHtml(year)}" data-image="${escapeHtml(coverUrl)}" data-list-image="${escapeHtml(coverUrl)}">
+            <div class="card-media game-poster is-loading-media">
+              <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
+            </div>
+            <div class="card-meta">
+              <span class="card-type"><i class="fa-solid fa-gamepad"></i> Game</span>
+              <div class="card-meta-top">
+                <p class="card-name">${escapeHtml(game.name)}</p>
+                <div class="card-menu-wrap">
+                  <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+              </div>
+              <p class="card-sub">${escapeHtml(year)}</p>
+              ${genreText ? `<p class="card-extra">${escapeHtml(genreText)}</p>` : ''}
+            </div>
+          </article>`;
+        }).join('');
+        grid.innerHTML = html;
+        wireGridActions(grid);
+      } catch (_err) {
+        grid.innerHTML = '';
+      }
     }
 
 

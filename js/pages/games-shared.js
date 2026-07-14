@@ -24,6 +24,10 @@
   ];
   const CC = window.__zo2yCoverCache;
 
+  function normalizeCacheKey(title) {
+    return String(title || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
+  }
+
   function toHttpsUrl(value) {
     const raw = String(value || '').trim();
     if (!raw) return '';
@@ -72,7 +76,7 @@
   }
 
   function getCoverStorageKey(title) {
-    const safe = String(title || '').trim().toLowerCase();
+    const safe = normalizeCacheKey(title);
     if (!safe) return '';
     return `${COVER_STORAGE_PREFIX}${safe}`;
   }
@@ -112,7 +116,7 @@
 
   function isNoCoverCached(title) {
     if (!COVER_STORAGE_ENABLED) return false;
-    const key = `${NO_COVER_CACHE_PREFIX}${String(title || '').trim().toLowerCase()}`;
+    const key = `${NO_COVER_CACHE_PREFIX}${normalizeCacheKey(title)}`;
     if (key === NO_COVER_CACHE_PREFIX) return false;
     try {
       const raw = window.localStorage ? window.localStorage.getItem(key) : '';
@@ -131,7 +135,7 @@
 
   function markNoCoverCached(title) {
     if (!COVER_STORAGE_ENABLED) return;
-    const key = `${NO_COVER_CACHE_PREFIX}${String(title || '').trim().toLowerCase()}`;
+    const key = `${NO_COVER_CACHE_PREFIX}${normalizeCacheKey(title)}`;
     if (key === NO_COVER_CACHE_PREFIX) return;
     try {
       window.localStorage?.setItem(key, JSON.stringify({ t: Date.now() }));
@@ -149,7 +153,7 @@
   }
 
   async function writeCachedCover(title, url) {
-    coverLookupCache.set(String(title || '').trim().toLowerCase(), url);
+    coverLookupCache.set(normalizeCacheKey(title), url);
     if (CC) await CC.setCachedCover(title, url);
     writeCachedCoverToStorage(title, url);
   }
@@ -346,7 +350,7 @@
   }
 
   async function fetchCoverForTitle(title, signal) {
-    const key = String(title || '').trim().toLowerCase();
+    const key = normalizeCacheKey(title);
     if (!key) return '';
     if (coverLookupCache.has(key)) return coverLookupCache.get(key) || '';
 
@@ -406,12 +410,6 @@
         await writeCachedCover(title, wikiCover);
         return wikiCover;
       }
-      const steamCover = pick ? trySteamCover(pick) : '';
-      if (steamCover) {
-        await writeCachedCover(title, steamCover);
-        return steamCover;
-      }
-      await markCoverUnavailable(title);
       return '';
     }
   }

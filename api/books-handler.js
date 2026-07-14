@@ -13,6 +13,8 @@ function gbUrl(params) {
   const url = new URL(GB_BASE);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
   if (key) url.searchParams.set("key", key);
+  if (!url.searchParams.has("country")) url.searchParams.set("country", "US");
+  if (!url.searchParams.has("langRestrict")) url.searchParams.set("langRestrict", "en");
   return url.toString();
 }
 
@@ -100,8 +102,8 @@ function mapOpenLibDoc(doc) {
     ratingsCount: doc.readinglog_count || doc.already_read_count || 0,
     language: Array.isArray(doc.language) ? doc.language[0] : "",
     releaseDate: year,
-    previewUrl: `https://openlibrary.org/works/${id}`,
-    externalUrl: `https://openlibrary.org/works/${id}`,
+    previewUrl: '',
+    externalUrl: '',
     _source: "open-library"
   };
 }
@@ -135,8 +137,8 @@ function mapOpenLibSubjectDoc(doc) {
     ratingsCount: 0,
     language: "eng",
     releaseDate: year,
-    previewUrl: `https://openlibrary.org/works/${id}`,
-    externalUrl: `https://openlibrary.org/works/${id}`,
+    previewUrl: '',
+    externalUrl: '',
     _source: "open-library"
   };
 }

@@ -82,19 +82,51 @@
       return;
     }
 
+    const GAME_GENRE_BACKDROPS = {
+      action: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600',
+      shooter: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600',
+      'role-playing-games-rpg': 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600',
+      rpg: 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600',
+      adventure: 'https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg?w=1600',
+      puzzle: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600',
+      strategy: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600',
+      horror: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?w=1600',
+      simulation: 'https://images.pexels.com/photos/163489/cpu-motherboard-electronics-computer-163489.jpeg?w=1600',
+      racing: 'https://images.pexels.com/photos/1707820/pexels-photo-1707820.jpeg?w=1600',
+      sports: 'https://images.pexels.com/photos/4773081/pexels-photo-4773081.jpeg?w=1600',
+      fighting: 'https://images.pexels.com/photos/8612004/pexels-photo-8612004.jpeg?w=1600',
+      platformer: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?w=1600',
+      stealth: 'https://images.pexels.com/photos/1671325/pexels-photo-1671325.jpeg?w=1600',
+      default: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600'
+    };
+
+    function getGameGenreBackdrop(genres) {
+      const g = Array.isArray(genres) ? genres.map(x => {
+        const name = String(x?.slug || x?.name || x || '').toLowerCase().trim();
+        return name;
+      }) : [];
+      for (const genre of g) {
+        if (GAME_GENRE_BACKDROPS[genre]) return GAME_GENRE_BACKDROPS[genre];
+      }
+      return GAME_GENRE_BACKDROPS.default;
+    }
+
     try {
       const res = await fetch(`/api/igdb/games/${encodeURIComponent(gameId)}`);
       if (!res.ok) throw new Error("Game not found");
 
       const game = await res.json();
 
+      const posterUrl = game.cover || "/images/fallback/game.svg";
+      const backdropUrl = game.hero || game.background_image || getGameGenreBackdrop(game.genres);
+
       const config = {
         type: "game",
         typeLabel: "Game Spotlight",
         title: (game.name || "Unknown Game").replace(/\s*\(video game\)/i, ""),
-        posterUrl: game.cover || "/images/fallback/game.svg",
+        posterUrl: posterUrl,
         posterFit: "contain",
-        backdropUrl: game.hero || game.background_image || game.cover || "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1600&q=80",
+        backdropUrl: backdropUrl,
         description: game.description || "Explore more details about this game.",
         metadata: [],
         actions: [

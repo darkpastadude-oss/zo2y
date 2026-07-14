@@ -278,7 +278,11 @@ function wireEvents() {
       }
       const card = e.target.closest(".card");
       if (card) {
-        const href = card.querySelector("a")?.getAttribute("href");
+        let href = card.querySelector("a")?.getAttribute("href");
+        // Enforce book cards always go to book.html, never to openlibrary.org
+        if (href && /openlibrary\.org/i.test(href)) {
+          href = 'books.html';
+        }
         if (href) window.location.href = href;
       }
     });

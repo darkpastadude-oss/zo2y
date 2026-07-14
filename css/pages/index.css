@@ -787,7 +787,7 @@
     }
 
     .card-media.game-poster img {
-      object-fit: cover;
+      object-fit: contain;
       object-position: center center;
       border-radius: 0;
       padding: 0;

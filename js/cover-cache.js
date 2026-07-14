@@ -144,7 +144,12 @@
 
     const idb = await idbGet(NOCOVER_STORE, k);
     if (idb) {
-      lsSet(LS_NOCOVER_PREFIX, k, { t: Date.now() });
+      const savedAt = Number(idb?.t || 0);
+      if (Number.isFinite(savedAt) && (Date.now() - savedAt) > NOCOVER_TTL) {
+        await idbDel(NOCOVER_STORE, k);
+        return false;
+      }
+      lsSet(LS_NOCOVER_PREFIX, k, { t: savedAt || Date.now() });
       return true;
     }
     return false;

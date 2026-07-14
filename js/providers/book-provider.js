@@ -141,9 +141,8 @@
     }
 
     var extUrl = vi.infoLink || raw.externalUrl || raw.previewUrl || '';
-    if (!extUrl && raw.key) {
-      extUrl = 'https://openlibrary.org' + raw.key;
-    }
+    // Don't construct Open Library URLs - books link to book.html detail page
+    if (extUrl && /openlibrary\.org/i.test(extUrl)) extUrl = '';
 
     var pageCount = vi.pageCount || raw.pageCount || raw.number_of_pages_median || 0;
     var rating = vi.averageRating || raw.rating || raw.ratings_average || 0;

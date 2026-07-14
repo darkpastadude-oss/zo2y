@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="css/skeleton.css">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
-  <script src="js/providers/index.js?v=20260709L" defer></script>
+  <script src="js/providers/index.js?v=20260714d" defer></script>
   <style>
     :root {
       --bg: #0b1633;
@@ -503,6 +503,8 @@
     .rec-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     .rec-title { font-size: 0.88rem; font-weight: 600; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--white); }
     .elevated-content-area { display: grid; gap: 10px; }
+    .umh-poster-frame { background: transparent !important; box-shadow: 0 16px 40px rgba(0,0,0,0.7) !important; border: none !important; }
+    .umh-poster-contain { padding: 0 !important; }
     @media (max-width: 640px) {
       .recommendations-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
     }
@@ -524,17 +526,17 @@
 
     <script src="/js/components/list-modal.js?v=20260711b" defer></script>
     <noscript></noscript>
-  <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260708a" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260714" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260708a"></noscript>
-  <link rel="stylesheet" href="css/pages/elevated-media.css?v=20260708a">
-  <link rel="stylesheet" href="css/unified-media-hero.css?v=20260711">
+  <link rel="stylesheet" href="css/pages/elevated-media.css?v=20260714">
+  <link rel="stylesheet" href="css/unified-media-hero.css?v=20260714">
 
   
     <link rel="stylesheet" href="css/components.css?v=20260710a">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
     <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
 </head>
-<body class="elevated-media-page">
+<body class="elevated-media-page" data-elevated-category="book">
   
     <!-- Unified Media Hero Container -->
     <div id="unifiedHeroContainer"></div>
@@ -753,6 +755,33 @@
         displayBookInfo(data);
       }
 
+      const GENRE_BACKDROPS = {
+        fantasy: 'https://images.pexels.com/photos/15286/pexels-photo.jpg?w=1600',
+        'science fiction': 'https://images.pexels.com/photos/956981/milky-way-starry-sky-night-sky-star-956981.jpg?w=1600',
+        sci-fi: 'https://images.pexels.com/photos/956981/milky-way-starry-sky-night-sky-star-956981.jpg?w=1600',
+        romance: 'https://images.pexels.com/photos/1024960/pexels-photo-1024960.jpeg?w=1600',
+        horror: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?w=1600',
+        mystery: 'https://images.pexels.com/photos/1496373/pexels-photo-1496373.jpeg?w=1600',
+        thriller: 'https://images.pexels.com/photos/1496373/pexels-photo-1496373.jpeg?w=1600',
+        adventure: 'https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg?w=1600',
+        historical: 'https://images.pexels.com/photos/2563681/pexels-photo-2563681.jpeg?w=1600',
+        'literary fiction': 'https://images.pexels.com/photos/1261426/pexels-photo-1261426.jpeg?w=1600',
+        biography: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=1600',
+        poetry: 'https://images.pexels.com/photos/4626339/pexels-photo-4626339.jpeg?w=1600',
+        philosophy: 'https://images.pexels.com/photos/3075993/pexels-photo-3075993.jpeg?w=1600',
+        'young adult': 'https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?w=1600',
+        'non-fiction': 'https://images.pexels.com/photos/4819704/pexels-photo-4819704.jpeg?w=1600',
+        default: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg?w=1600'
+      };
+
+      function getGenreBackdrop(categories) {
+        const cats = Array.isArray(categories) ? categories.map(c => String(c || '').toLowerCase().trim()) : [];
+        for (const cat of cats) {
+          if (GENRE_BACKDROPS[cat]) return GENRE_BACKDROPS[cat];
+        }
+        return GENRE_BACKDROPS.default;
+      }
+
       function displayBookInfo(n) {
         if (!n) return;
         bookInfo = n;
@@ -765,7 +794,7 @@
             typeLabel: "Book Spotlight",
             title: n.title || "Untitled",
             posterUrl: n.image || "/images/fallback/book.svg",
-            backdropUrl: n.image || "",
+            backdropUrl: getGenreBackdrop(n.categories || n.genres),
             description: n.description || "",
             posterFit: "contain",
             metadata: [
@@ -778,7 +807,7 @@
             ].filter(Boolean),
             actions: [
               { id: "addBookListBtn", icon: "fa-solid fa-bookmark", label: "Add to list", primary: true },
-              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", href: n.externalUrl } : null
+              n.externalUrl && !/openlibrary\.org/i.test(n.externalUrl) ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", href: n.externalUrl } : null
             ].filter(Boolean)
           });
           window.ListModal && window.ListModal.init('book', {
@@ -823,7 +852,7 @@
           const rows = [];
           if (n.subtitle) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Subtitle</span><span class="elevated-list-value">${escapeHtml(n.subtitle)}</span></div>`);
           if (Array.isArray(n.isbn) && n.isbn.length) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">ISBN</span><span class="elevated-list-value">${escapeHtml(n.isbn.join(', '))}</span></div>`);
-          if (n.externalUrl) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Google Books</span><span class="elevated-list-value"><a href="${escapeHtml(n.externalUrl)}" target="_blank" rel="noopener">View on Google Books</a></span></div>`);
+          if (n.externalUrl && !/openlibrary\.org/i.test(n.externalUrl)) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Google Books</span><span class="elevated-list-value"><a href="${escapeHtml(n.externalUrl)}" target="_blank" rel="noopener">View on Google Books</a></span></div>`);
           if (Array.isArray(n.categories) && n.categories.length) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Categories</span><span class="elevated-list-value">${escapeHtml(n.categories.slice(0, 8).join(', '))}</span></div>`);
           details.innerHTML = rows.length ? rows.join('') : '<div class="elevated-list-row"><span class="elevated-list-value">No additional details available.</span></div>';
         }

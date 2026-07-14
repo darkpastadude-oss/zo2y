@@ -6,7 +6,7 @@
   const LEGACY_AUTH_STORAGE_KEY = 'zo2y-auth-v1';
   const PERSIST_AUTH_STORAGE_KEY = 'zo2y-auth-persist-v2';
   const DURABLE_AUTH_STORAGE_KEY = 'zo2y-auth-durable-v2';
-  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260421a';
+  const UNIVERSAL_SEARCH_SRC = 'js/universal-search.js?v=20260714e';
   const MOVIES_ROUTE = 'movies.html?v=20260322m';
   const MOVIES_MOBILE_ROUTE = 'movies.html?v=20260322m';
   const DESKTOP_RAIL_COLLAPSE_KEY = 'zo2y_desktop_rail_collapsed';

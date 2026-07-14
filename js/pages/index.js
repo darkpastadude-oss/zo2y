@@ -829,7 +829,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         if (value === undefined || value === null || value === '') return;
         url.searchParams.set(key, String(value));
       });
-      if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260228c');
+      if (!url.searchParams.has('rev')) url.searchParams.set('rev', 'wiki20260714a');
       const cacheKey = `igdb:${url.toString()}`;
       const json = await fetchJsonWithPerfCache(url.toString(), { signal, cacheKey });
       if (!json) throw new Error('IGDB error');
@@ -6413,7 +6413,14 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const mediaType = card.getAttribute('data-media-type');
         card.onclick = (e) => {
           if (e.target.closest('.card-menu-btn') || e.target.closest('.card-open-link') || e.target.closest('.card-preview-btn')) return;
-          if (href) window.location.href = href;
+          if (!href) return;
+          // Enforce book cards always go to book.html, never to openlibrary.org
+          if (mediaType === 'book' && /openlibrary\.org/i.test(href)) {
+            const bookId = new URL(href, window.location.origin).searchParams.get('id');
+            window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
+            return;
+          }
+          window.location.href = href;
         };
       });
 
@@ -9142,7 +9149,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
-        const popularity = Number(row?.follows || row?.rating_count || 0);
+        const rawPop = Number(row?.follows || row?.rating_count || 0);
+        const source = String(row?.source || row?.provider || '').toLowerCase();
+        const isExternal = source === 'wikipedia' || source === 'igdb';
+        // External (trending/popular) games rank above old local library entries
+        const popularity = isExternal ? (rawPop || 10000) : rawPop;
         const cardImage = cover;
         const genreText = genres.length
           ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
@@ -9189,27 +9200,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
           .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
           .slice(0, Math.max(targetCount * 2, 24));
-        if (!options?.cacheBust && localItems.length >= Math.min(targetCount, 4)) {
-          const rotatedLocal = shuffleArray(localItems).slice(0, targetCount);
-          writeHomeItemsCache(HOME_GAMES_ITEMS_CACHE_KEY, rotatedLocal);
-          return rotatedLocal;
-        }
         const providerList = ['igdb'];
         for (const provider of providerList) {
           const baseParams = {
-            page_size: Math.min(Math.max(targetCount * 6, 140), 220),
+            page_size: 40,
             provider,
             spotlight: 1,
             cache: 1,
             cache_pages: 1
           };
-          // Keep the same data source as the working commit, but reduce the request fanout so
-          // the rail doesn't time out under "load everything immediately".
+          // min_rating_count=50 gives consistently popular games (~35 unique across pages)
+          const randomPage = Math.floor(Math.random() * 2) + 2;
           const requests = [
-            { ...baseParams, page: 1, popularity_type: 1, dates: '2026-01-01,2026-12-31' },
-            { ...baseParams, page: 2, popularity_type: 1, dates: '2026-01-01,2026-12-31' },
-            { ...baseParams, page: 1, ordering: '-rating_count', dates: '2026-01-01,2026-12-31' },
-            { ...baseParams, page: 1, ordering: '-released', dates: '2026-01-01,2026-12-31' }
+            { ...baseParams, page: 1, min_rating_count: 50 },
+            { ...baseParams, page: randomPage, min_rating_count: 50 },
+            { ...baseParams, page: 1, ordering: '-follows', min_rating_count: 50 },
+            { ...baseParams, page: 1 }
           ];
           const merged = [];
           const seen = new Set();

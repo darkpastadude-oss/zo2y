@@ -1,6 +1,6 @@
 const SPOTIFY_ACCOUNTS = "https://accounts.spotify.com/api";
 const SPOTIFY_API = "https://api.spotify.com/v1";
-const APPLE_RSS = "https://rss.applemarketingtools.com/api/v2/us/music";
+const APPLE_RSS = "https://rss.marketingtools.apple.com/api/v2/us/music";
 
 const spotifyConfig = {
   clientId: String(process.env.SPOTIFY_CLIENT_ID || "").trim(),
@@ -751,42 +751,11 @@ export default async function handler(req, res) {
     return res.status(404).json({ message: "Artist not found" });
   }
 
-  if (section === "artists") {
+  if (section === "artists" || section === "popular" || section === "trending") {
     setResponseCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
     const limit = clampInt(query.limit, 1, 50, 24);
-    const offset = clampInt(query.offset, 0, 1000, 0);
-
-    let artists = [];
-    const spotifyWorks = !!(spotifyConfig.clientId && spotifyConfig.clientSecret);
-
-    if (spotifyWorks) {
-      try {
-        const queryStr = 'genre:"pop" OR genre:"rap" OR genre:"hip hop" OR genre:"latin" OR genre:"rock" OR genre:"r&b"';
-        const spotifyArtists = await spotifySearchArtists(queryStr, limit, offset);
-        artists.push(...spotifyArtists);
-      } catch (e) {}
-    }
-
-    if (!artists.length) {
-      try {
-        const dzRes = await fetch(`https://api.deezer.com/chart/0/artists?limit=${limit}`);
-        const dzJson = await dzRes.json();
-        artists.push(...(dzJson.data || []).map(a => ({
-          id: String(a.id),
-          mediaType: "artist",
-          title: String(a.name),
-          subtitle: "Music",
-          image: String(a.picture_xl || a.picture_big),
-          popularity: 0,
-          provider: "deezer"
-        })));
-      } catch (e) {}
-    }
-
-    artists = dedupeById(artists);
-    artists.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-
-    return res.json({ count: artists.length, offset, limit, results: artists, hasMore: artists.length === limit, source: "multi" });
+    const artists = await fetchHomeArtists(limit);
+    return res.json({ count: artists.length, offset: 0, limit, results: artists, hasMore: artists.length >= limit, source: "multi" });
   }
 
   if (section === "search") {

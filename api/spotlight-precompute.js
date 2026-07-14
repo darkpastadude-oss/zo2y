@@ -16,12 +16,12 @@ const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 const TARGET_ITEMS = 24;
 const TTL_MINUTES = 20;
 const POPULAR_MUSIC_QUERIES = [
-  "pop 2025",
-  "hip hop 2025",
-  "r&b 2025",
-  "latin 2025",
-  "dance 2025",
-  "rock 2025"
+  "pop 2026",
+  "hip hop 2026",
+  "r&b 2026",
+  "latin 2026",
+  "dance 2026",
+  "rock 2026"
 ];
 
 function resolveBaseUrl(req) {
