@@ -9764,7 +9764,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             image: rawCover || proxyCover,
             fallbackImage: proxyCover || '',
             fallbackChain,
-            href: (item?.externalUrl || item?.previewUrl || '') ? (item.externalUrl || item.previewUrl) : 'books.html?id=' + encodeURIComponent(item.id || item.providerId || '')
+            href: 'book.html?id=' + encodeURIComponent(item.id || item.providerId || '')
           };
         });
       } catch (_) { return []; }
