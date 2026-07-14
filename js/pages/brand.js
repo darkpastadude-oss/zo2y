@@ -117,7 +117,7 @@
     }, 2400);
   }
 
-  const LOGO_CACHE_BUST = "20260713a";
+  const LOGO_CACHE_BUST = "20260713h";
 
   function resolveLogo(value, domain, name) {
     const direct = String(value || "").trim();
