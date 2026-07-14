@@ -2,6 +2,19 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdminClient } from "../backend/lib/supabase-admin.js";
 
 const OPENLIB_BASE = "https://openlibrary.org";
+const GB_BASE = "https://www.googleapis.com/books/v1/volumes";
+
+function getGoogleBooksKey() {
+  return process.env.GOOGLE_BOOKS_API_KEY || "";
+}
+
+function gbUrl(params) {
+  const key = getGoogleBooksKey();
+  const url = new URL(GB_BASE);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+  if (key) url.searchParams.set("key", key);
+  return url.toString();
+}
 
 function setCache(res, opts = {}) {
   const maxAge = Math.max(0, Number(opts.maxAge) || 300);
@@ -190,7 +203,7 @@ export default async function booksHandler(req, res) {
     if (title) {
       try {
         const gq = `${title}${author ? ' ' + author : ''}`;
-        const gUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(gq)}&maxResults=1&fields=items(volumeInfo(imageLinks))`;
+        const gUrl = gbUrl({ q: gq, maxResults: 1, fields: "items(volumeInfo(imageLinks))" });
         const controller2 = new AbortController();
         const timeout2 = setTimeout(() => controller2.abort(), 5000);
         const gRes = await fetch(gUrl, { signal: controller2.signal });
@@ -229,8 +242,8 @@ export default async function booksHandler(req, res) {
 
     // Primary: Google Books API (trending/relevant results)
     try {
-      const gbUrl = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&orderBy=relevance&maxResults=${Math.min(limit, 40)}&startIndex=${startIndex}&printType=books`;
-      const data = await fetchJson(gbUrl, { cacheKey: `gb:search:${q}:${startIndex}`, ttlMs: 300000 });
+      const searchGbUrl = gbUrl({ q, orderBy: "relevance", maxResults: Math.min(limit, 40), startIndex, printType: "books" });
+      const data = await fetchJson(searchGbUrl, { cacheKey: `gb:search:${q}:${startIndex}`, ttlMs: 300000 });
       const items = (data.items || []).map(item => {
         const vi = item.volumeInfo || {};
         const imageLinks = vi.imageLinks || {};
@@ -319,47 +332,11 @@ export default async function booksHandler(req, res) {
     const seenIds = new Set();
     const seenTitles = new Set();
 
+    // PRIMARY: Open Library readinglog (actual popularity, not old classics)
     try {
-      const fetches = genres.map(async (g) => {
+      const subjectFetches = genres.map(async (subj) => {
         try {
-          const gbSort = "newest";
-          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=${gbSort}&maxResults=40&printType=books`;
-          return await fetchJson(url, { cacheKey: `gb:pop2:${g}:${sort}:${currentYear}`, ttlMs: 600000 });
-        } catch (_) { return { items: [] }; }
-      });
-
-      const results = await Promise.allSettled(fetches);
-
-      for (const result of results) {
-        if (allBooks.length >= need) break;
-        const data = result.status === "fulfilled" ? result.value : { items: [] };
-        for (const item of (data.items || [])) {
-          if (allBooks.length >= need) break;
-          const id = item.id || "";
-          if (!id || seenIds.has(id)) continue;
-          const vi = item.volumeInfo || {};
-          if (!vi.title) continue;
-          const pubYear = parseInt(String(vi.publishedDate || "").substring(0, 4)) || 0;
-          if (pubYear && pubYear < currentYear - 8) continue;
-          seenIds.add(id);
-          const imageLinks = vi.imageLinks || {};
-          const rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
-          const cover = rawCover ? `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(vi.title || "")}&author=${encodeURIComponent((vi.authors || []).join(", "))}` : "";
-          allBooks.push({
-            id,
-            volumeInfo: {
-              ...vi,
-              imageLinks: rawCover ? { ...imageLinks, thumbnail: cover } : imageLinks
-            }
-          });
-        }
-      }
-    } catch (_) {}
-
-    if (allBooks.length < need) {
-      const subjectFetches = genres.slice(0, 10).map(async (subj) => {
-        try {
-          const data = await openLibFetch(`subjects/${subj}.json`, { limit: 80, sort: "readinglog" }, 15000);
+          const data = await openLibFetch(`subjects/${subj}.json`, { limit: 40, sort: "readinglog" }, 15000);
           return { subj, works: data.works || [] };
         } catch (_) { return { subj, works: [] }; }
       });
@@ -380,13 +357,49 @@ export default async function booksHandler(req, res) {
           allBooks.push(mapOpenLibSubjectDoc(doc));
         }
       }
-    }
+    } catch (_) {}
 
-    allBooks.sort((a, b) => {
-      const yearA = parseInt(a.volumeInfo?.publishedDate || a.year || "0") || 0;
-      const yearB = parseInt(b.volumeInfo?.publishedDate || b.year || "0") || 0;
-      return yearB - yearA;
-    });
+    // SECONDARY: Google Books (for variety when Open Library is thin)
+    if (allBooks.length < need) {
+      try {
+        const fetches = genres.slice(0, 10).map(async (g) => {
+          try {
+            const popGbUrl = gbUrl({ q: `subject:${g}`, orderBy: "relevance", maxResults: 20, printType: "books" });
+            return await fetchJson(popGbUrl, { cacheKey: `gb:pop3:${g}:${sort}:${currentYear}`, ttlMs: 600000 });
+          } catch (_) { return { items: [] }; }
+        });
+
+        const results = await Promise.allSettled(fetches);
+
+        for (const result of results) {
+          if (allBooks.length >= need) break;
+          const data = result.status === "fulfilled" ? result.value : { items: [] };
+          for (const item of (data.items || [])) {
+            if (allBooks.length >= need) break;
+            const id = item.id || "";
+            if (!id || seenIds.has(id)) continue;
+            const vi = item.volumeInfo || {};
+            if (!vi.title) continue;
+            const pubYear = parseInt(String(vi.publishedDate || "").substring(0, 4)) || 0;
+            if (pubYear && pubYear < currentYear - 8) continue;
+            const norm = vi.title.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40);
+            if (seenTitles.has(norm)) continue;
+            seenTitles.add(norm);
+            seenIds.add(id);
+            const imageLinks = vi.imageLinks || {};
+            const rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
+            const cover = rawCover ? `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(vi.title || "")}&author=${encodeURIComponent((vi.authors || []).join(", "))}` : "";
+            allBooks.push({
+              id,
+              volumeInfo: {
+                ...vi,
+                imageLinks: rawCover ? { ...imageLinks, thumbnail: cover } : imageLinks
+              }
+            });
+          }
+        }
+      } catch (_) {}
+    }
 
     const paged = allBooks.slice(startIndex, startIndex + limit);
     return res.json({ ok: true, items: paged, books: paged, total: allBooks.length });
