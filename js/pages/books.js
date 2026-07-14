@@ -211,11 +211,11 @@ function renderGrid(append) {
   const html = renderItems.map(b => {
     const coverUrl = b.image || b.cover || "/images/fallback/book.svg";
     const bookId = b.id || b.providerId || "";
-    const href = (b.externalUrl || b.previewUrl || "") ? (b.externalUrl || b.previewUrl) : "book.html?id=" + encodeURIComponent(bookId);
+    const href = "book.html?id=" + encodeURIComponent(bookId);
     return `
       <article class="card" data-id="${escapeHtml(bookId)}" data-title="${escapeHtml(b.title)}" data-author="${escapeHtml(b.author || b.authors || "")}">
         <div class="card-media cover">
-          <a href="${escapeHtml(href)}" ${href.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>
+          <a href="${escapeHtml(href)}">
             <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='/images/fallback/book.svg'">
           </a>
         </div>
