@@ -263,6 +263,26 @@ function wireEvents() {
   const filterModal = document.getElementById("booksFilterModal");
   const filterClose = document.getElementById("booksFilterCloseBtn");
   const refreshBtn = document.getElementById("refresh");
+  const grid = document.getElementById("booksGrid");
+
+  if (grid) {
+    grid.addEventListener("click", (e) => {
+      const menuBtn = e.target.closest(".card-menu-btn");
+      if (menuBtn) {
+        e.stopPropagation();
+        const card = menuBtn.closest(".card");
+        if (card && window.openIndexStyleListMenu) {
+          window.openIndexStyleListMenu(card);
+        }
+        return;
+      }
+      const card = e.target.closest(".card");
+      if (card) {
+        const href = card.querySelector("a")?.getAttribute("href");
+        if (href) window.location.href = href;
+      }
+    });
+  }
 
   function triggerSearch() {
     const val = searchInput ? searchInput.value : "";
