@@ -227,23 +227,6 @@
       color: var(--accent);
     }
     .account-btn.logged-in:hover { background: rgba(245, 158, 11, 0.25); }
-    .wrap { max-width: 1200px; margin: 24px auto 40px; padding: 0 20px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
-    .poster { width: 100%; aspect-ratio: 2 / 3; border-radius: 14px; border: 1px solid var(--border); background: #0f1f40; display:block; object-fit: cover; }
-    .card { background: rgba(19,35,71,0.7); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-    .title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-    .title { margin: 0 0 8px; font-size: 28px; }
-    .meta { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
-    .overview { line-height: 1.6; color: var(--muted); }
-    .section-title { margin: 20px 0 8px; font-size: 16px; }
-    .people-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .person-chip { padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; }
-    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
-    .meta-item { background: #0f1f40; border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 12px; color: var(--muted); }
-    .tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; margin-right: 8px; }
-    .video-frame { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; background: #0f1f40; }
-    .list-stack { display: grid; gap: 6px; }
-    .list-row { display: flex; gap: 8px; align-items: baseline; color: var(--muted); font-size: 12px; }
-    .list-label { color: var(--white); font-weight: 600; }
     .menu-wrapper { position: relative; }
     .menu-btn {
       width: 40px;
@@ -480,13 +463,6 @@
         order: 0;
       }
       .nav-search-input { width: 100%; }
-      .wrap { grid-template-columns: 1fr; }
-      .poster {
-        width: min(62vw, 240px);
-        max-width: 240px;
-        margin: 0 auto 6px;
-        justify-self: center;
-      }
     }
     @media (max-width: 640px) {
       .nav { padding: 10px 12px; }
@@ -521,6 +497,15 @@
         border-radius: 8px;
       }
     }
+    .recommendations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
+    .rec-card { display: flex; flex-direction: column; gap: 8px; text-decoration: none; color: inherit; transition: transform 0.2s; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 10px; }
+    .rec-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .rec-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .rec-title { font-size: 0.88rem; font-weight: 600; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--white); }
+    .elevated-content-area { display: grid; gap: 10px; }
+    @media (max-width: 640px) {
+      .recommendations-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+    }
   </style>
   <meta name="theme-color" content="#0b1633" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -541,37 +526,57 @@
     <noscript></noscript>
   <link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260708a" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/css/pages/detail-poster.css?v=20260708a"></noscript>
+  <link rel="stylesheet" href="css/pages/elevated-media.css?v=20260708a">
+  <link rel="stylesheet" href="css/unified-media-hero.css?v=20260711">
 
   
     <link rel="stylesheet" href="css/components.css?v=20260710a">
     <link rel="stylesheet" href="css/global-lowercase.css?v=20260708a">
     <link rel="stylesheet" href="css/list-modal.css?v=20260710b">
 </head>
-<body>
+<body class="elevated-media-page">
   
-  <div class="wrap">
-    <img id="poster" class="poster" src="/newlogo.webp" alt="Poster" loading="eager" decoding="async" fetchpriority="high" data-final-fallback="/images/fallback/book.svg">
-    <div class="card">
-      <div class="title-row">
-        <h1 id="title" class="title">Loading...</h1>
-        <div class="menu-wrapper">
-          <button class="menu-btn" id="bookMenuBtn" aria-label="Save to lists"><i class="fas fa-ellipsis-v"></i></button>
-        </div>
+    <!-- Unified Media Hero Container -->
+    <div id="unifiedHeroContainer"></div>
+
+  <div class="elevated-content">
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">About this book</h3>
       </div>
-      <div id="meta" class="meta"></div>
-      <div id="tags"></div>
-      <p id="overview" class="overview"></p>
-      <div class="meta-grid" id="metaGrid"></div>
-      <h3 class="section-title">Details</h3>
-      <div id="details" class="list-stack"></div>
-      <h3 class="section-title">Media</h3>
-      <div id="trailer"></div>
-      <h3 class="section-title">Authors</h3>
-      <div id="directors" class="people-list"></div>
-      <h3 class="section-title">Contributors</h3>
-      <div id="writers" class="people-list"></div>
-      <h3 class="section-title">Categories</h3>
-      <div id="cast" class="people-list"></div>
+      <div class="elevated-description-wrap" id="overviewWrap">
+        <p id="overview" class="elevated-description"></p>
+      </div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Book Details</h3>
+      </div>
+      <div class="elevated-details" id="metaGrid"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Details</h3>
+      </div>
+      <div id="details" class="elevated-list"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">About the Author</h3>
+      </div>
+      <div id="authorBio" class="elevated-content-area"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">Categories</h3>
+      </div>
+      <div id="cast" class="elevated-tags"></div>
+    </div>
+    <div class="elevated-section">
+      <div class="elevated-section-head">
+        <h3 class="elevated-section-title">You might also like...</h3>
+      </div>
+      <div id="recommendations" class="recommendations-grid"></div>
     </div>
   </div>
 
@@ -750,14 +755,18 @@
 
       function displayBookInfo(n) {
         if (!n) return;
+        bookInfo = n;
+        document.title = 'Zo2y - ' + (n.title || 'Book');
+
         const container = document.getElementById("unifiedHeroContainer");
         if (container && typeof window.renderUnifiedMediaHero === 'function') {
           window.renderUnifiedMediaHero(container, {
             type: "book",
+            typeLabel: "Book Spotlight",
             title: n.title || "Untitled",
             posterUrl: n.image || "/images/fallback/book.svg",
             backdropUrl: n.image || "",
-            description: n.description || "No description available.",
+            description: n.description || "",
             posterFit: "contain",
             metadata: [
               n.authors ? { type: "director", value: n.authors } : null,
@@ -768,54 +777,82 @@
               n.rating > 0 ? { type: "rating", value: n.rating.toFixed(1) + "/5" } : null
             ].filter(Boolean),
             actions: [
-              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", primary: true, href: n.externalUrl } : null
+              { id: "addBookListBtn", icon: "fa-solid fa-bookmark", label: "Add to list", primary: true },
+              n.externalUrl ? { id: "previewLink", icon: "fa-solid fa-book-open", label: "Preview on Google Books", href: n.externalUrl } : null
             ].filter(Boolean)
           });
+          window.ListModal && window.ListModal.init('book', {
+            itemId: bookId,
+            title: n.title || 'Book',
+            subtitle: n.authors || '',
+            image: n.image || '',
+            buttonSelector: '#addBookListBtn',
+            ensureClient: async function () {
+              if (supabaseClient) return supabaseClient;
+              return initSupabase();
+            },
+            getCurrentUser: function () { return currentUser; },
+            notify: function (msg, isErr) { showNotification(msg, isErr ? 'error' : 'success'); }
+          });
+        }
+
+        const overview = document.getElementById("overview");
+        if (overview) {
+          overview.textContent = n.description || "No description available.";
         }
 
         const metaGrid = document.getElementById("metaGrid");
         if (metaGrid) {
           const items = [];
-          if (n.authors) items.push("<div class=\"meta-item\"><strong>Author:</strong> " + escapeHtml(n.authors) + "</div>");
-          if (n.publisher) items.push("<div class=\"meta-item\"><strong>Publisher:</strong> " + escapeHtml(n.publisher) + "</div>");
-          if (n.releaseDate) items.push("<div class=\"meta-item\"><strong>Published:</strong> " + escapeHtml(n.releaseDate) + "</div>");
-          if (n.pageCount) items.push("<div class=\"meta-item\"><strong>Pages:</strong> " + n.pageCount + "</div>");
-          if (n.language) items.push("<div class=\"meta-item\"><strong>Language:</strong> " + escapeHtml(n.language.toUpperCase()) + "</div>");
-          if (n.rating > 0) items.push("<div class=\"meta-item\"><strong>Rating:</strong> " + n.rating.toFixed(1) + "/5" + (n.ratingsCount ? " (" + n.ratingsCount + ")" : "") + "</div>");
-          metaGrid.innerHTML = items.join("");
+          if (n.authors) items.push({ icon: 'fas fa-user-pen', title: 'Author', value: n.authors });
+          if (n.publisher) items.push({ icon: 'fas fa-building', title: 'Publisher', value: n.publisher });
+          if (n.releaseDate) items.push({ icon: 'fas fa-calendar', title: 'Published', value: n.releaseDate });
+          if (n.pageCount) items.push({ icon: 'fas fa-file-lines', title: 'Pages', value: String(n.pageCount) });
+          if (n.language) items.push({ icon: 'fas fa-globe', title: 'Language', value: n.language.toUpperCase() });
+          if (n.rating > 0) items.push({ icon: 'fas fa-star', title: 'Rating', value: n.rating.toFixed(1) + '/5' + (n.ratingsCount ? ' (' + n.ratingsCount + ' ratings)' : '') });
+          metaGrid.innerHTML = items.map(i => `
+            <div class="elevated-detail-card">
+              <div class="elevated-detail-title"><i class="${i.icon}"></i> ${escapeHtml(i.title)}</div>
+              <div class="elevated-detail-value">${escapeHtml(i.value)}</div>
+            </div>
+          `).join('');
         }
 
         const details = document.getElementById("details");
         if (details) {
           const rows = [];
-          if (n.subtitle) rows.push("<div class=\"list-row\"><span class=\"list-label\">Subtitle:</span> " + escapeHtml(n.subtitle) + "</div>");
-          if (Array.isArray(n.isbn) && n.isbn.length) rows.push("<div class=\"list-row\"><span class=\"list-label\">ISBN:</span> " + escapeHtml(n.isbn.join(", ")) + "</div>");
-          if (n.externalUrl) rows.push("<div class=\"list-row\"><span class=\"list-label\">Google Books:</span> <a href=\"" + escapeHtml(n.externalUrl) + "\" target=\"_blank\" rel=\"noopener\">View on Google Books</a></div>");
-          if (Array.isArray(n.genres) && n.genres.length) rows.push("<div class=\"list-row\"><span class=\"list-label\">Categories:</span> " + escapeHtml(n.genres.slice(0, 10).join(", ")) + "</div>");
-          details.innerHTML = rows.length ? rows.join("") : '<div class="list-row">No details available.</div>';
+          if (n.subtitle) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Subtitle</span><span class="elevated-list-value">${escapeHtml(n.subtitle)}</span></div>`);
+          if (Array.isArray(n.isbn) && n.isbn.length) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">ISBN</span><span class="elevated-list-value">${escapeHtml(n.isbn.join(', '))}</span></div>`);
+          if (n.externalUrl) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Google Books</span><span class="elevated-list-value"><a href="${escapeHtml(n.externalUrl)}" target="_blank" rel="noopener">View on Google Books</a></span></div>`);
+          if (Array.isArray(n.categories) && n.categories.length) rows.push(`<div class="elevated-list-row"><span class="elevated-list-label">Categories</span><span class="elevated-list-value">${escapeHtml(n.categories.slice(0, 8).join(', '))}</span></div>`);
+          details.innerHTML = rows.length ? rows.join('') : '<div class="elevated-list-row"><span class="elevated-list-value">No additional details available.</span></div>';
         }
 
-        const tags = document.getElementById("tags");
-        if (tags && Array.isArray(n.genres)) {
-          tags.innerHTML = n.genres.slice(0, 12).map(c => "<span class=\"tag\">" + escapeHtml(c) + "</span>").join("");
+        const authorBio = document.getElementById("authorBio");
+        if (authorBio) {
+          const authorNames = n.authors ? n.authors.split(',').map(s => s.trim()).filter(Boolean) : [];
+          if (authorNames.length) {
+            authorBio.innerHTML = authorNames.map(name => {
+              const initials = name.split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+              return `
+                <div class="elevated-person-card">
+                  <div class="elevated-person-avatar">${escapeHtml(initials)}</div>
+                  <div class="elevated-person-body">
+                    <div class="elevated-person-name">${escapeHtml(name)}</div>
+                    <div class="elevated-person-role">Author</div>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            authorBio.innerHTML = '<div class="elevated-person-card"><div class="elevated-person-body"><div class="elevated-person-name">Author information unavailable</div></div></div>';
+          }
         }
 
         const cast = document.getElementById("cast");
         if (cast && Array.isArray(n.genres)) {
-          cast.innerHTML = n.genres.slice(0, 12).map(c => "<span class=\"person-chip\">" + escapeHtml(c) + "</span>").join("");
-          if (!n.genres.length) cast.innerHTML = '<span class="person-chip">N/A</span>';
-        }
-
-        const directors = document.getElementById("directors");
-        if (directors) {
-          const a = n.authors ? n.authors.split(",").map(s => s.trim()).filter(Boolean).slice(0, 12) : [];
-          directors.innerHTML = a.length ? a.map(p => "<span class=\"person-chip\">" + escapeHtml(p) + "</span>").join("") : '<span class="person-chip">N/A</span>';
-        }
-
-        const writers = document.getElementById("writers");
-        if (writers) {
-          const a = n.authors ? n.authors.split(",").map(s => s.trim()).filter(Boolean).slice(0, 12) : [];
-          writers.innerHTML = a.length ? a.map(p => "<span class=\"person-chip\">" + escapeHtml(p) + "</span>").join("") : '<span class="person-chip">N/A</span>';
+          cast.innerHTML = n.genres.slice(0, 12).map(c => `<span class="elevated-tag">${escapeHtml(c)}</span>`).join('');
+          if (!n.genres.length) cast.innerHTML = '<span class="elevated-tag">N/A</span>';
         }
 
         renderRecommendations(n.id || bookId);
@@ -826,11 +863,20 @@
         if (!container) return;
         const recs = await fetchRecommendations(bid);
         if (!recs.length) { container.style.display = "none"; return; }
-        container.style.display = "block";
-        container.innerHTML = '<h3 class="section-title">Related Books</h3><div class="people-list">' +
-          recs.slice(0, 8).map(r =>
-            '<a href="book.html?id=' + encodeURIComponent(r.id || r.providerId || "") + '" class="person-chip" style="text-decoration:none">' + escapeHtml(r.title) + '</a>'
-          ).join("") + '</div>';
+        container.style.display = "grid";
+        container.innerHTML = recs.slice(0, 8).map(r => {
+          const recId = r.id || r.providerId || '';
+          const title = escapeHtml(r.title || 'Book');
+          const author = escapeHtml(r.authors || r.author || '');
+          const cover = r.image || r.cover || '/images/fallback/book.svg';
+          return `
+            <a href="book.html?id=${encodeURIComponent(recId)}" class="rec-card">
+              <img src="${escapeHtml(cover)}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='/images/fallback/book.svg';">
+              <div class="rec-title">${title}</div>
+              ${author ? `<div style="font-size:0.8rem;color:var(--md-text-3);margin-top:2px;">${author}</div>` : ''}
+            </a>
+          `;
+        }).join('');
       }
 
       async function initAuth() {
@@ -1260,19 +1306,6 @@
       (async function init() {
         await initSupabase();
         initPageSearch();
-
-        window.ListModal && window.ListModal.init('book', {
-          itemId: bookId,
-          title: String(document.getElementById('title')?.textContent || 'Book').trim(),
-          subtitle: String(document.getElementById('meta')?.textContent || '').trim(),
-          image: String(document.getElementById('poster')?.getAttribute('src') || '').trim(),
-          menuBtnSelector: '#bookMenuBtn',
-          ensureClient: async function () {
-            if (supabaseClient) return supabaseClient;
-            return initSupabase();
-          },
-          getCurrentUser: function () { return currentUser; }
-        });
 
         await initAuth();
         await load();

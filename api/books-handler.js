@@ -447,6 +447,13 @@ export default async function booksHandler(req, res) {
   if (possibleVolumeId && possibleVolumeId.length > 2) {
     setCache(res, { maxAge: 1800, staleWhileRevalidate: 86400 });
     try {
+      // Try Google Books first for richer data
+      let gbData = null;
+      try {
+        const gbUrlStr = gbUrl({ q: `id:${encodeURIComponent(possibleVolumeId)}` });
+        gbData = await fetchJson(gbUrlStr, { cacheKey: `gb:vol:${possibleVolumeId}`, ttlMs: 86400000 });
+      } catch (_) {}
+
       const [workData, searchData] = await Promise.all([
         openLibFetch(`works/${encodeURIComponent(possibleVolumeId)}.json`),
         openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1, sort: "rating" })
@@ -467,6 +474,33 @@ export default async function booksHandler(req, res) {
         normalized.image = `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(normalized.title)}&author=${encodeURIComponent(normalized.author)}`;
         normalized.cover = normalized.image;
         normalized.backdrop = normalized.image;
+      }
+
+      // Enrich with Google Books data if available
+      if (gbData && gbData.items && gbData.items[0]) {
+        const vi = gbData.items[0].volumeInfo || {};
+        if (!normalized.description && vi.description) normalized.description = vi.description;
+        if (vi.authors && vi.authors.length) normalized.authors = vi.authors.join(', ');
+        if (vi.publisher) normalized.publisher = vi.publisher;
+        if (vi.publishedDate) normalized.releaseDate = vi.publishedDate;
+        if (vi.pageCount) normalized.pageCount = vi.pageCount;
+        if (vi.language) normalized.language = vi.language;
+        if (vi.averageRating) normalized.rating = vi.averageRating;
+        if (vi.ratingsCount) normalized.ratingsCount = vi.ratingsCount;
+        if (vi.categories && vi.categories.length) normalized.categories = vi.categories;
+        if (vi.imageLinks) {
+          const rawCover = vi.imageLinks.thumbnail || vi.imageLinks.smallThumbnail || '';
+          if (rawCover) {
+            normalized.image = `/api/books/cover?url=${encodeURIComponent(rawCover)}&title=${encodeURIComponent(normalized.title)}&author=${encodeURIComponent(normalized.author || '')}`;
+            normalized.cover = normalized.image;
+            normalized.backdrop = normalized.image;
+          }
+        }
+        if (vi.industryIdentifiers) {
+          const isbns = vi.industryIdentifiers.filter(i => i.type === 'ISBN_13' || i.type === 'ISBN_10').map(i => i.identifier);
+          if (isbns.length) normalized.isbn = isbns;
+        }
+        if (vi.previewLink) normalized.externalUrl = vi.previewLink;
       }
 
       return res.json(normalized);
