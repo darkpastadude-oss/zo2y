@@ -249,7 +249,7 @@ export default async function booksHandler(req, res) {
 
     // Fallback: Open Library search
     try {
-      const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex, sort: "rating" }, 15000);
+      const data = await openLibFetch("search.json", { q, limit: limit * 2, offset: startIndex }, 15000);
       const rawItems = data.docs || [];
       const total = data.numFound || 0;
       const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
@@ -266,7 +266,7 @@ export default async function booksHandler(req, res) {
     const currentYear = new Date().getFullYear();
     try {
       const data = await openLibFetch("search.json", {
-        q: `subject:${genre} first_publish_year:[${currentYear - 10} TO ${currentYear}]`,
+        q: `subject:${genre} first_publish_year:[${currentYear - 5} TO ${currentYear}]`,
         limit: limit * 2,
         sort: "rating"
       });
@@ -286,7 +286,7 @@ export default async function booksHandler(req, res) {
       const data = await openLibFetch("search.json", {
         q: `first_publish_year:${currentYear} subject:fiction`,
         limit: limit * 2,
-        sort: "rating"
+        sort: "readinglog"
       });
       const rawItems = data.docs || [];
       const books = rawItems.filter(doc => doc.title && doc.cover_i).map(mapOpenLibDoc).slice(0, limit);
@@ -302,6 +302,7 @@ export default async function booksHandler(req, res) {
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
     const genre = String(query.genre || "").trim().toLowerCase();
     const sort = String(query.sort || "").trim().toLowerCase();
+    const currentYear = new Date().getFullYear();
 
     const genres = genre
       ? [genre]
@@ -321,8 +322,9 @@ export default async function booksHandler(req, res) {
     try {
       const fetches = genres.map(async (g) => {
         try {
-          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=${sort === 'newest' ? 'newest' : 'relevance'}&maxResults=40&printType=books`;
-          return await fetchJson(url, { cacheKey: `gb:pop:${g}:${sort}`, ttlMs: 600000 });
+          const gbSort = "newest";
+          const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(g)}&orderBy=${gbSort}&maxResults=40&printType=books`;
+          return await fetchJson(url, { cacheKey: `gb:pop2:${g}:${sort}:${currentYear}`, ttlMs: 600000 });
         } catch (_) { return { items: [] }; }
       });
 
@@ -337,6 +339,8 @@ export default async function booksHandler(req, res) {
           if (!id || seenIds.has(id)) continue;
           const vi = item.volumeInfo || {};
           if (!vi.title) continue;
+          const pubYear = parseInt(String(vi.publishedDate || "").substring(0, 4)) || 0;
+          if (pubYear && pubYear < currentYear - 8) continue;
           seenIds.add(id);
           const imageLinks = vi.imageLinks || {};
           const rawCover = imageLinks.thumbnail || imageLinks.smallThumbnail || "";
@@ -355,7 +359,7 @@ export default async function booksHandler(req, res) {
     if (allBooks.length < need) {
       const subjectFetches = genres.slice(0, 10).map(async (subj) => {
         try {
-          const data = await openLibFetch(`subjects/${subj}.json`, { limit: 80 }, 15000);
+          const data = await openLibFetch(`subjects/${subj}.json`, { limit: 80, sort: "readinglog" }, 15000);
           return { subj, works: data.works || [] };
         } catch (_) { return { subj, works: [] }; }
       });
@@ -368,6 +372,8 @@ export default async function booksHandler(req, res) {
           if (allBooks.length >= need) break;
           if (!doc.title || !doc.cover_id) continue;
           if (/[\u3000-\u9fff\uf900-\ufaff]/.test(doc.title)) continue;
+          const docYear = doc.first_publish_year || 0;
+          if (docYear && docYear < currentYear - 15) continue;
           const norm = doc.title.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 40);
           if (seenTitles.has(norm)) continue;
           seenTitles.add(norm);
@@ -376,13 +382,11 @@ export default async function booksHandler(req, res) {
       }
     }
 
-    if (sort === "newest") {
-      allBooks.sort((a, b) => {
-        const yearA = parseInt(a.volumeInfo?.publishedDate || a.year || "0") || 0;
-        const yearB = parseInt(b.volumeInfo?.publishedDate || b.year || "0") || 0;
-        return yearB - yearA;
-      });
-    }
+    allBooks.sort((a, b) => {
+      const yearA = parseInt(a.volumeInfo?.publishedDate || a.year || "0") || 0;
+      const yearB = parseInt(b.volumeInfo?.publishedDate || b.year || "0") || 0;
+      return yearB - yearA;
+    });
 
     const paged = allBooks.slice(startIndex, startIndex + limit);
     return res.json({ ok: true, items: paged, books: paged, total: allBooks.length });

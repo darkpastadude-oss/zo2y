@@ -1,6 +1,6 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v287';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v288';
 const PAGE_CACHE = 'zo2y-pages-v235';
 const IMAGE_CACHE = 'zo2y-images-v63';
 const API_CACHE = 'zo2y-api-v45';

@@ -349,7 +349,7 @@
     const HOME_TRAVEL_COUNTRY_ROWS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12;
     const HOME_TRAVEL_ITEMS_CACHE_KEY = 'zo2y_home_travel_items_v5';
     const HOME_TRAVEL_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
-    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v6';
+    const HOME_BOOKS_ITEMS_CACHE_KEY = 'zo2y_home_books_items_v7';
     const HOME_BOOKS_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
     const HOME_MUSIC_ITEMS_CACHE_KEY = 'zo2y_home_music_items_v8';
     const HOME_MUSIC_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;

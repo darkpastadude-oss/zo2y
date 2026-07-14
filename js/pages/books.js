@@ -259,9 +259,19 @@ function setupInfiniteScroll() {
 
 function wireEvents() {
   const searchInput = document.getElementById("q");
+  const searchBtn = document.getElementById("booksSearchBtn");
   const filterModal = document.getElementById("booksFilterModal");
   const filterClose = document.getElementById("booksFilterCloseBtn");
   const refreshBtn = document.getElementById("refresh");
+
+  function triggerSearch() {
+    const val = searchInput ? searchInput.value : "";
+    if (val === lastQuery) return;
+    lastQuery = val;
+    state.query = val.trim();
+    state.seenIds = new Set();
+    loadBooks(false);
+  }
 
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
@@ -274,6 +284,20 @@ function wireEvents() {
         state.seenIds = new Set();
         loadBooks(false);
       }, 350);
+    });
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        clearTimeout(searchTimer);
+        triggerSearch();
+      }
+    });
+  }
+
+  if (searchBtn) {
+    searchBtn.addEventListener("click", () => {
+      clearTimeout(searchTimer);
+      triggerSearch();
     });
   }
 
