@@ -1442,7 +1442,7 @@ export async function fetchWikipediaGamesList({ page = 1, pageSize = 20, search 
       ...popularCandidates,
       ...popularSearchCandidates,
       ...candidates
-    ].slice(0, Math.min(Math.max(offset + (safePageSize * 4) + 48, 160), 720));
+    ].slice(0, Math.max(offset + safePageSize + 12, 40));
     rows = dedupeRows(await hydrateRows(blendedCandidates));
     rows = filterRowsByDates(filterRowsByGenres(rows, genres), dates);
     rows = dedupeRows(rows);

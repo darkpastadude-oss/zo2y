@@ -9232,13 +9232,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             cache: 1,
             cache_pages: 1
           };
-          // min_rating_count=50 gives consistently popular games (~35 unique across pages)
-          const randomPage = Math.floor(Math.random() * 2) + 2;
           const requests = [
             { ...baseParams, page: 1, min_rating_count: 50 },
-            { ...baseParams, page: randomPage, min_rating_count: 50 },
-            { ...baseParams, page: 1, ordering: '-follows', min_rating_count: 50 },
-            { ...baseParams, page: 1 }
+            { ...baseParams, page: 2, min_rating_count: 50 }
           ];
           const merged = [];
           const seen = new Set();
