@@ -4827,6 +4827,22 @@
                     bookCache.set(key, dbData);
                     return dbData;
                 }
+
+                if (window.ListUtils && typeof window.ListUtils.getCachedSavedItemMetadata === 'function') {
+                    const cached = window.ListUtils.getCachedSavedItemMetadata('book', key);
+                    if (cached && (cached.name || cached.image)) {
+                        const fallback = {
+                            id: key,
+                            title: cached.name || 'Untitled',
+                            author_name: '',
+                            cover_url: cached.image || '',
+                            thumbnail: cached.image || ''
+                        };
+                        bookCache.set(key, fallback);
+                        return fallback;
+                    }
+                }
+
                 return null;
             }
 

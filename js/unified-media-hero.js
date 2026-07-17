@@ -9,7 +9,11 @@
     genre: 'fa-solid fa-tags',
     director: 'fa-solid fa-video',
     network: 'fa-solid fa-tv',
-    episodes: 'fa-solid fa-list-ol'
+    episodes: 'fa-solid fa-list-ol',
+    author: 'fa-solid fa-pen-fancy',
+    publisher: 'fa-solid fa-building-columns',
+    pages: 'fa-solid fa-file-lines',
+    language: 'fa-solid fa-language'
   };
 
   function escapeHtml(str) {

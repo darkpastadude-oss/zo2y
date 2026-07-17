@@ -1129,7 +1129,24 @@
   }
 
   async function ensureBookRecord(client, payload) {
-    return false;
+    if (!client || !payload) return false;
+    const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
+    if (!id) return false;
+    const title = String(payload.title || payload.name || '').trim();
+    if (!title) return false;
+    const row = {
+      id,
+      title,
+      authors: String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null,
+      thumbnail: String(payload.thumbnail || payload.image || payload.cover || '').trim() || null
+    };
+    try {
+      const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+      if (error && String(error.code || '') !== '23505') return false;
+      return true;
+    } catch (_err) {
+      return false;
+    }
   }
 
   async function ensureTrackRecord(client, payload) {
@@ -1332,6 +1349,10 @@
       row[cfg.itemIdField] = entityId;
       const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
       row.user_id = ownerId || userId;
+      if (itemPayload) {
+        if (itemPayload.name) row.title = itemPayload.name;
+        if (itemPayload.image) row.image_url = itemPayload.image;
+      }
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
@@ -1363,13 +1384,34 @@
     const { data: ownerRows } = await client
       .from(cfg.listTable).select('user_id').eq('id', listId).maybeSingle();
     if (ownerRows?.user_id) ownerId = ownerRows.user_id;
-    const row = { list_id: listId, media_type: type, item_id: entityId, user_id: ownerId };
-    const { data: existingItem } = await client
+    const defaultListIds = new Set([
+      'favorites', 'watched', 'watchlist', 'played', 'wishlist',
+      'read', 'readlist', 'currently_reading', 'visited', 'bucketlist',
+      'owned', 'tried', 'want_to_try'
+    ]);
+    const isDefault = defaultListIds.has(String(listId).toLowerCase());
+
+    const row = { media_type: type, item_id: entityId, user_id: ownerId };
+    if (isDefault) {
+      row.list_type = listId;
+    } else {
+      row.list_id = listId;
+    }
+    if (itemPayload) {
+      if (itemPayload.name) row.title = itemPayload.name;
+      if (itemPayload.image) row.image_url = itemPayload.image;
+    }
+    let query = client
       .from(cfg.itemsTable)
       .select('id')
-      .eq('item_id', entityId)
-      .eq('list_id', listId)
-      .maybeSingle();
+      .eq('item_id', entityId);
+      
+    if (isDefault) {
+      query = query.eq('list_type', listId).is('list_id', null);
+    } else {
+      query = query.eq('list_id', listId).is('list_type', null);
+    }
+    const { data: existingItem } = await query.maybeSingle();
     if (existingItem) {
       if (itemPayload && itemPayload.name) {
         cacheSavedItemMetadata(type, entityId, itemPayload);
@@ -1377,6 +1419,7 @@
       return true;
     }
     const { error } = await client.from(cfg.itemsTable).insert(row);
+    
     if (error) {
       if (String(error.code || '') === '23505') {
         if (itemPayload && itemPayload.name) {
@@ -1384,10 +1427,14 @@
         }
         return true;
       }
+      console.error('Error inserting item:', error);
       throw error;
     }
     if (itemPayload && itemPayload.name) {
       cacheSavedItemMetadata(type, entityId, itemPayload);
+    }
+    if (type === 'book' && itemPayload) {
+      ensureBookRecord(client, { id: entityId, title: itemPayload.name, image: itemPayload.image, authors: itemPayload.subtitle || '' });
     }
     return true;
   }
@@ -1399,7 +1446,18 @@
     if (missingItemTables.has(cfg.itemsTable)) return false;
     const entityId = await resolveEntityId(client, type, itemId);
     if (!entityId) return false;
-    let query = client.from(cfg.itemsTable).delete().eq('item_id', entityId).eq('list_id', listId).eq('user_id', userId);
+    let query = client.from(cfg.itemsTable).delete().eq('item_id', entityId).eq('user_id', userId);
+    
+    const defaultListIds = new Set([
+      'favorites', 'watched', 'watchlist', 'played', 'wishlist',
+      'read', 'readlist', 'currently_reading', 'visited', 'bucketlist',
+      'owned', 'tried', 'want_to_try'
+    ]);
+    if (defaultListIds.has(String(listId).toLowerCase())) {
+      query = query.eq('list_type', listId).is('list_id', null);
+    } else {
+      query = query.eq('list_id', listId).is('list_type', null);
+    }
     const { error } = await query;
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
     return !error;

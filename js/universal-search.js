@@ -532,7 +532,8 @@
           if (!item?.href) return;
           // Enforce book results always go to book.html, never to openlibrary.org
           if (item.type === 'Books' && /openlibrary\.org/i.test(item.href)) {
-            const bookId = new URL(item.href, window.location.origin).searchParams.get('id');
+            const match = item.href.match(/\/works\/([OL\dW]+)/i) || item.href.match(/[?&]id=([^&]+)/);
+            const bookId = match ? match[1] : null;
             window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
             return;
           }
@@ -600,7 +601,8 @@
         if (!item?.href) return;
         // Enforce book results always go to book.html, never to openlibrary.org
         if (item.type === 'Books' && /openlibrary\.org/i.test(item.href)) {
-          const bookId = new URL(item.href, window.location.origin).searchParams.get('id');
+          const match = item.href.match(/\/works\/([OL\dW]+)/i) || item.href.match(/[?&]id=([^&]+)/);
+          const bookId = match ? match[1] : null;
           window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
           return;
         }

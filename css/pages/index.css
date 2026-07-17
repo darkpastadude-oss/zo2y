@@ -1004,7 +1004,7 @@
     .rail.unified-rail .card-media.game-poster img {
       border-radius: 0;
       padding: 0;
-      object-fit: cover;
+      object-fit: contain;
     }
 
     .rail.unified-rail .card-type,

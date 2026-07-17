@@ -335,7 +335,7 @@
     const HOME_FEED_CACHE_MAX_AGE_MS = 1000 * 60 * 90;
     const HOME_SESSION_LOADED_KEY = 'zo2y_home_session_loaded';
     const HOME_SESSION_LOADED_MAX_AGE_MS = 1000 * 60 * 60;
-    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v15';
+    const HOME_PRECOMPUTED_FEED_CACHE_KEY = 'zo2y_home_precomputed_feed_v16';
     const HOME_PRECOMPUTED_FEED_MAX_AGE_MS = 1000 * 60 * 20;
     const HOME_MOVIES_ITEMS_CACHE_KEY = 'zo2y_home_movies_items_v1';
     const HOME_MOVIES_ITEMS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 6;
@@ -424,8 +424,8 @@
     const HOME_NEW_RELEASES_TARGET_ITEMS = 10;
     const HOME_NEW_RELEASES_TIMEOUT_MS = 5600;
     const HOME_NEW_RELEASES_REFRESH_MS = 1000 * 60 * 45;
-const HOME_EAGER_IMAGE_COUNT = 10;
-const HOME_HIGH_PRIORITY_IMAGE_COUNT = 1;
+    const HOME_EAGER_IMAGE_COUNT = 30;
+    const HOME_HIGH_PRIORITY_IMAGE_COUNT = 3;
     const HOME_PRELOAD_PER_CHANNEL = 3;
     const HOME_PRELOAD_SPOTLIGHT_COUNT = 2;
     const HOME_UNIFIED_TARGET_ITEMS = 24;
@@ -4938,7 +4938,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       const key = String(railId || '').trim();
       const list = Array.isArray(items) ? items.filter(Boolean) : [];
       if (!list.length) return [];
-      if (!['travelRail', 'sportsRail'].includes(key)) return list;
+      if (!['travelRail', 'sportsRail', 'booksRail'].includes(key)) return list;
       return shuffleArray(list);
     }
 
@@ -5783,7 +5783,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function refreshShufflableHomeRails() {
-      return;
+      const shufflableKeys = ['booksRail'];
+      shufflableKeys.forEach((railId) => {
+        const key = String(railId || '').trim();
+        const rawItems = Array.isArray(homeFeedState?.[key === 'booksRail' ? 'book' : key])
+          ? homeFeedState[key === 'booksRail' ? 'book' : key]
+          : [];
+        if (!rawItems.length) return;
+        const channel = getHomeChannels().find((c) => c.railId === key);
+        renderOrDeferHomeRail(key, rawItems, channel?.opts || {});
+      });
     }
 
     function startHomeRailShuffleLoop() {
@@ -5791,6 +5800,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         window.clearInterval(homeRailShuffleTimer);
         homeRailShuffleTimer = null;
       }
+      homeRailShuffleTimer = window.setInterval(() => {
+        refreshShufflableHomeRails();
+      }, 30000);
     }
 
     function resetHomeViewportDeferrals() {
@@ -5885,6 +5897,16 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           ? channelItems.map((item) => sanitizeHomeTravelItem(item)).filter(Boolean)
           : channelItems;
         const filteredItems = filterHomeSafeItems(safeItems);
+        if (channel.key === 'book') {
+          filteredItems.forEach((item) => {
+            const href = String(item.href || '').trim();
+            if (/openlibrary\.org/i.test(href)) {
+              const match = href.match(/\/works\/([OL\dW]+)/i) || href.match(/[?&]id=([^&]+)/);
+              const bookId = match ? match[1] : null;
+              item.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
+            }
+          });
+        }
         normalized[channel.key] = filteredItems;
       });
       return normalized;
@@ -6416,7 +6438,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           if (!href) return;
           // Enforce book cards always go to book.html, never to openlibrary.org
           if (mediaType === 'book' && /openlibrary\.org/i.test(href)) {
-            const bookId = new URL(href, window.location.origin).searchParams.get('id');
+            const match = href.match(/\/works\/([OL\dW]+)/i) || href.match(/[?&]id=([^&]+)/);
+            const bookId = match ? match[1] : null;
             window.location.href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
             return;
           }
@@ -9239,11 +9262,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const combinedSeen = new Set();
           const uniqueCombinedRows = [];
           combinedRows.forEach((row) => {
-            const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
             const title = normalizeHomeGameTitleKey(row?.title || row?.name || '');
-            const key = id || title;
-            if (!key || combinedSeen.has(key)) return;
-            combinedSeen.add(key);
+            if (!title || combinedSeen.has(title)) return;
+            combinedSeen.add(title);
             uniqueCombinedRows.push(row);
           });
           const items = uniqueCombinedRows
@@ -9757,7 +9778,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const data = await res.json();
         const books = Array.isArray(data.books) ? data.books : [];
         const normalized = books.map(b => (window.normalizeBook ? window.normalizeBook(b) : b)).filter(Boolean);
-        return normalized.slice(0, targetCount).map((item) => {
+        const shuffled = shuffleArray(normalized);
+        return shuffled.slice(0, targetCount).map((item) => {
           const rawCover = String(item?.rawCover || '').trim();
           const proxyCover = String(item?.image || item?.cover || '').trim();
           const fallbackChain = [];

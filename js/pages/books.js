@@ -281,7 +281,9 @@ function wireEvents() {
         let href = card.querySelector("a")?.getAttribute("href");
         // Enforce book cards always go to book.html, never to openlibrary.org
         if (href && /openlibrary\.org/i.test(href)) {
-          href = 'books.html';
+          const match = href.match(/\/works\/([OL\dW]+)/i) || href.match(/[?&]id=([^&]+)/);
+          const bookId = match ? match[1] : null;
+          href = bookId ? 'book.html?id=' + encodeURIComponent(bookId) : 'books.html';
         }
         if (href) window.location.href = href;
       }

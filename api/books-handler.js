@@ -313,7 +313,7 @@ export default async function booksHandler(req, res) {
 
   if (section === "popular") {
     setCache(res, { maxAge: 600, staleWhileRevalidate: 3600 });
-    const limit = Math.min(Number(query.limit) || 20, 40);
+    const limit = Math.min(Number(query.limit) || 20, 100);
     const startIndex = Math.max(0, Number(query.startIndex) || 0);
     const genre = String(query.genre || "").trim().toLowerCase();
     const sort = String(query.sort || "").trim().toLowerCase();
@@ -328,6 +328,10 @@ export default async function booksHandler(req, res) {
           "graphic novel", "true crime", "science", "history",
           "philosophy", "self help"
         ];
+        
+    if (!genre) {
+      genres.sort(() => Math.random() - 0.5);
+    }
 
     const need = startIndex + limit;
     const allBooks = [];
@@ -457,12 +461,16 @@ export default async function booksHandler(req, res) {
       } catch (_) {}
 
       const [workData, searchData] = await Promise.all([
-        openLibFetch(`works/${encodeURIComponent(possibleVolumeId)}.json`),
-        openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1, sort: "rating" })
+        openLibFetch(`works/${encodeURIComponent(possibleVolumeId)}.json`).catch(() => ({})),
+        openLibFetch(`search.json`, { q: `key:/works/${encodeURIComponent(possibleVolumeId)}`, limit: 1, sort: "rating" }).catch(() => ({}))
       ]);
       
       let baseDoc = (searchData.docs && searchData.docs[0]) || { key: `/works/${possibleVolumeId}` };
       let normalized = mapOpenLibDoc(baseDoc);
+      
+      if (gbData && gbData.items && gbData.items[0]) {
+          normalized.id = possibleVolumeId; // Ensure ID matches what was requested
+      }
       
       if (workData.title) normalized.title = workData.title;
       if (workData.description) {

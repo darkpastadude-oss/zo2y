@@ -416,11 +416,34 @@
     var user = await ensureUser();
     if (!client || !user) return;
 
+    var cardImage = '';
+    var cardTitle = '';
+    var cardHref = '';
+    if (cardEl) {
+      cardImage = cardEl.getAttribute('data-image') || cardEl.getAttribute('data-list-image') || '';
+      cardTitle = cardEl.getAttribute('data-title') || '';
+      cardHref = cardEl.getAttribute('data-href') || '';
+      if (!cardImage) {
+        var imgEl = cardEl.querySelector('.card-media img, img');
+        if (imgEl) cardImage = imgEl.getAttribute('src') || '';
+      }
+      if (!cardTitle) {
+        var titleEl = cardEl.querySelector('.card-name, .card-title, .title, .media-title, h2, h3');
+        if (titleEl) cardTitle = titleEl.textContent.trim();
+      }
+      if (!cardTitle) {
+        var innerImg = cardEl.querySelector('img');
+        if (innerImg) cardTitle = innerImg.getAttribute('alt') || '';
+      }
+    }
+
     var payload = {
       user_id: user.id,
       media_type: mediaType,
       item_id: String(itemId),
-      list_type: listType
+      list_type: listType,
+      title: cardTitle || _config.title || '',
+      image_url: cardImage || _config.image || ''
     };
 
     try {
@@ -433,22 +456,10 @@
           .is('list_id', null);
         var insertResult = await client.from('list_items').insert(payload);
         if (insertResult && insertResult.error) throw insertResult.error;
+        if (window.ListUtils && typeof window.ListUtils.ensureBookRecord === 'function' && mediaType === 'book') {
+          window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: cardTitle, image: cardImage, authors: _config.subtitle || '' });
+        }
         if (cardEl && window.ListUtils) {
-          var cardImage = cardEl.getAttribute('data-image') || cardEl.getAttribute('data-list-image') || '';
-          var cardTitle = cardEl.getAttribute('data-title') || '';
-          var cardHref = cardEl.getAttribute('data-href') || '';
-          if (!cardImage) {
-            var imgEl = cardEl.querySelector('.card-media img, img');
-            if (imgEl) cardImage = imgEl.getAttribute('src') || '';
-          }
-          if (!cardTitle) {
-            var titleEl = cardEl.querySelector('.card-name, .card-title, .title, .media-title, h2, h3');
-            if (titleEl) cardTitle = titleEl.textContent.trim();
-          }
-          if (!cardTitle) {
-            var innerImg = cardEl.querySelector('img');
-            if (innerImg) cardTitle = innerImg.getAttribute('alt') || '';
-          }
           if (cardImage || cardTitle) {
             window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle, image: cardImage, url: cardHref });
           }
