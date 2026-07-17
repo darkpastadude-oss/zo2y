@@ -9085,6 +9085,16 @@ const alreadyActive = isMobile
                 }
 
                 const listOwnerUserId = String(list?.user_id || userId || '').trim() || userId;
+                let listItemsMeta = new Map();
+                try {
+                    const listData = await window.ListService?.loadList?.(supabase, listOwnerUserId, 'book', listId);
+                    if (listData && Array.isArray(listData.items)) {
+                        listData.items.forEach(function (item) {
+                            const eid = String(item?.item_id || '').trim();
+                            if (eid) listItemsMeta.set(eid, { title: item.title || '', image_url: item.image_url || '' });
+                        });
+                    }
+                } catch (_e) {}
                 const bookIds = await fetchMediaCollectionItemIds('book', listOwnerUserId, listId, listType);
                 const tierMeta = getTierMetaForList('book', list, bookIds.length);
                 const detailTitle = getCollectionTitleWithKind('book', list, listType);
@@ -9126,10 +9136,10 @@ const alreadyActive = isMobile
 
                 currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('book');
-                await renderBookItems(bookIds, listId, listType, isMobile, list, listOwnerUserId);
+                await renderBookItems(bookIds, listId, listType, isMobile, list, listOwnerUserId, listItemsMeta);
             }
 
-            async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null) {
+            async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null, listItemsMeta = null) {
                 const container = isMobile ? document.getElementById('mobileBookItems') : document.getElementById('bookItemsContainer');
                 if (!container) return;
                 applyCollectionViewToContainer(container, 'book');
@@ -9154,6 +9164,19 @@ const alreadyActive = isMobile
                 const canEditItems = canEditCollectionItems('book', listId, listType, list);
 
                 container.innerHTML = Skel.collectionList(4);
+                if (listItemsMeta && listItemsMeta.size) {
+                    listItemsMeta.forEach(function (meta, eid) {
+                        if (!bookCache.has(eid) && (meta.title || meta.image_url)) {
+                            bookCache.set(eid, {
+                                id: eid,
+                                title: meta.title || '',
+                                author_name: '',
+                                cover_url: meta.image_url || '',
+                                thumbnail: meta.image_url || ''
+                            });
+                        }
+                    });
+                }
                 const resolvedRows = await Promise.all(rankedBookIds.map((id) => resolveProfileBookRecord(id)));
                 const bookData = resolvedRows.filter(Boolean);
 
@@ -9165,7 +9188,8 @@ const alreadyActive = isMobile
                 for (let i = 0; i < rankedBookIds.length; i++) {
                     const id = rankedBookIds[i];
                     const row = bookMap.get(id);
-                    const title = row?.title || 'Untitled';
+                    const listItemMeta = listItemsMeta?.get?.(id) || null;
+                    const title = row?.title || listItemMeta?.title || 'Untitled';
                     const rawAuthors = row?.authors;
                     let subtitle;
                     if (Array.isArray(rawAuthors)) {
@@ -9176,7 +9200,7 @@ const alreadyActive = isMobile
                         subtitle = row?.author_name || row?.authors || 'Unknown';
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
-                    const image = row?.cover_url || row?.thumbnail || FALLBACK_BOOK_IMAGE;
+                    const image = row?.cover_url || row?.thumbnail || listItemMeta?.image_url || FALLBACK_BOOK_IMAGE;
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(

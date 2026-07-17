@@ -443,6 +443,7 @@
       item_id: String(itemId),
       list_type: String(listType).toLowerCase(),
       title: cardTitle || _config.title || '',
+      subtitle: _config.subtitle || '',
       image_url: cardImage || _config.image || ''
     };
 
@@ -457,7 +458,7 @@
         var insertResult = await client.from('list_items').insert(payload);
         if (insertResult && insertResult.error) throw insertResult.error;
         if (window.ListUtils && typeof window.ListUtils.ensureBookRecord === 'function' && mediaType === 'book') {
-          window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: cardTitle, image: cardImage, authors: _config.subtitle || '' });
+          window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: payload.image_url, authors: payload.subtitle || _config.subtitle || '' });
         }
         if (cardEl && window.ListUtils) {
           if (cardImage || cardTitle) {
