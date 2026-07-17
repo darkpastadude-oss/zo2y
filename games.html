@@ -731,48 +731,22 @@
 
 
 
-    <section class="section">
 
-      <div class="section-head">
 
-        <h2>new releases</h2>
-
-        <p>Fresh games from this year.</p>
-
+    <section class="media-spotlight" id="gamesSpotlight" hidden>
+      <div class="media-spotlight-shell">
+        <div class="media-spotlight-bg" id="gamesSpotlightBg"></div>
+        <div class="media-spotlight-copy">
+          <div class="media-spotlight-kicker">Featured Game</div>
+          <h2 id="gamesSpotlightTitle">Game Title</h2>
+          <p class="media-spotlight-meta" id="gamesSpotlightMeta">Year | Rating</p>
+          <p class="media-spotlight-summary" id="gamesSpotlightSummary">Game description goes here.</p>
+          <a class="media-spotlight-cta" id="gamesSpotlightOpen" href="#">View Details</a>
+        </div>
+        <div class="media-spotlight-poster">
+          <img id="gamesSpotlightImage" src="/images/fallback/game.svg" alt="Game poster" loading="lazy">
+        </div>
       </div>
-
-      <div class="grid" id="newReleasesGrid"></div>
-      <script>
-        (function() {
-          var g = document.getElementById('newReleasesGrid');
-          if (g && !g.children.length) {
-            g.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(12, 4) : '';
-          }
-        })();
-      </script>
-
-    </section>
-
-    <section class="section">
-
-      <div class="section-head">
-
-        <h2>trending now</h2>
-
-        <p>Popular games gaining traction this week.</p>
-
-      </div>
-
-      <div class="grid" id="trendingGrid"></div>
-      <script>
-        (function() {
-          var g = document.getElementById('trendingGrid');
-          if (g && !g.children.length) {
-            g.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(12, 4) : '';
-          }
-        })();
-      </script>
-
     </section>
 
     <section class="section">
@@ -2121,8 +2095,7 @@
 
         await initAuthUi();
 
-        await Promise.all([loadGames(), loadNewReleases(), loadTrendingGames()]);
-
+        await loadGames();
         
 
         renderGrid();
@@ -2137,226 +2110,7 @@
 
     }
 
-    async function loadTrendingGames() {
-      const grid = document.getElementById('trendingGrid');
-      if (!grid) return;
-      try {
-        let games = [];
 
-        // Fetch trending from IGDB/Wikipedia
-        try {
-          const cacheKey = 'trending_v2';
-          let igdbGames = readIgdbBrowseCache(cacheKey);
-
-          if (!igdbGames) {
-            const igdbUrl = new URL('/api/igdb/games', window.location.origin);
-            igdbUrl.searchParams.set('page', '1');
-            igdbUrl.searchParams.set('page_size', '40');
-            igdbUrl.searchParams.set('min_rating_count', '50');
-            igdbUrl.searchParams.set('rev', 'wiki20260714a');
-            const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
-            if (igdbRes.ok) {
-              const igdbData = await igdbRes.json();
-              igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
-              writeIgdbBrowseCache(cacheKey, igdbGames);
-            } else {
-              igdbGames = [];
-            }
-          }
-
-          for (const row of igdbGames) {
-            const title = String(row.title || row.name || '').trim();
-            const rowId = String(row.id || '');
-            if (!title) continue;
-            games.push({
-              id: rowId || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
-              name: title,
-              cover: normalizeGameCoverUrl(row.cover || row.image || ''),
-              firstReleaseDate: row.firstReleaseDate || row.released || '',
-              rating: row.rating || 0,
-              genres: Array.isArray(row.genres) ? row.genres : []
-            });
-          }
-        } catch (_) {}
-
-        // Also pull from Supabase for high-rating games
-        const client = await ensureSupabase();
-        if (client) {
-          try {
-            const { data, error } = await client.from('games')
-              .select('*')
-              .order('rating_count', { ascending: false })
-              .order('rating', { ascending: false })
-              .limit(30);
-            if (!error && Array.isArray(data)) {
-              const existingTitles = new Set(games.map(g => g.name.toLowerCase()));
-              for (const g of data) {
-                const title = String(g.title || g.name || '').trim();
-                if (!title || existingTitles.has(title.toLowerCase())) continue;
-                existingTitles.add(title.toLowerCase());
-                games.push({
-                  id: String(g.id || ''),
-                  name: title,
-                  cover: resolveGameCover(g),
-                  firstReleaseDate: g.release_date || '',
-                  rating: g.rating || 0,
-                  genres: Array.isArray(g.extra?.genres) ? g.extra.genres : []
-                });
-              }
-            }
-          } catch (_) {}
-        }
-
-        if (!games.length) { grid.innerHTML = ''; return; }
-
-        // Filter to games with covers, shuffle, take 18
-        const withCovers = games.filter(g => g.cover && g.cover !== FALLBACK_IMAGE);
-        const shuffled = shuffleArray(withCovers).slice(0, 18);
-
-        const html = shuffled.map(game => {
-          const coverUrl = game.cover || FALLBACK_IMAGE;
-          const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
-          const genreText = (Array.isArray(game.genres) ? game.genres : []).slice(0, 2).map(g => g?.name || g || '').filter(Boolean).join(' | ');
-          return `
-          <article class="card" data-href="game.html?id=${escapeHtml(game.id)}" data-media-type="game" data-item-id="${escapeHtml(game.id)}" data-title="${escapeHtml(game.name)}" data-subtitle="${escapeHtml(year)}" data-image="${escapeHtml(coverUrl)}" data-list-image="${escapeHtml(coverUrl)}">
-            <div class="card-media game-poster is-loading-media">
-              <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
-            </div>
-            <div class="card-meta">
-              <span class="card-type"><i class="fa-solid fa-gamepad"></i> Game</span>
-              <div class="card-meta-top">
-                <p class="card-name">${escapeHtml(game.name)}</p>
-                <div class="card-menu-wrap">
-                  <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-              </div>
-              <p class="card-sub">${escapeHtml(year)}</p>
-              ${genreText ? `<p class="card-extra">${escapeHtml(genreText)}</p>` : ''}
-            </div>
-          </article>`;
-        }).join('');
-        grid.innerHTML = html;
-        wireGridActions(grid);
-      } catch (_err) {
-        grid.innerHTML = '';
-      }
-    }
-
-    async function loadNewReleases() {
-      const grid = document.getElementById('newReleasesGrid');
-      if (!grid) return;
-      try {
-        const client = await ensureSupabase();
-        const currentYear = new Date().getFullYear();
-        let games = [];
-
-        if (client) {
-          try {
-            const { data, error } = await client.from('games')
-              .select('*')
-              .gte('release_date', `${currentYear}-01-01`)
-              .lte('release_date', `${currentYear}-12-31`)
-              .order('release_date', { ascending: false })
-              .order('rating_count', { ascending: false })
-              .limit(24);
-            if (!error && Array.isArray(data)) {
-              games = data.map(g => ({
-                id: String(g.id || ''),
-                name: g.title || g.name || 'Unknown Game',
-                cover: resolveGameCover(g),
-                firstReleaseDate: g.release_date || '',
-                rating: g.rating || 0,
-                genres: Array.isArray(g.extra?.genres) ? g.extra.genres : []
-              })).filter(g => g.id && g.name);
-            }
-          } catch (_) {}
-        }
-
-        // Supplement from IGDB/Wikipedia for current year games not in Supabase
-        try {
-          const cacheKey = `newreleases_${currentYear}`;
-          let igdbGames = readIgdbBrowseCache(cacheKey);
-
-          if (!igdbGames) {
-            const igdbUrl = new URL('/api/igdb/games', window.location.origin);
-            igdbUrl.searchParams.set('page', '1');
-            igdbUrl.searchParams.set('page_size', '40');
-            igdbUrl.searchParams.set('ordering', '-released');
-            igdbUrl.searchParams.set('dates', `${currentYear}-01-01,${currentYear}-12-31`);
-            igdbUrl.searchParams.set('rev', 'wiki20260714a');
-            const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
-            if (igdbRes.ok) {
-              const igdbData = await igdbRes.json();
-              igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
-              writeIgdbBrowseCache(cacheKey, igdbGames);
-            } else {
-              igdbGames = [];
-            }
-          }
-
-          const existingIds = new Set(games.map(g => g.id));
-          const existingTitles = new Set(games.map(g => g.name.toLowerCase()));
-          for (const row of igdbGames) {
-            const title = String(row.title || row.name || '').trim();
-            const rowId = String(row.id || '');
-            if (!title) continue;
-            if (existingIds.has(rowId) || existingTitles.has(title.toLowerCase())) continue;
-            existingIds.add(rowId);
-            existingTitles.add(title.toLowerCase());
-            games.push({
-              id: rowId || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
-              name: title,
-              cover: normalizeGameCoverUrl(row.cover || row.image || ''),
-              firstReleaseDate: row.firstReleaseDate || row.released || '',
-              rating: row.rating || 0,
-              genres: Array.isArray(row.genres) ? row.genres : []
-            });
-          }
-        } catch (_) {}
-
-        if (!games.length) { grid.innerHTML = ''; return; }
-
-        // Sort: games with covers first, then by release date desc
-        games.sort((a, b) => {
-          const aHas = a.cover && a.cover !== FALLBACK_IMAGE ? 1 : 0;
-          const bHas = b.cover && b.cover !== FALLBACK_IMAGE ? 1 : 0;
-          if (aHas !== bHas) return bHas - aHas;
-          return String(b.firstReleaseDate || '').localeCompare(String(a.firstReleaseDate || ''));
-        });
-
-        // Shuffle the top pool to show variety
-        const withCovers = games.filter(g => g.cover && g.cover !== FALLBACK_IMAGE);
-        const noCovers = games.filter(g => !g.cover || g.cover === FALLBACK_IMAGE);
-        const shuffled = [...shuffleArray(withCovers).slice(0, 18), ...noCovers.slice(0, 6)];
-
-        const html = shuffled.map(game => {
-          const coverUrl = game.cover || FALLBACK_IMAGE;
-          const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
-          const genreText = (Array.isArray(game.genres) ? game.genres : []).slice(0, 2).map(g => g?.name || g || '').filter(Boolean).join(' | ');
-          return `
-          <article class="card" data-href="game.html?id=${escapeHtml(game.id)}" data-media-type="game" data-item-id="${escapeHtml(game.id)}" data-title="${escapeHtml(game.name)}" data-subtitle="${escapeHtml(year)}" data-image="${escapeHtml(coverUrl)}" data-list-image="${escapeHtml(coverUrl)}">
-            <div class="card-media game-poster is-loading-media">
-              <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(game.name)}" loading="lazy" onerror="this.src='${escapeHtml(FALLBACK_IMAGE)}'; this.alt='${escapeHtml(game.name)} - cover not available';">
-            </div>
-            <div class="card-meta">
-              <span class="card-type"><i class="fa-solid fa-gamepad"></i> Game</span>
-              <div class="card-meta-top">
-                <p class="card-name">${escapeHtml(game.name)}</p>
-                <div class="card-menu-wrap">
-                  <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
-                </div>
-              </div>
-              <p class="card-sub">${escapeHtml(year)}</p>
-              ${genreText ? `<p class="card-extra">${escapeHtml(genreText)}</p>` : ''}
-            </div>
-          </article>`;
-        }).join('');
-        grid.innerHTML = html;
-        wireGridActions(grid);
-      } catch (_err) {
-        grid.innerHTML = '';
-      }
-    }
 
 
 
