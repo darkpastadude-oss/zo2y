@@ -179,8 +179,9 @@ export default async function booksHandler(req, res) {
   };
 
   if (section === "cover") {
-    const targetUrl = String(query.url || "").trim();
+    let targetUrl = String(query.url || "").trim();
     if (!targetUrl) return res.status(400).json({ error: "Missing url" });
+    targetUrl = targetUrl.replace(/^http:/i, 'https:');
     const SVG_FALLBACK = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" viewBox="0 0 200 300"><rect width="200" height="300" fill="#1a1a2e"/><text x="100" y="150" text-anchor="middle" fill="#666" font-size="14">No Cover</text></svg>';
     try {
       const controller = new AbortController();

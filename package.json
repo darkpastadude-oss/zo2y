@@ -40,5 +40,8 @@
   "bugs": {
     "url": "https://github.com/darkpastadude-oss/zo2y/issues"
   },
-  "homepage": "https://github.com/darkpastadude-oss/zo2y#readme"
+  "homepage": "https://github.com/darkpastadude-oss/zo2y#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
 }

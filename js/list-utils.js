@@ -1393,7 +1393,7 @@
 
     const row = { media_type: type, item_id: entityId, user_id: ownerId };
     if (isDefault) {
-      row.list_type = listId;
+      row.list_type = String(listId).toLowerCase();
     } else {
       row.list_id = listId;
     }
@@ -1404,10 +1404,11 @@
     let query = client
       .from(cfg.itemsTable)
       .select('id')
+      .eq('user_id', ownerId)
       .eq('item_id', entityId);
       
     if (isDefault) {
-      query = query.eq('list_type', listId).is('list_id', null);
+      query = query.eq('list_type', String(listId).toLowerCase()).is('list_id', null);
     } else {
       query = query.eq('list_id', listId).is('list_type', null);
     }
@@ -1454,7 +1455,7 @@
       'owned', 'tried', 'want_to_try'
     ]);
     if (defaultListIds.has(String(listId).toLowerCase())) {
-      query = query.eq('list_type', listId).is('list_id', null);
+      query = query.eq('list_type', String(listId).toLowerCase()).is('list_id', null);
     } else {
       query = query.eq('list_id', listId).is('list_type', null);
     }
@@ -1571,15 +1572,12 @@
 
     if (isDefault) {
       title = getDefaultListTitle(listId);
-      const sysKey = SYSTEM_LIST_KEY_MAP[String(listId).toLowerCase()] || String(listId).toLowerCase();
-      const systemListId = await resolveSystemListId(client, sysKey);
-      if (!systemListId) return null;
       const query = client
         .from(cfg.itemsTable)
         .select('*')
         .eq('user_id', userId)
         .eq('media_type', type)
-        .eq('list_type', listId)
+        .eq('list_type', String(listId).toLowerCase())
         .is('list_id', null);
       const { data, error } = await query;
       if (error) {

@@ -441,7 +441,7 @@
       user_id: user.id,
       media_type: mediaType,
       item_id: String(itemId),
-      list_type: listType,
+      list_type: String(listType).toLowerCase(),
       title: cardTitle || _config.title || '',
       image_url: cardImage || _config.image || ''
     };
@@ -452,7 +452,7 @@
           .eq('user_id', user.id)
           .eq('media_type', mediaType)
           .eq('item_id', String(itemId))
-          .eq('list_type', listType)
+          .eq('list_type', String(listType).toLowerCase())
           .is('list_id', null);
         var insertResult = await client.from('list_items').insert(payload);
         if (insertResult && insertResult.error) throw insertResult.error;
@@ -470,7 +470,7 @@
           .eq('user_id', user.id)
           .eq('media_type', mediaType)
           .eq('item_id', String(itemId))
-          .eq('list_type', listType)
+          .eq('list_type', String(listType).toLowerCase())
           .is('list_id', null);
         if (deleteResult && deleteResult.error) throw deleteResult.error;
         showToast('Removed from list', 'info');
