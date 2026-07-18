@@ -154,7 +154,7 @@ export default async function handler(req, res) {
     }
 
     // WIKIPEDIA FALLBACK
-    const dates = String(query.dates || "").trim();
+    
     const genres = String(query.genres || "").trim();
     const titleOnly = isTruthyFlag(query.title_only || query.search_title_only || query.titleOnly);
     const spotlight = isTruthyFlag(query.spotlight || query.include_spotlight || query.includeSpotlight);
