@@ -51,6 +51,47 @@
     return raw.replace(/^http:\/\//i, 'https://');
   }
 
+  async function isTransparentPng(url) {
+    if (!url) return false;
+    const ext = url.split('?')[0].split('.').pop().toLowerCase();
+    if (ext !== 'png' && ext !== 'webp') return false;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const w = Math.min(img.naturalWidth, 64);
+          const h = Math.min(img.naturalHeight, 96);
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, w, h);
+          const data = ctx.getImageData(0, 0, w, h).data;
+          let transparent = 0;
+          let total = 0;
+          for (let i = 3; i < data.length; i += 16) {
+            total++;
+            if (data[i] < 30) transparent++;
+          }
+          const ratio = transparent / total;
+          resolve(ratio > 0.35);
+        } catch (_) {
+          resolve(false);
+        }
+      };
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  }
+
+  function buildArtworkFrame(posterUrl, title) {
+    return `<div class="logo-artwork-frame">
+      <img class="game-logo" src="${escapeHtml(posterUrl)}" alt="${escapeHtml(title || 'Game logo')}" />
+      <div class="frame-label">official artwork</div>
+    </div>`;
+  }
+
   async function initSupabase() {
     if (supabaseClient) return supabaseClient;
     const authRuntime = window.ZO2Y_AUTH || null;
@@ -341,6 +382,20 @@
           }
         });
       }
+
+      if (posterUrl && !posterUrl.includes('fallback')) {
+        isTransparentPng(posterUrl).then(isLogo => {
+          if (!isLogo) return;
+          const heroPoster = document.querySelector('#unifiedHeroContainer .umh-poster');
+          if (heroPoster) {
+            const wrap = document.createElement('div');
+            wrap.className = 'poster-artwork-wrap';
+            wrap.innerHTML = buildArtworkFrame(posterUrl, config.title);
+            heroPoster.style.display = 'none';
+            heroPoster.parentElement.insertBefore(wrap, heroPoster);
+          }
+        }).catch(() => {});
+      }
     }
 
     if (els.aboutBody) {
@@ -394,12 +449,23 @@
 
     if (supabaseClient && game.source !== 'rawg' && (heroBg || screenshots.length > 0)) {
       const shared = window.__zo2yGamesShared;
-      if (shared?.syncRawgArtworkToSupabase) {
-        shared.syncRawgArtworkToSupabase(supabaseClient, gameId, {
+      if (shared?.ensureGameInSupabase) {
+        shared.ensureGameInSupabase(supabaseClient, {
+          id: gameId,
+          name: game.name,
+          slug: game.slug,
+          description: game.description,
+          cover: posterUrl,
           hero_background: heroBg,
-          background_image: heroBg,
-          background_image_secondary: heroSec,
-          screenshots: screenshots
+          hero_background_secondary: heroSec,
+          screenshots: screenshots,
+          released: game.released,
+          rating: game.rating,
+          ratings_count: game.rating_count,
+          genres: game.genres,
+          platforms: game.platforms,
+          developers: game.developers,
+          publishers: game.publishers
         }).catch(() => {});
       }
     }

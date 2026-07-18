@@ -285,7 +285,6 @@
         });
       }
     }
-  }
 
   async function hydrateRemoteMeta(rows) {
     const tasks = [];
@@ -383,124 +382,12 @@
     return rows;
   }
 
-  function stopSpotlightTimer() {
-    if (!spotlightTimer) return;
-    window.clearInterval(spotlightTimer);
-    spotlightTimer = null;
-  }
-
-  function buildSpotlightItems(rows) {
-    const unique = new Set();
-    return (rows || [])
-      .filter((row) => row && (String(row.comment || "").trim() || Number(row.rating || 0) > 0))
-      .sort((a, b) => (b.rating - a.rating) || (new Date(b.createdAt || 0) - new Date(a.createdAt || 0)))
-      .filter((row) => {
-        const key = reviewKey(row.mediaType, row.itemId);
-        if (!key || unique.has(key)) return false;
-        unique.add(key);
-        return true;
-      })
-      .slice(0, 8)
-      .map((row) => {
-        const meta = getMeta(row.mediaType, row.itemId);
-        return {
-          title: meta.title || "Untitled",
-          subtitle: meta.subtitle || (LABEL_BY_MEDIA[row.mediaType] || "Media"),
-          image: getSafeReviewImage(meta.image || ""),
-          href: meta.href || "reviews.html",
-          mediaLabel: LABEL_BY_MEDIA[row.mediaType] || "Media",
-          reviewer: getReviewer(row.userId),
-          quote: String(row.comment || "").trim() || `Rated ${Number(row.rating || 0).toFixed(1)}/5`,
-          rating: Math.max(0, Math.min(5, Number(row.rating || 0))),
-          dateLabel: formatDate(row.createdAt)
-        };
-      });
-  }
-
-  function renderSpotlightStats(rows) {
-    const statsEl = document.getElementById("reviewsSpotlightStats");
-    if (!statsEl) return;
-    const safeRows = Array.isArray(rows) ? rows : [];
-    if (!safeRows.length) {
-      statsEl.innerHTML = '<span class="reviews-spotlight-stat"><i class="fa-solid fa-wave-square"></i> 0 live reviews</span>';
-      return;
-    }
-    const avg = safeRows.reduce((sum, row) => sum + Math.max(0, Math.min(5, Number(row?.rating || 0))), 0) / safeRows.length;
-    const commented = safeRows.filter((row) => String(row?.comment || "").trim()).length;
-    statsEl.innerHTML = [
-      `${safeRows.length} live reviews`,
-      `${avg.toFixed(1)}/5 average`,
-      `${commented} with written takes`
-    ].map((text, index) => {
-      const icons = ["fa-wave-square", "fa-star-half-stroke", "fa-pen-line"];
-      return `<span class="reviews-spotlight-stat"><i class="fa-solid ${icons[index]}"></i> ${escapeHtml(text)}</span>`;
-    }).join("");
-  }
-
-  function renderSpotlight(index = 0) {
-    const layer = document.getElementById("reviewsSpotlightCardLayer");
-    const popMeta = document.getElementById("reviewsSpotlightPopoverMeta");
-    const popTitle = document.getElementById("reviewsSpotlightPopoverTitle");
-    const popStars = document.getElementById("reviewsSpotlightPopoverStars");
-    const popByline = document.getElementById("reviewsSpotlightPopoverByline");
-    const popQuote = document.getElementById("reviewsSpotlightPopoverQuote");
-    const popThumb = document.getElementById("reviewsSpotlightPopoverThumb");
-    const popLink = document.getElementById("reviewsSpotlightPopoverLink");
-    if (!layer) return;
-
-    if (!spotlightItems.length) {
-      layer.innerHTML = "";
-      return;
-    }
-
-    spotlightIndex = ((Number(index) || 0) % spotlightItems.length + spotlightItems.length) % spotlightItems.length;
-    const current = spotlightItems[spotlightIndex];
-    const next = spotlightItems[(spotlightIndex + 1) % spotlightItems.length] || null;
-
-    layer.innerHTML = [current, next].filter(Boolean).map((item, offset) => {
-      const cardClass = offset === 0 ? "reviews-spotlight-card is-front is-active tone-sun" : "reviews-spotlight-card is-right tone-sky";
-      return `
-        <a class="${cardClass}" href="${escapeHtml(item.href)}" aria-label="Open ${escapeHtml(item.title)}">
-          <div class="reviews-spotlight-card-body">
-            <div class="reviews-spotlight-card-rating">${escapeHtml("â˜…".repeat(Math.max(1, Math.round(item.rating))))}</div>
-            <div class="reviews-spotlight-card-media">${escapeHtml(item.mediaLabel)}</div>
-            <h3 class="reviews-spotlight-card-title">${escapeHtml(item.title)}</h3>
-            <p class="reviews-spotlight-card-quote">${escapeHtml(fixEncoding(item.quote))}</p>
-            <div class="reviews-spotlight-card-signoff">-(${escapeHtml(String(item.reviewer || "").replace(/^@/, "") || "zo2y")})</div>
-          </div>
-          <div class="reviews-spotlight-card-thumb-wrap">
-            <img class="reviews-spotlight-card-thumb" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)} artwork" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'">
-          </div>
-        </a>`;
-    }).join("");
-
-    if (popMeta) popMeta.textContent = `${current.mediaLabel} review`;
-    if (popTitle) popTitle.textContent = current.title;
-    if (popStars) popStars.innerHTML = stars(current.rating);
-    if (popByline) popByline.textContent = `${current.reviewer} | ${current.rating.toFixed(1)}/5 | ${current.dateLabel}`;
-    if (popQuote) popQuote.textContent = current.quote;
-    if (popThumb) popThumb.src = getSafeReviewImage(current.image || FALLBACK_IMAGE);
-    if (popLink) popLink.href = current.href || "reviews.html";
-  }
-
-  function resetSpotlightTimer() {
-    stopSpotlightTimer();
-    if (spotlightItems.length < 2) return;
-    spotlightTimer = window.setInterval(() => {
-      renderSpotlight(spotlightIndex + 1);
-    }, 7000);
-  }
-
   function render() {
     const listEl = document.getElementById("reviewsList");
     const summaryEl = document.getElementById("summaryText");
     if (!listEl) return;
 
     const rows = filteredRows();
-    renderSpotlightStats(rows);
-    spotlightItems = buildSpotlightItems(rows);
-    renderSpotlight(0);
-    resetSpotlightTimer();
 
     if (summaryEl) {
       const label = mediaFilter === "all" ? "all media" : (LABEL_BY_MEDIA[mediaFilter] || mediaFilter);
@@ -512,7 +399,9 @@
       return;
     }
 
-    listEl.innerHTML = rows.map((row) => {
+    const paperColors = ["paper-cream", "paper-yellow", "paper-orange", "paper-blue", "paper-green"];
+
+    listEl.innerHTML = rows.map((row, idx) => {
       const media = String(row.mediaType || "").toLowerCase();
       const meta = getMeta(media, row.itemId);
       const title = escapeHtml(meta.title || "Untitled");
@@ -520,24 +409,28 @@
       const reviewer = escapeHtml(getReviewer(row.userId));
       const rating = Math.max(0, Math.min(5, Number(row.rating || 0)));
       const mediaLabel = escapeHtml(LABEL_BY_MEDIA[media] || "Media");
-      const mediaIcon = escapeHtml(ICON_BY_MEDIA[media] || "fa-shapes");
       const href = escapeHtml(meta.href || "#");
       const image = escapeHtml(getSafeReviewImage(meta.image || ""));
-      const comment = escapeHtml(fixEncoding(String(row.comment || "").trim())) || "No written comment provided.";
-      const dateText = escapeHtml(formatDate(row.createdAt));
+      const comment = escapeHtml(fixEncoding(String(row.comment || "").trim()));
+      
+      const rotation = (Math.random() * 4 - 2).toFixed(1);
+      const paperClass = paperColors[Math.floor(Math.random() * paperColors.length)];
+      const delay = (idx * 0.05).toFixed(2);
+
       return `
-        <a class="card" href="${href}" data-media="${escapeHtml(media)}" data-item-id="${escapeHtml(row.itemId)}">
-          <div>
-            <div class="top">
-              <span class="badge"><i class="fa-solid ${mediaIcon}"></i> ${mediaLabel}</span>
-              <span class="date">${dateText}</span>
+        <a class="sticky-card ${paperClass}" href="${href}" data-media="${escapeHtml(media)}" data-item-id="${escapeHtml(row.itemId)}" style="transform: rotate(${rotation}deg); animation-delay: ${delay}s">
+          <div class="sticky-meta">
+            <img class="sticky-thumb" src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'" />
+            <div class="sticky-info">
+              <div class="sticky-title" title="${title}">${title}</div>
+              <div class="sticky-subtitle">${mediaLabel}</div>
             </div>
-            <h3 class="title" title="${title}">${title}</h3>
-            <div class="meta">Reviewed by ${reviewer} | ${subtitle}</div>
-            <div class="stars">${stars(rating)}<span>${rating}/5</span></div>
-            <p class="comment">${comment}</p>
           </div>
-          <div class="art"><img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'" /></div>
+          ${comment ? `<div class="sticky-quote">${comment}</div>` : ''}
+          <div class="sticky-footer">
+            <div class="sticky-reviewer">by ${reviewer}</div>
+            <div class="sticky-rating">${stars(rating)}</div>
+          </div>
         </a>`;
     }).join("");
   }
@@ -555,12 +448,6 @@
     document.getElementById("sortSelect")?.addEventListener("change", (event) => {
       sortMode = String(event.target.value || "newest");
       render();
-    });
-
-    document.getElementById("reviewsSpotlightMobileNext")?.addEventListener("click", (event) => {
-      event.preventDefault();
-      renderSpotlight(spotlightIndex + 1);
-      resetSpotlightTimer();
     });
   }
 
@@ -581,7 +468,6 @@
       if (listEl) listEl.innerHTML = '<div class="empty">No reviews have been posted yet.</div>';
       const summary = document.getElementById("summaryText");
       if (summary) summary.textContent = "0 reviews found.";
-      renderSpotlightStats([]);
       return;
     }
 

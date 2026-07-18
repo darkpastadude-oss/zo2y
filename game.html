@@ -170,6 +170,76 @@
         .game-screenshot-lightbox .lightbox-prev,
         .game-screenshot-lightbox .lightbox-next { width: 36px; height: 36px; font-size: 14px; }
       }
+
+      /* Transparent / logo-only game poster inside an artwork frame */
+      .logo-artwork-frame {
+        position: relative;
+        width: 100%;
+        max-width: 340px;
+        aspect-ratio: 2/3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+        backdrop-filter: blur(6px);
+      }
+      .logo-artwork-frame::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.04) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .logo-artwork-frame .game-logo {
+        width: 72%;
+        max-height: 72%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 12px rgba(0,0,0,0.5));
+        transition: transform 0.3s ease;
+      }
+      .logo-artwork-frame:hover .game-logo {
+        transform: scale(1.04);
+      }
+      .logo-artwork-frame .frame-label {
+        position: absolute;
+        bottom: 12px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.45);
+      }
+      /* poster container that may hold either a normal poster or the frame */
+      .poster-artwork-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 340px;
+      }
+      .poster-artwork-wrap img.poster-main {
+        width: 100%;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        border-radius: 10px;
+        display: block;
+      }
+      .poster-artwork-wrap .poster-fallback-gradient {
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255,255,255,0.15);
+        font-size: 3rem;
+      }
     </style>
   </head>
   <body class="elevated-media-page" data-elevated-category="games">

@@ -1186,8 +1186,18 @@
       }
 
       let mapped = games.map((game) => {
-        const heroBg = normalizeGameCoverUrl(game.hero_background || game.background_image || '');
-        const heroSec = normalizeGameCoverUrl(game.hero_background_secondary || game.background_image_additional || '');
+        let heroBg = normalizeGameCoverUrl(game.hero_background || game.background_image || '');
+        let heroSec = normalizeGameCoverUrl(game.hero_background_secondary || game.background_image_additional || '');
+        const shared = window.__zo2yGamesShared;
+        if (shared?.chooseValidBackground) {
+          const validated = shared.chooseValidBackground({
+            backgroundImage: heroBg,
+            additionalBackground: heroSec,
+            screenshots: Array.isArray(game.screenshots) ? game.screenshots : [],
+            localBackdrop: game.hero_url || ''
+          });
+          if (validated) heroBg = validated;
+        }
         const screenshots = Array.isArray(game.screenshots) ? game.screenshots.map(s => typeof s === 'string' ? normalizeGameCoverUrl(s) : normalizeGameCoverUrl(s?.image || '')).filter(Boolean).slice(0, 6) : [];
         return {
           id: String(game.id || ''),

@@ -3,19 +3,25 @@
     "table": "food_brands",
     "name": "Little Caesars",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Little_Caesars_logo_%282021%29.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/5/57/Little_Caesars_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "Buffalo Wild Wings",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Buffalo_Wild_Wings_logo.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/c/c5/Buffalo_Wild_Wings_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "Carrabba's Italian Grill",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Carrabba%27s_Italian_Grill_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/2/2f/Carrabba%27s_Italian_Grill_logo.svg"
+  },
+  {
+    "table": "food_brands",
+    "name": "Red Robin",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Red%20Robin%20logo.svg?width=256"
   },
   {
     "table": "food_brands",
@@ -37,33 +43,45 @@
   },
   {
     "table": "food_brands",
+    "name": "Domino's",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Domino's%202025.svg?width=256"
+  },
+  {
+    "table": "food_brands",
     "name": "Smoothie King",
     "issue": "HTTP 429",
     "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Smoothie%20King%20logo.svg?width=256"
   },
   {
     "table": "food_brands",
-    "name": "Sonic Drive-In",
+    "name": "TLJUS",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/SONIC%20New%20Logo%202020.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tgi%20fridays%20logo13.svg?width=256"
   },
   {
     "table": "food_brands",
     "name": "Chipotle",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Chipotle_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/3/3b/Chipotle_Mexican_Grill_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "Red Lobster",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Red_Lobster_logo.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/1/1b/Red_Lobster_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "Popeyes",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Popeyes_logo_%282023%29.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/2/2e/Popeyes_logo_%282023%29.svg"
+  },
+  {
+    "table": "food_brands",
+    "name": "Dunkin'",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Dunkin1.JPG?width=256"
   },
   {
     "table": "food_brands",
@@ -73,9 +91,9 @@
   },
   {
     "table": "food_brands",
-    "name": "KFC",
+    "name": "McDonald's",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kfc%20textlogo.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/McDonald's%20with%20slogan%202020.svg?width=256"
   },
   {
     "table": "food_brands",
@@ -85,21 +103,33 @@
   },
   {
     "table": "food_brands",
-    "name": "Panda Express",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Panda_Express_logo.svg?width=256"
-  },
-  {
-    "table": "food_brands",
     "name": "Texas Roadhouse",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Texas_Roadhouse_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/5/58/Texas_Roadhouse_logo.svg"
   },
   {
     "table": "food_brands",
-    "name": "Panera Bread",
+    "name": "TX Chicken",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Panera%20Bread%20wordmark.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Churchs-logo.svg?width=256"
+  },
+  {
+    "table": "food_brands",
+    "name": "White Castle",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/2/26/White_Castle_logo.svg"
+  },
+  {
+    "table": "food_brands",
+    "name": "Papa John's",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Papa%20John's%20Logo%202019.svg?width=256"
+  },
+  {
+    "table": "food_brands",
+    "name": "Peet's Coffee",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Peet's%20Coffee%20logo.svg?width=256"
   },
   {
     "table": "food_brands",
@@ -151,9 +181,9 @@
   },
   {
     "table": "food_brands",
-    "name": "Wendy's",
+    "name": "Wagamama",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Wendy's%20logo%202012.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Wagamama-Logo.svg?width=256"
   },
   {
     "table": "food_brands",
@@ -163,15 +193,21 @@
   },
   {
     "table": "food_brands",
-    "name": "Torchy's Tacos",
+    "name": "Panda Express",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Torchy%27s_Tacos_logo.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/a/ad/Panda_Express_logo.svg"
   },
   {
     "table": "food_brands",
-    "name": "White Castle",
+    "name": "Torchy's Tacos",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/White_Castle_logo.svg?width=256"
+    "url": "https://images.squarespace-cdn.com/content/v1/5c1a79854eddecbb1b2e666a/1550508756911-3W711T6X1A9N6XZV6XZV/torchys-logo.png"
+  },
+  {
+    "table": "food_brands",
+    "name": "Zippy's",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Zippy's%20logo.svg?width=256"
   },
   {
     "table": "food_brands",
@@ -183,25 +219,37 @@
     "table": "food_brands",
     "name": "Wingstop",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Wingstop_logo_%282024%29.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/9/91/Wingstop_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "YO! Sushi",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Yo_Sushi_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/2/2d/YO%21_Sushi_logo.svg"
   },
   {
     "table": "food_brands",
     "name": "Zaxby's",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Zaxby%27s_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/8/87/Zaxby%27s_logo.svg"
   },
   {
     "table": "car_brands",
-    "name": "Buick",
+    "name": "Audi",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Buick%20logo%201980.png?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Audi-Logo%202016.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "BMW",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BMW%20logo%20(gray).svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Bugatti",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bugatti%20Logo.png?width=256"
   },
   {
     "table": "car_brands",
@@ -211,9 +259,33 @@
   },
   {
     "table": "car_brands",
+    "name": "Changan",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Changan%20icon.svg?width=256"
+  },
+  {
+    "table": "car_brands",
     "name": "Chevrolet",
     "issue": "HTTP 429",
     "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Chevrolet%20simple%20logo.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Genesis",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/6/69/Genesis_Motor_logo.svg"
+  },
+  {
+    "table": "car_brands",
+    "name": "Jaguar",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/f/f6/Jaguar_Cars_logo.svg"
+  },
+  {
+    "table": "car_brands",
+    "name": "Honda",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Honda%20logo.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -223,21 +295,27 @@
   },
   {
     "table": "car_brands",
-    "name": "Genesis",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Genesis_motors_logo.svg?width=256"
-  },
-  {
-    "table": "car_brands",
-    "name": "Jaguar",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jaguar_Cars_logo.svg?width=256"
-  },
-  {
-    "table": "car_brands",
-    "name": "Jeep",
+    "name": "Isuzu",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jeep%20wordmark.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Isuzu.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Lancia",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/2/2f/Lancia_logo_%282022%29.svg"
+  },
+  {
+    "table": "car_brands",
+    "name": "Kia",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/KIA%20logo3.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Lamborghini",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lamborghini%20-%20logo%20wordmark%2Bpayoff%20(Italy%2C%201963-).svg?width=256"
   },
   {
     "table": "car_brands",
@@ -247,9 +325,9 @@
   },
   {
     "table": "car_brands",
-    "name": "Lincoln",
+    "name": "Lucid Motors",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo%20Lincoln.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lucid%20Motors%20logo.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -271,9 +349,9 @@
   },
   {
     "table": "car_brands",
-    "name": "Lancia",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lancia_logo_%282023%29.svg?width=256"
+    "name": "Mahindra",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mahindra_logo.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -283,9 +361,21 @@
   },
   {
     "table": "car_brands",
+    "name": "Ram Trucks",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ram%20Trucks%202009%20wordmark.svg?width=256"
+  },
+  {
+    "table": "car_brands",
     "name": "Renault",
     "issue": "HTTP 429",
     "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2021%20Renault%20Group%20logo.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Rimac Automobili",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rimac%20Automobili%20logo.png?width=256"
   },
   {
     "table": "car_brands",
@@ -295,33 +385,45 @@
   },
   {
     "table": "car_brands",
+    "name": "SAAB",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Saab%20wordmark%20grey.svg?width=256"
+  },
+  {
+    "table": "car_brands",
     "name": "Abarth",
     "issue": "HTTP 429",
     "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Abarth%20Logo.png?width=256"
   },
   {
     "table": "car_brands",
-    "name": "Citroën",
+    "name": "Daihatsu",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Logo-citroen-1919.png?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Daihatsu%20logo%201998.svg?width=256"
   },
   {
     "table": "car_brands",
     "name": "Dacia",
     "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Dacia_logo.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/4/4b/Dacia_logo.svg"
   },
   {
     "table": "car_brands",
     "name": "Mini",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mini_logo_until_2024.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/8/8a/Mini_logo_%282018%29.svg"
   },
   {
     "table": "car_brands",
     "name": "Proton",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Proton_cars_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/e/e0/Proton_logo.svg"
+  },
+  {
+    "table": "car_brands",
+    "name": "NIO",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/NIO_logo.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -337,9 +439,9 @@
   },
   {
     "table": "car_brands",
-    "name": "Ferrari",
+    "name": "Dodge",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ferrari%20wordmark.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Dodge%20Logo%202010.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -349,9 +451,9 @@
   },
   {
     "table": "car_brands",
-    "name": "SAIC Motor",
+    "name": "Ford",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/SAIC%20Motor.svg?width=256"
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ford%20logo%20flat.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -361,9 +463,9 @@
   },
   {
     "table": "car_brands",
-    "name": "Subaru",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Subaru_Corporation_logo.svg?width=256"
+    "name": "Volkswagen",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Volkswagen_logo_2019.svg?width=256"
   },
   {
     "table": "car_brands",
@@ -373,33 +475,45 @@
   },
   {
     "table": "car_brands",
+    "name": "Zeekr",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Zeekr_logo.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Western Star Trucks",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Western_Star_Trucks_logo.svg?width=256"
+  },
+  {
+    "table": "car_brands",
+    "name": "Subaru",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/1/19/Subaru_Corporation_logo.svg"
+  },
+  {
+    "table": "car_brands",
     "name": "Volvo Cars",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Volvo_cars_logo_%282023%29.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/7/77/Volvo_Cars_logo.svg"
   },
   {
     "table": "car_brands",
     "name": "Tata Motors",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tata_Motors_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/b/b2/Tata_Motors_logo.svg"
   },
   {
     "table": "car_brands",
     "name": "VinFast",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/VinFast_logo.svg?width=256"
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/en/3/3d/VinFast_logo.svg"
   },
   {
     "table": "car_brands",
     "name": "Vauxhall",
-    "issue": "HTTP 404",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vauxhall_logo.svg?width=256"
-  },
-  {
-    "table": "car_brands",
-    "name": "SEAT",
     "issue": "HTTP 429",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/SEAT%20S.A.%20logo.svg?width=256"
+    "url": "https://upload.wikimedia.org/wikipedia/en/9/98/Vauxhall_Motors_logo_%282020%29.svg"
   },
   {
     "table": "car_brands",
@@ -409,15 +523,15 @@
   },
   {
     "table": "car_brands",
+    "name": "Scania",
+    "issue": "HTTP 429",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Scandia%20wordmark.svg?width=256"
+  },
+  {
+    "table": "car_brands",
     "name": "Škoda Auto",
     "issue": "HTTP 429",
     "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Laurin%20%26%20Klement%20logo.svg?width=256"
-  },
-  {
-    "table": "fashion_brands",
-    "name": "Balenciaga",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Balenciaga_Logo.svg/330px-Balenciaga_Logo.svg.png"
   },
   {
     "table": "fashion_brands",
@@ -430,6 +544,12 @@
     "name": "Converse",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Converse_logo.svg/330px-Converse_logo.svg.png"
+  },
+  {
+    "table": "fashion_brands",
+    "name": "COS",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/COS_logo.png/330px-COS_logo.png"
   },
   {
     "table": "fashion_brands",
@@ -457,12 +577,6 @@
   },
   {
     "table": "fashion_brands",
-    "name": "ASICS",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Asics_Logo.svg/330px-Asics_Logo.svg.png"
-  },
-  {
-    "table": "fashion_brands",
     "name": "Express",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Express_Clothing_Logo.SVG/330px-Express_Clothing_Logo.SVG.png"
@@ -481,6 +595,12 @@
   },
   {
     "table": "fashion_brands",
+    "name": "Givenchy",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Givenchy_-_logo_%28France%2C_2003%29.svg/330px-Givenchy_-_logo_%28France%2C_2003%29.svg.png"
+  },
+  {
+    "table": "fashion_brands",
     "name": "H&M",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/H%26M-Logo.svg/330px-H%26M-Logo.svg.png"
@@ -496,12 +616,6 @@
     "name": "Louis Vuitton",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Louis_Vuitton_logo.svg/330px-Louis_Vuitton_logo.svg.png"
-  },
-  {
-    "table": "fashion_brands",
-    "name": "Moncler",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Logo_Moncler_Group.svg/330px-Logo_Moncler_Group.svg.png"
   },
   {
     "table": "fashion_brands",
@@ -535,6 +649,12 @@
   },
   {
     "table": "fashion_brands",
+    "name": "Merrell",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Merrell-Logo.svg/330px-Merrell-Logo.svg.png"
+  },
+  {
+    "table": "fashion_brands",
     "name": "Michael Kors",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Michael_Kors_Logo.svg/330px-Michael_Kors_Logo.svg.png"
@@ -544,12 +664,6 @@
     "name": "Puma",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Puma-logo-%28text%29.svg/330px-Puma-logo-%28text%29.svg.png"
-  },
-  {
-    "table": "fashion_brands",
-    "name": "Ralph Lauren",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Ralph_Lauren_logo.svg/330px-Ralph_Lauren_logo.svg.png"
   },
   {
     "table": "fashion_brands",
@@ -583,15 +697,15 @@
   },
   {
     "table": "fashion_brands",
-    "name": "Lacoste",
+    "name": "Kith",
     "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Lacoste_wordmark_2011.svg/330px-Lacoste_wordmark_2011.svg.png"
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Kith_brand_logo.svg/330px-Kith_brand_logo.svg.png"
   },
   {
     "table": "fashion_brands",
-    "name": "Levi/s",
+    "name": "Lacoste",
     "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Levi%27s_logo.svg/330px-Levi%27s_logo.svg.png"
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Lacoste_wordmark_2011.svg/330px-Lacoste_wordmark_2011.svg.png"
   },
   {
     "table": "fashion_brands",
@@ -625,21 +739,15 @@
   },
   {
     "table": "fashion_brands",
-    "name": "Tory Burch",
+    "name": "Wrangler",
     "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Tory_Burch_logo.svg/330px-Tory_Burch_logo.svg.png"
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Wrangler_%28Jeans%29_logo.svg/330px-Wrangler_%28Jeans%29_logo.svg.png"
   },
   {
     "table": "fashion_brands",
     "name": "Tommy Hilfiger",
-    "issue": "HTTP 404",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Tommy_Hilfiger_logo.svg/330px-Tommy_Hilfiger_logo.svg.png"
-  },
-  {
-    "table": "fashion_brands",
-    "name": "Wrangler",
     "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Wrangler_%28Jeans%29_logo.svg/330px-Wrangler_%28Jeans%29_logo.svg.png"
+    "url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Tommy_Hilfiger_logo.svg"
   },
   {
     "table": "fashion_brands",
@@ -673,15 +781,15 @@
   },
   {
     "table": "fashion_brands",
-    "name": "Clarks",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/C_%26_J_Clarks_International_company_logo.svg/330px-C_%26_J_Clarks_International_company_logo.svg.png"
-  },
-  {
-    "table": "fashion_brands",
     "name": "HUGO BOSS",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Hugo_Boss_orange_logo.svg/330px-Hugo_Boss_orange_logo.svg.png"
+  },
+  {
+    "table": "fashion_brands",
+    "name": "Vans",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Vans-logo.svg/330px-Vans-logo.svg.png"
   },
   {
     "table": "fashion_brands",
@@ -709,12 +817,6 @@
   },
   {
     "table": "fashion_brands",
-    "name": "Under Armour",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/330px-Under_armour_logo.svg.png"
-  },
-  {
-    "table": "fashion_brands",
     "name": "Uniqlo",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/UNIQLO_logo_%28Japanese%29.svg/330px-UNIQLO_logo_%28Japanese%29.svg.png"
@@ -739,6 +841,12 @@
   },
   {
     "table": "fashion_brands",
+    "name": "Umbro",
+    "issue": "HTTP 429",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Umbro_logo_%28current%29.svg/330px-Umbro_logo_%28current%29.svg.png"
+  },
+  {
+    "table": "fashion_brands",
     "name": "Vacheron Constantin",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Vacheron_logo.svg/330px-Vacheron_logo.svg.png"
@@ -754,12 +862,6 @@
     "name": "YSL",
     "issue": "HTTP 429",
     "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/YSL_logo.jpg"
-  },
-  {
-    "table": "fashion_brands",
-    "name": "Zara",
-    "issue": "HTTP 429",
-    "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/330px-Zara_Logo.svg.png"
   },
   {
     "table": "fashion_brands",

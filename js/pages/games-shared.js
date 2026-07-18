@@ -11,18 +11,33 @@
   const IGDB_PROXY_BASE = '/api/igdb';
   const coverLookupCache = new Map();
   const COVER_STORAGE_PREFIX = 'zo2y_game_cover_cache_v1:';
-  const COVER_STORAGE_TTL_MS = 1000 * 60 * 60 * 24 * 21; // 21 days
+  const COVER_STORAGE_TTL_MS = 1000 * 60 * 60 * 24 * 21;
   const GAME_SEARCH_CACHE_PREFIX = 'zo2y_game_search_cache_v2:';
-  const GAME_SEARCH_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const GAME_SEARCH_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const gameSearchCache = new Map();
   const NO_COVER_CACHE_PREFIX = 'zo2y_game_nocover_v1:';
-  const NO_COVER_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const NO_COVER_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
   const STEAM_COVER_TEMPLATES = [
     (id) => `https://steamcdn-a.akamaihd.net/steam/apps/${id}/library_600x900.jpg`,
     (id) => `https://steamcdn-a.akamaihd.net/steam/apps/${id}/header.jpg`
   ];
   const CC = window.__zo2yCoverCache;
+
+  const HERO_MIN_WIDTH = 1280;
+  const HERO_DESKTOP_WIDTH = 1920;
+  const SCREENSHOT_MIN_WIDTH = 1000;
+
+  const BAD_IMAGE_PATTERNS = [
+    /\/avatar/i, /\/user\//i, /\/profile/i,
+    /\/logo\./i, /\/icon\./i, /\/badge\./i,
+    /\/award/i, /\/trophy/i,
+    /\/voice[_-]?actor/i, /\/cast/i,
+    /\/developer[_-]?avatar/i, /\/publisher[_-]?logo/i,
+    /transparent.*logo/i, /logo.*transparent/i
+  ];
+
+  const LANDSCAPE_MIN_RATIO = 1.2;
 
   function normalizeCacheKey(title) {
     return String(title || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_');
@@ -41,23 +56,149 @@
     return toHttpsUrl(raw);
   }
 
-  function resolveGameCover(row) {
-    const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamId;
+  function isBadImageUrl(url) {
+    const src = String(url || '').toLowerCase();
+    if (!src) return true;
+    return BAD_IMAGE_PATTERNS.some(p => p.test(src));
+  }
+
+  function isLikelyLogoOnlyGameArt(url) {
+    const src = String(url || '').toLowerCase();
+    if (!src) return false;
+    if (src.endsWith('.svg') || src.includes('.svg?')) return true;
+    if (src.includes('logo') && !src.includes('cover') && !src.includes('poster')) return true;
+    if (src.includes('transparent') && src.includes('logo')) return true;
+    if (src.includes('wordmark') || src.includes('icon')) return true;
+    return false;
+  }
+
+  function stripResizeParams(url) {
+    return String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
+  }
+
+  function isHeroBackgroundCandidate(url) {
+    if (!url) return false;
+    if (isBadImageUrl(url)) return false;
+    const src = String(url).toLowerCase();
+    if (src.includes('pexels.com')) return false;
+    if (src.includes('newlogo.webp') || src.includes('fallback')) return false;
+    if (isLikelyLogoOnlyGameArt(url)) return false;
+    return true;
+  }
+
+  function isValidScreenshot(s) {
+    if (!s) return false;
+    const url = typeof s === 'string' ? s : (s?.image || s?.url || '');
+    if (!url) return false;
+    if (isBadImageUrl(url)) return false;
+    const src = String(url).toLowerCase();
+    if (src.includes('pexels.com') || src.includes('newlogo.webp')) return false;
+    return true;
+  }
+
+  function isLandscapeScreenshot(s) {
+    if (!isValidScreenshot(s)) return false;
+    if (typeof s === 'object' && s !== null) {
+      const w = Number(s.width || 0);
+      const h = Number(s.height || 0);
+      if (w > 0 && h > 0) {
+        if (h > w) return false;
+        if (w < SCREENSHOT_MIN_WIDTH) return false;
+        return true;
+      }
+    }
+    const url = String(typeof s === 'string' ? s : (s?.image || s?.url || '')).toLowerCase();
+    if (url.includes('screenshot') || url.includes('gameplay') || url.includes('media/rawg')) return true;
+    if (isLikelyLogoOnlyGameArt(url)) return false;
+    return true;
+  }
+
+  function chooseValidBackground(candidates) {
+    const bg = normalizeGameCoverUrl(candidates.backgroundImage);
+    if (bg && isHeroBackgroundCandidate(bg)) return bg;
+
+    const bgAdditional = normalizeGameCoverUrl(candidates.additionalBackground);
+    if (bgAdditional && isHeroBackgroundCandidate(bgAdditional)) return bgAdditional;
+
+    const screenshots = Array.isArray(candidates.screenshots) ? candidates.screenshots : [];
+    for (const s of screenshots) {
+      if (isLandscapeScreenshot(s)) {
+        const url = typeof s === 'string' ? s : (s?.image || s?.url || '');
+        const normalized = normalizeGameCoverUrl(url);
+        if (normalized && isHeroBackgroundCandidate(normalized)) return normalized;
+      }
+    }
+
+    const localBackdrop = normalizeGameCoverUrl(candidates.localBackdrop);
+    if (localBackdrop && isHeroBackgroundCandidate(localBackdrop)) return localBackdrop;
+
+    return '';
+  }
+
+  function chooseValidPoster(candidates) {
+    const steamAppId = candidates.steamAppId;
     if (steamAppId) {
       const num = String(steamAppId).replace(/\D/g, '');
       if (num.length >= 2) {
         return `https://steamcdn-a.akamaihd.net/steam/apps/${num}/library_600x900.jpg`;
       }
     }
-    return normalizeGameCoverUrl(row?.cover_url || row?.cover || row?.image || '');
+
+    const primary = normalizeGameCoverUrl(candidates.primary);
+    if (primary && !isLikelyLogoOnlyGameArt(primary) && !isBadImageUrl(primary)) return primary;
+
+    const extra = Array.isArray(candidates.extra) ? candidates.extra : [];
+    for (const url of extra) {
+      const normalized = normalizeGameCoverUrl(url);
+      if (normalized && !isLikelyLogoOnlyGameArt(normalized) && !isBadImageUrl(normalized)) return normalized;
+    }
+
+    if (primary) return primary;
+    return '';
+  }
+
+  function generateGradientFallback(posterUrl) {
+    const seed = String(posterUrl || 'game').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const hue1 = (seed * 37) % 360;
+    const hue2 = (hue1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${hue1},25%,12%) 0%, hsl(${hue2},20%,8%) 100%)`;
+  }
+
+  function detectImageType(url) {
+    const src = String(url || '').toLowerCase();
+    if (!src) return 'unknown';
+    if (isLikelyLogoOnlyGameArt(url)) return 'logo';
+    if (src.includes('screenshot') || src.includes('gameplay') || src.includes('/media/')) return 'screenshot';
+    if (src.includes('background') || src.includes('hero') || src.includes('backdrop') || src.includes('fanart')) return 'hero';
+    if (src.includes('cover') || src.includes('poster') || src.includes('library_600x900')) return 'poster';
+    return 'unknown';
+  }
+
+  function resolveGameCover(row) {
+    return chooseValidPoster({
+      steamAppId: row?.extra?.steam_appid || row?.steam_appid || row?.steamId,
+      primary: row?.cover_url || row?.cover || row?.image || '',
+      extra: [
+        row?.extra?.cover,
+        row?.extra?.poster,
+        row?.poster,
+        ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
+        ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
+        ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : [])
+      ]
+    }) || FALLBACK_IMAGE;
   }
 
   function resolveGameHeroBackground(row) {
-    const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamId;
-    const steamHero = steamAppId
-      ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId).replace(/\D/g, '')}/header.jpg`
-      : '';
-    return normalizeGameCoverUrl(row?.hero_background || row?.background_image || row?.hero_url || row?.hero || row?.background || '') || steamHero || '';
+    const screenshots = Array.isArray(row?.screenshots) ? row.screenshots : [];
+    const shortScreens = Array.isArray(row?.short_screenshots) ? row.short_screenshots : [];
+
+    return chooseValidBackground({
+      backgroundImage: row?.hero_background || row?.background_image || '',
+      additionalBackground: row?.hero_background_secondary || row?.background_image_additional || '',
+      screenshots: [...screenshots, ...shortScreens],
+      localBackdrop: row?.hero_url || row?.hero || row?.background || ''
+    });
   }
 
   function resolveGameHeroSecondary(row) {
@@ -68,31 +209,34 @@
     const raw = row?.screenshots || row?.short_screenshots || [];
     if (!Array.isArray(raw)) return [];
     return raw
-      .map(s => {
-        if (typeof s === 'string') return normalizeGameCoverUrl(s);
-        return normalizeGameCoverUrl(s?.image || s?.url || '');
-      })
+      .filter(s => isValidScreenshot(s))
+      .map(s => normalizeGameCoverUrl(typeof s === 'string' ? s : (s?.image || s?.url || '')))
       .filter(Boolean)
       .slice(0, 12);
   }
 
   function resolveGameAssets(row) {
+    const poster = resolveGameCover(row);
+    const heroBackground = resolveGameHeroBackground(row);
+    const heroBackgroundSecondary = resolveGameHeroSecondary(row);
+    const screenshots = resolveGameScreenshots(row);
+    const isLogo = isLikelyLogoOnlyGameArt(poster);
+    const hasValidHero = !!heroBackground;
+    const gradient = (!hasValidHero && poster) ? generateGradientFallback(poster) : '';
+
     return {
-      poster: resolveGameCover(row),
-      heroBackground: resolveGameHeroBackground(row),
-      heroBackgroundSecondary: resolveGameHeroSecondary(row),
-      screenshots: resolveGameScreenshots(row)
+      poster,
+      heroBackground: heroBackground || '',
+      heroBackgroundSecondary,
+      screenshots,
+      isLogoOnly: isLogo,
+      gradientFallback: gradient,
+      imageType: detectImageType(poster)
     };
   }
 
   function resolveGameHero(row, fallbackCover = '') {
     return resolveGameHeroBackground(row) || normalizeGameCoverUrl(fallbackCover || row?.cover_url || row?.cover || '');
-  }
-
-  function isLikelyLogoOnlyGameArt(url) {
-    const src = String(url || '').toLowerCase();
-    if (!src) return false;
-    return src.includes('logo') && !src.includes('cover') && !src.includes('poster');
   }
 
   function ensureSupabase() {
@@ -244,7 +388,7 @@
   }
 
   const WIKI_SEARCH_CACHE = new Map();
-  const WIKI_SEARCH_TTL = 1000 * 60 * 60; // 1 hour in-memory
+  const WIKI_SEARCH_TTL = 1000 * 60 * 60;
 
   async function findWikipediaPageTitle(title, signal) {
     const q = String(title || '').trim().slice(0, 160);
@@ -362,13 +506,11 @@
         if (seen.has(dedupeKey)) continue;
         seen.add(dedupeKey);
 
-        const cover = resolveGameCover(row);
-        const heroBg = resolveGameHeroBackground(row);
-        const heroSecondary = resolveGameHeroSecondary(row);
-        const screenshots = resolveGameScreenshots(row);
-        const hero = heroBg || heroSecondary || cover;
-        const visual = cover || hero || FALLBACK_IMAGE;
-        const plain = isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
+        const assets = resolveGameAssets(row);
+        const visual = assets.poster || FALLBACK_IMAGE;
+        const hero = assets.heroBackground || visual;
+        const plain = assets.isLogoOnly || !assets.heroBackground;
+
         const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
         const genres = Array.isArray(row?.extra?.genres) ? row.extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
@@ -377,26 +519,29 @@
           : 'Video Game';
         const ratingText = Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : '';
 
-        items.push({
+        const item = {
           mediaType: 'game',
           itemId: id,
           title,
           subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
           image: visual,
-          backgroundImage: hero || visual,
-          heroBackground: heroBg || '',
-          heroBackgroundSecondary: heroSecondary,
-          screenshots: screenshots,
-          spotlightImage: hero || visual,
+          backgroundImage: hero,
+          heroBackground: assets.heroBackground || '',
+          heroBackgroundSecondary: assets.heroBackgroundSecondary,
+          screenshots: assets.screenshots,
+          spotlightImage: hero,
           spotlightMediaImage: visual,
-          spotlightMediaFit: plain ? 'contain' : 'contain',
+          spotlightMediaFit: 'contain',
           spotlightMediaShape: plain ? 'landscape' : 'poster',
           gameCardMode: plain ? 'plain' : 'hero',
           fallbackImage: FALLBACK_IMAGE,
+          gradientFallback: assets.gradientFallback || '',
+          isLogoOnly: assets.isLogoOnly,
           href: `game.html?id=${encodeURIComponent(String(id))}`
-        });
+        };
 
+        items.push(item);
         if (items.length >= limit) break;
       }
 
@@ -637,7 +782,7 @@
   }
 
   const ASSETS_CACHE_PREFIX = 'zo2y_game_assets_v1:';
-  const ASSETS_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const ASSETS_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const assetsCache = new Map();
 
   async function ensureGameAssets(gameId, existingRow, signal) {
@@ -686,7 +831,7 @@
   async function syncRawgArtworkToSupabase(client, gameId, assets) {
     if (!client || !gameId || !assets) return;
     const updates = {};
-    if (assets.hero_background && !assets.hero_background.includes('pexels.com')) {
+    if (assets.hero_background && isHeroBackgroundCandidate(assets.hero_background)) {
       updates.hero_url = assets.hero_background;
     }
     if (assets.background_image) updates.hero_url = updates.hero_url || assets.background_image;
@@ -704,6 +849,63 @@
     } catch (_err) {}
   }
 
+  async function ensureGameInSupabase(client, rawgGame) {
+    if (!client || !rawgGame || !rawgGame.id) return;
+    const isRawg = rawgGame.source === 'rawg' || String(rawgGame.id).startsWith('rawg_');
+    const gameId = isRawg
+      ? (String(rawgGame.id).startsWith('rawg_') ? rawgGame.id : `rawg_${rawgGame.id}`)
+      : String(rawgGame.id);
+    const title = rawgGame.name || rawgGame.title || '';
+    const slug = rawgGame.slug || '';
+    if (!title) return;
+    try {
+      const { data: existing } = await client
+        .from('games')
+        .select('id,extra')
+        .eq('id', gameId)
+        .maybeSingle();
+      const heroBg = normalizeGameCoverUrl(rawgGame.hero_background || rawgGame.background_image || '');
+      const heroSec = normalizeGameCoverUrl(rawgGame.hero_background_secondary || rawgGame.background_image_additional || '');
+      const screenshots = Array.isArray(rawgGame.screenshots)
+        ? rawgGame.screenshots.slice(0, 12)
+        : [];
+      const poster = normalizeGameCoverUrl(rawgGame.cover || rawgGame.cover_url || rawgGame.poster_image || '');
+      const existingExtra = existing?.extra || {};
+      const extra = {
+        ...existingExtra,
+        genres: rawgGame.genres || existingExtra.genres || [],
+        platforms: rawgGame.platforms || existingExtra.platforms || [],
+        background_image: heroBg || existingExtra.background_image,
+        background_image_additional: heroSec || existingExtra.background_image_additional,
+        screenshots: screenshots.length ? screenshots : existingExtra.screenshots || []
+      };
+      if (rawgGame.developers) extra.developers = rawgGame.developers;
+      if (rawgGame.publishers) extra.publishers = rawgGame.publishers;
+      const row = {
+        id: gameId,
+        title,
+        slug,
+        description: rawgGame.description || rawgGame.description_raw || '',
+        cover_url: poster,
+        hero_url: heroBg,
+        hero_background: heroBg,
+        hero_background_secondary: heroSec,
+        screenshots,
+        release_date: rawgGame.released || rawgGame.release_date || '',
+        rating: rawgGame.rating || rawgGame.metacritic || 0,
+        rating_count: rawgGame.ratings_count || rawgGame.rating_count || 0,
+        extra,
+        source: rawgGame.source || 'rawg',
+        last_synced_at: new Date().toISOString()
+      };
+      if (existing) {
+        await client.from('games').update(row).eq('id', gameId);
+      } else {
+        await client.from('games').insert(row);
+      }
+    } catch (_err) {}
+  }
+
   window.__zo2yGamesShared = {
     loadFeaturedGames,
     resolveGameCover,
@@ -713,10 +915,20 @@
     resolveGameAssets,
     ensureGameAssets,
     syncRawgArtworkToSupabase,
+    ensureGameInSupabase,
     fetchCoverForTitle,
     fetchWikipediaCoverCandidate,
     fetchWikipediaCoversForTitles,
     searchGamesFromWikipedia,
-    normalizeGameCoverUrl
+    normalizeGameCoverUrl,
+    chooseValidBackground,
+    chooseValidPoster,
+    isLikelyLogoOnlyGameArt,
+    isHeroBackgroundCandidate,
+    isValidScreenshot,
+    isLandscapeScreenshot,
+    generateGradientFallback,
+    detectImageType,
+    stripResizeParams
   };
 })();

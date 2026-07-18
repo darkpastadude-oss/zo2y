@@ -9006,6 +9006,11 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
 
     function resolveHomeGameCover(row) {
       if (!row) return '';
+      const shared = window.__zo2yGamesShared;
+      if (shared?.resolveGameCover) {
+        const cover = shared.resolveGameCover(row);
+        if (cover && cover !== '/newlogo.webp') return cover;
+      }
       if (hasPosterOfficialGameCover(row)) {
         return pickOfficialPosterGameUrl([row?.cover_url, row?.cover?.url, row?.cover]);
       }
@@ -9026,6 +9031,19 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     }
 
     function resolveHomeGameHero(row, fallback) {
+      const shared = window.__zo2yGamesShared;
+      if (shared?.chooseValidBackground) {
+        const bg = shared.chooseValidBackground({
+          backgroundImage: row?.hero_background || row?.background_image || '',
+          additionalBackground: row?.hero_background_secondary || row?.background_image_additional || '',
+          screenshots: [
+            ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+            ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots : [])
+          ],
+          localBackdrop: row?.hero_url || row?.hero || ''
+        });
+        if (bg) return bg;
+      }
       const steamAppId = row?.extra?.steam_appid || row?.steam_appid;
       const steamHero = steamAppId
         ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId).replace(/\D/g, '')}/header.jpg`

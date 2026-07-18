@@ -546,57 +546,221 @@
       .reviews-spotlight-card,
       .reviews-spotlight-card.is-front,
       .reviews-spotlight-card.is-right,
-      .reviews-spotlight-card.is-lower,
-      .reviews-spotlight-card.is-left {
-        position:absolute;
-        top:50% !important;
-        left:50% !important;
-        right:auto !important;
-        bottom:auto !important;
-        inset:auto;
-        width:min(78vw, 272px);
-        min-height:242px;
-        margin:0;
-        transform:translate(-50%, -50%) rotate(-4deg) !important;
-        opacity:0;
-        pointer-events:none;
-        display:none;
-      }
-      .reviews-spotlight-card { padding:32px 18px 22px; }
-      .reviews-spotlight-card.is-active {
-        display:block;
-        opacity:1;
-        pointer-events:auto;
-        z-index:5;
-      }
-      .reviews-spotlight-card.is-tearing-out,
-      .reviews-spotlight-card.is-tearing-in {
-        display:block;
-      }
-      .reviews-spotlight-card.is-front .reviews-spotlight-card-title { font-size:20px; }
-      .reviews-spotlight-card-body { padding-top:22px; padding-left:36px; padding-right:84px; gap:6px; }
-      .reviews-spotlight-card-rating { font-size:15px; }
-      .reviews-spotlight-card-media { font-size:12px; }
-      .reviews-spotlight-card-thumb-wrap { top:38px; right:12px; }
-      .reviews-spotlight-card-thumb { max-width:68px; transform:rotate(4deg); }
-      .reviews-spotlight-card-quote { -webkit-line-clamp:4; font-size:22px; }
-      .reviews-spotlight-card-signoff { font-size:20px; }
-      .reviews-spotlight-mobile-next {
-        right:12px;
-        bottom:12px;
-        min-height:36px;
-        padding:0 12px;
-        font-size:11px;
-      }
-      .reviews-spotlight-card.is-tearing-out {
-        animation: noteTearOut .28s cubic-bezier(.32,.02,.68,.95) forwards;
-        pointer-events:none;
-      }
-      .reviews-spotlight-card.is-tearing-in {
-        animation: noteTearIn .38s cubic-bezier(.2,.84,.28,1) both;
-        transform-origin:top center;
-      }
-      .reviews-spotlight-stats { width:100%; }
+      .reviews-spotlight-card.is-lower    .page { padding:24px 0 48px; display:grid; gap:24px; }
+    
+    .board-header {
+      padding: 32px 24px;
+      border-radius: 18px;
+      background: linear-gradient(160deg, rgba(23,43,88,.6), rgba(19,35,71,.8));
+      border: 1px solid rgba(255,255,255,.08);
+      display: grid;
+      gap: 12px;
+      text-align: center;
+    }
+    .board-header h1 {
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.1;
+      color: #fff;
+    }
+    .board-header p {
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      background: rgba(12,26,57,.6);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px;
+      justify-content: space-between;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .chip {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #d7e3ff;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .chip:hover { background: rgba(255,255,255,.12); color: #fff; }
+    .chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .sort { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+    .sort select {
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .summary {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    #reviewsList {
+      column-count: 1;
+      column-gap: 20px;
+      width: 100%;
+    }
+    @media (min-width: 640px) { #reviewsList { column-count: 2; } }
+    @media (min-width: 960px) { #reviewsList { column-count: 3; } }
+    @media (min-width: 1200px) { #reviewsList { column-count: 4; } }
+
+    .sticky-card {
+      break-inside: avoid;
+      margin-bottom: 24px;
+      padding: 24px 20px;
+      border-radius: 2px 2px 12px 2px;
+      position: relative;
+      color: #1a1a1a;
+      box-shadow: 2px 4px 10px rgba(0,0,0,.3), inset 0 0 20px rgba(0,0,0,.03);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+      animation: pinDrop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-decoration: none;
+    }
+    .sticky-card:hover {
+      box-shadow: 4px 12px 24px rgba(0,0,0,.4), inset 0 0 20px rgba(0,0,0,.03);
+      z-index: 10;
+    }
+
+    .paper-cream { background: #fdfbf7; }
+    .paper-yellow { background: #fff4d2; }
+    .paper-orange { background: #ffe8d4; }
+    .paper-blue { background: #e8f4fe; }
+    .paper-green { background: #e6f7eb; }
+
+    .sticky-card::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 30% 30%, #e87a7a, #c92a2a);
+      border-radius: 50%;
+      box-shadow: 0 4px 6px rgba(0,0,0,.4), inset -2px -2px 4px rgba(0,0,0,.3);
+      z-index: 2;
+    }
+
+    .sticky-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Inter, sans-serif;
+      font-size: 12px;
+      color: rgba(0,0,0,.6);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      padding-bottom: 12px;
+    }
+    .sticky-thumb {
+      width: 42px;
+      height: 60px;
+      border-radius: 4px;
+      object-fit: cover;
+      box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    }
+    .sticky-info {
+      flex: 1;
+      display: grid;
+      gap: 2px;
+    }
+    .sticky-title {
+      font-weight: 700;
+      color: rgba(0,0,0,.85);
+      font-size: 14px;
+      line-height: 1.2;
+    }
+    .sticky-subtitle {
+      font-size: 11px;
+    }
+    
+    .sticky-quote {
+      font-family: var(--hand-font);
+      font-size: 24px;
+      line-height: 1.4;
+      color: #1a1a1a;
+      white-space: pre-wrap;
+    }
+
+    .sticky-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      font-family: Inter, sans-serif;
+      font-size: 12px;
+      color: rgba(0,0,0,.5);
+      margin-top: auto;
+      padding-top: 8px;
+    }
+    .sticky-reviewer {
+      font-weight: 700;
+      color: rgba(0,0,0,.7);
+    }
+    
+    .sticky-rating {
+      display: flex;
+      gap: 2px;
+      color: #f59e0b;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .sticky-rating i { opacity: 0.4; }
+    .sticky-rating i.is-filled { opacity: 1; }
+
+    .floating-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--gradient);
+      color: #0b1633;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 12px 24px rgba(245,158,11,.4);
+      z-index: 200;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s;
+    }
+    .floating-btn:hover {
+      transform: scale(1.1) translateY(-4px);
+      box-shadow: 0 16px 32px rgba(245,158,11,.5);
+    }
+    @media (max-width: 768px) {
+      .floating-btn { bottom: 84px; right: 16px; }
+      .board-header { padding: 24px 16px; }
+    }
+
+    @keyframes pinDrop {
+      0% { opacity: 0; transform: translateY(-30px) scale(1.05) rotate(0deg); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
 
       .mobile-bottom-nav {
         position: fixed;
@@ -666,45 +830,35 @@
 <body>
   
   <main class="container page">
-    <section class="reviews-spotlight-shell" aria-label="Review spotlight">
-      <div class="reviews-spotlight-head">
-        <div>
-          <h2 class="reviews-spotlight-heading">reviews board</h2>
-        </div>
-      </div>
-      <div class="reviews-spotlight-stage" id="reviewsSpotlightStage" aria-label="Floating review spotlight cards">
-        <div class="reviews-spotlight-card-layer" id="reviewsSpotlightCardLayer"></div>
-        <div class="reviews-spotlight-popover" id="reviewsSpotlightPopover" aria-live="polite">
-          <img class="reviews-spotlight-popover-thumb" id="reviewsSpotlightPopoverThumb" src="/newlogo.webp" alt="" loading="lazy" decoding="async" />
-          <div class="reviews-spotlight-popover-body">
-            <div class="reviews-spotlight-popover-meta" id="reviewsSpotlightPopoverMeta">Review card</div>
-            <div class="reviews-spotlight-popover-title" id="reviewsSpotlightPopoverTitle">Hover a note to inspect the review.</div>
-            <div class="reviews-spotlight-popover-stars" id="reviewsSpotlightPopoverStars">5 stars</div>
-            <div class="reviews-spotlight-popover-byline" id="reviewsSpotlightPopoverByline">Reviewer, date, and media data appear here.</div>
-            <div class="reviews-spotlight-popover-quote" id="reviewsSpotlightPopoverQuote"></div>
-            <a class="reviews-spotlight-popover-link" id="reviewsSpotlightPopoverLink" href="reviews.html">Open item <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
-          </div>
-        </div>
-        <div class="reviews-spotlight-mobile-controls">
-          <button class="reviews-spotlight-mobile-next" id="reviewsSpotlightMobileNext" type="button">Next Note <i class="fa-solid fa-arrow-right"></i></button>
-        </div>
-      </div>
+    <section class="board-header">
+      <h1>Community Review Board</h1>
+      <p>Discover what people are actually thinking about movies, shows, games, books, music, and more.</p>
     </section>
+
     <section class="filters">
       <div class="chips" id="mediaFilters">
-        <button class="chip active" type="button" data-media="all">All</button>
-        <button class="chip" type="button" data-media="movie">Movies</button>
-        <button class="chip" type="button" data-media="tv">TV</button>
-        <button class="chip" type="button" data-media="anime">Anime</button>
-        <button class="chip" type="button" data-media="game">Games</button>
-        <button class="chip" type="button" data-media="book">Books</button>
-        <button class="chip" type="button" data-media="music">Music</button>
-        <button class="chip" type="button" data-media="travel">Travel</button>
-        <div class="sort"><label for="sortSelect">Sort</label><select id="sortSelect"><option value="newest">Newest</option><option value="highest">Highest Rated</option><option value="lowest">Lowest Rated</option></select></div>
+        <button class="chip active" type="button" data-media="all">🔥 Trending</button>
+        <button class="chip" type="button" data-media="highest">⭐ Highest Rated</button>
+        <button class="chip" type="button" data-media="recent">🆕 Recent</button>
+        <button class="chip" type="button" data-media="game">🎮 Games</button>
+        <button class="chip" type="button" data-media="movie">🎬 Movies</button>
       </div>
-      <div class="summary" id="summaryText"></div>
+      <div class="sort">
+        <label for="sortSelect">Sort</label>
+        <select id="sortSelect">
+          <option value="newest">Newest</option>
+          <option value="highest">Highest Rated</option>
+          <option value="lowest">Lowest Rated</option>
+        </select>
+      </div>
     </section>
-    <section id="reviewsList"><div class="empty" id="reviewsListSkeleton"></div></section>
+    
+    <div class="summary" id="summaryText"></div>
+
+    <section id="reviewsList">
+      <div class="empty" id="reviewsListSkeleton"></div>
+    </section>
+    
     <script>
       (function() {
         var el = document.getElementById('reviewsListSkeleton');
@@ -712,6 +866,10 @@
       })();
     </script>
   </main>
+  
+  <button class="floating-btn" aria-label="Write a Review" onclick="window.location.href='index.html'">
+    <i class="fa-solid fa-pen-nib"></i>
+  </button>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile sections">
     <a class="mobile-nav-item" href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
