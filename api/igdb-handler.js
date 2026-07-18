@@ -123,21 +123,26 @@ export default async function handler(req, res) {
         };
         const data = await fetchFromRAWG("games", params, RAWG_API_KEY);
         
-        const mappedResults = (data.results || []).map(g => ({
-          id: `rawg_${g.id}`,
-          title: g.name,
-          slug: g.slug,
-          description: "", // RAWG summary is not in list endpoint
-          cover: (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || ""),
-          hero_url: "",
-          firstReleaseDate: g.released,
-          rating: g.rating,
-          rating_count: g.ratings_count,
-          genres: g.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
-          platforms: g.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
-          source: "rawg",
-          steam_appid: "" // Not available in list endpoint
-        }));
+        const mappedResults = (data.results || []).map(g => {
+          const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
+          let coverImg = (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || "");
+          
+          return {
+            id: `rawg_${g.id}`,
+            title: g.name,
+            slug: g.slug,
+            description: "", // RAWG summary is not in list endpoint
+            cover: uncompress(coverImg),
+            hero_url: "",
+            firstReleaseDate: g.released,
+            rating: g.rating,
+            rating_count: g.ratings_count,
+            genres: g.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
+            platforms: g.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
+            source: "rawg",
+            steam_appid: "" // Not available in list endpoint
+          };
+        });
 
         res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=14400");
         return res.json({
@@ -210,7 +215,11 @@ export default async function handler(req, res) {
 
       const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
       const bestScreenshot = screenshots.find(s => s && s.image && !s.hidden) || screenshots[0];
-      const heroUrl = (bestScreenshot && bestScreenshot.image) || game.background_image_additional || "";
+      let heroUrl = (bestScreenshot && bestScreenshot.image) || game.background_image || game.background_image_additional || "";
+      
+      const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
+      coverUrl = uncompress(coverUrl);
+      heroUrl = uncompress(heroUrl);
 
       return {
         id: outId,
