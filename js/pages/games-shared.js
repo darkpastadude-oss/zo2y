@@ -12,7 +12,7 @@
   const coverLookupCache = new Map();
   const COVER_STORAGE_PREFIX = 'zo2y_game_cover_cache_v1:';
   const COVER_STORAGE_TTL_MS = 1000 * 60 * 60 * 24 * 21; // 21 days
-  const GAME_SEARCH_CACHE_PREFIX = 'zo2y_game_search_cache_v1:';
+  const GAME_SEARCH_CACHE_PREFIX = 'zo2y_game_search_cache_v2:';
   const GAME_SEARCH_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
   const gameSearchCache = new Map();
   const NO_COVER_CACHE_PREFIX = 'zo2y_game_nocover_v1:';

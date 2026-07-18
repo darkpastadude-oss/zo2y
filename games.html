@@ -1143,16 +1143,34 @@
           }
 
           if (!found) {
-            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
-            if (wikiGames && wikiGames.length) {
-              games = wikiGames;
-              found = true;
-            } else {
-              state.games = [];
-              state.allGames = [];
-              state.offset = 0;
-              state.hasMore = false;
-              return;
+            try {
+              const searchUrl = new URL('/api/igdb/games', window.location.origin);
+              searchUrl.searchParams.set('search', query);
+              searchUrl.searchParams.set('page_size', '20');
+              const res = await fetch(searchUrl.toString(), { headers: { accept: 'application/json' } });
+              if (res.ok) {
+                const data = await res.json();
+                if (data && data.results && data.results.length > 0) {
+                  games = data.results;
+                  found = true;
+                }
+              }
+            } catch (err) {
+              console.error('API search failed', err);
+            }
+
+            if (!found) {
+              const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
+              if (wikiGames && wikiGames.length) {
+                games = wikiGames;
+                found = true;
+              } else {
+                state.games = [];
+                state.allGames = [];
+                state.offset = 0;
+                state.hasMore = false;
+                return;
+              }
             }
           }
         } else {
@@ -1174,7 +1192,7 @@
           // Supplement from IGDB/Wikipedia for games not in Supabase
           if (!state.genre && !state.platform) {
             try {
-              const cacheKey = 'browse_all_v2';
+              const cacheKey = 'browse_all_rawg';
               let igdbGames = readIgdbBrowseCache(cacheKey);
 
               if (!igdbGames) {
@@ -1208,7 +1226,7 @@
                   rating: row.rating || 0,
                   rating_count: 10000,
                   extra: row.extra || { genres: row.genres || [], platforms: row.platforms || [] },
-                  source: 'wikipedia'
+                  source: row.source || 'rawg'
                 });
               }
               games = igdbNew.concat(games);
@@ -1232,7 +1250,7 @@
           source: game.source || 'supabase'
         };
       }).filter((g) => {
-        if (g.source === 'wikipedia') return g.id && g.name;
+        if (g.source === 'wikipedia' || g.source === 'igdb' || g.source === 'rawg') return g.id && g.name;
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
@@ -1241,9 +1259,9 @@
 
       if (!query) {
         const withCover = mapped.filter((g) => g.cover && g.cover !== FALLBACK_IMAGE);
-        const trending = withCover.filter((g) => g.source === 'wikipedia' || g.source === 'igdb');
-        const localCovers = withCover.filter((g) => isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb');
-        const otherCovers = withCover.filter((g) => !isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb');
+        const trending = withCover.filter((g) => g.source === 'wikipedia' || g.source === 'igdb' || g.source === 'rawg');
+        const localCovers = withCover.filter((g) => isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb' && g.source !== 'rawg');
+        const otherCovers = withCover.filter((g) => !isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb' && g.source !== 'rawg');
         const noCover = mapped.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
 
         mapped = [
