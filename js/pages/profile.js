@@ -4808,7 +4808,7 @@
                             if (apiBook && apiBook.id) {
                                 const merged = {
                                     id: key,
-                                    title: apiBook.title || dbData?.title || 'Unknown',
+                                    title: apiBook.title || dbData?.title || 'Untitled',
                                     author_name: apiBook.authors || apiBook.author || dbData?.author_name || '',
                                     cover_url: apiBook.image || apiBook.cover || dbData?.cover_url || '',
                                     external_url: apiBook.externalUrl || dbData?.external_url || ''

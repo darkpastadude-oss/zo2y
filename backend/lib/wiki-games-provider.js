@@ -453,13 +453,25 @@ function expandWikimediaThumbUrl(url) {
 function capWikimediaThumbUrl(url, maxWidth = 1920) {
   const raw = toHttpsUrl(url);
   if (!raw.includes("upload.wikimedia.org")) return raw;
-  const fullOriginal = expandWikimediaThumbUrl(raw);
-  const match = fullOriginal.match(/^(https:\/\/upload\.wikimedia\.org\/[^/]+)\/(.+\.[a-z0-9]{2,5})$/i);
-  if (!match) return raw;
-  const base = match[1];
-  const filePath = match[2];
-  const fileName = filePath.split("/").pop();
-  return `${base}/thumb/${filePath}/${maxWidth}px-${fileName}`;
+
+  const thumbSplit = raw.split("/thumb/");
+  if (thumbSplit.length === 2) {
+    const baseWithHash = thumbSplit[0];
+    const rest = thumbSplit[1];
+    const lastSep = rest.lastIndexOf("/");
+    if (lastSep < 0) return raw;
+    const filePath = rest.slice(0, lastSep);
+    const fileName = filePath.split("/").pop();
+    if (!fileName || !fileName.includes(".")) return raw;
+    return `${baseWithHash}/thumb/${filePath}/${maxWidth}px-${fileName}`;
+  }
+
+  const lastSlash = raw.lastIndexOf("/");
+  if (lastSlash < 0) return raw;
+  const dir = raw.slice(0, lastSlash);
+  const fileName = raw.slice(lastSlash + 1);
+  if (!fileName.includes(".")) return raw;
+  return `${dir}/thumb/${fileName}/${maxWidth}px-${fileName}`;
 }
 
 function resolveMediaItemImageUrl(item) {
