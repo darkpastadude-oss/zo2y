@@ -1133,11 +1133,13 @@
           let rawgGames = readIgdbBrowseCache(cacheKey);
 
           if (!rawgGames) {
-            const ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-rating';
+            const currentYear = new Date().getFullYear();
+            let ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-added';
+            let datesParam = state.sort === 'popular' ? `&dates=${currentYear-1}-01-01,${currentYear+1}-12-31` : '';
+            
             const requests = [
-              fetch('/api/igdb/games?page=1&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
-              fetch('/api/igdb/games?page=2&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
-              fetch('/api/igdb/games?page=3&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null)
+              fetch(`/api/igdb/games?page=1&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
+              fetch(`/api/igdb/games?page=2&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null)
             ];
             const results = await Promise.allSettled(requests);
             const merged = [];
