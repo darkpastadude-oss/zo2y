@@ -198,11 +198,13 @@ export default async function handler(req, res) {
       let coverUrl = "";
       if (steamId) {
         coverUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${steamId}/library_600x900.jpg`;
-      } else if (game.background_image_additional) {
-        coverUrl = game.background_image_additional;
+      } else if (game.background_image) {
+        coverUrl = game.background_image;
       } else {
-        coverUrl = game.background_image || "";
+        coverUrl = game.background_image_additional || "";
       }
+      
+      const heroUrl = game.background_image_additional || game.background_image || "";
 
       return {
         id: outId,
@@ -210,7 +212,7 @@ export default async function handler(req, res) {
         slug: game.slug,
         description: game.description_raw || game.description,
         cover: coverUrl,
-        hero_url: game.background_image || "",
+        hero_url: heroUrl,
         firstReleaseDate: game.released,
         rating: game.rating,
         rating_count: game.ratings_count,
@@ -218,7 +220,7 @@ export default async function handler(req, res) {
         platforms: game.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
         steam_appid: steamId,
         source: "rawg",
-        extra: { steam_appid: steamId, hero_url: game.background_image || "" }
+        extra: { steam_appid: steamId, hero_url: heroUrl }
       };
     }
 
@@ -244,10 +246,15 @@ export default async function handler(req, res) {
           }
         } catch(e) {}
         
-        if (!searchTitle) {
+        if (!searchTitle && Number.isFinite(id)) {
           const wikiDetail = await fetchWikipediaGameDetailsById(id);
           if (wikiDetail && wikiDetail.name) searchTitle = wikiDetail.name;
         }
+
+        if (!searchTitle && Number.isNaN(id) && rawId.startsWith("wiki_")) {
+          searchTitle = rawId.replace("wiki_", "").replace(/_/g, " ");
+        }
+
         if (searchTitle) {
           const list = await fetchFromRAWG("games", { search: searchTitle, page_size: 1 }, RAWG_API_KEY);
           if (list.results && list.results.length > 0) {
