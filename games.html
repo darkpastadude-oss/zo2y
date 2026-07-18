@@ -59,13 +59,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/providers/index.js?v=20260709i" defer></script>
 
-  <script src="/js/list-utils.js?v=20260717d" defer></script>
+  <script src="/js/list-utils.js?v=20260718a" defer></script>
   <script src="js/skeleton.js" defer></script>
   <script src="js/components/navigation.js?v=20260710c" defer></script>
 
   <script src="/js/shared-header.js?v=20260710c" defer></script>
 
-    <script src="/js/components/list-modal.js?v=20260717d" defer></script>
+    <script src="/js/components/list-modal.js?v=20260718a" defer></script>
     <style>
 
     :root {
@@ -677,7 +677,7 @@
     <section class="hero">
       <h1>games</h1>
       <p>Discover trending video games from all platforms and save them to your game lists.</p>
-      <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: IGDB. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted);opacity:.86;">source: RAWG &middot; Supabase &middot; Wikipedia. <a href="credits.html" style="color:var(--accent);">all credits</a></div>
       <div class="hero-actions">
         <!-- Refresh Picks removed: it broke pagination ordering and caused cover-missing games to appear early. -->
       </div>
@@ -792,10 +792,6 @@
       const FALLBACK_IMAGE = '/images/fallback/game.svg';
 
       let GAMES_PAGE_SIZE = 60;
-
-      const RAWG_API_KEY = ''; // RAWG doesn't require API key for basic requests
-
-      const RAWG_BASE = 'https://api.rawg.io/api';
 
 
 
@@ -1022,28 +1018,19 @@
 
 
     async function initGameFilters() {
-      const client = await ensureSupabase();
-      if (!client) return;
-      
       const genreSelect = document.getElementById('genre');
       if (genreSelect) {
         try {
-          const { data } = await client.from('games').select('extra').limit(500);
-          const seen = new Map();
-          (data || []).forEach(row => {
-            const genres = row.extra?.genres || [];
-            (Array.isArray(genres) ? genres : []).forEach(g => {
-              if (g.slug && g.name && !seen.has(g.slug)) {
-                seen.set(g.slug, g.name);
-              }
+          const res = await fetch('/api/igdb/games/genres', { headers: { accept: 'application/json' } });
+          if (res.ok) {
+            const data = await res.json();
+            (data.results || []).forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = g.slug || '';
+              opt.textContent = g.name || '';
+              genreSelect.appendChild(opt);
             });
-          });
-          [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
-            const opt = document.createElement('option');
-            opt.value = slug;
-            opt.textContent = name;
-            genreSelect.appendChild(opt);
-          });
+          }
         } catch (e) {
           console.error('Failed to load game genres', e);
         }
@@ -1052,22 +1039,25 @@
       const platformSelect = document.getElementById('platform');
       if (platformSelect) {
         try {
-          const { data } = await client.from('games').select('extra').limit(500);
-          const seen = new Map();
-          (data || []).forEach(row => {
-            const platforms = row.extra?.platforms || [];
-            (Array.isArray(platforms) ? platforms : []).forEach(p => {
-              if (p.slug && p.name && !seen.has(p.slug)) {
-                seen.set(p.slug, p.name);
-              }
+          const client = await ensureSupabase();
+          if (client) {
+            const { data } = await client.from('games').select('extra').limit(500);
+            const seen = new Map();
+            (data || []).forEach(row => {
+              const platforms = row.extra?.platforms || [];
+              (Array.isArray(platforms) ? platforms : []).forEach(p => {
+                if (p.slug && p.name && !seen.has(p.slug)) {
+                  seen.set(p.slug, p.name);
+                }
+              });
             });
-          });
-          [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
-            const opt = document.createElement('option');
-            opt.value = slug;
-            opt.textContent = name;
-            platformSelect.appendChild(opt);
-          });
+            [...seen.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([slug, name]) => {
+              const opt = document.createElement('option');
+              opt.value = slug;
+              opt.textContent = name;
+              platformSelect.appendChild(opt);
+            });
+          }
         } catch (e) {
           console.error('Failed to load game platforms', e);
         }
@@ -1099,151 +1089,107 @@
 
       GAMES_PAGE_SIZE = computeGridPageSize();
 
-      const client = await ensureSupabase();
-
-      if (!client) {
-        state.games = [];
-        state.allGames = [];
-        state.offset = 0;
-        state.hasMore = false;
-        return;
-      }
+      const grid = document.getElementById('gamesGrid');
+      if (grid) grid.innerHTML = (typeof Skel !== 'undefined') ? Skel.grid(GAMES_PAGE_SIZE, 4) : '';
 
       try {
-        let dbQuery = client.from('games').select('*', { count: 'exact' });
-
         if (query) {
           const variations = getQueryVariations(query);
           let found = false;
 
           for (const variation of variations) {
             try {
-              let searchQuery = client.from('games').select('*', { count: 'exact' });
-              searchQuery = searchQuery.ilike('title', `%${variation}%`);
-
-              if (state.genre) searchQuery = searchQuery.contains('extra', { genres: [{ slug: state.genre }] });
-              if (state.platform) searchQuery = searchQuery.contains('extra', { platforms: [{ slug: state.platform }] });
-
-              if (state.sort === 'name') {
-                searchQuery = searchQuery.order('title', { ascending: true });
-              } else if (state.sort === 'released') {
-                searchQuery = searchQuery.order('release_date', { ascending: false, nullsFirst: false });
-              } else {
-                searchQuery = searchQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
-              }
-
-              const { data, error } = await searchQuery;
-              if (error) throw error;
-              games = data || [];
-              found = true;
-              break;
-            } catch (_err) {
-              console.error('Failed to search games with variation:', variation, _err);
-            }
-          }
-
-          if (!found) {
-            try {
               const searchUrl = new URL('/api/igdb/games', window.location.origin);
-              searchUrl.searchParams.set('search', query);
-              searchUrl.searchParams.set('page_size', '20');
+              searchUrl.searchParams.set('search', variation);
+              searchUrl.searchParams.set('page', '1');
+              searchUrl.searchParams.set('page_size', '40');
               const res = await fetch(searchUrl.toString(), { headers: { accept: 'application/json' } });
               if (res.ok) {
                 const data = await res.json();
                 if (data && data.results && data.results.length > 0) {
                   games = data.results;
                   found = true;
+                  break;
                 }
               }
-            } catch (err) {
-              console.error('API search failed', err);
-            }
+            } catch (_) {}
+          }
 
-            if (!found) {
-              const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
-              if (wikiGames && wikiGames.length) {
-                games = wikiGames;
-                found = true;
-              } else {
-                state.games = [];
-                state.allGames = [];
-                state.offset = 0;
-                state.hasMore = false;
-                return;
-              }
+          if (!found) {
+            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
+            if (wikiGames && wikiGames.length) {
+              games = wikiGames;
+              found = true;
+            } else {
+              state.games = [];
+              state.allGames = [];
+              state.offset = 0;
+              state.hasMore = false;
+              return;
             }
           }
         } else {
-          if (state.genre) dbQuery = dbQuery.contains('extra', { genres: [{ slug: state.genre }] });
-          if (state.platform) dbQuery = dbQuery.contains('extra', { platforms: [{ slug: state.platform }] });
+          const cacheKey = 'browse_rawg_v2';
+          let rawgGames = readIgdbBrowseCache(cacheKey);
 
-          if (state.sort === 'name') {
-            dbQuery = dbQuery.order('title', { ascending: true });
-          } else if (state.sort === 'released') {
-            dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false });
-          } else {
-            dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false });
+          if (!rawgGames) {
+            const ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-rating';
+            const requests = [
+              fetch('/api/igdb/games?page=1&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
+              fetch('/api/igdb/games?page=2&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
+              fetch('/api/igdb/games?page=3&page_size=40&ordering=' + encodeURIComponent(ordering), { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null)
+            ];
+            const results = await Promise.allSettled(requests);
+            const merged = [];
+            const seen = new Set();
+            results.forEach(result => {
+              if (result.status !== 'fulfilled' || !result.value) return;
+              const rows = Array.isArray(result.value.results) ? result.value.results : [];
+              rows.forEach(row => {
+                const id = String(row?.id || '').trim();
+                const title = String(row?.title || row?.name || '').trim().toLowerCase();
+                const key = id || title;
+                if (!key || seen.has(key)) return;
+                seen.add(key);
+                merged.push(row);
+              });
+            });
+            rawgGames = merged;
+            writeIgdbBrowseCache(cacheKey, rawgGames);
           }
 
-          const { data, error } = await dbQuery;
-          if (error) throw error;
-          games = data || [];
+          games = rawgGames;
 
-          // Supplement from IGDB/Wikipedia for games not in Supabase
-          if (!state.genre && !state.platform) {
+          const client = await ensureSupabase();
+          if (client) {
             try {
-              const cacheKey = 'browse_all_rawg';
-              let igdbGames = readIgdbBrowseCache(cacheKey);
-
-              if (!igdbGames) {
-                const igdbUrl = new URL('/api/igdb/games', window.location.origin);
-                igdbUrl.searchParams.set('page', '1');
-                igdbUrl.searchParams.set('page_size', '40');
-                igdbUrl.searchParams.set('min_rating_count', '50');
-                igdbUrl.searchParams.set('rev', 'wiki20260714a');
-                const igdbRes = await fetch(igdbUrl.toString(), { headers: { accept: 'application/json' } });
-                if (igdbRes.ok) {
-                  const igdbData = await igdbRes.json();
-                  igdbGames = Array.isArray(igdbData?.results) ? igdbData.results : [];
-                  writeIgdbBrowseCache(cacheKey, igdbGames);
-                } else {
-                  igdbGames = [];
-                }
-              }
-
-              const existingTitles = new Set(games.map(g => String(g.title || '').toLowerCase()));
-              const igdbNew = [];
-              for (const row of igdbGames) {
-                const title = String(row.title || row.name || '').trim();
-                if (!title || existingTitles.has(title.toLowerCase())) continue;
-                existingTitles.add(title.toLowerCase());
-                igdbNew.push({
-                  id: row.id || `igdb_${title.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`,
-                  title: title,
-                  description: row.description || row.summary || '',
-                  cover_url: row.cover || row.image || '',
-                  release_date: row.firstReleaseDate || row.released || '',
-                  rating: row.rating || 0,
-                  rating_count: 10000,
-                  extra: row.extra || { genres: row.genres || [], platforms: row.platforms || [] },
-                  source: row.source || 'rawg'
+              let dbQuery = client.from('games').select('*');
+              dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false }).limit(200);
+              const { data: localData, error: localErr } = await dbQuery;
+              if (!localErr && Array.isArray(localData) && localData.length) {
+                const existingTitles = new Set(games.map(g => String(g.title || g.name || '').toLowerCase()));
+                localData.forEach(row => {
+                  const title = String(row.title || '').toLowerCase();
+                  if (!existingTitles.has(title)) {
+                    games.push(row);
+                    existingTitles.add(title);
+                  }
                 });
               }
-              games = igdbNew.concat(games);
-            } catch (_igdbErr) { /* continue with Supabase data */ }
+            } catch (_) {}
           }
         }
       } catch (_err) {
         console.error('Failed to load games', _err);
       }
 
-      // Map games with cover resolution
       let mapped = games.map((game) => {
         return {
           id: String(game.id || ''),
           name: game.title || game.name || humanizeGameSlug(game.slug) || 'Unknown Game',
           summary: game.description || game.summary || '',
           cover: resolveGameCover(game),
+          hero_url: game.hero_url || game.background_image || '',
           firstReleaseDate: game.release_date || game.releaseDate || game.firstReleaseDate || '',
           rating: game.rating || 0,
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : (Array.isArray(game.genres) ? game.genres : []),
@@ -1254,7 +1200,6 @@
         return g.id && isDateWithinAcceptableRange(g.firstReleaseDate);
       });
 
-      // Sort: trending (IGDB/Wikipedia) first, then local covers, then no-cover
       const isLocalCover = (url) => /\/game-assets\/covers-official\//.test(String(url || ''));
 
       if (!query) {
@@ -1272,7 +1217,6 @@
         ];
       }
 
-      // Store full pool and render first page
       state.allGames = mapped;
       state.offset = 0;
       state.hasMore = true;
@@ -1328,72 +1272,6 @@
         .replace(/\b\w/g, (ch) => ch.toUpperCase())
 
         .trim();
-
-    }
-
-
-
-    async function fetchCoverFromRAWG(gameName) {
-
-      if (!gameName) return '';
-
-      
-
-      // Check cache first
-
-      const cacheKey = gameName.toLowerCase().trim();
-
-      if (coverCache.has(cacheKey)) {
-
-        return coverCache.get(cacheKey);
-
-      }
-
-      
-
-      try {
-
-        // Search for the game on RAWG
-
-        const searchUrl = `${RAWG_BASE}/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(gameName)}&page_size=1`;
-
-        const response = await fetch(searchUrl);
-
-        if (!response.ok) return '';
-
-        
-
-        const data = await response.json();
-
-        if (!data.results || data.results.length === 0) return '';
-
-        
-
-        const game = data.results[0];
-
-        const coverUrl = game.background_image || '';
-
-        
-
-        if (coverUrl) {
-
-          coverCache.set(cacheKey, coverUrl);
-
-          return coverUrl;
-
-        }
-
-      } catch (err) {
-
-        console.error('Failed to fetch cover from RAWG:', err);
-
-      }
-
-      
-
-      coverCache.set(cacheKey, '');
-
-      return '';
 
     }
 

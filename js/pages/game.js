@@ -125,7 +125,6 @@
         typeLabel: "Game Spotlight",
         title: (game.name || "Unknown Game").replace(/\s*\(video game\)/i, ""),
         posterUrl: posterUrl,
-        posterFit: "contain",
         backdropUrl: backdropUrl,
         description: game.description || "Explore more details about this game.",
         metadata: [],

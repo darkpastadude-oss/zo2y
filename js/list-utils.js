@@ -1134,14 +1134,21 @@
     if (!id) return false;
     const title = String(payload.title || payload.name || '').trim();
     if (!title) return false;
-    const row = {
-      id,
-      title,
-      authors: String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null,
-      thumbnail: String(payload.thumbnail || payload.image || payload.cover || '').trim() || null
-    };
+    const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim() || null;
+    const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
+    let row = { id, title, authors: incomingAuthors, thumbnail: incomingThumbnail };
     try {
-      const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: true });
+      const { data: existing } = await client.from('books').select('id, title, thumbnail').eq('id', id).maybeSingle();
+      if (existing) {
+        const mergedTitle = existing.title || title;
+        const mergedThumbnail = existing.thumbnail || incomingThumbnail;
+        row = { id, title: mergedTitle, authors: incomingAuthors || existing.authors || null, thumbnail: mergedThumbnail };
+      }
+    } catch (_checkErr) {
+      // Proceed with insert; the check is best-effort.
+    }
+    try {
+      const { error } = await client.from('books').upsert(row, { onConflict: 'id', ignoreDuplicates: false });
       if (error && String(error.code || '') !== '23505') return false;
       return true;
     } catch (_err) {
@@ -1370,6 +1377,9 @@
         cacheSavedItemMetadata(type, entityId, itemPayload);
       }
     }
+    if (type === 'book' && itemPayload && itemPayload.name) {
+      ensureBookRecord(client, { id: entityId, title: itemPayload.name, image: itemPayload.image, authors: itemPayload.subtitle || '' });
+    }
   }
 
   async function addItemToList(client, userId, type, itemId, listId, itemPayload) {
@@ -1555,6 +1565,47 @@
     }
   }
 
+  async function repairBookListItems(client, items) {
+    if (!client || !Array.isArray(items) || !items.length) return items;
+    const needsRepair = items.filter(function (it) {
+      return !it.title || !it.image_url;
+    });
+    if (!needsRepair.length) return items;
+    const ids = needsRepair.map(function (it) { return String(it.item_id || '').trim(); }).filter(Boolean);
+    if (!ids.length) return items;
+    const { data: bookRows } = await client
+      .from('books')
+      .select('id, title, thumbnail, authors')
+      .in('id', ids);
+    const bookMap = new Map();
+    (bookRows || []).forEach(function (b) { bookMap.set(b.id, b); });
+    const repaired = [];
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var bookId = String(it.item_id || '').trim();
+      var book = bookMap.get(bookId);
+      var patched = Object.assign({}, it);
+      if (!patched.title && book && book.title) patched.title = book.title;
+      if (!patched.image_url && book && book.thumbnail) patched.image_url = book.thumbnail;
+      if (!patched.subtitle && book && book.authors) patched.subtitle = book.authors;
+      if ((!it.title || !it.image_url) && book && (book.title || book.thumbnail)) {
+        client.from('list_items')
+          .update({
+            title: patched.title || it.title,
+            image_url: patched.image_url || it.image_url,
+            subtitle: patched.subtitle || it.subtitle
+          })
+          .eq('item_id', it.item_id)
+          .eq('media_type', 'book')
+          .eq('user_id', it.user_id)
+          .then(function () {})
+          .catch(function () {});
+      }
+      repaired.push(patched);
+    }
+    return repaired;
+  }
+
   async function loadList(client, userId, type, listId) {
     const cfg = getListConfig(type);
     if (!cfg || !client || !userId || !listId) return null;
@@ -1609,6 +1660,10 @@
         return null;
       }
       items = data || [];
+    }
+
+    if (String(type || '').toLowerCase() === 'book' && items.length) {
+      items = await repairBookListItems(client, items);
     }
 
     return {

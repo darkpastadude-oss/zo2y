@@ -483,14 +483,14 @@
   }
 
   // Custom Lists Modal
-  async function openListsModal(itemId, mediaType) {
+  async function openListsModal(itemId, mediaType, itemPayload) {
     var user = await ensureUser();
     if (!user) {
       showToast('Please sign in to manage lists', 'info');
       window.location.href = 'login.html';
       return;
     }
-    _activeItem = { itemId: itemId, mediaType: mediaType };
+    _activeItem = { itemId: itemId, mediaType: mediaType, itemPayload: itemPayload || null };
 
     ensureListsModal();
     var modal = document.getElementById('unifiedListsModal');
@@ -564,7 +564,8 @@
         user.id,
         _activeItem.mediaType,
         _activeItem.itemId,
-        Array.from(_modalSelectedLists)
+        Array.from(_modalSelectedLists),
+        _activeItem.itemPayload || null
       );
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -601,7 +602,7 @@
     if (data.id) {
       _modalSelectedLists.add(data.id);
     }
-    openListsModal(_activeItem.itemId, _activeItem.mediaType);
+    openListsModal(_activeItem.itemId, _activeItem.mediaType, _activeItem.itemPayload);
   }
 
   async function renameList(listId, currentTitle) {
@@ -620,7 +621,7 @@
       showToast('Could not rename list', 'error');
       return;
     }
-    openListsModal(_activeItem.itemId, _activeItem.mediaType);
+    openListsModal(_activeItem.itemId, _activeItem.mediaType, _activeItem.itemPayload);
   }
 
   // Global bridge API
