@@ -109,7 +109,8 @@ export default async function handler(req, res) {
     const page = clampInt(query.page, 1, 100000, 1);
     const pageSize = clampInt(query.page_size, 1, 80, 20);
     const search = String(query.search || "").trim().slice(0, 120);
-    const ordering = String(query.ordering || "-added").trim();
+    const ordering = String(query.ordering || '-added').trim();
+    const dates = String(query.dates || '').trim();
     
     if (RAWG_API_KEY) {
       try {
@@ -117,7 +118,8 @@ export default async function handler(req, res) {
           page,
           page_size: pageSize,
           search: search || undefined,
-          ordering: search ? undefined : ordering
+          ordering: search ? undefined : ordering,
+          dates: dates || undefined
         };
         const data = await fetchFromRAWG("games", params, RAWG_API_KEY);
         

@@ -9232,9 +9232,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             cache: 1,
             cache_pages: 1
           };
+          const currentYear = new Date().getFullYear();
           const requests = [
-            { ...baseParams, page: 1, min_rating_count: 50 },
-            { ...baseParams, page: 2, min_rating_count: 50 }
+            { ...baseParams, page: 1, min_rating_count: 50, dates: `${currentYear-1}-01-01,${currentYear+1}-12-31` },
+            { ...baseParams, page: 2, min_rating_count: 50, dates: `${currentYear-1}-01-01,${currentYear+1}-12-31` }
           ];
           const merged = [];
           const seen = new Set();
