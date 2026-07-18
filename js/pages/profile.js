@@ -4821,11 +4821,46 @@
                     } catch (e) { }
                 }
                 
+                let liFallback = null;
+                try {
+                    const { data: liRows } = await supabase
+                        .from('list_items')
+                        .select('title, image_url, subtitle')
+                        .eq('item_id', key)
+                        .eq('media_type', 'book')
+                        .limit(1)
+                        .maybeSingle();
+                    if (liRows && (liRows.title || liRows.image_url)) {
+                        liFallback = {
+                            id: key,
+                            title: liRows.title || '',
+                            author_name: liRows.subtitle || '',
+                            cover_url: liRows.image_url || '',
+                            thumbnail: liRows.image_url || ''
+                        };
+                    }
+                } catch (_liErr) { }
+
                 if (dbData) {
+                    if (!dbData.cover_url && liFallback?.cover_url) {
+                        dbData.cover_url = liFallback.cover_url;
+                        dbData.thumbnail = liFallback.cover_url;
+                    }
+                    if (!dbData.title && liFallback?.title) {
+                        dbData.title = liFallback.title;
+                    }
+                    if (!dbData.author_name && liFallback?.author_name) {
+                        dbData.author_name = liFallback.author_name;
+                    }
                     dbData.thumbnail = dbData.cover_url || dbData.thumbnail || '';
                     dbData.cover_url = dbData.cover_url || dbData.thumbnail || '';
                     bookCache.set(key, dbData);
                     return dbData;
+                }
+
+                if (liFallback) {
+                    bookCache.set(key, liFallback);
+                    return liFallback;
                 }
 
                 if (window.ListUtils && typeof window.ListUtils.getCachedSavedItemMetadata === 'function') {

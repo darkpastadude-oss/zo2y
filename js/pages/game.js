@@ -118,7 +118,7 @@
       const game = await res.json();
 
       const posterUrl = game.cover || "/images/fallback/game.svg";
-      const backdropUrl = game.hero || game.background_image || getGameGenreBackdrop(game.genres);
+      const backdropUrl = game.hero_url || game.hero || game.background_image || getGameGenreBackdrop(game.genres);
 
       const config = {
         type: "game",

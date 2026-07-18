@@ -59,13 +59,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" integrity="sha256-xS2zCnmQbdfvibZhfnqeZdQZq821LRYJlAfLw6FZpF0=" crossorigin="anonymous" defer></script>
   <script src="js/providers/index.js?v=20260709i" defer></script>
 
-  <script src="/js/list-utils.js?v=20260717c" defer></script>
+  <script src="/js/list-utils.js?v=20260717d" defer></script>
   <script src="js/skeleton.js" defer></script>
   <script src="js/components/navigation.js?v=20260710c" defer></script>
 
   <script src="/js/shared-header.js?v=20260710c" defer></script>
 
-    <script src="/js/components/list-modal.js?v=20260717c" defer></script>
+    <script src="/js/components/list-modal.js?v=20260717d" defer></script>
     <style>
 
     :root {
@@ -1382,37 +1382,32 @@
 
 
     function resolveGameCover(row) {
+      // Try Steam portrait cover FIRST for official posters
+      const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamId;
+      if (steamAppId) {
+        const num = String(steamAppId).replace(/\D/g, '');
+        if (num.length >= 2) {
+          return `https://steamcdn-a.akamaihd.net/steam/apps/${num}/library_600x900.jpg`;
+        }
+      }
 
       // Try multiple cover sources
-
       const raw = String(row?.cover_url || row?.cover || row?.image || '').trim();
-
       if (raw && raw !== '[object Object]') {
         if (!/^https?:\/\//i.test(raw) && !raw.startsWith('/') && !raw.startsWith('data:')) {
           return `${SUPABASE_URL}/storage/v1/object/public/game-assets/${raw}`;
         }
         return toHttpsUrl(raw);
-
       }
-
       
-
       // Try IGDB cover
-
       const igdbCover = row?.extra?.cover?.url;
-
       if (igdbCover) {
-
         return toHttpsUrl(igdbCover.startsWith('//') ? `https:${igdbCover}` : igdbCover);
-
       }
-
       
-
       // Try covers array from extra
-
       const coversArr = row?.extra?.covers;
-
       if (Array.isArray(coversArr)) {
         for (const c of coversArr) {
           const url = String(c || '').trim();
@@ -1423,9 +1418,7 @@
       }
 
       // Try official_covers array
-
       const officialCovers = row?.extra?.official_covers;
-
       if (Array.isArray(officialCovers)) {
         for (const c of officialCovers) {
           const url = String(c || '').trim();
@@ -1436,9 +1429,7 @@
       }
 
       // Try cover_candidates array
-
       const candidates = row?.extra?.cover_candidates;
-
       if (Array.isArray(candidates)) {
         for (const c of candidates) {
           const url = String(c || '').trim();
@@ -1448,22 +1439,8 @@
         }
       }
 
-      // Try Steam cover if steam_appid is available
-
-      const steamAppId = row?.extra?.steam_appid || row?.steam_appid;
-
-      if (steamAppId) {
-
-        return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamAppId}/header.jpg`;
-
-      }
-
-      
-
       // No remote placeholder (keeps offline + avoids 3rd party outages). We'll hydrate covers via `/api/igdb` when possible.
-
       return '';
-
     }
 
 
@@ -1658,32 +1635,22 @@
 
       
 
-      const coverUrl = game.cover || FALLBACK_IMAGE;
+      const coverUrl = game.cover || game.hero_url || FALLBACK_IMAGE;
+      const heroUrl = game.hero_url || coverUrl;
 
       const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
-
       const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';
-
       const genres = (game.genres || []).slice(0, 2).map(g => g.name || g).join(', ') || 'Video Game';
 
-      
-
       section.hidden = false;
-
-      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${coverUrl}")`;
-
+      if (bg) bg.style.backgroundImage = `linear-gradient(120deg, rgba(8,14,31,0.76), rgba(10,19,39,0.38)), url("${heroUrl}")`;
       if (titleEl) titleEl.textContent = game.name || 'Game Title';
-
       if (metaEl) metaEl.textContent = [year, rating].filter(Boolean).join(' | ') || 'Game details';
-
       if (summaryEl) summaryEl.textContent = genres || 'No description available.';
-
       if (imgEl) {
-
         imgEl.src = coverUrl;
-
         imgEl.alt = `${game.name || 'Game'} cover`;
-
+        imgEl.setAttribute('data-hydrate-id', game.id);
       }
 
       if (openEl) openEl.href = `game.html?id=${encodeURIComponent(game.id)}`;
@@ -1866,13 +1833,14 @@
             const titleEl = card ? card.querySelector('.card-name, .card-title') : null;
 
             if (img && g.cover) {
-
               img.removeAttribute('onerror');
-
               img.classList.remove('is-loading-media');
-
               img.src = g.cover;
-
+            }
+            
+            const spotlightImg = document.querySelector(`#gamesSpotlightImage[data-hydrate-id="${CSS.escape(String(g.id))}"]`);
+            if (spotlightImg && g.cover) {
+              spotlightImg.src = g.cover;
             }
 
             if (titleEl && g.name) {

@@ -42,6 +42,13 @@
   }
 
   function resolveGameCover(row) {
+    const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamId;
+    if (steamAppId) {
+      const num = String(steamAppId).replace(/\D/g, '');
+      if (num.length >= 2) {
+        return `https://steamcdn-a.akamaihd.net/steam/apps/${num}/library_600x900.jpg`;
+      }
+    }
     return normalizeGameCoverUrl(row?.cover_url || row?.cover || row?.image || '');
   }
 
