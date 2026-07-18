@@ -2676,10 +2676,12 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const releaseDate = formatDateLabel(row?.released || row?.release_date || '');
           const releaseDateSort = toSortEpoch(row?.released || row?.release_date || releaseDate);
           const extra = row?.extra && typeof row.extra === 'object' ? row.extra : {};
-          const cover = resolveHomeGameCover(row);
-          if (!cover) return null;
+          const cover = resolveHomeGameCover(row) || '';
           const hero = resolveHomeGameHero(row, '');
-          const presentation = getHomeGamePresentation(cover, hero);
+          const heroBg = normalizeGameCoverUrl(row?.hero_background || row?.background_image || '');
+          const heroSec = normalizeGameCoverUrl(row?.hero_background_secondary || row?.background_image_additional || '');
+          const screenshots = Array.isArray(row?.screenshots) ? row.screenshots.map(s => typeof s === 'string' ? normalizeGameCoverUrl(s) : normalizeGameCoverUrl(s?.image || '')).filter(Boolean).slice(0, 6) : [];
+          const presentation = getHomeGamePresentation(cover || '', hero);
           const rowId = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
           const rowTitle = String(row?.name || row?.title || 'Game').trim() || 'Game';
           const genreText = Array.isArray(extra?.genres)
@@ -2692,10 +2694,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             title: rowTitle,
             subtitle: releaseDate ? releaseDate.slice(0, 10) : '',
             extra: [genreText, Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue.toFixed(1)}/5` : ''].filter(Boolean).join(' | '),
-            image: cover,
-            backgroundImage: hero || cover,
-            spotlightImage: hero || cover,
-            spotlightMediaImage: cover,
+            image: cover || '',
+            backgroundImage: hero || cover || '',
+            heroBackground: heroBg || hero || '',
+            heroBackgroundSecondary: heroSec,
+            screenshots: screenshots,
+            spotlightImage: hero || cover || '',
+            spotlightMediaImage: cover || '',
             spotlightMediaFit: presentation.spotlightFit,
             spotlightMediaShape: presentation.spotlightShape,
             gameCardMode: presentation.plain ? 'plain' : 'hero',
@@ -2703,7 +2708,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             href: rowId ? `game.html?id=${encodeURIComponent(rowId)}` : 'games.html'
           };
           return withReleaseTag({ ...item, releaseDateSort }, label, { detail: releaseDate });
-        }).filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim());
+        }).filter((item) => item && String(item.itemId || '').trim());
       };
 
       const includeExtendedSources = !isHomeCompactViewport() && !isHomeSlowNetwork();
@@ -2742,16 +2747,41 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           : Promise.resolve({ results: [] }),
         ENABLE_GAMES
           ? (async () => {
-            const client = await ensureHomeSupabase();
-            if (!client) return { results: [] };
-            const { data } = await client
-              .from('games')
-              .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra')
-              .gte('release_date', recentSeasonDate)
-              .lte('release_date', upcomingDate)
-              .order('release_date', { ascending: false, nullsFirst: false })
-              .limit(24);
-            return { results: Array.isArray(data) ? data : [] };
+            const [localRows, rawgRows] = await Promise.all([
+              (async () => {
+                try {
+                  const client = await ensureHomeSupabase();
+                  if (!client) return [];
+                  const { data } = await client
+                    .from('games')
+                    .select('id,title,release_date,rating,rating_count,cover_url,hero_url,extra,source,slug')
+                    .gte('release_date', recentSeasonDate)
+                    .lte('release_date', upcomingDate)
+                    .order('release_date', { ascending: false, nullsFirst: false })
+                    .limit(24);
+                  return Array.isArray(data) ? data : [];
+                } catch (_err) { return []; }
+              })(),
+              (async () => {
+                try {
+                  const currentYear = new Date().getFullYear();
+                  const dates = `${currentYear - 1}-01-01,${currentYear + 1}-12-31`;
+                  const data = await homeIgdbFetch('/games', {
+                    page: 1, page_size: 20, ordering: '-released', dates
+                  });
+                  return Array.isArray(data?.results) ? data.results : [];
+                } catch (_err) { return []; }
+              })()
+            ]);
+            const seenTitles = new Set();
+            const merged = [];
+            for (const row of [...localRows, ...rawgRows]) {
+              const title = String(row?.title || row?.name || '').trim().toLowerCase();
+              if (!title || seenTitles.has(title)) continue;
+              seenTitles.add(title);
+              merged.push(row);
+            }
+            return { results: merged };
           })()
           : Promise.resolve({ results: [] })
       ]);
@@ -8983,23 +9013,30 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         row?.cover_url,
         row?.cover?.url,
         row?.cover,
+        row?.poster,
         ...(Array.isArray(row?.extra?.local_covers) ? row.extra.local_covers : []),
         ...(Array.isArray(row?.extra?.covers) ? row.extra.covers : []),
         ...(Array.isArray(row?.extra?.official_covers) ? row.extra.official_covers : []),
         ...(Array.isArray(row?.extra?.cover_candidates) ? row.extra.cover_candidates : []),
         isOfficialGameProviderRow(row) ? '' : row?.hero_url,
         isOfficialGameProviderRow(row) ? '' : row?.hero,
-        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+        ...(Array.isArray(row?.screenshots) ? row.screenshots.map(s => typeof s === 'string' ? s : s?.image) : []),
         ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
       ]);
     }
 
     function resolveHomeGameHero(row, fallback) {
+      const steamAppId = row?.extra?.steam_appid || row?.steam_appid;
+      const steamHero = steamAppId
+        ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId).replace(/\D/g, '')}/header.jpg`
+        : '';
       const hero = pickBackdropGameUrl([
+        row?.hero_background,
+        row?.background_image,
         row?.hero_url,
         row?.hero,
-        row?.background_image,
-        ...(Array.isArray(row?.screenshots) ? row.screenshots : []),
+        steamHero,
+        ...(Array.isArray(row?.screenshots) ? row.screenshots.map(s => typeof s === 'string' ? s : s?.image) : []),
         ...(Array.isArray(row?.short_screenshots) ? row.short_screenshots.map((entry) => entry?.image) : [])
       ], fallback);
       return hero || fallback || '';
@@ -9167,7 +9204,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const genres = Array.isArray(extra?.genres) ? extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const cover = resolveHomeGameCover(row);
         const hero = resolveHomeGameHero(row, '');
-        if (!cover || cover.includes('/newlogo.webp')) return null;
+        const heroBg = normalizeGameCoverUrl(row?.hero_background || row?.background_image || '');
+        const heroSec = normalizeGameCoverUrl(row?.hero_background_secondary || row?.background_image_additional || '');
+        const screenshots = Array.isArray(row?.screenshots) ? row.screenshots.map(s => typeof s === 'string' ? normalizeGameCoverUrl(s) : normalizeGameCoverUrl(s?.image || '')).filter(Boolean).slice(0, 6) : [];
         const id = String(row?.id || row?.igdb_id || row?.rawg_id || '').trim();
         const title = String(row?.title || row?.name || 'Game').trim() || 'Game';
         const releaseDate = String(row?.release_date || row?.released || '').trim();
@@ -9191,6 +9230,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           image: cardImage,
           listImage: cardImage,
           backgroundImage: hero || '',
+          heroBackground: heroBg || hero || '',
+          heroBackgroundSecondary: heroSec,
+          screenshots: screenshots,
           spotlightImage: hero || '',
           spotlightMediaImage: cover,
           spotlightMediaFit: 'contain',
@@ -9220,7 +9262,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const localRows = await localRowsPromise;
         const localItems = dedupeHomeGameRows(Array.isArray(localRows) ? localRows : [], Math.max(targetCount * 2, 40))
           .map((row) => mapToItem(row))
-          .filter((item) => item && String(item.itemId || '').trim() && String(item.image || '').trim())
+          .filter((item) => item && String(item.itemId || '').trim())
           .sort((a, b) => Number(b?.popularity || 0) - Number(a?.popularity || 0))
           .slice(0, Math.max(targetCount * 2, 24));
         const providerList = ['igdb'];

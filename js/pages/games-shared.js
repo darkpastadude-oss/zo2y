@@ -52,9 +52,41 @@
     return normalizeGameCoverUrl(row?.cover_url || row?.cover || row?.image || '');
   }
 
+  function resolveGameHeroBackground(row) {
+    const steamAppId = row?.extra?.steam_appid || row?.steam_appid || row?.steamId;
+    const steamHero = steamAppId
+      ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId).replace(/\D/g, '')}/header.jpg`
+      : '';
+    return normalizeGameCoverUrl(row?.hero_background || row?.background_image || row?.hero_url || row?.hero || row?.background || '') || steamHero || '';
+  }
+
+  function resolveGameHeroSecondary(row) {
+    return normalizeGameCoverUrl(row?.hero_background_secondary || row?.background_image_additional || '') || '';
+  }
+
+  function resolveGameScreenshots(row) {
+    const raw = row?.screenshots || row?.short_screenshots || [];
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map(s => {
+        if (typeof s === 'string') return normalizeGameCoverUrl(s);
+        return normalizeGameCoverUrl(s?.image || s?.url || '');
+      })
+      .filter(Boolean)
+      .slice(0, 12);
+  }
+
+  function resolveGameAssets(row) {
+    return {
+      poster: resolveGameCover(row),
+      heroBackground: resolveGameHeroBackground(row),
+      heroBackgroundSecondary: resolveGameHeroSecondary(row),
+      screenshots: resolveGameScreenshots(row)
+    };
+  }
+
   function resolveGameHero(row, fallbackCover = '') {
-    const hero = normalizeGameCoverUrl(row?.hero_url || row?.hero || row?.background || '');
-    return hero || fallbackCover;
+    return resolveGameHeroBackground(row) || normalizeGameCoverUrl(fallbackCover || row?.cover_url || row?.cover || '');
   }
 
   function isLikelyLogoOnlyGameArt(url) {
@@ -293,26 +325,53 @@
         .limit(Math.max(limit * 10, 120));
 
       const result = signal ? await query.abortSignal(signal) : await query;
-      const data = Array.isArray(result?.data) ? result.data : [];
-      if (!data.length) return [];
+      const localData = Array.isArray(result?.data) ? result.data : [];
+
+      let rawgData = [];
+      if (localData.length < limit * 2) {
+        try {
+          const currentYear = new Date().getFullYear();
+          const dates = `${currentYear - 1}-01-01,${currentYear + 1}-12-31`;
+          const url = new URL(`${IGDB_PROXY_BASE}/games`, window.location.origin);
+          url.searchParams.set('page', '1');
+          url.searchParams.set('page_size', String(Math.min(limit * 2, 40)));
+          url.searchParams.set('ordering', '-added');
+          url.searchParams.set('dates', dates);
+          const res = await fetch(url.toString(), {
+            headers: { 'accept': 'application/json' },
+            signal: signal || undefined
+          });
+          if (res.ok) {
+            const data = await res.json();
+            rawgData = Array.isArray(data?.results) ? data.results : [];
+          }
+        } catch (_err) {}
+      }
+
+      const allRows = [...localData, ...rawgData];
+      if (!allRows.length) return [];
 
       const seen = new Set();
       const items = [];
-      for (const row of data) {
+      for (const row of allRows) {
         if (!row) continue;
         const id = String(row?.id || row?.slug || '').trim();
-        const title = String(row?.title || 'Game').trim();
+        const title = String(row?.title || row?.name || 'Game').trim();
         if (!id || !title) continue;
-        if (seen.has(id)) continue;
-        seen.add(id);
+        const dedupeKey = title.toLowerCase();
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
 
         const cover = resolveGameCover(row);
-        const hero = resolveGameHero(row, cover);
+        const heroBg = resolveGameHeroBackground(row);
+        const heroSecondary = resolveGameHeroSecondary(row);
+        const screenshots = resolveGameScreenshots(row);
+        const hero = heroBg || heroSecondary || cover;
         const visual = cover || hero || FALLBACK_IMAGE;
         const plain = isLikelyLogoOnlyGameArt(cover) || !hero || hero === cover;
-        const releaseDate = String(row?.release_date || '').trim();
+        const releaseDate = String(row?.release_date || row?.released || '').trim();
         const ratingValue = Number(row?.rating || 0);
-        const genres = Array.isArray(row?.extra?.genres) ? row.extra.genres : [];
+        const genres = Array.isArray(row?.extra?.genres) ? row.extra.genres : (Array.isArray(row?.genres) ? row.genres : []);
         const genreText = genres.length
           ? genres.slice(0, 2).map((entry) => String(entry?.name || entry || '').trim()).filter(Boolean).join(' | ')
           : 'Video Game';
@@ -326,6 +385,9 @@
           extra: [genreText, ratingText].filter(Boolean).join(' | '),
           image: visual,
           backgroundImage: hero || visual,
+          heroBackground: heroBg || '',
+          heroBackgroundSecondary: heroSecondary,
+          screenshots: screenshots,
           spotlightImage: hero || visual,
           spotlightMediaImage: visual,
           spotlightMediaFit: plain ? 'contain' : 'contain',
@@ -574,9 +636,83 @@
     }
   }
 
+  const ASSETS_CACHE_PREFIX = 'zo2y_game_assets_v1:';
+  const ASSETS_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
+  const assetsCache = new Map();
+
+  async function ensureGameAssets(gameId, existingRow, signal) {
+    const id = String(gameId || '').trim();
+    if (!id) return existingRow || {};
+
+    const existingAssets = resolveGameAssets(existingRow || {});
+    if (existingAssets.heroBackground && existingAssets.screenshots.length > 0) {
+      return existingRow || {};
+    }
+
+    const cacheKey = `${ASSETS_CACHE_PREFIX}${id}`;
+    if (assetsCache.has(cacheKey)) {
+      const cached = assetsCache.get(cacheKey);
+      if (cached && (Date.now() - cached.t) < ASSETS_CACHE_TTL_MS) {
+        return Object.assign({}, existingRow || {}, cached.data);
+      }
+    }
+
+    try {
+      const res = await fetch(`${IGDB_PROXY_BASE}/games/${encodeURIComponent(id)}?cb=${Date.now()}`, {
+        headers: { 'accept': 'application/json' },
+        signal
+      });
+      if (!res.ok) return existingRow || {};
+      const data = await res.json();
+      if (!data || typeof data !== 'object') return existingRow || {};
+
+      const merged = {
+        hero_background: data.hero_background || data.background_image || data.hero_url || '',
+        hero_background_secondary: data.hero_background_secondary || data.background_image_additional || '',
+        background_image: data.background_image || '',
+        background_image_additional: data.background_image_additional || '',
+        screenshots: Array.isArray(data.screenshots) ? data.screenshots.slice(0, 12) : [],
+        cover: data.cover || existingAssets.poster || '',
+        source: data.source || 'rawg'
+      };
+
+      assetsCache.set(cacheKey, { data: merged, t: Date.now() });
+      return Object.assign({}, existingRow || {}, merged);
+    } catch (_err) {
+      return existingRow || {};
+    }
+  }
+
+  async function syncRawgArtworkToSupabase(client, gameId, assets) {
+    if (!client || !gameId || !assets) return;
+    const updates = {};
+    if (assets.hero_background && !assets.hero_background.includes('pexels.com')) {
+      updates.hero_url = assets.hero_background;
+    }
+    if (assets.background_image) updates.hero_url = updates.hero_url || assets.background_image;
+    if (assets.screenshots && assets.screenshots.length > 0) {
+      const extra = {};
+      if (assets.background_image) extra.background_image = assets.background_image;
+      if (assets.background_image_additional) extra.background_image_additional = assets.background_image_additional;
+      extra.screenshots = assets.screenshots.slice(0, 6);
+      updates.extra = extra;
+    }
+    updates.last_synced_at = new Date().toISOString();
+    if (Object.keys(updates).length <= 1) return;
+    try {
+      await client.from('games').update(updates).eq('id', gameId);
+    } catch (_err) {}
+  }
+
   window.__zo2yGamesShared = {
     loadFeaturedGames,
     resolveGameCover,
+    resolveGameHeroBackground,
+    resolveGameHeroSecondary,
+    resolveGameScreenshots,
+    resolveGameAssets,
+    ensureGameAssets,
+    syncRawgArtworkToSupabase,
     fetchCoverForTitle,
     fetchWikipediaCoverCandidate,
     fetchWikipediaCoversForTitles,

@@ -4563,9 +4563,12 @@
                 ]);
                 if (cover && !isLikelyLogoOnlyGameArt(cover)) return cover;
                 const hero = pickPreferredCoverUrl([
+                    game.hero_background,
+                    game.hero_background_secondary,
                     game.hero_url,
                     game.hero,
                     game.background_image,
+                    game.background_image_additional,
                     ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
                     ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
                     ...screenshots,
@@ -4668,10 +4671,15 @@
                     ...(Array.isArray(extra.official_covers) ? extra.official_covers : []),
                     ...(Array.isArray(extra.cover_candidates) ? extra.cover_candidates : [])
                 ]);
+                const heroBg = row.hero_background || row.background_image || '';
+                const heroBgSec = row.hero_background_secondary || row.background_image_secondary || '';
                 const heroUrl = pickPreferredCoverUrl([
+                    heroBg,
+                    heroBgSec,
                     row.hero_url,
                     row.hero,
                     row.background_image,
+                    row.background_image_additional,
                     ...(Array.isArray(extra.local_screenshots) ? extra.local_screenshots : []),
                     ...(Array.isArray(extra.screenshots) ? extra.screenshots : []),
                     ...(Array.isArray(row.screenshots) ? row.screenshots : []),
@@ -4687,11 +4695,17 @@
                     cover_url: coverUrl,
                     hero: heroUrl || coverUrl,
                     hero_url: heroUrl || coverUrl,
+                    hero_background: heroBg || heroUrl || coverUrl,
+                    hero_background_secondary: heroBgSec,
+                    background_image: row.background_image || heroBg,
+                    background_image_additional: row.background_image_additional || heroBgSec,
+                    screenshots: Array.isArray(row.screenshots) ? row.screenshots : (extra.screenshots || []),
                     released: releaseDate,
                     release_date: releaseDate,
                     rating: Number.isFinite(ratingValue) ? ratingValue : null,
                     ratings_count: Number.isFinite(ratingCountValue) ? Math.floor(ratingCountValue) : 0,
-                    rating_count: Number.isFinite(ratingCountValue) ? Math.floor(ratingCountValue) : 0
+                    rating_count: Number.isFinite(ratingCountValue) ? Math.floor(ratingCountValue) : 0,
+                    last_synced_at: row.last_synced_at || ''
                 };
             }
 
@@ -4713,7 +4727,7 @@
                         const numericId = Number(cacheKey);
                         let query = supabase
                             .from('games')
-                            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra')
+                            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra,last_synced_at')
                             .limit(1);
                         query = Number.isFinite(numericId)
                             ? query.eq('id', numericId)

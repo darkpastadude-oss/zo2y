@@ -123,24 +123,33 @@ export default async function handler(req, res) {
         };
         const data = await fetchFromRAWG("games", params, RAWG_API_KEY);
         
+        const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
+
         const mappedResults = (data.results || []).map(g => {
-          const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
           let coverImg = (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || "");
-          
+          const bgRaw = uncompress(g.background_image || "");
+          const bgAdditional = uncompress(g.background_image_additional || "");
+          const screenshots = (g.short_screenshots || [])
+            .filter(s => s && s.image && !s.hidden)
+            .map(s => ({ id: s.id, image: uncompress(s.image) }));
+
           return {
             id: `rawg_${g.id}`,
             title: g.name,
             slug: g.slug,
-            description: "", // RAWG summary is not in list endpoint
+            description: "",
             cover: uncompress(coverImg),
-            hero_url: "",
+            hero_url: bgRaw || bgAdditional || uncompress(coverImg),
+            background_image: bgRaw,
+            background_image_additional: bgAdditional,
+            screenshots: screenshots.slice(0, 6),
             firstReleaseDate: g.released,
             rating: g.rating,
             rating_count: g.ratings_count,
             genres: g.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
             platforms: g.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
             source: "rawg",
-            steam_appid: "" // Not available in list endpoint
+            steam_appid: ""
           };
         });
 
@@ -215,11 +224,20 @@ export default async function handler(req, res) {
 
       const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
       const bestScreenshot = screenshots.find(s => s && s.image && !s.hidden) || screenshots[0];
-      let heroUrl = (bestScreenshot && bestScreenshot.image) || game.background_image || game.background_image_additional || "";
+      let heroUrl = game.background_image || (bestScreenshot && bestScreenshot.image) || game.background_image_additional || "";
+      let heroSecondary = game.background_image_additional || (screenshots[1] && screenshots[1].image) || "";
       
       const uncompress = (url) => String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
       coverUrl = uncompress(coverUrl);
       heroUrl = uncompress(heroUrl);
+      heroSecondary = uncompress(heroSecondary);
+
+      const mappedScreenshots = screenshots
+        .filter(s => s && s.image && !s.hidden)
+        .map(s => ({ id: s.id, image: uncompress(s.image) }));
+
+      const developers = game.developers?.map(d => ({ id: d.id, name: d.name })) || [];
+      const publishers = game.publishers?.map(p => ({ id: p.id, name: p.name })) || [];
 
       return {
         id: outId,
@@ -228,11 +246,21 @@ export default async function handler(req, res) {
         description: game.description_raw || game.description,
         cover: coverUrl,
         hero_url: heroUrl,
+        hero_background: heroUrl,
+        hero_background_secondary: heroSecondary,
+        background_image: uncompress(game.background_image || ""),
+        background_image_additional: uncompress(game.background_image_additional || ""),
+        screenshots: mappedScreenshots.slice(0, 12),
         firstReleaseDate: game.released,
+        released: game.released,
         rating: game.rating,
         rating_count: game.ratings_count,
         genres: game.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
         platforms: game.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
+        developers: developers,
+        publishers: publishers,
+        website: game.website || "",
+        reddit_url: game.reddit_url || "",
         steam_appid: steamId,
         source: "rawg",
         extra: { steam_appid: steamId, hero_url: heroUrl }

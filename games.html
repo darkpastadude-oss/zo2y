@@ -1186,12 +1186,18 @@
       }
 
       let mapped = games.map((game) => {
+        const heroBg = normalizeGameCoverUrl(game.hero_background || game.background_image || '');
+        const heroSec = normalizeGameCoverUrl(game.hero_background_secondary || game.background_image_additional || '');
+        const screenshots = Array.isArray(game.screenshots) ? game.screenshots.map(s => typeof s === 'string' ? normalizeGameCoverUrl(s) : normalizeGameCoverUrl(s?.image || '')).filter(Boolean).slice(0, 6) : [];
         return {
           id: String(game.id || ''),
           name: game.title || game.name || humanizeGameSlug(game.slug) || 'Unknown Game',
           summary: game.description || game.summary || '',
           cover: resolveGameCover(game),
-          hero_url: game.hero_url || game.background_image || '',
+          hero_url: heroBg || heroSec || game.hero_url || game.background_image || '',
+          hero_background: heroBg,
+          hero_background_secondary: heroSec,
+          screenshots: screenshots,
           firstReleaseDate: game.release_date || game.releaseDate || game.firstReleaseDate || '',
           rating: game.rating || 0,
           genres: Array.isArray(game.extra?.genres) ? game.extra.genres : (Array.isArray(game.genres) ? game.genres : []),
@@ -1533,8 +1539,8 @@
 
       
 
-      const coverUrl = game.cover || game.hero_url || FALLBACK_IMAGE;
-      const heroUrl = game.hero_url || coverUrl;
+      const coverUrl = game.cover || FALLBACK_IMAGE;
+      const heroUrl = game.hero_background || game.hero_url || game.background_image || coverUrl;
 
       const year = game.firstReleaseDate ? new Date(game.firstReleaseDate).getFullYear() : 'TBD';
       const rating = game.rating ? `${game.rating.toFixed(1)}/5` : '';

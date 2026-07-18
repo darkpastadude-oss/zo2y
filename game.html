@@ -102,6 +102,75 @@
     <link rel="stylesheet" href="/css/global-lowercase.css?v=20260708a" />
     <link rel="stylesheet" href="/css/list-modal.css?v=20260710b">
     <link rel="stylesheet" href="/css/unified-media-hero.css?v=20260718b" />
+    <style>
+      .game-screenshots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 12px;
+        padding: 4px 0;
+      }
+      .game-screenshot-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        aspect-ratio: 16/9;
+        background: rgba(255,255,255,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .game-screenshot-item:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      }
+      .game-screenshot-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .game-screenshot-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        background: rgba(0,0,0,0.92);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+      }
+      .game-screenshot-lightbox .lightbox-img {
+        max-width: 92vw;
+        max-height: 85vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 40px rgba(0,0,0,0.6);
+      }
+      .game-screenshot-lightbox button {
+        position: absolute;
+        background: rgba(255,255,255,0.12);
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: background 0.2s;
+        backdrop-filter: blur(4px);
+      }
+      .game-screenshot-lightbox button:hover { background: rgba(255,255,255,0.25); }
+      .game-screenshot-lightbox .lightbox-close { top: 16px; right: 16px; }
+      .game-screenshot-lightbox .lightbox-prev { left: 16px; top: 50%; transform: translateY(-50%); }
+      .game-screenshot-lightbox .lightbox-next { right: 16px; top: 50%; transform: translateY(-50%); }
+      @media (max-width: 640px) {
+        .game-screenshots-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .game-screenshot-lightbox .lightbox-prev,
+        .game-screenshot-lightbox .lightbox-next { width: 36px; height: 36px; font-size: 14px; }
+      }
+    </style>
   </head>
   <body class="elevated-media-page" data-elevated-category="games">
     
@@ -124,6 +193,13 @@
             Loading game details...
           </p>
         </div>
+      </div>
+
+      <div class="elevated-section" id="gameScreenshotsSection" hidden>
+        <div class="elevated-section-head">
+          <h3 class="elevated-section-title">Screenshots</h3>
+        </div>
+        <div id="gameScreenshotsGrid" class="game-screenshots-grid"></div>
       </div>
 
       <div class="elevated-section" id="gameSocialSection" hidden>

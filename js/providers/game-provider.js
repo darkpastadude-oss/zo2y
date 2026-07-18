@@ -96,6 +96,17 @@
     }
     if (!image) image = raw.image || raw.background_image || '';
 
+    var heroBackground = raw.hero_background || raw.background_image || raw.hero_url || raw.background_image_additional || '';
+    var heroBackgroundSecondary = raw.hero_background_secondary || raw.background_image_additional || '';
+
+    var screenshots = [];
+    if (Array.isArray(raw.screenshots)) {
+      screenshots = raw.screenshots.map(function(s) {
+        if (typeof s === 'string') return s;
+        return s?.image || s?.url || '';
+      }).filter(Boolean);
+    }
+
     var genres = raw.genres || [];
     var genreNames = genres.map(function (g) {
       if (typeof g === 'string') return g;
@@ -119,6 +130,9 @@
       creators: devNames.join(', '),
       description: raw.description || raw.storyline || '',
       image: image,
+      heroBackground: heroBackground,
+      heroBackgroundSecondary: heroBackgroundSecondary,
+      screenshots: screenshots,
       genres: genreNames,
       releaseDate: releaseDate,
       language: raw.language || '',
