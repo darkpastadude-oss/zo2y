@@ -743,6 +743,11 @@
         } catch (_) { return []; }
       }
 
+      window.bustBookCache = function(bookId) {
+        if (!bookId) return;
+        try { localStorage.removeItem("book_" + bookId); } catch(_) {}
+      };
+
       async function load() {
         if (!bookId) { showNotification("No book specified", "error"); return; }
         const cached = localStorage.getItem("book_" + bookId);

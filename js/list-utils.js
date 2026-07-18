@@ -327,10 +327,11 @@
     if (!mediaType || !itemId || !metadata) return;
     const items = readSavedItemsCache();
     const key = `${mediaType}:${itemId}`;
+    const existing = items[key] || {};
     items[key] = {
-      name: metadata.name || '',
-      image: metadata.image || '',
-      url: metadata.url || ''
+      name: metadata.name || existing.name || 'Untitled',
+      image: metadata.image || existing.image || '/images/fallback/book.svg',
+      url: metadata.url || existing.url || ''
     };
     writeSavedItemsCache(items);
   }
@@ -339,7 +340,9 @@
     if (!mediaType || !itemId) return null;
     const items = readSavedItemsCache();
     const key = `${mediaType}:${itemId}`;
-    return items[key] || null;
+    const cached = items[key];
+    if (cached && !cached.name && !cached.image) return null;
+    return cached || null;
   }
 
   function removeCachedSavedItem(mediaType, itemId) {
@@ -350,6 +353,19 @@
       delete items[key];
       writeSavedItemsCache(items);
     }
+  }
+
+  function cleanCorruptedCache() {
+    const items = readSavedItemsCache();
+    let changed = false;
+    Object.keys(items).forEach(function (key) {
+      var entry = items[key];
+      if (!entry || (!entry.name && !entry.image)) {
+        delete items[key];
+        changed = true;
+      }
+    });
+    if (changed) writeSavedItemsCache(items);
   }
 
   function withTimeout(promise, timeoutMs, fallbackValue) {
@@ -1357,28 +1373,33 @@
       const ownerId = String(ownerMap.get(String(listId || '').trim()) || '').trim();
       row.user_id = ownerId || userId;
       if (itemPayload) {
-        if (itemPayload.name) row.title = itemPayload.name;
-        if (itemPayload.image) row.image_url = itemPayload.image;
+        row.title = itemPayload.name || itemPayload.title || 'Untitled';
+        row.image_url = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
       }
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
+      const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, { onConflict: 'ux_list_items_custom', ignoreDuplicates: false });
       if (insertError) {
         if (String(insertError.code || '') === '23505') {
-          if (itemPayload && itemPayload.name) {
+          if (itemPayload) {
             cacheSavedItemMetadata(type, entityId, itemPayload);
           }
           return;
         }
         throw insertError;
       }
-      if (itemPayload && itemPayload.name) {
+      if (itemPayload) {
         cacheSavedItemMetadata(type, entityId, itemPayload);
       }
     }
-    if (type === 'book' && itemPayload && itemPayload.name) {
-      ensureBookRecord(client, { id: entityId, title: itemPayload.name, image: itemPayload.image, authors: itemPayload.subtitle || '' });
+    if (type === 'book' && itemPayload) {
+      const bookTitle = itemPayload.name || itemPayload.title || 'Untitled';
+      const bookImage = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
+      await ensureBookRecord(client, { id: entityId, title: bookTitle, image: bookImage, authors: itemPayload.subtitle || '' });
+    }
+    if (type === 'book' && typeof window !== 'undefined' && typeof window.bustBookCache === 'function') {
+      window.bustBookCache(entityId);
     }
   }
 
@@ -1408,32 +1429,14 @@
       row.list_id = listId;
     }
     if (itemPayload) {
-      if (itemPayload.name) row.title = itemPayload.name;
-      if (itemPayload.image) row.image_url = itemPayload.image;
+      row.title = itemPayload.name || itemPayload.title || 'Untitled';
+      row.image_url = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
     }
-    let query = client
-      .from(cfg.itemsTable)
-      .select('id')
-      .eq('user_id', ownerId)
-      .eq('item_id', entityId);
-      
-    if (isDefault) {
-      query = query.eq('list_type', String(listId).toLowerCase()).is('list_id', null);
-    } else {
-      query = query.eq('list_id', listId).is('list_type', null);
-    }
-    const { data: existingItem } = await query.maybeSingle();
-    if (existingItem) {
-      if (itemPayload && itemPayload.name) {
-        cacheSavedItemMetadata(type, entityId, itemPayload);
-      }
-      return true;
-    }
-    const { error } = await client.from(cfg.itemsTable).insert(row);
-    
+    const conflictIndex = isDefault ? 'ux_list_items_default' : 'ux_list_items_custom';
+    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictIndex, ignoreDuplicates: false });
     if (error) {
       if (String(error.code || '') === '23505') {
-        if (itemPayload && itemPayload.name) {
+        if (itemPayload) {
           cacheSavedItemMetadata(type, entityId, itemPayload);
         }
         return true;
@@ -1441,11 +1444,16 @@
       console.error('Error inserting item:', error);
       throw error;
     }
-    if (itemPayload && itemPayload.name) {
+    if (itemPayload) {
       cacheSavedItemMetadata(type, entityId, itemPayload);
     }
     if (type === 'book' && itemPayload) {
-      ensureBookRecord(client, { id: entityId, title: itemPayload.name, image: itemPayload.image, authors: itemPayload.subtitle || '' });
+      const bookTitle = itemPayload.name || itemPayload.title || 'Untitled';
+      const bookImage = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
+      await ensureBookRecord(client, { id: entityId, title: bookTitle, image: bookImage, authors: itemPayload.subtitle || '' });
+    }
+    if (type === 'book' && typeof window !== 'undefined' && typeof window.bustBookCache === 'function') {
+      window.bustBookCache(entityId);
     }
     return true;
   }
@@ -1471,6 +1479,12 @@
     }
     const { error } = await query;
     if (error && isListTableMissingError(error, cfg.itemsTable)) { missingItemTables.add(cfg.itemsTable); return false; }
+    if (!error && type === 'book' && typeof window !== 'undefined' && typeof window.bustBookCache === 'function') {
+      window.bustBookCache(entityId);
+    }
+    if (!error && type === 'book' && typeof window !== 'undefined' && window.ListUtils) {
+      window.ListUtils.removeCachedSavedItem && window.ListUtils.removeCachedSavedItem(type, entityId);
+    }
     return !error;
   }
 
@@ -1568,7 +1582,7 @@
   async function repairBookListItems(client, items) {
     if (!client || !Array.isArray(items) || !items.length) return items;
     const needsRepair = items.filter(function (it) {
-      return !it.title || !it.image_url;
+      return !it.title || !it.image_url || it.title === 'Untitled';
     });
     if (!needsRepair.length) return items;
     const ids = needsRepair.map(function (it) { return String(it.item_id || '').trim(); }).filter(Boolean);
@@ -1579,20 +1593,40 @@
       .in('id', ids);
     const bookMap = new Map();
     (bookRows || []).forEach(function (b) { bookMap.set(b.id, b); });
+    const needApiFetch = [];
+    for (var j = 0; j < needsRepair.length; j++) {
+      var bid = String(needsRepair[j].item_id || '').trim();
+      if (!bookMap.has(bid)) needApiFetch.push(bid);
+    }
+    if (needApiFetch.length) {
+      for (var k = 0; k < needApiFetch.length && k < 10; k++) {
+        try {
+          var res = await fetch('/api/books/' + encodeURIComponent(needApiFetch[k]));
+          if (res.ok) {
+            var apiData = await res.json();
+            var bInfo = apiData || {};
+            var norm = typeof window !== 'undefined' && window.normalizeBook ? window.normalizeBook(bInfo) : bInfo;
+            if (norm && norm.title) bookMap.set(needApiFetch[k], { id: needApiFetch[k], title: norm.title, thumbnail: norm.image || '', authors: norm.authors || '' });
+          }
+        } catch (_e) {}
+      }
+    }
     const repaired = [];
     for (var i = 0; i < items.length; i++) {
       var it = items[i];
       var bookId = String(it.item_id || '').trim();
       var book = bookMap.get(bookId);
       var patched = Object.assign({}, it);
-      if (!patched.title && book && book.title) patched.title = book.title;
+      if ((!patched.title || patched.title === 'Untitled') && book && book.title) patched.title = book.title;
       if (!patched.image_url && book && book.thumbnail) patched.image_url = book.thumbnail;
       if (!patched.subtitle && book && book.authors) patched.subtitle = book.authors;
-      if ((!it.title || !it.image_url) && book && (book.title || book.thumbnail)) {
+      if (!patched.title) patched.title = 'Untitled';
+      if (!patched.image_url) patched.image_url = '/images/fallback/book.svg';
+      if ((!it.title || it.title === 'Untitled' || !it.image_url) && (patched.title !== it.title || patched.image_url !== it.image_url)) {
         client.from('list_items')
           .update({
-            title: patched.title || it.title,
-            image_url: patched.image_url || it.image_url,
+            title: patched.title,
+            image_url: patched.image_url,
             subtitle: patched.subtitle || it.subtitle
           })
           .eq('item_id', it.item_id)
@@ -1721,11 +1755,14 @@
     loadList,
     cacheSavedItemMetadata,
     getCachedSavedItemMetadata,
-    removeCachedSavedItem
+    removeCachedSavedItem,
+    cleanCorruptedCache
   };
 
   window.ListService = ListService;
   window.ListUtils = ListService;
+
+  try { cleanCorruptedCache(); } catch (_e) {}
 
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {

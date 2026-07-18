@@ -36,7 +36,7 @@
     return {
       id: raw.id || data.id || '',
       mediaType: 'book',
-      title: String(data.title || '').trim(),
+      title: String(data.title || '').trim() || 'Untitled',
       subtitle: String(data.subtitle || '').trim(),
       authors: authorStr,
       author: authorStr,

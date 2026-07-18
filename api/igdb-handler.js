@@ -127,7 +127,7 @@ export default async function handler(req, res) {
           slug: g.slug,
           description: "", // RAWG summary is not in list endpoint
           cover: (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || ""),
-          hero_url: g.background_image || "",
+          hero_url: "",
           firstReleaseDate: g.released,
           rating: g.rating,
           rating_count: g.ratings_count,
@@ -196,7 +196,9 @@ export default async function handler(req, res) {
       }
       
       let coverUrl = "";
-      if (steamId) {
+      if (game.cover && game.cover.url) {
+        coverUrl = game.cover.url.startsWith("//") ? `https:${game.cover.url}` : game.cover.url;
+      } else if (steamId) {
         coverUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${steamId}/library_600x900.jpg`;
       } else if (game.background_image) {
         coverUrl = game.background_image;
@@ -204,7 +206,7 @@ export default async function handler(req, res) {
         coverUrl = game.background_image_additional || "";
       }
       
-      const heroUrl = game.background_image_additional || game.background_image || "";
+      const heroUrl = game.background_image_additional || "";
 
       return {
         id: outId,

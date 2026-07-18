@@ -450,6 +450,18 @@ function expandWikimediaThumbUrl(url) {
   return `${base}/${sourcePath}`;
 }
 
+function capWikimediaThumbUrl(url, maxWidth = 1920) {
+  const raw = toHttpsUrl(url);
+  if (!raw.includes("upload.wikimedia.org")) return raw;
+  const fullOriginal = expandWikimediaThumbUrl(raw);
+  const match = fullOriginal.match(/^(https:\/\/upload\.wikimedia\.org\/[^/]+)\/(.+\.[a-z0-9]{2,5})$/i);
+  if (!match) return raw;
+  const base = match[1];
+  const filePath = match[2];
+  const fileName = filePath.split("/").pop();
+  return `${base}/thumb/${filePath}/${maxWidth}px-${fileName}`;
+}
+
 function resolveMediaItemImageUrl(item) {
   const srcset = Array.isArray(item?.srcset) ? item.srcset : [];
   const sorted = [...srcset].sort((a, b) => {
@@ -703,7 +715,7 @@ async function fetchSummaryViaQuery(title) {
     exintro: "1",
     explaintext: "1",
     piprop: "original|thumbnail",
-    pithumbsize: "900",
+    pithumbsize: "1600",
     ppprop: "wikibase_item"
   }).catch(() => null);
   const page = Array.isArray(json?.query?.pages) ? json.query.pages[0] : null;
@@ -752,9 +764,9 @@ async function fetchPageById(id) {
 }
 
 async function fetchInfoboxCover(title) {
-  const json = await wikiQuery({ prop: "pageimages", titles: normalizeTitle(title), piprop: "original|thumbnail", pithumbsize: "900" });
+  const json = await wikiQuery({ prop: "pageimages", titles: normalizeTitle(title), piprop: "original|thumbnail", pithumbsize: "1600" });
   const page = Array.isArray(json?.query?.pages) ? json.query.pages[0] : null;
-  return toHttpsUrl(page?.original?.source || page?.thumbnail?.source || "");
+  return capWikimediaThumbUrl(toHttpsUrl(page?.original?.source || page?.thumbnail?.source || ""), 900);
 }
 
 async function fetchSpotlightScreenshot(title, fallbackCover = "") {
@@ -788,6 +800,8 @@ async function fetchSpotlightScreenshot(title, fallbackCover = "") {
   } catch (_error) {
     selected = fallbackUrl;
   }
+
+  selected = capWikimediaThumbUrl(selected, 1920);
 
   writeTimedCache(mediaCache, cacheKey, selected || "", WIKI_MEDIA_TTL_MS);
   return selected || "";

@@ -83,21 +83,21 @@
     }
 
     const GAME_GENRE_BACKDROPS = {
-      action: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600',
-      shooter: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600',
-      'role-playing-games-rpg': 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600',
-      rpg: 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600',
-      adventure: 'https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg?w=1600',
-      puzzle: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600',
-      strategy: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600',
-      horror: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?w=1600',
-      simulation: 'https://images.pexels.com/photos/163489/cpu-motherboard-electronics-computer-163489.jpeg?w=1600',
-      racing: 'https://images.pexels.com/photos/1707820/pexels-photo-1707820.jpeg?w=1600',
-      sports: 'https://images.pexels.com/photos/4773081/pexels-photo-4773081.jpeg?w=1600',
-      fighting: 'https://images.pexels.com/photos/8612004/pexels-photo-8612004.jpeg?w=1600',
-      platformer: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?w=1600',
-      stealth: 'https://images.pexels.com/photos/1671325/pexels-photo-1671325.jpeg?w=1600',
-      default: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600'
+      action: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600&q=80',
+      shooter: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600&q=80',
+      'role-playing-games-rpg': 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600&q=80',
+      rpg: 'https://images.pexels.com/photos/1293506/pexels-photo-1293506.jpeg?w=1600&q=80',
+      adventure: 'https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg?w=1600&q=80',
+      puzzle: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600&q=80',
+      strategy: 'https://images.pexels.com/photos/207924/pexels-photo-207924.jpeg?w=1600&q=80',
+      horror: 'https://images.pexels.com/photos/2387873/pexels-photo-2387873.jpeg?w=1600&q=80',
+      simulation: 'https://images.pexels.com/photos/163489/cpu-motherboard-electronics-computer-163489.jpeg?w=1600&q=80',
+      racing: 'https://images.pexels.com/photos/1707820/pexels-photo-1707820.jpeg?w=1600&q=80',
+      sports: 'https://images.pexels.com/photos/4773081/pexels-photo-4773081.jpeg?w=1600&q=80',
+      fighting: 'https://images.pexels.com/photos/8612004/pexels-photo-8612004.jpeg?w=1600&q=80',
+      platformer: 'https://images.pexels.com/photos/442576/pexels-photo-442576.jpeg?w=1600&q=80',
+      stealth: 'https://images.pexels.com/photos/1671325/pexels-photo-1671325.jpeg?w=1600&q=80',
+      default: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg?w=1600&q=80'
     };
 
     function getGameGenreBackdrop(genres) {
@@ -153,22 +153,10 @@
           }).filter(Boolean).join(", ") + (game.platforms.length > 2 ? "..." : "")
         });
       }
-      if (game.developers && game.developers.length > 0) {
-        config.metadata.push({
-          type: "developer",
-          value: game.developers[0].name || game.developers[0]
-        });
-      }
       if (game.genres && game.genres.length > 0) {
         config.metadata.push({
           type: "genre",
           value: game.genres.slice(0, 2).map((g) => g.name || g).join(", ")
-        });
-      }
-      if (game.rating) {
-        config.metadata.push({
-          type: "rating",
-          value: Number(game.rating).toFixed(1)
         });
       }
 

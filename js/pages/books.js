@@ -3,6 +3,11 @@ let currentUser = null;
 let currentAbort = null;
 let bookListStatusMap = new Map();
 
+window.bustBookCache = window.bustBookCache || function(bookId) {
+  if (!bookId) return;
+  try { localStorage.removeItem("book_" + bookId); } catch(_) {}
+};
+
 async function ensureSupabase() {
   if (supabaseClient) return supabaseClient;
   const authRuntime = window.ZO2Y_AUTH || null;
@@ -83,6 +88,50 @@ async function loadBookListStatus() {
     if (!bookListStatusMap.has(id)) bookListStatusMap.set(id, { favorites: false, read: false, readlist: false });
     const bucket = bookListStatusMap.get(id);
     if (row.list_type in bucket) bucket[row.list_type] = true;
+  });
+}
+
+async function loadBookListStatusForNew(books) {
+  if (!currentUser?.id || !books.length) return;
+  const client = await ensureSupabase();
+  if (!client) return;
+  const ids = books.map((b) => b.id || b.providerId || "").filter(Boolean);
+  if (!ids.length) return;
+  const { data } = await client
+    .from('list_items')
+    .select('item_id, list_type')
+    .eq('media_type', 'book')
+    .eq('user_id', currentUser.id)
+    .in('item_id', ids);
+  (data || []).forEach((row) => {
+    const id = String(row.item_id || "");
+    if (!id) return;
+    if (!bookListStatusMap.has(id)) bookListStatusMap.set(id, { favorites: false, read: false, readlist: false });
+    const bucket = bookListStatusMap.get(id);
+    if (row.list_type in bucket) bucket[row.list_type] = true;
+  });
+}
+
+function applyBookListStatus() {
+  const grid = document.getElementById("booksGrid");
+  if (!grid) return;
+  grid.querySelectorAll(".card[data-media-type='book']").forEach((card) => {
+    const bookId = card.getAttribute("data-item-id") || card.getAttribute("data-id") || "";
+    if (!bookId) return;
+    const status = bookListStatusMap.get(bookId);
+    if (!status) return;
+    const hasSaved = status.favorites || status.read || status.readlist;
+    card.classList.toggle("is-saved", hasSaved);
+    let badge = card.querySelector(".card-saved-badge");
+    if (hasSaved && !badge) {
+      badge = document.createElement("span");
+      badge.className = "card-saved-badge";
+      badge.innerHTML = '<i class="fa-solid fa-bookmark"></i>';
+      const media = card.querySelector(".card-media");
+      if (media) media.appendChild(badge);
+    } else if (!hasSaved && badge) {
+      badge.remove();
+    }
   });
 }
 
@@ -190,7 +239,12 @@ async function loadBooks(append) {
   state.hasMore = filteredBooks.length >= PAGE_SIZE && pageCount < MAX_PAGES;
 
   renderGrid(append);
-  if (!append) await loadBookListStatus();
+  if (!append) {
+    await loadBookListStatus();
+  } else {
+    await loadBookListStatusForNew(filteredBooks);
+  }
+  applyBookListStatus();
 
   state.loading = false;
   if (currentAbort === abort) currentAbort = null;
@@ -212,22 +266,24 @@ function renderGrid(append) {
     const coverUrl = b.image || b.cover || "/images/fallback/book.svg";
     const bookId = b.id || b.providerId || "";
     const href = "book.html?id=" + encodeURIComponent(bookId);
+    const safeTitle = b.title || 'Untitled';
+    const safeAuthor = b.author || b.authors || "Unknown Author";
     return `
-      <article class="card" data-id="${escapeHtml(bookId)}" data-item-id="${escapeHtml(bookId)}" data-media-type="book" data-title="${escapeHtml(b.title)}" data-image="${escapeHtml(coverUrl)}" data-href="${escapeHtml(href)}" data-author="${escapeHtml(b.author || b.authors || "")}">
+      <article class="card" data-id="${escapeHtml(bookId)}" data-item-id="${escapeHtml(bookId)}" data-media-type="book" data-title="${escapeHtml(safeTitle)}" data-image="${escapeHtml(coverUrl)}" data-href="${escapeHtml(href)}" data-author="${escapeHtml(safeAuthor)}">
         <div class="card-media cover">
           <a href="${escapeHtml(href)}">
-            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(b.title)}" loading="lazy" onerror="this.src='/images/fallback/book.svg'">
+            <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(safeTitle)}" loading="lazy" onerror="this.src='/images/fallback/book.svg'">
           </a>
         </div>
         <div class="card-meta">
           <span class="card-type"><i class="fa-solid fa-book"></i> Book</span>
           <div class="card-meta-top">
-            <p class="card-name">${escapeHtml(b.title)}</p>
+            <p class="card-name">${escapeHtml(safeTitle)}</p>
             <div class="card-menu-wrap">
               <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
             </div>
           </div>
-          <p class="card-sub">${escapeHtml(b.author || b.authors || "Unknown Author")}</p>
+          <p class="card-sub">${escapeHtml(safeAuthor)}</p>
           <p class="card-extra">${b.year ? escapeHtml(String(b.year)) : ""}${b.pageCount ? ` | ${b.pageCount} pages` : ""}</p>
         </div>
       </article>

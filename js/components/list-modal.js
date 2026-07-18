@@ -442,28 +442,29 @@
       media_type: mediaType,
       item_id: String(itemId),
       list_type: String(listType).toLowerCase(),
-      title: cardTitle || _config.title || '',
+      title: cardTitle || _config.title || 'Untitled',
       subtitle: _config.subtitle || '',
-      image_url: cardImage || _config.image || ''
+      image_url: cardImage || _config.image || '/images/fallback/book.svg'
     };
 
     try {
       if (isAdding) {
-        await client.from('list_items').delete()
-          .eq('user_id', user.id)
-          .eq('media_type', mediaType)
-          .eq('item_id', String(itemId))
-          .eq('list_type', String(listType).toLowerCase())
-          .is('list_id', null);
-        var insertResult = await client.from('list_items').insert(payload);
-        if (insertResult && insertResult.error) throw insertResult.error;
+        var insertResult = await client.from('list_items').upsert(payload, { onConflict: 'ux_list_items_default', ignoreDuplicates: false });
+        if (insertResult && insertResult.error) {
+          if (String(insertResult.error.code || '') === '23505') {
+            // Already in list — treat as success
+          } else {
+            throw insertResult.error;
+          }
+        }
         if (window.ListUtils && typeof window.ListUtils.ensureBookRecord === 'function' && mediaType === 'book') {
-          window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: payload.image_url, authors: payload.subtitle || _config.subtitle || '' });
+          await window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: payload.image_url, authors: payload.subtitle || _config.subtitle || '' });
         }
         if (cardEl && window.ListUtils) {
-          if (cardImage || cardTitle) {
-            window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle, image: cardImage, url: cardHref });
-          }
+          window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle || payload.title, image: cardImage || payload.image_url, url: cardHref });
+        }
+        if (mediaType === 'book' && typeof window.bustBookCache === 'function') {
+          window.bustBookCache(String(itemId));
         }
         showToast('Added to list');
       } else {
@@ -474,6 +475,12 @@
           .eq('list_type', String(listType).toLowerCase())
           .is('list_id', null);
         if (deleteResult && deleteResult.error) throw deleteResult.error;
+        if (mediaType === 'book' && typeof window.bustBookCache === 'function') {
+          window.bustBookCache(String(itemId));
+        }
+        if (mediaType === 'book' && window.ListUtils) {
+          window.ListUtils.removeCachedSavedItem && window.ListUtils.removeCachedSavedItem(mediaType, itemId);
+        }
         showToast('Removed from list', 'info');
       }
     } catch (err) {
