@@ -112,7 +112,7 @@
     }
 
     try {
-      const res = await fetch(`/api/igdb/games/${encodeURIComponent(gameId)}`);
+      const res = await fetch(`/api/igdb/games/${encodeURIComponent(gameId)}?cb=${Date.now()}`);
       if (!res.ok) throw new Error("Game not found");
 
       const game = await res.json();

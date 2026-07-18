@@ -371,6 +371,7 @@
     url.searchParams.set('page', '1');
     url.searchParams.set('page_size', '1');
     url.searchParams.set('title_only', '1');
+    url.searchParams.set('cb', Date.now());
 
     const cached = await readCachedCover(title);
     if (cached) {
