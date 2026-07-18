@@ -185,47 +185,81 @@ export default async function handler(req, res) {
     const isRawg = rawId.startsWith("rawg_");
     const id = isRawg ? parseInt(rawId.replace("rawg_", ""), 10) : parseInt(rawId, 10);
     
+    function formatRawgGameResponse(game, outId) {
+      let steamId = "";
+      if (game.stores) {
+        const steamStore = game.stores.find(s => s.store?.slug === "steam");
+        if (steamStore && steamStore.url) {
+          const match = steamStore.url.match(/app\/(\d+)/);
+          if (match) steamId = match[1];
+        }
+      }
+      
+      let coverUrl = "";
+      if (steamId) {
+        coverUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${steamId}/library_600x900.jpg`;
+      } else if (game.background_image_additional) {
+        coverUrl = game.background_image_additional;
+      } else {
+        coverUrl = game.background_image || "";
+      }
+
+      return {
+        id: outId,
+        title: game.name,
+        slug: game.slug,
+        description: game.description_raw || game.description,
+        cover: coverUrl,
+        hero_url: game.background_image || "",
+        firstReleaseDate: game.released,
+        rating: game.rating,
+        rating_count: game.ratings_count,
+        genres: game.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
+        platforms: game.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
+        steam_appid: steamId,
+        source: "rawg",
+        extra: { steam_appid: steamId, hero_url: game.background_image || "" }
+      };
+    }
+
     if (RAWG_API_KEY && isRawg && !Number.isNaN(id)) {
       try {
         const game = await fetchFromRAWG(`games/${id}`, {}, RAWG_API_KEY);
-        
-        let steamId = "";
-        if (game.stores) {
-          const steamStore = game.stores.find(s => s.store?.slug === "steam");
-          if (steamStore && steamStore.url) {
-            const match = steamStore.url.match(/app\/(\d+)/);
-            if (match) steamId = match[1];
-          }
-        }
-        
-        let coverUrl = "";
-        if (steamId) {
-          coverUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${steamId}/library_600x900.jpg`;
-        } else if (game.background_image_additional) {
-          coverUrl = game.background_image_additional;
-        } else {
-          coverUrl = game.background_image || "";
-        }
-
         res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=259200");
-        return res.json({
-          id: `rawg_${game.id}`,
-          title: game.name,
-          slug: game.slug,
-          description: game.description_raw || game.description,
-          cover: coverUrl,
-          hero_url: game.background_image || "",
-          firstReleaseDate: game.released,
-          rating: game.rating,
-          rating_count: game.ratings_count,
-          genres: game.genres?.map(gn => ({ id: gn.id, name: gn.name, slug: gn.slug })) || [],
-          platforms: game.platforms?.map(p => ({ id: p.platform.id, name: p.platform.name, slug: p.platform.slug })) || [],
-          steam_appid: steamId,
-          source: "rawg",
-          extra: { steam_appid: steamId, hero_url: game.background_image || "" }
-        });
+        return res.json(formatRawgGameResponse(game, `rawg_${game.id}`));
       } catch (e) {
         return res.status(404).json({ message: "Game not found in RAWG." });
+      }
+    }
+
+    // WIKIPEDIA ID TO RAWG UPGRADE
+    if (RAWG_API_KEY && !isRawg && !rawId.includes(":")) {
+      try {
+        let searchTitle = "";
+        try {
+          const client = await getSupabaseAdminClient();
+          if (client) {
+            const { data } = await client.from('games').select('title').eq('id', rawId).single();
+            if (data && data.title) searchTitle = data.title;
+          }
+        } catch(e) {}
+        
+        if (!searchTitle) {
+          const wikiDetail = await fetchWikipediaGameDetailsById(id);
+          if (wikiDetail && wikiDetail.name) searchTitle = wikiDetail.name;
+        }
+        if (searchTitle) {
+          const list = await fetchFromRAWG("games", { search: searchTitle, page_size: 1 }, RAWG_API_KEY);
+          if (list.results && list.results.length > 0) {
+            const rawgId = list.results[0].id;
+            const game = await fetchFromRAWG(`games/${rawgId}`, {}, RAWG_API_KEY);
+            res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=259200");
+            return res.json(formatRawgGameResponse(game, rawId));
+          }
+        }
+      } catch (e) {
+        console.error("UPGRADE ERROR", e);
+        // silently fallback to wikipedia
       }
     }
 
