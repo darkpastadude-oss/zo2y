@@ -126,7 +126,7 @@ export default async function handler(req, res) {
           title: g.name,
           slug: g.slug,
           description: "", // RAWG summary is not in list endpoint
-          cover: "", // Force frontend to hydrate portrait poster
+          cover: (g.short_screenshots && g.short_screenshots.length > 1) ? g.short_screenshots[1].image : (g.background_image || ""),
           hero_url: g.background_image || "",
           firstReleaseDate: g.released,
           rating: g.rating,
@@ -201,13 +201,10 @@ export default async function handler(req, res) {
         let coverUrl = "";
         if (steamId) {
           coverUrl = `https://steamcdn-a.akamaihd.net/steam/apps/${steamId}/library_600x900.jpg`;
+        } else if (game.background_image_additional) {
+          coverUrl = game.background_image_additional;
         } else {
-          try {
-            const wikiSearch = await fetchWikipediaGamesList({ search: game.name, pageSize: 1, titleOnly: true });
-            if (wikiSearch && wikiSearch.results && wikiSearch.results.length > 0) {
-              coverUrl = wikiSearch.results[0].cover || "";
-            }
-          } catch(e) {}
+          coverUrl = game.background_image || "";
         }
 
         res.setHeader("Cache-Control", "public, max-age=86400, s-maxage=259200");
@@ -216,7 +213,7 @@ export default async function handler(req, res) {
           title: game.name,
           slug: game.slug,
           description: game.description_raw || game.description,
-          cover: coverUrl, // Hydrated on backend for detail view
+          cover: coverUrl,
           hero_url: game.background_image || "",
           firstReleaseDate: game.released,
           rating: game.rating,
