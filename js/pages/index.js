@@ -9282,6 +9282,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
                   if (!Array.isArray(hydrated) || hydrated.length <= rotatedItems.length) return;
                   homeFeedState.game = hydrated;
                   renderRail('gamesRail', hydrated, { mediaType: 'game' });
+                  if (typeof hydrateSpotlightFromPool === 'function' && typeof buildScoredDiscoveryPool === 'function') {
+                    hydrateSpotlightFromPool(buildScoredDiscoveryPool(homeFeedState));
+                  }
                 } catch (_err) {
                   // Ignore; existing items stay visible.
                 }
@@ -9313,6 +9316,9 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       }
       homeFeedState.game = items;
       renderRail('gamesRail', items, { mediaType: 'game' });
+      if (typeof hydrateSpotlightFromPool === 'function' && typeof buildScoredDiscoveryPool === 'function') {
+        hydrateSpotlightFromPool(buildScoredDiscoveryPool(homeFeedState));
+      }
     }
 
     function toggleHomeGamesRailForSearch() {
