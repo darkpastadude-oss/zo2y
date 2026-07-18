@@ -813,8 +813,6 @@ async function fetchSpotlightScreenshot(title, fallbackCover = "") {
     selected = fallbackUrl;
   }
 
-  selected = capWikimediaThumbUrl(selected, 1920);
-
   writeTimedCache(mediaCache, cacheKey, selected || "", WIKI_MEDIA_TTL_MS);
   return selected || "";
 }

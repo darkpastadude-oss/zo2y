@@ -207,8 +207,10 @@ export default async function handler(req, res) {
       } else {
         coverUrl = game.background_image_additional || "";
       }
-      
-      const heroUrl = game.background_image_additional || game.background_image || "";
+
+      const screenshots = Array.isArray(game.screenshots) ? game.screenshots : [];
+      const bestScreenshot = screenshots.find(s => s && s.image && !s.hidden) || screenshots[0];
+      const heroUrl = (bestScreenshot && bestScreenshot.image) || game.background_image_additional || "";
 
       return {
         id: outId,
@@ -217,7 +219,6 @@ export default async function handler(req, res) {
         description: game.description_raw || game.description,
         cover: coverUrl,
         hero_url: heroUrl,
-        background_image: game.background_image || "",
         firstReleaseDate: game.released,
         rating: game.rating,
         rating_count: game.ratings_count,
