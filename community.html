@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260719N">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260719Q">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260719N" defer></script>
+    <script src="js/pages/community.js?v=20260719R" defer></script>
 </head>
 <body data-nav-page="community">
 
@@ -52,10 +52,10 @@
                     <h1 class="community-title-sm">community</h1>
                 </div>
 
-                <!-- 2. Search Shell (Clean Input with Bulletproof Inline SVG Icon) -->
+                <!-- 2. Search Shell (Interactive Member & Media Search) -->
                 <div class="community-search-bar-wrap">
                     <svg class="search-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" class="community-search-input" placeholder="search media, people, collections..." readonly>
+                    <input type="text" class="community-search-input" placeholder="search media, people, collections...">
                 </div>
             </div>
         </div>
@@ -134,7 +134,7 @@
                 </div>
             </div>
 
-            <!-- Pane 2: Reviews Feed (Tri-State: Loading -> Hidden | Visible / Empty State) -->
+            <!-- Pane 2: Reviews Feed -->
             <div class="community-tab-pane" id="paneReviews">
                 <div id="allReviewsFeed" class="reviews-feed-container">
                     <div class="skel-review">
@@ -160,21 +160,25 @@
                 </div>
             </div>
 
-            <!-- Pane 4: People -->
+            <!-- Pane 4: People (Member Search Grid) -->
             <div class="community-tab-pane" id="panePeople">
-                <div class="community-empty-box">
-                    <div class="empty-icon"><i class="fas fa-users"></i></div>
-                    <div class="empty-title">discover members by taste.</div>
-                    <div class="empty-desc">find people who love the same movies, games, books, and music as you.</div>
+                <div id="peopleListFeed" class="people-feed-grid">
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-users"></i></div>
+                        <div class="empty-title">discover members by taste.</div>
+                        <div class="empty-desc">find people who love the same movies, games, books, and music as you.</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Pane 5: Following -->
+            <!-- Pane 5: Following (Followed Members Feed) -->
             <div class="community-tab-pane" id="paneFollowing">
-                <div class="community-empty-box">
-                    <div class="empty-icon"><i class="fas fa-user-check"></i></div>
-                    <div class="empty-title">follow members to see activity.</div>
-                    <div class="empty-desc">when members you follow rate or review media, their activity appears here.</div>
+                <div id="followingListFeed" class="people-feed-grid">
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-user-check"></i></div>
+                        <div class="empty-title">follow members to see activity.</div>
+                        <div class="empty-desc">when members you follow rate or review media, their activity appears here.</div>
+                    </div>
                 </div>
             </div>
 

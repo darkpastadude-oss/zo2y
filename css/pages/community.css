@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - SOLID NAVY BLUE STYLES (MATCHING INDEX.HTML)
+   ZO2Y COMMUNITY - STYLES (REVIEWS, MEMBER SEARCH & FOLLOWS)
    ============================================================ */
 
 :root {
@@ -101,7 +101,12 @@ body::after {
     color: var(--white);
     font-size: 0.85rem;
     outline: none;
-    cursor: default;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.community-search-input:focus {
+    border-color: rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
 }
 
 /* 3. Navigation Chips Shell (Single Line Horizontal Scroll) */
@@ -179,7 +184,114 @@ body::after {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* === REVIEWS FEED & REVIEW CARD STYLES === */
+/* === MEMBER SEARCH & USER CARD STYLES === */
+.people-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.community-user-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.community-user-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.user-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1633;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.user-card-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-card-name {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--white);
+}
+
+.user-profile-link,
+.review-user-link {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.user-profile-link:hover,
+.review-user-link:hover {
+    color: var(--accent);
+}
+
+.user-card-fullname {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+/* Follow Toggle Button */
+.btn-follow-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    height: 30px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-follow-toggle:hover {
+    background: var(--accent);
+    color: #0b1633;
+}
+
+.btn-follow-toggle.following {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    border-color: var(--border);
+}
+
+.btn-follow-toggle.following:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* === REVIEWS FEED STYLES === */
 .reviews-feed-container {
     display: flex;
     flex-direction: column;
