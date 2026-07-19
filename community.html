@@ -23,7 +23,7 @@
 </head>
 <body data-nav-page="community">
 
-    <!-- Global Header -->
+    <!-- Shared Navigation Header -->
     <header class="shared-header" id="sharedHeader">
         <div class="header-container">
             <a href="index.html" class="header-logo">
@@ -38,10 +38,10 @@
         </div>
     </header>
 
-    <!-- Main Community Shell -->
+    <!-- Main Community Page Shell -->
     <main class="community-main">
         
-        <!-- Compact Header & Search Toggle -->
+        <!-- 1. Compact Header & Search Toggle Shell -->
         <div class="community-header-compact">
             <div class="container">
                 <div class="community-header-row">
@@ -51,7 +51,7 @@
                     </button>
                 </div>
 
-                <!-- Sleek Expandable Search Bar (40px high) -->
+                <!-- 2. Search Shell (UI Shell Only, Read-Only) -->
                 <div class="community-search-bar-wrap" id="communitySearchBarWrap">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="community-search-input" placeholder="search media & people" readonly>
@@ -59,7 +59,7 @@
             </div>
         </div>
 
-        <!-- Scrollable Navigation Chips -->
+        <!-- 3. Navigation Chips Shell -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
@@ -82,65 +82,11 @@
             </div>
         </div>
 
-        <!-- Content Area: Single New Releases Rail -->
-        <div class="container community-content">
-            
-            <section class="pv2-rail">
-                <div class="pv2-rail-header">
-                    <h2 class="pv2-rail-title">
-                        <i class="fas fa-fire"></i> new releases
-                    </h2>
-                    <span class="pv2-rail-viewall">see all <i class="fas fa-chevron-right"></i></span>
-                </div>
-
-                <!-- Reused Shared Rail Track with Exact Shared Skeleton System from index.html/profile.html -->
-                <div class="pv2-rail-track" id="communityNewReleasesTrack">
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                    <div class="skel-card-poster">
-                        <div class="skel skel-poster"></div>
-                        <div class="skel-meta">
-                            <div class="skel skel-line skel-line-lg"></div>
-                            <div class="skel skel-line skel-line-sm"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
+        <!-- 4. Layout Container Shell -->
+        <div class="container community-content" id="communityDiscoveryFeed">
+            <!-- Phase 1A Shell Container -->
         </div>
+
     </main>
 
     <script src="js/shared-header.js" defer></script>

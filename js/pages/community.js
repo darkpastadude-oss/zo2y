@@ -1,19 +1,8 @@
 /* ============================================================
-   ZO2Y COMMUNITY - MOBILE COMPRESSED VIEWPORT-FIRST SHELL
+   ZO2Y COMMUNITY - PHASE 1A SHELL ONLY
    ============================================================ */
 
 (function() {
     'use strict';
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtn = document.getElementById('communitySearchToggleBtn');
-        const searchWrap = document.getElementById('communitySearchBarWrap');
-
-        if (toggleBtn && searchWrap) {
-            toggleBtn.addEventListener('click', function() {
-                toggleBtn.classList.toggle('active');
-                searchWrap.classList.toggle('open');
-            });
-        }
-    });
+    // Phase 1A: HTML shell only. No JavaScript logic, no APIs, no pre-optimization.
 })();

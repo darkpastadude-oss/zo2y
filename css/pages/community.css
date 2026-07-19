@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - VIEWPORT-FIRST SHELL WITH SHARED SKELETONS
+   ZO2Y COMMUNITY - PHASE 1A SHELL STYLES
    ============================================================ */
 
 :root {
@@ -32,7 +32,7 @@ body {
     overflow-x: hidden;
 }
 
-/* Ambient Radial Glow & Mesh Texture matching Zo2y Core */
+/* Ambient Radial Glow & Texture matching Zo2y Core */
 body::before {
     content: '';
     position: fixed;
@@ -58,7 +58,7 @@ body::after {
     padding: 0 16px;
 }
 
-/* 1. Ultra-Compact Header Row */
+/* 1. Compact Header Row */
 .community-header-compact {
     padding: 10px 0 8px 0;
     border-bottom: 1px solid var(--border);
@@ -91,21 +91,13 @@ body::after {
     justify-content: center;
     cursor: pointer;
     font-size: 0.85rem;
-    transition: all 0.2s ease;
 }
 
-.community-search-toggle-btn:hover,
-.community-search-toggle-btn.active {
-    color: var(--accent);
-    border-color: var(--accent);
-}
-
-/* 2. Compact Search Bar (40px high) */
+/* 2. Search Shell (40px high) */
 .community-search-bar-wrap {
     position: relative;
     max-width: 720px;
     margin: 0 auto;
-    transition: all 0.25s ease;
 }
 
 .community-search-bar-wrap .search-icon {
@@ -130,7 +122,7 @@ body::after {
     cursor: default;
 }
 
-/* 3. Scrollable Navigation Chips */
+/* 3. Navigation Chips Shell */
 .community-nav-bar {
     position: sticky;
     top: 60px;
@@ -167,7 +159,6 @@ body::after {
     font-weight: 500;
     cursor: default;
     white-space: nowrap;
-    transition: all 0.2s ease;
 }
 
 .community-tab-btn.active {
@@ -177,20 +168,14 @@ body::after {
     font-weight: 600;
 }
 
-/* 4. Content Spacing & Viewport Alignment */
+/* 4. Layout Container Shell */
 .community-content {
     padding: 14px 16px 32px 16px;
 }
 
-/* Mobile Search Expand Toggle */
 @media (max-width: 768px) {
     .community-search-bar-wrap {
         display: none;
-    }
-    
-    .community-search-bar-wrap.open {
-        display: block;
-        margin-top: 6px;
     }
 }
 
