@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; media-src 'self' https://*.supabase.co blob:; connect-src 'self' https://www.omdbapi.com https://*.apple.com https://*.dzcdn.net https://*.googleapis.com https://*.igdb.com https://*.mzstatic.com https://*.supabase.co https://*.twitch.tv https://*.wikidata.org https://*.wikimedia.org https://*.youtube.com https://api.igdb.com https://api.rawg.io https://api.themoviedb.org https://api.thesportsdb.com https://audio-ssl.itunes.apple.com https://books.google.com https://books.googleusercontent.com https://cdn-images.dzcdn.net https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://commons.wikimedia.org https://covers.openlibrary.org https://en.wikipedia.org https://flagcdn.com https://fonts.googleapis.com https://fonts.gstatic.com https://i.scdn.co https://id.twitch.tv https://image.tmdb.org https://images.unsplash.com https://is1-ssl.mzstatic.com https://itunes.apple.com https://logo.clearbit.com https://media.rawg.io https://openlibrary.org https://player.vimeo.com https://restcountries.com https://rss.applemarketingtools.com https://static.cloudflareinsights.com https://wikimedia.org https://www.thesportsdb.com https://www.youtube-nocookie.com https://www.youtube.com https://images.pexels.com wss://*.supabase.co; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://*.youtube.com https://player.vimeo.com; object-src 'none'; base-uri 'self' https://image.tmdb.org https://media.rawg.io https://is1-ssl.mzstatic.com; form-action 'self' https://*.supabase.co">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zo2y - Community & Taste Discovery</title>
+    
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" crossorigin="anonymous" defer></script>
+    
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="stylesheet" href="css/shared-header.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages/community.css">
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+</head>
+<body data-nav-page="community">
+
+    <!-- Global Header -->
+    <header class="shared-header" id="sharedHeader">
+        <div class="header-container">
+            <a href="index.html" class="header-logo">
+                <img src="/newlogo.webp" alt="Zo2y Logo" width="32" height="32">
+                <span>Zo2y</span>
+            </a>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="community.html" class="nav-link active"><i class="fas fa-globe"></i> Community</a>
+                <a href="profile.html" class="nav-link"><i class="fas fa-user"></i> Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Community Container -->
+    <main class="community-main">
+        <!-- Community Hero Banner -->
+        <div class="community-hero">
+            <div class="container">
+                <div class="community-hero-content">
+                    <span class="community-badge"><i class="fas fa-fire"></i> Taste & Discovery Hub</span>
+                    <h1 class="community-title">Discover Media & Connect Through Taste</h1>
+                    <p class="community-subtitle">Explore what people are watching, playing, reading, and listening to. Useful from day one.</p>
+                    
+                    <!-- Search Input -->
+                    <div class="community-search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="communitySearchInput" class="community-search-input" placeholder="Search members by username or taste (e.g. Sci-Fi, RPG, Cinematic)..." onkeyup="CommunityManager.handleSearch(this.value)">
+                        <button class="search-clear-btn" id="searchClearBtn" onclick="CommunityManager.clearSearch()">&times;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Secondary Navigation Bar -->
+        <div class="community-nav-bar">
+            <div class="container">
+                <div class="community-nav-tabs" role="tablist">
+                    <button class="community-tab-btn active" data-tab="discover" onclick="CommunityManager.switchTab('discover')">
+                        <i class="fas fa-compass"></i> Discover
+                    </button>
+                    <button class="community-tab-btn" data-tab="reviews" onclick="CommunityManager.switchTab('reviews')">
+                        <i class="fas fa-star"></i> Reviews
+                    </button>
+                    <button class="community-tab-btn" data-tab="lists" onclick="CommunityManager.switchTab('lists')">
+                        <i class="fas fa-layer-group"></i> Lists
+                    </button>
+                    <button class="community-tab-btn" data-tab="people" onclick="CommunityManager.switchTab('people')">
+                        <i class="fas fa-users"></i> People
+                    </button>
+                    <button class="community-tab-btn" data-tab="following" onclick="CommunityManager.switchTab('following')">
+                        <i class="fas fa-user-check"></i> Following
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="container community-content">
+            
+            <!-- TAB 1: DISCOVER (STAGE ONE HUB) -->
+            <section class="community-tab-pane active" id="paneDiscover">
+                
+                <!-- 🔥 New Releases Rail (TMDB / RAWG / Spotify Live APIs) -->
+                <div class="community-section">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-bolt text-accent"></i> 🔥 New Releases Across Media</h2>
+                        <a href="index.html" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <div class="community-rail" id="railNewReleases">
+                        <div class="skel-rail-placeholder">Loading new releases...</div>
+                    </div>
+                </div>
+
+                <!-- ⭐ Popular This Week Rail -->
+                <div class="community-section mt-32">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-star text-accent"></i> ⭐ Popular This Week</h2>
+                    </div>
+                    <div class="community-rail" id="railPopularThisWeek">
+                        <div class="skel-rail-placeholder">Loading popular media...</div>
+                    </div>
+                </div>
+
+                <div class="community-grid-2col mt-32">
+                    <!-- 📝 Latest Reviews Feed -->
+                    <div class="community-card-box">
+                        <div class="section-header">
+                            <h2 class="section-title"><i class="fas fa-comment-alt text-accent"></i> 📝 Latest Reviews</h2>
+                        </div>
+                        <div id="latestReviewsFeed" class="reviews-feed">
+                            <!-- Populated dynamically or graceful empty state -->
+                        </div>
+                    </div>
+
+                    <!-- 👥 Discover People (With Taste Preview Cards) -->
+                    <div class="community-card-box">
+                        <div class="section-header">
+                            <h2 class="section-title"><i class="fas fa-user-friends text-accent"></i> 👥 People to Follow</h2>
+                        </div>
+                        <div id="discoverPeopleList" class="people-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ⭐ Featured Lists Rail -->
+                <div class="community-section mt-32">
+                    <div class="section-header">
+                        <h2 class="section-title"><i class="fas fa-list-ol text-accent"></i> ⭐ Featured Taste Collections</h2>
+                    </div>
+                    <div class="community-rail" id="railFeaturedLists">
+                        <div class="skel-rail-placeholder">Loading featured lists...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: REVIEWS -->
+            <section class="community-tab-pane" id="paneReviews">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-star text-accent"></i> Community Reviews & Ratings</h2>
+                </div>
+                <div id="allReviewsFeed" class="reviews-feed-full"></div>
+            </section>
+
+            <!-- TAB 3: LISTS -->
+            <section class="community-tab-pane" id="paneLists">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-layer-group text-accent"></i> Public Lists & Collections</h2>
+                </div>
+                <div id="allListsGrid" class="community-lists-grid"></div>
+            </section>
+
+            <!-- TAB 4: PEOPLE / SEARCH RESULTS -->
+            <section class="community-tab-pane" id="panePeople">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-users text-accent"></i> Discover Members</h2>
+                </div>
+                <div id="peopleSearchResultsGrid" class="people-grid"></div>
+            </section>
+
+            <!-- TAB 5: FOLLOWING -->
+            <section class="community-tab-pane" id="paneFollowing">
+                <div class="section-header">
+                    <h2 class="section-title"><i class="fas fa-user-check text-accent"></i> Following Activity</h2>
+                </div>
+                <div id="followingActivityFeed" class="following-feed"></div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="js/shared-header.js" defer></script>
+    <script src="js/pages/community.js" defer></script>
+</body>
+</html>

@@ -41,6 +41,7 @@ async function initAuthUi() {
 
 const state = {
   books: [],
+  allBooks: [],
   seenIds: new Set(),
   query: "",
   genre: "",
@@ -49,11 +50,19 @@ const state = {
   offset: 0,
   totalItems: 0,
   hasMore: true,
-  loading: false
+  loading: false,
+  _poolCache: null,
+  _poolCacheKey: "",
+  _poolCacheTotal: 0
 };
 
 const PAGE_SIZE = 24;
-const MAX_PAGES = 5;
+
+function invalidatePoolCache() {
+  state._poolCache = null;
+  state._poolCacheKey = "";
+  state._poolCacheTotal = 0;
+}
 
 function escapeHtml(v) {
   return String(v == null ? "" : v)
@@ -147,80 +156,131 @@ async function loadBooks(append) {
   if (!grid) return;
 
   if (!append) {
-    grid.innerHTML = Skel.grid(PAGE_SIZE, 4);
+    grid.innerHTML = Skel ? Skel.grid(PAGE_SIZE, 4) : '';
     state.books = [];
+    state.allBooks = [];
     state.seenIds = new Set();
     state.offset = 0;
     state.hasMore = true;
     _booksLastRendered = 0;
+    invalidatePoolCache();
   } else if (sentinel) {
-    sentinel.innerHTML = Skel.posterCard();
+    sentinel.innerHTML = Skel ? Skel.posterCard() : '';
   }
 
   const q = state.query.trim();
-  let newBooks = [];
+  const poolCacheKey = `${q}|${state.genre}|${state.sort}`;
+  let poolBooks = [];
   let total = 0;
 
-  const provider = window.Zo2yBookProvider;
-  if (provider) {
-    try {
-      let result;
-      if (q) {
-        document.getElementById("gridTitle").textContent = `Search: "${q}"`;
-        document.getElementById("gridDesc").textContent = "";
-        result = await provider.search(q, { limit: PAGE_SIZE, startIndex: state.offset });
-      } else {
-        document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
-        document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
-        result = await provider.getPopular({ limit: PAGE_SIZE, startIndex: state.offset, genre: state.genre, sort: state.sort });
-      }
-      if (result && abort.signal.aborted) return;
-      if (result && result.items) {
-        newBooks = result.items;
-        total = result.total || newBooks.length;
-      }
-    } catch (_) {}
-  }
+  const fetchPage = async (startIndex, limit) => {
+    const provider = window.Zo2yBookProvider;
+    if (provider) {
+      try {
+        let result;
+        if (q) {
+          result = await provider.search(q, { limit, startIndex });
+        } else {
+          result = await provider.getPopular({ limit, startIndex, genre: state.genre, sort: state.sort });
+        }
+        if (result && result.items && result.items.length) {
+          return { items: result.items, total: result.total || result.items.length };
+        }
+      } catch (_) {}
+    }
 
-  if (newBooks.length === 0) {
     let url;
     if (q) {
       const searchQ = state.genre ? `${q} AND subject:${state.genre}` : q;
-      const params = new URLSearchParams({ q: searchQ, limit: String(PAGE_SIZE), startIndex: String(state.offset) });
-      url = `/api/books/search?${params}`;
-      document.getElementById("gridTitle").textContent = `Search: "${q}"`;
-      document.getElementById("gridDesc").textContent = "";
+      url = `/api/books/search?q=${encodeURIComponent(searchQ)}&limit=${limit}&startIndex=${startIndex}`;
     } else {
-      const params = new URLSearchParams({ limit: String(PAGE_SIZE), startIndex: String(state.offset) });
+      const params = new URLSearchParams({ limit: String(limit), startIndex: String(startIndex) });
       if (state.genre) params.set("genre", state.genre);
       if (state.sort === "newest") params.set("sort", "newest");
       url = `/api/books/popular?${params}`;
-      document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
-      document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
     }
 
-    try {
-      const res = await fetch(url, { signal: abort.signal });
-      if (abort.signal.aborted) return;
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-      if (abort.signal.aborted) return;
+    const res = await fetch(url, { signal: abort.signal });
+    if (!res.ok) throw new Error("API error");
+    const data = await res.json();
+    const raw = data.items || data.books || [];
+    const items = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+    return { items, total: data.total || items.length };
+  };
 
-      const raw = data.items || data.books || [];
-      newBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
-      total = data.total || newBooks.length;
-    } catch (err) {
-      if (err.name === "AbortError") return;
-      console.error(err);
-      if (!append) grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
-      state.loading = false;
-      if (currentAbort === abort) currentAbort = null;
-      if (sentinel) sentinel.innerHTML = '';
-      return;
+  try {
+    if (append) {
+      const r = await fetchPage(state.allBooks.length, 100);
+      if (abort.signal.aborted) return;
+      if (r.items && r.items.length) {
+        poolBooks = r.items;
+        total = r.total || state.totalItems;
+      } else {
+        state.hasMore = false;
+        state.loading = false;
+        if (currentAbort === abort) currentAbort = null;
+        if (sentinel) sentinel.innerHTML = '';
+        return;
+      }
+    } else {
+      if (state._poolCacheKey === poolCacheKey && state._poolCache && state._poolCache.length >= PAGE_SIZE) {
+        poolBooks = state._poolCache;
+        total = state._poolCacheTotal || poolBooks.length;
+      } else {
+        if (q) {
+          for (let p = 0; p < 5; p++) {
+            const r = await fetchPage(p * PAGE_SIZE, PAGE_SIZE);
+            if (abort.signal.aborted) return;
+            if (r.items && r.items.length) {
+              poolBooks = poolBooks.concat(r.items);
+              if (total === 0 || r.total > total) total = r.total;
+            }
+          }
+        } else {
+          const r1 = await fetchPage(0, 100);
+          if (abort.signal.aborted) return;
+          if (r1.items && r1.items.length) {
+            poolBooks = poolBooks.concat(r1.items);
+            total = r1.total || poolBooks.length;
+          }
+          const r2 = await fetchPage(100, 100);
+          if (abort.signal.aborted) return;
+          if (r2.items && r2.items.length) {
+            poolBooks = poolBooks.concat(r2.items);
+            if (r2.total > total) total = r2.total;
+          }
+        }
+
+        if (poolBooks.length === 0 && !q) {
+          try {
+            const fallbackRes = await fetch(`/api/books/trending?limit=${PAGE_SIZE * 3}`, { signal: abort.signal });
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              const raw = fallbackData.books || fallbackData.items || [];
+              poolBooks = raw.map(b => window.normalizeBook ? window.normalizeBook(b) : b).filter(Boolean);
+              total = poolBooks.length;
+            }
+          } catch (_) {}
+        }
+
+        state._poolCache = poolBooks;
+        state._poolCacheKey = poolCacheKey;
+        state._poolCacheTotal = total;
+      }
     }
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    console.error(err);
+    if (!append) grid.innerHTML = '<div class="empty">Failed to load books. Please try again.</div>';
+    state.loading = false;
+    if (currentAbort === abort) currentAbort = null;
+    if (sentinel) sentinel.innerHTML = '';
+    return;
   }
 
-  const filteredBooks = newBooks.filter(b => {
+  if (abort.signal.aborted) return;
+
+  const newBooks = poolBooks.filter(b => {
     const id = b.id || b.providerId || "";
     if (!id || state.seenIds.has(id)) return false;
     state.seenIds.add(id);
@@ -228,21 +288,35 @@ async function loadBooks(append) {
   });
 
   if (append) {
-    state.books = state.books.concat(filteredBooks);
+    state.allBooks = state.allBooks.concat(newBooks);
   } else {
-    state.books = filteredBooks;
+    state.allBooks = newBooks;
   }
 
-  const pageCount = Math.floor(state.offset / PAGE_SIZE) + 1;
-  state.totalItems = total || state.books.length;
+  state.totalItems = total || state.allBooks.length;
+
+  if (append) {
+    const newItems = state.allBooks.slice(state.offset, state.offset + PAGE_SIZE);
+    state.books = state.books.concat(newItems);
+  } else {
+    state.books = state.allBooks.slice(0, PAGE_SIZE);
+  }
   state.offset = state.books.length;
-  state.hasMore = filteredBooks.length >= PAGE_SIZE && pageCount < MAX_PAGES;
+  state.hasMore = state.offset < state.totalItems && newBooks.length > 0;
+
+  if (!q) {
+    document.getElementById("gridTitle").textContent = state.genre ? `${state.genre.charAt(0).toUpperCase() + state.genre.slice(1)} Books` : "popular books right now";
+    document.getElementById("gridDesc").textContent = state.genre ? `Top ${state.genre} books trending on BookTok` : "Trending fiction and non-fiction across Zo2y.";
+  } else {
+    document.getElementById("gridTitle").textContent = `Search: "${q}"`;
+    document.getElementById("gridDesc").textContent = "";
+  }
 
   renderGrid(append);
   if (!append) {
     await loadBookListStatus();
   } else {
-    await loadBookListStatusForNew(filteredBooks);
+    await loadBookListStatusForNew(state.books.slice(_booksLastRendered));
   }
   applyBookListStatus();
 
@@ -352,6 +426,7 @@ function wireEvents() {
     lastQuery = val;
     state.query = val.trim();
     state.seenIds = new Set();
+    invalidatePoolCache();
     loadBooks(false);
   }
 
@@ -364,6 +439,7 @@ function wireEvents() {
         lastQuery = val;
         state.query = val.trim();
         state.seenIds = new Set();
+        invalidatePoolCache();
         loadBooks(false);
       }, 350);
     });
@@ -393,6 +469,7 @@ function wireEvents() {
         state.orderBy = sortEl.value === "newest" ? "newest" : "relevance";
       }
       state.seenIds = new Set();
+      invalidatePoolCache();
       filterModal.setAttribute("aria-hidden", "true");
       loadBooks(false);
     });
@@ -414,6 +491,8 @@ document.addEventListener("DOMContentLoaded", () => {
     genreSelect.innerHTML = genres.map(g => `<option value="${g}">${g ? g.charAt(0).toUpperCase() + g.slice(1) : "All Genres"}</option>`).join("");
   }
   wireEvents();
-  setupInfiniteScroll();
-  initAuthUi().then(async () => { await loadBooks(false); });
+  initAuthUi().then(async () => {
+    await loadBooks(false);
+    setupInfiniteScroll();
+  });
 });

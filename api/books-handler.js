@@ -331,7 +331,7 @@ export default async function booksHandler(req, res) {
         ];
         
     if (!genre) {
-      genres.sort(() => Math.random() - 0.5);
+      genres.sort();
     }
 
     const need = startIndex + limit;

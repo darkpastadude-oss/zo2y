@@ -11498,6 +11498,7 @@ resetDetailPanels();
                         } catch (_e) { return null; }
                     }));
                     results.forEach(function(url) { if (url) urls.push(url); });
+return;
                 }
 
                 var unique = [];
@@ -11505,6 +11506,212 @@ resetDetailPanels();
                 urls.forEach(function(u) { if (!urlSeen.has(u)) { urlSeen.add(u); unique.push(u); } });
                 return unique;
             }
+
+            // ===== GEAR MENU & TABBED EDIT PROFILE =====
+            function toggleGearMenu(event) {
+                if (event) event.stopPropagation();
+                const menu = document.getElementById('profileGearMenu');
+                if (menu) menu.classList.toggle('open');
+            }
+
+            function closeGearMenu() {
+                const menu = document.getElementById('profileGearMenu');
+                if (menu) menu.classList.remove('open');
+            }
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.pv2-gear-wrap')) {
+                    closeGearMenu();
+                }
+            });
+
+            function showEditProfileModal(defaultTab = 'profile') {
+                showModal('editProfileModal');
+                switchEditTab(defaultTab);
+            }
+
+            function switchEditTab(tabName) {
+                document.querySelectorAll('.edit-profile-tab').forEach(btn => {
+                    btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+                });
+                document.querySelectorAll('.edit-tab-pane').forEach(pane => {
+                    pane.classList.toggle('active', pane.id === 'editTab' + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+                });
+            }
+
+            // ===== FEATURED BACKDROPS SELECTION ENGINE =====
+            let selectedFeaturedBackdrops = [];
+
+            function searchTrackedMediaForBackdrops(query) {
+                const resultsContainer = document.getElementById('backdropSearchResults');
+                if (!resultsContainer) return;
+                query = String(query || '').trim().toLowerCase();
+                if (!query) {
+                    resultsContainer.classList.remove('open');
+                    resultsContainer.innerHTML = '';
+                    return;
+                }
+
+                const matches = [];
+                Object.keys(favoriteIds || {}).forEach(type => {
+                    (favoriteIds[type] || []).forEach(id => {
+                        matches.push({ media_type: type, media_id: String(id), title: `${type.toUpperCase()} #${id}` });
+                    });
+                });
+
+                const filtered = matches.filter(m => m.title.toLowerCase().includes(query) || m.media_type.includes(query)).slice(0, 8);
+
+                if (!filtered.length) {
+                    resultsContainer.innerHTML = '<div class="backdrop-search-item">No matches in your tracked media</div>';
+                } else {
+                    resultsContainer.innerHTML = filtered.map(item => `
+                        <div class="backdrop-search-item" onclick="ProfileManager.addFeaturedBackdrop('${item.media_type}', '${item.media_id}', '${escapeHtml(item.title)}')">
+                            <i class="fas fa-plus-circle text-accent"></i> ${escapeHtml(item.title)}
+                        </div>
+                    `).join('');
+                }
+                resultsContainer.classList.add('open');
+            }
+
+            function addFeaturedBackdrop(media_type, media_id, title) {
+                if (selectedFeaturedBackdrops.length >= 20) {
+                    showToast('Maximum 20 featured backdrops allowed', 'error');
+                    return;
+                }
+                if (selectedFeaturedBackdrops.some(b => b.media_type === media_type && String(b.media_id) === String(media_id))) {
+                    return;
+                }
+                selectedFeaturedBackdrops.push({ media_type, media_id: String(media_id), title: title || `${media_type.toUpperCase()} #${media_id}` });
+                renderFeaturedBackdropsChips();
+                const resultsContainer = document.getElementById('backdropSearchResults');
+                if (resultsContainer) resultsContainer.classList.remove('open');
+                const searchInput = document.getElementById('backdropSearchInput');
+                if (searchInput) searchInput.value = '';
+            }
+
+            function removeFeaturedBackdrop(index) {
+                selectedFeaturedBackdrops.splice(index, 1);
+                renderFeaturedBackdropsChips();
+            }
+
+            function renderFeaturedBackdropsChips() {
+                const container = document.getElementById('featuredBackdropsChips');
+                if (!container) return;
+                container.innerHTML = selectedFeaturedBackdrops.map((item, idx) => `
+                    <div class="backdrop-chip">
+                        <span>${escapeHtml(item.title || item.media_type + '#' + item.media_id)}</span>
+                        <button type="button" class="backdrop-chip-remove" onclick="ProfileManager.removeFeaturedBackdrop(${idx})">&times;</button>
+                    </div>
+                `).join('');
+            }
+
+            // ===== PROFILE DYNAMIC BACKDROP ROTATION ENGINE =====
+            const ProfileBackdropEngine = (function() {
+                let rotationTimer = null;
+                let backdropUrls = [];
+                let currentIndex = 0;
+                let isPaused = false;
+                let activeLayer = 'A';
+
+                async function fetchBackdropUrl(item) {
+                    if (!item || !item.media_type || !item.media_id) return null;
+                    try {
+                        const type = item.media_type;
+                        const id = item.media_id;
+                        if (type === 'movie' || type === 'tv') {
+                            const endpoint = type === 'movie' ? 'movie' : 'tv';
+                            const res = await fetch(`/api/tmdb/${endpoint}/${id}?language=en`);
+                            if (!res.ok) return null;
+                            const data = await res.json();
+                            if (data && data.backdrop_path) {
+                                return `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`;
+                            }
+                            return null;
+                        } else if (type === 'game') {
+                            const res = await supabase.from('games').select('hero_url, background_url').eq('id', id).maybeSingle();
+                            const data = res && res.data;
+                            if (data && data.hero_url) return data.hero_url;
+                            if (data && data.background_url) return data.background_url;
+                            return null;
+                        }
+                    } catch (_e) {
+                        return null;
+                    }
+                    return null;
+                }
+
+                function preloadAndFade(url) {
+                    if (!url) return Promise.resolve();
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = function() {
+                            const nextLayerId = activeLayer === 'A' ? 'backdropLayerB' : 'backdropLayerA';
+                            const currentLayerId = activeLayer === 'A' ? 'backdropLayerA' : 'backdropLayerB';
+                            const nextEl = document.getElementById(nextLayerId);
+                            const currentEl = document.getElementById(currentLayerId);
+
+                            if (nextEl && currentEl) {
+                                nextEl.style.backgroundImage = `url("${url}")`;
+                                nextEl.classList.add('active');
+                                currentEl.classList.remove('active');
+                                activeLayer = activeLayer === 'A' ? 'B' : 'A';
+                            }
+                            img.onload = null;
+                            img.onerror = null;
+                            resolve();
+                        };
+                        img.onerror = function() {
+                            img.onload = null;
+                            img.onerror = null;
+                            resolve();
+                        };
+                        img.src = url;
+                    });
+                }
+
+                async function init(featuredItems, mode = 'rotate') {
+                    stop();
+                    if (!featuredItems || !featuredItems.length) {
+                        const autoList = [];
+                        const favs = favoriteIds || {};
+                        ['movie', 'tv', 'game'].forEach(t => {
+                            (favs[t] || []).slice(0, 5).forEach(id => {
+                                autoList.push({ media_type: t, media_id: String(id) });
+                            });
+                        });
+                        featuredItems = autoList;
+                    }
+
+                    if (!featuredItems || !featuredItems.length) return;
+
+                    const resolved = await Promise.all(featuredItems.map(fetchBackdropUrl));
+                    backdropUrls = resolved.filter(Boolean);
+
+                    if (!backdropUrls.length) return;
+
+                    currentIndex = Math.floor(Math.random() * backdropUrls.length);
+                    await preloadAndFade(backdropUrls[currentIndex]);
+
+                    if (mode === 'rotate' && backdropUrls.length > 1) {
+                        rotationTimer = setInterval(async () => {
+                            if (isPaused || document.hidden) return;
+                            currentIndex = (currentIndex + 1) % backdropUrls.length;
+                            await preloadAndFade(backdropUrls[currentIndex]);
+                        }, 22000);
+                    }
+                }
+
+                function stop() {
+                    if (rotationTimer) clearInterval(rotationTimer);
+                    rotationTimer = null;
+                }
+
+                document.addEventListener('visibilitychange', function() {
+                    isPaused = document.hidden;
+                });
+
+                return { init, stop };
+            })();
 
             function toggleOverflowMenu() {
                 var menu = document.getElementById('profileOverflowMenu');
@@ -11519,6 +11726,14 @@ resetDetailPanels();
             // ===== PUBLIC API =====
             return {
                 initialize,
+                toggleGearMenu,
+                closeGearMenu,
+                showEditProfileModal,
+                switchEditTab,
+                searchTrackedMediaForBackdrops,
+                addFeaturedBackdrop,
+                removeFeaturedBackdrop,
+                ProfileBackdropEngine,
                 toggleOverflowMenu,
                 closeOverflowMenu,
                 showTab,

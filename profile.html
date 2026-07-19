@@ -107,11 +107,42 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         <!-- Profile Header -->
         <div class="profile-header">
             <div class="pv2-hero">
-                <!-- Cinematic banner — JS populates background via ProfileManager.renderBanner() -->
+                <!-- Cinematic banner — JS populates background via ProfileBackdropEngine -->
                 <div class="pv2-banner" id="profileBanner">
-                    <div class="pv2-banner-backdrops" id="bannerBackdrops"></div>
+                    <div class="pv2-banner-backdrops" id="bannerBackdrops">
+                        <div class="pv2-backdrop-layer active" id="backdropLayerA"></div>
+                        <div class="pv2-backdrop-layer" id="backdropLayerB"></div>
+                    </div>
                     <div class="pv2-banner-overlay"></div>
                     <div class="pv2-banner-vignette"></div>
+
+                    <!-- Header Action Bar: Globe (Community) + Gear (Settings) -->
+                    <div class="pv2-banner-actions">
+                        <a href="community.html" class="pv2-banner-action-btn pv2-globe-btn" title="Community" aria-label="Community">
+                            <i class="fas fa-globe"></i>
+                            <span class="pv2-action-tooltip">Community</span>
+                        </a>
+                        <div class="pv2-gear-wrap">
+                            <button class="pv2-banner-action-btn pv2-gear-btn" id="profileGearBtn" onclick="ProfileManager.toggleGearMenu(event)" title="Settings" aria-label="Settings">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <div class="pv2-gear-menu" id="profileGearMenu">
+                                <button class="pv2-gear-item" onclick="ProfileManager.showEditProfileModal('profile'); ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-user-edit"></i> Edit Profile
+                                </button>
+                                <button class="pv2-gear-item" onclick="ProfileManager.showEditProfileModal('appearance'); ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-palette"></i> Appearance
+                                </button>
+                                <button class="pv2-gear-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeGearMenu()">
+                                    <i class="fas fa-sliders-h"></i> Account Settings
+                                </button>
+                                <div class="pv2-gear-divider"></div>
+                                <button class="pv2-gear-item pv2-gear-danger" onclick="ProfileManager.logout()">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pv2-hero-body">
@@ -125,6 +156,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         <div class="pv2-name" id="profileName">Loading...</div>
                         <div class="pv2-username" id="profileUsername">@username</div>
                         <div class="pv2-bio" id="profileBio">No bio yet. Click edit to add one!</div>
+
+                        <!-- Featured Showcase Strip (Visual Cover Badges) -->
+                        <div class="pv2-featured-showcase" id="profileFeaturedShowcase">
+                            <div class="pv2-showcase-item" data-type="movie" id="showcaseItemMovie" title="Favorite Movie" onclick="ProfileManager.showEditProfileModal('showcase')">
+                                <span class="pv2-showcase-badge"><i class="fas fa-film"></i></span>
+                                <div class="pv2-showcase-cover-wrap" id="showcaseCoverWrapMovie">
+                                    <div class="pv2-showcase-empty"><i class="fas fa-film"></i><span>Movie</span></div>
+                                </div>
+                            </div>
+                            <div class="pv2-showcase-item" data-type="game" id="showcaseItemGame" title="Favorite Game" onclick="ProfileManager.showEditProfileModal('showcase')">
+                                <span class="pv2-showcase-badge"><i class="fas fa-gamepad"></i></span>
+                                <div class="pv2-showcase-cover-wrap" id="showcaseCoverWrapGame">
+                                    <div class="pv2-showcase-empty"><i class="fas fa-gamepad"></i><span>Game</span></div>
+                                </div>
+                            </div>
+                            <div class="pv2-showcase-item" data-type="book" id="showcaseItemBook" title="Favorite Book" onclick="ProfileManager.showEditProfileModal('showcase')">
+                                <span class="pv2-showcase-badge"><i class="fas fa-book"></i></span>
+                                <div class="pv2-showcase-cover-wrap" id="showcaseCoverWrapBook">
+                                    <div class="pv2-showcase-empty"><i class="fas fa-book"></i><span>Book</span></div>
+                                </div>
+                            </div>
+                            <div class="pv2-showcase-item" data-type="music" id="showcaseItemMusic" title="Favorite Album" onclick="ProfileManager.showEditProfileModal('showcase')">
+                                <span class="pv2-showcase-badge"><i class="fas fa-music"></i></span>
+                                <div class="pv2-showcase-cover-wrap" id="showcaseCoverWrapMusic">
+                                    <div class="pv2-showcase-empty"><i class="fas fa-music"></i><span>Album</span></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="pv2-meta">
                             <span class="pv2-meta-item"><i class="fas fa-map-marker-alt"></i> <span id="profileLocation">—</span></span>
                             <span class="pv2-meta-sep">·</span>
@@ -133,27 +193,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                             <span id="visitedCountMeta" style="display:none"></span>
                         </div>
                         <div class="profile-badges" id="profileBadges"></div>
-                    </div>
-
-                    <!-- Actions (compact: edit + overflow) -->
-                    <div class="pv2-actions">
-                        <button class="pv2-edit-btn" onclick="ProfileManager.showModal('editProfileModal')" id="editProfileBtn">
-                            <i class="fas fa-pen"></i> edit profile
-                        </button>
-                        <button class="btn btn-secondary d-none pv2-follow-btn" id="followButton">follow</button>
-                        <div class="pv2-overflow-wrap">
-                            <button class="pv2-overflow-btn" id="profileOverflowBtn" aria-label="More options">
-                                <i class="fas fa-ellipsis"></i>
-                            </button>
-                            <div class="pv2-overflow-menu" id="profileOverflowMenu">
-                                <button class="pv2-overflow-item" onclick="ProfileManager.showModal('accountSettingsModal'); ProfileManager.closeOverflowMenu()" id="settingsBtn">
-                                    <i class="fas fa-cog"></i> settings
-                                </button>
-                                <button class="pv2-overflow-item pv2-overflow-danger" onclick="ProfileManager.logout()" id="logoutActionBtn">
-                                    <i class="fas fa-sign-out-alt"></i> log out
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1183,16 +1222,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 <div class="mph2-banner-vignette"></div>
             </div>
 
-            <!-- Topbar: menu + edit -->
+            <!-- Topbar: Globe (Community) + Gear (Settings) -->
             <div class="mph2-topbar">
-                <button class="mph2-menu-btn" onclick="ProfileManager.showMobileMenu()" aria-label="Menu">
-                    <i class="fas fa-bars"></i>
-                </button>
                 <div class="mph2-topbar-actions">
-                    <button class="mph2-edit-pill" onclick="ProfileManager.showModal('editProfileModal')" id="mobileEditBtn">
-                        <i class="fas fa-pen"></i> edit
-                    </button>
-                    <button class="mph2-follow-pill d-none" id="mobileFollowButton">follow</button>
+                    <a href="community.html" class="pv2-banner-action-btn pv2-globe-btn" title="Community" aria-label="Community">
+                        <i class="fas fa-globe"></i>
+                    </a>
+                    <div class="pv2-gear-wrap">
+                        <button class="pv2-banner-action-btn pv2-gear-btn" id="mobileGearBtn" onclick="ProfileManager.toggleGearMenu(event)" title="Settings" aria-label="Settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -2011,48 +2051,143 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
     <!-- ===== MODALS (Shared by both Desktop and Mobile) ===== -->
 
-    <!-- Edit Profile Modal -->
+    <!-- Edit Profile Modal (Tabbed Redesign) -->
     <div class="modal" id="editProfileModal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-lg">
             <div class="modal-header">
                 <h3 class="modal-title">Edit Profile</h3>
                 <button class="modal-close" onclick="ProfileManager.closeModal('editProfileModal')">&times;</button>
             </div>
             
-            <form id="editProfileForm">
+            <form id="editProfileForm" onsubmit="event.preventDefault(); ProfileManager.saveProfileChanges();">
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label class="form-label">Username</label>
-                <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
-                        <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Bio</label>
-                        <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us about your food journey"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Location</label>
-                        <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                    <div class="edit-profile-modal-wrap">
+                        <!-- Navigation Tabs -->
+                        <div class="edit-profile-tabs" role="tablist">
+                            <button type="button" class="edit-profile-tab active" data-tab="profile" onclick="ProfileManager.switchEditTab('profile')">
+                                <i class="fas fa-user"></i> Profile
+                            </button>
+                            <button type="button" class="edit-profile-tab" data-tab="appearance" onclick="ProfileManager.switchEditTab('appearance')">
+                                <i class="fas fa-palette"></i> Appearance
+                            </button>
+                            <button type="button" class="edit-profile-tab" data-tab="showcase" onclick="ProfileManager.switchEditTab('showcase')">
+                                <i class="fas fa-star"></i> Showcase
+                            </button>
+                            <button type="button" class="edit-profile-tab" data-tab="privacy" onclick="ProfileManager.switchEditTab('privacy')">
+                                <i class="fas fa-shield-alt"></i> Privacy
+                            </button>
+                        </div>
+
+                        <!-- Tab Contents -->
+                        <div class="edit-profile-tab-content">
+                            <!-- Tab 1: Profile -->
+                            <div class="edit-tab-pane active" id="editTabProfile">
+                                <div class="form-group">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-input" id="editUsername" maxlength="30" placeholder="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+                                    <small class="text-muted d-block mt-4">3-30 letters, numbers, or underscores. No spaces.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Bio</label>
+                                    <textarea class="form-textarea" id="editBio" rows="3" placeholder="Tell us what media you love..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Location</label>
+                                    <input type="text" class="form-input" id="editLocation" placeholder="Your city or region">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Custom Badges</label>
+                                    <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector, Top Critic)">
+                                    <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-secondary" onclick="ProfileManager.showAvatarModal()">
+                                        <i class="fas fa-user-circle"></i> Change Avatar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Tab 2: Appearance -->
+                            <div class="edit-tab-pane" id="editTabAppearance">
+                                <div class="form-group">
+                                    <label class="form-label">Profile Backdrop Mode</label>
+                                    <div class="d-flex gap-16 flex-wrap mt-8">
+                                        <label class="d-flex align-items-center gap-8 style-radio">
+                                            <input type="radio" name="backdropMode" value="static" id="modeStatic"> Static (Always use one selected backdrop)
+                                        </label>
+                                        <label class="d-flex align-items-center gap-8 style-radio">
+                                            <input type="radio" name="backdropMode" value="rotate" id="modeRotate" checked> Rotate Favorites (Rotate through selected titles)
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-16">
+                                    <label class="form-label">Featured Backdrops (Up to 20 selections)</label>
+                                    <small class="text-muted d-block mb-8">Search your tracked media to select backdrops for your profile rotation.</small>
+                                    <div class="position-relative">
+                                        <input type="text" class="form-input" id="backdropSearchInput" placeholder="Search your tracked movies, games, books..." oninput="ProfileManager.searchTrackedMediaForBackdrops(this.value)">
+                                        <div id="backdropSearchResults" class="backdrop-search-results"></div>
+                                    </div>
+                                    <div class="featured-backdrops-chips" id="featuredBackdropsChips"></div>
+                                </div>
+
+                                <div class="form-group mt-16">
+                                    <label class="form-label">Profile Theme / Accent Color</label>
+                                    <select class="form-input" id="editProfileTheme">
+                                        <option value="navy">Classic Navy (#f59e0b)</option>
+                                        <option value="ocean">Deep Ocean (#22d3ee)</option>
+                                        <option value="sunset">Sunset Amber (#fb923c)</option>
+                                        <option value="forest">Forest Moss (#84cc16)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Tab 3: Showcase -->
+                            <div class="edit-tab-pane" id="editTabShowcase">
+                                <p class="text-muted small mb-16">Pick your absolute top favorite titles to display as visual cover badges directly below your bio.</p>
+                                
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-film text-accent"></i> Favorite Movie</label>
+                                    <select class="form-input" id="editShowcaseMovie" onchange="ProfileManager.updateShowcasePreview('movie', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-gamepad text-accent"></i> Favorite Game</label>
+                                    <select class="form-input" id="editShowcaseGame" onchange="ProfileManager.updateShowcasePreview('game', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-book text-accent"></i> Favorite Book</label>
+                                    <select class="form-input" id="editShowcaseBook" onchange="ProfileManager.updateShowcasePreview('book', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label"><i class="fas fa-music text-accent"></i> Favorite Album</label>
+                                    <select class="form-input" id="editShowcaseMusic" onchange="ProfileManager.updateShowcasePreview('music', this.value)">
+                                        <option value="">None Selected</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Tab 4: Privacy -->
+                            <div class="edit-tab-pane" id="editTabPrivacy">
+                                <div class="form-group">
+                                    <label class="form-label">Account Visibility</label>
+                                    <div class="mt-8">
+                                        <label class="d-flex align-items-center gap-8">
+                                            <input type="checkbox" id="editIsPrivate"> Private Account
+                                        </label>
+                                        <small class="text-muted d-block mt-4">Private accounts require approval for followers to see your profile details.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    
-
-                    <div class="form-group">
-                        <label class="form-label">Custom Badges</label>
-                        <input type="text" class="form-input" id="editCustomBadges" placeholder="Comma separated badges (e.g., Collector,Top Critic)">
-                        <small class="text-muted d-block mt-4">Automatic milestone badges are added based on activity.</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <input type="checkbox" id="editIsPrivate"> Private Account
-                        </label>
-                        <small class="text-muted d-block mt-4">Private accounts require approval for followers</small>
-                    </div>
-                    
-                    <div class="form-actions">
+                    <div class="form-actions mt-20">
                         <button type="button" class="btn btn-secondary" onclick="ProfileManager.closeModal('editProfileModal')">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
@@ -2570,17 +2705,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
         if (!PM) { if (attempts > 60) clearInterval(poller); return; }
 
         // === Banner ===
-        if (!PM._bannerBuilt && PM.getFavoriteBackdropUrls) {
-          var favIds = PM.favoriteIds || {};
-          var totalFavs = (favIds.movie || []).length + (favIds.tv || []).length + (favIds.anime || []).length + (favIds.game || []).length;
-          if (totalFavs > 0) {
-            PM._bannerBuilt = true;
-            PM.getFavoriteBackdropUrls().then(function(urls) {
-              if (urls && urls.length) buildBanner(urls);
-            }).catch(function() {});
-          } else if (attempts > 20) {
-            PM._bannerBuilt = true;
-          }
+        if (!PM._bannerBuilt && PM.ProfileBackdropEngine) {
+          PM._bannerBuilt = true;
+          PM.ProfileBackdropEngine.init(PM.userProfile?.featured_backdrops, PM.userProfile?.profile_backdrop_mode || 'rotate');
         }
 
         // === Update rail headings from showcase data ===
