@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
+    <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
 </head>
 <body data-nav-page="community">
@@ -40,21 +41,25 @@
     <!-- Main Community Shell -->
     <main class="community-main">
         
-        <!-- Compact Header (~100-120px) -->
+        <!-- Compact Header & Search Toggle -->
         <div class="community-header-compact">
             <div class="container">
-                <h1 class="community-title-sm">community</h1>
-                <p class="community-subtitle-sm">discover media and eventually discover people through taste.</p>
+                <div class="community-header-row">
+                    <h1 class="community-title-sm">community</h1>
+                    <button class="community-search-toggle-btn" id="communitySearchToggleBtn" aria-label="search toggle">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
 
-                <!-- Centered Search Bar (700-800px max-width, UI Only) -->
-                <div class="community-search-bar-wrap">
+                <!-- Sleek Expandable Search Bar (40px high) -->
+                <div class="community-search-bar-wrap" id="communitySearchBarWrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="community-search-input" placeholder="search people, movies, games, books..." readonly>
+                    <input type="text" class="community-search-input" placeholder="search media & people" readonly>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Bar (Subtle Active Tabs) -->
+        <!-- Scrollable Navigation Chips -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
@@ -81,49 +86,55 @@
         <div class="container community-content">
             
             <section class="pv2-rail">
-                <div class="pv2-rail-header-with-sub">
-                    <div class="pv2-rail-title">
+                <div class="pv2-rail-header">
+                    <h2 class="pv2-rail-title">
                         <i class="fas fa-fire"></i> new releases
-                    </div>
-                    <p class="pv2-rail-subtitle">recently released across every platform.</p>
+                    </h2>
+                    <span class="pv2-rail-viewall">see all <i class="fas fa-chevron-right"></i></span>
                 </div>
 
-                <!-- Reused Horizontal Track Component with Pure Skeleton Utility Classes -->
+                <!-- Reused Shared Rail Track with Exact Shared Skeleton System from index.html/profile.html -->
                 <div class="pv2-rail-track" id="communityNewReleasesTrack">
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
-                    <div class="skel-card-poster community-skel-poster">
+                    <div class="skel-card-poster">
                         <div class="skel skel-poster"></div>
                         <div class="skel-meta">
-                            <div class="skel skel-line skel-line-md"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
                         </div>
                     </div>
                 </div>

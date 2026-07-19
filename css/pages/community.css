@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - VISUAL POLISH PASS (FOUNDATION SHELL)
+   ZO2Y COMMUNITY - VIEWPORT-FIRST SHELL WITH SHARED SKELETONS
    ============================================================ */
 
 :root {
@@ -55,73 +55,96 @@ body::after {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 16px;
 }
 
-/* 1. Compact Header (~100-120px) */
+/* 1. Ultra-Compact Header Row */
 .community-header-compact {
-    padding: 16px 0 12px 0;
+    padding: 10px 0 8px 0;
     border-bottom: 1px solid var(--border);
 }
 
+.community-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
 .community-title-sm {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    margin-bottom: 2px;
+    margin: 0;
     color: var(--white);
 }
 
-.community-subtitle-sm {
+.community-search-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
     color: var(--muted);
-    font-size: 0.88rem;
-    margin-bottom: 14px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
 }
 
-/* 2. Centered Search Bar (700-800px max-width) */
+.community-search-toggle-btn:hover,
+.community-search-toggle-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+/* 2. Compact Search Bar (40px high) */
 .community-search-bar-wrap {
     position: relative;
     max-width: 720px;
     margin: 0 auto;
+    transition: all 0.25s ease;
 }
 
 .community-search-bar-wrap .search-icon {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .community-search-input {
     width: 100%;
-    padding: 10px 16px 10px 42px;
+    height: 40px;
+    padding: 0 14px 0 38px;
     background: rgba(15, 31, 64, 0.85);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     color: var(--white);
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     outline: none;
     cursor: default;
-    transition: border-color 0.2s ease;
 }
 
-/* 3. Navigation Bar (Subtle Active Tab State) */
+/* 3. Scrollable Navigation Chips */
 .community-nav-bar {
     position: sticky;
     top: 60px;
     z-index: 40;
-    background: rgba(11, 22, 51, 0.92);
+    background: rgba(11, 22, 51, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
-    padding: 8px 0;
+    padding: 6px 0;
 }
 
 .community-nav-tabs {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -133,13 +156,14 @@ body::after {
 .community-tab-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
+    gap: 6px;
+    padding: 5px 12px;
+    height: 30px;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 16px;
+    border-radius: 14px;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 500;
     cursor: default;
     white-space: nowrap;
@@ -153,23 +177,25 @@ body::after {
     font-weight: 600;
 }
 
-/* 4. Content Spacing */
+/* 4. Content Spacing & Viewport Alignment */
 .community-content {
-    padding: 20px 20px 40px 20px;
+    padding: 14px 16px 32px 16px;
 }
 
-/* Section Subtitle Hierarchy */
-.pv2-rail-header-with-sub {
-    margin-bottom: 12px;
+/* Mobile Search Expand Toggle */
+@media (max-width: 768px) {
+    .community-search-bar-wrap {
+        display: none;
+    }
+    
+    .community-search-bar-wrap.open {
+        display: block;
+        margin-top: 6px;
+    }
 }
 
-.pv2-rail-subtitle {
-    color: var(--muted);
-    font-size: 0.82rem;
-    margin-top: 4px;
-}
-
-/* Skeleton Proportions for Community Rail */
-.community-skel-poster {
-    flex: 0 0 140px;
+@media (min-width: 769px) {
+    .community-search-toggle-btn {
+        display: none;
+    }
 }
