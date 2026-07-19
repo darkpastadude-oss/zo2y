@@ -25,19 +25,33 @@ window.CommunityManager = (function() {
             supabase = window.ZO2Y_SUPABASE_CLIENT;
         } else if (window.supabase && typeof window.supabase.from === 'function') {
             supabase = window.supabase;
+        } else if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.ensureClient === 'function') {
+            try {
+                const shared = window.ZO2Y_AUTH.ensureClient();
+                if (shared && typeof shared.from === 'function') supabase = shared;
+            } catch (_e) {}
+        }
+        if (!supabase) {
+            const cfg = getSupabaseConfig();
+            try {
+                supabase = window.supabase.createClient(cfg.url, cfg.key);
+            } catch (_e) {}
         }
         return supabase;
     }
 
     async function getCurrentUser() {
         if (currentUser) return currentUser;
+        try {
+            if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.getVerifiedUser === 'function') {
+                const client = getSupabaseClient();
+                currentUser = await window.ZO2Y_AUTH.getVerifiedUser(client);
+                if (currentUser) return currentUser;
+            }
+        } catch (_e) {}
         const client = getSupabaseClient();
         if (!client) return null;
         try {
-            if (window.ZO2Y_AUTH && typeof window.ZO2Y_AUTH.getCurrentUser === 'function') {
-                currentUser = await window.ZO2Y_AUTH.getCurrentUser();
-                if (currentUser) return currentUser;
-            }
             const { data } = await client.auth.getUser();
             currentUser = data?.user || null;
         } catch (_e) {}
@@ -272,7 +286,7 @@ window.CommunityManager = (function() {
             let profiles = null;
 
             if (client) {
-                let req = client.from('user_profiles').select('id, username, full_name, avatar_url');
+                let req = client.from('user_profiles').select('id, username, full_name');
                 if (cleanQ) {
                     const ilike = `%${cleanQ.replace(/%/g, '')}%`;
                     req = req.or(`(username.ilike.${ilike},full_name.ilike.${ilike})`);
@@ -289,7 +303,7 @@ window.CommunityManager = (function() {
             if (!profiles || !profiles.length) {
                 const cfg = getSupabaseConfig();
                 const url = new URL(`${cfg.url}/rest/v1/user_profiles`);
-                url.searchParams.set('select', 'id,username,full_name,avatar_url');
+                url.searchParams.set('select', 'id,username,full_name');
                 if (cleanQ) {
                     const ilike = `%${cleanQ.replace(/%/g, '')}%`;
                     url.searchParams.set('or', `(username.ilike.${ilike},full_name.ilike.${ilike})`);
@@ -373,7 +387,7 @@ window.CommunityManager = (function() {
             const ids = follows.map(f => f.followed_id);
             const { data: profiles } = await client
                 .from('user_profiles')
-                .select('id, username, full_name, avatar_url')
+                .select('id, username, full_name')
                 .in('id', ids);
 
             if (!profiles || !profiles.length) {
