@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - PHASE 1A SHELL STYLES (REVISED)
+   ZO2Y COMMUNITY - PHASE 2A SPOTLIGHT LAYOUT STYLES
    ============================================================ */
 
 :root {
@@ -84,7 +84,7 @@ body::after {
     position: relative;
     width: 100%;
     max-width: 720px;
-    margin: 4px 0 2px 0;
+    margin: 4px auto 2px auto;
 }
 
 .community-search-bar-wrap .search-icon {
@@ -107,9 +107,10 @@ body::after {
     font-size: 0.85rem;
     outline: none;
     cursor: default;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 3. Navigation Chips Shell (Single Line Horizontal Scroll, No Wrap) */
+/* 3. Navigation Chips Shell (Single Line Horizontal Scroll, Touch Momentum) */
 .community-nav-bar {
     position: sticky;
     top: 60px;
@@ -129,6 +130,7 @@ body::after {
     white-space: nowrap;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
 }
 
 .community-nav-tabs::-webkit-scrollbar {
@@ -149,6 +151,7 @@ body::after {
     font-weight: 500;
     white-space: nowrap;
     flex-shrink: 0;
+    scroll-snap-align: start;
 }
 
 /* Active Tab Highlight (Discover Only) */
@@ -170,4 +173,128 @@ body::after {
 /* 4. Layout Container Shell */
 .community-content {
     padding: 14px 16px 32px 16px;
+}
+
+/* === PHASE 2A: SPOTLIGHT COMPONENT LAYOUT STYLES === */
+.community-spotlight {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--card) 0%, var(--card-2) 100%);
+    border: 1px solid var(--border);
+    min-height: 200px;
+    max-height: 240px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: flex-end;
+}
+
+.spotlight-backdrop-wrap {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+.spotlight-backdrop-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11, 22, 51, 0.3) 0%, rgba(11, 22, 51, 0.92) 100%);
+}
+
+.spotlight-content {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+.spotlight-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.spotlight-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--white);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.spotlight-description {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0;
+    max-width: 600px;
+}
+
+.spotlight-actions {
+    margin-top: 6px;
+}
+
+.spotlight-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #0b1633;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.spotlight-btn-primary:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+}
+
+/* Responsive Micro-Breakpoints */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 12px;
+    }
+
+    .community-content {
+        padding: 12px 12px 24px 12px;
+    }
+
+    .community-search-bar-wrap {
+        max-width: 100%;
+    }
+
+    .community-spotlight {
+        min-height: 180px;
+        max-height: 220px;
+        margin-bottom: 18px;
+    }
+
+    .spotlight-content {
+        padding: 14px;
+    }
+
+    .spotlight-title {
+        font-size: 1.15rem;
+    }
+
+    .spotlight-description {
+        font-size: 0.8rem;
+    }
 }
