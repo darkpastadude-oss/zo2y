@@ -1422,11 +1422,40 @@
                             <i class="fas ${badge.icon}"></i>
                             ${escapeHtml(badge.label)}
                         </span>
-                    `)
-                    .join('');
-
                 if (desktopEl) desktopEl.innerHTML = html;
                 if (mobileEl) mobileEl.innerHTML = html;
+            }
+
+            function renderFeaturedShowcaseStrip(profile = userProfile) {
+                const container = document.getElementById('profileFeaturedShowcase');
+                if (!container) return;
+
+                const showcase = profile?.featured_showcase || {};
+                const items = [];
+
+                const types = [
+                    { key: 'movie', icon: 'fa-film', label: 'movie', page: 'movie.html' },
+                    { key: 'game', icon: 'fa-gamepad', label: 'game', page: 'game.html' },
+                    { key: 'book', icon: 'fa-book', label: 'book', page: 'book.html' },
+                    { key: 'music', icon: 'fa-music', label: 'album', page: 'song.html' }
+                ];
+
+                types.forEach(t => {
+                    const data = showcase[t.key];
+                    if (data && data.image && data.id) {
+                        items.push(`
+                            <div class="pv2-showcase-item" title="${escapeHtml(data.title || t.label)}" onclick="window.location.href='${t.page}?id=${data.id}'">
+                                <span class="pv2-showcase-badge"><i class="fas ${t.icon}"></i></span>
+                                <div class="pv2-showcase-cover-wrap">
+                                    <img class="pv2-showcase-cover" src="${data.image}" alt="${escapeHtml(data.title || t.label)}" loading="lazy" />
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+
+                // Empty slots are hidden completely - no placeholders!
+                container.innerHTML = items.join('');
             }
 
             function updateProfileUI(profile = userProfile) {
@@ -1439,6 +1468,7 @@
                 }
                 renderProfileBadges(profile);
                 renderProfileOverview();
+                renderFeaturedShowcaseStrip(profile);
                 
                 const rawUsername = String(profile?.username || '').replace(/^@+/, '').trim();
                 const primaryIdentity = rawUsername && !isPlaceholderUsername(rawUsername) ? `@${rawUsername}` : '@user';

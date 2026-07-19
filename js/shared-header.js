@@ -1357,7 +1357,7 @@ const HEADER_HTML = `
     wireMobileAccordions();
     wireDesktopRailCollapse();
     wireAuthStateSync();
-    if (window.Navigation) window.Navigation.init();
+    if (window.Navigation && typeof window.Navigation.init === 'function') window.Navigation.init();
     window.addEventListener('zo2y-auth-gate-verified', () => {
       void syncAuthHeaderState();
     });
