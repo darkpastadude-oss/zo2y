@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - PHASE 1A SHELL STYLES
+   ZO2Y COMMUNITY - PHASE 1A SHELL STYLES (REVISED)
    ============================================================ */
 
 :root {
@@ -60,7 +60,7 @@ body::after {
 
 /* 1. Compact Header Row */
 .community-header-compact {
-    padding: 10px 0 8px 0;
+    padding: 12px 0 8px 0;
     border-bottom: 1px solid var(--border);
 }
 
@@ -79,25 +79,12 @@ body::after {
     color: var(--white);
 }
 
-.community-search-toggle-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-/* 2. Search Shell (40px high) */
+/* 2. Search Shell (Always Visible on Mobile & Desktop, 38px high) */
 .community-search-bar-wrap {
     position: relative;
+    width: 100%;
     max-width: 720px;
-    margin: 0 auto;
+    margin: 4px 0 2px 0;
 }
 
 .community-search-bar-wrap .search-icon {
@@ -111,7 +98,7 @@ body::after {
 
 .community-search-input {
     width: 100%;
-    height: 40px;
+    height: 38px;
     padding: 0 14px 0 38px;
     background: rgba(15, 31, 64, 0.85);
     border: 1px solid var(--border);
@@ -122,7 +109,7 @@ body::after {
     cursor: default;
 }
 
-/* 3. Navigation Chips Shell */
+/* 3. Navigation Chips Shell (Single Line Horizontal Scroll, No Wrap) */
 .community-nav-bar {
     position: sticky;
     top: 60px;
@@ -138,7 +125,10 @@ body::after {
     display: flex;
     gap: 6px;
     overflow-x: auto;
+    flex-wrap: nowrap;
+    white-space: nowrap;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 .community-nav-tabs::-webkit-scrollbar {
@@ -157,30 +147,27 @@ body::after {
     color: var(--muted);
     font-size: 0.82rem;
     font-weight: 500;
-    cursor: default;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
+/* Active Tab Highlight (Discover Only) */
 .community-tab-btn.active {
     background: rgba(245, 158, 11, 0.12);
     color: var(--accent);
     border: 1px solid rgba(245, 158, 11, 0.25);
     font-weight: 600;
+    cursor: default;
+}
+
+/* Disabled Tabs (Un-built Features) */
+.community-tab-btn.disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
 }
 
 /* 4. Layout Container Shell */
 .community-content {
     padding: 14px 16px 32px 16px;
-}
-
-@media (max-width: 768px) {
-    .community-search-bar-wrap {
-        display: none;
-    }
-}
-
-@media (min-width: 769px) {
-    .community-search-toggle-btn {
-        display: none;
-    }
 }

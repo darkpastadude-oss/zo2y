@@ -18,7 +18,6 @@
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
-    <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
 </head>
 <body data-nav-page="community">
@@ -41,41 +40,38 @@
     <!-- Main Community Page Shell -->
     <main class="community-main">
         
-        <!-- 1. Compact Header & Search Toggle Shell -->
+        <!-- 1. Compact Header & Visible Search Shell -->
         <div class="community-header-compact">
             <div class="container">
                 <div class="community-header-row">
                     <h1 class="community-title-sm">community</h1>
-                    <button class="community-search-toggle-btn" id="communitySearchToggleBtn" aria-label="search toggle">
-                        <i class="fas fa-search"></i>
-                    </button>
                 </div>
 
-                <!-- 2. Search Shell (UI Shell Only, Read-Only) -->
-                <div class="community-search-bar-wrap" id="communitySearchBarWrap">
+                <!-- 2. Search Shell (Visible on Desktop & Mobile, Read-Only) -->
+                <div class="community-search-bar-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="community-search-input" placeholder="search media & people" readonly>
+                    <input type="text" class="community-search-input" placeholder="search media, people, collections..." readonly>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Navigation Chips Shell -->
+        <!-- 3. Navigation Chips Shell (Single Line Horizontal Scroll, Discover Active Only) -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
                     <button class="community-tab-btn active" type="button">
                         <i class="fas fa-compass"></i> discover
                     </button>
-                    <button class="community-tab-btn" type="button">
+                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
                         <i class="fas fa-star"></i> reviews
                     </button>
-                    <button class="community-tab-btn" type="button">
+                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
                         <i class="fas fa-layer-group"></i> lists
                     </button>
-                    <button class="community-tab-btn" type="button">
+                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
                         <i class="fas fa-users"></i> people
                     </button>
-                    <button class="community-tab-btn" type="button">
+                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
                         <i class="fas fa-user-check"></i> following
                     </button>
                 </div>
@@ -90,6 +86,5 @@
     </main>
 
     <script src="js/shared-header.js" defer></script>
-    <script src="js/pages/community.js" defer></script>
 </body>
 </html>
