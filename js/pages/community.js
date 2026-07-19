@@ -27,8 +27,8 @@ window.CommunityManager = (function() {
             const mediaType = (review.media_type || 'movie').toLowerCase();
             const itemId = review.item_id || '';
             const rating = review.rating ? parseFloat(review.rating) : null;
-            const reviewText = (review.body || review.review_text || review.content || '').toLowerCase();
-            const coverUrl = review.cover_url || review.item_image || review.image || '';
+            const reviewText = (review.body || review.review_text || review.content || review.comment || '').toLowerCase();
+            const coverUrl = review.cover_url || review.item_image || review.image || review.thumbnail || '';
 
             // Detail page routing
             let targetPage = 'movie.html';
@@ -70,12 +70,12 @@ window.CommunityManager = (function() {
                         <div class="review-card-body-with-cover">
                             <img class="review-cover-img" src="${coverUrl}" alt="${escapeHtml(itemTitle)}" loading="lazy" />
                             <div class="review-text-content">
-                                "${escapeHtml(reviewText)}"
+                                "${escapeHtml(reviewText || 'rated this item')}"
                             </div>
                         </div>
                     ` : `
                         <div class="review-text-content pt-4">
-                            "${escapeHtml(reviewText)}"
+                            "${escapeHtml(reviewText || 'rated this item')}"
                         </div>
                     `}
                 </div>
@@ -83,7 +83,7 @@ window.CommunityManager = (function() {
         }
     };
 
-    // === REVIEWS QUERY ENGINE (EXACT ZO2Y SCHEMA: 'reviews' & 'user_profiles') ===
+    // === REVIEWS QUERY ENGINE (FETCHES FROM 'reviews' & 'list_items') ===
     async function loadReviewsFeed(retriesLeft = 3) {
         const container = document.getElementById('allReviewsFeed');
         if (!container) return;
@@ -99,32 +99,40 @@ window.CommunityManager = (function() {
         }
 
         try {
-            // Query Supabase 'reviews' table
-            let { data: reviewRows, error } = await client
-                .from('reviews')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(20);
+            let combinedReviews = [];
 
-            // Fallback to 'user_reviews' table if 'reviews' table is empty
-            if (error || !Array.isArray(reviewRows) || !reviewRows.length) {
-                const alt = await client
-                    .from('user_reviews')
+            // Query 1: 'reviews' table
+            try {
+                const { data: revs } = await client
+                    .from('reviews')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(20);
-                if (!alt.error && Array.isArray(alt.data) && alt.data.length) {
-                    reviewRows = alt.data;
+                    .limit(15);
+                if (Array.isArray(revs) && revs.length) {
+                    combinedReviews.push(...revs);
                 }
-            }
+            } catch (_rErr) {}
 
-            if (!reviewRows || !reviewRows.length) {
+            // Query 2: 'list_items' table with ratings/reviews
+            try {
+                const { data: listItems } = await client
+                    .from('list_items')
+                    .select('*')
+                    .not('rating', 'is', null)
+                    .order('created_at', { ascending: false })
+                    .limit(15);
+                if (Array.isArray(listItems) && listItems.length) {
+                    combinedReviews.push(...listItems);
+                }
+            } catch (_lErr) {}
+
+            if (!combinedReviews.length) {
                 renderEmptyReviewsState(container);
                 return;
             }
 
             // Hydrate User Profiles for user_ids
-            const userIds = [...new Set(reviewRows.map(r => r.user_id).filter(Boolean))];
+            const userIds = [...new Set(combinedReviews.map(r => r.user_id).filter(Boolean))];
             const usersMap = new Map();
 
             if (userIds.length) {
@@ -144,7 +152,7 @@ window.CommunityManager = (function() {
             }
 
             // Enrich reviews with username and render
-            const enrichedReviews = reviewRows.map(r => {
+            const enrichedReviews = combinedReviews.map(r => {
                 const resolvedUser = usersMap.get(r.user_id) || r.user_name || r.username || 'member';
                 return {
                     ...r,

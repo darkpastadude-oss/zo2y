@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - PHASE 5A STYLES (REVISED & BULLETPROOF)
+   ZO2Y COMMUNITY - SOLID NAVY BLUE STYLES (MATCHING INDEX.HTML)
    ============================================================ */
 
 :root {
@@ -12,7 +12,7 @@
     --white: #ffffff;
     --border: rgba(255, 255, 255, 0.12);
     --surface: rgba(19, 35, 71, 0.6);
-    --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+    --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
 }
 
 * {
@@ -25,14 +25,14 @@ body {
     padding: 0;
     padding-top: 60px;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg);
+    background: #0b1633 !important;
     color: var(--white);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
 }
 
-/* Ambient Radial Glow & Texture matching Zo2y Core */
+/* Ambient Radial Glow matching Zo2y Core (No Striped Texture) */
 body::before {
     content: '';
     position: fixed;
@@ -43,13 +43,7 @@ body::before {
 }
 
 body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0 12px, rgba(255, 184, 77, 0) 12px 24px);
-    opacity: 0.25;
-    pointer-events: none;
-    z-index: -3;
+    display: none !important;
 }
 
 .container {
@@ -342,7 +336,7 @@ body::after {
     transition: opacity 0.2s ease;
 }
 
-/* === ENFORCE COMPACT SPOTLIGHT SKELETON (OVERRIDE DEFAULT 420px) === */
+/* === ENFORCE COMPACT SPOTLIGHT SKELETON === */
 .skel-spotlight,
 .community-spotlight-skel {
     width: 100% !important;
