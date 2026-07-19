@@ -291,6 +291,90 @@ body::after {
     border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* === ACTIVITY FEED STYLES === */
+.activity-feed-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.community-activity-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.community-activity-card:hover {
+    transform: translateY(-1px);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.activity-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.activity-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1633;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.activity-card-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.activity-card-text {
+    font-size: 0.85rem;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-card-item {
+    font-size: 0.82rem;
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-card-time {
+    color: var(--muted);
+    font-size: 0.75rem;
+    margin-left: 6px;
+}
+
+.activity-cover-img {
+    width: 40px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
 /* === REVIEWS FEED STYLES === */
 .reviews-feed-container {
     display: flex;

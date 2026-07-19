@@ -171,7 +171,145 @@ window.CommunityManager = (function() {
         }
     };
 
-    // === REVIEWS QUERY ENGINE ===
+    // === ACTIVITY CARD COMPONENT ===
+    const ActivityCard = {
+        render: function(item) {
+            const userName = (item.username || item.full_name || 'member').toLowerCase();
+            const userId = item.user_id || '';
+            const mediaType = (item.media_type || 'movie').toLowerCase();
+            const itemId = item.item_id || '';
+            const listType = (item.list_type || '').toLowerCase();
+            const itemTitle = item.title || item.item_title || item.name || 'an item';
+            const coverUrl = item.image_url || item.cover_url || item.image || item.thumbnail || '';
+            const ts = item.created_at || '';
+
+            const targetUrl = itemLink(mediaType, itemId);
+            const profileUrl = userId ? `profile.html?id=${encodeURIComponent(userId)}` : '#';
+
+            let verb = 'added to ' + (listType || 'list');
+            if (listType === 'favorites' || listType === 'favorite') verb = 'favorited';
+            else if (listType === 'watched' || listType === 'watched') verb = 'watched';
+            else if (listType === 'watching') verb = 'is watching';
+            else if (listType === 'playing') verb = 'is playing';
+            else if (listType === 'read' || listType === 'read') verb = 'read';
+            else if (listType === 'reading') verb = 'is reading';
+            else if (listType === 'listening') verb = 'is listening to';
+            else if (listType === 'reviewed') verb = 'reviewed';
+            else if (listType === 'planned' || listType === 'want_to_watch' || listType === 'wishlist') verb = 'plans to check out';
+
+            return `
+                <div class="community-activity-card" onclick="if('${targetUrl}' !== '#') window.location.href='${targetUrl}'">
+                    <div class="activity-card-left">
+                        <div class="activity-avatar-circle" onclick="event.stopPropagation(); window.location.href='${profileUrl}'">${escapeHtml(userName.charAt(0).toUpperCase())}</div>
+                        <div class="activity-card-info">
+                            <div class="activity-card-text">
+                                <a href="${profileUrl}" class="review-user-link" onclick="event.stopPropagation()">@${escapeHtml(usernameClean(userName))}</a> ${escapeHtml(verb)}
+                            </div>
+                            <div class="activity-card-item">
+                                <a href="${targetUrl}" class="review-item-link" onclick="event.stopPropagation()">${escapeHtml(itemTitle)}</a>
+                                ${ts ? `<span class="activity-card-time">${escapeHtml(timeAgo(ts))}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="" loading="lazy" />` : ''}
+                </div>
+            `;
+        }
+    };
+
+    // === ACTIVITY FEED ENGINE ===
+    async function loadActivityFeed() {
+        const container = document.getElementById('activityListFeed');
+        if (!container) return;
+
+        const client = getSupabaseClient();
+        if (!client) {
+            renderEmptyActivityState(container);
+            return;
+        }
+
+        try {
+            const results = await Promise.allSettled([
+                client.from('list_items').select('*').order('created_at', { ascending: false }).limit(30),
+                client.from('movie_list_items').select('*').order('created_at', { ascending: false }).limit(15),
+                client.from('game_list_items').select('*').order('created_at', { ascending: false }).limit(15),
+                client.from('book_list_items').select('*').order('created_at', { ascending: false }).limit(15),
+                client.from('music_list_items').select('*').order('created_at', { ascending: false }).limit(15)
+            ]);
+
+            const typeMap = [null, 'movie', 'game', 'book', 'music'];
+            const allItems = [];
+            results.forEach((res, idx) => {
+                if (res.status === 'fulfilled' && res.value && Array.isArray(res.value.data)) {
+                    res.value.data.forEach(item => {
+                        if (item) {
+                            allItems.push({
+                                ...item,
+                                media_type: item.media_type || typeMap[idx] || 'movie'
+                            });
+                        }
+                    });
+                }
+            });
+
+            allItems.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+            const deduped = [];
+            const seenKeys = new Set();
+            allItems.forEach(item => {
+                const key = `${item.user_id || ''}|${item.item_id || ''}|${item.media_type || ''}|${item.list_type || ''}`;
+                if (seenKeys.has(key)) return;
+                seenKeys.add(key);
+                deduped.push(item);
+            });
+
+            const items = deduped.slice(0, 30);
+
+            if (!items.length) {
+                renderEmptyActivityState(container);
+                return;
+            }
+
+            const userIds = [...new Set(items.map(r => r.user_id).filter(Boolean))];
+            const usersMap = new Map();
+
+            if (userIds.length) {
+                try {
+                    const { data: profiles } = await client
+                        .from('user_profiles')
+                        .select('id, username, full_name')
+                        .in('id', userIds);
+                    if (Array.isArray(profiles)) {
+                        profiles.forEach(p => {
+                            if (p && p.id) usersMap.set(p.id, p.username || p.full_name || 'member');
+                        });
+                    }
+                } catch (_pe) {}
+            }
+
+            const enriched = items.map(r => ({
+                ...r,
+                username: usersMap.get(r.user_id) || r.user_name || r.username || 'member'
+            }));
+
+            container.innerHTML = enriched.map(r => ActivityCard.render(r)).join('');
+        } catch (_e) {
+            renderEmptyActivityState(container);
+        }
+    }
+
+    function renderEmptyActivityState(container) {
+        container.innerHTML = `
+            <div class="community-empty-box">
+                <div class="empty-icon"><i class="fas fa-rss"></i></div>
+                <div class="empty-title">no activity yet.</div>
+                <div class="empty-desc">when members add media to their lists, it will show up here.</div>
+                <a href="index.html" class="btn-empty-action"><i class="fas fa-plus"></i> explore media</a>
+            </div>
+        `;
+    }
+
+    // === REVIEWS QUERY ENGINE (written reviews only) ===
     async function loadReviewsFeed(retriesLeft = 3) {
         const container = document.getElementById('allReviewsFeed');
         if (!container) return;
@@ -223,12 +361,17 @@ window.CommunityManager = (function() {
 
             combinedReviews.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
-            if (!combinedReviews.length) {
+            const writtenOnly = combinedReviews.filter(r => {
+                const body = (r.body || r.review_text || r.content || r.comment || '').trim();
+                return body.length > 0;
+            });
+
+            if (!writtenOnly.length) {
                 renderEmptyReviewsState(container);
                 return;
             }
 
-            const userIds = [...new Set(combinedReviews.map(r => r.user_id).filter(Boolean))];
+            const userIds = [...new Set(writtenOnly.map(r => r.user_id).filter(Boolean))];
             const usersMap = new Map();
 
             if (userIds.length) {
@@ -247,7 +390,7 @@ window.CommunityManager = (function() {
                 } catch (_pe) {}
             }
 
-            const enrichedReviews = combinedReviews.slice(0, 20).map(r => {
+            const enrichedReviews = writtenOnly.slice(0, 20).map(r => {
                 const resolvedUser = usersMap.get(r.user_id) || r.user_name || r.username || 'member';
                 return {
                     ...r,
@@ -286,7 +429,7 @@ window.CommunityManager = (function() {
             let profiles = null;
 
             if (client) {
-                let req = client.from('user_profiles').select('id, username, full_name');
+                let req = client.from('user_profiles').select('id, username, full_name').not('username', 'is', null);
                 if (cleanQ) {
                     const ilike = `%${cleanQ.replace(/%/g, '')}%`;
                     req = req.or(`(username.ilike.${ilike},full_name.ilike.${ilike})`);
@@ -326,6 +469,16 @@ window.CommunityManager = (function() {
                 }
             }
 
+            if (profiles && profiles.length) {
+                const seenIds = new Set();
+                profiles = profiles.filter(p => {
+                    const id = String(p.id || '');
+                    if (!id || seenIds.has(id)) return false;
+                    seenIds.add(id);
+                    return true;
+                });
+            }
+
             if (!profiles || !profiles.length) {
                 container.innerHTML = `
                     <div class="community-empty-box">
@@ -337,7 +490,15 @@ window.CommunityManager = (function() {
                 return;
             }
 
-            container.innerHTML = profiles.map(p => UserCard.render(p)).join('');
+            const seen = new Set();
+            const unique = profiles.filter(p => {
+                const id = String(p.id || '');
+                if (!id || seen.has(id)) return false;
+                seen.add(id);
+                return true;
+            });
+
+            container.innerHTML = unique.map(p => UserCard.render(p)).join('');
         } catch (_e) {
             container.innerHTML = `
                 <div class="community-empty-box">
@@ -476,6 +637,8 @@ window.CommunityManager = (function() {
             loadPeopleFeed();
         } else if (tabName === 'following') {
             loadFollowingFeed();
+        } else if (tabName === 'activity') {
+            loadActivityFeed();
         }
     }
 
@@ -485,6 +648,19 @@ window.CommunityManager = (function() {
 
     function escapeHtml(str) {
         return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const now = Date.now();
+        const then = new Date(dateStr).getTime();
+        if (isNaN(then)) return '';
+        const diff = Math.floor((now - then) / 1000);
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+        return new Date(dateStr).toLocaleDateString();
     }
 
     // Auto-init on page load
@@ -497,6 +673,7 @@ window.CommunityManager = (function() {
     return {
         switchTab: switchTab,
         loadReviewsFeed: loadReviewsFeed,
+        loadActivityFeed: loadActivityFeed,
         loadPeopleFeed: loadPeopleFeed,
         loadFollowingFeed: loadFollowingFeed,
         toggleFollow: toggleFollow

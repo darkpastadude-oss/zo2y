@@ -22,9 +22,29 @@ test.describe('Community Page Tabs', () => {
     await stubAuthGate(page);
     await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(2000);
-
     const url = page.url();
     expect(url).toContain('community');
+  });
+
+  test('CommunityManager is defined', async ({ page }) => {
+    await stubAuthGate(page);
+    await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
+    const exists = await page.evaluate(() => typeof window.CommunityManager !== 'undefined');
+    expect(exists).toBe(true);
+  });
+
+  test('tab buttons render all 6 tabs', async ({ page }) => {
+    await stubAuthGate(page);
+    await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(1000);
+    const tabCount = await page.locator('.community-tab-btn').count();
+    expect(tabCount).toBe(6);
+
+    const tabNames = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('.community-tab-btn')).map(b => b.getAttribute('data-tab'));
+    });
+    expect(tabNames).toEqual(['discover', 'activity', 'reviews', 'lists', 'people', 'following']);
   });
 
   test('no user_profiles 400 errors (avatar_url removed)', async ({ page }) => {
@@ -38,31 +58,7 @@ test.describe('Community Page Tabs', () => {
     await stubAuthGate(page);
     await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
     await page.waitForTimeout(3000);
-
     expect(badRequests).toEqual([]);
-  });
-
-  test('CommunityManager is defined', async ({ page }) => {
-    await stubAuthGate(page);
-    await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
-
-    const exists = await page.evaluate(() => typeof window.CommunityManager !== 'undefined');
-    expect(exists).toBe(true);
-  });
-
-  test('tab buttons render all 5 tabs', async ({ page }) => {
-    await stubAuthGate(page);
-    await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(1000);
-
-    const tabCount = await page.locator('.community-tab-btn').count();
-    expect(tabCount).toBe(5);
-
-    const tabNames = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll('.community-tab-btn')).map(b => b.getAttribute('data-tab'));
-    });
-    expect(tabNames).toEqual(['discover', 'reviews', 'lists', 'people', 'following']);
   });
 
   test('reviews tab loads without errors', async ({ page }) => {
@@ -77,6 +73,21 @@ test.describe('Community Page Tabs', () => {
     await page.waitForTimeout(2000);
 
     const feedVisible = await page.locator('#paneReviews').isVisible();
+    expect(feedVisible).toBe(true);
+  });
+
+  test('activity tab loads without errors', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+
+    await stubAuthGate(page);
+    await page.goto('/community.html', { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(() => CommunityManager.switchTab('activity'));
+    await page.waitForTimeout(2000);
+
+    const feedVisible = await page.locator('#paneActivity').isVisible();
     expect(feedVisible).toBe(true);
   });
 

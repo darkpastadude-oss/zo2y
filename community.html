@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260719T" defer></script>
+    <script src="js/pages/community.js?v=20260719V" defer></script>
 </head>
 <body data-nav-page="community">
 
@@ -66,6 +66,9 @@
                 <div class="community-nav-tabs" role="tablist">
                     <button class="community-tab-btn active" data-tab="discover" type="button" onclick="CommunityManager.switchTab('discover')">
                         <i class="fas fa-compass"></i> discover
+                    </button>
+                    <button class="community-tab-btn" data-tab="activity" type="button" onclick="CommunityManager.switchTab('activity')">
+                        <i class="fas fa-rss"></i> activity
                     </button>
                     <button class="community-tab-btn" data-tab="reviews" type="button" onclick="CommunityManager.switchTab('reviews')">
                         <i class="fas fa-star"></i> reviews
@@ -150,7 +153,18 @@
                 </div>
             </div>
 
-            <!-- Pane 3: Lists -->
+            <!-- Pane 3: Activity Feed -->
+            <div class="community-tab-pane" id="paneActivity">
+                <div id="activityListFeed" class="activity-feed-container">
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-rss"></i></div>
+                        <div class="empty-title">no activity yet.</div>
+                        <div class="empty-desc">when members add media to their lists, it will show up here.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pane 4: Lists -->
             <div class="community-tab-pane" id="paneLists">
                 <div class="community-empty-box">
                     <div class="empty-icon"><i class="fas fa-layer-group"></i></div>
