@@ -229,30 +229,25 @@ window.CommunityManager = (function() {
         }
 
         try {
-            const results = await Promise.allSettled([
-                client.from('list_items').select('*').order('created_at', { ascending: false }).limit(30),
-                client.from('movie_list_items').select('*').order('created_at', { ascending: false }).limit(15),
-                client.from('game_list_items').select('*').order('created_at', { ascending: false }).limit(15),
-                client.from('book_list_items').select('*').order('created_at', { ascending: false }).limit(15),
-                client.from('music_list_items').select('*').order('created_at', { ascending: false }).limit(15)
-            ]);
+            let allItems = [];
+            try {
+                const { data } = await client
+                    .from('list_items')
+                    .select('*')
+                    .limit(50);
+                if (Array.isArray(data)) allItems = data;
+            } catch (_e) {}
 
-            const typeMap = [null, 'movie', 'game', 'book', 'music'];
-            const allItems = [];
-            results.forEach((res, idx) => {
-                if (res.status === 'fulfilled' && res.value && Array.isArray(res.value.data)) {
-                    res.value.data.forEach(item => {
-                        if (item) {
-                            allItems.push({
-                                ...item,
-                                media_type: item.media_type || typeMap[idx] || 'movie'
-                            });
-                        }
-                    });
-                }
-            });
+            if (!allItems.length) {
+                try {
+                    const { data } = await client
+                        .from('list_items')
+                        .select('*');
+                    if (Array.isArray(data)) allItems = data.slice(0, 50);
+                } catch (_e) {}
+            }
 
-            allItems.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+            allItems.sort((a, b) => new Date(b.created_at || b.id || 0) - new Date(a.created_at || a.id || 0));
 
             const deduped = [];
             const seenKeys = new Set();
@@ -372,7 +367,9 @@ window.CommunityManager = (function() {
             }
 
             const userIds = [...new Set(writtenOnly.map(r => r.user_id).filter(Boolean))];
+            const itemIds = [...new Set(writtenOnly.map(r => r.item_id).filter(Boolean))];
             const usersMap = new Map();
+            const itemMap = new Map();
 
             if (userIds.length) {
                 try {
@@ -390,11 +387,35 @@ window.CommunityManager = (function() {
                 } catch (_pe) {}
             }
 
+            if (itemIds.length) {
+                try {
+                    const { data: items } = await client
+                        .from('list_items')
+                        .select('item_id, title, image_url, subtitle, media_type')
+                        .in('item_id', itemIds);
+                    if (Array.isArray(items)) {
+                        items.forEach(it => {
+                            if (it && it.item_id && !itemMap.has(it.item_id)) {
+                                itemMap.set(it.item_id, it);
+                            }
+                        });
+                    }
+                } catch (_ie) {}
+            }
+
             const enrichedReviews = writtenOnly.slice(0, 20).map(r => {
-                const resolvedUser = usersMap.get(r.user_id) || r.user_name || r.username || 'member';
+                const lookup = itemMap.get(r.item_id) || {};
                 return {
                     ...r,
-                    username: resolvedUser
+                    username: usersMap.get(r.user_id) || r.user_name || r.username || 'member',
+                    title: r.title || lookup.title || '',
+                    item_title: r.item_title || lookup.title || '',
+                    name: r.name || lookup.title || '',
+                    image_url: r.image_url || lookup.image_url || '',
+                    cover_url: r.cover_url || lookup.image_url || '',
+                    image: r.image || lookup.image_url || '',
+                    thumbnail: r.thumbnail || lookup.image_url || '',
+                    subtitle: r.subtitle || lookup.subtitle || ''
                 };
             });
 
