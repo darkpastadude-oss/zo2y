@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - UNIFIED REVIEWS, USER SEARCH & PROFILE LINKING
+   ZO2Y COMMUNITY - UNIFIED REVIEWS, USER SEARCH & FOLLOWS ENGINE
    ============================================================ */
 
 window.CommunityManager = (function() {
@@ -9,6 +9,13 @@ window.CommunityManager = (function() {
     let currentUser = null;
     let followingSet = new Set();
     let searchDebounceTimer = null;
+
+    function getSupabaseConfig() {
+        return window.__ZO2Y_SUPABASE_CONFIG || {
+            url: 'https://gfkhjbztayjyojsgdpgk.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdma2hqYnp0YXlqeW9qc2dkcGdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY4ODQwOTQsImV4cCI6MjAzMjQ2MDA5NH0.3w0U2J9wXN9L_u-N2_N5W8-B7Q9H5K4M2L0P8O3N6R1'
+        };
+    }
 
     function getSupabaseClient() {
         if (supabase && typeof supabase.from === 'function') return supabase;
@@ -65,7 +72,6 @@ window.CommunityManager = (function() {
             const reviewText = (review.body || review.review_text || review.content || review.comment || '').toLowerCase();
             const coverUrl = review.image_url || review.cover_url || review.item_image || review.image || review.thumbnail || '';
 
-            // Detail & Profile Page links
             let targetPage = 'movie.html';
             if (mediaType === 'game') targetPage = 'game.html';
             else if (mediaType === 'tv' || mediaType === 'tvshow') targetPage = 'tvshow.html';
@@ -252,31 +258,65 @@ window.CommunityManager = (function() {
         `;
     }
 
-    // === USER / PEOPLE SEARCH ENGINE ===
+    // === USER / PEOPLE SEARCH ENGINE (WITH POSTGREST PARENTHESES SYNTAX & REST FALLBACK) ===
     async function loadPeopleFeed(query = '') {
         const container = document.getElementById('peopleListFeed');
         if (!container) return;
 
         const client = getSupabaseClient();
-        if (!client) return;
-
         await loadFollowingSet();
 
-        try {
-            let req = client.from('user_profiles').select('id, username, full_name, avatar_url, bio');
+        const cleanQ = String(query || '').trim().replace(/^@+/, '');
 
-            if (query.trim()) {
-                const q = `%${query.trim().toLowerCase()}%`;
-                req = req.or(`username.ilike.${q},full_name.ilike.${q}`);
+        try {
+            let profiles = null;
+
+            if (client) {
+                let req = client.from('user_profiles').select('id, username, full_name, avatar_url, bio');
+                if (cleanQ) {
+                    const ilike = `%${cleanQ.replace(/%/g, '')}%`;
+                    req = req.or(`(username.ilike.${ilike},full_name.ilike.${ilike})`);
+                } else {
+                    req = req.order('created_at', { ascending: false });
+                }
+                const res = await req.limit(16);
+                if (!res.error && Array.isArray(res.data)) {
+                    profiles = res.data;
+                }
             }
 
-            const { data: profiles, error } = await req.limit(16);
+            // Fallback REST fetch if client query returned empty/error
+            if (!profiles || !profiles.length) {
+                const cfg = getSupabaseConfig();
+                const url = new URL(`${cfg.url}/rest/v1/user_profiles`);
+                url.searchParams.set('select', 'id,username,full_name,avatar_url,bio');
+                if (cleanQ) {
+                    const ilike = `%${cleanQ.replace(/%/g, '')}%`;
+                    url.searchParams.set('or', `(username.ilike.${ilike},full_name.ilike.${ilike})`);
+                } else {
+                    url.searchParams.set('order', 'created_at.desc');
+                }
+                url.searchParams.set('limit', '16');
 
-            if (error || !profiles || !profiles.length) {
+                const resp = await fetch(url.toString(), {
+                    headers: {
+                        'apikey': cfg.key,
+                        'Authorization': `Bearer ${cfg.key}`
+                    }
+                });
+                if (resp.ok) {
+                    const json = await resp.json().catch(() => []);
+                    if (Array.isArray(json)) {
+                        profiles = json;
+                    }
+                }
+            }
+
+            if (!profiles || !profiles.length) {
                 container.innerHTML = `
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-users"></i></div>
-                        <div class="empty-title">${query ? 'no members found matching "' + escapeHtml(query) + '".' : 'no members found.'}</div>
+                        <div class="empty-title">${cleanQ ? 'no members found matching "' + escapeHtml(cleanQ) + '".' : 'no members found.'}</div>
                         <div class="empty-desc">try searching for another username or full name.</div>
                     </div>
                 `;
