@@ -9,12 +9,11 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.107.0?v=20260708a" crossorigin="anonymous" defer></script>
     
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
-    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages/profile.css">
     <link rel="stylesheet" href="css/pages/community.css">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -38,237 +37,98 @@
 
     <!-- Main Community Container -->
     <main class="community-main">
-        <!-- Compact Header (~120px) -->
+        
+        <!-- 1. Compact Header (~100-120px) -->
         <div class="community-header-compact">
             <div class="container">
-                <div class="community-header-top">
-                    <h1 class="community-title-sm">community</h1>
-                    <p class="community-subtitle-sm">discover great media and the people behind it.</p>
-                </div>
-                
-                <!-- Search Bar (Searches users, movies, games, books, TV, albums, genres, directors) -->
+                <h1 class="community-title-sm">community</h1>
+                <p class="community-subtitle-sm">discover media and eventually discover people through taste.</p>
+
+                <!-- 2. Search Bar (UI Only) -->
                 <div class="community-search-bar-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="communitySearchInput" class="community-search-input" placeholder="search people, interstellar, soulslike, christopher nolan..." onkeyup="CommunityManager.handleSearch(this.value)">
-                    <button class="search-clear-btn" id="searchClearBtn" onclick="CommunityManager.clearSearch()">&times;</button>
+                    <input type="text" class="community-search-input" placeholder="search people, movies, games, books..." readonly>
                 </div>
             </div>
         </div>
 
-        <!-- Streamlined Navigation Bar -->
+        <!-- 3. Navigation Bar (Visual Only) -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
-                    <button class="community-tab-btn active" data-tab="discover" onclick="CommunityManager.switchTab('discover')">
+                    <button class="community-tab-btn active" type="button">
                         <i class="fas fa-compass"></i> discover
                     </button>
-                    <button class="community-tab-btn" data-tab="reviews" onclick="CommunityManager.switchTab('reviews')">
+                    <button class="community-tab-btn" type="button">
                         <i class="fas fa-star"></i> reviews
                     </button>
-                    <button class="community-tab-btn" data-tab="lists" onclick="CommunityManager.switchTab('lists')">
+                    <button class="community-tab-btn" type="button">
                         <i class="fas fa-layer-group"></i> lists
                     </button>
-                    <button class="community-tab-btn" data-tab="people" onclick="CommunityManager.switchTab('people')">
+                    <button class="community-tab-btn" type="button">
                         <i class="fas fa-users"></i> people
                     </button>
-                    <button class="community-tab-btn" data-tab="following" onclick="CommunityManager.switchTab('following')">
+                    <button class="community-tab-btn" type="button">
                         <i class="fas fa-user-check"></i> following
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Content Area -->
+        <!-- 4. Content Area (Only ONE section: New Releases) -->
         <div class="container community-content">
             
-            <!-- TAB 1: DISCOVER (MEDIA-FIRST HOMEPAGE) -->
-            <section class="community-tab-pane active" id="paneDiscover">
-                
-                <!-- 🔥 New Releases Horizontal Rails -->
-                <div class="community-section">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-bolt text-accent"></i> 🔥 new releases</h2>
-                        <div class="media-category-pills">
-                            <button class="category-pill active" onclick="CommunityManager.filterNewReleases('all', this)">all</button>
-                            <button class="category-pill" onclick="CommunityManager.filterNewReleases('movie', this)">movies</button>
-                            <button class="category-pill" onclick="CommunityManager.filterNewReleases('game', this)">games</button>
-                            <button class="category-pill" onclick="CommunityManager.filterNewReleases('tv', this)">tv</button>
-                            <button class="category-pill" onclick="CommunityManager.filterNewReleases('book', this)">books</button>
-                        </div>
-                    </div>
-                    <div class="community-rail" id="railNewReleases">
-                        <div class="skel-rail-placeholder">loading new releases...</div>
-                    </div>
+            <section class="pv2-rail">
+                <div class="pv2-rail-header">
+                    <h2 class="pv2-rail-title">
+                        <i class="fas fa-bolt"></i> new releases
+                    </h2>
                 </div>
 
-                <!-- ⭐ Staff Picks (Curated Taste Collections) -->
-                <div class="community-section mt-28">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-bookmark text-accent"></i> ⭐ staff picks</h2>
+                <!-- 5. Horizontal Rail Component (Reuses pv2-rail-track from Profile) -->
+                <div class="pv2-rail-track" id="communityNewReleasesTrack">
+                    <!-- 6. Skeleton Loading State (Polished Skeleton Cards) -->
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
+                        </div>
                     </div>
-                    <div class="staff-picks-grid" id="staffPicksGrid">
-                        <div class="staff-pick-card" onclick="window.location.href='index.html'">
-                            <div class="staff-pick-content">
-                                <span class="staff-pick-tag">movies</span>
-                                <h3 class="staff-pick-title">best space movies</h3>
-                                <p class="staff-pick-desc">cinematic masterpieces of cosmic exploration.</p>
-                            </div>
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
                         </div>
-                        <div class="staff-pick-card" onclick="window.location.href='games.html'">
-                            <div class="staff-pick-content">
-                                <span class="staff-pick-tag">games</span>
-                                <h3 class="staff-pick-title">great starter rpgs</h3>
-                                <p class="staff-pick-desc">immersive worlds and unforgettable stories.</p>
-                            </div>
+                    </div>
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
                         </div>
-                        <div class="staff-pick-card" onclick="window.location.href='tvshows.html'">
-                            <div class="staff-pick-content">
-                                <span class="staff-pick-tag">tv</span>
-                                <h3 class="staff-pick-title">mind-bending tv</h3>
-                                <p class="staff-pick-desc">psychological thrillers that keep you guessing.</p>
-                            </div>
+                    </div>
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
                         </div>
-                        <div class="staff-pick-card" onclick="window.location.href='books.html'">
-                            <div class="staff-pick-content">
-                                <span class="staff-pick-tag">books</span>
-                                <h3 class="staff-pick-title">summer reads</h3>
-                                <p class="staff-pick-desc">page-turners you won't be able to put down.</p>
-                            </div>
+                    </div>
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
+                        </div>
+                    </div>
+                    <div class="skel-card-poster" style="flex:0 0 140px">
+                        <div class="skel skel-poster" style="height:210px"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-md"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- 🎲 Hidden Gems (Random Discoveries) -->
-                <div class="community-section mt-28">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-dice text-accent"></i> 🎲 hidden gems</h2>
-                        <button class="btn btn-secondary btn-sm" onclick="CommunityManager.shuffleHiddenGems()"><i class="fas fa-sync-alt"></i> shuffle</button>
-                    </div>
-                    <div class="community-rail" id="railHiddenGems">
-                        <div class="skel-rail-placeholder">loading hidden gems...</div>
-                    </div>
-                </div>
-
-                <!-- 📝 Latest Reviews (Shown only if reviews exist, else CTA) -->
-                <div class="community-section mt-28" id="sectionLatestReviews">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-comment-alt text-accent"></i> 📝 latest reviews</h2>
-                    </div>
-                    <div id="latestReviewsFeed" class="reviews-feed"></div>
-                </div>
-
-                <!-- ⭐ Community Lists (Only if public lists exist) -->
-                <div class="community-section mt-28" id="sectionCommunityLists">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-list-ol text-accent"></i> ⭐ community lists</h2>
-                    </div>
-                    <div class="community-rail" id="railCommunityLists"></div>
-                </div>
-
-                <!-- 👥 People to Follow (Only if users exist) -->
-                <div class="community-section mt-28" id="sectionPeopleToFollow">
-                    <div class="section-header">
-                        <h2 class="section-title"><i class="fas fa-users text-accent"></i> 👥 people to follow</h2>
-                    </div>
-                    <div class="people-cards-container" id="discoverPeopleList"></div>
-                </div>
-
-            </section>
-
-            <!-- TAB 2: REVIEWS -->
-            <section class="community-tab-pane" id="paneReviews">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-star text-accent"></i> reviews & film journal entries</h2>
-                </div>
-                <div id="allReviewsFeed" class="reviews-feed-full"></div>
-            </section>
-
-            <!-- TAB 3: LISTS -->
-            <section class="community-tab-pane" id="paneLists">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-layer-group text-accent"></i> public lists & collections</h2>
-                </div>
-                <div id="allListsGrid" class="community-lists-grid"></div>
-            </section>
-
-            <!-- TAB 4: PEOPLE / SEARCH RESULTS -->
-            <section class="community-tab-pane" id="panePeople">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-users text-accent"></i> find people</h2>
-                    <div class="filter-pills" id="peopleFilterPills">
-                        <button class="filter-pill active" onclick="CommunityManager.setSearchFilter('all', this)">all</button>
-                        <button class="filter-pill" onclick="CommunityManager.setSearchFilter('people', this)"><i class="fas fa-user"></i> people</button>
-                        <button class="filter-pill" onclick="CommunityManager.setSearchFilter('lists', this)"><i class="fas fa-layer-group"></i> lists</button>
-                        <button class="filter-pill" onclick="CommunityManager.setSearchFilter('reviews', this)"><i class="fas fa-star"></i> reviews</button>
-                    </div>
-                </div>
-                <div id="peopleSearchResultsGrid" class="people-cards-container"></div>
-            </section>
-
-            <!-- TAB 5: FOLLOWING -->
-            <section class="community-tab-pane" id="paneFollowing">
-                <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-user-check text-accent"></i> following activity</h2>
-                </div>
-                <div id="followingActivityFeed" class="following-feed"></div>
             </section>
 
         </div>
     </main>
-
-    <!-- Compare Taste Modal -->
-    <div class="modal" id="compareTasteModal">
-        <div class="modal-content modal-content-lg">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-heart text-accent"></i> taste compatibility</h3>
-                <button class="modal-close" onclick="CommunityManager.closeCompareTasteModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="taste-compare-header">
-                    <div class="taste-match-big" id="compareOverallMatch">92%</div>
-                    <div class="taste-match-label">overall taste match</div>
-                </div>
-
-                <div class="taste-bars-grid mt-20">
-                    <div class="taste-bar-item">
-                        <div class="d-flex justify-content-between mb-4 small">
-                            <span><i class="fas fa-film text-accent"></i> movies</span>
-                            <span id="compareMoviesScore">94%</span>
-                        </div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="compareMoviesBar" style="width: 94%;"></div></div>
-                    </div>
-                    <div class="taste-bar-item">
-                        <div class="d-flex justify-content-between mb-4 small">
-                            <span><i class="fas fa-gamepad text-accent"></i> games</span>
-                            <span id="compareGamesScore">91%</span>
-                        </div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="compareGamesBar" style="width: 91%;"></div></div>
-                    </div>
-                    <div class="taste-bar-item">
-                        <div class="d-flex justify-content-between mb-4 small">
-                            <span><i class="fas fa-book text-accent"></i> books</span>
-                            <span id="compareBooksScore">87%</span>
-                        </div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="compareBooksBar" style="width: 87%;"></div></div>
-                    </div>
-                    <div class="taste-bar-item">
-                        <div class="d-flex justify-content-between mb-4 small">
-                            <span><i class="fas fa-music text-accent"></i> music</span>
-                            <span id="compareMusicScore">83%</span>
-                        </div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" id="compareMusicBar" style="width: 83%;"></div></div>
-                    </div>
-                </div>
-
-                <div class="mt-24">
-                    <h4 class="small-heading mb-10"><i class="fas fa-star text-accent"></i> shared favorites</h4>
-                    <div class="community-rail" id="compareSharedFavorites">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="js/shared-header.js" defer></script>
     <script src="js/pages/community.js" defer></script>
