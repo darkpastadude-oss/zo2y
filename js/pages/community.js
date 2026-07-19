@@ -8,10 +8,10 @@ window.CommunityManager = (function() {
     let supabase = null;
 
     function getSupabaseClient() {
-        if (supabase) return supabase;
-        if (window.supabaseClient) {
+        if (supabase && typeof supabase.from === 'function') return supabase;
+        if (window.supabaseClient && typeof window.supabaseClient.from === 'function') {
             supabase = window.supabaseClient;
-        } else if (window.ZO2Y_SUPABASE_CLIENT) {
+        } else if (window.ZO2Y_SUPABASE_CLIENT && typeof window.ZO2Y_SUPABASE_CLIENT.from === 'function') {
             supabase = window.ZO2Y_SUPABASE_CLIENT;
         } else if (window.supabase && typeof window.supabase.from === 'function') {
             supabase = window.supabase;
@@ -22,13 +22,13 @@ window.CommunityManager = (function() {
     // === REUSABLE REVIEW CARD COMPONENT ===
     const ReviewCard = {
         render: function(review) {
-            const userName = (review.user_name || 'member').toLowerCase();
-            const itemTitle = (review.item_title || 'title').toLowerCase();
+            const userName = (review.user_name || review.username || review.user_handle || 'member').toLowerCase();
+            const itemTitle = (review.item_title || review.title || review.media_title || 'title').toLowerCase();
             const mediaType = (review.media_type || 'movie').toLowerCase();
-            const itemId = review.item_id || '';
+            const itemId = review.item_id || review.media_id || '';
             const rating = review.rating ? parseFloat(review.rating) : null;
-            const reviewText = (review.review_text || review.content || '').toLowerCase();
-            const coverUrl = review.item_image || review.cover_url || '';
+            const reviewText = (review.review_text || review.content || review.comment || '').toLowerCase();
+            const coverUrl = review.item_image || review.cover_url || review.poster || review.image || '';
 
             // Route mapping to exact detail pages
             let targetPage = 'movie.html';
@@ -83,25 +83,54 @@ window.CommunityManager = (function() {
         }
     };
 
-    // === REVIEWS QUERY ENGINE ===
-    async function loadReviewsFeed() {
+    // === REVIEWS QUERY ENGINE (ROBUST RETRIES & FALLBACKS) ===
+    async function loadReviewsFeed(retriesLeft = 3) {
         const container = document.getElementById('allReviewsFeed');
         if (!container) return;
 
         const client = getSupabaseClient();
         if (!client) {
-            renderEmptyReviewsState(container);
+            if (retriesLeft > 0) {
+                setTimeout(() => loadReviewsFeed(retriesLeft - 1), 300);
+            } else {
+                renderEmptyReviewsState(container);
+            }
             return;
         }
 
         try {
-            const { data: reviews, error } = await client
+            // 1. Try 'user_reviews' table
+            let { data: reviews, error } = await client
                 .from('user_reviews')
                 .select('*')
                 .order('created_at', { ascending: false })
                 .limit(12);
 
+            // 2. Fallback to 'reviews' table
             if (error || !reviews || !reviews.length) {
+                const res1 = await client
+                    .from('reviews')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(12);
+                if (!res1.error && res1.data && res1.data.length) {
+                    reviews = res1.data;
+                }
+            }
+
+            // 3. Fallback to 'media_reviews' table
+            if (!reviews || !reviews.length) {
+                const res2 = await client
+                    .from('media_reviews')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(12);
+                if (!res2.error && res2.data && res2.data.length) {
+                    reviews = res2.data;
+                }
+            }
+
+            if (!reviews || !reviews.length) {
                 renderEmptyReviewsState(container);
                 return;
             }
@@ -147,6 +176,11 @@ window.CommunityManager = (function() {
     function escapeHtml(str) {
         return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
+
+    // Auto-init on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadReviewsFeed();
+    });
 
     return {
         switchTab: switchTab,

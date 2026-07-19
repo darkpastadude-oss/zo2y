@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - PHASE 5A REVIEWS COMPONENT STYLES
+   ZO2Y COMMUNITY - PHASE 5A STYLES (REVISED & BULLETPROOF)
    ============================================================ */
 
 :root {
@@ -79,23 +79,22 @@ body::after {
     color: var(--white);
 }
 
-/* 2. Search Shell (Clean Input with Absolute Icon Positioning) */
+/* 2. Search Shell (Bulletproof Inline SVG Icon Alignment) */
 .community-search-bar-wrap {
-    position: relative;
+    position: relative !important;
     width: 100%;
     max-width: 720px;
     margin: 4px 0 2px 0;
 }
 
-.community-search-bar-wrap .search-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 0.85rem;
-    pointer-events: none;
-    z-index: 2;
+.search-icon-svg {
+    position: absolute !important;
+    left: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--muted) !important;
+    pointer-events: none !important;
+    z-index: 5 !important;
 }
 
 .community-search-input {
@@ -343,8 +342,9 @@ body::after {
     transition: opacity 0.2s ease;
 }
 
-/* Compact Spotlight Skeleton */
-.skel-spotlight.community-spotlight-skel {
+/* === ENFORCE COMPACT SPOTLIGHT SKELETON (OVERRIDE DEFAULT 420px) === */
+.skel-spotlight,
+.community-spotlight-skel {
     width: 100% !important;
     height: 180px !important;
     min-height: 180px !important;
@@ -363,7 +363,8 @@ body::after {
         padding: 12px 12px 24px 12px;
     }
 
-    .skel-spotlight.community-spotlight-skel {
+    .skel-spotlight,
+    .community-spotlight-skel {
         height: 140px !important;
         min-height: 140px !important;
         max-height: 140px !important;
