@@ -52,10 +52,10 @@ window.CommunityManager = (function() {
         try {
             const { data } = await client
                 .from('follows')
-                .select('following_id')
+                .select('followed_id')
                 .eq('follower_id', user.id);
             if (Array.isArray(data)) {
-                followingSet = new Set(data.map(f => String(f.following_id)));
+                followingSet = new Set(data.map(f => String(f.followed_id)));
             }
         } catch (_e) {}
     }
@@ -272,7 +272,7 @@ window.CommunityManager = (function() {
             let profiles = null;
 
             if (client) {
-                let req = client.from('user_profiles').select('id, username, full_name, avatar_url, bio');
+                let req = client.from('user_profiles').select('id, username, full_name, avatar_url');
                 if (cleanQ) {
                     const ilike = `%${cleanQ.replace(/%/g, '')}%`;
                     req = req.or(`(username.ilike.${ilike},full_name.ilike.${ilike})`);
@@ -289,7 +289,7 @@ window.CommunityManager = (function() {
             if (!profiles || !profiles.length) {
                 const cfg = getSupabaseConfig();
                 const url = new URL(`${cfg.url}/rest/v1/user_profiles`);
-                url.searchParams.set('select', 'id,username,full_name,avatar_url,bio');
+                url.searchParams.set('select', 'id,username,full_name,avatar_url');
                 if (cleanQ) {
                     const ilike = `%${cleanQ.replace(/%/g, '')}%`;
                     url.searchParams.set('or', `(username.ilike.${ilike},full_name.ilike.${ilike})`);
@@ -356,7 +356,7 @@ window.CommunityManager = (function() {
         try {
             const { data: follows, error } = await client
                 .from('follows')
-                .select('following_id')
+                .select('followed_id')
                 .eq('follower_id', user.id);
 
             if (error || !follows || !follows.length) {
@@ -370,10 +370,10 @@ window.CommunityManager = (function() {
                 return;
             }
 
-            const ids = follows.map(f => f.following_id);
+            const ids = follows.map(f => f.followed_id);
             const { data: profiles } = await client
                 .from('user_profiles')
-                .select('id, username, full_name, avatar_url, bio')
+                .select('id, username, full_name, avatar_url')
                 .in('id', ids);
 
             if (!profiles || !profiles.length) {
@@ -406,11 +406,11 @@ window.CommunityManager = (function() {
             if (isFollowing) {
                 followingSet.delete(targetUserId);
                 updateFollowButton(buttonEl, false);
-                await client.from('follows').delete().eq('follower_id', user.id).eq('following_id', targetUserId);
+                await client.from('follows').delete().eq('follower_id', user.id).eq('followed_id', targetUserId);
             } else {
                 followingSet.add(targetUserId);
                 updateFollowButton(buttonEl, true);
-                await client.from('follows').insert({ follower_id: user.id, following_id: targetUserId });
+                await client.from('follows').insert({ follower_id: user.id, followed_id: targetUserId });
             }
         } catch (err) {
             console.error('Follow toggle error:', err);
