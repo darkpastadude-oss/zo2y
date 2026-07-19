@@ -22,15 +22,15 @@ window.CommunityManager = (function() {
     // === REUSABLE REVIEW CARD COMPONENT ===
     const ReviewCard = {
         render: function(review) {
-            const userName = (review.user_name || review.username || review.user_handle || 'member').toLowerCase();
-            const itemTitle = (review.item_title || review.title || review.media_title || 'title').toLowerCase();
+            const userName = (review.username || review.user_name || review.full_name || 'zo2y member').toLowerCase();
+            const itemTitle = (review.item_title || review.title || `${review.media_type || 'media'} #${review.item_id || ''}`).toLowerCase();
             const mediaType = (review.media_type || 'movie').toLowerCase();
-            const itemId = review.item_id || review.media_id || '';
+            const itemId = review.item_id || '';
             const rating = review.rating ? parseFloat(review.rating) : null;
-            const reviewText = (review.review_text || review.content || review.comment || '').toLowerCase();
-            const coverUrl = review.item_image || review.cover_url || review.poster || review.image || '';
+            const reviewText = (review.body || review.review_text || review.content || '').toLowerCase();
+            const coverUrl = review.cover_url || review.item_image || review.image || '';
 
-            // Route mapping to exact detail pages
+            // Detail page routing
             let targetPage = 'movie.html';
             if (mediaType === 'game') targetPage = 'game.html';
             else if (mediaType === 'tv' || mediaType === 'tvshow') targetPage = 'tvshow.html';
@@ -39,9 +39,9 @@ window.CommunityManager = (function() {
 
             const itemUrl = itemId ? `${targetPage}?id=${encodeURIComponent(itemId)}` : '#';
 
-            // Star Rating Stars
+            // Star rating HTML
             let starsHtml = '';
-            if (rating) {
+            if (rating && rating > 0) {
                 const fullStars = Math.floor(rating);
                 for (let i = 0; i < 5; i++) {
                     if (i < fullStars) {
@@ -83,7 +83,7 @@ window.CommunityManager = (function() {
         }
     };
 
-    // === REVIEWS QUERY ENGINE (ROBUST RETRIES & FALLBACKS) ===
+    // === REVIEWS QUERY ENGINE (EXACT ZO2Y SCHEMA: 'reviews' & 'user_profiles') ===
     async function loadReviewsFeed(retriesLeft = 3) {
         const container = document.getElementById('allReviewsFeed');
         if (!container) return;
@@ -91,7 +91,7 @@ window.CommunityManager = (function() {
         const client = getSupabaseClient();
         if (!client) {
             if (retriesLeft > 0) {
-                setTimeout(() => loadReviewsFeed(retriesLeft - 1), 300);
+                setTimeout(() => loadReviewsFeed(retriesLeft - 1), 350);
             } else {
                 renderEmptyReviewsState(container);
             }
@@ -99,43 +99,60 @@ window.CommunityManager = (function() {
         }
 
         try {
-            // 1. Try 'user_reviews' table
-            let { data: reviews, error } = await client
-                .from('user_reviews')
+            // Query Supabase 'reviews' table
+            let { data: reviewRows, error } = await client
+                .from('reviews')
                 .select('*')
                 .order('created_at', { ascending: false })
-                .limit(12);
+                .limit(20);
 
-            // 2. Fallback to 'reviews' table
-            if (error || !reviews || !reviews.length) {
-                const res1 = await client
-                    .from('reviews')
+            // Fallback to 'user_reviews' table if 'reviews' table is empty
+            if (error || !Array.isArray(reviewRows) || !reviewRows.length) {
+                const alt = await client
+                    .from('user_reviews')
                     .select('*')
                     .order('created_at', { ascending: false })
-                    .limit(12);
-                if (!res1.error && res1.data && res1.data.length) {
-                    reviews = res1.data;
+                    .limit(20);
+                if (!alt.error && Array.isArray(alt.data) && alt.data.length) {
+                    reviewRows = alt.data;
                 }
             }
 
-            // 3. Fallback to 'media_reviews' table
-            if (!reviews || !reviews.length) {
-                const res2 = await client
-                    .from('media_reviews')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(12);
-                if (!res2.error && res2.data && res2.data.length) {
-                    reviews = res2.data;
-                }
-            }
-
-            if (!reviews || !reviews.length) {
+            if (!reviewRows || !reviewRows.length) {
                 renderEmptyReviewsState(container);
                 return;
             }
 
-            container.innerHTML = reviews.map(r => ReviewCard.render(r)).join('');
+            // Hydrate User Profiles for user_ids
+            const userIds = [...new Set(reviewRows.map(r => r.user_id).filter(Boolean))];
+            const usersMap = new Map();
+
+            if (userIds.length) {
+                try {
+                    const { data: profiles } = await client
+                        .from('user_profiles')
+                        .select('id, username, full_name')
+                        .in('id', userIds);
+                    if (Array.isArray(profiles)) {
+                        profiles.forEach(p => {
+                            if (p && p.id) {
+                                usersMap.set(p.id, p.username || p.full_name || 'member');
+                            }
+                        });
+                    }
+                } catch (_pe) {}
+            }
+
+            // Enrich reviews with username and render
+            const enrichedReviews = reviewRows.map(r => {
+                const resolvedUser = usersMap.get(r.user_id) || r.user_name || r.username || 'member';
+                return {
+                    ...r,
+                    username: resolvedUser
+                };
+            });
+
+            container.innerHTML = enrichedReviews.map(r => ReviewCard.render(r)).join('');
         } catch (_e) {
             renderEmptyReviewsState(container);
         }
