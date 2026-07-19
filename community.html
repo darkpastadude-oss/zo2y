@@ -23,6 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
+    <script src="js/pages/community.js" defer></script>
 </head>
 <body data-nav-page="community">
 
@@ -59,88 +60,121 @@
             </div>
         </div>
 
-        <!-- 3. Navigation Chips Shell (Single Line Horizontal Scroll, Discover Active Only) -->
+        <!-- 3. Navigation Chips Shell (Interactive Tab Buttons) -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
-                    <button class="community-tab-btn active" type="button">
+                    <button class="community-tab-btn active" data-tab="discover" type="button" onclick="CommunityManager.switchTab('discover')">
                         <i class="fas fa-compass"></i> discover
                     </button>
-                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
+                    <button class="community-tab-btn" data-tab="reviews" type="button" onclick="CommunityManager.switchTab('reviews')">
                         <i class="fas fa-star"></i> reviews
                     </button>
-                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
+                    <button class="community-tab-btn" data-tab="lists" type="button" onclick="CommunityManager.switchTab('lists')">
                         <i class="fas fa-layer-group"></i> lists
                     </button>
-                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
+                    <button class="community-tab-btn" data-tab="people" type="button" onclick="CommunityManager.switchTab('people')">
                         <i class="fas fa-users"></i> people
                     </button>
-                    <button class="community-tab-btn disabled" type="button" disabled aria-disabled="true">
+                    <button class="community-tab-btn" data-tab="following" type="button" onclick="CommunityManager.switchTab('following')">
                         <i class="fas fa-user-check"></i> following
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- 4. Layout Container Shell -->
+        <!-- 4. Layout Container Shell & Tab Panes -->
         <div class="container community-content" id="communityDiscoveryFeed">
             
-            <!-- Phase 2A: Spotlight Component Layout (Shared Skeleton System, Zero Hardcoded Data) -->
-            <div class="skel-spotlight community-spotlight-skel" id="communitySpotlight">
-                <div class="skel skel-backdrop"></div>
-                <div class="skel-content">
-                    <div class="skel skel-kicker" style="width:90px;height:18px;border-radius:10px"></div>
-                    <div class="skel skel-title" style="width:50%;height:24px;border-radius:6px;margin:4px 0"></div>
-                    <div class="skel skel-line skel-line-lg" style="width:75%;height:14px"></div>
-                    <div class="skel-buttons" style="margin-top:6px">
-                        <div class="skel skel-btn" style="width:130px;height:32px;border-radius:10px"></div>
+            <!-- Pane 1: Discover -->
+            <div class="community-tab-pane active" id="paneDiscover">
+                <!-- Spotlight Skeleton Component -->
+                <div class="skel-spotlight community-spotlight-skel" id="communitySpotlight">
+                    <div class="skel skel-backdrop"></div>
+                    <div class="skel-content">
+                        <div class="skel skel-kicker" style="width:90px;height:18px;border-radius:10px"></div>
+                        <div class="skel skel-title" style="width:50%;height:24px;border-radius:6px;margin:4px 0"></div>
+                        <div class="skel skel-line skel-line-lg" style="width:75%;height:14px"></div>
+                        <div class="skel-buttons" style="margin-top:6px">
+                            <div class="skel skel-btn" style="width:130px;height:32px;border-radius:10px"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shared Skeleton Rail Shell -->
+                <div class="skel-rail">
+                    <div class="skel-card-poster">
+                        <div class="skel skel-poster"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
+                        </div>
+                    </div>
+                    <div class="skel-card-poster">
+                        <div class="skel skel-poster"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
+                        </div>
+                    </div>
+                    <div class="skel-card-poster">
+                        <div class="skel skel-poster"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
+                        </div>
+                    </div>
+                    <div class="skel-card-poster">
+                        <div class="skel skel-poster"></div>
+                        <div class="skel-meta">
+                            <div class="skel skel-line skel-line-lg"></div>
+                            <div class="skel skel-line skel-line-sm"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Shared Skeleton Rail Shell (Establishes Exact Canvas Height) -->
-            <div class="skel-rail">
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel skel-line skel-line-sm"></div>
+            <!-- Pane 2: Reviews Feed (Tri-State: Loading -> Hidden | Visible / Empty State) -->
+            <div class="community-tab-pane" id="paneReviews">
+                <div id="allReviewsFeed" class="reviews-feed-container">
+                    <div class="skel-review">
+                        <div class="skel-review-header">
+                            <div class="skel skel-review-avatar skel-circle"></div>
+                            <div class="skel skel-review-name"></div>
+                        </div>
+                        <div class="skel-review-text">
+                            <div class="skel skel-line skel-line-full"></div>
+                            <div class="skel skel-line skel-line-lg"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel skel-line skel-line-sm"></div>
-                    </div>
+            </div>
+
+            <!-- Pane 3: Lists -->
+            <div class="community-tab-pane" id="paneLists">
+                <div class="community-empty-box">
+                    <div class="empty-icon"><i class="fas fa-layer-group"></i></div>
+                    <div class="empty-title">be the first to create a public list.</div>
+                    <div class="empty-desc">curate your favorite titles into thematic collections.</div>
+                    <a href="profile.html" class="btn-empty-action"><i class="fas fa-plus"></i> create list</a>
                 </div>
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel skel-line skel-line-sm"></div>
-                    </div>
+            </div>
+
+            <!-- Pane 4: People -->
+            <div class="community-tab-pane" id="panePeople">
+                <div class="community-empty-box">
+                    <div class="empty-icon"><i class="fas fa-users"></i></div>
+                    <div class="empty-title">discover members by taste.</div>
+                    <div class="empty-desc">find people who love the same movies, games, books, and music as you.</div>
                 </div>
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel skel-line skel-line-sm"></div>
-                    </div>
-                </div>
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel skel-line skel-line-sm"></div>
-                    </div>
-                </div>
-                <div class="skel-card-poster">
-                    <div class="skel skel-poster"></div>
-                    <div class="skel-meta">
-                        <div class="skel skel-line skel-line-lg"></div>
-                        <div class="skel-line skel-line-sm"></div>
-                    </div>
+            </div>
+
+            <!-- Pane 5: Following -->
+            <div class="community-tab-pane" id="paneFollowing">
+                <div class="community-empty-box">
+                    <div class="empty-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="empty-title">follow members to see activity.</div>
+                    <div class="empty-desc">when members you follow rate or review media, their activity appears here.</div>
                 </div>
             </div>
 

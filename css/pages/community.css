@@ -1,5 +1,5 @@
 /* ============================================================
-   ZO2Y COMMUNITY - PHASE 2A SPOTLIGHT SKELETON LAYOUT STYLES
+   ZO2Y COMMUNITY - PHASE 5A REVIEWS COMPONENT STYLES
    ============================================================ */
 
 :root {
@@ -143,45 +143,215 @@ body::after {
     gap: 6px;
     padding: 5px 12px;
     height: 30px;
-    background: transparent;
-    border: 1px solid transparent;
+    background: transparent !important;
+    border: 1px solid transparent !important;
     border-radius: 14px;
-    color: var(--muted);
+    color: var(--muted) !important;
     font-size: 0.82rem;
     font-weight: 500;
     white-space: nowrap;
     flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* Subtle Active Tab Highlight (Discover Only - No Bright Orange Pill) */
+.community-tab-btn:hover {
+    color: var(--white) !important;
+}
+
+/* Subtle Active Tab Highlight */
 .community-tab-btn.active {
-    background: rgba(245, 158, 11, 0.12);
-    color: var(--accent);
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: var(--accent) !important;
+    border: 1px solid rgba(245, 158, 11, 0.25) !important;
     font-weight: 600;
-    cursor: default;
 }
 
-/* Disabled Tabs (Un-built Features) */
-.community-tab-btn.disabled {
-    opacity: 0.45;
-    cursor: default;
-    pointer-events: none;
-}
-
-/* 4. Layout Container Shell */
+/* 4. Layout Container Shell & Tab Panes */
 .community-content {
     padding: 14px 16px 32px 16px;
 }
 
-/* === PHASE 2A: SPOTLIGHT SKELETON LAYOUT STYLES === */
-.community-spotlight-skel {
-    width: 100%;
-    height: 200px;
-    border-radius: 16px;
-    margin-bottom: 20px;
+.community-tab-pane {
+    display: none;
+}
+
+.community-tab-pane.active {
+    display: block;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === REVIEWS FEED & REVIEW CARD STYLES === */
+.reviews-feed-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.community-review-card {
     background: var(--card);
     border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.community-review-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.review-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.review-user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-avatar-circle {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1633;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.review-user-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
+.review-item-meta {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.review-item-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.review-item-link:hover {
+    text-decoration: underline;
+}
+
+.review-stars-wrap {
+    font-size: 0.85rem;
+    display: flex;
+    gap: 2px;
+}
+
+.review-card-body-with-cover {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.review-cover-img {
+    width: 60px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.review-text-content {
+    font-size: 0.88rem;
+    color: #e2e8f0;
+    line-height: 1.5;
+}
+
+.pt-4 { padding-top: 4px; }
+.text-accent { color: var(--accent); }
+.text-muted { color: var(--muted); }
+
+/* Empty State Box */
+.community-empty-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 48px 20px;
+    background: var(--card);
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    margin-top: 10px;
+}
+
+.empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+}
+
+.empty-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    max-width: 400px;
+    margin-bottom: 16px;
+}
+
+.btn-empty-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent);
+    color: #0b1633;
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+/* Compact Spotlight Skeleton */
+.skel-spotlight.community-spotlight-skel {
+    width: 100% !important;
+    height: 180px !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+    border: 1px solid var(--border) !important;
 }
 
 @media (max-width: 768px) {
@@ -193,8 +363,10 @@ body::after {
         padding: 12px 12px 24px 12px;
     }
 
-    .community-spotlight-skel {
-        height: 180px;
-        margin-bottom: 16px;
+    .skel-spotlight.community-spotlight-skel {
+        height: 140px !important;
+        min-height: 140px !important;
+        max-height: 140px !important;
+        margin-bottom: 14px !important;
     }
 }
