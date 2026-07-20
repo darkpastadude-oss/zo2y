@@ -1716,11 +1716,15 @@ window.CommunityManager = (function() {
         closeFilterDropdown();
     }
 
-    function buildRailPosterCard(imageUrl, profileUrl) {
+    function buildRailPosterCard(imageUrl, profileUrl, mediaType) {
         var cls = 'cml-poster';
+        if (mediaType === 'music' || mediaType === 'sports' || mediaType === 'fashion' || mediaType === 'food') cls += ' is-square';
+        if (mediaType === 'travel' || mediaType === 'car') cls += ' is-landscape';
+        if (mediaType === 'sports' || mediaType === 'fashion' || mediaType === 'food' || mediaType === 'car') cls += ' is-brand';
+        var src = imageUrl || '/newlogo.webp';
         return '<div class="' + cls + '" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
             + '<div class="cml-poster-img-wrap">'
-            + '<img class="cml-poster-img" src="' + escapeHtml(imageUrl) + '" alt="" loading="lazy" onerror="this.src=\'/newlogo.webp\'" />'
+            + '<img class="cml-poster-img" src="' + escapeHtml(src) + '" alt="" loading="lazy" onerror="this.src=\'/newlogo.webp\'" />'
             + '</div>'
             + '</div>';
     }
@@ -1755,7 +1759,7 @@ window.CommunityManager = (function() {
             else if (rail.media_type === 'music') icon = 'fa-music';
             var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
             var cardsHtml = rail.items.map(function(item) {
-                return buildRailPosterCard(item.image_url, profileUrl);
+                return buildRailPosterCard(item.image_url, profileUrl, rail.media_type);
             }).join('');
             return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
                 + '<div class="cml-rail-header">'
@@ -1773,7 +1777,7 @@ window.CommunityManager = (function() {
             else if (rail.media_type === 'car') icon = 'fa-car';
             var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
             var cardsHtml = rail.items.map(function(item) {
-                return buildRailPosterCard(item.image_url, profileUrl);
+                return buildRailPosterCard(item.image_url, profileUrl, rail.media_type);
             }).join('');
             return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
                 + '<div class="cml-rail-header">'
@@ -1784,6 +1788,107 @@ window.CommunityManager = (function() {
         }).join('') : '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
     }
 
+    async function hydrateRailPosters(rails) {
+        var TMDB_POSTER = 'https://image.tmdb.org/t/p/w500';
+        var TMDB_PROXY = '/api/tmdb';
+        var client = getSupabaseClient();
+        if (!client) return;
+
+        var toHydrate = { movie: [], tv: [], anime: [], game: [], music: [], fashion: [], food: [], car: [], sports: [], travel: [] };
+        rails.forEach(function(rail) {
+            rail.items.forEach(function(item) {
+                if (!item.image_url && item.item_id) {
+                    var mt = item.media_type || rail.media_type;
+                    if (toHydrate[mt]) toHydrate[mt].push(item);
+                }
+            });
+        });
+
+        var hydrateTMDB = async function(mediaType, endpoint) {
+            var items = toHydrate[mediaType];
+            if (!items.length) return;
+            var uniqueIds = [];
+            var idSet = {};
+            items.forEach(function(item) {
+                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
+            });
+            var results = await Promise.all(uniqueIds.map(async function(id) {
+                try {
+                    var res = await fetch(TMDB_PROXY + '/' + endpoint + '/' + id + '?language=en');
+                    if (!res.ok) return { id: id, poster: null };
+                    var data = await res.json();
+                    return { id: id, poster: data.poster_path ? TMDB_POSTER + data.poster_path : null };
+                } catch (_e) { return { id: id, poster: null }; }
+            }));
+            var map = {};
+            results.forEach(function(r) { map[r.id] = r.poster; });
+            items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
+        };
+
+        var hydrateDBTable = async function(mediaType, table, imageCol, idCol) {
+            var items = toHydrate[mediaType];
+            if (!items.length) return;
+            var uniqueIds = [];
+            var idSet = {};
+            items.forEach(function(item) {
+                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
+            });
+            try {
+                var result = await client.from(table).select((idCol || 'id') + ', ' + imageCol).in(idCol || 'id', uniqueIds);
+                var map = {};
+                (result.data || []).forEach(function(row) { map[row[idCol || 'id']] = row[imageCol] || ''; });
+                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
+            } catch (_e) {}
+        };
+
+        var hydrateBrandTable = async function(mediaType, table) {
+            var items = toHydrate[mediaType];
+            if (!items.length) return;
+            var uniqueIds = [];
+            var idSet = {};
+            items.forEach(function(item) {
+                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
+            });
+            try {
+                var result = await client.from(table).select('id, logo_url, name, domain').in('id', uniqueIds);
+                var map = {};
+                (result.data || []).forEach(function(row) {
+                    var url = row.logo_url || '';
+                    if (url && !url.startsWith('http')) {
+                        var supabaseUrl = getSupabaseConfig().url || '';
+                        url = supabaseUrl + '/storage/v1/object/public/brand-logos/' + url;
+                    }
+                    map[row.id] = url || '';
+                });
+                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
+            } catch (_e) {}
+        };
+
+        var hydrateTravelFlags = function() {
+            var items = toHydrate.travel;
+            if (!items.length) return;
+            items.forEach(function(item) {
+                var code = String(item.item_id || '').toUpperCase().trim();
+                if (code && code.length === 2) {
+                    item.image_url = 'https://flagcdn.com/w160/' + code.toLowerCase() + '.png';
+                }
+            });
+        };
+
+        await Promise.all([
+            hydrateTMDB('movie', 'movie'),
+            hydrateTMDB('tv', 'tv'),
+            hydrateTMDB('anime', 'tv'),
+            hydrateDBTable('game', 'games', 'cover_url'),
+            hydrateDBTable('music', 'tracks', 'image_url'),
+            hydrateBrandTable('fashion', 'fashion_brands'),
+            hydrateBrandTable('food', 'food_brands'),
+            hydrateBrandTable('car', 'car_brands'),
+            hydrateBrandTable('sports', 'sports_brands'),
+            Promise.resolve().then(hydrateTravelFlags)
+        ]);
+    }
+
     async function loadListsFeed() {
         var client = getSupabaseClient();
         if (!client) return;
@@ -1791,7 +1896,7 @@ window.CommunityManager = (function() {
         try {
             var result = await client
                 .from('list_items')
-                .select('user_id, list_type, list_id, title, image_url, media_type, created_at')
+                .select('user_id, list_type, list_id, item_id, title, image_url, media_type, created_at')
                 .order('created_at', { ascending: false })
                 .limit(1000);
 
@@ -1817,13 +1922,13 @@ window.CommunityManager = (function() {
 
             var listNamesMap = {};
             if (customListIds.length) {
-                var listTables = ['user_lists', 'movie_lists', 'tv_lists', 'anime_lists', 'game_lists', 'book_lists', 'music_lists', 'sports_lists'];
+                var listTables = ['user_lists'];
                 for (var ti = 0; ti < listTables.length; ti++) {
                     try {
-                        var lr = await client.from(listTables[ti]).select('id, user_id, media_type, name, title').in('id', customListIds);
+                        var lr = await client.from(listTables[ti]).select('id, user_id, media_type, name').in('id', customListIds);
                         if (Array.isArray(lr.data)) {
                             lr.data.forEach(function(l) {
-                                listNamesMap[String(l.id)] = { name: l.name || l.title || 'collection', user_id: l.user_id, media_type: l.media_type };
+                                listNamesMap[String(l.id)] = { name: l.name || 'collection', user_id: l.user_id, media_type: l.media_type };
                             });
                         }
                     } catch (_lte) {}
@@ -1850,8 +1955,8 @@ window.CommunityManager = (function() {
                             items: []
                         };
                     }
-                    var img = String(item.image_url || '').trim() || '/newlogo.webp';
-                    railGroups[key].items.push({ image_url: img, title: item.title || '' });
+                    var img = String(item.image_url || '').trim() || '';
+                    railGroups[key].items.push({ image_url: img, title: item.title || '', item_id: item.item_id || '', media_type: mt });
                 } else if (hasListType && item.list_type === 'favorites') {
                     var favKey = 'fav_' + item.user_id + '_' + mt;
                     if (!railGroups[favKey]) {
@@ -1863,12 +1968,14 @@ window.CommunityManager = (function() {
                             items: []
                         };
                     }
-                    var favImg = String(item.image_url || '').trim() || '/newlogo.webp';
-                    railGroups[favKey].items.push({ image_url: favImg, title: item.title || '' });
+                    var favImg = String(item.image_url || '').trim() || '';
+                    railGroups[favKey].items.push({ image_url: favImg, title: item.title || '', item_id: item.item_id || '', media_type: mt });
                 }
             });
 
             var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
+
+            await hydrateRailPosters(rails);
 
             shuffleArray(rails);
 
