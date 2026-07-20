@@ -794,6 +794,91 @@ body::after {
 
 .cml-rail-track::-webkit-scrollbar { display: none; }
 
+/* === CUSTOM LIST BADGE === */
+.cml-custom-badge {
+    display: inline-block;
+    font-size: 0.7em;
+    font-weight: 600;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 6px;
+    padding: 1px 7px;
+    margin-left: 5px;
+    vertical-align: middle;
+    letter-spacing: 0.02em;
+}
+
+.cml-rail-icon {
+    margin-right: 6px;
+    font-size: 0.82em;
+    opacity: 0.7;
+    width: 16px;
+    text-align: center;
+}
+
+/* === SKELETON LOADING === */
+.cml-skeleton-rail {
+    margin-bottom: 28px;
+}
+
+.cml-skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding: 0 2px;
+}
+
+.cml-skeleton-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.cml-skeleton-title {
+    height: 14px;
+    width: 220px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+.cml-skeleton-track {
+    display: flex;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.cml-skeleton-card {
+    flex-shrink: 0;
+    width: 136px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+    aspect-ratio: 2 / 3;
+}
+
+.cml-skeleton-card.is-square {
+    aspect-ratio: 1 / 1;
+}
+
+.cml-skeleton-card.is-landscape {
+    width: 170px;
+    aspect-ratio: 4 / 3;
+}
+
+@keyframes cmlShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
 /* === POSTER CARD (profile.html style) === */
 .cml-poster {
     flex-shrink: 0;

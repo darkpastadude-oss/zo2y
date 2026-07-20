@@ -11540,13 +11540,14 @@ return;
             // ===== GEAR MENU & TABBED EDIT PROFILE =====
             function toggleGearMenu(event) {
                 if (event) event.stopPropagation();
-                const menu = document.getElementById('profileGearMenu');
+                var btn = event && event.currentTarget;
+                var wrap = btn ? btn.closest('.pv2-gear-wrap') : null;
+                var menu = wrap ? wrap.querySelector('.pv2-gear-menu') : document.getElementById('profileGearMenu');
                 if (menu) menu.classList.toggle('open');
             }
 
             function closeGearMenu() {
-                const menu = document.getElementById('profileGearMenu');
-                if (menu) menu.classList.remove('open');
+                document.querySelectorAll('.pv2-gear-menu.open').forEach(function(m) { m.classList.remove('open'); });
             }
 
             document.addEventListener('click', function(e) {
