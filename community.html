@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720T">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721A">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720T7" defer></script>
+    <script src="js/pages/community.js?v=20260721A" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -47,9 +47,6 @@
                     </button>
                     <button class="community-tab-btn" data-tab="activity" type="button" onclick="CommunityManager.switchTab('activity')">
                         <i class="fas fa-rss"></i> activity
-                    </button>
-                    <button class="community-tab-btn" data-tab="reviews" type="button" onclick="CommunityManager.switchTab('reviews')">
-                        <i class="fas fa-star"></i> reviews
                     </button>
                     <button class="community-tab-btn" data-tab="lists" type="button" onclick="CommunityManager.switchTab('lists')">
                         <i class="fas fa-layer-group"></i> lists
@@ -118,23 +115,7 @@
                 </div>
             </div>
 
-            <!-- Pane 2: Reviews Feed -->
-            <div class="community-tab-pane" id="paneReviews">
-                <div id="allReviewsFeed" class="reviews-feed-container">
-                    <div class="skel-review">
-                        <div class="skel-review-header">
-                            <div class="skel skel-review-avatar skel-circle"></div>
-                            <div class="skel skel-review-name"></div>
-                        </div>
-                        <div class="skel-review-text">
-                            <div class="skel skel-line skel-line-full"></div>
-                            <div class="skel skel-line skel-line-lg"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pane 3: Activity Feed -->
+            <!-- Pane 2: Activity Feed -->
             <div class="community-tab-pane" id="paneActivity">
                 <div class="activity-filter-bar">
                     <button class="activity-filter-btn active" data-activity-filter="all" onclick="CommunityManager.setActivityFilter('all')">all</button>

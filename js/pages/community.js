@@ -822,13 +822,12 @@ window.CommunityManager = (function() {
     }
 
     async function loadFromRawTables(client, filterSet) {
-        const [listItems, reviews, createdLists] = await Promise.all([
+        const [listItems, createdLists] = await Promise.all([
             safeTableQuery(client, 'list_items', '*', 35),
-            safeTableQuery(client, 'reviews', '*', 35),
             safeTableQuery(client, 'user_lists', '*', 20)
         ]);
 
-        if (!listItems.length && !reviews.length && !createdLists.length) return [];
+        if (!listItems.length && !createdLists.length) return [];
 
         const filteredBySet = (userId) => {
             if (filterSet === null) return true;
@@ -849,7 +848,6 @@ window.CommunityManager = (function() {
 
         const userIds = [...new Set([
             ...listItems.map(i => i.user_id),
-            ...reviews.map(r => r.user_id),
             ...createdLists.map(l => l.user_id)
         ].filter(Boolean))];
 
@@ -865,16 +863,6 @@ window.CommunityManager = (function() {
                 list_name: customListNames.get(item.list_id) || item.list_name || '',
                 username: usersMap.get(item.user_id) || 'member',
                 created_at: item.created_at || item.inserted_at || item.updated_at
-            });
-        });
-
-        reviews.forEach(review => {
-            if (!filteredBySet(review.user_id)) return;
-            activityItems.push({
-                ...review,
-                event_type: 'review_add',
-                username: usersMap.get(review.user_id) || 'member',
-                created_at: review.created_at || review.inserted_at
             });
         });
 
@@ -926,83 +914,6 @@ window.CommunityManager = (function() {
         `;
     }
 
-    // === REVIEWS QUERY ENGINE (written reviews only) ===
-    async function loadReviewsFeed(retriesLeft = 3) {
-        const container = document.getElementById('allReviewsFeed');
-        if (!container) return;
-
-        const client = getSupabaseClient();
-        if (!client) {
-            if (retriesLeft > 0) {
-                setTimeout(() => loadReviewsFeed(retriesLeft - 1), 350);
-            } else {
-                renderEmptyReviewsState(container);
-            }
-            return;
-        }
-
-        try {
-            const reviews = await safeTableQuery(client, 'reviews', '*', 35);
-
-            if (!Array.isArray(reviews) || !reviews.length) {
-                renderEmptyReviewsState(container);
-                return;
-            }
-
-            const writtenOnly = reviews.filter(r => {
-                const body = (r.body || r.review_text || r.content || r.comment || '').trim();
-                return body.length > 0;
-            });
-
-            if (!writtenOnly.length) {
-                renderEmptyReviewsState(container);
-                return;
-            }
-
-            const userIds = [...new Set(writtenOnly.map(r => r.user_id).filter(Boolean))];
-            const usersMap = new Map();
-
-            if (userIds.length) {
-                try {
-                    const { data: profiles } = await client
-                        .from('user_profiles')
-                        .select('id, username, full_name')
-                        .in('id', userIds);
-                    if (Array.isArray(profiles)) {
-                        profiles.forEach(p => {
-                            if (p && p.id) {
-                                usersMap.set(p.id, p.username || p.full_name || 'member');
-                            }
-                        });
-                    }
-                } catch (_pe) {}
-            }
-
-            const enrichedReviews = writtenOnly.slice(0, 20).map(r => ({
-                ...r,
-                username: usersMap.get(r.user_id) || r.user_name || r.username || 'member'
-            }));
-
-            // Hydrate titles and posters across all media types
-            await hydrateMediaMetadata(enrichedReviews);
-
-            container.innerHTML = enrichedReviews.map(r => ReviewCard.render(r)).join('');
-            await loadActivityInteractions();
-        } catch (_e) {
-            renderEmptyReviewsState(container);
-        }
-    }
-
-    function renderEmptyReviewsState(container) {
-        container.innerHTML = `
-            <div class="community-empty-box">
-                <div class="empty-icon"><i class="fas fa-pen-nib"></i></div>
-                <div class="empty-title">be the first to review something.</div>
-                <div class="empty-desc">share your thoughts on movies, games, books, or music.</div>
-                <a href="index.html" class="btn-empty-action"><i class="fas fa-plus"></i> write review</a>
-            </div>
-        `;
-    }
 
     // === USER / PEOPLE SEARCH ENGINE (WITH POSTGREST PARENTHESES SYNTAX & REST FALLBACK) ===
     async function loadPeopleFeed(query = '') {
@@ -1800,18 +1711,49 @@ window.CommunityManager = (function() {
                 }
             });
         });
-        var hydrateDebug = { total: rails.reduce(function(a, r) { return a + r.items.length; }, 0), missing: 0, fixed: 0, byType: {} };
-        Object.keys(toHydrate).forEach(function(k) { hydrateDebug.byType[k] = toHydrate[k].length; hydrateDebug.missing += toHydrate[k].length; });
-        console.log('[CML] hydrateRailPosters start', hydrateDebug);
+
+        function collectIds(items) {
+            var ids = []; var s = {};
+            items.forEach(function(item) { if (!s[item.item_id]) { s[item.item_id] = true; ids.push(item.item_id); } });
+            return ids;
+        }
+
+        function toNumericIds(ids) {
+            return ids.map(function(id) { var n = Number(id); return isNaN(n) ? id : n; });
+        }
+
+        function applyMap(items, map) {
+            items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
+        }
+
+        async function batchQuery(table, select, ids, useNumeric) {
+            var queryIds = useNumeric ? toNumericIds(ids) : ids;
+            try {
+                var result = await client.from(table).select(select).in('id', queryIds);
+                if (result.error) return null;
+                return result.data || [];
+            } catch (_e) { return null; }
+        }
+
+        async function individualFallback(table, select, ids, useNumeric, mapFn) {
+            var map = {};
+            var promises = ids.map(async function(id) {
+                var queryId = useNumeric ? (function() { var n = Number(id); return isNaN(n) ? id : n; })() : id;
+                try {
+                    var result = await client.from(table).select(select).eq('id', queryId).maybeSingle();
+                    if (!result.error && result.data) {
+                        map[id] = mapFn(result.data);
+                    }
+                } catch (_e) {}
+            });
+            await Promise.all(promises);
+            return map;
+        }
 
         var hydrateTMDB = async function(mediaType, endpoint) {
             var items = toHydrate[mediaType];
             if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
+            var uniqueIds = collectIds(items);
             var results = await Promise.all(uniqueIds.map(async function(id) {
                 try {
                     var res = await fetch(TMDB_PROXY + '/' + endpoint + '/' + id + '?language=en');
@@ -1822,30 +1764,89 @@ window.CommunityManager = (function() {
             }));
             var map = {};
             results.forEach(function(r) { map[r.id] = r.poster; });
-            items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
+            applyMap(items, map);
+        };
+
+        var hydrateGameCovers = async function() {
+            var items = toHydrate.game;
+            if (!items.length) return;
+            var uniqueIds = collectIds(items);
+            var rows = await batchQuery('games', 'id, cover_url, hero_url', uniqueIds, true);
+            var map = {};
+            if (rows && rows.length) {
+                rows.forEach(function(row) { map[String(row.id)] = row.cover_url || row.hero_url || ''; });
+            } else {
+                map = await individualFallback('games', 'id, cover_url, hero_url', uniqueIds, true, function(d) { return d.cover_url || d.hero_url || ''; });
+            }
+            applyMap(items, map);
+        };
+
+        var hydrateBookCovers = async function() {
+            var items = toHydrate.book;
+            if (!items.length) return;
+            var uniqueIds = collectIds(items);
+            var rows = await batchQuery('books', 'id, thumbnail', uniqueIds, false);
+            var map = {};
+            if (rows && rows.length) {
+                rows.forEach(function(row) { map[String(row.id)] = row.thumbnail || ''; });
+            } else {
+                map = await individualFallback('books', 'id, thumbnail', uniqueIds, false, function(d) { return d.thumbnail || ''; });
+            }
+            applyMap(items, map);
+        };
+
+        var hydrateMusicCovers = async function() {
+            var items = toHydrate.music;
+            if (!items.length) return;
+            var uniqueIds = collectIds(items);
+            var rows = await batchQuery('tracks', 'id, image_url', uniqueIds, false);
+            var map = {};
+            if (rows && rows.length) {
+                rows.forEach(function(row) { map[String(row.id)] = row.image_url || ''; });
+            } else {
+                map = await individualFallback('tracks', 'id, image_url', uniqueIds, false, function(d) { return d.image_url || ''; });
+            }
+            applyMap(items, map);
         };
 
         var hydrateBrandTable = async function(mediaType, table) {
             var items = toHydrate[mediaType];
             if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
-            try {
-                var result = await client.from(table).select('id, logo_url, name, domain').in('id', uniqueIds);
-                var map = {};
-                (result.data || []).forEach(function(row) {
+            var uniqueIds = collectIds(items);
+            var rows = await batchQuery(table, 'id, logo_url, name, domain', uniqueIds, false);
+            var map = {};
+            if (rows && rows.length) {
+                rows.forEach(function(row) {
                     var url = row.logo_url || '';
                     if (url && !url.startsWith('http')) {
-                        var supabaseUrl = getSupabaseConfig().url || '';
-                        url = supabaseUrl + '/storage/v1/object/public/brand-logos/' + url;
+                        url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
                     }
-                    map[row.id] = url || '';
+                    map[String(row.id)] = url || '';
                 });
-                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-            } catch (_e) {}
+            } else {
+                map = await individualFallback(table, 'id, logo_url', uniqueIds, false, function(d) {
+                    var url = d.logo_url || '';
+                    if (url && !url.startsWith('http')) {
+                        url = (getSupabaseConfig().url || '') + '/storage/v1/object/public/brand-logos/' + url;
+                    }
+                    return url;
+                });
+            }
+            applyMap(items, map);
+        };
+
+        var hydrateSportsTeams = async function() {
+            var items = toHydrate.sports;
+            if (!items.length) return;
+            var uniqueIds = collectIds(items);
+            var rows = await batchQuery('teams', 'id, logo_url', uniqueIds, true);
+            var map = {};
+            if (rows && rows.length) {
+                rows.forEach(function(row) { map[String(row.id)] = row.logo_url || ''; });
+            } else {
+                map = await individualFallback('teams', 'id, logo_url', uniqueIds, true, function(d) { return d.logo_url || ''; });
+            }
+            applyMap(items, map);
         };
 
         var hydrateTravelFlags = function() {
@@ -1857,88 +1858,6 @@ window.CommunityManager = (function() {
                     item.image_url = 'https://flagcdn.com/w160/' + code.toLowerCase() + '.png';
                 }
             });
-        };
-
-        var hydrateGameCovers = async function() {
-            var items = toHydrate.game;
-            if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
-            try {
-                var numericIds = uniqueIds.map(function(id) { var n = Number(id); return isNaN(n) ? id : n; });
-                var result = await client.from('games').select('id, cover_url, hero_url').in('id', numericIds);
-                if (result.error) { console.warn('[CML] games query error:', result.error.message, 'ids:', numericIds); return; }
-                var map = {};
-                (result.data || []).forEach(function(row) {
-                    map[String(row.id)] = row.cover_url || row.hero_url || '';
-                });
-                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-                console.log('[CML] games hydration:', { queried: numericIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length });
-            } catch (_e) { console.warn('[CML] hydrateGameCovers exception', _e); }
-        };
-
-        var hydrateBookCovers = async function() {
-            var items = toHydrate.book;
-            if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
-            try {
-                var result = await client.from('books').select('id, title, thumbnail').in('id', uniqueIds);
-                if (result.error) { console.warn('[CML] books query error:', result.error.message, 'ids:', uniqueIds); return; }
-                var map = {};
-                (result.data || []).forEach(function(row) {
-                    map[String(row.id)] = row.thumbnail || '';
-                });
-                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-                console.log('[CML] books hydration:', { queried: uniqueIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length, ids: uniqueIds.slice(0, 5) });
-            } catch (_e) { console.warn('[CML] hydrateBookCovers exception', _e); }
-        };
-
-        var hydrateMusicCovers = async function() {
-            var items = toHydrate.music;
-            if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
-            try {
-                var result = await client.from('tracks').select('id, image_url').in('id', uniqueIds);
-                if (result.error) { console.warn('[CML] tracks query error:', result.error.message, 'ids:', uniqueIds); return; }
-                var map = {};
-                (result.data || []).forEach(function(row) {
-                    map[String(row.id)] = row.image_url || '';
-                });
-                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-                console.log('[CML] music hydration:', { queried: uniqueIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length, ids: uniqueIds.slice(0, 5) });
-            } catch (_e) { console.warn('[CML] hydrateMusicCovers exception', _e); }
-        };
-
-        var hydrateSportsTeams = async function() {
-            var items = toHydrate.sports;
-            if (!items.length) return;
-            var uniqueIds = [];
-            var idSet = {};
-            items.forEach(function(item) {
-                if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
-            });
-            try {
-                var numericIds = uniqueIds.map(function(id) { var n = Number(id); return isNaN(n) ? id : n; });
-                var result = await client.from('teams').select('id, logo_url').in('id', numericIds);
-                if (result.error) { console.warn('[CML] teams query error:', result.error.message, 'ids:', numericIds); return; }
-                var map = {};
-                (result.data || []).forEach(function(row) {
-                    map[String(row.id)] = row.logo_url || '';
-                });
-                items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-                console.log('[CML] sports hydration:', { queried: numericIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length });
-            } catch (_e) { console.warn('[CML] hydrateSportsTeams exception', _e); }
         };
 
         await Promise.all([
@@ -1954,18 +1873,6 @@ window.CommunityManager = (function() {
             hydrateSportsTeams(),
             Promise.resolve().then(hydrateTravelFlags)
         ]);
-        var fixedCount = 0;
-        var stillEmpty = {};
-        rails.forEach(function(rail) {
-            rail.items.forEach(function(item) {
-                if (item.image_url) { fixedCount++; }
-                else if (item.item_id) {
-                    var mt = item.media_type || rail.media_type;
-                    stillEmpty[mt] = (stillEmpty[mt] || 0) + 1;
-                }
-            });
-        });
-        console.log('[CML] hydrateRailPosters done', { fixed: fixedCount, stillEmpty: stillEmpty });
     }
 
     function renderListsSkeleton() {
@@ -2010,17 +1917,6 @@ window.CommunityManager = (function() {
                 renderListsRails();
                 return;
             }
-
-            var imgStats = { total: rows.length, withImage: 0, withoutImage: 0, byType: {} };
-            rows.forEach(function(r) {
-                var mt = r.media_type || 'unknown';
-                if (!imgStats.byType[mt]) imgStats.byType[mt] = { total: 0, withImage: 0 };
-                imgStats.byType[mt].total++;
-                if (r.image_url && String(r.image_url).trim()) imgStats.byType[mt].withImage++;
-            });
-            imgStats.withImage = rows.filter(function(r) { return r.image_url && String(r.image_url).trim(); }).length;
-            imgStats.withoutImage = rows.length - imgStats.withImage;
-            console.log('[CML] list_items raw data:', imgStats);
 
             var customListIds = [];
             rows.forEach(function(r) {
@@ -2124,9 +2020,7 @@ window.CommunityManager = (function() {
             pane.classList.toggle('active', pane.id === paneId);
         });
 
-        if (tabName === 'reviews') {
-            loadReviewsFeed();
-        } else if (tabName === 'people') {
+        if (tabName === 'people') {
             loadPeopleFeed();
         } else if (tabName === 'following') {
             loadFollowingFeed();
@@ -2184,10 +2078,8 @@ window.CommunityManager = (function() {
         const activeTab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'discover';
         if (activeTab === 'activity') {
             loadActivityFeed();
-        } else if (activeTab === 'reviews') {
-            loadReviewsFeed();
-        } else {
-            loadReviewsFeed();
+        } else if (activeTab === 'lists') {
+            loadListsFeed();
         }
         loadFollowingSet();
         loadFollowersSet();
@@ -2202,7 +2094,6 @@ window.CommunityManager = (function() {
 
     return {
         switchTab: switchTab,
-        loadReviewsFeed: loadReviewsFeed,
         loadActivityFeed: loadActivityFeed,
         loadPeopleFeed: loadPeopleFeed,
         loadFollowingFeed: loadFollowingFeed,
