@@ -375,6 +375,21 @@ body::after {
     margin-left: 12px;
 }
 
+.activity-list-icon-badge {
+    width: 40px;
+    height: 56px;
+    border-radius: 6px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
 /* === REVIEWS FEED STYLES === */
 .reviews-feed-container {
     display: flex;

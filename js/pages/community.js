@@ -74,13 +74,18 @@ window.CommunityManager = (function() {
         } catch (_e) {}
     }
 
-    // === MEDIA METADATA HYDRATION ENGINE ===
+    // === MEDIA & LIFESTYLE METADATA HYDRATION ENGINE ===
     function isValidTitle(t, mediaType) {
         if (!t) return false;
         const str = String(t).trim().toLowerCase();
         if (!str || str === 'untitled' || str === 'an item' || str === 'item') return false;
         if (str.startsWith(String(mediaType || 'media').toLowerCase()) && str.includes('#')) return false;
-        if (str.includes('#') && (str.startsWith('movie') || str.startsWith('tv') || str.startsWith('game') || str.startsWith('book') || str.startsWith('music') || str.startsWith('song') || str.startsWith('anime') || str.startsWith('travel'))) return false;
+        if (str.includes('#') && (
+            str.startsWith('movie') || str.startsWith('tv') || str.startsWith('game') ||
+            str.startsWith('book') || str.startsWith('music') || str.startsWith('song') ||
+            str.startsWith('anime') || str.startsWith('travel') || str.startsWith('sports') ||
+            str.startsWith('fashion') || str.startsWith('food') || str.startsWith('car')
+        )) return false;
         return true;
     }
 
@@ -90,7 +95,7 @@ window.CommunityManager = (function() {
         
         const mediaMap = new Map(); // key = item_id -> { title, image_url }
 
-        // Batch query list_items for cached titles & posters
+        // Batch query list_items for cached titles & posters across all media/lifestyle categories
         const uniqueItemIds = [...new Set(items.map(it => String(it.item_id || it.track_id || it.book_id || '')).filter(Boolean))];
         if (client && uniqueItemIds.length) {
             try {
@@ -152,6 +157,28 @@ window.CommunityManager = (function() {
                                 mediaMap.set(String(t.id), {
                                     title: t.name,
                                     image_url: t.image_url || existing.image_url || ''
+                                });
+                            }
+                        });
+                    }
+                } catch (_e) {}
+            }
+
+            // Query teams table for sports
+            const teamIds = items.filter(it => ['sports', 'sport', 'team'].includes((it.media_type || '').toLowerCase())).map(it => String(it.item_id || '')).filter(Boolean);
+            if (teamIds.length) {
+                try {
+                    const { data: teams } = await client
+                        .from('teams')
+                        .select('id, name, logo_url, strTeamBadge')
+                        .in('id', teamIds);
+                    if (Array.isArray(teams)) {
+                        teams.forEach(t => {
+                            if (t && t.id && t.name) {
+                                const existing = mediaMap.get(String(t.id)) || {};
+                                mediaMap.set(String(t.id), {
+                                    title: t.name,
+                                    image_url: t.logo_url || t.strTeamBadge || existing.image_url || ''
                                 });
                             }
                         });
@@ -245,6 +272,18 @@ window.CommunityManager = (function() {
                             });
                         }
                     }
+                } else if (type === 'sports' || type === 'sport' || type === 'team') {
+                    const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/lookupteam.php?id=${encodeURIComponent(rawId)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const team = data.teams && data.teams[0];
+                        if (team && (team.strTeam || team.strAlternate)) {
+                            mediaMap.set(rawId, {
+                                title: team.strTeam || team.strAlternate,
+                                image_url: team.strTeamBadge || team.strTeamLogo || existing?.image_url || ''
+                            });
+                        }
+                    }
                 }
             } catch (_err) {}
         }));
@@ -335,6 +374,25 @@ window.CommunityManager = (function() {
         }
     };
 
+    // === SAFE TABLE QUERY HELPER ===
+    async function safeTableQuery(client, tableName, fields = '*', limitCount = 35) {
+        if (!client || typeof client.from !== 'function') return [];
+        try {
+            let res1 = await client.from(tableName).select(fields).order('created_at', { ascending: false }).limit(limitCount);
+            if (!res1.error && Array.isArray(res1.data) && res1.data.length) return res1.data;
+
+            let res2 = await client.from(tableName).select(fields).order('inserted_at', { ascending: false }).limit(limitCount);
+            if (!res2.error && Array.isArray(res2.data) && res2.data.length) return res2.data;
+
+            let res3 = await client.from(tableName).select(fields).order('id', { ascending: false }).limit(limitCount);
+            if (!res3.error && Array.isArray(res3.data) && res3.data.length) return res3.data;
+
+            let res4 = await client.from(tableName).select(fields).limit(limitCount);
+            if (!res4.error && Array.isArray(res4.data)) return res4.data;
+        } catch (_err) {}
+        return [];
+    }
+
     // === REUSABLE USER CARD COMPONENT ===
     const UserCard = {
         render: function(profile) {
@@ -387,13 +445,16 @@ window.CommunityManager = (function() {
             const itemLinkHtml = `<a href="${targetUrl}" class="review-item-link" onclick="event.stopPropagation()">${escapeHtml(itemTitle)}</a>`;
 
             if (activityType === 'review') {
-                verbHtml = `reviewed ${itemLinkHtml}`;
+                verbHtml = `left a review on ${itemLinkHtml}`;
+            } else if (activityType === 'create_list') {
+                const listTitle = item.list_name || item.name || item.title || 'a custom list';
+                verbHtml = `created list <strong>${escapeHtml(listTitle)}</strong>`;
             } else if (listName) {
                 verbHtml = `added ${itemLinkHtml} to <strong>${escapeHtml(listName)}</strong>`;
             } else if (listType === 'favorites' || listType === 'favorite') {
                 verbHtml = `added ${itemLinkHtml} to favorites`;
             } else if (listType === 'watched') {
-                verbHtml = `marked ${itemLinkHtml} as watched`;
+                verbHtml = `added ${itemLinkHtml} to watched`;
             } else if (listType === 'watching') {
                 verbHtml = `is watching ${itemLinkHtml}`;
             } else if (listType === 'playing') {
@@ -425,7 +486,7 @@ window.CommunityManager = (function() {
                             </div>
                         </div>
                     </div>
-                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle)}" loading="lazy" />` : ''}
+                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle)}" loading="lazy" />` : (activityType === 'create_list' ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : '')}
                 </div>
             `;
         }
@@ -447,16 +508,14 @@ window.CommunityManager = (function() {
         }
 
         try {
-            // Query list_items and reviews in parallel
-            const [listRes, reviewsRes] = await Promise.all([
-                client.from('list_items').select('*').order('created_at', { ascending: false }).limit(30),
-                client.from('reviews').select('*').order('created_at', { ascending: false }).limit(30)
+            // Query list_items, reviews, and user_lists in parallel with safe fallbacks
+            const [listItems, reviews, createdLists] = await Promise.all([
+                safeTableQuery(client, 'list_items', '*', 35),
+                safeTableQuery(client, 'reviews', '*', 35),
+                safeTableQuery(client, 'user_lists', '*', 20)
             ]);
 
-            const listItems = Array.isArray(listRes?.data) ? listRes.data : [];
-            const reviews = Array.isArray(reviewsRes?.data) ? reviews.data : [];
-
-            if (!listItems.length && !reviews.length) {
+            if (!listItems.length && !reviews.length && !createdLists.length) {
                 renderEmptyActivityState(container);
                 return;
             }
@@ -474,7 +533,12 @@ window.CommunityManager = (function() {
             }
 
             // Fetch user profiles for all user_ids
-            const userIds = [...new Set([...listItems.map(i => i.user_id), ...reviews.map(r => r.user_id)].filter(Boolean))];
+            const userIds = [...new Set([
+                ...listItems.map(i => i.user_id),
+                ...reviews.map(r => r.user_id),
+                ...createdLists.map(l => l.user_id)
+            ].filter(Boolean))];
+
             const usersMap = new Map();
             if (userIds.length) {
                 try {
@@ -492,14 +556,14 @@ window.CommunityManager = (function() {
                 } catch (_pe) {}
             }
 
-            // Combine into unified activity records
+            // Merge into unified activity records
             const activityItems = [];
 
             listItems.forEach(item => {
                 activityItems.push({
                     ...item,
                     activityType: 'list',
-                    list_name: customListNames.get(item.list_id) || '',
+                    list_name: customListNames.get(item.list_id) || item.list_name || '',
                     username: usersMap.get(item.user_id) || 'member',
                     created_at: item.created_at || item.inserted_at || item.updated_at
                 });
@@ -514,9 +578,24 @@ window.CommunityManager = (function() {
                 });
             });
 
+            createdLists.forEach(list => {
+                activityItems.push({
+                    ...list,
+                    activityType: 'create_list',
+                    list_name: list.name || list.title || 'a custom list',
+                    username: usersMap.get(list.user_id) || 'member',
+                    created_at: list.created_at || list.inserted_at
+                });
+            });
+
             // Sort merged array descending by timestamp
-            activityItems.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-            const topActivities = activityItems.slice(0, 30);
+            activityItems.sort((a, b) => {
+                const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return timeB - timeA;
+            });
+
+            const topActivities = activityItems.slice(0, 40);
 
             // Hydrate metadata (titles & posters) across all media types
             await hydrateMediaMetadata(topActivities);
@@ -554,13 +633,9 @@ window.CommunityManager = (function() {
         }
 
         try {
-            const { data: reviews, error } = await client
-                .from('reviews')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(30);
+            const reviews = await safeTableQuery(client, 'reviews', '*', 35);
 
-            if (error || !Array.isArray(reviews) || !reviews.length) {
+            if (!Array.isArray(reviews) || !reviews.length) {
                 renderEmptyReviewsState(container);
                 return;
             }
@@ -851,8 +926,10 @@ window.CommunityManager = (function() {
         const type = (mediaType || 'movie').toLowerCase();
         if (type === 'game') return 'game.html?id=' + encodeURIComponent(itemId);
         if (type === 'tv' || type === 'tvshow') return 'tvshow.html?id=' + encodeURIComponent(itemId);
+        if (type === 'anime') return 'anime.html?id=' + encodeURIComponent(itemId);
         if (type === 'book') return 'book.html?id=' + encodeURIComponent(itemId);
-        if (type === 'music' || type === 'song' || type === 'album') return 'song.html?id=' + encodeURIComponent(itemId);
+        if (type === 'music' || type === 'song' || type === 'album' || type === 'track') return 'song.html?id=' + encodeURIComponent(itemId);
+        if (type === 'travel') return 'country.html?country=' + encodeURIComponent(String(itemId).toUpperCase());
         return 'movie.html?id=' + encodeURIComponent(itemId);
     }
 
