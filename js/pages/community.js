@@ -588,7 +588,7 @@ window.CommunityManager = (function() {
                             <div class="activity-card-text">
                                 <a href="${profileUrl}" class="review-user-link" onclick="event.stopPropagation()">@${escapeHtml(usernameClean(userName))}</a> ${verbHtml}
                             </div>
-                            <div class="activity-card-item">
+                            <div class="activity-card-meta">
                                 <span class="activity-media-type-badge"><i class="fas ${mediaIconClass}"></i> ${escapeHtml(mediaType)}</span>
                                 ${ts ? `<span class="activity-card-time">${escapeHtml(timeAgo(ts))}</span>` : ''}
                             </div>
