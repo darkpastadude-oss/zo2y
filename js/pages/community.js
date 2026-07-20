@@ -398,6 +398,7 @@ window.CommunityManager = (function() {
             const rating = review.rating ? parseFloat(review.rating) : null;
             const reviewText = review.body || review.review_text || review.content || review.comment || '';
             const coverUrl = review.image_url || review.cover_url || review.item_image || review.image || review.thumbnail || '';
+            const reviewId = review.id || '';
 
             let targetPage = 'movie.html';
             if (mediaType === 'game') targetPage = 'game.html';
@@ -418,6 +419,33 @@ window.CommunityManager = (function() {
                         starsHtml += '<i class="far fa-star text-muted"></i> ';
                     }
                 }
+            }
+
+            let interactionsHtml = '';
+            if (reviewId) {
+                interactionsHtml = `
+                    <div class="activity-card-interactions" data-feed-id="${escapeHtml(reviewId)}">
+                        <button class="activity-interact-btn" data-action="like" data-feed-id="${escapeHtml(reviewId)}" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction('${escapeHtml(reviewId)}', 'like', this)">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span class="activity-interact-count" data-like-count>0</span>
+                        </button>
+                        <button class="activity-interact-btn" data-action="dislike" data-feed-id="${escapeHtml(reviewId)}" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction('${escapeHtml(reviewId)}', 'dislike', this)">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span class="activity-interact-count" data-dislike-count>0</span>
+                        </button>
+                        <button class="activity-interact-btn" data-action="reply" data-feed-id="${escapeHtml(reviewId)}" onclick="event.stopPropagation(); CommunityManager.toggleReplyThread('${escapeHtml(reviewId)}')">
+                            <i class="fas fa-comment"></i>
+                            <span class="activity-interact-count" data-reply-count>0</span>
+                        </button>
+                    </div>
+                    <div class="activity-reply-thread" data-reply-thread="${escapeHtml(reviewId)}">
+                        <div class="activity-reply-list" data-reply-list="${escapeHtml(reviewId)}"></div>
+                        <div class="activity-reply-input-row">
+                            <textarea class="activity-reply-input" data-reply-input="${escapeHtml(reviewId)}" placeholder="write a reply..." maxlength="500" rows="1" onclick="event.stopPropagation()"></textarea>
+                            <button class="activity-reply-submit" onclick="event.stopPropagation(); CommunityManager.submitActivityReply('${escapeHtml(reviewId)}', this)">post</button>
+                        </div>
+                    </div>
+                `;
             }
 
             return `
@@ -448,6 +476,7 @@ window.CommunityManager = (function() {
                             "${escapeHtml(reviewText || 'rated this item')}"
                         </div>
                     `}
+                    ${interactionsHtml}
                 </div>
             `;
         }
@@ -969,6 +998,7 @@ window.CommunityManager = (function() {
             await hydrateMediaMetadata(enrichedReviews);
 
             container.innerHTML = enrichedReviews.map(r => ReviewCard.render(r)).join('');
+            await loadActivityInteractions();
         } catch (_e) {
             renderEmptyReviewsState(container);
         }
@@ -1438,6 +1468,128 @@ window.CommunityManager = (function() {
         } catch (_e) {}
     }
 
+    // === LIST CARD COMPONENT ===
+    const ListCard = {
+        render: function(list) {
+            const listId = list.id || '';
+            const name = list.name || 'untitled list';
+            const description = list.description || '';
+            const mediaType = (list.media_type || '').toLowerCase();
+            const userId = list.user_id || '';
+            const username = list.username || 'member';
+            const itemCount = list.item_count || 0;
+            const coverImages = list.cover_images || [];
+            const profileUrl = userId ? `profile.html?id=${encodeURIComponent(userId)}` : '#';
+
+            const mediaIcon = {
+                movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
+                book: 'fa-book', music: 'fa-music', travel: 'fa-plane',
+                fashion: 'fa-shirt', food: 'fa-utensils', car: 'fa-car', sports: 'fa-futbol'
+            }[mediaType] || 'fa-layer-group';
+
+            const mediaColor = {
+                movie: '#e74c3c', tv: '#3498db', anime: '#9b59b6', game: '#2ecc71',
+                book: '#f39c12', music: '#1abc9c', travel: '#e67e22',
+                fashion: '#e91e63', food: '#ff5722', car: '#607d8b', sports: '#00bcd4'
+            }[mediaType] || '#f59e0b';
+
+            const coverHtml = coverImages.slice(0, 4).map(function(url, i) {
+                return '<img class="list-card-cover-thumb" src="' + escapeHtml(url) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'" />';
+            }).join('');
+
+            return '<div class="community-list-card" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
+                + '<div class="list-card-header">'
+                + '<div class="list-card-icon" style="background:' + mediaColor + '20; color:' + mediaColor + '"><i class="fas ' + mediaIcon + '"></i></div>'
+                + '<div class="list-card-header-info">'
+                + '<div class="list-card-name">' + escapeHtml(name) + '</div>'
+                + '<div class="list-card-meta">'
+                + '<a href="' + escapeHtml(profileUrl) + '" class="list-card-user" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
+                + '<span class="list-card-count">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</span>'
+                + '</div>'
+                + '</div>'
+                + '</div>'
+                + (description ? '<div class="list-card-desc">' + escapeHtml(description) + '</div>' : '')
+                + (coverHtml ? '<div class="list-card-covers">' + coverHtml + '</div>' : '')
+                + '</div>';
+        }
+    };
+
+    // === COMMUNITY LISTS FEED ENGINE ===
+    async function loadListsFeed() {
+        const container = document.getElementById('listsListFeed');
+        if (!container) return;
+
+        const client = getSupabaseClient();
+        if (!client) {
+            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div></div>';
+            return;
+        }
+
+        try {
+            const { data: lists, error } = await client
+                .from('user_lists')
+                .select('id, user_id, media_type, name, description, created_at')
+                .eq('is_public', true)
+                .order('created_at', { ascending: false })
+                .limit(60);
+
+            if (error || !lists || !lists.length) {
+                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">create a list and mark it public to share it here.</div></div>';
+                return;
+            }
+
+            const listIds = lists.map(l => l.id);
+            const { data: allItems } = await client
+                .from('list_items')
+                .select('list_id, title, image_url')
+                .in('list_id', listIds);
+
+            const itemsByList = {};
+            if (Array.isArray(allItems)) {
+                allItems.forEach(function(item) {
+                    const lid = String(item.list_id || '');
+                    if (!lid) return;
+                    if (!itemsByList[lid]) itemsByList[lid] = [];
+                    itemsByList[lid].push(item);
+                });
+            }
+
+            const listsWithItems = lists.filter(function(list) {
+                const items = itemsByList[String(list.id)] || [];
+                return items.length > 0;
+            });
+
+            if (!listsWithItems.length) {
+                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">create a list and mark it public to share it here.</div></div>';
+                return;
+            }
+
+            const userIds = [...new Set(listsWithItems.map(l => l.user_id).filter(Boolean))];
+            const userMap = await fetchUserNames(client, userIds);
+
+            const enriched = listsWithItems.map(function(list) {
+                const items = itemsByList[String(list.id)] || [];
+                return {
+                    ...list,
+                    username: userMap.get(String(list.user_id)) || 'member',
+                    item_count: items.length,
+                    cover_images: items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean)
+                };
+            });
+
+            for (let i = enriched.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [enriched[i], enriched[j]] = [enriched[j], enriched[i]];
+            }
+
+            container.innerHTML = enriched.slice(0, 30).map(function(list) {
+                return ListCard.render(list);
+            }).join('');
+        } catch (_e) {
+            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div></div>';
+        }
+    }
+
     // === TAB SWITCHING MANAGER ===
     function switchTab(tabName) {
         document.querySelectorAll('.community-tab-btn').forEach(function(btn) {
@@ -1460,6 +1612,8 @@ window.CommunityManager = (function() {
             loadFollowersFeed();
         } else if (tabName === 'activity') {
             loadActivityFeed();
+        } else if (tabName === 'lists') {
+            loadListsFeed();
         }
     }
 
@@ -1528,6 +1682,7 @@ window.CommunityManager = (function() {
         toggleActivityReaction: toggleActivityReaction,
         toggleReplyThread: toggleReplyThread,
         submitActivityReply: submitActivityReply,
-        deleteActivityReply: deleteActivityReply
+        deleteActivityReply: deleteActivityReply,
+        loadListsFeed: loadListsFeed
     };
 })();

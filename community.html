@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720H">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720I">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720H" defer></script>
+    <script src="js/pages/community.js?v=20260720J" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -152,11 +152,13 @@
 
             <!-- Pane 4: Lists -->
             <div class="community-tab-pane" id="paneLists">
-                <div class="community-empty-box">
-                    <div class="empty-icon"><i class="fas fa-layer-group"></i></div>
-                    <div class="empty-title">be the first to create a public list.</div>
-                    <div class="empty-desc">curate your favorite titles into thematic collections.</div>
-                    <a href="profile.html" class="btn-empty-action"><i class="fas fa-plus"></i> create list</a>
+                <div id="listsListFeed" class="community-lists-grid">
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="empty-title">no public lists yet.</div>
+                        <div class="empty-desc">create a list and mark it public to share it here.</div>
+                        <a href="profile.html" class="btn-empty-action"><i class="fas fa-plus"></i> create list</a>
+                    </div>
                 </div>
             </div>
 

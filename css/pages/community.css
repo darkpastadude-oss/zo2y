@@ -396,6 +396,8 @@ body::after {
     height: 44px;
     object-fit: contain;
     border-radius: 8px;
+    background: #fff;
+    padding: 4px;
 }
 
 .activity-cover-album {
@@ -588,6 +590,116 @@ body::after {
     border-radius: 14px !important;
     margin-bottom: 20px !important;
     border: 1px solid var(--border) !important;
+}
+
+/* === COMMUNITY LISTS GRID === */
+.community-lists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.community-list-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.community-list-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.list-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.list-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.list-card-header-info {
+    min-width: 0;
+}
+
+.list-card-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.list-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.list-card-user {
+    font-size: 0.72rem;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.list-card-user:hover {
+    text-decoration: underline;
+}
+
+.list-card-count {
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+.list-card-desc {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.list-card-covers {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.list-card-cover-thumb {
+    width: 44px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.list-card-cover-thumb:first-child {
+    border-radius: 8px 6px 6px 8px;
+}
+
+.list-card-cover-thumb:last-child {
+    border-radius: 6px 8px 8px 6px;
 }
 
 /* === COMMUNITY SEARCH BAR === */
@@ -862,8 +974,12 @@ body::after {
 
     .activity-cover-poster { width: 36px; height: 50px; }
     .activity-cover-wide { width: 50px; height: 36px; }
-    .activity-cover-square { width: 40px; height: 40px; }
+    .activity-cover-square { width: 40px; height: 40px; padding: 3px; }
     .activity-cover-album { width: 40px; height: 40px; }
+
+    .community-lists-grid {
+        grid-template-columns: 1fr;
+    }
 
     .skel-spotlight,
     .community-spotlight-skel {
