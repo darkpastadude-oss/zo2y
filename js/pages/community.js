@@ -1936,9 +1936,6 @@ window.CommunityManager = (function() {
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
             } catch (_e) {}
         };
-    }
-            });
-        };
 
         await Promise.all([
             hydrateTMDB('movie', 'movie'),
