@@ -1640,6 +1640,10 @@ window.CommunityManager = (function() {
         playing: 'playing', watching: 'watching', owned: 'owned'
     };
 
+    const CML_SQUARE_TYPES = ['music', 'sports', 'fashion', 'food'];
+    const CML_LANDSCAPE_TYPES = ['travel', 'car'];
+    const CML_BRAND_TYPES = ['sports', 'fashion', 'food', 'car'];
+
     function setListsMode(mode) {
         listsMode = mode || 'media';
         var mediaPanel = document.getElementById('cmlMediaPanel');
@@ -1681,12 +1685,29 @@ window.CommunityManager = (function() {
         indicator.style.transform = 'translateX(0)';
     }
 
+    function toggleFilterDropdown() {
+        var dd = document.getElementById('cmlFilterDropdown');
+        var btn = document.getElementById('cmlFilterBtn');
+        if (!dd || !btn) return;
+        var isOpen = dd.classList.contains('is-open');
+        dd.classList.toggle('is-open', !isOpen);
+        btn.classList.toggle('is-active', !isOpen);
+    }
+
+    function closeFilterDropdown() {
+        var dd = document.getElementById('cmlFilterDropdown');
+        var btn = document.getElementById('cmlFilterBtn');
+        if (dd) dd.classList.remove('is-open');
+        if (btn) btn.classList.remove('is-active');
+    }
+
     function setListsFilter(filter) {
         listsFilter = filter || 'all';
-        document.querySelectorAll('.cml-filter-btn').forEach(function(btn) {
-            btn.classList.toggle('active', btn.getAttribute('data-cml-filter') === listsFilter);
+        document.querySelectorAll('.cml-filter-opt').forEach(function(opt) {
+            opt.classList.toggle('active', opt.getAttribute('data-cml-filter') === listsFilter);
         });
         applyListsFilter();
+        closeFilterDropdown();
     }
 
     function applyListsFilter() {
@@ -1701,59 +1722,45 @@ window.CommunityManager = (function() {
         });
     }
 
-    function buildListCard(list) {
-        var mediaType = list.media_type || '';
-        var listName = list.list_name || 'list';
-        var username = list.username || 'member';
-        var avatarUrl = list.avatar_url || '';
-        var itemCount = list.item_count || 0;
-        var covers = list.covers || [];
-        var profileUrl = list.user_id ? 'profile.html?id=' + encodeURIComponent(list.user_id) : '#';
+    function buildPosterCard(item) {
+        var mediaType = item.media_type || '';
+        var listName = item.list_name || 'list';
+        var username = item.username || 'member';
+        var imageUrl = item.image_url || '';
+        var profileUrl = item.user_id ? 'profile.html?id=' + encodeURIComponent(item.user_id) : '#';
         var mediaLabel = CML_MEDIA_LABELS[mediaType] || mediaType;
 
-        var avatarHtml;
-        if (avatarUrl) {
-            avatarHtml = '<img class="cml-card-avatar" src="' + escapeHtml(avatarUrl) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" /><div class="cml-card-avatar-placeholder" style="display:none">' + escapeHtml(username.charAt(0).toUpperCase()) + '</div>';
-        } else {
-            avatarHtml = '<div class="cml-card-avatar-placeholder">' + escapeHtml(username.charAt(0).toUpperCase()) + '</div>';
-        }
+        var cls = 'cml-poster';
+        if (CML_SQUARE_TYPES.includes(mediaType)) cls += ' is-square';
+        if (CML_LANDSCAPE_TYPES.includes(mediaType)) cls += ' is-landscape';
+        if (CML_BRAND_TYPES.includes(mediaType)) cls += ' is-brand';
 
-        var coversHtml = '';
-        if (covers.length) {
-            coversHtml = '<div class="cml-card-covers">';
-            covers.slice(0, 5).forEach(function(url) {
-                coversHtml += '<div class="cml-card-cover"><img class="cml-card-cover-img" src="' + escapeHtml(url) + '" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'" /></div>';
-            });
-            coversHtml += '</div>';
-        }
-
-        return '<div class="cml-list-card" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
-            + '<div class="cml-card-top">'
-            + avatarHtml
-            + '<div class="cml-card-info">'
-            + '<div class="cml-card-list-name">' + escapeHtml(mediaLabel) + '<span class="cml-card-dot"> . </span>' + escapeHtml(listName) + '</div>'
-            + '<a href="' + escapeHtml(profileUrl) + '" class="cml-card-username" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
-            + '<div class="cml-card-count">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</div>'
+        return '<div class="' + cls + '" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
+            + '<div class="cml-poster-img-wrap">'
+            + '<img class="cml-poster-img" src="' + escapeHtml(imageUrl) + '" alt="" loading="lazy" onerror="this.src=\'/newlogo.webp\'" />'
+            + '<div class="cml-poster-overlay">'
+            + '<div class="cml-poster-list-name">' + escapeHtml(mediaLabel) + '<span class="cml-card-dot"> . </span>' + escapeHtml(listName) + '</div>'
+            + '<a href="' + escapeHtml(profileUrl) + '" class="cml-poster-username" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
             + '</div>'
             + '</div>'
-            + coversHtml
+            + '<div class="cml-poster-label">' + escapeHtml(mediaLabel) + ' . ' + escapeHtml(listName) + '</div>'
             + '</div>';
     }
 
-    function populateListRail(mediaType, lists) {
+    function populateListRail(mediaType, items) {
         var trackId = CML_RAIL_MAP[mediaType];
         var track = trackId ? document.getElementById(trackId) : null;
         if (!track) return;
         track.innerHTML = '';
-        if (!lists.length) {
+        if (!items.length) {
             var icon = CML_MEDIA_ICONS[mediaType] || 'fa-plus';
             track.innerHTML = '<div class="cml-rail-empty"><i class="fas ' + icon + '"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
             return;
         }
         track.className = 'cml-rail-track';
-        lists.forEach(function(list, i) {
+        items.forEach(function(item, i) {
             var wrapper = document.createElement('div');
-            wrapper.innerHTML = buildListCard(list);
+            wrapper.innerHTML = buildPosterCard(item);
             var card = wrapper.firstElementChild;
             card.style.animationDelay = (i * 40) + 'ms';
             track.appendChild(card);
@@ -1765,7 +1772,7 @@ window.CommunityManager = (function() {
         if (!client) return;
 
         try {
-            var allLists = [];
+            var allCards = [];
 
             var result1 = await client
                 .from('list_items')
@@ -1776,35 +1783,18 @@ window.CommunityManager = (function() {
                 .limit(800);
 
             if (Array.isArray(result1.data) && result1.data.length) {
-                var grouped = {};
                 result1.data.forEach(function(item) {
-                    var key = String(item.user_id || '') + '|' + String(item.list_type || '') + '|' + String(item.media_type || '');
-                    if (!grouped[key]) {
-                        grouped[key] = {
-                            user_id: item.user_id,
-                            list_type: item.list_type,
-                            media_type: item.media_type || '',
-                            items: [],
-                            latest: item.created_at || ''
-                        };
-                    }
-                    grouped[key].items.push(item);
-                    if (item.created_at && item.created_at > grouped[key].latest) {
-                        grouped[key].latest = item.created_at;
-                    }
-                });
-
-                Object.values(grouped).forEach(function(group) {
-                    if (!group.items.length) return;
-                    var listType = group.list_type || '';
-                    var prettyName = CML_LIST_TYPES[listType] || listType || 'list';
-                    allLists.push({
-                        user_id: group.user_id,
-                        media_type: group.media_type,
-                        list_name: prettyName,
-                        item_count: group.items.length,
-                        covers: group.items.slice(0, 5).map(function(it) { return it.image_url || ''; }).filter(Boolean),
-                        created_at: group.latest
+                    var img = String(item.image_url || '').trim();
+                    if (!img) return;
+                    var mt = String(item.media_type || '').toLowerCase();
+                    if (!mt || !CML_RAIL_MAP[mt]) return;
+                    var listType = CML_LIST_TYPES[item.list_type] || item.list_type || 'list';
+                    allCards.push({
+                        user_id: item.user_id,
+                        media_type: mt,
+                        list_name: listType,
+                        image_url: img,
+                        created_at: item.created_at || ''
                     });
                 });
             }
@@ -1835,54 +1825,43 @@ window.CommunityManager = (function() {
 
                 result2.data.forEach(function(list) {
                     var items = customItemsMap[String(list.id)] || [];
-                    if (!items.length) return;
-                    allLists.push({
-                        user_id: list.user_id,
-                        media_type: list.media_type || '',
-                        list_name: list.name || 'list',
-                        item_count: items.length,
-                        covers: items.slice(0, 5).map(function(it) { return it.image_url || ''; }).filter(Boolean),
-                        created_at: list.created_at || ''
+                    var mt = String(list.media_type || '').toLowerCase();
+                    if (!mt || !CML_RAIL_MAP[mt]) return;
+                    items.forEach(function(item) {
+                        var img = String(item.image_url || '').trim();
+                        if (!img) return;
+                        allCards.push({
+                            user_id: list.user_id,
+                            media_type: mt,
+                            list_name: list.name || 'list',
+                            image_url: img,
+                            created_at: item.created_at || list.created_at || ''
+                        });
                     });
                 });
             }
 
-            if (!allLists.length) return;
+            if (!allCards.length) return;
 
-            var userIds = [...new Set(allLists.map(function(l) { return l.user_id; }).filter(Boolean))];
+            var userIds = [...new Set(allCards.map(function(c) { return c.user_id; }).filter(Boolean))];
             var userMap = await fetchUserNames(client, userIds);
 
-            var avatarMap = {};
-            try {
-                var result4 = await client
-                    .from('user_profiles')
-                    .select('id, avatar_url')
-                    .in('id', userIds);
-                if (Array.isArray(result4.data)) {
-                    result4.data.forEach(function(p) {
-                        if (p && p.id) avatarMap[p.id] = p.avatar_url || '';
-                    });
-                }
-            } catch (_ae) {}
-
-            allLists.forEach(function(list) {
-                list.username = userMap.get(String(list.user_id)) || 'member';
-                list.avatar_url = avatarMap[String(list.user_id)] || '';
+            allCards.forEach(function(card) {
+                card.username = userMap.get(String(card.user_id)) || 'member';
             });
 
-            for (var i = allLists.length - 1; i > 0; i--) {
+            for (var i = allCards.length - 1; i > 0; i--) {
                 var j = Math.floor(Math.random() * (i + 1));
-                var tmp = allLists[i]; allLists[i] = allLists[j]; allLists[j] = tmp;
+                var tmp = allCards[i]; allCards[i] = allCards[j]; allCards[j] = tmp;
             }
 
-            listsFeedCache = allLists;
+            listsFeedCache = allCards;
 
             var byType = {};
-            allLists.forEach(function(list) {
-                var mt = String(list.media_type || '').toLowerCase();
-                if (!mt || !CML_RAIL_MAP[mt]) return;
+            allCards.forEach(function(card) {
+                var mt = card.media_type;
                 if (!byType[mt]) byType[mt] = [];
-                byType[mt].push(list);
+                byType[mt].push(card);
             });
 
             Object.keys(CML_RAIL_MAP).forEach(function(mt) {
@@ -1892,6 +1871,11 @@ window.CommunityManager = (function() {
             applyListsFilter();
         } catch (_e) {}
     }
+
+    document.addEventListener('click', function(e) {
+        var wrap = e.target.closest('.cml-filter-wrap');
+        if (!wrap) closeFilterDropdown();
+    });
 
     // === TAB SWITCHING MANAGER ===
     function switchTab(tabName) {
@@ -1997,6 +1981,7 @@ window.CommunityManager = (function() {
         deleteActivityReply: deleteActivityReply,
         loadListsFeed: loadListsFeed,
         setListsMode: setListsMode,
-        setListsFilter: setListsFilter
+        setListsFilter: setListsFilter,
+        toggleFilterDropdown: toggleFilterDropdown
     };
 })();

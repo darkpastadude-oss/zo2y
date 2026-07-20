@@ -598,7 +598,8 @@ body::after {
 .cml-mode-bar {
     display: flex;
     align-items: center;
-    margin-bottom: 16px;
+    justify-content: space-between;
+    margin-bottom: 24px;
 }
 
 .cml-mode-switch {
@@ -650,51 +651,92 @@ body::after {
 .cml-mode-btn.active { color: #fff; }
 .cml-mode-btn.active i { color: var(--accent); }
 
-/* Filter bar */
-.cml-filter-bar {
+/* Filter icon + dropdown */
+.cml-filter-wrap {
+    position: relative;
+}
+
+.cml-filter-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: rgba(203,213,225,0.6);
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(15, 31, 64, 0.6);
-    margin-bottom: 24px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-size: 0.85rem;
 }
 
-.cml-filter-bar::-webkit-scrollbar { display: none; }
+.cml-filter-icon:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border-color: rgba(255,255,255,0.18);
+}
 
-.cml-filter-btn {
-    display: inline-flex;
+.cml-filter-icon.is-active {
+    background: rgba(245,158,11,0.15);
+    color: var(--accent);
+    border-color: rgba(245,158,11,0.3);
+}
+
+.cml-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 160px;
+    background: rgba(15, 25, 50, 0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 100;
+    display: none;
+    animation: cmlDropIn 0.15s ease both;
+    backdrop-filter: blur(12px);
+}
+
+.cml-filter-dropdown.is-open { display: block; }
+
+@keyframes cmlDropIn {
+    from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.cml-filter-opt {
+    display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    height: 28px;
-    background: transparent !important;
-    border: 1px solid transparent !important;
-    border-radius: 10px;
-    color: var(--muted) !important;
-    font-size: 0.72rem;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(203,213,225,0.6);
+    font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    text-align: left;
     white-space: nowrap;
-    flex-shrink: 0;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.cml-filter-btn:hover { color: var(--white) !important; }
+.cml-filter-opt:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+}
 
-.cml-filter-btn.active {
-    background: rgba(245, 158, 11, 0.15) !important;
-    color: var(--accent) !important;
-    border-color: rgba(245, 158, 11, 0.3) !important;
+.cml-filter-opt.active {
+    background: rgba(245,158,11,0.12);
+    color: var(--accent);
     font-weight: 600;
 }
 
-.cml-filter-btn i { font-size: 0.65rem; }
+.cml-filter-opt i { font-size: 0.7rem; width: 16px; text-align: center; }
 
 /* Mode panels */
 .cml-mode-panel {
@@ -702,8 +744,6 @@ body::after {
     gap: 32px;
     animation: cmlPanelFadeIn 0.22s ease both;
 }
-
-.cml-mode-panel.cml-filtered-out { display: none !important; }
 
 @keyframes cmlPanelFadeIn {
     from { opacity: 0; transform: translateY(6px); }
@@ -742,15 +782,15 @@ body::after {
     border-radius: 6px;
 }
 
-/* Rail track (horizontal scroll of list cards) */
+/* Rail track (horizontal scroll of poster cards) */
 .cml-rail-track {
     display: flex;
-    gap: 14px;
+    gap: 16px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     padding-bottom: 4px;
-    align-items: stretch;
+    align-items: flex-start;
     justify-content: flex-start;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -758,129 +798,127 @@ body::after {
 
 .cml-rail-track::-webkit-scrollbar { display: none; }
 
-/* === LIST CARD === */
-.cml-list-card {
+/* === POSTER CARD (profile.html style) === */
+.cml-poster {
     flex-shrink: 0;
-    width: 260px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
+    width: 136px;
     cursor: pointer;
-    box-shadow: var(--shadow-card);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: cmlCardIn 0.32s cubic-bezier(0.2,0.9,0.2,1) both;
+    animation: cmlPosterIn 0.32s cubic-bezier(0.2,0.9,0.2,1) both;
 }
 
-.cml-list-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(245, 158, 11, 0.35);
-    box-shadow: var(--shadow-card-hover);
-}
+.cml-poster:nth-child(1) { animation-delay: 0ms; }
+.cml-poster:nth-child(2) { animation-delay: 40ms; }
+.cml-poster:nth-child(3) { animation-delay: 80ms; }
+.cml-poster:nth-child(4) { animation-delay: 120ms; }
+.cml-poster:nth-child(5) { animation-delay: 160ms; }
+.cml-poster:nth-child(6) { animation-delay: 200ms; }
+.cml-poster:nth-child(7) { animation-delay: 240ms; }
 
-@keyframes cmlCardIn {
-    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+@keyframes cmlPosterIn {
+    from { opacity: 0; transform: translateY(10px) scale(0.97); }
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-.cml-card-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.cml-card-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(255,255,255,0.1);
-    flex-shrink: 0;
-    background: rgba(255,255,255,0.05);
-}
-
-.cml-card-avatar-placeholder {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(245,158,11,0.15);
-    border: 1px solid rgba(245,158,11,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--accent);
-    flex-shrink: 0;
-}
-
-.cml-card-info {
-    min-width: 0;
-    flex: 1;
-}
-
-.cml-card-list-name {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--white);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.3;
-}
-
-.cml-card-list-name .cml-card-dot {
-    color: var(--accent);
-    margin: 0 4px;
-}
-
-.cml-card-username {
-    font-size: 0.7rem;
-    color: var(--accent);
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    margin-top: 1px;
-}
-
-.cml-card-username:hover { text-decoration: underline; }
-
-.cml-card-count {
-    font-size: 0.65rem;
-    color: var(--muted);
-    margin-top: 1px;
-    white-space: nowrap;
-}
-
-.cml-card-covers {
-    display: flex;
-    gap: 4px;
-}
-
-.cml-card-cover {
-    flex: 1;
-    min-width: 0;
-    aspect-ratio: 2 / 3;
-    border-radius: 6px;
+.cml-poster-img-wrap {
+    position: relative;
+    border-radius: 10px;
     overflow: hidden;
     background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.07);
+    aspect-ratio: 2 / 3;
+    transition: transform 0.22s cubic-bezier(0.2,0.9,0.2,1),
+                box-shadow 0.22s ease,
+                border-color 0.22s ease;
 }
 
-.cml-card-cover-img {
+.cml-poster.is-square .cml-poster-img-wrap { aspect-ratio: 1 / 1; }
+.cml-poster.is-landscape { width: 170px; }
+.cml-poster.is-landscape .cml-poster-img-wrap { aspect-ratio: 4 / 3; }
+
+.cml-poster:hover .cml-poster-img-wrap {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.55);
+    border-color: rgba(255,255,255,0.14);
+}
+
+.cml-poster-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: filter 0.22s ease;
+}
+
+.cml-poster:hover .cml-poster-img { filter: brightness(1.06); }
+
+.cml-poster.is-brand .cml-poster-img-wrap {
+    background: linear-gradient(180deg,rgba(245,247,252,0.98),rgba(226,232,244,0.96));
+}
+
+.cml-poster.is-brand .cml-poster-img {
+    object-fit: contain;
+    padding: 16px;
+}
+
+/* Poster hover overlay with text */
+.cml-poster-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.1) 50%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.22s ease;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+    pointer-events: none;
+}
+
+.cml-poster:hover .cml-poster-overlay { opacity: 1; }
+
+.cml-poster-list-name {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cml-poster-list-name .cml-card-dot {
+    color: var(--accent);
+    margin: 0 3px;
+}
+
+.cml-poster-username {
+    font-size: 0.68rem;
+    color: var(--accent);
+    margin-top: 2px;
+    text-decoration: none;
+}
+
+.cml-poster-username:hover { text-decoration: underline; }
+
+/* Visible label below poster */
+.cml-poster-label {
+    margin-top: 7px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: rgba(203,213,225,0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.3;
 }
 
 /* Rail empty state */
 .cml-rail-empty {
     width: 100%;
-    height: 120px;
+    height: 180px;
     border: 1px dashed rgba(255,255,255,0.08);
     border-radius: 12px;
     display: flex;
@@ -891,8 +929,13 @@ body::after {
     color: rgba(203,213,225,0.3);
 }
 
-.cml-rail-empty i { font-size: 1.2rem; color: rgba(203,213,225,0.18); }
-.cml-rail-empty-text { font-size: 0.8rem; font-weight: 500; }
+.cml-rail-empty i { font-size: 1.4rem; color: rgba(203,213,225,0.18); }
+.cml-rail-empty-text { font-size: 0.82rem; font-weight: 500; }
+
+/* Responsive */
+@media (max-width: 1280px) { .cml-poster { width: 120px; } }
+@media (max-width: 1024px) { .cml-poster { width: 110px; } }
+@media (max-width: 768px) { .cml-poster { width: 110px; } .cml-poster.is-landscape { width: 140px; } }
 
 /* === COMMUNITY SEARCH BAR === */
 .community-search-bar {
@@ -1223,7 +1266,7 @@ body::after {
     .activity-cover-square { width: 40px; height: 40px; padding: 3px; }
     .activity-cover-album { width: 40px; height: 40px; }
 
-    .cml-list-card { width: 220px; }
+    .cml-poster { width: 110px; }
 
     .skel-spotlight,
     .community-spotlight-skel {

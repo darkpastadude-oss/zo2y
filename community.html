@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720P">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720Q">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720P" defer></script>
+    <script src="js/pages/community.js?v=20260720Q" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -162,20 +162,25 @@
                         </button>
                         <div class="cml-mode-indicator" id="cmlModeIndicator"></div>
                     </div>
-                </div>
-                <div class="cml-filter-bar" id="cmlFilterBar">
-                    <button class="cml-filter-btn active" data-cml-filter="all" onclick="CommunityManager.setListsFilter('all')"><i class="fas fa-layer-group"></i> all</button>
-                    <button class="cml-filter-btn" data-cml-filter="movie" onclick="CommunityManager.setListsFilter('movie')"><i class="fas fa-film"></i> movies</button>
-                    <button class="cml-filter-btn" data-cml-filter="tv" onclick="CommunityManager.setListsFilter('tv')"><i class="fas fa-tv"></i> tv</button>
-                    <button class="cml-filter-btn" data-cml-filter="anime" onclick="CommunityManager.setListsFilter('anime')"><i class="fas fa-dragon"></i> anime</button>
-                    <button class="cml-filter-btn" data-cml-filter="game" onclick="CommunityManager.setListsFilter('game')"><i class="fas fa-gamepad"></i> games</button>
-                    <button class="cml-filter-btn" data-cml-filter="book" onclick="CommunityManager.setListsFilter('book')"><i class="fas fa-book"></i> books</button>
-                    <button class="cml-filter-btn" data-cml-filter="music" onclick="CommunityManager.setListsFilter('music')"><i class="fas fa-music"></i> music</button>
-                    <button class="cml-filter-btn" data-cml-filter="sports" onclick="CommunityManager.setListsFilter('sports')"><i class="fas fa-futbol"></i> sports</button>
-                    <button class="cml-filter-btn" data-cml-filter="travel" onclick="CommunityManager.setListsFilter('travel')"><i class="fas fa-earth-americas"></i> travel</button>
-                    <button class="cml-filter-btn" data-cml-filter="food" onclick="CommunityManager.setListsFilter('food')"><i class="fas fa-burger"></i> food</button>
-                    <button class="cml-filter-btn" data-cml-filter="fashion" onclick="CommunityManager.setListsFilter('fashion')"><i class="fas fa-shirt"></i> fashion</button>
-                    <button class="cml-filter-btn" data-cml-filter="car" onclick="CommunityManager.setListsFilter('car')"><i class="fas fa-car"></i> cars</button>
+                    <div class="cml-filter-wrap">
+                        <button class="cml-filter-icon" id="cmlFilterBtn" onclick="CommunityManager.toggleFilterDropdown()" title="filter by media type">
+                            <i class="fas fa-sliders"></i>
+                        </button>
+                        <div class="cml-filter-dropdown" id="cmlFilterDropdown">
+                            <button class="cml-filter-opt active" data-cml-filter="all" onclick="CommunityManager.setListsFilter('all')"><i class="fas fa-layer-group"></i> all</button>
+                            <button class="cml-filter-opt" data-cml-filter="movie" onclick="CommunityManager.setListsFilter('movie')"><i class="fas fa-film"></i> movies</button>
+                            <button class="cml-filter-opt" data-cml-filter="tv" onclick="CommunityManager.setListsFilter('tv')"><i class="fas fa-tv"></i> tv</button>
+                            <button class="cml-filter-opt" data-cml-filter="anime" onclick="CommunityManager.setListsFilter('anime')"><i class="fas fa-dragon"></i> anime</button>
+                            <button class="cml-filter-opt" data-cml-filter="game" onclick="CommunityManager.setListsFilter('game')"><i class="fas fa-gamepad"></i> games</button>
+                            <button class="cml-filter-opt" data-cml-filter="book" onclick="CommunityManager.setListsFilter('book')"><i class="fas fa-book"></i> books</button>
+                            <button class="cml-filter-opt" data-cml-filter="music" onclick="CommunityManager.setListsFilter('music')"><i class="fas fa-music"></i> music</button>
+                            <button class="cml-filter-opt" data-cml-filter="sports" onclick="CommunityManager.setListsFilter('sports')"><i class="fas fa-futbol"></i> sports</button>
+                            <button class="cml-filter-opt" data-cml-filter="travel" onclick="CommunityManager.setListsFilter('travel')"><i class="fas fa-earth-americas"></i> travel</button>
+                            <button class="cml-filter-opt" data-cml-filter="food" onclick="CommunityManager.setListsFilter('food')"><i class="fas fa-burger"></i> food</button>
+                            <button class="cml-filter-opt" data-cml-filter="fashion" onclick="CommunityManager.setListsFilter('fashion')"><i class="fas fa-shirt"></i> fashion</button>
+                            <button class="cml-filter-opt" data-cml-filter="car" onclick="CommunityManager.setListsFilter('car')"><i class="fas fa-car"></i> cars</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Media Mode Panel -->
