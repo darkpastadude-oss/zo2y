@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720I">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720L">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720J" defer></script>
+    <script src="js/pages/community.js?v=20260720M" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -152,6 +152,19 @@
 
             <!-- Pane 4: Lists -->
             <div class="community-tab-pane" id="paneLists">
+                <div class="lists-filter-bar">
+                    <button class="lists-filter-btn active" data-lists-filter="all" onclick="CommunityManager.setListsFeedFilter('all')"><i class="fas fa-layer-group"></i> all</button>
+                    <button class="lists-filter-btn" data-lists-filter="movie" onclick="CommunityManager.setListsFeedFilter('movie')"><i class="fas fa-film"></i> movies</button>
+                    <button class="lists-filter-btn" data-lists-filter="tv" onclick="CommunityManager.setListsFeedFilter('tv')"><i class="fas fa-tv"></i> tv</button>
+                    <button class="lists-filter-btn" data-lists-filter="anime" onclick="CommunityManager.setListsFeedFilter('anime')"><i class="fas fa-dragon"></i> anime</button>
+                    <button class="lists-filter-btn" data-lists-filter="game" onclick="CommunityManager.setListsFeedFilter('game')"><i class="fas fa-gamepad"></i> games</button>
+                    <button class="lists-filter-btn" data-lists-filter="book" onclick="CommunityManager.setListsFeedFilter('book')"><i class="fas fa-book"></i> books</button>
+                    <button class="lists-filter-btn" data-lists-filter="music" onclick="CommunityManager.setListsFeedFilter('music')"><i class="fas fa-music"></i> music</button>
+                    <button class="lists-filter-btn" data-lists-filter="travel" onclick="CommunityManager.setListsFeedFilter('travel')"><i class="fas fa-plane"></i> travel</button>
+                    <button class="lists-filter-btn" data-lists-filter="fashion" onclick="CommunityManager.setListsFeedFilter('fashion')"><i class="fas fa-shirt"></i> fashion</button>
+                    <button class="lists-filter-btn" data-lists-filter="food" onclick="CommunityManager.setListsFeedFilter('food')"><i class="fas fa-utensils"></i> food</button>
+                    <button class="lists-filter-btn" data-lists-filter="car" onclick="CommunityManager.setListsFeedFilter('car')"><i class="fas fa-car"></i> cars</button>
+                </div>
                 <div id="listsListFeed" class="community-lists-grid">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-layer-group"></i></div>

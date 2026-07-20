@@ -1325,7 +1325,7 @@ window.CommunityManager = (function() {
         container.innerHTML = filtered.map(p => UserCard.render(p)).join('');
     }
 
-    // === ACTIVITY INTERACTIONS (LIKE / DISLIKE / REPLY) ===
+    // === ACTIVITY INTERACTIONS (LIKE / DISLIKE / REPLY TO REVIEW + REPLY TO REPLY) ===
     async function loadActivityInteractions() {
         const client = getSupabaseClient();
         const user = await getCurrentUser();
@@ -1340,7 +1340,7 @@ window.CommunityManager = (function() {
 
         try {
             const [reactResult, replyResult] = await Promise.all([
-                client.from('review_reactions').select('id, review_id, user_id, reaction_type').in('review_id', feedIds),
+                client.from('review_reactions').select('id, review_id, target_type, target_id, user_id, reaction_type').in('review_id', feedIds),
                 client.from('review_replies').select('id, review_id, user_id, body, created_at, parent_reply_id').in('review_id', feedIds).order('created_at', { ascending: true })
             ]);
 
@@ -1354,7 +1354,7 @@ window.CommunityManager = (function() {
             const userMap = await fetchUserNames(client, userIDs);
 
             feedIds.forEach(function(feedId) {
-                const cardReactions = reactions.filter(r => String(r.review_id) === String(feedId));
+                const cardReactions = reactions.filter(r => String(r.review_id) === String(feedId) && String(r.target_type || 'review') === 'review');
                 const likeCount = cardReactions.filter(r => r.reaction_type === 'like').length;
                 const dislikeCount = cardReactions.filter(r => r.reaction_type === 'dislike').length;
                 const myReaction = user ? (cardReactions.find(r => String(r.user_id) === String(user.id))?.reaction_type || '') : '';
@@ -1370,26 +1370,59 @@ window.CommunityManager = (function() {
                 if (dislikeBtn) dislikeBtn.classList.toggle('active-dislike', myReaction === 'dislike');
 
                 const cardReplies = replies.filter(r => String(r.review_id) === String(feedId));
+                const topLevel = cardReplies.filter(r => !r.parent_reply_id);
                 const replyCountEl = document.querySelector('[data-feed-id="' + feedId + '"] [data-reply-count]');
                 if (replyCountEl) replyCountEl.textContent = cardReplies.length || '';
 
                 const replyList = document.querySelector('[data-reply-list="' + feedId + '"]');
                 if (replyList) {
-                    replyList.innerHTML = cardReplies.map(function(reply) {
-                        const username = userMap.get(String(reply.user_id)) || 'member';
-                        const isSelf = user && String(user.id) === String(reply.user_id);
-                        return '<div class="activity-reply-item" data-reply-id="' + escapeHtml(reply.id) + '">'
-                            + '<div class="activity-reply-head">'
-                            + '<a href="profile.html?id=' + encodeURIComponent(reply.user_id) + '" class="activity-reply-user" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
-                            + '<span class="activity-reply-date">' + escapeHtml(timeAgo(reply.created_at)) + '</span>'
-                            + '</div>'
-                            + '<div class="activity-reply-body">' + escapeHtml(reply.body) + '</div>'
-                            + (isSelf ? '<button class="activity-reply-delete" onclick="event.stopPropagation(); CommunityManager.deleteActivityReply(\'' + escapeHtml(reply.id) + '\', \'' + escapeHtml(feedId) + '\')">delete</button>' : '')
-                            + '</div>';
+                    replyList.innerHTML = topLevel.map(function(reply) {
+                        return renderReplyItem(reply, feedId, cardReplies, reactions, userMap, user, 0);
                     }).join('');
                 }
             });
         } catch (_e) {}
+    }
+
+    function renderReplyItem(reply, feedId, allReplies, allReactions, userMap, user, depth) {
+        const username = userMap.get(String(reply.user_id)) || 'member';
+        const isSelf = user && String(user.id) === String(reply.user_id);
+        const replyReactions = allReactions.filter(r => String(r.target_type || '') === 'reply' && String(r.target_id || '') === String(reply.id || ''));
+        const replyLikeCount = replyReactions.filter(r => r.reaction_type === 'like').length;
+        const replyDislikeCount = replyReactions.filter(r => r.reaction_type === 'dislike').length;
+        const myReplyReaction = user ? (replyReactions.find(r => String(r.user_id) === String(user.id))?.reaction_type || '') : '';
+        const children = allReplies.filter(r => String(r.parent_reply_id || '') === String(reply.id || ''));
+        const depthClass = depth > 0 ? ' is-depth-' + Math.min(depth, 5) : '';
+
+        let html = '<div class="activity-reply-item' + depthClass + '" data-reply-id="' + escapeHtml(reply.id) + '">'
+            + '<div class="activity-reply-head">'
+            + '<a href="profile.html?id=' + encodeURIComponent(reply.user_id) + '" class="activity-reply-user" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
+            + '<span class="activity-reply-date">' + escapeHtml(timeAgo(reply.created_at)) + '</span>'
+            + '</div>'
+            + '<div class="activity-reply-body">' + escapeHtml(reply.body) + '</div>'
+            + '<div class="activity-reply-actions">'
+            + '<button class="activity-reply-action-btn' + (myReplyReaction === 'like' ? ' active-like' : '') + '" onclick="event.stopPropagation(); CommunityManager.toggleReplyReaction(\'' + escapeHtml(reply.id) + '\', \'like\', \'' + escapeHtml(feedId) + '\', this)"><i class="fas fa-thumbs-up"></i>' + (replyLikeCount ? ' ' + replyLikeCount : '') + '</button>'
+            + '<button class="activity-reply-action-btn' + (myReplyReaction === 'dislike' ? ' active-dislike' : '') + '" onclick="event.stopPropagation(); CommunityManager.toggleReplyReaction(\'' + escapeHtml(reply.id) + '\', \'dislike\', \'' + escapeHtml(feedId) + '\', this)"><i class="fas fa-thumbs-down"></i>' + (replyDislikeCount ? ' ' + replyDislikeCount : '') + '</button>'
+            + '<button class="activity-reply-action-btn" onclick="event.stopPropagation(); CommunityManager.openNestedReply(\'' + escapeHtml(reply.id) + '\', \'' + escapeHtml(feedId) + '\', \'' + escapeHtml(username) + '\')"><i class="fas fa-reply"></i> reply</button>'
+            + (isSelf ? '<button class="activity-reply-action-btn activity-reply-delete" onclick="event.stopPropagation(); CommunityManager.deleteActivityReply(\'' + escapeHtml(reply.id) + '\', \'' + escapeHtml(feedId) + '\')"><i class="fas fa-trash"></i></button>' : '')
+            + '</div>'
+            + '<div class="nested-reply-form" data-nested-form="' + escapeHtml(reply.id) + '">'
+            + '<div class="activity-reply-input-row">'
+            + '<textarea class="activity-reply-input" data-nested-input="' + escapeHtml(reply.id) + '" placeholder="reply to @' + escapeHtml(username) + '..." maxlength="500" rows="1" onclick="event.stopPropagation()"></textarea>'
+            + '<button class="activity-reply-submit" onclick="event.stopPropagation(); CommunityManager.submitNestedReply(\'' + escapeHtml(feedId) + '\', \'' + escapeHtml(reply.id) + '\', this)">post</button>'
+            + '</div>'
+            + '</div>'
+            + '</div>';
+
+        if (children.length) {
+            html += '<div class="activity-reply-children">';
+            children.forEach(function(child) {
+                html += renderReplyItem(child, feedId, allReplies, allReactions, userMap, user, depth + 1);
+            });
+            html += '</div>';
+        }
+
+        return html;
     }
 
     async function toggleActivityReaction(feedId, reactionType, btnEl) {
@@ -1397,6 +1430,27 @@ window.CommunityManager = (function() {
         const client = getSupabaseClient();
         if (!user) { window.location.href = 'login.html'; return; }
         if (!client || !feedId) return;
+
+        const countEl = btnEl.querySelector('.activity-interact-count');
+        const wasActive = btnEl.classList.contains('active-like') || btnEl.classList.contains('active-dislike');
+        const isActiveType = reactionType === 'like' ? btnEl.classList.contains('active-like') : btnEl.classList.contains('active-dislike');
+        const isToggleOff = isActiveType;
+
+        const otherType = reactionType === 'like' ? 'dislike' : 'like';
+        const otherBtn = document.querySelector('[data-action="' + otherType + '"][data-feed-id="' + feedId + '"]');
+        const otherCountEl = otherBtn ? otherBtn.querySelector('.activity-interact-count') : null;
+
+        if (isToggleOff) {
+            btnEl.classList.remove('active-like', 'active-dislike');
+            if (countEl) countEl.textContent = '';
+        } else {
+            btnEl.classList.add(reactionType === 'like' ? 'active-like' : 'active-dislike');
+            if (countEl) countEl.textContent = '1';
+            if (otherBtn && otherBtn.classList.contains('active-' + otherType)) {
+                otherBtn.classList.remove('active-like', 'active-dislike');
+                if (otherCountEl) otherCountEl.textContent = '';
+            }
+        }
 
         try {
             const { data: existing } = await client
@@ -1421,7 +1475,57 @@ window.CommunityManager = (function() {
                 });
             }
             await loadActivityInteractions();
-        } catch (_e) {}
+        } catch (_e) {
+            await loadActivityInteractions();
+        }
+    }
+
+    async function toggleReplyReaction(replyId, reactionType, feedId, btnEl) {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user) { window.location.href = 'login.html'; return; }
+        if (!client || !replyId) return;
+
+        const wasActive = btnEl.classList.contains('active-like') || btnEl.classList.contains('active-dislike');
+        const isActiveType = reactionType === 'like' ? btnEl.classList.contains('active-like') : btnEl.classList.contains('active-dislike');
+        const isToggleOff = isActiveType;
+
+        if (isToggleOff) {
+            btnEl.classList.remove('active-like', 'active-dislike');
+        } else {
+            btnEl.classList.add(reactionType === 'like' ? 'active-like' : 'active-dislike');
+            const otherType = reactionType === 'like' ? 'dislike' : 'like';
+            const sibling = btnEl.parentElement.querySelector('[onclick*="toggleReplyReaction"][onclick*="' + otherType + '"]');
+            if (sibling) sibling.classList.remove('active-like', 'active-dislike');
+        }
+
+        try {
+            const { data: existing } = await client
+                .from('review_reactions')
+                .select('id, reaction_type')
+                .eq('target_type', 'reply')
+                .eq('target_id', replyId)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (existing && existing.reaction_type === reactionType) {
+                await client.from('review_reactions').delete().eq('id', existing.id);
+            } else if (existing) {
+                await client.from('review_reactions').update({ reaction_type: reactionType }).eq('id', existing.id);
+            } else {
+                await client.from('review_reactions').insert({
+                    review_source: 'activity',
+                    review_id: feedId,
+                    target_type: 'reply',
+                    target_id: replyId,
+                    user_id: user.id,
+                    reaction_type: reactionType
+                });
+            }
+            await loadActivityInteractions();
+        } catch (_e) {
+            await loadActivityInteractions();
+        }
     }
 
     function toggleReplyThread(feedId) {
@@ -1430,6 +1534,18 @@ window.CommunityManager = (function() {
         thread.classList.toggle('open');
         if (thread.classList.contains('open')) {
             const input = thread.querySelector('[data-reply-input]');
+            if (input) input.focus();
+        }
+    }
+
+    function openNestedReply(replyId, feedId, username) {
+        const form = document.querySelector('[data-nested-form="' + replyId + '"]');
+        if (!form) return;
+        const isOpen = form.classList.contains('open');
+        document.querySelectorAll('.nested-reply-form.open').forEach(function(f) { f.classList.remove('open'); });
+        if (!isOpen) {
+            form.classList.add('open');
+            const input = form.querySelector('[data-nested-input]');
             if (input) input.focus();
         }
     }
@@ -1444,6 +1560,7 @@ window.CommunityManager = (function() {
         const body = String(input?.value || '').trim();
         if (!body) return;
 
+        if (input) input.value = '';
         try {
             await client.from('review_replies').insert({
                 review_source: 'activity',
@@ -1451,7 +1568,31 @@ window.CommunityManager = (function() {
                 user_id: user.id,
                 body: body
             });
-            if (input) input.value = '';
+            await loadActivityInteractions();
+        } catch (_e) {}
+    }
+
+    async function submitNestedReply(feedId, parentReplyId, btnEl) {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user) { window.location.href = 'login.html'; return; }
+        if (!client || !feedId || !parentReplyId) return;
+
+        const input = document.querySelector('[data-nested-input="' + parentReplyId + '"]');
+        const body = String(input?.value || '').trim();
+        if (!body) return;
+
+        if (input) input.value = '';
+        const form = document.querySelector('[data-nested-form="' + parentReplyId + '"]');
+        if (form) form.classList.remove('open');
+        try {
+            await client.from('review_replies').insert({
+                review_source: 'activity',
+                review_id: feedId,
+                parent_reply_id: parentReplyId,
+                user_id: user.id,
+                body: body
+            });
             await loadActivityInteractions();
         } catch (_e) {}
     }
@@ -1515,6 +1656,38 @@ window.CommunityManager = (function() {
     };
 
     // === COMMUNITY LISTS FEED ENGINE ===
+    let listsFeedCache = [];
+    let listsFeedFilter = 'all';
+
+    function setListsFeedFilter(filter) {
+        listsFeedFilter = filter || 'all';
+        document.querySelectorAll('.lists-filter-btn').forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-lists-filter') === listsFeedFilter);
+        });
+        renderListsFromCache();
+    }
+
+    function renderListsFromCache() {
+        const container = document.getElementById('listsListFeed');
+        if (!container) return;
+
+        let items = listsFeedCache;
+        if (listsFeedFilter !== 'all') {
+            items = items.filter(function(l) {
+                return String(l.media_type || '').toLowerCase() === listsFeedFilter;
+            });
+        }
+
+        if (!items.length) {
+            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no lists in this category.</div></div>';
+            return;
+        }
+
+        container.innerHTML = items.slice(0, 30).map(function(list) {
+            return ListCard.render(list);
+        }).join('');
+    }
+
     async function loadListsFeed() {
         const container = document.getElementById('listsListFeed');
         if (!container) return;
@@ -1526,65 +1699,114 @@ window.CommunityManager = (function() {
         }
 
         try {
-            const { data: lists, error } = await client
-                .from('user_lists')
-                .select('id, user_id, media_type, name, description, created_at')
-                .eq('is_public', true)
-                .order('created_at', { ascending: false })
-                .limit(60);
+            const allFeedLists = [];
 
-            if (error || !lists || !lists.length) {
-                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">create a list and mark it public to share it here.</div></div>';
-                return;
-            }
-
-            const listIds = lists.map(l => l.id);
-            const { data: allItems } = await client
+            const { data: defaultItems } = await client
                 .from('list_items')
-                .select('list_id, title, image_url')
-                .in('list_id', listIds);
+                .select('user_id, list_type, list_id, title, image_url, media_type, created_at')
+                .is('list_id', null)
+                .not('list_type', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(500);
 
-            const itemsByList = {};
-            if (Array.isArray(allItems)) {
-                allItems.forEach(function(item) {
-                    const lid = String(item.list_id || '');
-                    if (!lid) return;
-                    if (!itemsByList[lid]) itemsByList[lid] = [];
-                    itemsByList[lid].push(item);
+            if (Array.isArray(defaultItems) && defaultItems.length) {
+                const grouped = {};
+                defaultItems.forEach(function(item) {
+                    const key = String(item.user_id || '') + '|' + String(item.list_type || '') + '|' + String(item.media_type || '');
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            user_id: item.user_id,
+                            list_type: item.list_type,
+                            media_type: item.media_type || '',
+                            items: [],
+                            latest: item.created_at || ''
+                        };
+                    }
+                    grouped[key].items.push(item);
+                    if (item.created_at && item.created_at > grouped[key].latest) {
+                        grouped[key].latest = item.created_at;
+                    }
+                });
+
+                Object.values(grouped).forEach(function(group) {
+                    if (!group.items.length) return;
+                    const listType = group.list_type || '';
+                    const prettyName = {
+                        favorites: 'favorites', watched: 'watched', watchlist: 'watchlist',
+                        reading: 'reading', readlist: 'readlist', read: 'read',
+                        listening: 'listening', listenlist: 'listenlist',
+                        playing: 'playing', watching: 'watching'
+                    }[listType] || listType || 'list';
+
+                    allFeedLists.push({
+                        id: 'default_' + group.user_id + '_' + listType + '_' + group.media_type,
+                        user_id: group.user_id,
+                        media_type: group.media_type,
+                        name: prettyName,
+                        description: '',
+                        is_default: true,
+                        item_count: group.items.length,
+                        cover_images: group.items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean),
+                        created_at: group.latest
+                    });
                 });
             }
 
-            const listsWithItems = lists.filter(function(list) {
-                const items = itemsByList[String(list.id)] || [];
-                return items.length > 0;
-            });
+            const { data: customLists } = await client
+                .from('user_lists')
+                .select('id, user_id, media_type, name, description, created_at')
+                .order('created_at', { ascending: false })
+                .limit(60);
 
-            if (!listsWithItems.length) {
-                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">create a list and mark it public to share it here.</div></div>';
+            if (Array.isArray(customLists) && customLists.length) {
+                const customIds = customLists.map(l => l.id).filter(Boolean);
+                let customItemsMap = {};
+                if (customIds.length) {
+                    const { data: customItems } = await client
+                        .from('list_items')
+                        .select('list_id, title, image_url')
+                        .in('list_id', customIds);
+                    if (Array.isArray(customItems)) {
+                        customItems.forEach(function(item) {
+                            const lid = String(item.list_id || '');
+                            if (!lid) return;
+                            if (!customItemsMap[lid]) customItemsMap[lid] = [];
+                            customItemsMap[lid].push(item);
+                        });
+                    }
+                }
+
+                customLists.forEach(function(list) {
+                    const items = customItemsMap[String(list.id)] || [];
+                    if (!items.length) return;
+                    allFeedLists.push({
+                        ...list,
+                        is_default: false,
+                        item_count: items.length,
+                        cover_images: items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean)
+                    });
+                });
+            }
+
+            if (!allFeedLists.length) {
+                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">add items to your lists to see them here.</div></div>';
                 return;
             }
 
-            const userIds = [...new Set(listsWithItems.map(l => l.user_id).filter(Boolean))];
+            const userIds = [...new Set(allFeedLists.map(l => l.user_id).filter(Boolean))];
             const userMap = await fetchUserNames(client, userIds);
 
-            const enriched = listsWithItems.map(function(list) {
-                const items = itemsByList[String(list.id)] || [];
-                return {
-                    ...list,
-                    username: userMap.get(String(list.user_id)) || 'member',
-                    item_count: items.length,
-                    cover_images: items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean)
-                };
+            allFeedLists.forEach(function(list) {
+                list.username = userMap.get(String(list.user_id)) || 'member';
             });
 
-            for (let i = enriched.length - 1; i > 0; i--) {
+            for (let i = allFeedLists.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [enriched[i], enriched[j]] = [enriched[j], enriched[i]];
+                [allFeedLists[i], allFeedLists[j]] = [allFeedLists[j], allFeedLists[i]];
             }
 
-            container.innerHTML = enriched.slice(0, 30).map(function(list) {
-                return ListCard.render(list);
-            }).join('');
+            listsFeedCache = allFeedLists;
+            renderListsFromCache();
         } catch (_e) {
             container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div></div>';
         }
@@ -1680,9 +1902,13 @@ window.CommunityManager = (function() {
         searchFollowing: searchFollowing,
         searchFollowers: searchFollowers,
         toggleActivityReaction: toggleActivityReaction,
+        toggleReplyReaction: toggleReplyReaction,
         toggleReplyThread: toggleReplyThread,
+        openNestedReply: openNestedReply,
         submitActivityReply: submitActivityReply,
+        submitNestedReply: submitNestedReply,
         deleteActivityReply: deleteActivityReply,
-        loadListsFeed: loadListsFeed
+        loadListsFeed: loadListsFeed,
+        setListsFeedFilter: setListsFeedFilter
     };
 })();
