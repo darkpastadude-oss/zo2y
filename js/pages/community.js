@@ -314,17 +314,15 @@ window.CommunityManager = (function() {
                         }
                     }
                 } else if (type === 'book') {
-                    const res = await fetch(`https://books.google.com/books/v1/volumes/${encodeURIComponent(rawId)}`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        const info = data.volumeInfo || {};
-                        if (info && info.title) {
+                    try {
+                        const { data } = await client.from('books').select('id, title, thumbnail, cover_url').eq('id', rawId).maybeSingle();
+                        if (data && (data.thumbnail || data.cover_url)) {
                             mediaMap.set(rawId, {
-                                title: info.title,
-                                image_url: info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || existing?.image_url || ''
+                                title: data.title || existing?.title || '',
+                                image_url: data.thumbnail || data.cover_url || existing?.image_url || ''
                             });
                         }
-                    }
+                    } catch (_e) {}
                 } else if (type === 'music' || type === 'song' || type === 'track' || type === 'album') {
                     const res = await fetch(`https://itunes.apple.com/lookup?id=${encodeURIComponent(rawId)}`);
                     if (res.ok) {
@@ -338,16 +336,12 @@ window.CommunityManager = (function() {
                         }
                     }
                 } else if (type === 'travel') {
-                    const res = await fetch(`/api/restcountries/alpha?codes=${encodeURIComponent(rawId)}&fields=name,flags`);
-                    if (res.ok) {
-                        const data = await res.json();
-                        const country = Array.isArray(data) ? data[0] : data;
-                        if (country && (country.name?.common || country.name)) {
-                            mediaMap.set(rawId, {
-                                title: country.name?.common || country.name,
-                                image_url: country.flags?.png || country.flags?.svg || existing?.image_url || ''
-                            });
-                        }
+                    var code = String(rawId || '').toUpperCase().trim();
+                    if (code && code.length === 2) {
+                        mediaMap.set(rawId, {
+                            title: existing?.title || code,
+                            image_url: 'https://flagcdn.com/w160/' + code.toLowerCase() + '.png'
+                        });
                     }
                 } else if (type === 'sports' || type === 'sport' || type === 'team') {
                     const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/lookupteam.php?id=${encodeURIComponent(rawId)}`);
@@ -763,17 +757,12 @@ window.CommunityManager = (function() {
 
             const customListNames = new Map();
             if (listIdSet.size) {
-                const listTableMap = { movie: 'movie_lists', tv: 'tv_lists', anime: 'anime_lists', game: 'game_lists', book: 'book_lists', music: 'music_lists' };
-                const genericTables = ['user_lists'];
-                const allTables = [...new Set([...Object.values(listTableMap), ...genericTables])];
-                await Promise.all(allTables.map(async (table) => {
-                    try {
-                        const { data } = await client.from(table).select('id, name').in('id', Array.from(listIdSet));
-                        if (Array.isArray(data)) {
-                            data.forEach(l => { if (l && l.id) customListNames.set(String(l.id), l.name); });
-                        }
-                    } catch (_te) {}
-                }));
+                try {
+                    const { data } = await client.from('user_lists').select('id, name').in('id', Array.from(listIdSet));
+                    if (Array.isArray(data)) {
+                        data.forEach(l => { if (l && l.id) customListNames.set(String(l.id), l.name); });
+                    }
+                } catch (_te) {}
             }
 
             const mappedItems = items.map(row => {
@@ -1802,7 +1791,7 @@ window.CommunityManager = (function() {
         var client = getSupabaseClient();
         if (!client) return;
 
-        var toHydrate = { movie: [], tv: [], anime: [], game: [], music: [], fashion: [], food: [], car: [], sports: [], travel: [] };
+        var toHydrate = { movie: [], tv: [], anime: [], game: [], book: [], music: [], fashion: [], food: [], car: [], sports: [], travel: [] };
         rails.forEach(function(rail) {
             rail.items.forEach(function(item) {
                 if (!item.image_url && item.item_id) {
