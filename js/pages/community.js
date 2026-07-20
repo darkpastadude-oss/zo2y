@@ -1675,6 +1675,20 @@ window.CommunityManager = (function() {
                 indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
             }
         }
+        updateFilterDropdownForMode();
+    }
+
+    function updateFilterDropdownForMode() {
+        var mediaTypes = ['all', 'movie', 'tv', 'anime', 'game', 'book', 'music'];
+        var lifestyleTypes = ['all', 'sports', 'travel', 'food', 'fashion', 'car'];
+        var activeTypes = listsMode === 'media' ? mediaTypes : lifestyleTypes;
+        document.querySelectorAll('.cml-filter-opt').forEach(function(opt) {
+            var filter = opt.getAttribute('data-cml-filter');
+            opt.style.display = activeTypes.includes(filter) ? '' : 'none';
+        });
+        if (!activeTypes.includes(listsFilter)) {
+            setListsFilter('all');
+        }
     }
 
     function initListsModeIndicator() {
@@ -1777,71 +1791,79 @@ window.CommunityManager = (function() {
             var result1 = await client
                 .from('list_items')
                 .select('user_id, list_type, list_id, title, image_url, media_type, created_at')
-                .is('list_id', null)
-                .not('list_type', 'is', null)
                 .order('created_at', { ascending: false })
                 .limit(800);
 
+            if (result1.error) {
+                console.warn('loadListsFeed list_items query error:', result1.error.message);
+            }
+
             if (Array.isArray(result1.data) && result1.data.length) {
+                var seenDefault = {};
                 result1.data.forEach(function(item) {
-                    var img = String(item.image_url || '').trim();
-                    if (!img) return;
                     var mt = String(item.media_type || '').toLowerCase();
                     if (!mt || !CML_RAIL_MAP[mt]) return;
-                    var listType = CML_LIST_TYPES[item.list_type] || item.list_type || 'list';
-                    allCards.push({
-                        user_id: item.user_id,
-                        media_type: mt,
-                        list_name: listType,
-                        image_url: img,
-                        created_at: item.created_at || ''
-                    });
-                });
-            }
+                    var img = String(item.image_url || '').trim() || '/newlogo.webp';
+                    var hasListId = !!item.list_id;
+                    var hasListType = !!item.list_type;
 
-            var result2 = await client
-                .from('user_lists')
-                .select('id, user_id, media_type, name, description, created_at')
-                .order('created_at', { ascending: false })
-                .limit(60);
-
-            if (Array.isArray(result2.data) && result2.data.length) {
-                var customIds = result2.data.map(function(l) { return l.id; }).filter(Boolean);
-                var customItemsMap = {};
-                if (customIds.length) {
-                    var result3 = await client
-                        .from('list_items')
-                        .select('list_id, title, image_url, media_type, created_at')
-                        .in('list_id', customIds);
-                    if (Array.isArray(result3.data)) {
-                        result3.data.forEach(function(item) {
-                            var lid = String(item.list_id || '');
-                            if (!lid) return;
-                            if (!customItemsMap[lid]) customItemsMap[lid] = [];
-                            customItemsMap[lid].push(item);
+                    if (hasListId) {
+                        allCards.push({
+                            user_id: item.user_id,
+                            media_type: mt,
+                            list_name: 'collection',
+                            list_id: String(item.list_id || ''),
+                            image_url: img,
+                            created_at: item.created_at || ''
+                        });
+                    } else if (hasListType) {
+                        var listType = CML_LIST_TYPES[item.list_type] || item.list_type || 'list';
+                        allCards.push({
+                            user_id: item.user_id,
+                            media_type: mt,
+                            list_name: listType,
+                            image_url: img,
+                            created_at: item.created_at || ''
+                        });
+                    } else {
+                        allCards.push({
+                            user_id: item.user_id,
+                            media_type: mt,
+                            list_name: 'list',
+                            image_url: img,
+                            created_at: item.created_at || ''
                         });
                     }
-                }
-
-                result2.data.forEach(function(list) {
-                    var items = customItemsMap[String(list.id)] || [];
-                    var mt = String(list.media_type || '').toLowerCase();
-                    if (!mt || !CML_RAIL_MAP[mt]) return;
-                    items.forEach(function(item) {
-                        var img = String(item.image_url || '').trim();
-                        if (!img) return;
-                        allCards.push({
-                            user_id: list.user_id,
-                            media_type: mt,
-                            list_name: list.name || 'list',
-                            image_url: img,
-                            created_at: item.created_at || list.created_at || ''
-                        });
-                    });
                 });
             }
 
-            if (!allCards.length) return;
+            var listNamesMap = {};
+            try {
+                var listTables = ['user_lists', 'movie_lists', 'tv_lists', 'anime_lists', 'game_lists', 'book_lists', 'music_lists', 'sports_lists'];
+                for (var ti = 0; ti < listTables.length; ti++) {
+                    try {
+                        var lr = await client.from(listTables[ti]).select('id, user_id, media_type, name, title, created_at').limit(100);
+                        if (Array.isArray(lr.data) && lr.data.length) {
+                            lr.data.forEach(function(l) {
+                                listNamesMap[String(l.id)] = l.name || l.title || 'collection';
+                            });
+                        }
+                    } catch (_lte) {}
+                }
+            } catch (_lte2) {}
+
+            allCards.forEach(function(card) {
+                if (card.list_name === 'collection' && listNamesMap[card.list_id]) {
+                    card.list_name = listNamesMap[card.list_id];
+                }
+            });
+
+            if (!allCards.length) {
+                Object.keys(CML_RAIL_MAP).forEach(function(mt) {
+                    populateListRail(mt, []);
+                });
+                return;
+            }
 
             var userIds = [...new Set(allCards.map(function(c) { return c.user_id; }).filter(Boolean))];
             var userMap = await fetchUserNames(client, userIds);
@@ -1869,7 +1891,7 @@ window.CommunityManager = (function() {
             });
 
             applyListsFilter();
-        } catch (_e) {}
+        } catch (e) { console.error('loadListsFeed error:', e); }
     }
 
     document.addEventListener('click', function(e) {
@@ -1901,7 +1923,10 @@ window.CommunityManager = (function() {
             loadActivityFeed();
         } else if (tabName === 'lists') {
             loadListsFeed();
-            setTimeout(initListsModeIndicator, 50);
+            setTimeout(function() {
+                initListsModeIndicator();
+                updateFilterDropdownForMode();
+            }, 50);
         }
     }
 
@@ -1954,10 +1979,12 @@ window.CommunityManager = (function() {
         loadFollowingSet();
         loadFollowersSet();
         initListsModeIndicator();
+        updateFilterDropdownForMode();
     });
 
     window.addEventListener('load', function() {
         initListsModeIndicator();
+        updateFilterDropdownForMode();
     });
 
     return {
