@@ -315,11 +315,11 @@ window.CommunityManager = (function() {
                     }
                 } else if (type === 'book') {
                     try {
-                        const { data } = await client.from('books').select('id, title, thumbnail, cover_url').eq('id', rawId).maybeSingle();
-                        if (data && (data.thumbnail || data.cover_url)) {
+                        const { data } = await client.from('books').select('id, title, thumbnail').eq('id', rawId).maybeSingle();
+                        if (data && data.thumbnail) {
                             mediaMap.set(rawId, {
                                 title: data.title || existing?.title || '',
-                                image_url: data.thumbnail || data.cover_url || existing?.image_url || ''
+                                image_url: data.thumbnail || existing?.image_url || ''
                             });
                         }
                     } catch (_e) {}
@@ -1756,7 +1756,7 @@ window.CommunityManager = (function() {
             var listIcon = rail.list_name === 'favorites' ? (CML_DEFAULT_LIST_ICONS.favorites || 'fa-heart') : '';
             var headerIcon = listIcon || mediaIcon;
             var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
-            var customBadge = isCustom ? ' <span class="cml-custom-badge">custom list</span>' : '';
+            var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
             var cardsHtml = rail.items.map(function(item) {
                 return buildRailPosterCard(item.image_url, profileUrl, rail.media_type);
             }).join('');
@@ -1772,7 +1772,7 @@ window.CommunityManager = (function() {
             var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
             var mediaIcon = CML_RAIL_ICONS[rail.media_type] || 'fa-layer-group';
             var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
-            var customBadge = isCustom ? ' <span class="cml-custom-badge">custom list</span>' : '';
+            var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
             var cardsHtml = rail.items.map(function(item) {
                 return buildRailPosterCard(item.image_url, profileUrl, rail.media_type);
             }).join('');
@@ -1883,10 +1883,10 @@ window.CommunityManager = (function() {
                 if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
             });
             try {
-                var result = await client.from('books').select('id, thumbnail, cover_url').in('id', uniqueIds);
+                var result = await client.from('books').select('id, title, thumbnail').in('id', uniqueIds);
                 var map = {};
                 (result.data || []).forEach(function(row) {
-                    map[row.id] = row.thumbnail || row.cover_url || '';
+                    map[row.id] = row.thumbnail || '';
                 });
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
             } catch (_e) {}
