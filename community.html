@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720B">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720D">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,44 +23,14 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720B" defer></script>
+    <script src="js/pages/community.js?v=20260720E" defer></script>
 </head>
 <body data-nav-page="community">
 
-    <!-- Shared Navigation Header -->
-    <header class="shared-header" id="sharedHeader">
-        <div class="header-container">
-            <a href="index.html" class="header-logo">
-                <img src="/newlogo.webp" alt="zo2y logo" width="32" height="32">
-                <span>zo2y</span>
-            </a>
-            <nav class="header-nav">
-                <a href="index.html" class="nav-link"><i class="fas fa-home"></i> home</a>
-                <a href="community.html" class="nav-link active"><i class="fas fa-globe"></i> community</a>
-                <a href="profile.html" class="nav-link"><i class="fas fa-user"></i> profile</a>
-            </nav>
-        </div>
-    </header>
-
     <!-- Main Community Page Shell -->
     <main class="community-main">
-        
-        <!-- 1. Compact Header & Visible Search Shell -->
-        <div class="community-header-compact">
-            <div class="container">
-                <div class="community-header-row">
-                    <h1 class="community-title-sm">community</h1>
-                </div>
 
-                <!-- 2. Search Shell (Interactive Member & Media Search) -->
-                <div class="community-search-bar-wrap">
-                    <svg class="search-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" class="community-search-input" placeholder="search media, people, collections...">
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. Navigation Chips Shell (Interactive Tab Buttons) -->
+        <!-- Navigation Tabs -->
         <div class="community-nav-bar">
             <div class="container">
                 <div class="community-nav-tabs" role="tablist">
@@ -89,7 +59,7 @@
             </div>
         </div>
 
-        <!-- 4. Layout Container Shell & Tab Panes -->
+        <!-- Tab Panes -->
         <div class="container community-content" id="communityDiscoveryFeed">
             
             <!-- Pane 1: Discover -->

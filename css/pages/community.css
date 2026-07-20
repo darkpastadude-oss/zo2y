@@ -13,17 +13,17 @@
     --border: rgba(255, 255, 255, 0.12);
     --surface: rgba(19, 35, 71, 0.6);
     --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 * {
-    text-transform: lowercase !important;
     box-sizing: border-box;
 }
 
 body {
     margin: 0;
     padding: 0;
-    padding-top: 60px;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: #0b1633 !important;
     color: var(--white);
@@ -32,7 +32,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Ambient Radial Glow matching Zo2y Core (No Striped Texture) */
 body::before {
     content: '';
     position: fixed;
@@ -49,81 +48,23 @@ body::after {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 20px;
 }
 
-/* 1. Compact Header Row */
-.community-header-compact {
-    padding: 12px 0 8px 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.community-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
-
-.community-title-sm {
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    margin: 0;
-    color: var(--white);
-}
-
-/* 2. Search Shell (Bulletproof Inline SVG Icon Alignment) */
-.community-search-bar-wrap {
-    position: relative !important;
-    width: 100%;
-    max-width: 720px;
-    margin: 4px 0 2px 0;
-}
-
-.search-icon-svg {
-    position: absolute !important;
-    left: 14px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    color: var(--muted) !important;
-    pointer-events: none !important;
-    z-index: 5 !important;
-}
-
-.community-search-input {
-    width: 100%;
-    height: 38px;
-    padding: 0 14px 0 38px;
-    background: rgba(15, 31, 64, 0.85);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--white);
-    font-size: 0.85rem;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.community-search-input:focus {
-    border-color: rgba(245, 158, 11, 0.5);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
-}
-
-/* 3. Navigation Chips Shell (Single Line Horizontal Scroll) */
+/* === NAVIGATION TABS === */
 .community-nav-bar {
     position: sticky;
-    top: 60px;
-    z-index: 40;
+    top: 0;
+    z-index: 50;
     background: rgba(11, 22, 51, 0.94);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 6px 0;
+    padding: 8px 0;
 }
 
 .community-nav-tabs {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     overflow-x: auto;
     flex-wrap: nowrap;
     white-space: nowrap;
@@ -139,25 +80,24 @@ body::after {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px;
-    height: 30px;
+    padding: 6px 14px;
+    height: 32px;
     background: transparent !important;
     border: 1px solid transparent !important;
-    border-radius: 14px;
+    border-radius: 16px;
     color: var(--muted) !important;
     font-size: 0.82rem;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .community-tab-btn:hover {
     color: var(--white) !important;
 }
 
-/* Subtle Active Tab Highlight */
 .community-tab-btn.active {
     background: rgba(245, 158, 11, 0.12) !important;
     color: var(--accent) !important;
@@ -165,9 +105,9 @@ body::after {
     font-weight: 600;
 }
 
-/* 4. Layout Container Shell & Tab Panes */
+/* === CONTENT CONTAINER === */
 .community-content {
-    padding: 14px 16px 32px 16px;
+    padding: 20px 24px 40px 24px;
 }
 
 .community-tab-pane {
@@ -176,7 +116,7 @@ body::after {
 
 .community-tab-pane.active {
     display: block;
-    animation: fadeIn 0.2s ease forwards;
+    animation: fadeIn 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 @keyframes fadeIn {
@@ -184,29 +124,30 @@ body::after {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* === MEMBER SEARCH & USER CARD STYLES === */
+/* === USER CARDS === */
 .people-feed-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
-    margin-top: 8px;
 }
 
 .community-user-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .community-user-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: var(--shadow-card-hover);
 }
 
 .user-card-left {
@@ -216,8 +157,8 @@ body::after {
 }
 
 .user-avatar-circle {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--accent);
     color: #0b1633;
@@ -225,7 +166,7 @@ body::after {
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 1.05rem;
+    font-size: 1rem;
     flex-shrink: 0;
 }
 
@@ -257,7 +198,7 @@ body::after {
     color: var(--muted);
 }
 
-/* Follow Toggle Button */
+/* === FOLLOW TOGGLE === */
 .btn-follow-toggle {
     display: inline-flex;
     align-items: center;
@@ -271,7 +212,7 @@ body::after {
     font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-follow-toggle:hover {
@@ -293,14 +234,14 @@ body::after {
 
 /* === ACTIVITY FILTER BAR === */
 .activity-filter-bar {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 4px;
     padding: 4px;
     border-radius: 12px;
     border: 1px solid var(--border);
     background: rgba(15, 31, 64, 0.6);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .activity-filter-btn {
@@ -315,7 +256,7 @@ body::after {
     font-size: 0.78rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .activity-filter-btn:hover {
@@ -329,29 +270,30 @@ body::after {
     font-weight: 600;
 }
 
-/* === ACTIVITY FEED STYLES === */
+/* === ACTIVITY FEED === */
 .activity-feed-container {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
 }
 
 .community-activity-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 12px 16px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .community-activity-card:hover {
     transform: translateY(-1px);
-    border-color: rgba(245, 158, 11, 0.4);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: var(--shadow-card-hover);
 }
 
 .activity-card-left {
@@ -362,8 +304,8 @@ body::after {
 }
 
 .activity-avatar-circle {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: var(--accent);
     color: #0b1633;
@@ -371,7 +313,7 @@ body::after {
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     flex-shrink: 0;
 }
 
@@ -383,6 +325,7 @@ body::after {
 
 .activity-card-text {
     font-size: 0.85rem;
+    font-weight: 500;
     color: var(--white);
     white-space: nowrap;
     overflow: hidden;
@@ -390,11 +333,27 @@ body::after {
 }
 
 .activity-card-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 0.82rem;
     color: var(--accent);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.activity-media-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 8px;
+    border-radius: 8px;
+    text-transform: capitalize;
 }
 
 .activity-card-time {
@@ -404,57 +363,58 @@ body::after {
 }
 
 .activity-cover-img {
-    width: 40px;
-    height: 56px;
+    width: 36px;
+    height: 50px;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     flex-shrink: 0;
     margin-left: 12px;
 }
 
 .activity-list-icon-badge {
-    width: 40px;
-    height: 56px;
-    border-radius: 6px;
+    width: 36px;
+    height: 50px;
+    border-radius: 8px;
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--accent);
     flex-shrink: 0;
     margin-left: 12px;
 }
 
-/* === REVIEWS FEED STYLES === */
+/* === REVIEWS FEED === */
 .reviews-feed-container {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-top: 8px;
 }
 
 .community-review-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
+    padding: 14px;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .community-review-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(245, 158, 11, 0.4);
+    transform: translateY(-1px);
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: var(--shadow-card-hover);
 }
 
 .review-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
     gap: 8px;
 }
@@ -512,10 +472,10 @@ body::after {
 }
 
 .review-cover-img {
-    width: 60px;
-    height: 90px;
+    width: 54px;
+    height: 80px;
     object-fit: cover;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid var(--border);
     flex-shrink: 0;
 }
@@ -530,18 +490,18 @@ body::after {
 .text-accent { color: var(--accent); }
 .text-muted { color: var(--muted); }
 
-/* Empty State Box */
+/* === EMPTY STATE === */
 .community-empty-box {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 48px 20px;
+    padding: 40px 20px;
     background: var(--card);
-    border: 1px dashed var(--border);
-    border-radius: 16px;
-    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    margin-top: 12px;
 }
 
 .empty-icon {
@@ -585,7 +545,7 @@ body::after {
     transition: opacity 0.2s ease;
 }
 
-/* === ENFORCE COMPACT SPOTLIGHT SKELETON === */
+/* === SKELETON OVERRIDES === */
 .skel-spotlight,
 .community-spotlight-skel {
     width: 100% !important;
@@ -597,13 +557,18 @@ body::after {
     border: 1px solid var(--border) !important;
 }
 
+/* === RESPONSIVE === */
 @media (max-width: 768px) {
     .container {
-        padding: 0 12px;
+        padding: 0 14px;
     }
 
     .community-content {
-        padding: 12px 12px 24px 12px;
+        padding: 14px 14px 28px 14px;
+    }
+
+    .activity-filter-bar {
+        width: 100%;
     }
 
     .skel-spotlight,

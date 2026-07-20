@@ -1324,21 +1324,21 @@ body.zo2y-mobile-menu-open {
   /* ── Desktop Rail ─────────────────────────────────── */
   .zo2y-desktop-rail {
     position: fixed;
-    top: 16px;
+    top: 12px;
     left: 16px;
-    bottom: 16px;
+    bottom: 12px;
     width: var(--zo2y-rail-expanded);
-    border-radius: 24px;
+    border-radius: 20px;
     border: 1px solid var(--zo2y-header-border);
     background: linear-gradient(180deg, rgba(15, 28, 58, 0.96), rgba(11, 22, 51, 0.98));
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255,255,255,0.04) inset;
     padding: 14px 10px;
     z-index: var(--z-header-nav);
     display: flex;
     flex-direction: column;
     gap: 4px;
     overflow: hidden;
-    transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: width;
   }
 
@@ -1369,7 +1369,7 @@ body.zo2y-mobile-menu-open {
     letter-spacing: -0.03em;
     white-space: nowrap;
     overflow: hidden;
-    transition: opacity 0.18s ease, width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.2s ease 0.05s, width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* ── Collapse Toggle (icon-only, top-right) ───────── */
@@ -1479,7 +1479,7 @@ body.zo2y-mobile-menu-open {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: opacity 0.18s ease;
+    transition: opacity 0.2s ease 0.05s;
   }
 
   /* ── Navigation ───────────────────────────────────── */
@@ -1532,7 +1532,7 @@ body.zo2y-mobile-menu-open {
     font-size: 14px;
     font-weight: 600;
     position: relative;
-    transition: background 0.12s, color 0.12s;
+    transition: background 0.15s ease, color 0.15s ease;
   }
 
   .zo2y-desktop-rail-link i {
@@ -1540,14 +1540,14 @@ body.zo2y-mobile-menu-open {
     text-align: center;
     font-size: 14px;
     flex-shrink: 0;
-    transition: color 0.12s;
+    transition: color 0.15s ease;
   }
 
   .zo2y-desktop-rail-link span {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: opacity 0.18s ease;
+    transition: opacity 0.2s ease 0.05s, width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .zo2y-desktop-rail-link:hover {
@@ -1582,7 +1582,7 @@ body.zo2y-mobile-menu-open {
   /* ── Body offset ──────────────────────────────────── */
   body.zo2y-desktop-rail-layout {
     padding-left: calc(var(--zo2y-rail-expanded) + var(--zo2y-rail-offset)) !important;
-    transition: padding-left 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   body.zo2y-desktop-rail-layout .app-main,
@@ -1652,11 +1652,13 @@ body.zo2y-mobile-menu-open {
   body.sidebar-collapsed .zo2y-desktop-rail-nav {
     align-items: center;
     padding: 0;
+    gap: 4px;
   }
 
   body.sidebar-collapsed .zo2y-rail-section {
     padding: 8px 0 4px;
     align-items: center;
+    gap: 4px;
   }
 
   body.sidebar-collapsed .zo2y-rail-section-title {
@@ -1697,6 +1699,7 @@ body.zo2y-mobile-menu-open {
   body.sidebar-collapsed .zo2y-desktop-rail:hover .sidebar-brand-wordmark {
     opacity: 1;
     width: auto;
+    transition-delay: 0.04s;
   }
 
   body.sidebar-collapsed .zo2y-desktop-rail:hover .zo2y-desktop-rail-search .nav-search-input {
@@ -1717,11 +1720,13 @@ body.zo2y-mobile-menu-open {
   body.sidebar-collapsed .zo2y-desktop-rail:hover .zo2y-desktop-rail-profile span {
     opacity: 1;
     width: auto;
+    transition-delay: 0.04s;
   }
 
   body.sidebar-collapsed .zo2y-desktop-rail:hover .zo2y-desktop-rail-link span {
     opacity: 1;
     width: auto;
+    transition-delay: 0.04s;
   }
 
   body.sidebar-collapsed .zo2y-desktop-rail:hover .zo2y-rail-section-title {
