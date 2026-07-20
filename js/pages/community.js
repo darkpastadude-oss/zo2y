@@ -8,6 +8,8 @@ window.CommunityManager = (function() {
     let supabase = null;
     let currentUser = null;
     let followingSet = new Set();
+    let followersSet = new Set();
+    let activityFilter = 'all';
     let searchDebounceTimer = null;
 
     function getSupabaseConfig() {
@@ -72,6 +74,30 @@ window.CommunityManager = (function() {
                 followingSet = new Set(data.map(f => String(f.followed_id)));
             }
         } catch (_e) {}
+    }
+
+    // Load followers list for logged in user
+    async function loadFollowersSet() {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user || !client) return;
+        try {
+            const { data } = await client
+                .from('follows')
+                .select('follower_id')
+                .eq('followed_id', user.id);
+            if (Array.isArray(data)) {
+                followersSet = new Set(data.map(f => String(f.follower_id)));
+            }
+        } catch (_e) {}
+    }
+
+    function setActivityFilter(filter) {
+        activityFilter = filter || 'all';
+        document.querySelectorAll('.activity-filter-btn').forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-activity-filter') === activityFilter);
+        });
+        loadActivityFeed();
     }
 
     // === MEDIA & LIFESTYLE METADATA HYDRATION ENGINE ===
@@ -431,12 +457,12 @@ window.CommunityManager = (function() {
     const ActivityCard = {
         render: function(item) {
             const userName = (item.username || item.full_name || 'member');
-            const userId = item.user_id || '';
+            const userId = item.user_id || item.actor_id || '';
             const mediaType = (item.media_type || 'movie').toLowerCase();
             const itemId = item.item_id || '';
             const listType = (item.list_type || '').toLowerCase();
             const listName = item.list_name || '';
-            const activityType = (item.activityType || '').toLowerCase();
+            const eventType = (item.event_type || item.activityType || '').toLowerCase();
             const itemTitle = item.title || item.item_title || item.name || 'an item';
             const coverUrl = item.image_url || item.cover_url || item.image || item.thumbnail || '';
             const ts = item.created_at || item.inserted_at || '';
@@ -445,13 +471,28 @@ window.CommunityManager = (function() {
             const profileUrl = userId ? `profile.html?id=${encodeURIComponent(userId)}` : '#';
 
             let verbHtml = '';
-            const itemLinkHtml = `<a href="${targetUrl}" class="review-item-link" onclick="event.stopPropagation()">${escapeHtml(itemTitle)}</a>`;
+            const itemLinkHtml = itemId
+                ? `<a href="${targetUrl}" class="review-item-link" onclick="event.stopPropagation()">${escapeHtml(itemTitle)}</a>`
+                : `<span class="review-item-link">${escapeHtml(itemTitle)}</span>`;
 
-            if (activityType === 'review') {
+            if (eventType === 'review' || eventType === 'review_add') {
                 verbHtml = `left a review on ${itemLinkHtml}`;
-            } else if (activityType === 'create_list') {
+            } else if (eventType === 'review_edit') {
+                verbHtml = `edited a review for ${itemLinkHtml}`;
+            } else if (eventType === 'review_delete') {
+                verbHtml = `deleted a review for ${itemLinkHtml}`;
+            } else if (eventType === 'create_list' || eventType === 'list_create') {
                 const listTitle = item.list_name || item.name || item.title || 'a custom list';
                 verbHtml = `created list <strong>${escapeHtml(listTitle)}</strong>`;
+            } else if (eventType === 'list_delete') {
+                const listTitle = item.list_name || item.name || item.title || 'a custom list';
+                verbHtml = `deleted list <strong>${escapeHtml(listTitle)}</strong>`;
+            } else if (eventType === 'list_remove') {
+                if (listName) {
+                    verbHtml = `removed ${itemLinkHtml} from <strong>${escapeHtml(listName)}</strong>`;
+                } else {
+                    verbHtml = `removed ${itemLinkHtml} from a list`;
+                }
             } else if (listName) {
                 verbHtml = `added ${itemLinkHtml} to <strong>${escapeHtml(listName)}</strong>`;
             } else if (listType === 'favorites' || listType === 'favorite') {
@@ -489,7 +530,7 @@ window.CommunityManager = (function() {
                             </div>
                         </div>
                     </div>
-                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle)}" loading="lazy" />` : (activityType === 'create_list' ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : '')}
+                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle)}" loading="lazy" />` : ((eventType === 'create_list' || eventType === 'list_create') ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : '')}
                 </div>
             `;
         }
@@ -511,87 +552,27 @@ window.CommunityManager = (function() {
         }
 
         try {
-            // Query list_items, reviews, and user_lists in parallel with safe fallbacks
-            const [listItems, reviews, createdLists] = await Promise.all([
-                safeTableQuery(client, 'list_items', '*', 35),
-                safeTableQuery(client, 'reviews', '*', 35),
-                safeTableQuery(client, 'user_lists', '*', 20)
-            ]);
+            const user = await getCurrentUser();
+            if (activityFilter !== 'all') {
+                await loadFollowingSet();
+                await loadFollowersSet();
+            }
 
-            if (!listItems.length && !reviews.length && !createdLists.length) {
+            const filterSet = activityFilter === 'following' ? followingSet
+                : activityFilter === 'followers' ? followersSet
+                : null;
+
+            let activityItems = await loadFromActivityFeed(client, filterSet);
+
+            if (!activityItems) {
+                activityItems = await loadFromRawTables(client, filterSet);
+            }
+
+            if (!activityItems || !activityItems.length) {
                 renderEmptyActivityState(container);
                 return;
             }
 
-            // Map list_id to custom list names
-            const listIds = [...new Set(listItems.map(i => i.list_id).filter(Boolean))];
-            const customListNames = new Map();
-            if (listIds.length) {
-                try {
-                    const { data: listsData } = await client.from('user_lists').select('id, name').in('id', listIds);
-                    if (Array.isArray(listsData)) {
-                        listsData.forEach(l => { if (l && l.id) customListNames.set(l.id, l.name); });
-                    }
-                } catch (_le) {}
-            }
-
-            // Fetch user profiles for all user_ids
-            const userIds = [...new Set([
-                ...listItems.map(i => i.user_id),
-                ...reviews.map(r => r.user_id),
-                ...createdLists.map(l => l.user_id)
-            ].filter(Boolean))];
-
-            const usersMap = new Map();
-            if (userIds.length) {
-                try {
-                    const { data: profiles } = await client
-                        .from('user_profiles')
-                        .select('id, username, full_name')
-                        .in('id', userIds);
-                    if (Array.isArray(profiles)) {
-                        profiles.forEach(p => {
-                            if (p && p.id) {
-                                usersMap.set(p.id, p.username || p.full_name || 'member');
-                            }
-                        });
-                    }
-                } catch (_pe) {}
-            }
-
-            // Merge into unified activity records
-            const activityItems = [];
-
-            listItems.forEach(item => {
-                activityItems.push({
-                    ...item,
-                    activityType: 'list',
-                    list_name: customListNames.get(item.list_id) || item.list_name || '',
-                    username: usersMap.get(item.user_id) || 'member',
-                    created_at: item.created_at || item.inserted_at || item.updated_at
-                });
-            });
-
-            reviews.forEach(review => {
-                activityItems.push({
-                    ...review,
-                    activityType: 'review',
-                    username: usersMap.get(review.user_id) || 'member',
-                    created_at: review.created_at || review.inserted_at
-                });
-            });
-
-            createdLists.forEach(list => {
-                activityItems.push({
-                    ...list,
-                    activityType: 'create_list',
-                    list_name: list.name || list.title || 'a custom list',
-                    username: usersMap.get(list.user_id) || 'member',
-                    created_at: list.created_at || list.inserted_at
-                });
-            });
-
-            // Sort merged array descending by timestamp
             activityItems.sort((a, b) => {
                 const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
                 const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -600,7 +581,6 @@ window.CommunityManager = (function() {
 
             const topActivities = activityItems.slice(0, 40);
 
-            // Hydrate metadata (titles & posters) across all media types
             await hydrateMediaMetadata(topActivities);
 
             container.innerHTML = topActivities.map(a => ActivityCard.render(a)).join('');
@@ -609,12 +589,163 @@ window.CommunityManager = (function() {
         }
     }
 
+    async function loadFromActivityFeed(client, filterSet) {
+        try {
+            let req = client
+                .from('user_activity_feed')
+                .select('id, actor_id, event_type, media_type, item_id, list_type, list_id, rating, review_text, metadata, created_at')
+                .order('created_at', { ascending: false })
+                .limit(60);
+
+            const { data: rows, error } = await req;
+            if (error) return null;
+
+            let items = Array.isArray(rows) ? rows : [];
+
+            if (filterSet && filterSet.size) {
+                items = items.filter(row => filterSet.has(String(row.actor_id || '')));
+            }
+
+            const userIds = [...new Set(items.map(r => r.actor_id).filter(Boolean))];
+            const usersMap = await fetchUserNames(client, userIds);
+
+            const listIdSet = new Set();
+            items.forEach(row => {
+                const listId = String(row.list_id || '').trim();
+                const mediaType = String(row.media_type || '').trim().toLowerCase();
+                if (listId && mediaType) listIdSet.add(listId);
+            });
+
+            const customListNames = new Map();
+            if (listIdSet.size) {
+                const mediaTypes = [...new Set(items.map(r => String(r.media_type || '').toLowerCase()).filter(Boolean))];
+                const listTableMap = { movie: 'movie_lists', tv: 'tv_lists', anime: 'anime_lists', game: 'game_lists', book: 'book_lists', music: 'music_lists' };
+                const genericTables = ['user_lists'];
+                const allTables = [...new Set([...Object.values(listTableMap), ...genericTables])];
+                await Promise.all(allTables.map(async (table) => {
+                    try {
+                        const { data } = await client.from(table).select('id, name').in('id', Array.from(listIdSet));
+                        if (Array.isArray(data)) {
+                            data.forEach(l => { if (l && l.id) customListNames.set(String(l.id), l.name); });
+                        }
+                    } catch (_te) {}
+                }));
+            }
+
+            return items.map(row => {
+                const mediaType = String(row.media_type || '').toLowerCase();
+                const listId = String(row.list_id || '').trim();
+                const listTitle = customListNames.get(listId)
+                    || (row.metadata && row.metadata.list_title) || '';
+                return {
+                    ...row,
+                    user_id: row.actor_id,
+                    event_type: row.event_type,
+                    title: (row.metadata && row.metadata.item_title) || '',
+                    list_name: listTitle,
+                    username: usersMap.get(String(row.actor_id)) || 'member',
+                    image_url: (row.metadata && row.metadata.image_url) || ''
+                };
+            });
+        } catch (_e) {
+            return null;
+        }
+    }
+
+    async function loadFromRawTables(client, filterSet) {
+        const [listItems, reviews, createdLists] = await Promise.all([
+            safeTableQuery(client, 'list_items', '*', 35),
+            safeTableQuery(client, 'reviews', '*', 35),
+            safeTableQuery(client, 'user_lists', '*', 20)
+        ]);
+
+        if (!listItems.length && !reviews.length && !createdLists.length) return [];
+
+        const listIds = [...new Set(listItems.map(i => i.list_id).filter(Boolean))];
+        const customListNames = new Map();
+        if (listIds.length) {
+            try {
+                const { data: listsData } = await client.from('user_lists').select('id, name').in('id', listIds);
+                if (Array.isArray(listsData)) {
+                    listsData.forEach(l => { if (l && l.id) customListNames.set(l.id, l.name); });
+                }
+            } catch (_le) {}
+        }
+
+        const userIds = [...new Set([
+            ...listItems.map(i => i.user_id),
+            ...reviews.map(r => r.user_id),
+            ...createdLists.map(l => l.user_id)
+        ].filter(Boolean))];
+
+        const usersMap = await fetchUserNames(client, userIds);
+
+        const activityItems = [];
+
+        listItems.forEach(item => {
+            if (filterSet && filterSet.size && !filterSet.has(String(item.user_id || ''))) return;
+            activityItems.push({
+                ...item,
+                event_type: 'list_add',
+                list_name: customListNames.get(item.list_id) || item.list_name || '',
+                username: usersMap.get(item.user_id) || 'member',
+                created_at: item.created_at || item.inserted_at || item.updated_at
+            });
+        });
+
+        reviews.forEach(review => {
+            if (filterSet && filterSet.size && !filterSet.has(String(review.user_id || ''))) return;
+            activityItems.push({
+                ...review,
+                event_type: 'review_add',
+                username: usersMap.get(review.user_id) || 'member',
+                created_at: review.created_at || review.inserted_at
+            });
+        });
+
+        createdLists.forEach(list => {
+            if (filterSet && filterSet.size && !filterSet.has(String(list.user_id || ''))) return;
+            activityItems.push({
+                ...list,
+                event_type: 'list_create',
+                list_name: list.name || list.title || 'a custom list',
+                username: usersMap.get(list.user_id) || 'member',
+                created_at: list.created_at || list.inserted_at
+            });
+        });
+
+        return activityItems;
+    }
+
+    async function fetchUserNames(client, userIds) {
+        const map = new Map();
+        if (!userIds.length || !client) return map;
+        try {
+            const { data: profiles } = await client
+                .from('user_profiles')
+                .select('id, username, full_name')
+                .in('id', userIds);
+            if (Array.isArray(profiles)) {
+                profiles.forEach(p => {
+                    if (p && p.id) map.set(p.id, p.username || p.full_name || 'member');
+                });
+            }
+        } catch (_pe) {}
+        return map;
+    }
+
     function renderEmptyActivityState(container) {
+        const emptyForFilter = activityFilter === 'following'
+            ? { title: 'no activity from people you follow.', desc: 'follow some members to see their updates here.' }
+            : activityFilter === 'followers'
+            ? { title: 'no activity from your followers.', desc: 'when members follow you and start saving, their activity appears here.' }
+            : { title: 'no activity yet.', desc: 'when members add media to their lists, it will show up here.' };
+
         container.innerHTML = `
             <div class="community-empty-box">
                 <div class="empty-icon"><i class="fas fa-rss"></i></div>
-                <div class="empty-title">no activity yet.</div>
-                <div class="empty-desc">when members add media to their lists, it will show up here.</div>
+                <div class="empty-title">${emptyForFilter.title}</div>
+                <div class="empty-desc">${emptyForFilter.desc}</div>
                 <a href="index.html" class="btn-empty-action"><i class="fas fa-plus"></i> explore media</a>
             </div>
         `;
@@ -1037,6 +1168,7 @@ window.CommunityManager = (function() {
             loadReviewsFeed();
         }
         loadFollowingSet();
+        loadFollowersSet();
         bindSearchInput();
     });
 
@@ -1047,6 +1179,7 @@ window.CommunityManager = (function() {
         loadPeopleFeed: loadPeopleFeed,
         loadFollowingFeed: loadFollowingFeed,
         loadFollowersFeed: loadFollowersFeed,
-        toggleFollow: toggleFollow
+        toggleFollow: toggleFollow,
+        setActivityFilter: setActivityFilter
     };
 })();

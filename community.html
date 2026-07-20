@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260719Q">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720B">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720A" defer></script>
+    <script src="js/pages/community.js?v=20260720B" defer></script>
 </head>
 <body data-nav-page="community">
 
@@ -158,6 +158,11 @@
 
             <!-- Pane 3: Activity Feed -->
             <div class="community-tab-pane" id="paneActivity">
+                <div class="activity-filter-bar">
+                    <button class="activity-filter-btn active" data-activity-filter="all" onclick="CommunityManager.setActivityFilter('all')">all</button>
+                    <button class="activity-filter-btn" data-activity-filter="following" onclick="CommunityManager.setActivityFilter('following')">following</button>
+                    <button class="activity-filter-btn" data-activity-filter="followers" onclick="CommunityManager.setActivityFilter('followers')">followers</button>
+                </div>
                 <div id="activityListFeed" class="activity-feed-container">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-rss"></i></div>

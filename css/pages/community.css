@@ -291,6 +291,44 @@ body::after {
     border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* === ACTIVITY FILTER BAR === */
+.activity-filter-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: rgba(15, 31, 64, 0.6);
+    margin-bottom: 10px;
+}
+
+.activity-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    height: 28px;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px;
+    color: var(--muted) !important;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.activity-filter-btn:hover {
+    color: var(--white) !important;
+}
+
+.activity-filter-btn.active {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: var(--accent) !important;
+    border-color: rgba(245, 158, 11, 0.3) !important;
+    font-weight: 600;
+}
+
 /* === ACTIVITY FEED STYLES === */
 .activity-feed-container {
     display: flex;
