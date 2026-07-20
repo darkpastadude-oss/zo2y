@@ -1609,207 +1609,173 @@ window.CommunityManager = (function() {
         } catch (_e) {}
     }
 
-    // === LIST CARD COMPONENT ===
-    const ListCard = {
-        render: function(list) {
-            const listId = list.id || '';
-            const name = list.name || 'untitled list';
-            const description = list.description || '';
-            const mediaType = (list.media_type || '').toLowerCase();
-            const userId = list.user_id || '';
-            const username = list.username || 'member';
-            const itemCount = list.item_count || 0;
-            const coverImages = list.cover_images || [];
-            const profileUrl = userId ? `profile.html?id=${encodeURIComponent(userId)}` : '#';
+    // === COMMUNITY LISTS RAIL ENGINE ===
+    let listsMode = 'media';
+    let listsFeedCache = { byType: {} };
 
-            const mediaIcon = {
-                movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
-                book: 'fa-book', music: 'fa-music', travel: 'fa-plane',
-                fashion: 'fa-shirt', food: 'fa-utensils', car: 'fa-car', sports: 'fa-futbol'
-            }[mediaType] || 'fa-layer-group';
-
-            const mediaColor = {
-                movie: '#e74c3c', tv: '#3498db', anime: '#9b59b6', game: '#2ecc71',
-                book: '#f39c12', music: '#1abc9c', travel: '#e67e22',
-                fashion: '#e91e63', food: '#ff5722', car: '#607d8b', sports: '#00bcd4'
-            }[mediaType] || '#f59e0b';
-
-            const coverHtml = coverImages.slice(0, 4).map(function(url, i) {
-                return '<img class="list-card-cover-thumb" src="' + escapeHtml(url) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'" />';
-            }).join('');
-
-            return '<div class="community-list-card" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
-                + '<div class="list-card-header">'
-                + '<div class="list-card-icon" style="background:' + mediaColor + '20; color:' + mediaColor + '"><i class="fas ' + mediaIcon + '"></i></div>'
-                + '<div class="list-card-header-info">'
-                + '<div class="list-card-name">' + escapeHtml(name) + '</div>'
-                + '<div class="list-card-meta">'
-                + '<a href="' + escapeHtml(profileUrl) + '" class="list-card-user" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
-                + '<span class="list-card-count">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</span>'
-                + '</div>'
-                + '</div>'
-                + '</div>'
-                + (description ? '<div class="list-card-desc">' + escapeHtml(description) + '</div>' : '')
-                + (coverHtml ? '<div class="list-card-covers">' + coverHtml + '</div>' : '')
-                + '</div>';
-        }
+    const CML_RAIL_MAP = {
+        movie: 'cmlMoviesTrack', tv: 'cmlTvTrack', anime: 'cmlAnimeTrack',
+        game: 'cmlGamesTrack', book: 'cmlBooksTrack', music: 'cmlMusicTrack',
+        sports: 'cmlSportsTrack', travel: 'cmlTravelTrack', fashion: 'cmlFashionTrack',
+        food: 'cmlFoodTrack', car: 'cmlCarsTrack'
     };
 
-    // === COMMUNITY LISTS FEED ENGINE ===
-    let listsFeedCache = [];
-    let listsFeedFilter = 'all';
+    const CML_RAIL_OPTS = {
+        isSquare: ['music', 'sports', 'fashion', 'food'],
+        isLandscape: ['travel', 'car'],
+        isBrand: ['sports', 'fashion', 'food', 'car']
+    };
 
-    function setListsFeedFilter(filter) {
-        listsFeedFilter = filter || 'all';
-        document.querySelectorAll('.lists-filter-btn').forEach(function(btn) {
-            btn.classList.toggle('active', btn.getAttribute('data-lists-filter') === listsFeedFilter);
-        });
-        renderListsFromCache();
+    function setListsMode(mode) {
+        listsMode = mode || 'media';
+        var mediaPanel = document.getElementById('cmlMediaPanel');
+        var lifestylePanel = document.getElementById('cmlLifestylePanel');
+        var mediaBtn = document.getElementById('cmlModeMedia');
+        var lifestyleBtn = document.getElementById('cmlModeLifestyle');
+        var indicator = document.getElementById('cmlModeIndicator');
+        if (!mediaPanel || !lifestylePanel) return;
+        if (mode === 'media') {
+            mediaPanel.style.display = '';
+            lifestylePanel.style.display = 'none';
+            mediaBtn.classList.add('active');
+            lifestyleBtn.classList.remove('active');
+            mediaBtn.setAttribute('aria-selected', 'true');
+            lifestyleBtn.setAttribute('aria-selected', 'false');
+            if (indicator) {
+                indicator.style.width = mediaBtn.offsetWidth + 'px';
+                indicator.style.transform = 'translateX(0)';
+            }
+        } else {
+            mediaPanel.style.display = 'none';
+            lifestylePanel.style.display = '';
+            lifestyleBtn.classList.add('active');
+            mediaBtn.classList.remove('active');
+            lifestyleBtn.setAttribute('aria-selected', 'true');
+            mediaBtn.setAttribute('aria-selected', 'false');
+            if (indicator) {
+                indicator.style.width = lifestyleBtn.offsetWidth + 'px';
+                indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
+            }
+        }
     }
 
-    function renderListsFromCache() {
-        const container = document.getElementById('listsListFeed');
-        if (!container) return;
+    function initListsModeIndicator() {
+        var mediaBtn = document.getElementById('cmlModeMedia');
+        var indicator = document.getElementById('cmlModeIndicator');
+        if (!mediaBtn || !indicator) return;
+        indicator.style.width = mediaBtn.offsetWidth + 'px';
+        indicator.style.transform = 'translateX(0)';
+    }
 
-        let items = listsFeedCache;
-        if (listsFeedFilter !== 'all') {
-            items = items.filter(function(l) {
-                return String(l.media_type || '').toLowerCase() === listsFeedFilter;
-            });
-        }
-
-        if (!items.length) {
-            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no lists in this category.</div></div>';
+    function populateListRail(mediaType, imageUrls) {
+        var trackId = CML_RAIL_MAP[mediaType];
+        var track = trackId ? document.getElementById(trackId) : null;
+        if (!track) return;
+        var opts = {
+            isSquare: CML_RAIL_OPTS.isSquare.includes(mediaType),
+            isLandscape: CML_RAIL_OPTS.isLandscape.includes(mediaType),
+            isBrand: CML_RAIL_OPTS.isBrand.includes(mediaType)
+        };
+        track.innerHTML = '';
+        if (!imageUrls.length) {
+            var iconMap = {
+                movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
+                book: 'fa-book', music: 'fa-music', sports: 'fa-futbol',
+                travel: 'fa-earth-americas', fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
+            };
+            track.innerHTML = '<div class="cml-rail-empty"><i class="fas ' + (iconMap[mediaType] || 'fa-plus') + '"></i><span class="cml-rail-empty-text">Nothing here yet</span></div>';
             return;
         }
-
-        container.innerHTML = items.slice(0, 30).map(function(list) {
-            return ListCard.render(list);
-        }).join('');
+        track.className = 'cml-rail-track';
+        imageUrls.forEach(function(url, i) {
+            var card = document.createElement('div');
+            var cls = 'cml-poster';
+            if (opts.isSquare) cls += ' is-square';
+            if (opts.isLandscape) cls += ' is-landscape';
+            if (opts.isBrand) cls += ' is-brand';
+            card.className = cls;
+            card.style.animationDelay = (i * 40) + 'ms';
+            var imgWrap = document.createElement('div');
+            imgWrap.className = 'cml-poster-img-wrap';
+            var img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Poster';
+            img.loading = 'lazy';
+            img.onerror = function() { img.src = '/newlogo.webp'; };
+            img.className = 'cml-poster-img';
+            imgWrap.appendChild(img);
+            card.appendChild(imgWrap);
+            track.appendChild(card);
+        });
     }
 
     async function loadListsFeed() {
-        const container = document.getElementById('listsListFeed');
-        if (!container) return;
-
-        const client = getSupabaseClient();
-        if (!client) {
-            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div></div>';
-            return;
-        }
+        var client = getSupabaseClient();
+        if (!client) return;
 
         try {
-            const allFeedLists = [];
+            var allItems = [];
 
-            const { data: defaultItems } = await client
+            var result1 = await client
                 .from('list_items')
                 .select('user_id, list_type, list_id, title, image_url, media_type, created_at')
                 .is('list_id', null)
                 .not('list_type', 'is', null)
                 .order('created_at', { ascending: false })
-                .limit(500);
+                .limit(800);
 
-            if (Array.isArray(defaultItems) && defaultItems.length) {
-                const grouped = {};
-                defaultItems.forEach(function(item) {
-                    const key = String(item.user_id || '') + '|' + String(item.list_type || '') + '|' + String(item.media_type || '');
-                    if (!grouped[key]) {
-                        grouped[key] = {
-                            user_id: item.user_id,
-                            list_type: item.list_type,
-                            media_type: item.media_type || '',
-                            items: [],
-                            latest: item.created_at || ''
-                        };
-                    }
-                    grouped[key].items.push(item);
-                    if (item.created_at && item.created_at > grouped[key].latest) {
-                        grouped[key].latest = item.created_at;
-                    }
-                });
-
-                Object.values(grouped).forEach(function(group) {
-                    if (!group.items.length) return;
-                    const listType = group.list_type || '';
-                    const prettyName = {
-                        favorites: 'favorites', watched: 'watched', watchlist: 'watchlist',
-                        reading: 'reading', readlist: 'readlist', read: 'read',
-                        listening: 'listening', listenlist: 'listenlist',
-                        playing: 'playing', watching: 'watching'
-                    }[listType] || listType || 'list';
-
-                    allFeedLists.push({
-                        id: 'default_' + group.user_id + '_' + listType + '_' + group.media_type,
-                        user_id: group.user_id,
-                        media_type: group.media_type,
-                        name: prettyName,
-                        description: '',
-                        is_default: true,
-                        item_count: group.items.length,
-                        cover_images: group.items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean),
-                        created_at: group.latest
-                    });
-                });
+            if (Array.isArray(result1.data) && result1.data.length) {
+                allItems = allItems.concat(result1.data);
             }
 
-            const { data: customLists } = await client
+            var result2 = await client
                 .from('user_lists')
                 .select('id, user_id, media_type, name, description, created_at')
                 .order('created_at', { ascending: false })
                 .limit(60);
 
-            if (Array.isArray(customLists) && customLists.length) {
-                const customIds = customLists.map(l => l.id).filter(Boolean);
-                let customItemsMap = {};
+            if (Array.isArray(result2.data) && result2.data.length) {
+                var customIds = result2.data.map(function(l) { return l.id; }).filter(Boolean);
                 if (customIds.length) {
-                    const { data: customItems } = await client
+                    var result3 = await client
                         .from('list_items')
-                        .select('list_id, title, image_url')
+                        .select('list_id, title, image_url, media_type, created_at')
                         .in('list_id', customIds);
-                    if (Array.isArray(customItems)) {
-                        customItems.forEach(function(item) {
-                            const lid = String(item.list_id || '');
-                            if (!lid) return;
-                            if (!customItemsMap[lid]) customItemsMap[lid] = [];
-                            customItemsMap[lid].push(item);
-                        });
+                    if (Array.isArray(result3.data)) {
+                        allItems = allItems.concat(result3.data);
                     }
                 }
-
-                customLists.forEach(function(list) {
-                    const items = customItemsMap[String(list.id)] || [];
-                    if (!items.length) return;
-                    allFeedLists.push({
-                        ...list,
-                        is_default: false,
-                        item_count: items.length,
-                        cover_images: items.slice(0, 4).map(function(it) { return it.image_url || ''; }).filter(Boolean)
-                    });
-                });
             }
 
-            if (!allFeedLists.length) {
-                container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div><div class="empty-desc">add items to your lists to see them here.</div></div>';
-                return;
-            }
-
-            const userIds = [...new Set(allFeedLists.map(l => l.user_id).filter(Boolean))];
-            const userMap = await fetchUserNames(client, userIds);
-
-            allFeedLists.forEach(function(list) {
-                list.username = userMap.get(String(list.user_id)) || 'member';
+            var byType = {};
+            allItems.forEach(function(item) {
+                var mt = String(item.media_type || '').toLowerCase();
+                if (!mt || !CML_RAIL_MAP[mt]) return;
+                var img = String(item.image_url || '').trim();
+                if (!img) return;
+                if (!byType[mt]) byType[mt] = [];
+                byType[mt].push(img);
             });
 
-            for (let i = allFeedLists.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [allFeedLists[i], allFeedLists[j]] = [allFeedLists[j], allFeedLists[i]];
-            }
+            Object.keys(byType).forEach(function(mt) {
+                var urls = byType[mt];
+                var seen = {};
+                var deduped = [];
+                urls.forEach(function(u) {
+                    if (!seen[u]) { seen[u] = true; deduped.push(u); }
+                });
+                for (var i = deduped.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1));
+                    var tmp = deduped[i]; deduped[i] = deduped[j]; deduped[j] = tmp;
+                }
+                byType[mt] = deduped;
+            });
 
-            listsFeedCache = allFeedLists;
-            renderListsFromCache();
-        } catch (_e) {
-            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-layer-group"></i></div><div class="empty-title">no public lists yet.</div></div>';
-        }
+            listsFeedCache = { byType: byType };
+            Object.keys(CML_RAIL_MAP).forEach(function(mt) {
+                populateListRail(mt, byType[mt] || []);
+            });
+        } catch (_e) {}
     }
 
     // === TAB SWITCHING MANAGER ===
@@ -1836,6 +1802,7 @@ window.CommunityManager = (function() {
             loadActivityFeed();
         } else if (tabName === 'lists') {
             loadListsFeed();
+            setTimeout(initListsModeIndicator, 50);
         }
     }
 
@@ -1887,6 +1854,11 @@ window.CommunityManager = (function() {
         }
         loadFollowingSet();
         loadFollowersSet();
+        initListsModeIndicator();
+    });
+
+    window.addEventListener('load', function() {
+        initListsModeIndicator();
     });
 
     return {
@@ -1909,6 +1881,6 @@ window.CommunityManager = (function() {
         submitNestedReply: submitNestedReply,
         deleteActivityReply: deleteActivityReply,
         loadListsFeed: loadListsFeed,
-        setListsFeedFilter: setListsFeedFilter
+        setListsMode: setListsMode
     };
 })();
