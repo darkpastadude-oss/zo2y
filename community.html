@@ -82,6 +82,9 @@
                     <button class="community-tab-btn" data-tab="following" type="button" onclick="CommunityManager.switchTab('following')">
                         <i class="fas fa-user-check"></i> following
                     </button>
+                    <button class="community-tab-btn" data-tab="followers" type="button" onclick="CommunityManager.switchTab('followers')">
+                        <i class="fas fa-user-friends"></i> followers
+                    </button>
                 </div>
             </div>
         </div>
@@ -174,7 +177,7 @@
                 </div>
             </div>
 
-            <!-- Pane 4: People (Member Search Grid) -->
+            <!-- Pane 5: People (Member Search Grid) -->
             <div class="community-tab-pane" id="panePeople">
                 <div id="peopleListFeed" class="people-feed-grid">
                     <div class="community-empty-box">
@@ -185,13 +188,24 @@
                 </div>
             </div>
 
-            <!-- Pane 5: Following (Followed Members Feed) -->
+            <!-- Pane 6: Following (Followed Members Feed) -->
             <div class="community-tab-pane" id="paneFollowing">
                 <div id="followingListFeed" class="people-feed-grid">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-user-check"></i></div>
                         <div class="empty-title">follow members to see activity.</div>
                         <div class="empty-desc">when members you follow rate or review media, their activity appears here.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pane 7: Followers (Members Following You Feed) -->
+            <div class="community-tab-pane" id="paneFollowers">
+                <div id="followersListFeed" class="people-feed-grid">
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
+                        <div class="empty-title">see who follows you.</div>
+                        <div class="empty-desc">when members follow your profile, they will appear here.</div>
                     </div>
                 </div>
             </div>

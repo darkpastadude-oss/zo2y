@@ -400,6 +400,7 @@ window.CommunityManager = (function() {
             const username = usernameClean(profile.username || profile.full_name || 'member');
             const fullName = profile.full_name || username;
             const isFollowing = followingSet.has(userId);
+            const isSelf = currentUser && String(currentUser.id) === userId;
             const profileUrl = userId ? `profile.html?id=${encodeURIComponent(userId)}&u=${encodeURIComponent(username)}` : `profile.html?u=${encodeURIComponent(username)}`;
 
             return `
@@ -413,12 +414,14 @@ window.CommunityManager = (function() {
                             <div class="user-card-fullname">${escapeHtml(fullName)}</div>
                         </div>
                     </div>
-                    <button class="btn-follow-toggle ${isFollowing ? 'following' : ''}" 
-                            onclick="event.stopPropagation(); CommunityManager.toggleFollow('${userId}', this)" 
-                            type="button">
-                        <i class="fas ${isFollowing ? 'fa-user-check' : 'fa-user-plus'}"></i>
-                        <span>${isFollowing ? 'following' : 'follow'}</span>
-                    </button>
+                    ${!isSelf ? `
+                        <button class="btn-follow-toggle ${isFollowing ? 'following' : ''}" 
+                                onclick="event.stopPropagation(); CommunityManager.toggleFollow('${userId}', this)" 
+                                type="button">
+                            <i class="fas ${isFollowing ? 'fa-user-check' : 'fa-user-plus'}"></i>
+                            <span>${isFollowing ? 'following' : 'follow'}</span>
+                        </button>
+                    ` : ''}
                 </div>
             `;
         }
@@ -845,6 +848,68 @@ window.CommunityManager = (function() {
         } catch (_e) {}
     }
 
+    // === FOLLOWERS FEED ENGINE ===
+    async function loadFollowersFeed() {
+        const container = document.getElementById('followersListFeed');
+        if (!container) return;
+
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user || !client) {
+            container.innerHTML = `
+                <div class="community-empty-box">
+                    <div class="empty-icon"><i class="fas fa-user-lock"></i></div>
+                    <div class="empty-title">sign in to view members following you.</div>
+                    <a href="login.html" class="btn-empty-action"><i class="fas fa-sign-in-alt"></i> sign in</a>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const { data: follows, error } = await client
+                .from('follows')
+                .select('follower_id')
+                .eq('followed_id', user.id);
+
+            if (error || !follows || !follows.length) {
+                container.innerHTML = `
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
+                        <div class="empty-title">no followers yet.</div>
+                        <div class="empty-desc">when members follow your profile, they will show up here.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const ids = follows.map(f => f.follower_id);
+            const { data: profiles } = await client
+                .from('user_profiles')
+                .select('id, username, full_name')
+                .in('id', ids);
+
+            if (!profiles || !profiles.length) {
+                container.innerHTML = `
+                    <div class="community-empty-box">
+                        <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
+                        <div class="empty-title">no followers yet.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = profiles.map(p => UserCard.render(p)).join('');
+        } catch (_e) {
+            container.innerHTML = `
+                <div class="community-empty-box">
+                    <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
+                    <div class="empty-title">no followers yet.</div>
+                </div>
+            `;
+        }
+    }
+
     // === INTERACTIVE FOLLOW / UNFOLLOW TOGGLE ===
     async function toggleFollow(targetUserId, buttonEl) {
         const user = await getCurrentUser();
@@ -852,6 +917,10 @@ window.CommunityManager = (function() {
         if (!user) {
             window.location.href = 'login.html';
             return;
+        }
+
+        if (String(user.id) === String(targetUserId)) {
+            return; // Disallow following self
         }
 
         const isFollowing = followingSet.has(targetUserId);
@@ -916,6 +985,8 @@ window.CommunityManager = (function() {
             loadPeopleFeed();
         } else if (tabName === 'following') {
             loadFollowingFeed();
+        } else if (tabName === 'followers') {
+            loadFollowersFeed();
         } else if (tabName === 'activity') {
             loadActivityFeed();
         }
@@ -975,6 +1046,7 @@ window.CommunityManager = (function() {
         loadActivityFeed: loadActivityFeed,
         loadPeopleFeed: loadPeopleFeed,
         loadFollowingFeed: loadFollowingFeed,
+        loadFollowersFeed: loadFollowersFeed,
         toggleFollow: toggleFollow
     };
 })();
