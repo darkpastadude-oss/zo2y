@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720S">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720T">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720S" defer></script>
+    <script src="js/pages/community.js?v=20260720T" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -183,24 +183,11 @@
                     </div>
                 </div>
 
-                <!-- Media Mode Panel -->
-                <div class="cml-mode-panel" id="cmlMediaPanel">
-                    <div class="cml-rail" data-cml-rail-media="movie"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-film"></i> movies</div></div><div class="cml-rail-track" id="cmlMoviesTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="tv"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-tv"></i> tv shows</div></div><div class="cml-rail-track" id="cmlTvTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="anime"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-dragon"></i> anime</div></div><div class="cml-rail-track" id="cmlAnimeTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="game"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-gamepad"></i> games</div></div><div class="cml-rail-track" id="cmlGamesTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="book"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-book"></i> books</div></div><div class="cml-rail-track" id="cmlBooksTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="music"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-music"></i> music</div></div><div class="cml-rail-track" id="cmlMusicTrack"></div></div>
-                </div>
+                <!-- Media Mode Panel (dynamic rails) -->
+                <div class="cml-mode-panel" id="cmlMediaPanel"></div>
 
-                <!-- Lifestyle Mode Panel -->
-                <div class="cml-mode-panel" id="cmlLifestylePanel" style="display:none">
-                    <div class="cml-rail" data-cml-rail-media="sports"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-futbol"></i> sports</div></div><div class="cml-rail-track" id="cmlSportsTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="travel"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-earth-americas"></i> travel</div></div><div class="cml-rail-track" id="cmlTravelTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="food"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-burger"></i> food</div></div><div class="cml-rail-track" id="cmlFoodTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="fashion"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-shirt"></i> fashion</div></div><div class="cml-rail-track" id="cmlFashionTrack"></div></div>
-                    <div class="cml-rail" data-cml-rail-media="car"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-car"></i> cars</div></div><div class="cml-rail-track" id="cmlCarsTrack"></div></div>
-                </div>
+                <!-- Lifestyle Mode Panel (dynamic rails) -->
+                <div class="cml-mode-panel" id="cmlLifestylePanel" style="display:none"></div>
             </div>
 
             <!-- Pane 5: People (Member Search Grid) -->

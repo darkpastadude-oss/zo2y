@@ -1610,39 +1610,31 @@ window.CommunityManager = (function() {
     }
 
     // === COMMUNITY LISTS RAIL ENGINE ===
-    let listsMode = 'media';
-    let listsFilter = 'all';
-    let listsFeedCache = [];
+    var listsMode = 'media';
+    var listsFilter = 'all';
+    var listsFeedCache = [];
 
-    const CML_RAIL_MAP = {
-        movie: 'cmlMoviesTrack', tv: 'cmlTvTrack', anime: 'cmlAnimeTrack',
-        game: 'cmlGamesTrack', book: 'cmlBooksTrack', music: 'cmlMusicTrack',
-        sports: 'cmlSportsTrack', travel: 'cmlTravelTrack', fashion: 'cmlFashionTrack',
-        food: 'cmlFoodTrack', car: 'cmlCarsTrack'
+    var CML_MEDIA_TYPES = {
+        movie: true, tv: true, anime: true, game: true, book: true, music: true,
+        sports: true, travel: true, fashion: true, food: true, car: true
     };
-
-    const CML_MEDIA_LABELS = {
-        movie: 'movies', tv: 'tv', anime: 'anime', game: 'games',
+    var CML_MEDIA_TYPES_LIFESTYLE = { sports: true, travel: true, fashion: true, food: true, car: true };
+    var CML_MEDIA_LABELS = {
+        movie: 'movies', tv: 'tv shows', anime: 'anime', game: 'games',
         book: 'books', music: 'music', sports: 'sports', travel: 'travel',
         fashion: 'fashion', food: 'food', car: 'cars'
     };
+    var CML_SQUARE_TYPES = { music: true, sports: true, fashion: true, food: true };
+    var CML_LANDSCAPE_TYPES = { travel: true, car: true };
+    var CML_BRAND_TYPES = { sports: true, fashion: true, food: true, car: true };
 
-    const CML_MEDIA_ICONS = {
-        movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
-        book: 'fa-book', music: 'fa-music', sports: 'fa-futbol',
-        travel: 'fa-earth-americas', fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
-    };
-
-    const CML_LIST_TYPES = {
-        favorites: 'favorites', watched: 'watched', watchlist: 'watchlist',
-        reading: 'reading', readlist: 'readlist', read: 'read',
-        listening: 'listening', listenlist: 'listenlist',
-        playing: 'playing', watching: 'watching', owned: 'owned'
-    };
-
-    const CML_SQUARE_TYPES = ['music', 'sports', 'fashion', 'food'];
-    const CML_LANDSCAPE_TYPES = ['travel', 'car'];
-    const CML_BRAND_TYPES = ['sports', 'fashion', 'food', 'car'];
+    function shuffleArray(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+        }
+        return arr;
+    }
 
     function setListsMode(mode) {
         listsMode = mode || 'media';
@@ -1720,65 +1712,76 @@ window.CommunityManager = (function() {
         document.querySelectorAll('.cml-filter-opt').forEach(function(opt) {
             opt.classList.toggle('active', opt.getAttribute('data-cml-filter') === listsFilter);
         });
-        applyListsFilter();
+        renderListsRails();
         closeFilterDropdown();
     }
 
-    function applyListsFilter() {
-        document.querySelectorAll('.cml-rail').forEach(function(rail) {
-            var mediaType = rail.getAttribute('data-cml-rail-media');
-            if (!mediaType) return;
-            if (listsFilter === 'all') {
-                rail.classList.remove('cml-rail-hidden');
-            } else {
-                rail.classList.toggle('cml-rail-hidden', mediaType !== listsFilter);
-            }
-        });
-    }
-
-    function buildPosterCard(item) {
-        var mediaType = item.media_type || '';
-        var listName = item.list_name || 'list';
-        var username = item.username || 'member';
-        var imageUrl = item.image_url || '';
-        var profileUrl = item.user_id ? 'profile.html?id=' + encodeURIComponent(item.user_id) : '#';
-        var mediaLabel = CML_MEDIA_LABELS[mediaType] || mediaType;
-
+    function buildRailPosterCard(imageUrl, profileUrl) {
         var cls = 'cml-poster';
-        if (CML_SQUARE_TYPES.includes(mediaType)) cls += ' is-square';
-        if (CML_LANDSCAPE_TYPES.includes(mediaType)) cls += ' is-landscape';
-        if (CML_BRAND_TYPES.includes(mediaType)) cls += ' is-brand';
-
         return '<div class="' + cls + '" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
             + '<div class="cml-poster-img-wrap">'
             + '<img class="cml-poster-img" src="' + escapeHtml(imageUrl) + '" alt="" loading="lazy" onerror="this.src=\'/newlogo.webp\'" />'
-            + '<div class="cml-poster-overlay">'
-            + '<div class="cml-poster-list-name">' + escapeHtml(mediaLabel) + '<span class="cml-card-dot"> . </span>' + escapeHtml(listName) + '</div>'
-            + '<a href="' + escapeHtml(profileUrl) + '" class="cml-poster-username" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
             + '</div>'
-            + '</div>'
-            + '<div class="cml-poster-label">' + escapeHtml(mediaLabel) + ' . ' + escapeHtml(listName) + '</div>'
             + '</div>';
     }
 
-    function populateListRail(mediaType, items) {
-        var trackId = CML_RAIL_MAP[mediaType];
-        var track = trackId ? document.getElementById(trackId) : null;
-        if (!track) return;
-        track.innerHTML = '';
-        if (!items.length) {
-            var icon = CML_MEDIA_ICONS[mediaType] || 'fa-plus';
-            track.innerHTML = '<div class="cml-rail-empty"><i class="fas ' + icon + '"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
-            return;
+    function renderListsRails() {
+        var mediaPanel = document.getElementById('cmlMediaPanel');
+        var lifestylePanel = document.getElementById('cmlLifestylePanel');
+        if (!mediaPanel || !lifestylePanel) return;
+
+        var rails = listsFeedCache || [];
+
+        if (listsFilter !== 'all') {
+            rails = rails.filter(function(r) { return r.media_type === listsFilter; });
         }
-        track.className = 'cml-rail-track';
-        items.forEach(function(item, i) {
-            var wrapper = document.createElement('div');
-            wrapper.innerHTML = buildPosterCard(item);
-            var card = wrapper.firstElementChild;
-            card.style.animationDelay = (i * 40) + 'ms';
-            track.appendChild(card);
+
+        var mediaRails = [];
+        var lifestyleRails = [];
+        rails.forEach(function(rail) {
+            if (CML_MEDIA_TYPES_LIFESTYLE[rail.media_type]) {
+                lifestyleRails.push(rail);
+            } else {
+                mediaRails.push(rail);
+            }
         });
+
+        mediaPanel.innerHTML = mediaRails.length ? mediaRails.map(function(rail) {
+            var icon = 'fa-film';
+            if (rail.media_type === 'tv') icon = 'fa-tv';
+            else if (rail.media_type === 'anime') icon = 'fa-dragon';
+            else if (rail.media_type === 'game') icon = 'fa-gamepad';
+            else if (rail.media_type === 'book') icon = 'fa-book';
+            else if (rail.media_type === 'music') icon = 'fa-music';
+            var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
+            var cardsHtml = rail.items.map(function(item) {
+                return buildRailPosterCard(item.image_url, profileUrl);
+            }).join('');
+            return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
+                + '<div class="cml-rail-header">'
+                + '<div class="cml-rail-title"><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + '</div>'
+                + '</div>'
+                + '<div class="cml-rail-track">' + cardsHtml + '</div>'
+                + '</div>';
+        }).join('') : '<div class="cml-rail-empty"><i class="fas fa-film"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+
+        lifestylePanel.innerHTML = lifestyleRails.length ? lifestyleRails.map(function(rail) {
+            var icon = 'fa-futbol';
+            if (rail.media_type === 'travel') icon = 'fa-earth-americas';
+            else if (rail.media_type === 'food') icon = 'fa-burger';
+            else if (rail.media_type === 'fashion') icon = 'fa-shirt';
+            else if (rail.media_type === 'car') icon = 'fa-car';
+            var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
+            var cardsHtml = rail.items.map(function(item) {
+                return buildRailPosterCard(item.image_url, profileUrl);
+            }).join('');
+            return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
+                + '<div class="cml-rail-header">'
+                + '<div class="cml-rail-title"><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + '</div>'
+                + '</div>'
+                + '<div class="cml-rail-track">' + cardsHtml + '</div>'
+                + '</div>';
+        }).join('') : '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
     }
 
     async function loadListsFeed() {
@@ -1786,112 +1789,106 @@ window.CommunityManager = (function() {
         if (!client) return;
 
         try {
-            var allCards = [];
-
-            var result1 = await client
+            var result = await client
                 .from('list_items')
                 .select('user_id, list_type, list_id, title, image_url, media_type, created_at')
                 .order('created_at', { ascending: false })
-                .limit(800);
+                .limit(1000);
 
-            if (result1.error) {
-                console.warn('loadListsFeed list_items query error:', result1.error.message);
+            if (result.error) {
+                console.warn('loadListsFeed list_items error:', result.error.message);
+                renderListsRails();
+                return;
             }
 
-            if (Array.isArray(result1.data) && result1.data.length) {
-                var seenDefault = {};
-                result1.data.forEach(function(item) {
-                    var mt = String(item.media_type || '').toLowerCase();
-                    if (!mt || !CML_RAIL_MAP[mt]) return;
-                    var img = String(item.image_url || '').trim() || '/newlogo.webp';
-                    var hasListId = !!item.list_id;
-                    var hasListType = !!item.list_type;
-
-                    if (hasListId) {
-                        allCards.push({
-                            user_id: item.user_id,
-                            media_type: mt,
-                            list_name: 'collection',
-                            list_id: String(item.list_id || ''),
-                            image_url: img,
-                            created_at: item.created_at || ''
-                        });
-                    } else if (hasListType) {
-                        var listType = CML_LIST_TYPES[item.list_type] || item.list_type || 'list';
-                        allCards.push({
-                            user_id: item.user_id,
-                            media_type: mt,
-                            list_name: listType,
-                            image_url: img,
-                            created_at: item.created_at || ''
-                        });
-                    } else {
-                        allCards.push({
-                            user_id: item.user_id,
-                            media_type: mt,
-                            list_name: 'list',
-                            image_url: img,
-                            created_at: item.created_at || ''
-                        });
-                    }
-                });
+            var rows = Array.isArray(result.data) ? result.data : [];
+            if (!rows.length) {
+                listsFeedCache = [];
+                renderListsRails();
+                return;
             }
+
+            var customListIds = [];
+            rows.forEach(function(r) {
+                if (r.list_id && customListIds.indexOf(String(r.list_id)) === -1) {
+                    customListIds.push(String(r.list_id));
+                }
+            });
 
             var listNamesMap = {};
-            try {
+            if (customListIds.length) {
                 var listTables = ['user_lists', 'movie_lists', 'tv_lists', 'anime_lists', 'game_lists', 'book_lists', 'music_lists', 'sports_lists'];
                 for (var ti = 0; ti < listTables.length; ti++) {
                     try {
-                        var lr = await client.from(listTables[ti]).select('id, user_id, media_type, name, title, created_at').limit(100);
-                        if (Array.isArray(lr.data) && lr.data.length) {
+                        var lr = await client.from(listTables[ti]).select('id, user_id, media_type, name, title').in('id', customListIds);
+                        if (Array.isArray(lr.data)) {
                             lr.data.forEach(function(l) {
-                                listNamesMap[String(l.id)] = l.name || l.title || 'collection';
+                                listNamesMap[String(l.id)] = { name: l.name || l.title || 'collection', user_id: l.user_id, media_type: l.media_type };
                             });
                         }
                     } catch (_lte) {}
                 }
-            } catch (_lte2) {}
+            }
 
-            allCards.forEach(function(card) {
-                if (card.list_name === 'collection' && listNamesMap[card.list_id]) {
-                    card.list_name = listNamesMap[card.list_id];
+            var railGroups = {};
+            rows.forEach(function(item) {
+                var mt = String(item.media_type || '').toLowerCase();
+                if (!mt || !CML_MEDIA_TYPES[mt]) return;
+                var hasListId = !!item.list_id;
+                var hasListType = !!item.list_type;
+
+                if (hasListId) {
+                    var listId = String(item.list_id);
+                    var key = 'custom_' + listId;
+                    if (!railGroups[key]) {
+                        var resolved = listNamesMap[listId] || {};
+                        railGroups[key] = {
+                            user_id: item.user_id,
+                            media_type: mt,
+                            media_label: CML_MEDIA_LABELS[mt] || mt,
+                            list_name: resolved.name || 'collection',
+                            items: []
+                        };
+                    }
+                    var img = String(item.image_url || '').trim() || '/newlogo.webp';
+                    railGroups[key].items.push({ image_url: img, title: item.title || '' });
+                } else if (hasListType && item.list_type === 'favorites') {
+                    var favKey = 'fav_' + item.user_id + '_' + mt;
+                    if (!railGroups[favKey]) {
+                        railGroups[favKey] = {
+                            user_id: item.user_id,
+                            media_type: mt,
+                            media_label: CML_MEDIA_LABELS[mt] || mt,
+                            list_name: 'favorites',
+                            items: []
+                        };
+                    }
+                    var favImg = String(item.image_url || '').trim() || '/newlogo.webp';
+                    railGroups[favKey].items.push({ image_url: favImg, title: item.title || '' });
                 }
             });
 
-            if (!allCards.length) {
-                Object.keys(CML_RAIL_MAP).forEach(function(mt) {
-                    populateListRail(mt, []);
-                });
-                return;
-            }
+            var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
 
-            var userIds = [...new Set(allCards.map(function(c) { return c.user_id; }).filter(Boolean))];
+            shuffleArray(rails);
+
+            var userIds = [];
+            var userIdSet = {};
+            rails.forEach(function(r) {
+                var uid = String(r.user_id || '');
+                if (uid && !userIdSet[uid]) { userIdSet[uid] = true; userIds.push(uid); }
+            });
+
             var userMap = await fetchUserNames(client, userIds);
-
-            allCards.forEach(function(card) {
-                card.username = userMap.get(String(card.user_id)) || 'member';
+            rails.forEach(function(r) {
+                r.username = userMap.get(String(r.user_id)) || 'member';
             });
 
-            for (var i = allCards.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                var tmp = allCards[i]; allCards[i] = allCards[j]; allCards[j] = tmp;
-            }
-
-            listsFeedCache = allCards;
-
-            var byType = {};
-            allCards.forEach(function(card) {
-                var mt = card.media_type;
-                if (!byType[mt]) byType[mt] = [];
-                byType[mt].push(card);
-            });
-
-            Object.keys(CML_RAIL_MAP).forEach(function(mt) {
-                populateListRail(mt, byType[mt] || []);
-            });
-
-            applyListsFilter();
-        } catch (e) { console.error('loadListsFeed error:', e); }
+            listsFeedCache = rails;
+            renderListsRails();
+        } catch (e) {
+            console.error('loadListsFeed error:', e);
+        }
     }
 
     document.addEventListener('click', function(e) {

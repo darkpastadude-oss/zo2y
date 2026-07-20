@@ -763,24 +763,20 @@ body::after {
 .cml-rail-title {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     font-size: 1rem;
     font-weight: 700;
     text-transform: lowercase;
     color: var(--white);
+    flex-wrap: wrap;
 }
 
-.cml-rail-title i {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
+.cml-rail-user-link {
     color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 700;
 }
+.cml-rail-user-link:hover { text-decoration: underline; }
 
 /* Rail track (horizontal scroll of poster cards) */
 .cml-rail-track {
@@ -860,60 +856,8 @@ body::after {
     padding: 16px;
 }
 
-/* Poster hover overlay with text */
-.cml-poster-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.1) 50%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.22s ease;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 10px;
-    pointer-events: none;
-}
-
-.cml-poster:hover .cml-poster-overlay { opacity: 1; }
-
-.cml-poster-list-name {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #fff;
-    line-height: 1.25;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.cml-poster-list-name .cml-card-dot {
-    color: var(--accent);
-    margin: 0 3px;
-}
-
-.cml-poster-username {
-    font-size: 0.68rem;
-    color: var(--accent);
-    margin-top: 2px;
-    text-decoration: none;
-}
-
-.cml-poster-username:hover { text-decoration: underline; }
-
-/* Visible label below poster */
-.cml-poster-label {
-    margin-top: 7px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: rgba(203,213,225,0.6);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    line-height: 1.3;
-}
+/* Poster hover overlay — subtle lift only */
+.cml-poster-overlay { display: none; }
 
 /* Rail empty state */
 .cml-rail-empty {
