@@ -10,6 +10,8 @@ window.CommunityManager = (function() {
     let followingSet = new Set();
     let followersSet = new Set();
     let activityFilter = 'all';
+    let cachedFollowingProfiles = [];
+    let cachedFollowersProfiles = [];
 
     function getSupabaseConfig() {
         return window.__ZO2Y_SUPABASE_CONFIG || {
@@ -96,6 +98,10 @@ window.CommunityManager = (function() {
         document.querySelectorAll('.activity-filter-btn').forEach(function(btn) {
             btn.classList.toggle('active', btn.getAttribute('data-activity-filter') === activityFilter);
         });
+        const container = document.getElementById('activityListFeed');
+        if (container) {
+            container.innerHTML = '<div class="activity-loading"><i class="fas fa-spinner fa-spin"></i> loading...</div>';
+        }
         loadActivityFeed();
     }
 
@@ -666,7 +672,8 @@ window.CommunityManager = (function() {
 
             let items = Array.isArray(rows) ? rows : [];
 
-            if (filterSet && filterSet.size) {
+            if (filterSet !== null) {
+                if (!filterSet.size) return [];
                 items = items.filter(row => filterSet.has(String(row.actor_id || '')));
             }
 
@@ -760,6 +767,12 @@ window.CommunityManager = (function() {
 
         if (!listItems.length && !reviews.length && !createdLists.length) return [];
 
+        const filteredBySet = (userId) => {
+            if (filterSet === null) return true;
+            if (!filterSet.size) return false;
+            return filterSet.has(String(userId || ''));
+        };
+
         const listIds = [...new Set(listItems.map(i => i.list_id).filter(Boolean))];
         const customListNames = new Map();
         if (listIds.length) {
@@ -782,7 +795,7 @@ window.CommunityManager = (function() {
         const activityItems = [];
 
         listItems.forEach(item => {
-            if (filterSet && filterSet.size && !filterSet.has(String(item.user_id || ''))) return;
+            if (!filteredBySet(item.user_id)) return;
             activityItems.push({
                 ...item,
                 event_type: 'list_add',
@@ -793,7 +806,7 @@ window.CommunityManager = (function() {
         });
 
         reviews.forEach(review => {
-            if (filterSet && filterSet.size && !filterSet.has(String(review.user_id || ''))) return;
+            if (!filteredBySet(review.user_id)) return;
             activityItems.push({
                 ...review,
                 event_type: 'review_add',
@@ -803,7 +816,7 @@ window.CommunityManager = (function() {
         });
 
         createdLists.forEach(list => {
-            if (filterSet && filterSet.size && !filterSet.has(String(list.user_id || ''))) return;
+            if (!filteredBySet(list.user_id)) return;
             activityItems.push({
                 ...list,
                 event_type: 'list_create',
@@ -1074,6 +1087,7 @@ window.CommunityManager = (function() {
             }
 
             followingSet = new Set(ids.map(String));
+            cachedFollowingProfiles = profiles;
             container.innerHTML = profiles.map(p => UserCard.render(p)).join('');
         } catch (_e) {}
     }
@@ -1129,6 +1143,7 @@ window.CommunityManager = (function() {
                 return;
             }
 
+            cachedFollowersProfiles = profiles;
             container.innerHTML = profiles.map(p => UserCard.render(p)).join('');
         } catch (_e) {
             container.innerHTML = `
@@ -1177,6 +1192,62 @@ window.CommunityManager = (function() {
         const label = buttonEl.querySelector('span');
         if (icon) icon.className = `fas ${isFollowing ? 'fa-user-check' : 'fa-user-plus'}`;
         if (label) label.textContent = isFollowing ? 'following' : 'follow';
+    }
+
+    // === CLIENT-SIDE PEOPLE SEARCH ===
+    function searchPeople(query) {
+        const container = document.getElementById('peopleListFeed');
+        if (!container) return;
+        const cleanQ = String(query || '').trim().replace(/^@+/, '').toLowerCase();
+        if (!cleanQ) {
+            loadPeopleFeed();
+            return;
+        }
+        loadPeopleFeed(cleanQ);
+    }
+
+    function searchFollowing(query) {
+        const container = document.getElementById('followingListFeed');
+        if (!container) return;
+        const cleanQ = String(query || '').trim().replace(/^@+/, '').toLowerCase();
+        if (!cleanQ) {
+            container.innerHTML = cachedFollowingProfiles.length
+                ? cachedFollowingProfiles.map(p => UserCard.render(p)).join('')
+                : '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-user-check"></i></div><div class="empty-title">you are not following anyone yet.</div></div>';
+            return;
+        }
+        const filtered = cachedFollowingProfiles.filter(p => {
+            const username = String(p.username || '').toLowerCase();
+            const fullName = String(p.full_name || '').toLowerCase();
+            return username.includes(cleanQ) || fullName.includes(cleanQ);
+        });
+        if (!filtered.length) {
+            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-user-check"></i></div><div class="empty-title">no matches found.</div><div class="empty-desc">try a different search term.</div></div>';
+            return;
+        }
+        container.innerHTML = filtered.map(p => UserCard.render(p)).join('');
+    }
+
+    function searchFollowers(query) {
+        const container = document.getElementById('followersListFeed');
+        if (!container) return;
+        const cleanQ = String(query || '').trim().replace(/^@+/, '').toLowerCase();
+        if (!cleanQ) {
+            container.innerHTML = cachedFollowersProfiles.length
+                ? cachedFollowersProfiles.map(p => UserCard.render(p)).join('')
+                : '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-user-friends"></i></div><div class="empty-title">no followers yet.</div></div>';
+            return;
+        }
+        const filtered = cachedFollowersProfiles.filter(p => {
+            const username = String(p.username || '').toLowerCase();
+            const fullName = String(p.full_name || '').toLowerCase();
+            return username.includes(cleanQ) || fullName.includes(cleanQ);
+        });
+        if (!filtered.length) {
+            container.innerHTML = '<div class="community-empty-box"><div class="empty-icon"><i class="fas fa-user-friends"></i></div><div class="empty-title">no matches found.</div><div class="empty-desc">try a different search term.</div></div>';
+            return;
+        }
+        container.innerHTML = filtered.map(p => UserCard.render(p)).join('');
     }
 
     // === TAB SWITCHING MANAGER ===
@@ -1262,6 +1333,9 @@ window.CommunityManager = (function() {
         loadFollowingFeed: loadFollowingFeed,
         loadFollowersFeed: loadFollowersFeed,
         toggleFollow: toggleFollow,
-        setActivityFilter: setActivityFilter
+        setActivityFilter: setActivityFilter,
+        searchPeople: searchPeople,
+        searchFollowing: searchFollowing,
+        searchFollowers: searchFollowers
     };
 })();

@@ -64,7 +64,6 @@ const STATIC_ASSETS = [
   '/js/pages/brand.js?v=20260708b',
   '/js/profile-showcase.js?v=20260708b',
   '/js/pages/profile.js?v=20260708c',
-  '/js/pages/reviews-page.js?v=20260708b',
   '/js/review-interactions.js?v=20260708b',
   '/team.html',
 

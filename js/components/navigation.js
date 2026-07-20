@@ -5,7 +5,7 @@
   var SAFETY_TIMEOUT_MS = 3000;
   var SPA_ROUTES = new Set([
     'index', 'movies', 'tvshows', 'animes', 'games', 'books', 'music',
-    'travel', 'sports', 'fashion', 'food', 'cars', 'reviews', 'profile'
+    'travel', 'sports', 'fashion', 'food', 'cars', 'community', 'profile'
   ]);
 
   var isNavigating = false;
@@ -25,7 +25,7 @@
     if (file === 'fashion.html') return 'fashion';
     if (file === 'food.html') return 'food';
     if (file === 'cars.html') return 'cars';
-    if (file === 'reviews.html') return 'reviews';
+    if (file === 'community.html') return 'community';
     if (file === 'profile.html') return 'profile';
     if (file.startsWith('movie')) return 'movie-detail';
     if (file.startsWith('tvshow')) return 'tvshow-detail';
@@ -54,7 +54,7 @@
     if (file.startsWith('fashion')) return 'fashion';
     if (file.startsWith('food')) return 'food';
     if (file.startsWith('cars') || file.startsWith('car')) return 'cars';
-    if (file.startsWith('review')) return 'reviews';
+    if (file.startsWith('community')) return 'community';
     if (file.startsWith('profile')) return 'profile';
     return 'index';
   }

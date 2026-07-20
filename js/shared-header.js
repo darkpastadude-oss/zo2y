@@ -99,7 +99,7 @@ const HEADER_HTML = `
           <a class="zo2y-nav-link" data-nav-page="cars" href="cars.html">Cars</a>
         </div>
       </div>
-      <a class="zo2y-shared-pill" data-nav-page="reviews" href="reviews.html">Reviews</a>
+      <a class="zo2y-shared-pill" data-nav-page="community" href="community.html"><i class="fa-solid fa-earth-americas" style="font-size:0.75em;margin-right:3px;color:#3b82f6;"></i> Community</a>
     </nav>
     <div class="zo2y-shared-auth">
       <a class="zo2y-shared-btn" href="login.html" id="loginBtn">Login</a>
@@ -147,7 +147,7 @@ const HEADER_HTML = `
       <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
-    <a class="zo2y-desktop-rail-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>reviews</span></a>
+    <a class="zo2y-desktop-rail-link accent" data-nav-page="community" href="community.html"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
   </nav>
 </aside>
 <div class="zo2y-mobile-drawer-backdrop" id="zo2yMobileDrawerBackdrop" hidden></div>
@@ -206,7 +206,7 @@ const HEADER_HTML = `
         <a class="zo2y-mobile-drawer-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>Cars</span></a>
       </div>
     </div>
-    <a class="zo2y-mobile-drawer-link accent" data-nav-page="reviews" href="reviews.html"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
+    <a class="zo2y-mobile-drawer-link accent" data-nav-page="community" href="community.html"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>Community</span></a>
   </nav>
 
   <div class="zo2y-mobile-drawer-footer">
@@ -297,7 +297,7 @@ const HEADER_HTML = `
     if (file.startsWith('fashion')) return 'fashion';
     if (file.startsWith('food')) return 'food';
     if (file.startsWith('cars') || file.startsWith('car')) return 'cars';
-    if (file.startsWith('review')) return 'reviews';
+    if (file.startsWith('community')) return 'community';
     if (file.startsWith('profile')) return 'profile';
     return 'index';
   }

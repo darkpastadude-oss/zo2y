@@ -565,6 +565,54 @@ body::after {
     border: 1px solid var(--border) !important;
 }
 
+/* === COMMUNITY SEARCH BAR === */
+.community-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(15, 31, 64, 0.6);
+    margin-bottom: 12px;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.community-search-bar:focus-within {
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.community-search-icon {
+    color: var(--muted);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.community-search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-size: 0.85rem;
+    font-family: inherit;
+}
+
+.community-search-input::placeholder {
+    color: var(--muted);
+}
+
+/* === ACTIVITY LOADING === */
+.activity-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
     .container {

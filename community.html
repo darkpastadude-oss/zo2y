@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720E">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720F">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720E" defer></script>
+    <script src="js/pages/community.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
 
@@ -154,6 +154,10 @@
 
             <!-- Pane 5: People (Member Search Grid) -->
             <div class="community-tab-pane" id="panePeople">
+                <div class="community-search-bar">
+                    <i class="fas fa-search community-search-icon"></i>
+                    <input type="text" id="peopleSearchInput" class="community-search-input" placeholder="search members by username..." oninput="CommunityManager.searchPeople(this.value)" />
+                </div>
                 <div id="peopleListFeed" class="people-feed-grid">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-users"></i></div>
@@ -165,6 +169,10 @@
 
             <!-- Pane 6: Following (Followed Members Feed) -->
             <div class="community-tab-pane" id="paneFollowing">
+                <div class="community-search-bar">
+                    <i class="fas fa-search community-search-icon"></i>
+                    <input type="text" id="followingSearchInput" class="community-search-input" placeholder="search people you follow..." oninput="CommunityManager.searchFollowing(this.value)" />
+                </div>
                 <div id="followingListFeed" class="people-feed-grid">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-user-check"></i></div>
@@ -176,6 +184,10 @@
 
             <!-- Pane 7: Followers (Members Following You Feed) -->
             <div class="community-tab-pane" id="paneFollowers">
+                <div class="community-search-bar">
+                    <i class="fas fa-search community-search-icon"></i>
+                    <input type="text" id="followersSearchInput" class="community-search-input" placeholder="search your followers..." oninput="CommunityManager.searchFollowers(this.value)" />
+                </div>
                 <div id="followersListFeed" class="people-feed-grid">
                     <div class="community-empty-box">
                         <div class="empty-icon"><i class="fas fa-user-friends"></i></div>

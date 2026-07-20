@@ -812,7 +812,7 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
         author: reviewer,
         score: scoreLabel,
         image: safeHttps(meta.background || meta.image || ''),
-        href: meta.href || 'reviews.html'
+        href: meta.href || 'community.html'
       });
 
       if (slides.length >= 10) break;
@@ -967,10 +967,10 @@ const SUPABASE_KEY = String(supabaseConfig.key || '').trim();
         kicker: 'Reviews Spotlight',
         title: 'No community reviews yet',
         quote: 'As soon as someone posts a review, this section updates from live data.',
-        author: 'zo2y.com/reviews',
+        author: 'zo2y.com/community',
         score: '-',
         image: '',
-        href: 'reviews.html'
+        href: 'community.html'
       }];
     }
 
