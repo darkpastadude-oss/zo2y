@@ -1800,6 +1800,9 @@ window.CommunityManager = (function() {
                 }
             });
         });
+        var hydrateDebug = { total: rails.reduce(function(a, r) { return a + r.items.length; }, 0), missing: 0, fixed: 0, byType: {} };
+        Object.keys(toHydrate).forEach(function(k) { hydrateDebug.byType[k] = toHydrate[k].length; hydrateDebug.missing += toHydrate[k].length; });
+        console.log('[CML] hydrateRailPosters start', hydrateDebug);
 
         var hydrateTMDB = async function(mediaType, endpoint) {
             var items = toHydrate[mediaType];
@@ -1865,13 +1868,16 @@ window.CommunityManager = (function() {
                 if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
             });
             try {
-                var result = await client.from('games').select('id, cover_url, hero_url').in('id', uniqueIds);
+                var numericIds = uniqueIds.map(function(id) { var n = Number(id); return isNaN(n) ? id : n; });
+                var result = await client.from('games').select('id, cover_url, hero_url').in('id', numericIds);
+                if (result.error) { console.warn('[CML] games query error:', result.error.message, 'ids:', numericIds); return; }
                 var map = {};
                 (result.data || []).forEach(function(row) {
-                    map[row.id] = row.cover_url || row.hero_url || '';
+                    map[String(row.id)] = row.cover_url || row.hero_url || '';
                 });
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-            } catch (_e) {}
+                console.log('[CML] games hydration:', { queried: numericIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length });
+            } catch (_e) { console.warn('[CML] hydrateGameCovers exception', _e); }
         };
 
         var hydrateBookCovers = async function() {
@@ -1884,12 +1890,14 @@ window.CommunityManager = (function() {
             });
             try {
                 var result = await client.from('books').select('id, title, thumbnail').in('id', uniqueIds);
+                if (result.error) { console.warn('[CML] books query error:', result.error.message, 'ids:', uniqueIds); return; }
                 var map = {};
                 (result.data || []).forEach(function(row) {
-                    map[row.id] = row.thumbnail || '';
+                    map[String(row.id)] = row.thumbnail || '';
                 });
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-            } catch (_e) {}
+                console.log('[CML] books hydration:', { queried: uniqueIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length, ids: uniqueIds.slice(0, 5) });
+            } catch (_e) { console.warn('[CML] hydrateBookCovers exception', _e); }
         };
 
         var hydrateMusicCovers = async function() {
@@ -1902,12 +1910,14 @@ window.CommunityManager = (function() {
             });
             try {
                 var result = await client.from('tracks').select('id, image_url').in('id', uniqueIds);
+                if (result.error) { console.warn('[CML] tracks query error:', result.error.message, 'ids:', uniqueIds); return; }
                 var map = {};
                 (result.data || []).forEach(function(row) {
-                    map[row.id] = row.image_url || '';
+                    map[String(row.id)] = row.image_url || '';
                 });
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-            } catch (_e) {}
+                console.log('[CML] music hydration:', { queried: uniqueIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length, ids: uniqueIds.slice(0, 5) });
+            } catch (_e) { console.warn('[CML] hydrateMusicCovers exception', _e); }
         };
 
         var hydrateSportsTeams = async function() {
@@ -1919,11 +1929,16 @@ window.CommunityManager = (function() {
                 if (!idSet[item.item_id]) { idSet[item.item_id] = true; uniqueIds.push(item.item_id); }
             });
             try {
-                var result = await client.from('teams').select('id, logo_url').in('id', uniqueIds);
+                var numericIds = uniqueIds.map(function(id) { var n = Number(id); return isNaN(n) ? id : n; });
+                var result = await client.from('teams').select('id, logo_url').in('id', numericIds);
+                if (result.error) { console.warn('[CML] teams query error:', result.error.message, 'ids:', numericIds); return; }
                 var map = {};
-                (result.data || []).forEach(function(row) { map[row.id] = row.logo_url || ''; });
+                (result.data || []).forEach(function(row) {
+                    map[String(row.id)] = row.logo_url || '';
+                });
                 items.forEach(function(item) { item.image_url = map[item.item_id] || ''; });
-            } catch (_e) {}
+                console.log('[CML] sports hydration:', { queried: numericIds.length, found: result.data ? result.data.length : 0, mapped: items.filter(function(i) { return !!i.image_url; }).length });
+            } catch (_e) { console.warn('[CML] hydrateSportsTeams exception', _e); }
         };
 
         await Promise.all([
@@ -1939,6 +1954,18 @@ window.CommunityManager = (function() {
             hydrateSportsTeams(),
             Promise.resolve().then(hydrateTravelFlags)
         ]);
+        var fixedCount = 0;
+        var stillEmpty = {};
+        rails.forEach(function(rail) {
+            rail.items.forEach(function(item) {
+                if (item.image_url) { fixedCount++; }
+                else if (item.item_id) {
+                    var mt = item.media_type || rail.media_type;
+                    stillEmpty[mt] = (stillEmpty[mt] || 0) + 1;
+                }
+            });
+        });
+        console.log('[CML] hydrateRailPosters done', { fixed: fixedCount, stillEmpty: stillEmpty });
     }
 
     function renderListsSkeleton() {
@@ -1983,6 +2010,17 @@ window.CommunityManager = (function() {
                 renderListsRails();
                 return;
             }
+
+            var imgStats = { total: rows.length, withImage: 0, withoutImage: 0, byType: {} };
+            rows.forEach(function(r) {
+                var mt = r.media_type || 'unknown';
+                if (!imgStats.byType[mt]) imgStats.byType[mt] = { total: 0, withImage: 0 };
+                imgStats.byType[mt].total++;
+                if (r.image_url && String(r.image_url).trim()) imgStats.byType[mt].withImage++;
+            });
+            imgStats.withImage = rows.filter(function(r) { return r.image_url && String(r.image_url).trim(); }).length;
+            imgStats.withoutImage = rows.length - imgStats.withImage;
+            console.log('[CML] list_items raw data:', imgStats);
 
             var customListIds = [];
             rows.forEach(function(r) {
