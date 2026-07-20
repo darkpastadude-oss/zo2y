@@ -371,18 +371,43 @@ body::after {
 }
 
 .activity-cover-img {
-    width: 40px;
-    height: 56px;
-    object-fit: cover;
     border-radius: 8px;
     border: 1px solid var(--border);
     flex-shrink: 0;
     margin-left: 14px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.activity-cover-poster {
+    width: 40px;
+    height: 56px;
+    object-fit: cover;
+}
+
+.activity-cover-wide {
+    width: 56px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 6px;
+}
+
+.activity-cover-square {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.activity-cover-album {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .activity-list-icon-badge {
-    width: 40px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
     border-radius: 8px;
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.25);
@@ -602,6 +627,205 @@ body::after {
     color: var(--muted);
 }
 
+/* === COMMUNITY TOP BAR / BACK BUTTON === */
+.community-topbar {
+    padding: 12px 0 0 0;
+}
+
+.community-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.community-back-btn:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.community-back-btn i {
+    font-size: 0.75rem;
+}
+
+/* === ACTIVITY CARD INTERACTIONS === */
+.activity-card-interactions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.activity-interact-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.activity-interact-btn:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.activity-interact-btn.active-like {
+    color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
+}
+
+.activity-interact-btn.active-dislike {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.activity-interact-btn i {
+    font-size: 0.7rem;
+}
+
+.activity-interact-count {
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 8px;
+    text-align: center;
+}
+
+/* Reply thread in activity card */
+.activity-reply-thread {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: none;
+}
+
+.activity-reply-thread.open {
+    display: block;
+}
+
+.activity-reply-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.activity-reply-input {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--white);
+    font-size: 0.78rem;
+    font-family: inherit;
+    resize: none;
+    min-height: 32px;
+    max-height: 80px;
+}
+
+.activity-reply-input:focus {
+    outline: none;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.activity-reply-submit {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.activity-reply-submit:hover {
+    background: rgba(245, 158, 11, 0.35);
+}
+
+.activity-reply-list {
+    margin-top: 6px;
+    display: grid;
+    gap: 6px;
+}
+
+.activity-reply-item {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.activity-reply-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+
+.activity-reply-user {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.activity-reply-user:hover {
+    text-decoration: underline;
+}
+
+.activity-reply-date {
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+
+.activity-reply-body {
+    font-size: 0.75rem;
+    color: var(--text2);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.activity-reply-delete {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.65rem;
+    cursor: pointer;
+    padding: 0 2px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.activity-reply-item:hover .activity-reply-delete {
+    opacity: 1;
+}
+
+.activity-reply-delete:hover {
+    color: #ef4444;
+}
+
 /* === ACTIVITY LOADING === */
 .activity-loading {
     display: flex;
@@ -626,6 +850,20 @@ body::after {
     .activity-filter-bar {
         width: 100%;
     }
+
+    .activity-card-interactions {
+        flex-wrap: wrap;
+    }
+
+    .community-back-btn {
+        font-size: 0.78rem;
+        padding: 5px 12px;
+    }
+
+    .activity-cover-poster { width: 36px; height: 50px; }
+    .activity-cover-wide { width: 50px; height: 36px; }
+    .activity-cover-square { width: 40px; height: 40px; }
+    .activity-cover-album { width: 40px; height: 40px; }
 
     .skel-spotlight,
     .community-spotlight-skel {

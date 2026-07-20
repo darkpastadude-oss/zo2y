@@ -12,6 +12,8 @@ window.CommunityManager = (function() {
     let activityFilter = 'all';
     let cachedFollowingProfiles = [];
     let cachedFollowersProfiles = [];
+    let activityReactions = {};
+    let activityReplies = {};
 
     function getSupabaseConfig() {
         return window.__ZO2Y_SUPABASE_CONFIG || {
@@ -586,6 +588,47 @@ window.CommunityManager = (function() {
                 fashion: 'fa-shirt', food: 'fa-utensils', car: 'fa-car'
             }[mediaType] || 'fa-layer-group';
 
+            const isReview = eventType === 'review' || eventType === 'review_add' || eventType === 'review_edit';
+            const feedId = item.id || '';
+
+            const coverClassMap = {
+                movie: 'activity-cover-poster', tv: 'activity-cover-poster', tvshow: 'activity-cover-poster',
+                anime: 'activity-cover-poster', book: 'activity-cover-poster', game: 'activity-cover-poster',
+                travel: 'activity-cover-wide', destination: 'activity-cover-wide',
+                food: 'activity-cover-square', fashion: 'activity-cover-square', car: 'activity-cover-square',
+                sports: 'activity-cover-square', sport: 'activity-cover-square', team: 'activity-cover-square',
+                music: 'activity-cover-album', song: 'activity-cover-album', track: 'activity-cover-album',
+                album: 'activity-cover-album'
+            };
+            const coverClass = coverClassMap[mediaType] || 'activity-cover-poster';
+
+            let interactionsHtml = '';
+            if (isReview && feedId) {
+                interactionsHtml = `
+                    <div class="activity-card-interactions" data-feed-id="${escapeHtml(feedId)}">
+                        <button class="activity-interact-btn" data-action="like" data-feed-id="${escapeHtml(feedId)}" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction('${escapeHtml(feedId)}', 'like', this)">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span class="activity-interact-count" data-like-count>0</span>
+                        </button>
+                        <button class="activity-interact-btn" data-action="dislike" data-feed-id="${escapeHtml(feedId)}" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction('${escapeHtml(feedId)}', 'dislike', this)">
+                            <i class="fas fa-thumbs-down"></i>
+                            <span class="activity-interact-count" data-dislike-count>0</span>
+                        </button>
+                        <button class="activity-interact-btn" data-action="reply" data-feed-id="${escapeHtml(feedId)}" onclick="event.stopPropagation(); CommunityManager.toggleReplyThread('${escapeHtml(feedId)}')">
+                            <i class="fas fa-comment"></i>
+                            <span class="activity-interact-count" data-reply-count>0</span>
+                        </button>
+                    </div>
+                    <div class="activity-reply-thread" data-reply-thread="${escapeHtml(feedId)}">
+                        <div class="activity-reply-list" data-reply-list="${escapeHtml(feedId)}"></div>
+                        <div class="activity-reply-input-row">
+                            <textarea class="activity-reply-input" data-reply-input="${escapeHtml(feedId)}" placeholder="write a reply..." maxlength="500" rows="1" onclick="event.stopPropagation()"></textarea>
+                            <button class="activity-reply-submit" onclick="event.stopPropagation(); CommunityManager.submitActivityReply('${escapeHtml(feedId)}', this)">post</button>
+                        </div>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="community-activity-card" onclick="if('${targetUrl}' !== '#') window.location.href='${targetUrl}'">
                     <div class="activity-card-left">
@@ -598,9 +641,10 @@ window.CommunityManager = (function() {
                                 <span class="activity-media-type-badge"><i class="fas ${mediaIconClass}"></i> ${escapeHtml(mediaType)}</span>
                                 ${ts ? `<span class="activity-card-time">${escapeHtml(timeAgo(ts))}</span>` : ''}
                             </div>
+                            ${interactionsHtml}
                         </div>
                     </div>
-                    ${coverUrl ? `<img class="activity-cover-img" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle || mediaLabel)}" loading="lazy" />` : ((eventType === 'create_list' || eventType === 'list_create') ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : `<div class="activity-list-icon-badge"><i class="fas ${mediaIconClass} text-accent"></i></div>`)}
+                    ${coverUrl ? `<img class="activity-cover-img ${coverClass}" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle || mediaLabel)}" loading="lazy" />` : ((eventType === 'create_list' || eventType === 'list_create') ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : `<div class="activity-list-icon-badge"><i class="fas ${mediaIconClass} text-accent"></i></div>`)}
                 </div>
             `;
         }
@@ -654,6 +698,7 @@ window.CommunityManager = (function() {
             await hydrateMediaMetadata(topActivities);
 
             container.innerHTML = topActivities.map(a => ActivityCard.render(a)).join('');
+            await loadActivityInteractions();
         } catch (_e) {
             renderEmptyActivityState(container);
         }
@@ -1250,6 +1295,149 @@ window.CommunityManager = (function() {
         container.innerHTML = filtered.map(p => UserCard.render(p)).join('');
     }
 
+    // === ACTIVITY INTERACTIONS (LIKE / DISLIKE / REPLY) ===
+    async function loadActivityInteractions() {
+        const client = getSupabaseClient();
+        const user = await getCurrentUser();
+        if (!client) return;
+
+        const feedIds = [];
+        document.querySelectorAll('[data-feed-id]').forEach(function(el) {
+            const id = el.getAttribute('data-feed-id');
+            if (id && !feedIds.includes(id)) feedIds.push(id);
+        });
+        if (!feedIds.length) return;
+
+        try {
+            const [reactResult, replyResult] = await Promise.all([
+                client.from('review_reactions').select('id, review_id, user_id, reaction_type').in('review_id', feedIds),
+                client.from('review_replies').select('id, review_id, user_id, body, created_at, parent_reply_id').in('review_id', feedIds).order('created_at', { ascending: true })
+            ]);
+
+            const reactions = Array.isArray(reactResult?.data) ? reactResult.data : [];
+            const replies = Array.isArray(replyResult?.data) ? replyResult.data : [];
+
+            const userIDs = [...new Set([
+                ...reactions.map(r => r.user_id).filter(Boolean),
+                ...replies.map(r => r.user_id).filter(Boolean)
+            ])];
+            const userMap = await fetchUserNames(client, userIDs);
+
+            feedIds.forEach(function(feedId) {
+                const cardReactions = reactions.filter(r => String(r.review_id) === String(feedId));
+                const likeCount = cardReactions.filter(r => r.reaction_type === 'like').length;
+                const dislikeCount = cardReactions.filter(r => r.reaction_type === 'dislike').length;
+                const myReaction = user ? (cardReactions.find(r => String(r.user_id) === String(user.id))?.reaction_type || '') : '';
+
+                const likeBtn = document.querySelector('[data-action="like"][data-feed-id="' + feedId + '"]');
+                const dislikeBtn = document.querySelector('[data-action="dislike"][data-feed-id="' + feedId + '"]');
+                const likeCountEl = document.querySelector('[data-feed-id="' + feedId + '"] [data-like-count]');
+                const dislikeCountEl = document.querySelector('[data-feed-id="' + feedId + '"] [data-dislike-count]');
+
+                if (likeCountEl) likeCountEl.textContent = likeCount || '';
+                if (dislikeCountEl) dislikeCountEl.textContent = dislikeCount || '';
+                if (likeBtn) likeBtn.classList.toggle('active-like', myReaction === 'like');
+                if (dislikeBtn) dislikeBtn.classList.toggle('active-dislike', myReaction === 'dislike');
+
+                const cardReplies = replies.filter(r => String(r.review_id) === String(feedId));
+                const replyCountEl = document.querySelector('[data-feed-id="' + feedId + '"] [data-reply-count]');
+                if (replyCountEl) replyCountEl.textContent = cardReplies.length || '';
+
+                const replyList = document.querySelector('[data-reply-list="' + feedId + '"]');
+                if (replyList) {
+                    replyList.innerHTML = cardReplies.map(function(reply) {
+                        const username = userMap.get(String(reply.user_id)) || 'member';
+                        const isSelf = user && String(user.id) === String(reply.user_id);
+                        return '<div class="activity-reply-item" data-reply-id="' + escapeHtml(reply.id) + '">'
+                            + '<div class="activity-reply-head">'
+                            + '<a href="profile.html?id=' + encodeURIComponent(reply.user_id) + '" class="activity-reply-user" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
+                            + '<span class="activity-reply-date">' + escapeHtml(timeAgo(reply.created_at)) + '</span>'
+                            + '</div>'
+                            + '<div class="activity-reply-body">' + escapeHtml(reply.body) + '</div>'
+                            + (isSelf ? '<button class="activity-reply-delete" onclick="event.stopPropagation(); CommunityManager.deleteActivityReply(\'' + escapeHtml(reply.id) + '\', \'' + escapeHtml(feedId) + '\')">delete</button>' : '')
+                            + '</div>';
+                    }).join('');
+                }
+            });
+        } catch (_e) {}
+    }
+
+    async function toggleActivityReaction(feedId, reactionType, btnEl) {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user) { window.location.href = 'login.html'; return; }
+        if (!client || !feedId) return;
+
+        try {
+            const { data: existing } = await client
+                .from('review_reactions')
+                .select('id, reaction_type')
+                .eq('review_id', feedId)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (existing && existing.reaction_type === reactionType) {
+                await client.from('review_reactions').delete().eq('id', existing.id);
+            } else if (existing) {
+                await client.from('review_reactions').update({ reaction_type: reactionType }).eq('id', existing.id);
+            } else {
+                await client.from('review_reactions').insert({
+                    review_source: 'activity',
+                    review_id: feedId,
+                    target_type: 'review',
+                    target_id: feedId,
+                    user_id: user.id,
+                    reaction_type: reactionType
+                });
+            }
+            await loadActivityInteractions();
+        } catch (_e) {}
+    }
+
+    function toggleReplyThread(feedId) {
+        const thread = document.querySelector('[data-reply-thread="' + feedId + '"]');
+        if (!thread) return;
+        thread.classList.toggle('open');
+        if (thread.classList.contains('open')) {
+            const input = thread.querySelector('[data-reply-input]');
+            if (input) input.focus();
+        }
+    }
+
+    async function submitActivityReply(feedId, btnEl) {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user) { window.location.href = 'login.html'; return; }
+        if (!client || !feedId) return;
+
+        const input = document.querySelector('[data-reply-input="' + feedId + '"]');
+        const body = String(input?.value || '').trim();
+        if (!body) return;
+
+        try {
+            await client.from('review_replies').insert({
+                review_source: 'activity',
+                review_id: feedId,
+                user_id: user.id,
+                body: body
+            });
+            if (input) input.value = '';
+            await loadActivityInteractions();
+        } catch (_e) {}
+    }
+
+    async function deleteActivityReply(replyId, feedId) {
+        const user = await getCurrentUser();
+        const client = getSupabaseClient();
+        if (!user || !client) return;
+        if (!confirm('delete this reply?')) return;
+
+        try {
+            await client.from('review_replies').delete().eq('id', replyId).eq('user_id', user.id);
+            await loadActivityInteractions();
+        } catch (_e) {}
+    }
+
     // === TAB SWITCHING MANAGER ===
     function switchTab(tabName) {
         document.querySelectorAll('.community-tab-btn').forEach(function(btn) {
@@ -1336,6 +1524,10 @@ window.CommunityManager = (function() {
         setActivityFilter: setActivityFilter,
         searchPeople: searchPeople,
         searchFollowing: searchFollowing,
-        searchFollowers: searchFollowers
+        searchFollowers: searchFollowers,
+        toggleActivityReaction: toggleActivityReaction,
+        toggleReplyThread: toggleReplyThread,
+        submitActivityReply: submitActivityReply,
+        deleteActivityReply: deleteActivityReply
     };
 })();
