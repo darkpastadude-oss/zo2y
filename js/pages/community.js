@@ -1611,7 +1611,8 @@ window.CommunityManager = (function() {
 
     // === COMMUNITY LISTS RAIL ENGINE ===
     let listsMode = 'media';
-    let listsFeedCache = { byType: {} };
+    let listsFilter = 'all';
+    let listsFeedCache = [];
 
     const CML_RAIL_MAP = {
         movie: 'cmlMoviesTrack', tv: 'cmlTvTrack', anime: 'cmlAnimeTrack',
@@ -1620,10 +1621,23 @@ window.CommunityManager = (function() {
         food: 'cmlFoodTrack', car: 'cmlCarsTrack'
     };
 
-    const CML_RAIL_OPTS = {
-        isSquare: ['music', 'sports', 'fashion', 'food'],
-        isLandscape: ['travel', 'car'],
-        isBrand: ['sports', 'fashion', 'food', 'car']
+    const CML_MEDIA_LABELS = {
+        movie: 'movies', tv: 'tv', anime: 'anime', game: 'games',
+        book: 'books', music: 'music', sports: 'sports', travel: 'travel',
+        fashion: 'fashion', food: 'food', car: 'cars'
+    };
+
+    const CML_MEDIA_ICONS = {
+        movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
+        book: 'fa-book', music: 'fa-music', sports: 'fa-futbol',
+        travel: 'fa-earth-americas', fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
+    };
+
+    const CML_LIST_TYPES = {
+        favorites: 'favorites', watched: 'watched', watchlist: 'watchlist',
+        reading: 'reading', readlist: 'readlist', read: 'read',
+        listening: 'listening', listenlist: 'listenlist',
+        playing: 'playing', watching: 'watching', owned: 'owned'
     };
 
     function setListsMode(mode) {
@@ -1667,44 +1681,81 @@ window.CommunityManager = (function() {
         indicator.style.transform = 'translateX(0)';
     }
 
-    function populateListRail(mediaType, imageUrls) {
+    function setListsFilter(filter) {
+        listsFilter = filter || 'all';
+        document.querySelectorAll('.cml-filter-btn').forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-cml-filter') === listsFilter);
+        });
+        applyListsFilter();
+    }
+
+    function applyListsFilter() {
+        document.querySelectorAll('.cml-rail').forEach(function(rail) {
+            var mediaType = rail.getAttribute('data-cml-rail-media');
+            if (!mediaType) return;
+            if (listsFilter === 'all') {
+                rail.classList.remove('cml-rail-hidden');
+            } else {
+                rail.classList.toggle('cml-rail-hidden', mediaType !== listsFilter);
+            }
+        });
+    }
+
+    function buildListCard(list) {
+        var mediaType = list.media_type || '';
+        var listName = list.list_name || 'list';
+        var username = list.username || 'member';
+        var avatarUrl = list.avatar_url || '';
+        var itemCount = list.item_count || 0;
+        var covers = list.covers || [];
+        var profileUrl = list.user_id ? 'profile.html?id=' + encodeURIComponent(list.user_id) : '#';
+        var mediaLabel = CML_MEDIA_LABELS[mediaType] || mediaType;
+
+        var avatarHtml;
+        if (avatarUrl) {
+            avatarHtml = '<img class="cml-card-avatar" src="' + escapeHtml(avatarUrl) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" /><div class="cml-card-avatar-placeholder" style="display:none">' + escapeHtml(username.charAt(0).toUpperCase()) + '</div>';
+        } else {
+            avatarHtml = '<div class="cml-card-avatar-placeholder">' + escapeHtml(username.charAt(0).toUpperCase()) + '</div>';
+        }
+
+        var coversHtml = '';
+        if (covers.length) {
+            coversHtml = '<div class="cml-card-covers">';
+            covers.slice(0, 5).forEach(function(url) {
+                coversHtml += '<div class="cml-card-cover"><img class="cml-card-cover-img" src="' + escapeHtml(url) + '" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'" /></div>';
+            });
+            coversHtml += '</div>';
+        }
+
+        return '<div class="cml-list-card" onclick="window.location.href=\'' + escapeHtml(profileUrl) + '\'">'
+            + '<div class="cml-card-top">'
+            + avatarHtml
+            + '<div class="cml-card-info">'
+            + '<div class="cml-card-list-name">' + escapeHtml(mediaLabel) + '<span class="cml-card-dot"> . </span>' + escapeHtml(listName) + '</div>'
+            + '<a href="' + escapeHtml(profileUrl) + '" class="cml-card-username" onclick="event.stopPropagation()">@' + escapeHtml(username) + '</a>'
+            + '<div class="cml-card-count">' + itemCount + ' item' + (itemCount !== 1 ? 's' : '') + '</div>'
+            + '</div>'
+            + '</div>'
+            + coversHtml
+            + '</div>';
+    }
+
+    function populateListRail(mediaType, lists) {
         var trackId = CML_RAIL_MAP[mediaType];
         var track = trackId ? document.getElementById(trackId) : null;
         if (!track) return;
-        var opts = {
-            isSquare: CML_RAIL_OPTS.isSquare.includes(mediaType),
-            isLandscape: CML_RAIL_OPTS.isLandscape.includes(mediaType),
-            isBrand: CML_RAIL_OPTS.isBrand.includes(mediaType)
-        };
         track.innerHTML = '';
-        if (!imageUrls.length) {
-            var iconMap = {
-                movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad',
-                book: 'fa-book', music: 'fa-music', sports: 'fa-futbol',
-                travel: 'fa-earth-americas', fashion: 'fa-shirt', food: 'fa-burger', car: 'fa-car'
-            };
-            track.innerHTML = '<div class="cml-rail-empty"><i class="fas ' + (iconMap[mediaType] || 'fa-plus') + '"></i><span class="cml-rail-empty-text">Nothing here yet</span></div>';
+        if (!lists.length) {
+            var icon = CML_MEDIA_ICONS[mediaType] || 'fa-plus';
+            track.innerHTML = '<div class="cml-rail-empty"><i class="fas ' + icon + '"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
             return;
         }
         track.className = 'cml-rail-track';
-        imageUrls.forEach(function(url, i) {
-            var card = document.createElement('div');
-            var cls = 'cml-poster';
-            if (opts.isSquare) cls += ' is-square';
-            if (opts.isLandscape) cls += ' is-landscape';
-            if (opts.isBrand) cls += ' is-brand';
-            card.className = cls;
+        lists.forEach(function(list, i) {
+            var wrapper = document.createElement('div');
+            wrapper.innerHTML = buildListCard(list);
+            var card = wrapper.firstElementChild;
             card.style.animationDelay = (i * 40) + 'ms';
-            var imgWrap = document.createElement('div');
-            imgWrap.className = 'cml-poster-img-wrap';
-            var img = document.createElement('img');
-            img.src = url;
-            img.alt = 'Poster';
-            img.loading = 'lazy';
-            img.onerror = function() { img.src = '/newlogo.webp'; };
-            img.className = 'cml-poster-img';
-            imgWrap.appendChild(img);
-            card.appendChild(imgWrap);
             track.appendChild(card);
         });
     }
@@ -1714,7 +1765,7 @@ window.CommunityManager = (function() {
         if (!client) return;
 
         try {
-            var allItems = [];
+            var allLists = [];
 
             var result1 = await client
                 .from('list_items')
@@ -1725,7 +1776,37 @@ window.CommunityManager = (function() {
                 .limit(800);
 
             if (Array.isArray(result1.data) && result1.data.length) {
-                allItems = allItems.concat(result1.data);
+                var grouped = {};
+                result1.data.forEach(function(item) {
+                    var key = String(item.user_id || '') + '|' + String(item.list_type || '') + '|' + String(item.media_type || '');
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            user_id: item.user_id,
+                            list_type: item.list_type,
+                            media_type: item.media_type || '',
+                            items: [],
+                            latest: item.created_at || ''
+                        };
+                    }
+                    grouped[key].items.push(item);
+                    if (item.created_at && item.created_at > grouped[key].latest) {
+                        grouped[key].latest = item.created_at;
+                    }
+                });
+
+                Object.values(grouped).forEach(function(group) {
+                    if (!group.items.length) return;
+                    var listType = group.list_type || '';
+                    var prettyName = CML_LIST_TYPES[listType] || listType || 'list';
+                    allLists.push({
+                        user_id: group.user_id,
+                        media_type: group.media_type,
+                        list_name: prettyName,
+                        item_count: group.items.length,
+                        covers: group.items.slice(0, 5).map(function(it) { return it.image_url || ''; }).filter(Boolean),
+                        created_at: group.latest
+                    });
+                });
             }
 
             var result2 = await client
@@ -1736,45 +1817,79 @@ window.CommunityManager = (function() {
 
             if (Array.isArray(result2.data) && result2.data.length) {
                 var customIds = result2.data.map(function(l) { return l.id; }).filter(Boolean);
+                var customItemsMap = {};
                 if (customIds.length) {
                     var result3 = await client
                         .from('list_items')
                         .select('list_id, title, image_url, media_type, created_at')
                         .in('list_id', customIds);
                     if (Array.isArray(result3.data)) {
-                        allItems = allItems.concat(result3.data);
+                        result3.data.forEach(function(item) {
+                            var lid = String(item.list_id || '');
+                            if (!lid) return;
+                            if (!customItemsMap[lid]) customItemsMap[lid] = [];
+                            customItemsMap[lid].push(item);
+                        });
                     }
                 }
+
+                result2.data.forEach(function(list) {
+                    var items = customItemsMap[String(list.id)] || [];
+                    if (!items.length) return;
+                    allLists.push({
+                        user_id: list.user_id,
+                        media_type: list.media_type || '',
+                        list_name: list.name || 'list',
+                        item_count: items.length,
+                        covers: items.slice(0, 5).map(function(it) { return it.image_url || ''; }).filter(Boolean),
+                        created_at: list.created_at || ''
+                    });
+                });
             }
 
-            var byType = {};
-            allItems.forEach(function(item) {
-                var mt = String(item.media_type || '').toLowerCase();
-                if (!mt || !CML_RAIL_MAP[mt]) return;
-                var img = String(item.image_url || '').trim();
-                if (!img) return;
-                if (!byType[mt]) byType[mt] = [];
-                byType[mt].push(img);
-            });
+            if (!allLists.length) return;
 
-            Object.keys(byType).forEach(function(mt) {
-                var urls = byType[mt];
-                var seen = {};
-                var deduped = [];
-                urls.forEach(function(u) {
-                    if (!seen[u]) { seen[u] = true; deduped.push(u); }
-                });
-                for (var i = deduped.length - 1; i > 0; i--) {
-                    var j = Math.floor(Math.random() * (i + 1));
-                    var tmp = deduped[i]; deduped[i] = deduped[j]; deduped[j] = tmp;
+            var userIds = [...new Set(allLists.map(function(l) { return l.user_id; }).filter(Boolean))];
+            var userMap = await fetchUserNames(client, userIds);
+
+            var avatarMap = {};
+            try {
+                var result4 = await client
+                    .from('user_profiles')
+                    .select('id, avatar_url')
+                    .in('id', userIds);
+                if (Array.isArray(result4.data)) {
+                    result4.data.forEach(function(p) {
+                        if (p && p.id) avatarMap[p.id] = p.avatar_url || '';
+                    });
                 }
-                byType[mt] = deduped;
+            } catch (_ae) {}
+
+            allLists.forEach(function(list) {
+                list.username = userMap.get(String(list.user_id)) || 'member';
+                list.avatar_url = avatarMap[String(list.user_id)] || '';
             });
 
-            listsFeedCache = { byType: byType };
+            for (var i = allLists.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = allLists[i]; allLists[i] = allLists[j]; allLists[j] = tmp;
+            }
+
+            listsFeedCache = allLists;
+
+            var byType = {};
+            allLists.forEach(function(list) {
+                var mt = String(list.media_type || '').toLowerCase();
+                if (!mt || !CML_RAIL_MAP[mt]) return;
+                if (!byType[mt]) byType[mt] = [];
+                byType[mt].push(list);
+            });
+
             Object.keys(CML_RAIL_MAP).forEach(function(mt) {
                 populateListRail(mt, byType[mt] || []);
             });
+
+            applyListsFilter();
         } catch (_e) {}
     }
 
@@ -1881,6 +1996,7 @@ window.CommunityManager = (function() {
         submitNestedReply: submitNestedReply,
         deleteActivityReply: deleteActivityReply,
         loadListsFeed: loadListsFeed,
-        setListsMode: setListsMode
+        setListsMode: setListsMode,
+        setListsFilter: setListsFilter
     };
 })();

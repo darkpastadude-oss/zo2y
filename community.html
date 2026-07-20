@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260720N">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260720P">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260720N" defer></script>
+    <script src="js/pages/community.js?v=20260720P" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -150,9 +150,8 @@
                 </div>
             </div>
 
-            <!-- Pane 4: Lists (rail layout) -->
+            <!-- Pane 4: Lists -->
             <div class="community-tab-pane" id="paneLists">
-                <!-- Mode switch: Media / Lifestyle -->
                 <div class="cml-mode-bar">
                     <div class="cml-mode-switch" role="tablist" aria-label="Lists mode">
                         <button class="cml-mode-btn active" id="cmlModeMedia" role="tab" aria-selected="true" onclick="CommunityManager.setListsMode('media')">
@@ -163,92 +162,39 @@
                         </button>
                         <div class="cml-mode-indicator" id="cmlModeIndicator"></div>
                     </div>
-                    <a class="cml-profile-link" href="profile.html"><i class="fas fa-list"></i> my lists</a>
+                </div>
+                <div class="cml-filter-bar" id="cmlFilterBar">
+                    <button class="cml-filter-btn active" data-cml-filter="all" onclick="CommunityManager.setListsFilter('all')"><i class="fas fa-layer-group"></i> all</button>
+                    <button class="cml-filter-btn" data-cml-filter="movie" onclick="CommunityManager.setListsFilter('movie')"><i class="fas fa-film"></i> movies</button>
+                    <button class="cml-filter-btn" data-cml-filter="tv" onclick="CommunityManager.setListsFilter('tv')"><i class="fas fa-tv"></i> tv</button>
+                    <button class="cml-filter-btn" data-cml-filter="anime" onclick="CommunityManager.setListsFilter('anime')"><i class="fas fa-dragon"></i> anime</button>
+                    <button class="cml-filter-btn" data-cml-filter="game" onclick="CommunityManager.setListsFilter('game')"><i class="fas fa-gamepad"></i> games</button>
+                    <button class="cml-filter-btn" data-cml-filter="book" onclick="CommunityManager.setListsFilter('book')"><i class="fas fa-book"></i> books</button>
+                    <button class="cml-filter-btn" data-cml-filter="music" onclick="CommunityManager.setListsFilter('music')"><i class="fas fa-music"></i> music</button>
+                    <button class="cml-filter-btn" data-cml-filter="sports" onclick="CommunityManager.setListsFilter('sports')"><i class="fas fa-futbol"></i> sports</button>
+                    <button class="cml-filter-btn" data-cml-filter="travel" onclick="CommunityManager.setListsFilter('travel')"><i class="fas fa-earth-americas"></i> travel</button>
+                    <button class="cml-filter-btn" data-cml-filter="food" onclick="CommunityManager.setListsFilter('food')"><i class="fas fa-burger"></i> food</button>
+                    <button class="cml-filter-btn" data-cml-filter="fashion" onclick="CommunityManager.setListsFilter('fashion')"><i class="fas fa-shirt"></i> fashion</button>
+                    <button class="cml-filter-btn" data-cml-filter="car" onclick="CommunityManager.setListsFilter('car')"><i class="fas fa-car"></i> cars</button>
                 </div>
 
                 <!-- Media Mode Panel -->
                 <div class="cml-mode-panel" id="cmlMediaPanel">
-                    <div class="cml-rail" id="cmlRailMovies">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-film"></i> movies</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlMoviesTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailTv">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-tv"></i> tv shows</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlTvTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailAnime">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-dragon"></i> anime</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlAnimeTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailGames">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-gamepad"></i> games</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlGamesTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailBooks">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-book"></i> books</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlBooksTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailMusic">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-music"></i> music</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlMusicTrack"></div>
-                    </div>
+                    <div class="cml-rail" data-cml-rail-media="movie"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-film"></i> movies</div></div><div class="cml-rail-track" id="cmlMoviesTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="tv"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-tv"></i> tv shows</div></div><div class="cml-rail-track" id="cmlTvTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="anime"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-dragon"></i> anime</div></div><div class="cml-rail-track" id="cmlAnimeTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="game"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-gamepad"></i> games</div></div><div class="cml-rail-track" id="cmlGamesTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="book"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-book"></i> books</div></div><div class="cml-rail-track" id="cmlBooksTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="music"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-music"></i> music</div></div><div class="cml-rail-track" id="cmlMusicTrack"></div></div>
                 </div>
 
                 <!-- Lifestyle Mode Panel -->
                 <div class="cml-mode-panel" id="cmlLifestylePanel" style="display:none">
-                    <div class="cml-rail" id="cmlRailSports">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-futbol"></i> sports</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlSportsTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailTravel">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-earth-americas"></i> travel</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlTravelTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailFood">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-burger"></i> food</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlFoodTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailFashion">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-shirt"></i> fashion</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlFashionTrack"></div>
-                    </div>
-                    <div class="cml-rail" id="cmlRailCars">
-                        <div class="cml-rail-header">
-                            <div class="cml-rail-title"><i class="fas fa-car"></i> cars</div>
-                            <a class="cml-rail-viewall" href="profile.html">collections <i class="fas fa-chevron-right"></i></a>
-                        </div>
-                        <div class="cml-rail-track" id="cmlCarsTrack"></div>
-                    </div>
+                    <div class="cml-rail" data-cml-rail-media="sports"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-futbol"></i> sports</div></div><div class="cml-rail-track" id="cmlSportsTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="travel"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-earth-americas"></i> travel</div></div><div class="cml-rail-track" id="cmlTravelTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="food"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-burger"></i> food</div></div><div class="cml-rail-track" id="cmlFoodTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="fashion"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-shirt"></i> fashion</div></div><div class="cml-rail-track" id="cmlFashionTrack"></div></div>
+                    <div class="cml-rail" data-cml-rail-media="car"><div class="cml-rail-header"><div class="cml-rail-title"><i class="fas fa-car"></i> cars</div></div><div class="cml-rail-track" id="cmlCarsTrack"></div></div>
                 </div>
             </div>
 
