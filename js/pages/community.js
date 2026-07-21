@@ -2175,6 +2175,8 @@ window.CommunityManager = (function() {
                 discLoadCars()
             ]);
         }
+        discLoadPopularReview();
+        discLoadPopularListsHighlights();
         discLoadRecentReviews(discGlobalMode);
     }
 
@@ -2419,14 +2421,21 @@ window.CommunityManager = (function() {
         if (!el) return;
         var client = getSupabaseClient();
         if (!client) return;
+        var lifestyleTypes = ['sports', 'sport', 'team', 'travel', 'fashion', 'food', 'car'];
         try {
             var { data: reviews } = await client.from('reviews')
                 .select('*')
                 .not('body', 'is', null)
                 .neq('body', '')
                 .order('created_at', { ascending: false })
-                .limit(20);
+                .limit(30);
             if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no reviews yet. be the first.</div>'; return; }
+            if (discGlobalMode === 'lifestyle') {
+                reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) !== -1; });
+            } else {
+                reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) === -1; });
+            }
+            if (!reviews.length) { el.innerHTML = '<div class="disc-empty">no ' + discGlobalMode + ' reviews yet.</div>'; return; }
             var userIds = [];
             var uidSet = {};
             reviews.forEach(function(r) { if (r.user_id && !uidSet[r.user_id]) { uidSet[r.user_id] = true; userIds.push(r.user_id); } });
@@ -2547,6 +2556,12 @@ window.CommunityManager = (function() {
                 }
             });
             var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
+            var lifestyleMediaTypes = ['sports', 'sport', 'team', 'travel', 'fashion', 'food', 'car'];
+            if (discGlobalMode === 'lifestyle') {
+                rails = rails.filter(function(r) { return lifestyleMediaTypes.indexOf(r.media_type) !== -1; });
+            } else {
+                rails = rails.filter(function(r) { return lifestyleMediaTypes.indexOf(r.media_type) === -1; });
+            }
             await hydrateRailPosters(rails);
             shuffleArray(rails);
             rails = rails.slice(0, 6);
@@ -2555,19 +2570,23 @@ window.CommunityManager = (function() {
             rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
             var userMap = await fetchUserNames(client, userIds);
             rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
-            function renderDiscRail(rail) {
+            function renderDiscStack(rail) {
                 var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
-                var mediaIcon = CML_RAIL_ICONS[rail.media_type] || 'fa-layer-group';
-                var listIcon = rail.list_name === 'favorites' ? (CML_DEFAULT_LIST_ICONS.favorites || 'fa-heart') : '';
-                var headerIcon = listIcon || mediaIcon;
+                var cardsHtml = rail.items.slice(0, 5).map(function(item) {
+                    var img = item.image_url || '';
+                    return img ? '<img class="disc-list-stack-card" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+                }).join('');
                 var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
-                var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
-                var cardsHtml = rail.items.map(function(item) { return buildRailPosterCard(item.image_url, profileUrl, rail.media_type); }).join('');
-                return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
-                    + '<div class="cml-rail-header"><div class="cml-rail-title"><i class="fas ' + headerIcon + ' cml-rail-icon"></i><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + customBadge + '</div></div>'
-                    + '<div class="cml-rail-track">' + cardsHtml + '</div></div>';
+                var displayName = isCustom ? rail.list_name : rail.list_name;
+                return '<a href="' + escapeHtml(profileUrl) + '" class="disc-list-stack">'
+                    + '<div class="disc-list-stack-deck">' + cardsHtml + '</div>'
+                    + '<div class="disc-list-stack-label">'
+                        + '<div class="disc-list-stack-user">@' + escapeHtml(rail.username) + '</div>'
+                        + '<div class="disc-list-stack-name">' + escapeHtml(displayName) + '</div>'
+                    + '</div>'
+                + '</a>';
             }
-            el.innerHTML = rails.length ? rails.map(renderDiscRail).join('') : '<div class="disc-empty">no lists yet.</div>';
+            el.innerHTML = rails.length ? '<div class="disc-lists-stacks">' + rails.map(renderDiscStack).join('') + '</div>' : '<div class="disc-empty">no lists yet.</div>';
         } catch (_e) { el.innerHTML = ''; }
     }
 
