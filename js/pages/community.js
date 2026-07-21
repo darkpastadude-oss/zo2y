@@ -1420,14 +1420,14 @@ window.CommunityManager = (function() {
         if (!user) { window.location.href = 'login.html'; return; }
         if (!client || !feedId) return;
 
-        const countEl = btnEl.querySelector('.activity-interact-count');
+        const countEl = btnEl.querySelector('.activity-interact-count') || btnEl.querySelector('.disc-review-action-count') || btnEl.querySelector('span');
         const wasActive = btnEl.classList.contains('active-like') || btnEl.classList.contains('active-dislike');
         const isActiveType = reactionType === 'like' ? btnEl.classList.contains('active-like') : btnEl.classList.contains('active-dislike');
         const isToggleOff = isActiveType;
 
         const otherType = reactionType === 'like' ? 'dislike' : 'like';
         const otherBtn = document.querySelector('[data-action="' + otherType + '"][data-feed-id="' + feedId + '"]');
-        const otherCountEl = otherBtn ? otherBtn.querySelector('.activity-interact-count') : null;
+        const otherCountEl = otherBtn ? (otherBtn.querySelector('.activity-interact-count') || otherBtn.querySelector('.disc-review-action-count') || otherBtn.querySelector('span')) : null;
 
         if (isToggleOff) {
             btnEl.classList.remove('active-like', 'active-dislike');
@@ -2098,6 +2098,8 @@ window.CommunityManager = (function() {
     // === DISCOVER FEED ENGINE ===
     var discoverLoaded = false;
     var discListsMode = 'media';
+    var discGlobalMode = 'media';
+    var discLifestyleLoaded = false;
 
     function discRenderStars(rating) {
         var r = Math.round(Number(rating) || 0);
@@ -2120,51 +2122,75 @@ window.CommunityManager = (function() {
         if (discoverLoaded) return;
         discoverLoaded = true;
         Promise.allSettled([
+            discLoadPopularReview(),
             discLoadNewMembers(),
             discLoadTopRated(),
             discLoadRecentReviews(),
             discLoadNewReleases(),
-            discLoadPopularLists(),
+            discLoadPopularListsHighlights(),
             discLoadTopGames(),
+            discLoadTopBooks(),
+            discLoadTopArtists(),
             discLoadSidebarActive(),
             discLoadSidebarLists()
         ]);
-        setTimeout(function() { initDiscListsModeIndicator(); }, 100);
+        setTimeout(function() { initDiscGlobalModeIndicator(); }, 100);
+        setTimeout(function() { updateDiscSidebarVisibility(); }, 50);
     }
 
-    function initDiscListsModeIndicator() {
-        var mediaBtn = document.getElementById('discListsModeMedia');
-        var indicator = document.getElementById('discListsModeIndicator');
+    function initDiscGlobalModeIndicator() {
+        var mediaBtn = document.getElementById('discGlobalModeMedia');
+        var indicator = document.getElementById('discGlobalModeIndicator');
         if (!mediaBtn || !indicator) return;
         indicator.style.width = mediaBtn.offsetWidth + 'px';
     }
 
-    function setDiscListsMode(mode) {
-        discListsMode = mode || 'media';
-        var mediaPanel = document.getElementById('discListsMediaPanel');
-        var lifestylePanel = document.getElementById('discListsLifestylePanel');
-        var mediaBtn = document.getElementById('discListsModeMedia');
-        var lifestyleBtn = document.getElementById('discListsModeLifestyle');
-        var indicator = document.getElementById('discListsModeIndicator');
-        if (!mediaPanel || !lifestylePanel) return;
-        if (mode === 'media') {
-            mediaPanel.style.display = '';
-            lifestylePanel.style.display = 'none';
-            mediaBtn.classList.add('active');
-            lifestyleBtn.classList.remove('active');
-            if (indicator) {
+    function setDiscGlobalMode(mode) {
+        discGlobalMode = mode || 'media';
+        var mediaContent = document.getElementById('discMediaContent');
+        var lifestyleContent = document.getElementById('discLifestyleContent');
+        var mediaBtn = document.getElementById('discGlobalModeMedia');
+        var lifestyleBtn = document.getElementById('discGlobalModeLifestyle');
+        var indicator = document.getElementById('discGlobalModeIndicator');
+        if (mediaBtn) mediaBtn.classList.toggle('active', discGlobalMode === 'media');
+        if (lifestyleBtn) lifestyleBtn.classList.toggle('active', discGlobalMode === 'lifestyle');
+        if (mediaContent) mediaContent.style.display = discGlobalMode === 'media' ? '' : 'none';
+        if (lifestyleContent) lifestyleContent.style.display = discGlobalMode === 'lifestyle' ? '' : 'none';
+        if (indicator && mediaBtn) {
+            if (discGlobalMode === 'media') {
                 indicator.style.width = mediaBtn.offsetWidth + 'px';
                 indicator.style.transform = 'translateX(0)';
-            }
-        } else {
-            mediaPanel.style.display = 'none';
-            lifestylePanel.style.display = '';
-            lifestyleBtn.classList.add('active');
-            mediaBtn.classList.remove('active');
-            if (indicator) {
+            } else if (lifestyleBtn) {
                 indicator.style.width = lifestyleBtn.offsetWidth + 'px';
                 indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
             }
+        }
+        if (discGlobalMode === 'lifestyle' && !discLifestyleLoaded) {
+            discLifestyleLoaded = true;
+            Promise.allSettled([
+                discLoadSports(),
+                discLoadTravel(),
+                discLoadFashion(),
+                discLoadFood(),
+                discLoadCars()
+            ]);
+        }
+    }
+
+    function updateDiscSidebarVisibility() {
+        var sidebar = document.querySelector('.community-sidebar');
+        var grid = document.querySelector('.community-grid');
+        if (!sidebar) return;
+        var activeBtn = document.querySelector('.community-tab-btn.active');
+        var activeTab = activeBtn ? activeBtn.getAttribute('data-tab') : 'discover';
+        if (activeTab === 'discover') {
+            sidebar.classList.add('community-sidebar-visible');
+            sidebar.classList.remove('community-sidebar-discover-only');
+            if (grid) grid.classList.remove('community-grid-single');
+        } else {
+            sidebar.classList.remove('community-sidebar-visible');
+            sidebar.classList.add('community-sidebar-discover-only');
+            if (grid) grid.classList.add('community-grid-single');
         }
     }
 
@@ -2251,7 +2277,8 @@ window.CommunityManager = (function() {
                 var initial = String(name).charAt(0).toUpperCase();
                 var excerpt = discTruncate(r.body, 140);
                 var link = itemLink(r.media_type, r.item_id);
-                var coverHtml = r._image ? '<div class="disc-review-cover"><img src="' + escapeHtml(r._image) + '" alt="" loading="lazy"></div>' : '<div class="disc-review-cover"></div>';
+                var reviewImage = r._image || r.image_url || r.cover_url || r.image || r.thumbnail || '';
+                var coverHtml = reviewImage ? '<div class="disc-review-cover"><img src="' + escapeHtml(reviewImage) + '" alt="" loading="lazy"></div>' : '<div class="disc-review-cover"></div>';
                 var myReactions = reactionsData.filter(function(rx) { return String(rx.review_id) === String(r.id); });
                 var likeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'like'; }).length;
                 var dislikeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'dislike'; }).length;
@@ -2268,10 +2295,10 @@ window.CommunityManager = (function() {
                             '<span class="disc-review-item-name">' + escapeHtml(r._title || r.title || r.media_type) + '</span>' +
                             '<div class="disc-review-actions">' +
                                 '<button class="disc-review-action-btn" data-action="like" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'like\', this)">' +
-                                    '<i class="fas fa-arrow-up"></i> <span class="disc-review-action-count" data-like-count>' + (likeCount || '') + '</span>' +
+                                    '<i class="fas fa-thumbs-up"></i> <span class="disc-review-action-count" data-like-count>' + (likeCount || '') + '</span>' +
                                 '</button>' +
                                 '<button class="disc-review-action-btn" data-action="dislike" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'dislike\', this)">' +
-                                    '<i class="fas fa-arrow-down"></i> <span class="disc-review-action-count" data-dislike-count>' + (dislikeCount || '') + '</span>' +
+                                    '<i class="fas fa-thumbs-down"></i> <span class="disc-review-action-count" data-dislike-count>' + (dislikeCount || '') + '</span>' +
                                 '</button>' +
                             '</div>' +
                         '</div>' +
@@ -2286,16 +2313,27 @@ window.CommunityManager = (function() {
         if (!el) return;
         try {
             var results = [];
+            var today = new Date().toISOString().slice(0, 10);
             var p1 = fetch('/api/tmdb/movie/upcoming').then(function(r) { return r.json(); }).then(function(d) {
-                if (d && Array.isArray(d.results)) d.results.slice(0, 8).forEach(function(m) { results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.release_date, type: 'movie' }); });
+                if (d && Array.isArray(d.results)) d.results.forEach(function(m) {
+                    if (m.release_date && m.release_date >= today) {
+                        results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.release_date, type: 'movie' });
+                    }
+                });
             }).catch(function() {});
             var p2 = fetch('/api/tmdb/tv/on_the_air').then(function(r) { return r.json(); }).then(function(d) {
-                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.first_air_date, type: 'tv' }); });
+                if (d && Array.isArray(d.results)) d.results.forEach(function(m) {
+                    if (m.first_air_date && m.first_air_date >= today) {
+                        results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.first_air_date, type: 'tv' });
+                    }
+                });
             }).catch(function() {});
             await Promise.allSettled([p1, p2]);
-            if (!results.length) { el.innerHTML = ''; return; }
+            results.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
+            results = results.slice(0, 10);
+            if (!results.length) { el.innerHTML = '<div class="disc-empty">no upcoming releases found.</div>'; return; }
             el.innerHTML = results.map(function(m) {
-                var dateStr = m.date ? new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                var dateStr = m.date ? new Date(m.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
                 return '<a href="' + escapeHtml(m.type === 'tv' ? 'tvshow.html' : 'movie.html') + '?id=' + encodeURIComponent(m.id) + '" class="disc-poster">' +
                     '<img class="disc-poster-img" src="' + escapeHtml(m.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(m.title) + '</div>' +
@@ -2303,85 +2341,6 @@ window.CommunityManager = (function() {
                 '</a>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
-    }
-
-    async function discLoadPopularLists() {
-        var mediaPanel = document.getElementById('discListsMediaPanel');
-        var lifestylePanel = document.getElementById('discListsLifestylePanel');
-        if (!mediaPanel || !lifestylePanel) return;
-        var client = getSupabaseClient();
-        if (!client) return;
-        try {
-            var { data: rows } = await client.from('list_items')
-                .select('user_id, media_type, item_id, list_type, list_id, image_url, title')
-                .order('created_at', { ascending: false })
-                .limit(300);
-            if (!rows || !rows.length) {
-                mediaPanel.innerHTML = '<div class="cml-rail-empty"><i class="fas fa-film"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
-                lifestylePanel.innerHTML = '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
-                return;
-            }
-            var customListIds = [];
-            rows.forEach(function(r) {
-                if (r.list_id && customListIds.indexOf(String(r.list_id)) === -1) customListIds.push(String(r.list_id));
-            });
-            var listNamesMap = {};
-            if (customListIds.length) {
-                try {
-                    var lr = await client.from('user_lists').select('id, user_id, media_type, name').in('id', customListIds);
-                    if (Array.isArray(lr.data)) lr.data.forEach(function(l) { listNamesMap[String(l.id)] = { name: l.name || 'collection', user_id: l.user_id, media_type: l.media_type }; });
-                } catch (_lte) {}
-            }
-            var railGroups = {};
-            rows.forEach(function(item) {
-                var mt = String(item.media_type || '').toLowerCase();
-                if (!mt || !CML_MEDIA_TYPES[mt]) return;
-                if (item.list_id) {
-                    var key = 'custom_' + item.list_id;
-                    if (!railGroups[key]) {
-                        var resolved = listNamesMap[String(item.list_id)] || {};
-                        railGroups[key] = { user_id: item.user_id, media_type: mt, media_label: CML_MEDIA_LABELS[mt] || mt, list_name: resolved.name || 'collection', items: [] };
-                    }
-                    railGroups[key].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
-                } else if (item.list_type === 'favorites') {
-                    var favKey = 'fav_' + item.user_id + '_' + mt;
-                    if (!railGroups[favKey]) railGroups[favKey] = { user_id: item.user_id, media_type: mt, media_label: CML_MEDIA_LABELS[mt] || mt, list_name: 'favorites', items: [] };
-                    railGroups[favKey].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
-                }
-            });
-            var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
-            await hydrateRailPosters(rails);
-            shuffleArray(rails);
-            var userIds = [];
-            var uidSet = {};
-            rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
-            var userMap = await fetchUserNames(client, userIds);
-            rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
-            var lifestyleTypes = { sports: true, travel: true, fashion: true, food: true, car: true };
-            var mediaRails = [];
-            var lifestyleRails = [];
-            rails.forEach(function(rail) {
-                if (lifestyleTypes[rail.media_type]) lifestyleRails.push(rail);
-                else mediaRails.push(rail);
-            });
-            function renderDiscRail(rail) {
-                var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
-                var mediaIcon = CML_RAIL_ICONS[rail.media_type] || 'fa-layer-group';
-                var listIcon = rail.list_name === 'favorites' ? (CML_DEFAULT_LIST_ICONS.favorites || 'fa-heart') : '';
-                var headerIcon = listIcon || mediaIcon;
-                var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
-                var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
-                var cardsHtml = rail.items.map(function(item) { return buildRailPosterCard(item.image_url, profileUrl, rail.media_type); }).join('');
-                return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
-                    + '<div class="cml-rail-header"><div class="cml-rail-title"><i class="fas ' + headerIcon + ' cml-rail-icon"></i><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + customBadge + '</div></div>'
-                    + '<div class="cml-rail-track">' + cardsHtml + '</div></div>';
-            }
-            mediaPanel.innerHTML = mediaRails.length ? mediaRails.map(renderDiscRail).join('') : '<div class="cml-rail-empty"><i class="fas fa-film"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
-            lifestylePanel.innerHTML = lifestyleRails.length ? lifestyleRails.map(renderDiscRail).join('') : '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
-        } catch (_e) {
-            mediaPanel.innerHTML = '';
-            lifestylePanel.innerHTML = '';
-        }
     }
 
     async function discLoadTopGames() {
@@ -2397,6 +2356,271 @@ window.CommunityManager = (function() {
                 return '<a href="game.html?id=' + encodeURIComponent(g.id) + '" class="disc-poster">' +
                     '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(g.name || g.title || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTopBooks() {
+        var el = document.getElementById('discTopBooksRail');
+        if (!el) return;
+        try {
+            var resp = await fetch('/api/books/popular');
+            var data = await resp.json();
+            var books = data && data.results ? data.results : (Array.isArray(data) ? data : []);
+            if (!books.length) { el.innerHTML = ''; return; }
+            el.innerHTML = books.slice(0, 8).map(function(b) {
+                var img = b.thumbnail || b.image_url || b.cover_url || '';
+                var link = 'book.html?id=' + encodeURIComponent(b.id || b.book_id || '');
+                return '<a href="' + escapeHtml(link) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(b.title || b.name || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTopArtists() {
+        var el = document.getElementById('discTopArtistsRail');
+        if (!el) return;
+        try {
+            var resp = await fetch('/api/music/artists');
+            var data = await resp.json();
+            var artists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
+            if (!artists.length) { el.innerHTML = ''; return; }
+            el.innerHTML = artists.slice(0, 8).map(function(a) {
+                var img = a.image_url || a.image || '';
+                var link = 'song.html?id=' + encodeURIComponent(a.id || a.artist_id || '');
+                return '<a href="' + escapeHtml(link) + '" class="disc-poster disc-poster-artist">' +
+                    '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(a.name || a.title || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    /* === POPULAR REVIEW HERO === */
+    async function discLoadPopularReview() {
+        var el = document.getElementById('discPopularReviewContent');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: reviews } = await client.from('reviews')
+                .select('*')
+                .not('body', 'is', null)
+                .neq('body', '')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no reviews yet. be the first.</div>'; return; }
+            var userIds = [];
+            var uidSet = {};
+            reviews.forEach(function(r) { if (r.user_id && !uidSet[r.user_id]) { uidSet[r.user_id] = true; userIds.push(r.user_id); } });
+            var userMap = {};
+            if (userIds.length) {
+                try {
+                    var { data: profiles } = await client.from('user_profiles').select('id, username, full_name').in('id', userIds);
+                    if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) userMap[p.id] = p.username || p.full_name || 'member'; });
+                } catch (_e) {}
+            }
+            await hydrateMediaMetadata(reviews);
+            var reviewIds = reviews.map(function(r) { return r.id; });
+            var reactionsData = [];
+            if (reviewIds.length) {
+                try {
+                    var { data: rdata } = await client.from('review_reactions').select('review_id, reaction_type').in('review_id', reviewIds);
+                    if (Array.isArray(rdata)) reactionsData = rdata;
+                } catch (_e) {}
+            }
+            var scored = reviews.map(function(r) {
+                var rxs = reactionsData.filter(function(rx) { return String(rx.review_id) === String(r.id); });
+                var likes = rxs.filter(function(rx) { return rx.reaction_type === 'like'; }).length;
+                var dislikes = rxs.filter(function(rx) { return rx.reaction_type === 'dislike'; }).length;
+                var bodyLen = String(r.body || '').length;
+                return { review: r, likes: likes, dislikes: dislikes, score: likes * 3 + bodyLen * 0.1 };
+            }).sort(function(a, b) { return b.score - a.score; });
+            var best = scored[0];
+            if (!best) { el.innerHTML = '<div class="disc-empty">no reviews yet.</div>'; return; }
+            var r = best.review;
+            var name = userMap[r.user_id] || 'member';
+            var initial = String(name).charAt(0).toUpperCase();
+            var excerpt = discTruncate(r.body, 200);
+            var link = itemLink(r.media_type, r.item_id);
+            var reviewImg = r._image || r.image_url || r.cover_url || r.image || r.thumbnail || '';
+            var backdropHtml = reviewImg ? '<div class="disc-review-hero-backdrop" style="background-image:url(\'' + escapeHtml(reviewImg) + '\')"></div>' : '';
+            var posterHtml = reviewImg ? '<img class="disc-review-hero-poster" src="' + escapeHtml(reviewImg) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+            var myReactions = reactionsData.filter(function(rx) { return String(rx.review_id) === String(r.id); });
+            var likeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'like'; }).length;
+            var dislikeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'dislike'; }).length;
+            el.innerHTML = '<a href="' + escapeHtml(link) + '" class="disc-review-hero">' +
+                backdropHtml +
+                '<div class="disc-review-hero-gradient"></div>' +
+                '<div class="disc-review-hero-content">' +
+                    posterHtml +
+                    '<div class="disc-review-hero-info">' +
+                        '<div class="disc-review-hero-user">' +
+                            '<div class="disc-review-hero-avatar">' + escapeHtml(initial) + '</div>' +
+                            '<span class="disc-review-hero-username">' + escapeHtml(name) + '</span>' +
+                            '<span class="disc-review-hero-stars">' + discRenderStars(r.rating) + '</span>' +
+                        '</div>' +
+                        '<div class="disc-review-hero-title">' + escapeHtml(r._title || r.title || r.media_type || 'review') + '</div>' +
+                        '<div class="disc-review-hero-excerpt">' + escapeHtml(excerpt) + '</div>' +
+                        '<div class="disc-review-hero-actions">' +
+                            '<button class="disc-review-hero-action" data-action="like" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.preventDefault(); event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'like\', this)">' +
+                                '<i class="fas fa-thumbs-up"></i> <span data-like-count>' + (likeCount || '') + '</span>' +
+                            '</button>' +
+                            '<button class="disc-review-hero-action" data-action="dislike" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.preventDefault(); event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'dislike\', this)">' +
+                                '<i class="fas fa-thumbs-down"></i> <span data-dislike-count>' + (dislikeCount || '') + '</span>' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</a>';
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    /* === POPULAR LISTS HIGHLIGHTS (compact cards) === */
+    async function discLoadPopularListsHighlights() {
+        var el = document.getElementById('discListsHighlights');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: lists } = await client.from('user_lists')
+                .select('id, user_id, media_type, name')
+                .eq('is_public', true)
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
+            var listIds = lists.map(function(l) { return l.id; });
+            var itemCounts = {};
+            var listImages = {};
+            try {
+                var { data: items } = await client.from('list_items').select('list_id, image_url').in('list_id', listIds);
+                if (Array.isArray(items)) {
+                    items.forEach(function(i) {
+                        if (i.list_id) {
+                            itemCounts[i.list_id] = (itemCounts[i.list_id] || 0) + 1;
+                            if (!listImages[i.list_id]) listImages[i.list_id] = [];
+                            if (i.image_url && listImages[i.list_id].length < 3) listImages[i.list_id].push(i.image_url);
+                        }
+                    });
+                }
+            } catch (_e) {}
+            lists.sort(function(a, b) { return (itemCounts[b.id] || 0) - (itemCounts[a.id] || 0); });
+            var top = lists.slice(0, 6);
+            var userIds = [];
+            var uidSet = {};
+            top.forEach(function(l) { if (l.user_id && !uidSet[l.user_id]) { uidSet[l.user_id] = true; userIds.push(l.user_id); } });
+            var userMap = await fetchUserNames(client, userIds);
+            el.innerHTML = top.map(function(l) {
+                var username = userMap.get(String(l.user_id)) || 'member';
+                var count = itemCounts[l.id] || 0;
+                var images = listImages[l.id] || [];
+                var profileUrl = 'profile.html?user=' + encodeURIComponent(l.user_id);
+                var thumbsHtml = images.map(function(img) {
+                    return '<img class="disc-list-highlight-thumb" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
+                }).join('');
+                return '<a href="' + escapeHtml(profileUrl) + '" class="disc-list-highlight">' +
+                    '<div class="disc-list-highlight-posters">' + (thumbsHtml || '<div class="disc-list-highlight-thumb"></div>') + '</div>' +
+                    '<div class="disc-list-highlight-info">' +
+                        '<div class="disc-list-highlight-name">' + escapeHtml(l.name) + '</div>' +
+                        '<div class="disc-list-highlight-meta">@' + escapeHtml(username) + ' &middot; ' + escapeHtml(l.media_type) + '</div>' +
+                    '</div>' +
+                    '<span class="disc-list-highlight-count">' + count + '</span>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    /* === LIFESTYLE SECTION LOADERS === */
+    async function discLoadSports() {
+        var el = document.getElementById('discSportsRail');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) { el.innerHTML = ''; return; }
+        try {
+            var { data: teams } = await client.from('teams').select('id, name, logo_url, strTeamBadge, sport, league').order('name').limit(12);
+            if (!teams || !teams.length) { el.innerHTML = ''; return; }
+            el.innerHTML = teams.map(function(t) {
+                var img = t.logo_url || t.strTeamBadge || '';
+                return '<a href="sports.html?id=' + encodeURIComponent(t.id) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(t.name || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTravel() {
+        var el = document.getElementById('discTravelRail');
+        if (!el) return;
+        try {
+            var countries = [
+                { code: 'JP', name: 'Japan' }, { code: 'IT', name: 'Italy' }, { code: 'FR', name: 'France' },
+                { code: 'US', name: 'United States' }, { code: 'GB', name: 'United Kingdom' }, { code: 'BR', name: 'Brazil' },
+                { code: 'AU', name: 'Australia' }, { code: 'TH', name: 'Thailand' }, { code: 'MX', name: 'Mexico' },
+                { code: 'EG', name: 'Egypt' }, { code: 'IN', name: 'India' }, { code: 'GR', name: 'Greece' }
+            ];
+            el.innerHTML = countries.map(function(c) {
+                var img = 'https://flagcdn.com/w320/' + c.code.toLowerCase() + '.png';
+                return '<a href="country.html?country=' + encodeURIComponent(c.code) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img disc-poster-img-flag" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(c.name) + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadFashion() {
+        var el = document.getElementById('discFashionRail');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) { el.innerHTML = ''; return; }
+        try {
+            var { data: brands } = await client.from('fashion_brands').select('id, name, logo_url').order('name').limit(12);
+            if (!brands || !brands.length) { el.innerHTML = ''; return; }
+            el.innerHTML = brands.map(function(b) {
+                var img = b.logo_url || '';
+                return '<a href="fashion.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
+                    '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadFood() {
+        var el = document.getElementById('discFoodRail');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) { el.innerHTML = ''; return; }
+        try {
+            var { data: brands } = await client.from('food_brands').select('id, name, logo_url').order('name').limit(12);
+            if (!brands || !brands.length) { el.innerHTML = ''; return; }
+            el.innerHTML = brands.map(function(b) {
+                var img = b.logo_url || '';
+                return '<a href="food.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
+                    '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadCars() {
+        var el = document.getElementById('discCarsRail');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) { el.innerHTML = ''; return; }
+        try {
+            var { data: brands } = await client.from('car_brands').select('id, name, logo_url').order('name').limit(12);
+            if (!brands || !brands.length) { el.innerHTML = ''; return; }
+            el.innerHTML = brands.map(function(b) {
+                var img = b.logo_url || '';
+                return '<a href="car.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
+                    '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
                 '</a>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
@@ -2474,6 +2698,8 @@ window.CommunityManager = (function() {
             const paneId = 'pane' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
             pane.classList.toggle('active', pane.id === paneId);
         });
+
+        updateDiscSidebarVisibility();
 
         if (tabName === 'discover') {
             loadDiscoverFeed();
@@ -2586,11 +2812,14 @@ window.CommunityManager = (function() {
         loadSidebarStats();
         initListsModeIndicator();
         updateFilterDropdownForMode();
+        updateDiscSidebarVisibility();
     });
 
     window.addEventListener('load', function() {
         initListsModeIndicator();
         updateFilterDropdownForMode();
+        initDiscGlobalModeIndicator();
+        updateDiscSidebarVisibility();
     });
 
     return {
@@ -2617,6 +2846,6 @@ window.CommunityManager = (function() {
         setListsFilter: setListsFilter,
         toggleFilterDropdown: toggleFilterDropdown,
         loadDiscoverFeed: loadDiscoverFeed,
-        setDiscListsMode: setDiscListsMode
+        setDiscGlobalMode: setDiscGlobalMode
     };
 })();

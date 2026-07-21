@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721E">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721F">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721E" defer></script>
+    <script src="js/pages/community.js?v=20260721F" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -75,7 +75,32 @@
                     <!-- Discover -->
                     <div class="community-tab-pane active" id="paneDiscover">
 
-                        <!-- 1. Newest Members (avatar strip) -->
+                        <!-- Global Media / Lifestyle Switcher -->
+                        <div class="disc-global-mode">
+                            <div class="disc-global-mode-pill">
+                                <button class="disc-global-mode-btn active" id="discGlobalModeMedia" onclick="CommunityManager.setDiscGlobalMode('media')">
+                                    <i class="fas fa-film"></i> media
+                                </button>
+                                <button class="disc-global-mode-btn" id="discGlobalModeLifestyle" onclick="CommunityManager.setDiscGlobalMode('lifestyle')">
+                                    <i class="fas fa-heart"></i> lifestyle
+                                </button>
+                                <div class="disc-global-mode-indicator" id="discGlobalModeIndicator"></div>
+                            </div>
+                        </div>
+
+                        <!-- ===== SHARED SECTIONS (both modes) ===== -->
+
+                        <!-- Popular Review (hero) -->
+                        <div class="disc-section" id="discPopularReview">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Popular Review</span>
+                            </div>
+                            <div id="discPopularReviewContent">
+                                <div class="disc-skel-review-hero"></div>
+                            </div>
+                        </div>
+
+                        <!-- Newest Members -->
                         <div class="disc-section" id="discNewMembers">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Newest Members</span>
@@ -89,23 +114,7 @@
                             </div>
                         </div>
 
-                        <!-- 2. Top Rated (poster rail) -->
-                        <div class="disc-section" id="discTopRated">
-                            <div class="disc-section-hdr">
-                                <span class="disc-section-label">Top Rated</span>
-                                <span class="disc-section-sub">movies & tv</span>
-                            </div>
-                            <div class="disc-rail" id="discTopRatedRail">
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                            </div>
-                        </div>
-
-                        <!-- 3. Recent Reviews (with poster + likes/dislikes) -->
+                        <!-- Recent Reviews (shared, always visible) -->
                         <div class="disc-section" id="discRecentReviews">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Recent Reviews</span>
@@ -117,57 +126,172 @@
                             </div>
                         </div>
 
-                        <!-- 4. New Releases (poster rail) -->
-                        <div class="disc-section" id="discNewReleases">
-                            <div class="disc-section-hdr">
-                                <span class="disc-section-label">New Releases</span>
-                                <span class="disc-section-sub">coming soon</span>
-                            </div>
-                            <div class="disc-rail" id="discNewReleasesRail">
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                                <div class="disc-skel-poster"></div>
-                            </div>
-                        </div>
-
-                        <!-- 5. Popular Lists (rails with media/lifestyle switcher) -->
+                        <!-- Popular Lists (highlights, shared) -->
                         <div class="disc-section" id="discPopularLists">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Popular Lists</span>
                             </div>
-                            <div class="disc-lists-mode-bar">
-                                <div class="disc-lists-mode-switch" role="tablist">
-                                    <button class="disc-lists-mode-btn active" id="discListsModeMedia" role="tab" aria-selected="true" onclick="CommunityManager.setDiscListsMode('media')">
-                                        <i class="fas fa-play-circle"></i> media
-                                    </button>
-                                    <button class="disc-lists-mode-btn" id="discListsModeLifestyle" role="tab" aria-selected="false" onclick="CommunityManager.setDiscListsMode('lifestyle')">
-                                        <i class="fas fa-compass"></i> lifestyle
-                                    </button>
-                                    <div class="disc-lists-mode-indicator" id="discListsModeIndicator"></div>
-                                </div>
+                            <div class="disc-lists-highlights" id="discListsHighlights">
+                                <div class="disc-skel-highlight"></div>
+                                <div class="disc-skel-highlight"></div>
+                                <div class="disc-skel-highlight"></div>
                             </div>
-                            <div class="disc-lists-panel" id="discListsMediaPanel">
-                                <div class="disc-skel-rail"></div>
-                                <div class="disc-skel-rail"></div>
-                            </div>
-                            <div class="disc-lists-panel" id="discListsLifestylePanel" style="display:none"></div>
                         </div>
 
-                        <!-- 6. Top Games (wide poster rail) -->
-                        <div class="disc-section" id="discTopGames">
-                            <div class="disc-section-hdr">
-                                <span class="disc-section-label">Critically Acclaimed</span>
-                                <span class="disc-section-sub">games</span>
+                        <!-- ===== MEDIA MODE SECTIONS ===== -->
+                        <div id="discMediaContent">
+
+                            <!-- Top Rated (movies & tv) -->
+                            <div class="disc-section" id="discTopRated">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Top Rated</span>
+                                    <span class="disc-section-sub">movies & tv</span>
+                                </div>
+                                <div class="disc-rail" id="discTopRatedRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
                             </div>
-                            <div class="disc-rail disc-rail-wide" id="discTopGamesRail">
-                                <div class="disc-skel-poster disc-skel-wide"></div>
-                                <div class="disc-skel-poster disc-skel-wide"></div>
-                                <div class="disc-skel-poster disc-skel-wide"></div>
-                                <div class="disc-skel-poster disc-skel-wide"></div>
-                                <div class="disc-skel-poster disc-skel-wide"></div>
+
+                            <!-- Coming Soon (unreleased only) -->
+                            <div class="disc-section" id="discNewReleases">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Coming Soon</span>
+                                    <span class="disc-section-sub">upcoming releases</span>
+                                </div>
+                                <div class="disc-rail" id="discNewReleasesRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
                             </div>
+
+                            <!-- Critically Acclaimed Games -->
+                            <div class="disc-section" id="discTopGames">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Critically Acclaimed</span>
+                                    <span class="disc-section-sub">games</span>
+                                </div>
+                                <div class="disc-rail disc-rail-wide" id="discTopGamesRail">
+                                    <div class="disc-skel-poster disc-skel-wide"></div>
+                                    <div class="disc-skel-poster disc-skel-wide"></div>
+                                    <div class="disc-skel-poster disc-skel-wide"></div>
+                                    <div class="disc-skel-poster disc-skel-wide"></div>
+                                    <div class="disc-skel-poster disc-skel-wide"></div>
+                                </div>
+                            </div>
+
+                            <!-- Critically Acclaimed Books -->
+                            <div class="disc-section" id="discTopBooks">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Critically Acclaimed</span>
+                                    <span class="disc-section-sub">books</span>
+                                </div>
+                                <div class="disc-rail" id="discTopBooksRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Top Artists -->
+                            <div class="disc-section" id="discTopArtists">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Top Artists</span>
+                                    <span class="disc-section-sub">trending now</span>
+                                </div>
+                                <div class="disc-rail" id="discTopArtistsRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- ===== LIFESTYLE MODE SECTIONS ===== -->
+                        <div id="discLifestyleContent" style="display:none">
+
+                            <!-- Sports -->
+                            <div class="disc-section" id="discSports">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Sports</span>
+                                    <span class="disc-section-sub">popular teams</span>
+                                </div>
+                                <div class="disc-rail" id="discSportsRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Travel -->
+                            <div class="disc-section" id="discTravel">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Travel</span>
+                                    <span class="disc-section-sub">destinations</span>
+                                </div>
+                                <div class="disc-rail" id="discTravelRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Fashion -->
+                            <div class="disc-section" id="discFashion">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Fashion</span>
+                                    <span class="disc-section-sub">brands</span>
+                                </div>
+                                <div class="disc-rail" id="discFashionRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Food -->
+                            <div class="disc-section" id="discFood">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Food & Drink</span>
+                                    <span class="disc-section-sub">popular brands</span>
+                                </div>
+                                <div class="disc-rail" id="discFoodRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Cars -->
+                            <div class="disc-section" id="discCars">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Cars</span>
+                                    <span class="disc-section-sub">brands</span>
+                                </div>
+                                <div class="disc-rail" id="discCarsRail">
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                    <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>

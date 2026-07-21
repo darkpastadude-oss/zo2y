@@ -1652,15 +1652,19 @@ body::after {
 }
 
 .disc-review-cover {
-    width: 72px;
+    width: 60px;
+    height: 80px;
     flex-shrink: 0;
     background: rgba(255, 255, 255, 0.04);
     display: block;
+    border-radius: 0;
+    overflow: hidden;
 }
 
 .disc-review-cover-link {
     display: block;
-    width: 72px;
+    width: 60px;
+    height: 80px;
     flex-shrink: 0;
 }
 
@@ -1675,7 +1679,7 @@ body::after {
 .disc-review-left {
     flex: 1;
     min-width: 0;
-    padding: 12px 14px;
+    padding: 10px 12px;
 }
 
 .disc-review-user {
@@ -1745,7 +1749,7 @@ body::after {
     display: inline-flex;
     align-items: center;
     gap: 3px;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 6px;
     border: none;
     background: transparent;
@@ -1763,10 +1767,12 @@ body::after {
 
 .disc-review-action-btn.active-like {
     color: #22c55e;
+    background: rgba(34, 197, 94, 0.12);
 }
 
 .disc-review-action-btn.active-dislike {
     color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
 }
 
 .disc-review-action-btn i { font-size: 0.65rem; }
@@ -1850,99 +1856,6 @@ body::after {
 
 .disc-skel-rail {
     height: 200px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
-    background-size: 200% 100%;
-    animation: cmlShimmer 1.5s infinite;
-}
-
-.disc-review-card {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: all 0.2s var(--ease-smooth);
-    cursor: pointer;
-}
-
-.disc-review-card:hover {
-    border-color: rgba(245, 158, 11, 0.3);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-card-hover);
-}
-
-.disc-review-left {
-    flex: 1;
-    min-width: 0;
-}
-
-.disc-review-user {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-.disc-review-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: #0b1633;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 0.6rem;
-    flex-shrink: 0;
-}
-
-.disc-review-username {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: var(--white);
-}
-
-.disc-review-stars {
-    font-size: 0.7rem;
-    color: var(--accent);
-    margin-left: auto;
-}
-
-.disc-review-text {
-    font-size: 0.78rem;
-    color: var(--text2);
-    line-height: 1.45;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 4px;
-}
-
-.disc-review-item-name {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: var(--accent);
-    text-transform: capitalize;
-}
-
-.disc-review-cover {
-    width: 44px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 6px;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.disc-skel-review {
-    height: 72px;
     border-radius: 12px;
     background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
     background-size: 200% 100%;
@@ -2048,6 +1961,313 @@ body::after {
     animation: cmlShimmer 1.5s infinite;
 }
 
+/* === GLOBAL MODE SWITCHER === */
+.disc-global-mode {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+
+.disc-global-mode-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.disc-global-mode-indicator {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    background: rgba(255,255,255,0.09);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.10);
+    transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), width 0.22s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.disc-global-mode-btn {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 22px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: rgba(203,213,225,0.55);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.18s ease;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.disc-global-mode-btn i { font-size: 0.8rem; transition: color 0.18s ease; }
+.disc-global-mode-btn:hover { color: rgba(255,255,255,0.85); }
+.disc-global-mode-btn.active { color: #fff; }
+.disc-global-mode-btn.active i { color: var(--accent); }
+
+/* === POPULAR REVIEW HERO === */
+.disc-review-hero {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--border);
+    min-height: 240px;
+    display: flex;
+    transition: all 0.2s var(--ease-smooth);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.disc-review-hero:hover {
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+.disc-review-hero-backdrop {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.25;
+    filter: blur(4px) brightness(0.5);
+    transition: opacity 0.3s ease;
+}
+
+.disc-review-hero:hover .disc-review-hero-backdrop {
+    opacity: 0.35;
+}
+
+.disc-review-hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(11,22,51,0.95) 0%, rgba(11,22,51,0.7) 50%, rgba(11,22,51,0.3) 100%);
+}
+
+.disc-review-hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    width: 100%;
+    align-items: flex-end;
+}
+
+.disc-review-hero-poster {
+    width: 80px;
+    height: 120px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.disc-review-hero-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.disc-review-hero-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.disc-review-hero-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1633;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+
+.disc-review-hero-username {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.disc-review-hero-stars {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--accent);
+}
+
+.disc-review-hero-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 4px;
+}
+
+.disc-review-hero-excerpt {
+    font-size: 0.8rem;
+    color: var(--text2);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.disc-review-hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.disc-review-hero-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255,255,255,0.08);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.disc-review-hero-action:hover { background: rgba(255,255,255,0.14); color: var(--white); }
+.disc-review-hero-action.active-like { color: #22c55e; background: rgba(34,197,94,0.12); }
+.disc-review-hero-action.active-dislike { color: #ef4444; background: rgba(239,68,68,0.12); }
+
+.disc-skel-review-hero {
+    height: 240px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+/* === ARTIST POSTERS (round) === */
+.disc-poster-artist .disc-poster-img-round {
+    border-radius: 50%;
+}
+
+/* === BRAND POSTERS (contain, white bg) === */
+.disc-poster-brand {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+}
+
+.disc-poster-brand .disc-poster-img-contain {
+    object-fit: contain;
+    background: rgba(255,255,255,0.08);
+    padding: 8px;
+}
+
+/* === FLAG POSTERS === */
+.disc-poster-img-flag {
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* === POPULAR LISTS HIGHLIGHTS (compact) === */
+.disc-lists-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+.disc-list-highlight {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s var(--ease-smooth);
+    cursor: pointer;
+}
+
+.disc-list-highlight:hover {
+    border-color: rgba(245,158,11,0.3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+}
+
+.disc-list-highlight-posters {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.disc-list-highlight-thumb {
+    width: 36px;
+    height: 50px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04);
+}
+
+.disc-list-highlight-thumb:first-child { border-radius: 6px 4px 4px 6px; }
+.disc-list-highlight-thumb:last-child { border-radius: 4px 6px 6px 4px; }
+
+.disc-list-highlight-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.disc-list-highlight-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.disc-list-highlight-meta {
+    font-size: 0.65rem;
+    color: var(--muted);
+}
+
+.disc-list-highlight-count {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.disc-skel-highlight {
+    height: 68px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
 /* === EMPTY STATES === */
 .disc-empty {
     padding: 20px;
@@ -2070,4 +2290,13 @@ body::after {
     .disc-poster { width: 110px; }
     .disc-rail-wide .disc-poster { width: 160px; }
     .disc-list-card { width: 220px; }
+    .disc-review-hero-content { flex-direction: column; align-items: flex-start; }
+    .disc-review-hero-poster { width: 60px; height: 90px; }
+    .disc-lists-highlights { grid-template-columns: 1fr; }
+    .community-sidebar.community-sidebar-discover-only { display: none; }
 }
+
+/* === SIDEBAR: discover-only toggle === */
+.community-sidebar.community-sidebar-discover-only { display: none; }
+.community-sidebar.community-sidebar-visible { display: flex; }
+.community-grid.community-grid-single { grid-template-columns: 1fr; }
