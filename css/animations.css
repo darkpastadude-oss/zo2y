@@ -12,6 +12,57 @@
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --ease-in: cubic-bezier(0.4, 0, 1, 1);
     --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Standardized Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.25);
+
+    /* Touch Targets (iOS HIG: 44pt, Material: 48dp) */
+    --touch-min: 48px;
+    --touch-comfortable: 56px;
+}
+
+/* === HOVER LIFT UTILITY === */
+.hover-lift {
+    transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+}
+.hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* === POSTER HOVER === */
+.poster-hover {
+    transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.22s ease;
+}
+.poster-hover:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-xl);
+}
+
+/* === BUTTON HOVER === */
+.btn-hover {
+    transition: all 0.2s var(--ease-smooth);
+}
+.btn-hover:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+/* === MOBILE TOUCH TARGETS === */
+@media (hover: none) and (pointer: coarse) {
+    .community-tab-btn,
+    .activity-interact-btn,
+    .disc-global-mode-btn,
+    .btn-follow-toggle,
+    .community-back-btn,
+    .activity-filter-btn,
+    .disc-review-hero-action {
+        min-height: var(--touch-min);
+        min-width: var(--touch-min);
+    }
 }
 
 /* === PAGE LOAD FADE-IN === */

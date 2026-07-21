@@ -443,7 +443,7 @@ window.CommunityManager = (function() {
             }
 
             return `
-                <div class="community-review-card" onclick="if('${itemUrl}' !== '#') window.location.href='${itemUrl}'">
+                <div class="community-review-card" data-type="review" onclick="if('${itemUrl}' !== '#') window.location.href='${itemUrl}'">
                     <div class="review-card-header">
                         <div class="review-user-info">
                             <div class="review-avatar-circle" onclick="event.stopPropagation(); window.location.href='${userProfileUrl}'">${escapeHtml(userName.charAt(0).toUpperCase())}</div>
@@ -653,7 +653,7 @@ window.CommunityManager = (function() {
             }
 
             return `
-                <div class="community-activity-card" onclick="if('${targetUrl}' !== '#') window.location.href='${targetUrl}'">
+                <div class="community-activity-card" data-type="${isReview ? 'review' : (eventType.includes('list') ? 'list' : 'follow')}" onclick="if('${targetUrl}' !== '#') window.location.href='${targetUrl}'">
                     <div class="activity-card-left">
                         <div class="activity-avatar-circle" onclick="event.stopPropagation(); window.location.href='${profileUrl}'">${escapeHtml(userName.charAt(0).toUpperCase())}</div>
                         <div class="activity-card-info">

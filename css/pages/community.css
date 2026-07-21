@@ -13,8 +13,8 @@
     --border: rgba(255, 255, 255, 0.12);
     --surface: rgba(19, 35, 71, 0.6);
     --radial-glow: radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
-    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.15);
-    --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.2);
+    --shadow-card: var(--shadow-md);
+    --shadow-card-hover: var(--shadow-lg);
 }
 
 * {
@@ -81,7 +81,7 @@ body::after {
     align-items: center;
     gap: 0;
     padding: 12px 16px;
-    height: 44px;
+    min-height: var(--touch-min);
     background: transparent !important;
     border: none !important;
     border-bottom: 2px solid transparent !important;
@@ -114,7 +114,7 @@ body::after {
 
 /* === CONTENT CONTAINER === */
 .community-content {
-    padding: 24px 24px 48px 24px;
+    padding: 32px 32px 64px 32px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -138,7 +138,7 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -170,7 +170,7 @@ body::after {
 .community-grid {
     display: grid;
     grid-template-columns: 1fr 300px;
-    gap: 32px;
+    gap: 40px;
     align-items: start;
 }
 
@@ -181,12 +181,11 @@ body::after {
 .community-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
 }
 
 .community-sidebar-widget {
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 16px;
 }
@@ -199,7 +198,6 @@ body::after {
     color: var(--muted);
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .community-stats-grid {
@@ -211,9 +209,8 @@ body::after {
 .community-stat-item {
     text-align: center;
     padding: 10px 6px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .community-stat-number {
@@ -267,6 +264,7 @@ body::after {
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
+    min-height: var(--touch-min);
     border-radius: 8px;
     background: transparent;
     border: none;
@@ -294,7 +292,6 @@ body::after {
 
 .community-user-card {
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 12px 14px;
     display: flex;
@@ -307,7 +304,6 @@ body::after {
 
 .community-user-card:hover {
     transform: translateY(-1px);
-    border-color: rgba(245, 158, 11, 0.35);
     box-shadow: var(--shadow-card-hover);
 }
 
@@ -365,10 +361,9 @@ body::after {
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
-    height: 30px;
+    min-height: var(--touch-min);
     background: rgba(245, 158, 11, 0.15);
     color: var(--accent);
-    border: 1px solid rgba(245, 158, 11, 0.3);
     border-radius: 14px;
     font-size: 0.78rem;
     font-weight: 600;
@@ -384,7 +379,6 @@ body::after {
 .btn-follow-toggle.following {
     background: rgba(255, 255, 255, 0.08);
     color: var(--muted);
-    border-color: var(--border);
 }
 
 .btn-follow-toggle.following:hover {
@@ -409,7 +403,7 @@ body::after {
     display: inline-flex;
     align-items: center;
     padding: 4px 12px;
-    height: 28px;
+    min-height: var(--touch-min);
     background: transparent !important;
     border: 1px solid transparent !important;
     border-radius: 10px;
@@ -440,7 +434,6 @@ body::after {
 
 .community-activity-card {
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 10px 14px;
     display: flex;
@@ -453,8 +446,21 @@ body::after {
 
 .community-activity-card:hover {
     transform: translateY(-1px);
-    border-color: rgba(245, 158, 11, 0.35);
     box-shadow: var(--shadow-card-hover);
+}
+
+/* Activity type variations */
+.community-activity-card[data-type="review"] {
+    min-height: 80px;
+}
+
+.community-activity-card[data-type="list"] {
+    min-height: 70px;
+}
+
+.community-activity-card[data-type="follow"] {
+    min-height: 56px;
+    padding: 8px 14px;
 }
 
 .activity-card-left {
@@ -491,6 +497,15 @@ body::after {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Expanded text for reviews */
+.community-activity-card[data-type="review"] .activity-card-text {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .activity-card-item {
@@ -533,7 +548,6 @@ body::after {
 
 .activity-cover-img {
     border-radius: 8px;
-    border: 1px solid var(--border);
     flex-shrink: 0;
     margin-left: 14px;
     background: rgba(255, 255, 255, 0.04);
@@ -573,7 +587,6 @@ body::after {
     height: 44px;
     border-radius: 8px;
     background: rgba(245, 158, 11, 0.12);
-    border: 1px solid rgba(245, 158, 11, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -581,6 +594,22 @@ body::after {
     color: var(--accent);
     flex-shrink: 0;
     margin-left: 14px;
+}
+
+/* List poster thumbnails */
+.activity-list-posters {
+    display: flex;
+    gap: 4px;
+    margin-left: 14px;
+    flex-shrink: 0;
+}
+
+.activity-list-poster {
+    width: 32px;
+    height: 44px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.04);
 }
 
 /* === REVIEWS FEED === */
@@ -592,7 +621,6 @@ body::after {
 
 .community-review-card {
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px;
     cursor: pointer;
@@ -602,7 +630,6 @@ body::after {
 
 .community-review-card:hover {
     transform: translateY(-1px);
-    border-color: rgba(245, 158, 11, 0.35);
     box-shadow: var(--shadow-card-hover);
 }
 
@@ -680,6 +707,10 @@ body::after {
     font-size: 0.88rem;
     color: #e2e8f0;
     line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .pt-4 { padding-top: 4px; }
@@ -688,14 +719,7 @@ body::after {
 
 /* === EMPTY STATE === */
 .community-empty-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 40px 20px;
     background: var(--card);
-    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     margin-top: 12px;
 }
@@ -1067,11 +1091,9 @@ body::after {
     border-radius: 10px;
     overflow: hidden;
     background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.07);
     aspect-ratio: 2 / 3;
     transition: transform 0.22s cubic-bezier(0.2,0.9,0.2,1),
-                box-shadow 0.22s ease,
-                border-color 0.22s ease;
+                box-shadow 0.22s ease;
 }
 
 .cml-poster.is-square .cml-poster-img-wrap { aspect-ratio: 1 / 1; }
@@ -1081,7 +1103,6 @@ body::after {
 .cml-poster:hover .cml-poster-img-wrap {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 14px 28px rgba(0,0,0,0.55);
-    border-color: rgba(255,255,255,0.14);
 }
 
 .cml-poster-img {
@@ -1180,6 +1201,7 @@ body::after {
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
+    min-height: var(--touch-min);
     border-radius: 8px;
     border: none;
     background: transparent;
@@ -1417,12 +1439,12 @@ body::after {
     }
 
     .community-content {
-        padding: 16px 14px 32px 14px;
+        padding: 20px 14px 40px 14px;
     }
 
     .community-tab-btn {
         padding: 10px 12px;
-        height: 40px;
+        min-height: var(--touch-min);
         font-size: 0.78rem;
     }
 
@@ -1472,7 +1494,7 @@ body::after {
    ============================================================ */
 
 /* Section wrapper */
-.disc-section { margin-bottom: 32px; }
+.disc-section { margin-bottom: 48px; }
 
 /* Section headers */
 .disc-section-hdr {
@@ -1589,7 +1611,6 @@ body::after {
     aspect-ratio: 2 / 3;
     object-fit: cover;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(255, 255, 255, 0.04);
     display: block;
 }
@@ -1637,16 +1658,15 @@ body::after {
     align-items: stretch;
     gap: 0;
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 12px;
     text-decoration: none;
     transition: all 0.2s var(--ease-smooth);
     cursor: pointer;
     overflow: hidden;
+    box-shadow: var(--shadow-card);
 }
 
 .disc-review-card:hover {
-    border-color: rgba(245, 158, 11, 0.3);
     transform: translateY(-1px);
     box-shadow: var(--shadow-card-hover);
 }
@@ -2006,6 +2026,7 @@ body::after {
     align-items: center;
     gap: 7px;
     padding: 9px 22px;
+    min-height: var(--touch-min);
     border-radius: 10px;
     border: none;
     background: transparent;
@@ -2030,16 +2051,16 @@ body::after {
     border-radius: 14px;
     overflow: hidden;
     background: var(--card);
-    border: 1px solid var(--border);
-    min-height: 240px;
+    min-height: 180px;
     display: flex;
+    align-items: center;
     transition: all 0.2s var(--ease-smooth);
     cursor: pointer;
     text-decoration: none;
+    box-shadow: var(--shadow-card);
 }
 
 .disc-review-hero:hover {
-    border-color: rgba(245, 158, 11, 0.3);
     box-shadow: var(--shadow-card-hover);
     transform: translateY(-2px);
 }
@@ -2049,19 +2070,19 @@ body::after {
     inset: 0;
     background-size: cover;
     background-position: center top;
-    opacity: 0.4;
-    filter: blur(2px);
+    opacity: 0.5;
+    filter: blur(1px);
     transition: opacity 0.3s ease;
 }
 
 .disc-review-hero:hover .disc-review-hero-backdrop {
-    opacity: 0.35;
+    opacity: 0.45;
 }
 
 .disc-review-hero-gradient {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(11,22,51,0.9) 0%, rgba(11,22,51,0.5) 40%, rgba(11,22,51,0.15) 100%);
+    background: linear-gradient(to top, rgba(11,22,51,0.95) 0%, rgba(11,22,51,0.6) 40%, rgba(11,22,51,0.2) 100%);
 }
 
 .disc-review-hero-content {
@@ -2069,9 +2090,9 @@ body::after {
     z-index: 1;
     display: flex;
     gap: 16px;
-    padding: 20px;
+    padding: 20px 24px;
     width: 100%;
-    align-items: flex-end;
+    align-items: center;
 }
 
 .disc-review-hero-poster {
@@ -2079,9 +2100,8 @@ body::after {
     height: 120px;
     border-radius: 8px;
     object-fit: cover;
-    border: 1px solid rgba(255,255,255,0.15);
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
 .disc-review-hero-info {
@@ -2151,6 +2171,7 @@ body::after {
     align-items: center;
     gap: 4px;
     padding: 4px 10px;
+    min-height: var(--touch-min);
     border-radius: 8px;
     border: none;
     background: rgba(255,255,255,0.08);
@@ -2167,7 +2188,7 @@ body::after {
 .disc-review-hero-action.active-dislike { color: #ef4444; background: rgba(239,68,68,0.12); }
 
 .disc-skel-review-hero {
-    height: 240px;
+    height: 180px;
     border-radius: 14px;
     background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
     background-size: 200% 100%;
@@ -2218,7 +2239,6 @@ body::after {
     width: 100px;
     border-radius: 6px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.08);
     transition: transform 0.18s ease;
     text-decoration: none;
     display: block;
@@ -2246,7 +2266,6 @@ body::after {
     gap: 10px;
     padding: 10px 12px;
     background: var(--card);
-    border: 1px solid var(--border);
     border-radius: 10px;
     text-decoration: none;
     transition: all 0.2s var(--ease-smooth);
@@ -2254,7 +2273,6 @@ body::after {
 }
 
 .disc-list-highlight:hover {
-    border-color: rgba(245,158,11,0.3);
     transform: translateY(-1px);
     box-shadow: var(--shadow-card);
 }
