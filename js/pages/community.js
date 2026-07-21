@@ -2095,6 +2095,342 @@ window.CommunityManager = (function() {
         if (!wrap) closeFilterDropdown();
     });
 
+    // === DISCOVER FEED ENGINE ===
+    var discoverLoaded = false;
+
+    function discRenderStars(rating) {
+        var r = Math.round(Number(rating) || 0);
+        var s = '';
+        for (var i = 0; i < 5; i++) s += i < r ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>';
+        return s;
+    }
+
+    function discTruncate(str, len) {
+        var s = String(str || '').trim();
+        return s.length > len ? s.slice(0, len) + '...' : s;
+    }
+
+    function discMediaIcon(mt) {
+        var icons = { movie: 'fa-film', tv: 'fa-tv', anime: 'fa-dragon', game: 'fa-gamepad', book: 'fa-book', music: 'fa-music', sports: 'fa-futbol', travel: 'fa-earth-americas', food: 'fa-utensils', fashion: 'fa-shirt', car: 'fa-car' };
+        return icons[mt] || 'fa-layer-group';
+    }
+
+    async function loadDiscoverFeed() {
+        if (discoverLoaded) return;
+        discoverLoaded = true;
+        Promise.allSettled([
+            discLoadSpotlight(),
+            discLoadNewMembers(),
+            discLoadTopRated(),
+            discLoadRecentReviews(),
+            discLoadNewReleases(),
+            discLoadPopularLists(),
+            discLoadTopGames(),
+            discLoadSidebarActive(),
+            discLoadSidebarLists()
+        ]);
+    }
+
+    async function discLoadSpotlight() {
+        var el = document.getElementById('discSpotlight');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) { el.innerHTML = ''; return; }
+        try {
+            var { data: reviews } = await client.from('reviews')
+                .select('*')
+                .not('body', 'is', null)
+                .neq('body', '')
+                .order('created_at', { ascending: false })
+                .limit(15);
+            if (!reviews || !reviews.length) {
+                el.innerHTML = '<div class="disc-empty"><div class="disc-empty-icon"><i class="fas fa-pen-nib"></i></div>be the first to write a review.</div>';
+                return;
+            }
+            var featured = reviews.sort(function(a, b) { return (b.body || '').length - (a.body || '').length; })[0];
+            var username = 'member';
+            try {
+                var { data: profile } = await client.from('user_profiles').select('username, full_name').eq('id', featured.user_id).single();
+                if (profile) username = profile.username || profile.full_name || 'member';
+            } catch (_e) {}
+            await hydrateMediaMetadata([featured]);
+            var excerpt = discTruncate(featured.body, 180);
+            var link = itemLink(featured.media_type, featured.item_id);
+            el.innerHTML =
+                '<a href="' + escapeHtml(link) + '" class="disc-hero">' +
+                    (featured._image ? '<div class="disc-hero-cover" style="background-image:url(\'' + escapeHtml(featured._image) + '\')"></div>' : '<div class="disc-hero-cover disc-hero-cover--empty"></div>') +
+                    '<div class="disc-hero-overlay"></div>' +
+                    '<div class="disc-hero-content">' +
+                        '<span class="disc-hero-kicker">Review Spotlight</span>' +
+                        '<div class="disc-hero-stars">' + discRenderStars(featured.rating) + '</div>' +
+                        '<h3 class="disc-hero-title">' + escapeHtml(featured._title || featured.title || 'Untitled') + '</h3>' +
+                        '<p class="disc-hero-excerpt">' + escapeHtml(excerpt) + '</p>' +
+                        '<div class="disc-hero-meta">' +
+                            '<span class="disc-hero-type">' + escapeHtml(featured.media_type || 'movie') + '</span>' +
+                            '<span class="disc-hero-dot">&middot;</span>' +
+                            '<span class="disc-hero-user">by ' + escapeHtml(username) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                '</a>';
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadNewMembers() {
+        var el = document.getElementById('discMemberStrip');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: profiles } = await client.from('user_profiles')
+                .select('id, username, full_name')
+                .not('username', 'is', null)
+                .order('created_at', { ascending: false })
+                .limit(10);
+            if (!profiles || !profiles.length) { el.innerHTML = ''; return; }
+            el.innerHTML = profiles.map(function(p) {
+                var name = p.username || p.full_name || 'member';
+                var initial = String(name).charAt(0).toUpperCase();
+                return '<a href="profile.html?user=' + encodeURIComponent(p.id) + '" class="disc-member">' +
+                    '<div class="disc-member-avatar">' + escapeHtml(initial) + '</div>' +
+                    '<div class="disc-member-name">' + escapeHtml(name) + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTopRated() {
+        var el = document.getElementById('discTopRatedRail');
+        if (!el) return;
+        try {
+            var results = [];
+            var p1 = fetch('/api/tmdb/movie/top_rated').then(function(r) { return r.json(); }).then(function(d) {
+                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.release_date, type: 'movie' }); });
+            }).catch(function() {});
+            var p2 = fetch('/api/tmdb/tv/top_rated').then(function(r) { return r.json(); }).then(function(d) {
+                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.first_air_date, type: 'tv' }); });
+            }).catch(function() {});
+            await Promise.allSettled([p1, p2]);
+            if (!results.length) { el.innerHTML = ''; return; }
+            results.sort(function() { return 0.5 - Math.random(); });
+            el.innerHTML = results.map(function(m) {
+                return '<a href="' + escapeHtml(m.type === 'tv' ? 'tvshow.html' : 'movie.html') + '?id=' + encodeURIComponent(m.id) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(m.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(m.title) + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadRecentReviews() {
+        var el = document.getElementById('discReviewStack');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: reviews } = await client.from('reviews')
+                .select('*')
+                .not('body', 'is', null)
+                .neq('body', '')
+                .order('created_at', { ascending: false })
+                .limit(5);
+            if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no reviews yet. be the first.</div>'; return; }
+            var userIds = [];
+            var uidSet = {};
+            reviews.forEach(function(r) { if (r.user_id && !uidSet[r.user_id]) { uidSet[r.user_id] = true; userIds.push(r.user_id); } });
+            var userMap = {};
+            if (userIds.length) {
+                try {
+                    var { data: profiles } = await client.from('user_profiles').select('id, username, full_name').in('id', userIds);
+                    if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) userMap[p.id] = p.username || p.full_name || 'member'; });
+                } catch (_e) {}
+            }
+            await hydrateMediaMetadata(reviews);
+            el.innerHTML = reviews.map(function(r) {
+                var name = userMap[r.user_id] || 'member';
+                var initial = String(name).charAt(0).toUpperCase();
+                var excerpt = discTruncate(r.body, 120);
+                var link = itemLink(r.media_type, r.item_id);
+                var coverHtml = r._image ? '<img class="disc-review-cover" src="' + escapeHtml(r._image) + '" alt="" loading="lazy">' : '';
+                return '<a href="' + escapeHtml(link) + '" class="disc-review-card">' +
+                    '<div class="disc-review-left">' +
+                        '<div class="disc-review-user">' +
+                            '<div class="disc-review-avatar">' + escapeHtml(initial) + '</div>' +
+                            '<span class="disc-review-username">' + escapeHtml(name) + '</span>' +
+                            '<span class="disc-review-stars">' + discRenderStars(r.rating) + '</span>' +
+                        '</div>' +
+                        '<div class="disc-review-text">' + escapeHtml(excerpt) + '</div>' +
+                        '<div class="disc-review-item-name">' + escapeHtml(r._title || r.title || r.media_type) + '</div>' +
+                    '</div>' +
+                    coverHtml +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadNewReleases() {
+        var el = document.getElementById('discNewReleasesRail');
+        if (!el) return;
+        try {
+            var results = [];
+            var p1 = fetch('/api/tmdb/movie/upcoming').then(function(r) { return r.json(); }).then(function(d) {
+                if (d && Array.isArray(d.results)) d.results.slice(0, 8).forEach(function(m) { results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.release_date, type: 'movie' }); });
+            }).catch(function() {});
+            var p2 = fetch('/api/tmdb/tv/on_the_air').then(function(r) { return r.json(); }).then(function(d) {
+                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.first_air_date, type: 'tv' }); });
+            }).catch(function() {});
+            await Promise.allSettled([p1, p2]);
+            if (!results.length) { el.innerHTML = ''; return; }
+            el.innerHTML = results.map(function(m) {
+                var dateStr = m.date ? new Date(m.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                return '<a href="' + escapeHtml(m.type === 'tv' ? 'tvshow.html' : 'movie.html') + '?id=' + encodeURIComponent(m.id) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(m.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(m.title) + '</div>' +
+                    (dateStr ? '<div class="disc-poster-date">' + escapeHtml(dateStr) + '</div>' : '') +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadPopularLists() {
+        var el = document.getElementById('discListStrip');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: lists } = await client.from('user_lists')
+                .select('id, user_id, media_type, name')
+                .order('created_at', { ascending: false })
+                .limit(20);
+            if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists created yet.</div>'; return; }
+            var listIds = lists.map(function(l) { return l.id; });
+            var itemCounts = {};
+            try {
+                var { data: items } = await client.from('list_items').select('list_id').in('list_id', listIds);
+                if (Array.isArray(items)) items.forEach(function(i) { if (i.list_id) itemCounts[i.list_id] = (itemCounts[i.list_id] || 0) + 1; });
+            } catch (_e) {}
+            lists.sort(function(a, b) { return (itemCounts[b.id] || 0) - (itemCounts[a.id] || 0); });
+            var topLists = lists.filter(function(l) { return (itemCounts[l.id] || 0) > 0; }).slice(0, 6);
+            if (!topLists.length) topLists = lists.slice(0, 4);
+            var userIds = [];
+            var uidSet = {};
+            topLists.forEach(function(l) { if (l.user_id && !uidSet[l.user_id]) { uidSet[l.user_id] = true; userIds.push(l.user_id); } });
+            var userMap = {};
+            if (userIds.length) {
+                try {
+                    var { data: profiles } = await client.from('user_profiles').select('id, username').in('id', userIds);
+                    if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) userMap[p.id] = p.username || 'member'; });
+                } catch (_e) {}
+            }
+            var listPosterIds = {};
+            for (var li = 0; li < topLists.length; li++) {
+                var lid = topLists[li].id;
+                try {
+                    var { data: litems } = await client.from('list_items').select('image_url, item_id, media_type').eq('list_id', lid).limit(4);
+                    if (Array.isArray(litems)) listPosterIds[lid] = litems;
+                } catch (_e) { listPosterIds[lid] = []; }
+            }
+            el.innerHTML = topLists.map(function(l) {
+                var uname = userMap[l.user_id] || 'member';
+                var count = itemCounts[l.id] || 0;
+                var posters = listPosterIds[l.id] || [];
+                var posterHtml = '';
+                for (var pi = 0; pi < 4; pi++) {
+                    if (posters[pi] && posters[pi].image_url) {
+                        posterHtml += '<img class="disc-list-mini-poster" src="' + escapeHtml(posters[pi].image_url) + '" alt="" loading="lazy">';
+                    } else {
+                        posterHtml += '<div class="disc-list-mini-poster disc-list-empty-slot"></div>';
+                    }
+                }
+                return '<a href="profile.html?user=' + encodeURIComponent(l.user_id) + '" class="disc-list-card">' +
+                    '<div class="disc-list-info">' +
+                        '<div class="disc-list-name">' + escapeHtml(l.name) + '</div>' +
+                        '<div class="disc-list-meta">@' + escapeHtml(uname) + ' &middot; <span class="disc-list-meta-type">' + escapeHtml(l.media_type) + '</span> &middot; ' + count + ' items</div>' +
+                    '</div>' +
+                    '<div class="disc-list-posters">' + posterHtml + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTopGames() {
+        var el = document.getElementById('discTopGamesRail');
+        if (!el) return;
+        try {
+            var resp = await fetch('/api/igdb/games?page=1&page_size=10&sort=rating:desc');
+            var data = await resp.json();
+            var games = data && data.results ? data.results : (Array.isArray(data) ? data : []);
+            if (!games.length) { el.innerHTML = ''; return; }
+            el.innerHTML = games.slice(0, 8).map(function(g) {
+                var img = g.background_image || g.cover_url || '';
+                return '<a href="game.html?id=' + encodeURIComponent(g.id) + '" class="disc-poster">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(g.name || g.title || '') + '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadSidebarActive() {
+        var el = document.getElementById('discActiveUsersList');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: reviews } = await client.from('reviews').select('user_id').order('created_at', { ascending: false }).limit(100);
+            if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no activity yet.</div>'; return; }
+            var counts = {};
+            reviews.forEach(function(r) { if (r.user_id) counts[r.user_id] = (counts[r.user_id] || 0) + 1; });
+            var sorted = Object.keys(counts).sort(function(a, b) { return counts[b] - counts[a]; }).slice(0, 5);
+            var { data: profiles } = await client.from('user_profiles').select('id, username, full_name').in('id', sorted);
+            var pMap = {};
+            if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) pMap[p.id] = p; });
+            el.innerHTML = sorted.map(function(uid) {
+                var p = pMap[uid] || {};
+                var name = p.username || p.full_name || 'member';
+                var initial = String(name).charAt(0).toUpperCase();
+                return '<a href="profile.html?user=' + encodeURIComponent(uid) + '" class="disc-sidebar-user">' +
+                    '<div class="disc-sidebar-user-avatar">' + escapeHtml(initial) + '</div>' +
+                    '<div class="disc-sidebar-user-info">' +
+                        '<div class="disc-sidebar-user-name">' + escapeHtml(name) + '</div>' +
+                        '<div class="disc-sidebar-user-count">' + counts[uid] + ' review' + (counts[uid] !== 1 ? 's' : '') + '</div>' +
+                    '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadSidebarLists() {
+        var el = document.getElementById('discTrendingLists');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: lists } = await client.from('user_lists')
+                .select('id, user_id, media_type, name')
+                .order('created_at', { ascending: false })
+                .limit(15);
+            if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
+            var listIds = lists.map(function(l) { return l.id; });
+            var counts = {};
+            try {
+                var { data: items } = await client.from('list_items').select('list_id').in('list_id', listIds);
+                if (Array.isArray(items)) items.forEach(function(i) { if (i.list_id) counts[i.list_id] = (counts[i.list_id] || 0) + 1; });
+            } catch (_e) {}
+            lists.sort(function(a, b) { return (counts[b.id] || 0) - (counts[a.id] || 0); });
+            var top = lists.slice(0, 4);
+            el.innerHTML = top.map(function(l) {
+                var count = counts[l.id] || 0;
+                return '<a href="profile.html?user=' + encodeURIComponent(l.user_id) + '" class="disc-sidebar-list">' +
+                    '<div class="disc-sidebar-list-icon"><i class="fas ' + discMediaIcon(l.media_type) + '"></i></div>' +
+                    '<div class="disc-sidebar-list-info">' +
+                        '<div class="disc-sidebar-list-name">' + escapeHtml(l.name) + '</div>' +
+                        '<div class="disc-sidebar-list-meta">' + escapeHtml(l.media_type) + ' &middot; ' + count + ' items</div>' +
+                    '</div>' +
+                '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
     // === TAB SWITCHING MANAGER ===
     function switchTab(tabName) {
         document.querySelectorAll('.community-tab-btn').forEach(function(btn) {
@@ -2107,7 +2443,9 @@ window.CommunityManager = (function() {
             pane.classList.toggle('active', pane.id === paneId);
         });
 
-        if (tabName === 'reviews') {
+        if (tabName === 'discover') {
+            loadDiscoverFeed();
+        } else if (tabName === 'reviews') {
             loadReviewsFeed();
         } else if (tabName === 'people') {
             loadPeopleFeed();
@@ -2202,7 +2540,9 @@ window.CommunityManager = (function() {
     document.addEventListener('DOMContentLoaded', function() {
         const activeTabBtn = document.querySelector('.community-tab-btn.active');
         const activeTab = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'discover';
-        if (activeTab === 'activity') {
+        if (activeTab === 'discover') {
+            loadDiscoverFeed();
+        } else if (activeTab === 'activity') {
             loadActivityFeed();
         } else if (activeTab === 'reviews') {
             loadReviewsFeed();
@@ -2243,6 +2583,7 @@ window.CommunityManager = (function() {
         loadListsFeed: loadListsFeed,
         setListsMode: setListsMode,
         setListsFilter: setListsFilter,
-        toggleFilterDropdown: toggleFilterDropdown
+        toggleFilterDropdown: toggleFilterDropdown,
+        loadDiscoverFeed: loadDiscoverFeed
     };
 })();

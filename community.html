@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721C">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721D">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721C" defer></script>
+    <script src="js/pages/community.js?v=20260721D" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -74,26 +74,95 @@
 
                     <!-- Discover -->
                     <div class="community-tab-pane active" id="paneDiscover">
-                        <div class="community-section-header">
-                            <div class="community-section-title">Discover</div>
+
+                        <!-- 1. Review Spotlight (editorial hero) -->
+                        <div class="disc-section" id="discSpotlight">
+                            <div class="disc-hero-skel"></div>
                         </div>
-                        <div class="skel-spotlight community-spotlight-skel" id="communitySpotlight">
-                            <div class="skel skel-backdrop"></div>
-                            <div class="skel-content">
-                                <div class="skel skel-kicker" style="width:90px;height:18px;border-radius:10px"></div>
-                                <div class="skel skel-title" style="width:50%;height:24px;border-radius:6px;margin:4px 0"></div>
-                                <div class="skel skel-line skel-line-lg" style="width:75%;height:14px"></div>
-                                <div class="skel-buttons" style="margin-top:6px">
-                                    <div class="skel skel-btn" style="width:130px;height:32px;border-radius:10px"></div>
-                                </div>
+
+                        <!-- 2. Newest Members (avatar strip) -->
+                        <div class="disc-section" id="discNewMembers">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Newest Members</span>
+                            </div>
+                            <div class="disc-member-strip" id="discMemberStrip">
+                                <div class="disc-skel-circle"></div>
+                                <div class="disc-skel-circle"></div>
+                                <div class="disc-skel-circle"></div>
+                                <div class="disc-skel-circle"></div>
+                                <div class="disc-skel-circle"></div>
                             </div>
                         </div>
-                        <div class="skel-rail">
-                            <div class="skel-card-poster"><div class="skel skel-poster"></div><div class="skel-meta"><div class="skel skel-line skel-line-lg"></div><div class="skel skel-line skel-line-sm"></div></div></div>
-                            <div class="skel-card-poster"><div class="skel skel-poster"></div><div class="skel-meta"><div class="skel skel-line skel-line-lg"></div><div class="skel skel-line skel-line-sm"></div></div></div>
-                            <div class="skel-card-poster"><div class="skel skel-poster"></div><div class="skel-meta"><div class="skel skel-line skel-line-lg"></div><div class="skel skel-line skel-line-sm"></div></div></div>
-                            <div class="skel-card-poster"><div class="skel skel-poster"></div><div class="skel-meta"><div class="skel skel-line skel-line-lg"></div><div class="skel skel-line skel-line-sm"></div></div></div>
+
+                        <!-- 3. Top Rated (poster rail) -->
+                        <div class="disc-section" id="discTopRated">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Top Rated</span>
+                                <span class="disc-section-sub">movies & tv</span>
+                            </div>
+                            <div class="disc-rail" id="discTopRatedRail">
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                            </div>
                         </div>
+
+                        <!-- 4. Recent Reviews (card stack) -->
+                        <div class="disc-section" id="discRecentReviews">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Recent Reviews</span>
+                            </div>
+                            <div class="disc-review-stack" id="discReviewStack">
+                                <div class="disc-skel-review"></div>
+                                <div class="disc-skel-review"></div>
+                                <div class="disc-skel-review"></div>
+                            </div>
+                        </div>
+
+                        <!-- 5. New Releases (poster rail) -->
+                        <div class="disc-section" id="discNewReleases">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">New Releases</span>
+                                <span class="disc-section-sub">coming soon</span>
+                            </div>
+                            <div class="disc-rail" id="discNewReleasesRail">
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                                <div class="disc-skel-poster"></div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Popular Lists (list preview cards) -->
+                        <div class="disc-section" id="discPopularLists">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Popular Lists</span>
+                            </div>
+                            <div class="disc-list-strip" id="discListStrip">
+                                <div class="disc-skel-listcard"></div>
+                                <div class="disc-skel-listcard"></div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Top Games (wide poster rail) -->
+                        <div class="disc-section" id="discTopGames">
+                            <div class="disc-section-hdr">
+                                <span class="disc-section-label">Critically Acclaimed</span>
+                                <span class="disc-section-sub">games</span>
+                            </div>
+                            <div class="disc-rail disc-rail-wide" id="discTopGamesRail">
+                                <div class="disc-skel-poster disc-skel-wide"></div>
+                                <div class="disc-skel-poster disc-skel-wide"></div>
+                                <div class="disc-skel-poster disc-skel-wide"></div>
+                                <div class="disc-skel-poster disc-skel-wide"></div>
+                                <div class="disc-skel-poster disc-skel-wide"></div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- Reviews -->
@@ -246,11 +315,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="community-sidebar-widget">
-                        <div class="community-sidebar-title">Quick Links</div>
-                        <a href="profile.html" class="community-sidebar-link"><i class="fas fa-user"></i> My Profile</a>
-                        <a href="index.html" class="community-sidebar-link"><i class="fas fa-compass"></i> Browse Media</a>
-                        <a href="profile.html#lists" class="community-sidebar-link"><i class="fas fa-layer-group"></i> My Lists</a>
+                    <div class="community-sidebar-widget" id="discSidebarActive">
+                        <div class="community-sidebar-title">Most Active</div>
+                        <div id="discActiveUsersList" class="disc-sidebar-users">
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
+                        </div>
+                    </div>
+                    <div class="community-sidebar-widget" id="discSidebarLists">
+                        <div class="community-sidebar-title">Trending Lists</div>
+                        <div id="discTrendingLists" class="disc-sidebar-lists">
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
+                        </div>
                     </div>
                 </aside>
 
