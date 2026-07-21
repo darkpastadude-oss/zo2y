@@ -127,6 +127,7 @@ const HEADER_HTML = `
   <a class="zo2y-desktop-rail-profile" href="profile.html" id="desktopRailProfileBtn" style="display:none;">
     <i class="fa-solid fa-user"></i><span>profile</span>
   </a>
+  <a class="zo2y-desktop-rail-link accent" data-nav-page="community" href="community.html" style="margin-top:4px;"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
 
   <nav class="zo2y-desktop-rail-nav" aria-label="Desktop sections">
     <a class="zo2y-desktop-rail-link" data-nav-page="index" href="index.html"><i class="fa-solid fa-house"></i><span>home</span></a>
@@ -147,7 +148,6 @@ const HEADER_HTML = `
       <a class="zo2y-desktop-rail-link" data-nav-page="food" href="food.html"><i class="fa-solid fa-burger"></i><span>food</span></a>
       <a class="zo2y-desktop-rail-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>cars</span></a>
     </div>
-    <a class="zo2y-desktop-rail-link accent" data-nav-page="community" href="community.html"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>community</span></a>
   </nav>
 </aside>
 <div class="zo2y-mobile-drawer-backdrop" id="zo2yMobileDrawerBackdrop" hidden></div>
@@ -165,6 +165,7 @@ const HEADER_HTML = `
     <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-profile" href="profile.html" id="mobileProfileBtn" style="display:none;">
       <i class="fa-solid fa-user"></i><span>Profile</span>
     </a>
+    <a class="zo2y-mobile-auth-btn accent" href="community.html" style="margin-top:4px;"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>Community</span></a>
     <a class="zo2y-mobile-auth-btn" href="login.html" id="mobileLoginBtn">Login</a>
     <a class="zo2y-mobile-auth-btn zo2y-mobile-auth-btn-primary" href="sign-up.html" id="mobileSignupBtn">Sign Up</a>
   </div>
@@ -206,7 +207,6 @@ const HEADER_HTML = `
         <a class="zo2y-mobile-drawer-link" data-nav-page="cars" href="cars.html"><i class="fa-solid fa-car"></i><span>Cars</span></a>
       </div>
     </div>
-    <a class="zo2y-mobile-drawer-link accent" data-nav-page="community" href="community.html"><i class="fa-solid fa-earth-americas" style="color:#3b82f6;"></i><span>Community</span></a>
   </nav>
 
   <div class="zo2y-mobile-drawer-footer">
