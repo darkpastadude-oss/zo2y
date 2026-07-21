@@ -2161,6 +2161,43 @@ window.CommunityManager = (function() {
         return new Date(dateStr).toLocaleDateString();
     }
 
+    // === SIDEBAR STATS ===
+    async function loadSidebarStats() {
+        var client = getSupabaseClient();
+        if (!client) return;
+
+        var elMembers = document.getElementById('cmlStatMembers');
+        var elLists = document.getElementById('cmlStatLists');
+        var elReviews = document.getElementById('cmlStatReviews');
+        var elItems = document.getElementById('cmlStatItems');
+
+        var memberCount = null, listCount = null, reviewCount = null, itemCount = null;
+
+        // Parallel count queries
+        var p1 = client.from('user_profiles').select('id', { count: 'exact', head: true }).then(function(r) {
+            if (!r.error && typeof r.count === 'number') memberCount = r.count;
+        }).catch(function() {});
+
+        var p2 = client.from('list_items').select('id', { count: 'exact', head: true }).then(function(r) {
+            if (!r.error && typeof r.count === 'number') itemCount = r.count;
+        }).catch(function() {});
+
+        var p3 = client.from('user_lists').select('id', { count: 'exact', head: true }).then(function(r) {
+            if (!r.error && typeof r.count === 'number') listCount = r.count;
+        }).catch(function() {});
+
+        var p4 = client.from('reviews').select('id', { count: 'exact', head: true }).then(function(r) {
+            if (!r.error && typeof r.count === 'number') reviewCount = r.count;
+        }).catch(function() {});
+
+        await Promise.allSettled([p1, p2, p3, p4]);
+
+        if (elMembers && memberCount !== null) elMembers.textContent = memberCount.toLocaleString();
+        if (elLists && listCount !== null) elLists.textContent = listCount.toLocaleString();
+        if (elReviews && reviewCount !== null) elReviews.textContent = reviewCount.toLocaleString();
+        if (elItems && itemCount !== null) elItems.textContent = itemCount.toLocaleString();
+    }
+
     // Auto-init on page load
     document.addEventListener('DOMContentLoaded', function() {
         const activeTabBtn = document.querySelector('.community-tab-btn.active');
@@ -2174,6 +2211,7 @@ window.CommunityManager = (function() {
         }
         loadFollowingSet();
         loadFollowersSet();
+        loadSidebarStats();
         initListsModeIndicator();
         updateFilterDropdownForMode();
     });
