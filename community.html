@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721G">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721H">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721G" defer></script>
+    <script src="js/pages/community.js?v=20260721H" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -82,7 +82,7 @@
                                     <i class="fas fa-film"></i> media
                                 </button>
                                 <button class="disc-global-mode-btn" id="discGlobalModeLifestyle" onclick="CommunityManager.setDiscGlobalMode('lifestyle')">
-                                    <i class="fas fa-heart"></i> lifestyle
+                                    <i class="fas fa-compass"></i> lifestyle
                                 </button>
                                 <div class="disc-global-mode-indicator" id="discGlobalModeIndicator"></div>
                             </div>
@@ -126,15 +126,14 @@
                             </div>
                         </div>
 
-                        <!-- Popular Lists (highlights, shared) -->
+                        <!-- Popular Lists (rails, shared) -->
                         <div class="disc-section" id="discPopularLists">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Popular Lists</span>
                             </div>
-                            <div class="disc-lists-highlights" id="discListsHighlights">
-                                <div class="disc-skel-highlight"></div>
-                                <div class="disc-skel-highlight"></div>
-                                <div class="disc-skel-highlight"></div>
+                            <div id="discPopularListsContent">
+                                <div class="disc-skel-rail"></div>
+                                <div class="disc-skel-rail"></div>
                             </div>
                         </div>
 

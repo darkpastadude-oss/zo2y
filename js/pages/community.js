@@ -2341,7 +2341,7 @@ window.CommunityManager = (function() {
             }).catch(function() {});
             await Promise.allSettled([p1, p2]);
             results.sort(function(a, b) { return (a.date || '').localeCompare(b.date || ''); });
-            results = results.slice(0, 10);
+            results = results.slice(0, 16);
             if (!results.length) { el.innerHTML = '<div class="disc-empty">no upcoming releases found.</div>'; return; }
             el.innerHTML = results.map(function(m) {
                 var dateStr = m.date ? new Date(m.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
@@ -2358,11 +2358,12 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopGamesRail');
         if (!el) return;
         try {
-            var resp = await fetch('/api/igdb/games?page=1&page_size=10&sort=rating:desc');
+            var resp = await fetch('/api/igdb/games?page=1&page_size=20&sort=rating:desc');
             var data = await resp.json();
             var games = data && data.results ? data.results : (Array.isArray(data) ? data : []);
             if (!games.length) { el.innerHTML = ''; return; }
-            el.innerHTML = games.slice(0, 8).map(function(g) {
+            shuffleArray(games);
+            el.innerHTML = games.slice(0, 10).map(function(g) {
                 var img = g.background_image || g.cover_url || '';
                 return '<a href="game.html?id=' + encodeURIComponent(g.id) + '" class="disc-poster">' +
                     '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
@@ -2376,10 +2377,11 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopBooksRail');
         if (!el) return;
         try {
-            var resp = await fetch('/api/books/popular?limit=10');
+            var resp = await fetch('/api/books/popular?limit=30');
             var data = await resp.json();
-            var books = data && data.results ? data.results : (Array.isArray(data) ? data : []);
+            var books = data && data.books ? data.books : (data && data.results ? data.results : (Array.isArray(data) ? data : []));
             if (!books.length) { el.innerHTML = ''; return; }
+            shuffleArray(books);
             el.innerHTML = books.slice(0, 8).map(function(b) {
                 var img = b.image || b.cover || b.thumbnail || b.image_url || '';
                 var link = 'book.html?id=' + encodeURIComponent(b.id || b.book_id || '');
@@ -2395,10 +2397,11 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopArtistsRail');
         if (!el) return;
         try {
-            var resp = await fetch('/api/music/artists?limit=12');
+            var resp = await fetch('/api/music/artists?limit=24');
             var data = await resp.json();
             var artists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
             if (!artists.length) { el.innerHTML = ''; return; }
+            shuffleArray(artists);
             el.innerHTML = artists.slice(0, 8).map(function(a) {
                 var img = a.image || a.image_url || '';
                 var link = 'song.html?id=' + encodeURIComponent(a.id || '');
@@ -2503,56 +2506,68 @@ window.CommunityManager = (function() {
         } catch (_e) { el.innerHTML = ''; }
     }
 
-    /* === POPULAR LISTS HIGHLIGHTS (compact cards) === */
+    /* === POPULAR LISTS RAILS === */
     async function discLoadPopularListsHighlights() {
-        var el = document.getElementById('discListsHighlights');
+        var el = document.getElementById('discPopularListsContent');
         if (!el) return;
         var client = getSupabaseClient();
         if (!client) return;
         try {
-            var { data: lists } = await client.from('user_lists')
-                .select('id, user_id, media_type, name')
+            var { data: rows } = await client.from('list_items')
+                .select('user_id, media_type, item_id, list_type, list_id, image_url, title')
                 .order('created_at', { ascending: false })
-                .limit(20);
-            if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
-            var listIds = lists.map(function(l) { return l.id; });
-            var itemCounts = {};
-            var listImages = {};
-            try {
-                var { data: items } = await client.from('list_items').select('list_id, image_url').in('list_id', listIds);
-                if (Array.isArray(items)) {
-                    items.forEach(function(i) {
-                        if (i.list_id) {
-                            itemCounts[i.list_id] = (itemCounts[i.list_id] || 0) + 1;
-                            if (!listImages[i.list_id]) listImages[i.list_id] = [];
-                            if (i.image_url && listImages[i.list_id].length < 3) listImages[i.list_id].push(i.image_url);
-                        }
-                    });
+                .limit(200);
+            if (!rows || !rows.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
+            var customListIds = [];
+            rows.forEach(function(r) {
+                if (r.list_id && customListIds.indexOf(String(r.list_id)) === -1) customListIds.push(String(r.list_id));
+            });
+            var listNamesMap = {};
+            if (customListIds.length) {
+                try {
+                    var lr = await client.from('user_lists').select('id, user_id, media_type, name').in('id', customListIds);
+                    if (Array.isArray(lr.data)) lr.data.forEach(function(l) { listNamesMap[String(l.id)] = { name: l.name || 'collection', user_id: l.user_id, media_type: l.media_type }; });
+                } catch (_lte) {}
+            }
+            var railGroups = {};
+            rows.forEach(function(item) {
+                var mt = String(item.media_type || '').toLowerCase();
+                if (!mt) return;
+                if (item.list_id) {
+                    var key = 'custom_' + item.list_id;
+                    if (!railGroups[key]) {
+                        var resolved = listNamesMap[String(item.list_id)] || {};
+                        railGroups[key] = { user_id: item.user_id, media_type: mt, media_label: mt, list_name: resolved.name || 'collection', items: [] };
+                    }
+                    railGroups[key].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
+                } else if (item.list_type === 'favorites') {
+                    var favKey = 'fav_' + item.user_id + '_' + mt;
+                    if (!railGroups[favKey]) railGroups[favKey] = { user_id: item.user_id, media_type: mt, media_label: mt, list_name: 'favorites', items: [] };
+                    railGroups[favKey].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
                 }
-            } catch (_e) {}
-            lists.sort(function(a, b) { return (itemCounts[b.id] || 0) - (itemCounts[a.id] || 0); });
-            var top = lists.slice(0, 6);
+            });
+            var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
+            await hydrateRailPosters(rails);
+            shuffleArray(rails);
+            rails = rails.slice(0, 6);
             var userIds = [];
             var uidSet = {};
-            top.forEach(function(l) { if (l.user_id && !uidSet[l.user_id]) { uidSet[l.user_id] = true; userIds.push(l.user_id); } });
+            rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
             var userMap = await fetchUserNames(client, userIds);
-            el.innerHTML = top.map(function(l) {
-                var username = userMap.get(String(l.user_id)) || 'member';
-                var count = itemCounts[l.id] || 0;
-                var images = listImages[l.id] || [];
-                var profileUrl = 'profile.html?user=' + encodeURIComponent(l.user_id);
-                var thumbsHtml = images.map(function(img) {
-                    return '<img class="disc-list-highlight-thumb" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">';
-                }).join('');
-                return '<a href="' + escapeHtml(profileUrl) + '" class="disc-list-highlight">' +
-                    '<div class="disc-list-highlight-posters">' + (thumbsHtml || '<div class="disc-list-highlight-thumb"></div>') + '</div>' +
-                    '<div class="disc-list-highlight-info">' +
-                        '<div class="disc-list-highlight-name">' + escapeHtml(l.name) + '</div>' +
-                        '<div class="disc-list-highlight-meta">@' + escapeHtml(username) + ' &middot; ' + escapeHtml(l.media_type) + '</div>' +
-                    '</div>' +
-                    '<span class="disc-list-highlight-count">' + count + '</span>' +
-                '</a>';
-            }).join('');
+            rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
+            function renderDiscRail(rail) {
+                var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
+                var mediaIcon = CML_RAIL_ICONS[rail.media_type] || 'fa-layer-group';
+                var listIcon = rail.list_name === 'favorites' ? (CML_DEFAULT_LIST_ICONS.favorites || 'fa-heart') : '';
+                var headerIcon = listIcon || mediaIcon;
+                var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
+                var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
+                var cardsHtml = rail.items.map(function(item) { return buildRailPosterCard(item.image_url, profileUrl, rail.media_type); }).join('');
+                return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
+                    + '<div class="cml-rail-header"><div class="cml-rail-title"><i class="fas ' + headerIcon + ' cml-rail-icon"></i><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + customBadge + '</div></div>'
+                    + '<div class="cml-rail-track">' + cardsHtml + '</div></div>';
+            }
+            el.innerHTML = rails.length ? rails.map(renderDiscRail).join('') : '<div class="disc-empty">no lists yet.</div>';
         } catch (_e) { el.innerHTML = ''; }
     }
 
@@ -2570,12 +2585,33 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discSportsRail');
         if (!el) return;
         var client = getSupabaseClient();
-        if (!client) { el.innerHTML = ''; return; }
+        var teams = [];
+        if (client) {
+            try {
+                var result = await client.from('teams').select('id, name, logo_url, sport, league').order('name').limit(20);
+                if (result.data) teams = result.data;
+            } catch (_e) {}
+        }
+        if (!teams.length) {
+            teams = [
+                { id: 'nba-lal', name: 'LA Lakers', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/lal.png&h=80&w=80', sport: 'Basketball', league: 'NBA' },
+                { id: 'nba-gsw', name: 'Golden State Warriors', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/gs.png&h=80&w=80', sport: 'Basketball', league: 'NBA' },
+                { id: 'nba-bos', name: 'Boston Celtics', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/bos.png&h=80&w=80', sport: 'Basketball', league: 'NBA' },
+                { id: 'nfl-kc', name: 'Kansas City Chiefs', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/kc.png&h=80&w=80', sport: 'Football', league: 'NFL' },
+                { id: 'nfl-dal', name: 'Dallas Cowboys', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/dal.png&h=80&w=80', sport: 'Football', league: 'NFL' },
+                { id: 'nfl-sf', name: 'San Francisco 49ers', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/sf.png&h=80&w=80', sport: 'Football', league: 'NFL' },
+                { id: 'mlb-nyy', name: 'New York Yankees', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/nyy.png&h=80&w=80', sport: 'Baseball', league: 'MLB' },
+                { id: 'mlb-lad', name: 'LA Dodgers', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/mlb/500/lad.png&h=80&w=80', sport: 'Baseball', league: 'MLB' },
+                { id: 'f1-rb', name: 'Red Bull Racing', logo_url: 'https://media.igdb.com/igdb/image/upload/t_logo_big/co4mv6.png', sport: 'F1', league: 'Formula 1' },
+                { id: 'epl-mci', name: 'Manchester City', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/382.png&h=80&w=80', sport: 'Soccer', league: 'Premier League' },
+                { id: 'epl-liv', name: 'Liverpool FC', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/soccer/500/364.png&h=80&w=80', sport: 'Soccer', league: 'Premier League' },
+                { id: 'nba-mia', name: 'Miami Heat', logo_url: 'https://a.espncdn.com/combiner/i?img=/i/teamlogos/nba/500/mia.png&h=80&w=80', sport: 'Basketball', league: 'NBA' }
+            ];
+        }
         try {
-            var { data: teams } = await client.from('teams').select('id, name, logo_url, sport, league').order('name').limit(12);
-            if (!teams || !teams.length) { el.innerHTML = '<div class="disc-empty">no teams found.</div>'; return; }
-            el.innerHTML = teams.map(function(t) {
+            el.innerHTML = teams.slice(0, 12).map(function(t) {
                 var img = t.logo_url || '';
+                var subtitle = [t.league, t.sport].filter(Boolean).join(' · ');
                 return '<a href="sports.html?id=' + encodeURIComponent(t.id) + '" class="disc-poster disc-poster-brand">' +
                     '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(t.name || '') + '</div>' +
@@ -2592,13 +2628,15 @@ window.CommunityManager = (function() {
                 { code: 'JP', name: 'Japan' }, { code: 'IT', name: 'Italy' }, { code: 'FR', name: 'France' },
                 { code: 'US', name: 'United States' }, { code: 'GB', name: 'United Kingdom' }, { code: 'BR', name: 'Brazil' },
                 { code: 'AU', name: 'Australia' }, { code: 'TH', name: 'Thailand' }, { code: 'MX', name: 'Mexico' },
-                { code: 'EG', name: 'Egypt' }, { code: 'IN', name: 'India' }, { code: 'GR', name: 'Greece' }
+                { code: 'EG', name: 'Egypt' }, { code: 'IN', name: 'India' }, { code: 'GR', name: 'Greece' },
+                { code: 'ES', name: 'Spain' }, { code: 'DE', name: 'Germany' }, { code: 'KR', name: 'South Korea' },
+                { code: 'TR', name: 'Turkey' }, { code: 'MA', name: 'Morocco' }, { code: 'PT', name: 'Portugal' }
             ];
+            el.className = 'disc-flag-strip';
             el.innerHTML = countries.map(function(c) {
                 var img = 'https://flagcdn.com/w320/' + c.code.toLowerCase() + '.png';
-                return '<a href="country.html?country=' + encodeURIComponent(c.code) + '" class="disc-poster disc-poster-flag">' +
-                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
-                    '<div class="disc-poster-title">' + escapeHtml(c.name) + '</div>' +
+                return '<a href="country.html?country=' + encodeURIComponent(c.code) + '" class="disc-flag-item" title="' + escapeHtml(c.name) + '">' +
+                    '<img src="' + escapeHtml(img) + '" alt="' + escapeHtml(c.name) + '" loading="lazy" onerror="this.style.display=\'none\'">' +
                 '</a>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
