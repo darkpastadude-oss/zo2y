@@ -2563,8 +2563,8 @@ window.CommunityManager = (function() {
                 rails = rails.filter(function(r) { return lifestyleMediaTypes.indexOf(r.media_type) === -1; });
             }
             await hydrateRailPosters(rails);
-            shuffleArray(rails);
-            rails = rails.slice(0, 6);
+            rails.sort(function(a, b) { return b.items.length - a.items.length; });
+            rails = rails.slice(0, 8);
             var userIds = [];
             var uidSet = {};
             rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
@@ -2582,7 +2582,8 @@ window.CommunityManager = (function() {
                 var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
                 var displayName = isCustom ? rail.list_name : rail.list_name;
                 var mediaLabel = mediaTypeNames[rail.media_type] || rail.media_type || '';
-                return '<div class="disc-list-stack" onclick="CommunityManager.switchTab(\'lists\')">'
+                var clickMt = escapeHtml(rail.media_type || '');
+                return '<div class="disc-list-stack" onclick="CommunityManager.openListFromDiscover(\'' + clickMt + '\')">'
                     + '<div class="disc-list-stack-deck">' + cardsHtml + '</div>'
                     + '<div class="disc-list-stack-label">'
                         + '<div class="disc-list-stack-user">@' + escapeHtml(rail.username) + '</div>'
@@ -2816,6 +2817,25 @@ window.CommunityManager = (function() {
         }
     }
 
+    var pendingListMediaType = null;
+    function openListFromDiscover(mediaType) {
+        pendingListMediaType = mediaType || null;
+        if (pendingListMediaType) {
+            listsFilter = pendingListMediaType;
+        }
+        switchTab('lists');
+        if (pendingListMediaType) {
+            setTimeout(function() {
+                renderListsRails();
+                var filterBtns = document.querySelectorAll('.cml-filter-opt');
+                filterBtns.forEach(function(opt) {
+                    opt.classList.toggle('active', opt.getAttribute('data-cml-filter') === listsFilter);
+                });
+            }, 100);
+        }
+        pendingListMediaType = null;
+    }
+
     function itemLink(mediaType, itemId) {
         if (!itemId) return '#';
         const type = (mediaType || 'movie').toLowerCase();
@@ -2918,6 +2938,7 @@ window.CommunityManager = (function() {
 
     return {
         switchTab: switchTab,
+        openListFromDiscover: openListFromDiscover,
         loadReviewsFeed: loadReviewsFeed,
         loadActivityFeed: loadActivityFeed,
         loadPeopleFeed: loadPeopleFeed,

@@ -2261,9 +2261,10 @@ body::after {
     display: flex;
     gap: 32px;
     overflow-x: auto;
+    overflow-y: visible;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 16px 4px 24px 4px;
+    padding: 20px 4px 28px 4px;
 }
 .disc-lists-stacks::-webkit-scrollbar { display: none; }
 
@@ -2275,6 +2276,12 @@ body::after {
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.disc-list-stack:hover {
+    z-index: 50;
 }
 
 .disc-list-stack-deck {
@@ -2294,10 +2301,10 @@ body::after {
     object-fit: cover;
     background: var(--card);
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    transition: transform 0.35s var(--ease-smooth),
-                box-shadow 0.35s var(--ease-smooth),
-                left 0.35s var(--ease-smooth),
-                opacity 0.35s var(--ease-smooth);
+    transition: transform 0.3s var(--ease-smooth),
+                box-shadow 0.3s var(--ease-smooth),
+                left 0.3s var(--ease-smooth),
+                opacity 0.3s var(--ease-smooth);
     transform-origin: center bottom;
     cursor: pointer;
 }
@@ -2322,11 +2329,17 @@ body::after {
 .disc-list-stack:hover .disc-list-stack-card:nth-child(5) { left: 90px; opacity: 0.85; }
 
 /* hover individual card — lift up high, no crop */
+.disc-list-stack:hover .disc-list-stack-card {
+    pointer-events: auto;
+}
+
 .disc-list-stack-card:hover {
-    transform: translateY(-32px) scale(1.1);
-    box-shadow: 0 20px 48px rgba(0,0,0,0.6);
+    transform: translateY(-36px) scale(1.1);
+    box-shadow: 0 24px 56px rgba(0,0,0,0.65);
     z-index: 20 !important;
     opacity: 1 !important;
+    transition: transform 0.2s var(--ease-smooth),
+                box-shadow 0.2s var(--ease-smooth);
 }
 
 /* brand/logo/travel variant — white background */
