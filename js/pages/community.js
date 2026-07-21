@@ -2175,6 +2175,7 @@ window.CommunityManager = (function() {
                 discLoadCars()
             ]);
         }
+        discLoadRecentReviews(discGlobalMode);
     }
 
     function updateDiscSidebarVisibility() {
@@ -2240,19 +2241,29 @@ window.CommunityManager = (function() {
         } catch (_e) { el.innerHTML = ''; }
     }
 
-    async function discLoadRecentReviews() {
+    async function discLoadRecentReviews(mode) {
         var el = document.getElementById('discReviewStack');
         if (!el) return;
         var client = getSupabaseClient();
         if (!client) return;
+        var activeMode = mode || discGlobalMode || 'media';
+        var lifestyleTypes = ['sports', 'sport', 'team', 'travel', 'fashion', 'food', 'car'];
         try {
-            var { data: reviews } = await client.from('reviews')
+            var query = client.from('reviews')
                 .select('*')
                 .not('body', 'is', null)
                 .neq('body', '')
                 .order('created_at', { ascending: false })
-                .limit(5);
+                .limit(20);
+            var { data: reviews } = await query;
             if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no reviews yet. be the first.</div>'; return; }
+            if (activeMode === 'lifestyle') {
+                reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) !== -1; });
+            } else {
+                reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) === -1; });
+            }
+            if (!reviews.length) { el.innerHTML = '<div class="disc-empty">no ' + activeMode + ' reviews yet.</div>'; return; }
+            reviews = reviews.slice(0, 5);
             var userIds = [];
             var uidSet = {};
             reviews.forEach(function(r) { if (r.user_id && !uidSet[r.user_id]) { uidSet[r.user_id] = true; userIds.push(r.user_id); } });
@@ -2365,12 +2376,12 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopBooksRail');
         if (!el) return;
         try {
-            var resp = await fetch('/api/books/popular');
+            var resp = await fetch('/api/books/popular?limit=10');
             var data = await resp.json();
             var books = data && data.results ? data.results : (Array.isArray(data) ? data : []);
             if (!books.length) { el.innerHTML = ''; return; }
             el.innerHTML = books.slice(0, 8).map(function(b) {
-                var img = b.thumbnail || b.image_url || b.cover_url || '';
+                var img = b.image || b.cover || b.thumbnail || b.image_url || '';
                 var link = 'book.html?id=' + encodeURIComponent(b.id || b.book_id || '');
                 return '<a href="' + escapeHtml(link) + '" class="disc-poster">' +
                     '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
@@ -2384,16 +2395,16 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopArtistsRail');
         if (!el) return;
         try {
-            var resp = await fetch('/api/music/artists');
+            var resp = await fetch('/api/music/artists?limit=12');
             var data = await resp.json();
             var artists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
             if (!artists.length) { el.innerHTML = ''; return; }
             el.innerHTML = artists.slice(0, 8).map(function(a) {
-                var img = a.image_url || a.image || '';
-                var link = 'song.html?id=' + encodeURIComponent(a.id || a.artist_id || '');
+                var img = a.image || a.image_url || '';
+                var link = 'song.html?id=' + encodeURIComponent(a.id || '');
                 return '<a href="' + escapeHtml(link) + '" class="disc-poster disc-poster-artist">' +
                     '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
-                    '<div class="disc-poster-title">' + escapeHtml(a.name || a.title || '') + '</div>' +
+                    '<div class="disc-poster-title">' + escapeHtml(a.title || a.name || '') + '</div>' +
                 '</a>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
@@ -2447,7 +2458,20 @@ window.CommunityManager = (function() {
             var excerpt = discTruncate(r.body, 200);
             var link = itemLink(r.media_type, r.item_id);
             var reviewImg = r._image || r.image_url || r.cover_url || r.image || r.thumbnail || '';
-            var backdropHtml = reviewImg ? '<div class="disc-review-hero-backdrop" style="background-image:url(\'' + escapeHtml(reviewImg) + '\')"></div>' : '';
+            var backdropImg = reviewImg;
+            var rType = (r.media_type || '').toLowerCase();
+            if ((rType === 'movie' || rType === 'tv' || rType === 'tvshow' || rType === 'anime') && r.item_id) {
+                try {
+                    var tmdbPath = (rType === 'tv' || rType === 'tvshow' || rType === 'anime') ? 'tv' : 'movie';
+                    var bdResp = await fetch('/api/tmdb/' + tmdbPath + '/' + encodeURIComponent(r.item_id) + '?language=en');
+                    if (bdResp.ok) {
+                        var bdData = await bdResp.json();
+                        if (bdData && bdData.backdrop_path) backdropImg = 'https://image.tmdb.org/t/p/w1280' + bdData.backdrop_path;
+                        if (bdData && bdData.poster_path && !reviewImg) reviewImg = 'https://image.tmdb.org/t/p/w342' + bdData.poster_path;
+                    }
+                } catch (_bdErr) {}
+            }
+            var backdropHtml = backdropImg ? '<div class="disc-review-hero-backdrop" style="background-image:url(\'' + escapeHtml(backdropImg) + '\')"></div>' : '';
             var posterHtml = reviewImg ? '<img class="disc-review-hero-poster" src="' + escapeHtml(reviewImg) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
             var myReactions = reactionsData.filter(function(rx) { return String(rx.review_id) === String(r.id); });
             var likeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'like'; }).length;
@@ -2488,7 +2512,6 @@ window.CommunityManager = (function() {
         try {
             var { data: lists } = await client.from('user_lists')
                 .select('id, user_id, media_type, name')
-                .eq('is_public', true)
                 .order('created_at', { ascending: false })
                 .limit(20);
             if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
@@ -2534,18 +2557,27 @@ window.CommunityManager = (function() {
     }
 
     /* === LIFESTYLE SECTION LOADERS === */
+    function resolveBrandLogoUrl(logoUrl, mediaType) {
+        var val = String(logoUrl || '').trim();
+        if (!val) return '';
+        if (/^https?:\/\//i.test(val) || val.startsWith('/') || val.startsWith('data:')) return val;
+        var config = getSupabaseConfig();
+        var base = config.url || '';
+        return base + '/storage/v1/object/public/brand-logos/' + val;
+    }
+
     async function discLoadSports() {
         var el = document.getElementById('discSportsRail');
         if (!el) return;
         var client = getSupabaseClient();
         if (!client) { el.innerHTML = ''; return; }
         try {
-            var { data: teams } = await client.from('teams').select('id, name, logo_url, strTeamBadge, sport, league').order('name').limit(12);
-            if (!teams || !teams.length) { el.innerHTML = ''; return; }
+            var { data: teams } = await client.from('teams').select('id, name, logo_url, sport, league').order('name').limit(12);
+            if (!teams || !teams.length) { el.innerHTML = '<div class="disc-empty">no teams found.</div>'; return; }
             el.innerHTML = teams.map(function(t) {
-                var img = t.logo_url || t.strTeamBadge || '';
-                return '<a href="sports.html?id=' + encodeURIComponent(t.id) + '" class="disc-poster">' +
-                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                var img = t.logo_url || '';
+                return '<a href="sports.html?id=' + encodeURIComponent(t.id) + '" class="disc-poster disc-poster-brand">' +
+                    '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(t.name || '') + '</div>' +
                 '</a>';
             }).join('');
@@ -2564,8 +2596,8 @@ window.CommunityManager = (function() {
             ];
             el.innerHTML = countries.map(function(c) {
                 var img = 'https://flagcdn.com/w320/' + c.code.toLowerCase() + '.png';
-                return '<a href="country.html?country=' + encodeURIComponent(c.code) + '" class="disc-poster">' +
-                    '<img class="disc-poster-img disc-poster-img-flag" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                return '<a href="country.html?country=' + encodeURIComponent(c.code) + '" class="disc-poster disc-poster-flag">' +
+                    '<img class="disc-poster-img" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(c.name) + '</div>' +
                 '</a>';
             }).join('');
@@ -2581,7 +2613,7 @@ window.CommunityManager = (function() {
             var { data: brands } = await client.from('fashion_brands').select('id, name, logo_url').order('name').limit(12);
             if (!brands || !brands.length) { el.innerHTML = ''; return; }
             el.innerHTML = brands.map(function(b) {
-                var img = b.logo_url || '';
+                var img = resolveBrandLogoUrl(b.logo_url, 'fashion');
                 return '<a href="fashion.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
                     '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
@@ -2599,7 +2631,7 @@ window.CommunityManager = (function() {
             var { data: brands } = await client.from('food_brands').select('id, name, logo_url').order('name').limit(12);
             if (!brands || !brands.length) { el.innerHTML = ''; return; }
             el.innerHTML = brands.map(function(b) {
-                var img = b.logo_url || '';
+                var img = resolveBrandLogoUrl(b.logo_url, 'food');
                 return '<a href="food.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
                     '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
@@ -2617,7 +2649,7 @@ window.CommunityManager = (function() {
             var { data: brands } = await client.from('car_brands').select('id, name, logo_url').order('name').limit(12);
             if (!brands || !brands.length) { el.innerHTML = ''; return; }
             el.innerHTML = brands.map(function(b) {
-                var img = b.logo_url || '';
+                var img = resolveBrandLogoUrl(b.logo_url, 'car');
                 return '<a href="car.html?id=' + encodeURIComponent(b.id) + '" class="disc-poster disc-poster-brand">' +
                     '<img class="disc-poster-img disc-poster-img-contain" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(b.name || '') + '</div>' +
