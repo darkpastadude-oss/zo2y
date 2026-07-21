@@ -2570,21 +2570,23 @@ window.CommunityManager = (function() {
             rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
             var userMap = await fetchUserNames(client, userIds);
             rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
+            var brandTypes = ['fashion', 'food', 'car', 'sports', 'sport', 'team', 'travel'];
             function renderDiscStack(rail) {
-                var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
+                var isBrand = brandTypes.indexOf(rail.media_type) !== -1;
                 var cardsHtml = rail.items.slice(0, 5).map(function(item) {
                     var img = item.image_url || '';
-                    return img ? '<img class="disc-list-stack-card" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
+                    var cls = 'disc-list-stack-card' + (isBrand ? ' is-brand' : '');
+                    return img ? '<img class="' + cls + '" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '';
                 }).join('');
                 var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
                 var displayName = isCustom ? rail.list_name : rail.list_name;
-                return '<a href="' + escapeHtml(profileUrl) + '" class="disc-list-stack">'
+                return '<div class="disc-list-stack" onclick="CommunityManager.switchTab(\'lists\')">'
                     + '<div class="disc-list-stack-deck">' + cardsHtml + '</div>'
                     + '<div class="disc-list-stack-label">'
                         + '<div class="disc-list-stack-user">@' + escapeHtml(rail.username) + '</div>'
                         + '<div class="disc-list-stack-name">' + escapeHtml(displayName) + '</div>'
                     + '</div>'
-                + '</a>';
+                + '</div>';
             }
             el.innerHTML = rails.length ? '<div class="disc-lists-stacks">' + rails.map(renderDiscStack).join('') + '</div>' : '<div class="disc-empty">no lists yet.</div>';
         } catch (_e) { el.innerHTML = ''; }

@@ -2256,10 +2256,10 @@ body::after {
     display: block;
 }
 
-/* === POPULAR LISTS — STACKED CARDS === */
+/* === POPULAR LISTS — SPREAD CARDS === */
 .disc-lists-stacks {
     display: flex;
-    gap: 28px;
+    gap: 12px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -2269,7 +2269,7 @@ body::after {
 
 .disc-list-stack {
     flex-shrink: 0;
-    width: 140px;
+    width: 160px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
@@ -2279,44 +2279,52 @@ body::after {
 
 .disc-list-stack-deck {
     position: relative;
-    width: 110px;
+    width: 150px;
     height: 154px;
     margin-bottom: 10px;
-    perspective: 600px;
 }
 
 .disc-list-stack-card {
     position: absolute;
     top: 0;
-    left: 0;
     width: 110px;
     height: 154px;
     border-radius: 8px;
     object-fit: cover;
     background: var(--card);
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    transition: transform 0.3s var(--ease-smooth),
-                box-shadow 0.3s var(--ease-smooth);
+    transition: transform 0.28s var(--ease-smooth),
+                box-shadow 0.28s var(--ease-smooth),
+                z-index 0s;
     transform-origin: center bottom;
+    cursor: pointer;
 }
 
-/* resting offsets — 5 cards stacked with slight rotation */
-.disc-list-stack-card:nth-child(1) { transform: translateY(0) rotate(0deg); z-index: 5; }
-.disc-list-stack-card:nth-child(2) { transform: translateY(5px) rotate(-1.5deg); z-index: 4; }
-.disc-list-stack-card:nth-child(3) { transform: translateY(10px) rotate(1deg); z-index: 3; }
-.disc-list-stack-card:nth-child(4) { transform: translateY(15px) rotate(-0.5deg); z-index: 2; }
-.disc-list-stack-card:nth-child(5) { transform: translateY(20px) rotate(0.8deg); z-index: 1; }
+/* resting — spread horizontally with overlap */
+.disc-list-stack-card:nth-child(1) { left: 0; z-index: 5; }
+.disc-list-stack-card:nth-child(2) { left: 22px; z-index: 4; }
+.disc-list-stack-card:nth-child(3) { left: 44px; z-index: 3; }
+.disc-list-stack-card:nth-child(4) { left: 66px; z-index: 2; }
+.disc-list-stack-card:nth-child(5) { left: 88px; z-index: 1; opacity: 0.7; }
 
-/* hover — fan out */
-.disc-list-stack:hover .disc-list-stack-card:nth-child(1) { transform: translateY(-18px) rotate(-4deg); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(2) { transform: translateY(-6px) rotate(-2deg); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(3) { transform: translateY(4px) rotate(0deg); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(4) { transform: translateY(14px) rotate(2deg); box-shadow: 0 3px 10px rgba(0,0,0,0.25); }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(5) { transform: translateY(24px) rotate(3.5deg); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+/* hover — lift the hovered card */
+.disc-list-stack-card:hover {
+    transform: translateY(-16px) scale(1.06);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    z-index: 10 !important;
+    opacity: 1 !important;
+}
+
+/* brand/logo/travel variant — white background */
+.disc-list-stack-card.is-brand {
+    background: #ffffff;
+    object-fit: contain;
+    padding: 8px;
+}
 
 .disc-list-stack-label {
     text-align: center;
-    max-width: 130px;
+    max-width: 150px;
 }
 
 .disc-list-stack-user {
@@ -2379,9 +2387,15 @@ body::after {
     .disc-list-card { width: 220px; }
     .disc-review-hero-content { flex-direction: column; align-items: flex-start; }
     .disc-review-hero-poster { width: 60px; height: 90px; }
-    .disc-lists-stacks { gap: 20px; }
-    .disc-list-stack-deck { width: 95px; height: 133px; }
-    .disc-list-stack-card { width: 95px; height: 133px; }
+    .disc-lists-stacks { gap: 8px; }
+    .disc-list-stack { width: 130px; }
+    .disc-list-stack-deck { width: 120px; height: 130px; }
+    .disc-list-stack-card { width: 90px; height: 130px; }
+    .disc-list-stack-card:nth-child(1) { left: 0; }
+    .disc-list-stack-card:nth-child(2) { left: 18px; }
+    .disc-list-stack-card:nth-child(3) { left: 36px; }
+    .disc-list-stack-card:nth-child(4) { left: 54px; }
+    .disc-list-stack-card:nth-child(5) { left: 72px; }
     .community-sidebar.community-sidebar-discover-only { display: none; }
 }
 
