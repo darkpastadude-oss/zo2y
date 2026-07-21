@@ -1791,7 +1791,7 @@ window.CommunityManager = (function() {
         var client = getSupabaseClient();
         if (!client) return;
 
-        var toHydrate = { movie: [], tv: [], anime: [], game: [], book: [], music: [], fashion: [], food: [], car: [], sports: [], travel: [] };
+        var toHydrate = { movie: [], tv: [], anime: [], game: [], book: [], music: [], fashion: [], food: [], car: [], sports: [], sport: [], team: [], travel: [] };
         rails.forEach(function(rail) {
             rail.items.forEach(function(item) {
                 if (!item.image_url && item.item_id) {
@@ -1923,7 +1923,7 @@ window.CommunityManager = (function() {
         };
 
         var hydrateSportsTeams = async function() {
-            var items = toHydrate.sports;
+            var items = toHydrate.sports.concat(toHydrate.sport || []).concat(toHydrate.team || []);
             if (!items.length) return;
             var uniqueIds = collectIds(items);
             var rows = await batchQuery('teams', 'id, logo_url', uniqueIds, true);

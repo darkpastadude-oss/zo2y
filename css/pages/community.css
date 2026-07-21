@@ -2259,17 +2259,17 @@ body::after {
 /* === POPULAR LISTS — SPREAD CARDS === */
 .disc-lists-stacks {
     display: flex;
-    gap: 12px;
+    gap: 24px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 8px 4px 16px 4px;
+    padding: 12px 4px 20px 4px;
 }
 .disc-lists-stacks::-webkit-scrollbar { display: none; }
 
 .disc-list-stack {
     flex-shrink: 0;
-    width: 160px;
+    width: 180px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
@@ -2279,8 +2279,8 @@ body::after {
 
 .disc-list-stack-deck {
     position: relative;
-    width: 150px;
-    height: 154px;
+    width: 160px;
+    height: 160px;
     margin-bottom: 10px;
 }
 
@@ -2293,42 +2293,51 @@ body::after {
     object-fit: cover;
     background: var(--card);
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    transition: transform 0.28s var(--ease-smooth),
-                box-shadow 0.28s var(--ease-smooth),
-                z-index 0s;
+    transition: transform 0.32s var(--ease-smooth),
+                box-shadow 0.32s var(--ease-smooth),
+                left 0.32s var(--ease-smooth),
+                opacity 0.32s var(--ease-smooth);
     transform-origin: center bottom;
     cursor: pointer;
 }
 
 /* resting — spread horizontally with overlap */
 .disc-list-stack-card:nth-child(1) { left: 0; z-index: 5; }
-.disc-list-stack-card:nth-child(2) { left: 22px; z-index: 4; }
-.disc-list-stack-card:nth-child(3) { left: 44px; z-index: 3; }
-.disc-list-stack-card:nth-child(4) { left: 66px; z-index: 2; }
-.disc-list-stack-card:nth-child(5) { left: 88px; z-index: 1; opacity: 0.7; }
+.disc-list-stack-card:nth-child(2) { left: 20px; z-index: 4; }
+.disc-list-stack-card:nth-child(3) { left: 40px; z-index: 3; }
+.disc-list-stack-card:nth-child(4) { left: 60px; z-index: 2; opacity: 0.85; }
+.disc-list-stack-card:nth-child(5) { left: 80px; z-index: 1; opacity: 0.7; }
 
-/* hover — lift the hovered card */
+/* hover whole stack — spread cards further apart */
+.disc-list-stack:hover .disc-list-stack-card:nth-child(1) { left: -10px; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(2) { left: 14px; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(3) { left: 38px; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(4) { left: 62px; opacity: 0.95; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(5) { left: 86px; opacity: 0.85; }
+
+/* hover individual card — lift up and pop */
 .disc-list-stack-card:hover {
-    transform: translateY(-16px) scale(1.06);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-    z-index: 10 !important;
+    transform: translateY(-20px) scale(1.08);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    z-index: 20 !important;
     opacity: 1 !important;
 }
 
 /* brand/logo/travel variant — white background */
-.disc-list-stack-card.is-brand {
-    background: #ffffff;
-    object-fit: contain;
-    padding: 8px;
+.disc-list-stack-card.is-brand,
+.disc-list-stack-deck .is-brand {
+    background: #ffffff !important;
+    object-fit: contain !important;
+    padding: 6px;
 }
 
 .disc-list-stack-label {
     text-align: center;
-    max-width: 150px;
+    max-width: 170px;
 }
 
 .disc-list-stack-user {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--accent);
     white-space: nowrap;
@@ -2343,7 +2352,7 @@ body::after {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-top: 1px;
+    margin-top: 2px;
 }
 
 .disc-list-highlight-count {
@@ -2387,15 +2396,15 @@ body::after {
     .disc-list-card { width: 220px; }
     .disc-review-hero-content { flex-direction: column; align-items: flex-start; }
     .disc-review-hero-poster { width: 60px; height: 90px; }
-    .disc-lists-stacks { gap: 8px; }
-    .disc-list-stack { width: 130px; }
-    .disc-list-stack-deck { width: 120px; height: 130px; }
+    .disc-lists-stacks { gap: 16px; }
+    .disc-list-stack { width: 140px; }
+    .disc-list-stack-deck { width: 130px; height: 130px; }
     .disc-list-stack-card { width: 90px; height: 130px; }
     .disc-list-stack-card:nth-child(1) { left: 0; }
-    .disc-list-stack-card:nth-child(2) { left: 18px; }
-    .disc-list-stack-card:nth-child(3) { left: 36px; }
-    .disc-list-stack-card:nth-child(4) { left: 54px; }
-    .disc-list-stack-card:nth-child(5) { left: 72px; }
+    .disc-list-stack-card:nth-child(2) { left: 16px; }
+    .disc-list-stack-card:nth-child(3) { left: 32px; }
+    .disc-list-stack-card:nth-child(4) { left: 48px; }
+    .disc-list-stack-card:nth-child(5) { left: 64px; }
     .community-sidebar.community-sidebar-discover-only { display: none; }
 }
 
