@@ -2571,6 +2571,7 @@ window.CommunityManager = (function() {
             var userMap = await fetchUserNames(client, userIds);
             rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
             var brandTypes = ['fashion', 'food', 'car', 'sports', 'sport', 'team', 'travel'];
+            var mediaTypeNames = { movie: 'movies', tv: 'tv', tvshow: 'tv', anime: 'anime', game: 'games', book: 'books', music: 'music', song: 'songs', track: 'songs', album: 'albums', fashion: 'fashion', food: 'food', car: 'cars', sports: 'sports', sport: 'sports', team: 'sports', travel: 'travel' };
             function renderDiscStack(rail) {
                 var isBrand = brandTypes.indexOf(rail.media_type) !== -1;
                 var cardsHtml = rail.items.slice(0, 5).map(function(item) {
@@ -2580,11 +2581,13 @@ window.CommunityManager = (function() {
                 }).join('');
                 var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
                 var displayName = isCustom ? rail.list_name : rail.list_name;
+                var mediaLabel = mediaTypeNames[rail.media_type] || rail.media_type || '';
                 return '<div class="disc-list-stack" onclick="CommunityManager.switchTab(\'lists\')">'
                     + '<div class="disc-list-stack-deck">' + cardsHtml + '</div>'
                     + '<div class="disc-list-stack-label">'
                         + '<div class="disc-list-stack-user">@' + escapeHtml(rail.username) + '</div>'
                         + '<div class="disc-list-stack-name">' + escapeHtml(displayName) + '</div>'
+                        + (mediaLabel ? '<div class="disc-list-stack-media">' + escapeHtml(mediaLabel) + '</div>' : '')
                     + '</div>'
                 + '</div>';
             }

@@ -2259,17 +2259,17 @@ body::after {
 /* === POPULAR LISTS — SPREAD CARDS === */
 .disc-lists-stacks {
     display: flex;
-    gap: 24px;
+    gap: 32px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding: 12px 4px 20px 4px;
+    padding: 16px 4px 24px 4px;
 }
 .disc-lists-stacks::-webkit-scrollbar { display: none; }
 
 .disc-list-stack {
     flex-shrink: 0;
-    width: 180px;
+    width: 190px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
@@ -2279,46 +2279,52 @@ body::after {
 
 .disc-list-stack-deck {
     position: relative;
-    width: 160px;
-    height: 160px;
-    margin-bottom: 10px;
+    width: 170px;
+    height: 170px;
+    margin-bottom: 12px;
+    overflow: visible;
 }
 
 .disc-list-stack-card {
     position: absolute;
-    top: 0;
-    width: 110px;
-    height: 154px;
+    top: 8px;
+    width: 115px;
+    height: 160px;
     border-radius: 8px;
     object-fit: cover;
     background: var(--card);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    transition: transform 0.32s var(--ease-smooth),
-                box-shadow 0.32s var(--ease-smooth),
-                left 0.32s var(--ease-smooth),
-                opacity 0.32s var(--ease-smooth);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    transition: transform 0.35s var(--ease-smooth),
+                box-shadow 0.35s var(--ease-smooth),
+                left 0.35s var(--ease-smooth),
+                opacity 0.35s var(--ease-smooth);
     transform-origin: center bottom;
     cursor: pointer;
 }
 
 /* resting — spread horizontally with overlap */
 .disc-list-stack-card:nth-child(1) { left: 0; z-index: 5; }
-.disc-list-stack-card:nth-child(2) { left: 20px; z-index: 4; }
-.disc-list-stack-card:nth-child(3) { left: 40px; z-index: 3; }
-.disc-list-stack-card:nth-child(4) { left: 60px; z-index: 2; opacity: 0.85; }
-.disc-list-stack-card:nth-child(5) { left: 80px; z-index: 1; opacity: 0.7; }
+.disc-list-stack-card:nth-child(2) { left: 22px; z-index: 4; }
+.disc-list-stack-card:nth-child(3) { left: 44px; z-index: 3; }
+.disc-list-stack-card:nth-child(4) { left: 66px; z-index: 2; opacity: 0.85; }
+.disc-list-stack-card:nth-child(5) { left: 88px; z-index: 1; opacity: 0.7; }
+
+/* single card — center it */
+.disc-list-stack-deck:has(.disc-list-stack-card:nth-child(1):last-child) .disc-list-stack-card {
+    left: 28px;
+}
 
 /* hover whole stack — spread cards further apart */
-.disc-list-stack:hover .disc-list-stack-card:nth-child(1) { left: -10px; }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(2) { left: 14px; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(1) { left: -14px; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(2) { left: 12px; }
 .disc-list-stack:hover .disc-list-stack-card:nth-child(3) { left: 38px; }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(4) { left: 62px; opacity: 0.95; }
-.disc-list-stack:hover .disc-list-stack-card:nth-child(5) { left: 86px; opacity: 0.85; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(4) { left: 64px; opacity: 0.95; }
+.disc-list-stack:hover .disc-list-stack-card:nth-child(5) { left: 90px; opacity: 0.85; }
 
-/* hover individual card — lift up and pop */
+/* hover individual card — lift up high, no crop */
 .disc-list-stack-card:hover {
-    transform: translateY(-20px) scale(1.08);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    transform: translateY(-32px) scale(1.1);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.6);
     z-index: 20 !important;
     opacity: 1 !important;
 }
@@ -2333,7 +2339,7 @@ body::after {
 
 .disc-list-stack-label {
     text-align: center;
-    max-width: 170px;
+    max-width: 180px;
 }
 
 .disc-list-stack-user {
@@ -2353,6 +2359,14 @@ body::after {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 2px;
+}
+
+.disc-list-stack-media {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.35);
+    text-transform: capitalize;
+    margin-top: 1px;
 }
 
 .disc-list-highlight-count {
@@ -2396,15 +2410,18 @@ body::after {
     .disc-list-card { width: 220px; }
     .disc-review-hero-content { flex-direction: column; align-items: flex-start; }
     .disc-review-hero-poster { width: 60px; height: 90px; }
-    .disc-lists-stacks { gap: 16px; }
-    .disc-list-stack { width: 140px; }
-    .disc-list-stack-deck { width: 130px; height: 130px; }
-    .disc-list-stack-card { width: 90px; height: 130px; }
+    .disc-lists-stacks { gap: 20px; }
+    .disc-list-stack { width: 150px; }
+    .disc-list-stack-deck { width: 140px; height: 140px; }
+    .disc-list-stack-card { width: 95px; height: 135px; }
     .disc-list-stack-card:nth-child(1) { left: 0; }
-    .disc-list-stack-card:nth-child(2) { left: 16px; }
-    .disc-list-stack-card:nth-child(3) { left: 32px; }
-    .disc-list-stack-card:nth-child(4) { left: 48px; }
-    .disc-list-stack-card:nth-child(5) { left: 64px; }
+    .disc-list-stack-card:nth-child(2) { left: 18px; }
+    .disc-list-stack-card:nth-child(3) { left: 36px; }
+    .disc-list-stack-card:nth-child(4) { left: 54px; }
+    .disc-list-stack-card:nth-child(5) { left: 72px; }
+    .disc-list-stack-deck:has(.disc-list-stack-card:nth-child(1):last-child) .disc-list-stack-card {
+        left: 22px;
+    }
     .community-sidebar.community-sidebar-discover-only { display: none; }
 }
 
