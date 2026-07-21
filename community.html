@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721D">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721E">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721D" defer></script>
+    <script src="js/pages/community.js?v=20260721E" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -75,12 +75,7 @@
                     <!-- Discover -->
                     <div class="community-tab-pane active" id="paneDiscover">
 
-                        <!-- 1. Review Spotlight (editorial hero) -->
-                        <div class="disc-section" id="discSpotlight">
-                            <div class="disc-hero-skel"></div>
-                        </div>
-
-                        <!-- 2. Newest Members (avatar strip) -->
+                        <!-- 1. Newest Members (avatar strip) -->
                         <div class="disc-section" id="discNewMembers">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Newest Members</span>
@@ -94,7 +89,7 @@
                             </div>
                         </div>
 
-                        <!-- 3. Top Rated (poster rail) -->
+                        <!-- 2. Top Rated (poster rail) -->
                         <div class="disc-section" id="discTopRated">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Top Rated</span>
@@ -110,7 +105,7 @@
                             </div>
                         </div>
 
-                        <!-- 4. Recent Reviews (card stack) -->
+                        <!-- 3. Recent Reviews (with poster + likes/dislikes) -->
                         <div class="disc-section" id="discRecentReviews">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Recent Reviews</span>
@@ -122,7 +117,7 @@
                             </div>
                         </div>
 
-                        <!-- 5. New Releases (poster rail) -->
+                        <!-- 4. New Releases (poster rail) -->
                         <div class="disc-section" id="discNewReleases">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">New Releases</span>
@@ -137,18 +132,30 @@
                             </div>
                         </div>
 
-                        <!-- 6. Popular Lists (list preview cards) -->
+                        <!-- 5. Popular Lists (rails with media/lifestyle switcher) -->
                         <div class="disc-section" id="discPopularLists">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Popular Lists</span>
                             </div>
-                            <div class="disc-list-strip" id="discListStrip">
-                                <div class="disc-skel-listcard"></div>
-                                <div class="disc-skel-listcard"></div>
+                            <div class="disc-lists-mode-bar">
+                                <div class="disc-lists-mode-switch" role="tablist">
+                                    <button class="disc-lists-mode-btn active" id="discListsModeMedia" role="tab" aria-selected="true" onclick="CommunityManager.setDiscListsMode('media')">
+                                        <i class="fas fa-play-circle"></i> media
+                                    </button>
+                                    <button class="disc-lists-mode-btn" id="discListsModeLifestyle" role="tab" aria-selected="false" onclick="CommunityManager.setDiscListsMode('lifestyle')">
+                                        <i class="fas fa-compass"></i> lifestyle
+                                    </button>
+                                    <div class="disc-lists-mode-indicator" id="discListsModeIndicator"></div>
+                                </div>
                             </div>
+                            <div class="disc-lists-panel" id="discListsMediaPanel">
+                                <div class="disc-skel-rail"></div>
+                                <div class="disc-skel-rail"></div>
+                            </div>
+                            <div class="disc-lists-panel" id="discListsLifestylePanel" style="display:none"></div>
                         </div>
 
-                        <!-- 7. Top Games (wide poster rail) -->
+                        <!-- 6. Top Games (wide poster rail) -->
                         <div class="disc-section" id="discTopGames">
                             <div class="disc-section-hdr">
                                 <span class="disc-section-label">Critically Acclaimed</span>

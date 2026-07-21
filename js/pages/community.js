@@ -2097,6 +2097,7 @@ window.CommunityManager = (function() {
 
     // === DISCOVER FEED ENGINE ===
     var discoverLoaded = false;
+    var discListsMode = 'media';
 
     function discRenderStars(rating) {
         var r = Math.round(Number(rating) || 0);
@@ -2119,7 +2120,6 @@ window.CommunityManager = (function() {
         if (discoverLoaded) return;
         discoverLoaded = true;
         Promise.allSettled([
-            discLoadSpotlight(),
             discLoadNewMembers(),
             discLoadTopRated(),
             discLoadRecentReviews(),
@@ -2129,50 +2129,43 @@ window.CommunityManager = (function() {
             discLoadSidebarActive(),
             discLoadSidebarLists()
         ]);
+        setTimeout(function() { initDiscListsModeIndicator(); }, 100);
     }
 
-    async function discLoadSpotlight() {
-        var el = document.getElementById('discSpotlight');
-        if (!el) return;
-        var client = getSupabaseClient();
-        if (!client) { el.innerHTML = ''; return; }
-        try {
-            var { data: reviews } = await client.from('reviews')
-                .select('*')
-                .not('body', 'is', null)
-                .neq('body', '')
-                .order('created_at', { ascending: false })
-                .limit(15);
-            if (!reviews || !reviews.length) {
-                el.innerHTML = '<div class="disc-empty"><div class="disc-empty-icon"><i class="fas fa-pen-nib"></i></div>be the first to write a review.</div>';
-                return;
+    function initDiscListsModeIndicator() {
+        var mediaBtn = document.getElementById('discListsModeMedia');
+        var indicator = document.getElementById('discListsModeIndicator');
+        if (!mediaBtn || !indicator) return;
+        indicator.style.width = mediaBtn.offsetWidth + 'px';
+    }
+
+    function setDiscListsMode(mode) {
+        discListsMode = mode || 'media';
+        var mediaPanel = document.getElementById('discListsMediaPanel');
+        var lifestylePanel = document.getElementById('discListsLifestylePanel');
+        var mediaBtn = document.getElementById('discListsModeMedia');
+        var lifestyleBtn = document.getElementById('discListsModeLifestyle');
+        var indicator = document.getElementById('discListsModeIndicator');
+        if (!mediaPanel || !lifestylePanel) return;
+        if (mode === 'media') {
+            mediaPanel.style.display = '';
+            lifestylePanel.style.display = 'none';
+            mediaBtn.classList.add('active');
+            lifestyleBtn.classList.remove('active');
+            if (indicator) {
+                indicator.style.width = mediaBtn.offsetWidth + 'px';
+                indicator.style.transform = 'translateX(0)';
             }
-            var featured = reviews.sort(function(a, b) { return (b.body || '').length - (a.body || '').length; })[0];
-            var username = 'member';
-            try {
-                var { data: profile } = await client.from('user_profiles').select('username, full_name').eq('id', featured.user_id).single();
-                if (profile) username = profile.username || profile.full_name || 'member';
-            } catch (_e) {}
-            await hydrateMediaMetadata([featured]);
-            var excerpt = discTruncate(featured.body, 180);
-            var link = itemLink(featured.media_type, featured.item_id);
-            el.innerHTML =
-                '<a href="' + escapeHtml(link) + '" class="disc-hero">' +
-                    (featured._image ? '<div class="disc-hero-cover" style="background-image:url(\'' + escapeHtml(featured._image) + '\')"></div>' : '<div class="disc-hero-cover disc-hero-cover--empty"></div>') +
-                    '<div class="disc-hero-overlay"></div>' +
-                    '<div class="disc-hero-content">' +
-                        '<span class="disc-hero-kicker">Review Spotlight</span>' +
-                        '<div class="disc-hero-stars">' + discRenderStars(featured.rating) + '</div>' +
-                        '<h3 class="disc-hero-title">' + escapeHtml(featured._title || featured.title || 'Untitled') + '</h3>' +
-                        '<p class="disc-hero-excerpt">' + escapeHtml(excerpt) + '</p>' +
-                        '<div class="disc-hero-meta">' +
-                            '<span class="disc-hero-type">' + escapeHtml(featured.media_type || 'movie') + '</span>' +
-                            '<span class="disc-hero-dot">&middot;</span>' +
-                            '<span class="disc-hero-user">by ' + escapeHtml(username) + '</span>' +
-                        '</div>' +
-                    '</div>' +
-                '</a>';
-        } catch (_e) { el.innerHTML = ''; }
+        } else {
+            mediaPanel.style.display = 'none';
+            lifestylePanel.style.display = '';
+            lifestyleBtn.classList.add('active');
+            mediaBtn.classList.remove('active');
+            if (indicator) {
+                indicator.style.width = lifestyleBtn.offsetWidth + 'px';
+                indicator.style.transform = 'translateX(' + (mediaBtn.offsetWidth + 2) + 'px)';
+            }
+        }
     }
 
     async function discLoadNewMembers() {
@@ -2204,10 +2197,10 @@ window.CommunityManager = (function() {
         try {
             var results = [];
             var p1 = fetch('/api/tmdb/movie/top_rated').then(function(r) { return r.json(); }).then(function(d) {
-                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.release_date, type: 'movie' }); });
+                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.title, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', type: 'movie' }); });
             }).catch(function() {});
             var p2 = fetch('/api/tmdb/tv/top_rated').then(function(r) { return r.json(); }).then(function(d) {
-                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', date: m.first_air_date, type: 'tv' }); });
+                if (d && Array.isArray(d.results)) d.results.slice(0, 6).forEach(function(m) { results.push({ id: m.id, title: m.name, image: m.poster_path ? 'https://image.tmdb.org/t/p/w342' + m.poster_path : '', type: 'tv' }); });
             }).catch(function() {});
             await Promise.allSettled([p1, p2]);
             if (!results.length) { el.innerHTML = ''; return; }
@@ -2245,13 +2238,25 @@ window.CommunityManager = (function() {
                 } catch (_e) {}
             }
             await hydrateMediaMetadata(reviews);
+            var reviewIds = reviews.map(function(r) { return r.id; });
+            var reactionsData = [];
+            if (reviewIds.length) {
+                try {
+                    var { data: rdata } = await client.from('review_reactions').select('review_id, reaction_type').in('review_id', reviewIds);
+                    if (Array.isArray(rdata)) reactionsData = rdata;
+                } catch (_e) {}
+            }
             el.innerHTML = reviews.map(function(r) {
                 var name = userMap[r.user_id] || 'member';
                 var initial = String(name).charAt(0).toUpperCase();
-                var excerpt = discTruncate(r.body, 120);
+                var excerpt = discTruncate(r.body, 140);
                 var link = itemLink(r.media_type, r.item_id);
-                var coverHtml = r._image ? '<img class="disc-review-cover" src="' + escapeHtml(r._image) + '" alt="" loading="lazy">' : '';
-                return '<a href="' + escapeHtml(link) + '" class="disc-review-card">' +
+                var coverHtml = r._image ? '<div class="disc-review-cover"><img src="' + escapeHtml(r._image) + '" alt="" loading="lazy"></div>' : '<div class="disc-review-cover"></div>';
+                var myReactions = reactionsData.filter(function(rx) { return String(rx.review_id) === String(r.id); });
+                var likeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'like'; }).length;
+                var dislikeCount = myReactions.filter(function(rx) { return rx.reaction_type === 'dislike'; }).length;
+                return '<div class="disc-review-card" data-feed-id="' + escapeHtml(r.id) + '">' +
+                    '<a href="' + escapeHtml(link) + '" class="disc-review-cover-link">' + coverHtml + '</a>' +
                     '<div class="disc-review-left">' +
                         '<div class="disc-review-user">' +
                             '<div class="disc-review-avatar">' + escapeHtml(initial) + '</div>' +
@@ -2259,10 +2264,19 @@ window.CommunityManager = (function() {
                             '<span class="disc-review-stars">' + discRenderStars(r.rating) + '</span>' +
                         '</div>' +
                         '<div class="disc-review-text">' + escapeHtml(excerpt) + '</div>' +
-                        '<div class="disc-review-item-name">' + escapeHtml(r._title || r.title || r.media_type) + '</div>' +
+                        '<div class="disc-review-bottom">' +
+                            '<span class="disc-review-item-name">' + escapeHtml(r._title || r.title || r.media_type) + '</span>' +
+                            '<div class="disc-review-actions">' +
+                                '<button class="disc-review-action-btn" data-action="like" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'like\', this)">' +
+                                    '<i class="fas fa-arrow-up"></i> <span class="disc-review-action-count" data-like-count>' + (likeCount || '') + '</span>' +
+                                '</button>' +
+                                '<button class="disc-review-action-btn" data-action="dislike" data-feed-id="' + escapeHtml(r.id) + '" onclick="event.stopPropagation(); CommunityManager.toggleActivityReaction(\'' + escapeHtml(r.id) + '\', \'dislike\', this)">' +
+                                    '<i class="fas fa-arrow-down"></i> <span class="disc-review-action-count" data-dislike-count>' + (dislikeCount || '') + '</span>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
                     '</div>' +
-                    coverHtml +
-                '</a>';
+                '</div>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
     }
@@ -2292,64 +2306,82 @@ window.CommunityManager = (function() {
     }
 
     async function discLoadPopularLists() {
-        var el = document.getElementById('discListStrip');
-        if (!el) return;
+        var mediaPanel = document.getElementById('discListsMediaPanel');
+        var lifestylePanel = document.getElementById('discListsLifestylePanel');
+        if (!mediaPanel || !lifestylePanel) return;
         var client = getSupabaseClient();
         if (!client) return;
         try {
-            var { data: lists } = await client.from('user_lists')
-                .select('id, user_id, media_type, name')
+            var { data: rows } = await client.from('list_items')
+                .select('user_id, media_type, item_id, list_type, list_id, image_url, title')
                 .order('created_at', { ascending: false })
-                .limit(20);
-            if (!lists || !lists.length) { el.innerHTML = '<div class="disc-empty">no lists created yet.</div>'; return; }
-            var listIds = lists.map(function(l) { return l.id; });
-            var itemCounts = {};
-            try {
-                var { data: items } = await client.from('list_items').select('list_id').in('list_id', listIds);
-                if (Array.isArray(items)) items.forEach(function(i) { if (i.list_id) itemCounts[i.list_id] = (itemCounts[i.list_id] || 0) + 1; });
-            } catch (_e) {}
-            lists.sort(function(a, b) { return (itemCounts[b.id] || 0) - (itemCounts[a.id] || 0); });
-            var topLists = lists.filter(function(l) { return (itemCounts[l.id] || 0) > 0; }).slice(0, 6);
-            if (!topLists.length) topLists = lists.slice(0, 4);
+                .limit(300);
+            if (!rows || !rows.length) {
+                mediaPanel.innerHTML = '<div class="cml-rail-empty"><i class="fas fa-film"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+                lifestylePanel.innerHTML = '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+                return;
+            }
+            var customListIds = [];
+            rows.forEach(function(r) {
+                if (r.list_id && customListIds.indexOf(String(r.list_id)) === -1) customListIds.push(String(r.list_id));
+            });
+            var listNamesMap = {};
+            if (customListIds.length) {
+                try {
+                    var lr = await client.from('user_lists').select('id, user_id, media_type, name').in('id', customListIds);
+                    if (Array.isArray(lr.data)) lr.data.forEach(function(l) { listNamesMap[String(l.id)] = { name: l.name || 'collection', user_id: l.user_id, media_type: l.media_type }; });
+                } catch (_lte) {}
+            }
+            var railGroups = {};
+            rows.forEach(function(item) {
+                var mt = String(item.media_type || '').toLowerCase();
+                if (!mt || !CML_MEDIA_TYPES[mt]) return;
+                if (item.list_id) {
+                    var key = 'custom_' + item.list_id;
+                    if (!railGroups[key]) {
+                        var resolved = listNamesMap[String(item.list_id)] || {};
+                        railGroups[key] = { user_id: item.user_id, media_type: mt, media_label: CML_MEDIA_LABELS[mt] || mt, list_name: resolved.name || 'collection', items: [] };
+                    }
+                    railGroups[key].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
+                } else if (item.list_type === 'favorites') {
+                    var favKey = 'fav_' + item.user_id + '_' + mt;
+                    if (!railGroups[favKey]) railGroups[favKey] = { user_id: item.user_id, media_type: mt, media_label: CML_MEDIA_LABELS[mt] || mt, list_name: 'favorites', items: [] };
+                    railGroups[favKey].items.push({ image_url: String(item.image_url || '').trim() || '', title: item.title || '', item_id: item.item_id || '', media_type: mt });
+                }
+            });
+            var rails = Object.keys(railGroups).map(function(k) { return railGroups[k]; }).filter(function(r) { return r.items.length > 0; });
+            await hydrateRailPosters(rails);
+            shuffleArray(rails);
             var userIds = [];
             var uidSet = {};
-            topLists.forEach(function(l) { if (l.user_id && !uidSet[l.user_id]) { uidSet[l.user_id] = true; userIds.push(l.user_id); } });
-            var userMap = {};
-            if (userIds.length) {
-                try {
-                    var { data: profiles } = await client.from('user_profiles').select('id, username').in('id', userIds);
-                    if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) userMap[p.id] = p.username || 'member'; });
-                } catch (_e) {}
+            rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });
+            var userMap = await fetchUserNames(client, userIds);
+            rails.forEach(function(r) { r.username = userMap.get(String(r.user_id)) || 'member'; });
+            var lifestyleTypes = { sports: true, travel: true, fashion: true, food: true, car: true };
+            var mediaRails = [];
+            var lifestyleRails = [];
+            rails.forEach(function(rail) {
+                if (lifestyleTypes[rail.media_type]) lifestyleRails.push(rail);
+                else mediaRails.push(rail);
+            });
+            function renderDiscRail(rail) {
+                var profileUrl = rail.user_id ? 'profile.html?id=' + encodeURIComponent(rail.user_id) : '#';
+                var mediaIcon = CML_RAIL_ICONS[rail.media_type] || 'fa-layer-group';
+                var listIcon = rail.list_name === 'favorites' ? (CML_DEFAULT_LIST_ICONS.favorites || 'fa-heart') : '';
+                var headerIcon = listIcon || mediaIcon;
+                var isCustom = rail.list_name !== 'favorites' && rail.list_name !== 'collection';
+                var customBadge = isCustom ? ' <span class="cml-custom-badge">(custom list)</span>' : '';
+                var cardsHtml = rail.items.map(function(item) { return buildRailPosterCard(item.image_url, profileUrl, rail.media_type); }).join('');
+                return '<div class="cml-rail" data-cml-rail-media="' + escapeHtml(rail.media_type) + '">'
+                    + '<div class="cml-rail-header"><div class="cml-rail-title"><i class="fas ' + headerIcon + ' cml-rail-icon"></i><a href="' + escapeHtml(profileUrl) + '" class="cml-rail-user-link" onclick="event.stopPropagation()">@' + escapeHtml(rail.username) + '</a> ' + escapeHtml(rail.media_label) + ' . ' + escapeHtml(rail.list_name) + customBadge + '</div></div>'
+                    + '<div class="cml-rail-track">' + cardsHtml + '</div></div>';
             }
-            var listPosterIds = {};
-            for (var li = 0; li < topLists.length; li++) {
-                var lid = topLists[li].id;
-                try {
-                    var { data: litems } = await client.from('list_items').select('image_url, item_id, media_type').eq('list_id', lid).limit(4);
-                    if (Array.isArray(litems)) listPosterIds[lid] = litems;
-                } catch (_e) { listPosterIds[lid] = []; }
-            }
-            el.innerHTML = topLists.map(function(l) {
-                var uname = userMap[l.user_id] || 'member';
-                var count = itemCounts[l.id] || 0;
-                var posters = listPosterIds[l.id] || [];
-                var posterHtml = '';
-                for (var pi = 0; pi < 4; pi++) {
-                    if (posters[pi] && posters[pi].image_url) {
-                        posterHtml += '<img class="disc-list-mini-poster" src="' + escapeHtml(posters[pi].image_url) + '" alt="" loading="lazy">';
-                    } else {
-                        posterHtml += '<div class="disc-list-mini-poster disc-list-empty-slot"></div>';
-                    }
-                }
-                return '<a href="profile.html?user=' + encodeURIComponent(l.user_id) + '" class="disc-list-card">' +
-                    '<div class="disc-list-info">' +
-                        '<div class="disc-list-name">' + escapeHtml(l.name) + '</div>' +
-                        '<div class="disc-list-meta">@' + escapeHtml(uname) + ' &middot; <span class="disc-list-meta-type">' + escapeHtml(l.media_type) + '</span> &middot; ' + count + ' items</div>' +
-                    '</div>' +
-                    '<div class="disc-list-posters">' + posterHtml + '</div>' +
-                '</a>';
-            }).join('');
-        } catch (_e) { el.innerHTML = ''; }
+            mediaPanel.innerHTML = mediaRails.length ? mediaRails.map(renderDiscRail).join('') : '<div class="cml-rail-empty"><i class="fas fa-film"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+            lifestylePanel.innerHTML = lifestyleRails.length ? lifestyleRails.map(renderDiscRail).join('') : '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+        } catch (_e) {
+            mediaPanel.innerHTML = '';
+            lifestylePanel.innerHTML = '';
+        }
     }
 
     async function discLoadTopGames() {
@@ -2584,6 +2616,7 @@ window.CommunityManager = (function() {
         setListsMode: setListsMode,
         setListsFilter: setListsFilter,
         toggleFilterDropdown: toggleFilterDropdown,
-        loadDiscoverFeed: loadDiscoverFeed
+        loadDiscoverFeed: loadDiscoverFeed,
+        setDiscListsMode: setDiscListsMode
     };
 })();

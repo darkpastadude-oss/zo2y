@@ -1497,114 +1497,6 @@ body::after {
     text-transform: lowercase;
 }
 
-/* === HERO / REVIEW SPOTLIGHT === */
-.disc-hero {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 260px;
-    border-radius: 14px;
-    overflow: hidden;
-    text-decoration: none;
-    transition: transform 0.25s var(--ease-smooth), box-shadow 0.25s ease;
-}
-
-.disc-hero:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-}
-
-.disc-hero-cover {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    transition: transform 0.4s ease;
-}
-
-.disc-hero:hover .disc-hero-cover { transform: scale(1.03); }
-
-.disc-hero-cover--empty {
-    background: linear-gradient(135deg, #132347 0%, #1a2f5a 50%, #0f1d3d 100%);
-}
-
-.disc-hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(11, 22, 51, 0.1) 0%, rgba(11, 22, 51, 0.85) 70%, rgba(11, 22, 51, 0.96) 100%);
-}
-
-.disc-hero-content {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 24px;
-}
-
-.disc-hero-kicker {
-    display: inline-block;
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--accent);
-    margin-bottom: 8px;
-}
-
-.disc-hero-stars {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 6px;
-    color: var(--accent);
-    font-size: 0.85rem;
-}
-
-.disc-hero-title {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--white);
-    margin: 0 0 6px;
-    line-height: 1.25;
-}
-
-.disc-hero-excerpt {
-    font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.75);
-    line-height: 1.5;
-    margin: 0 0 10px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.disc-hero-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
-    color: var(--muted);
-}
-
-.disc-hero-type {
-    text-transform: capitalize;
-    font-weight: 600;
-    color: var(--accent);
-}
-
-.disc-hero-dot { opacity: 0.4; }
-.disc-hero-user { font-weight: 500; }
-
-.disc-hero-skel {
-    width: 100%;
-    height: 260px;
-    border-radius: 14px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
-    background-size: 200% 100%;
-    animation: cmlShimmer 1.5s infinite;
-}
-
 /* === MEMBER STRIP === */
 .disc-member-strip {
     display: flex;
@@ -1742,6 +1634,230 @@ body::after {
 
 .disc-review-card {
     display: flex;
+    align-items: stretch;
+    gap: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all 0.2s var(--ease-smooth);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.disc-review-card:hover {
+    border-color: rgba(245, 158, 11, 0.3);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.disc-review-cover {
+    width: 72px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.04);
+    display: block;
+}
+
+.disc-review-cover-link {
+    display: block;
+    width: 72px;
+    flex-shrink: 0;
+}
+
+.disc-review-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+}
+
+.disc-review-left {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+}
+
+.disc-review-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.disc-review-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0b1633;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.6rem;
+    flex-shrink: 0;
+}
+
+.disc-review-username {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.disc-review-stars {
+    font-size: 0.7rem;
+    color: var(--accent);
+    margin-left: auto;
+}
+
+.disc-review-text {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.disc-review-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.disc-review-item-name {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.disc-review-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.disc-review-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.disc-review-action-btn:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.disc-review-action-btn.active-like {
+    color: #22c55e;
+}
+
+.disc-review-action-btn.active-dislike {
+    color: #ef4444;
+}
+
+.disc-review-action-btn i { font-size: 0.65rem; }
+
+.disc-review-action-count {
+    font-size: 0.65rem;
+    font-weight: 600;
+    min-width: 6px;
+    text-align: center;
+}
+
+.disc-skel-review {
+    height: 72px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+/* === DISCOVER LISTS MODE SWITCHER === */
+.disc-lists-mode-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.disc-lists-mode-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.disc-lists-mode-indicator {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    background: rgba(255,255,255,0.09);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.10);
+    transition: transform 0.22s cubic-bezier(0.4,0,0.2,1), width 0.22s cubic-bezier(0.4,0,0.2,1);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.disc-lists-mode-btn {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: rgba(203,213,225,0.55);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.18s ease;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.disc-lists-mode-btn i { font-size: 0.8rem; transition: color 0.18s ease; }
+.disc-lists-mode-btn:hover { color: rgba(255,255,255,0.85); }
+.disc-lists-mode-btn.active { color: #fff; }
+.disc-lists-mode-btn.active i { color: var(--accent); }
+
+.disc-lists-panel {
+    display: grid;
+    gap: 28px;
+    animation: cmlPanelFadeIn 0.22s ease both;
+}
+
+.disc-skel-rail {
+    height: 200px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+.disc-review-card {
+    display: flex;
     align-items: flex-start;
     gap: 12px;
     padding: 12px 14px;
@@ -1827,89 +1943,6 @@ body::after {
 
 .disc-skel-review {
     height: 72px;
-    border-radius: 12px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
-    background-size: 200% 100%;
-    animation: cmlShimmer 1.5s infinite;
-}
-
-/* === LIST PREVIEW CARDS === */
-.disc-list-strip {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-bottom: 4px;
-}
-
-.disc-list-strip::-webkit-scrollbar { display: none; }
-
-.disc-list-card {
-    flex-shrink: 0;
-    width: 260px;
-    padding: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    text-decoration: none;
-    transition: all 0.2s var(--ease-smooth);
-    cursor: pointer;
-}
-
-.disc-list-card:hover {
-    border-color: rgba(245, 158, 11, 0.3);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card-hover);
-}
-
-.disc-list-info {
-    margin-bottom: 10px;
-}
-
-.disc-list-name {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--white);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 2px;
-}
-
-.disc-list-meta {
-    font-size: 0.65rem;
-    color: var(--muted);
-}
-
-.disc-list-meta-type {
-    color: var(--accent);
-    font-weight: 600;
-    text-transform: capitalize;
-}
-
-.disc-list-posters {
-    display: flex;
-    gap: 4px;
-}
-
-.disc-list-mini-poster {
-    flex: 1;
-    aspect-ratio: 2 / 3;
-    object-fit: cover;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.04);
-}
-
-.disc-list-mini-poster.disc-list-empty-slot {
-    border: 1px dashed rgba(255, 255, 255, 0.08);
-    background: transparent;
-}
-
-.disc-skel-listcard {
-    flex-shrink: 0;
-    width: 260px;
-    height: 130px;
     border-radius: 12px;
     background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
     background-size: 200% 100%;
