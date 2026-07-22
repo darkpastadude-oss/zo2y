@@ -109,6 +109,60 @@
 
 /* === COMPOSITE SKELETON COMPONENTS === */
 
+/* Skeleton card that matches real .card layout */
+.skel-card {
+  border: 1px solid var(--color-border, rgba(255,255,255,0.12));
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--color-bg-elevated, #172b58);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.skel-card .card-media.skel-media {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: linear-gradient(135deg, #0e1f42 0%, #0c1a3b 100%);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.skel-poster-fill {
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg-elevated, #172b58);
+  position: relative;
+  overflow: hidden;
+}
+
+.skel-card .card-meta.skel-meta {
+  padding: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.skel-badge {
+  display: inline-block;
+  width: 60px;
+  height: 18px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.skel-btn-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
 /* Poster card: image + 2 text lines */
 .skel-card-poster {
   display: flex;
@@ -168,25 +222,41 @@
   flex: 0 0 110px;
 }
 
-/* Grid of poster skeletons */
+/* Grid of skeleton cards — matches real .grid layout */
 .skel-grid {
   display: grid;
-  gap: 16px;
-  padding: 0 20px;
+  grid-template-columns: repeat(6, 156px);
+  gap: 11px;
+  padding: 14px;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .skel-grid-2 { grid-template-columns: repeat(2, 1fr); }
 .skel-grid-3 { grid-template-columns: repeat(3, 1fr); }
-.skel-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.skel-grid-4 { grid-template-columns: repeat(6, 156px); }
 .skel-grid-5 { grid-template-columns: repeat(5, 1fr); }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .skel-grid,
+  .skel-grid-2,
   .skel-grid-3,
   .skel-grid-4,
   .skel-grid-5 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
-  .skel-rail .skel-card-poster { flex: 0 0 120px; }
+}
+
+@media (max-width: 600px) {
+  .skel-grid,
+  .skel-grid-2,
+  .skel-grid-3,
+  .skel-grid-4,
+  .skel-grid-5 {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
 }
 
 /* Collection item: horizontal card with poster + text (profile detail views) */

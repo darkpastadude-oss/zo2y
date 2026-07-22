@@ -4,23 +4,36 @@
 window.Skel = (() => {
 
   function posterCard(extraClass = '') {
-    return `<div class="skel-card-poster ${extraClass}">
-      <div class="skel skel-poster"></div>
-      <div class="skel-meta">
-        <div class="skel skel-line skel-line-lg"></div>
-        <div class="skel skel-line skel-line-sm"></div>
+    return `<article class="card skel-card ${extraClass}">
+      <div class="card-media skel-media">
+        <div class="skel skel-poster-fill"></div>
       </div>
-    </div>`;
+      <div class="card-meta skel-meta">
+        <span class="card-type"><span class="skel skel-badge"></span></span>
+        <div class="card-meta-top">
+          <p class="card-name"><span class="skel skel-line skel-line-lg" style="margin:0"></span></p>
+          <div class="card-menu-wrap"><span class="skel skel-btn-icon"></span></div>
+        </div>
+        <p class="card-sub"><span class="skel skel-line skel-line-sm" style="margin:0"></span></p>
+        <p class="card-extra"><span class="skel skel-line skel-line-md" style="margin:0"></span></p>
+      </div>
+    </article>`;
   }
 
   function squareCard(extraClass = '') {
-    return `<div class="skel-card-square ${extraClass}">
-      <div class="skel skel-square"></div>
-      <div class="skel-meta">
-        <div class="skel skel-line skel-line-lg"></div>
-        <div class="skel skel-line skel-line-sm"></div>
+    return `<article class="card skel-card ${extraClass}">
+      <div class="card-media skel-media" style="aspect-ratio:1/1">
+        <div class="skel skel-poster-fill"></div>
       </div>
-    </div>`;
+      <div class="card-meta skel-meta">
+        <span class="card-type"><span class="skel skel-badge"></span></span>
+        <div class="card-meta-top">
+          <p class="card-name"><span class="skel skel-line skel-line-lg" style="margin:0"></span></p>
+          <div class="card-menu-wrap"><span class="skel skel-btn-icon"></span></div>
+        </div>
+        <p class="card-sub"><span class="skel skel-line skel-line-sm" style="margin:0"></span></p>
+      </div>
+    </article>`;
   }
 
   function rail(count = 6, opts = {}) {

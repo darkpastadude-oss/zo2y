@@ -921,6 +921,7 @@
 
 
     let searchDebounceTimer = null;
+    let searchAbort = null;
 
     function normalizeQuery(query) {
 
@@ -1085,6 +1086,10 @@
 
       const query = String(state.search || '').trim();
 
+      if (searchAbort) searchAbort.abort();
+      searchAbort = new AbortController();
+      const searchSignal = searchAbort.signal;
+
       let games = [];
 
       GAMES_PAGE_SIZE = computeGridPageSize();
@@ -1103,7 +1108,7 @@
               searchUrl.searchParams.set('search', variation);
               searchUrl.searchParams.set('page', '1');
               searchUrl.searchParams.set('page_size', '40');
-              const res = await fetch(searchUrl.toString(), { headers: { accept: 'application/json' } });
+              const res = await fetch(searchUrl.toString(), { headers: { accept: 'application/json' }, signal: searchSignal });
               if (res.ok) {
                 const data = await res.json();
                 if (data && data.results && data.results.length > 0) {
@@ -1116,7 +1121,7 @@
           }
 
           if (!found) {
-            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query);
+            const wikiGames = await window.__zo2yGamesShared?.searchGamesFromWikipedia(query, searchSignal);
             if (wikiGames && wikiGames.length) {
               games = wikiGames;
               found = true;
@@ -1143,8 +1148,8 @@
             }
             
             const requests = [
-              fetch(`/api/igdb/games?page=1&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
-              fetch(`/api/igdb/games?page=2&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null)
+              fetch(`/api/igdb/games?page=1&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' }, signal: searchSignal }).then(r => r.ok ? r.json() : null),
+              fetch(`/api/igdb/games?page=2&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' }, signal: searchSignal }).then(r => r.ok ? r.json() : null)
             ];
             const results = await Promise.allSettled(requests);
             const merged = [];
@@ -1193,6 +1198,7 @@
           }
         }
       } catch (_err) {
+        if (_err?.name === 'AbortError') return;
         console.error('Failed to load games', _err);
       }
 
@@ -2031,7 +2037,10 @@
 
       const query = String(document.getElementById('q')?.value || '').trim();
 
-      debounceSearch(query);
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      state.search = query;
+      await loadGamesWithFallback();
+      renderGrid();
 
     });
 
@@ -2040,6 +2049,21 @@
       const query = String(e.target.value || '').trim();
 
       debounceSearch(query);
+
+    });
+
+    document.getElementById('q')?.addEventListener('keydown', async (e) => {
+
+      if (e.key !== 'Enter') return;
+
+      e.preventDefault();
+
+      const query = String(e.target.value || '').trim();
+
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      state.search = query;
+      await loadGamesWithFallback();
+      renderGrid();
 
     });
 
