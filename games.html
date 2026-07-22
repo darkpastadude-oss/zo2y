@@ -800,7 +800,7 @@
     const coverCache = new Map();
 
     // Cache for IGDB browse results to avoid repeated API calls
-    const IGDB_BROWSE_CACHE_PREFIX = 'zo2y_igdb_browse_v1:';
+    const IGDB_BROWSE_CACHE_PREFIX = 'zo2y_igdb_browse_v2:';
     const IGDB_BROWSE_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
     function readIgdbBrowseCache(query) {
@@ -1129,13 +1129,18 @@
             }
           }
         } else {
-          const cacheKey = 'browse_rawg_v3';
+          const cacheKey = `browse_rawg_v6_${state.sort}`;
           let rawgGames = readIgdbBrowseCache(cacheKey);
 
           if (!rawgGames) {
             const currentYear = new Date().getFullYear();
-            let ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-released';
-            let datesParam = state.sort === 'popular' ? `&dates=${currentYear-1}-01-01,${currentYear+1}-12-31` : '';
+            let ordering = state.sort === 'name' ? 'name' : '-released';
+            let datesParam = '';
+            if (state.sort === 'popular') {
+              datesParam = `&dates=${currentYear-1}-01-01,${currentYear+1}-12-31`;
+            } else if (state.sort === 'released') {
+              datesParam = `&dates=${currentYear-2}-01-01,${currentYear+1}-12-31`;
+            }
             
             const requests = [
               fetch(`/api/igdb/games?page=1&page_size=40&ordering=${encodeURIComponent(ordering)}${datesParam}`, { headers: { accept: 'application/json' } }).then(r => r.ok ? r.json() : null),
@@ -1166,7 +1171,13 @@
           if (client) {
             try {
               let dbQuery = client.from('games').select('*');
-              dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false }).limit(200);
+              if (state.sort === 'released') {
+                dbQuery = dbQuery.order('release_date', { ascending: false, nullsFirst: false }).limit(200);
+              } else if (state.sort === 'name') {
+                dbQuery = dbQuery.order('title', { ascending: true, nullsFirst: false }).limit(200);
+              } else {
+                dbQuery = dbQuery.order('rating_count', { ascending: false, nullsFirst: false }).order('rating', { ascending: false, nullsFirst: false }).limit(200);
+              }
               const { data: localData, error: localErr } = await dbQuery;
               if (!localErr && Array.isArray(localData) && localData.length) {
                 const existingTitles = new Set(games.map(g => String(g.title || g.name || '').toLowerCase()));
@@ -1227,12 +1238,18 @@
         const otherCovers = withCover.filter((g) => !isLocalCover(g.cover) && g.source !== 'wikipedia' && g.source !== 'igdb' && g.source !== 'rawg');
         const noCover = mapped.filter((g) => !g.cover || g.cover === FALLBACK_IMAGE);
 
-        mapped = [
-          ...shuffleArray(trending),
-          ...shuffleArray(localCovers),
-          ...shuffleArray(otherCovers),
-          ...noCover
-        ];
+        if (state.sort === 'released') {
+          mapped = [...trending, ...localCovers, ...otherCovers, ...noCover];
+        } else if (state.sort === 'name') {
+          mapped = [...withCover.sort((a, b) => a.name.localeCompare(b.name)), ...noCover];
+        } else {
+          mapped = [
+            ...shuffleArray(trending),
+            ...shuffleArray(localCovers),
+            ...shuffleArray(otherCovers),
+            ...noCover
+          ];
+        }
       }
 
       state.allGames = mapped;
@@ -2138,10 +2155,8 @@
 
       }
 
-      initGameFilters().catch(function() {}).then(async () => {
-        await loadPage();
-        setupInfiniteScroll();
-      });
+      initGameFilters().catch(function() {});
+      loadPage().then(() => setupInfiniteScroll());
 
     });
 
