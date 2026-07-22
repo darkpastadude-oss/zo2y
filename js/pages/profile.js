@@ -1422,6 +1422,8 @@
                             <i class="fas ${badge.icon}"></i>
                             ${escapeHtml(badge.label)}
                         </span>
+                    `)
+                    .join('');
                 if (desktopEl) desktopEl.innerHTML = html;
                 if (mobileEl) mobileEl.innerHTML = html;
             }
