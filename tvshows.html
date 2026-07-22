@@ -1218,12 +1218,21 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('list_items').insert({
+          const tvTitle = tvshow.name || tvshow.title || 'Unknown Show';
+          let tvPoster = '';
+          if (tvshow.posterPath) {
+            tvPoster = `${POSTER_BASE}${tvshow.posterPath}`;
+          } else if (tvshow.backdropPath) {
+            tvPoster = `${BACKDROP_BASE}${tvshow.backdropPath}`;
+          }
+          const { error } = await client.from('list_items').upsert({
             user_id: currentUser.id,
             item_id: tvshowId,
             media_type: 'tv',
-            list_type: listType
-          });
+            list_type: listType,
+            title: tvTitle,
+            image_url: tvPoster || '/images/fallback/tv.svg'
+          }, { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
           if (error) {
             if (String(error.code || '') === '23505') return;
             throw error;

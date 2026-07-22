@@ -9246,7 +9246,10 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       if (!url) return false;
       const u = String(url).trim();
       if (!u || u === '/newlogo.webp' || u === '/images/fallback/book.svg' || u === '/images/fallback/game.svg') return false;
-      return /^https?:\/\//i.test(u);
+      if (/^https?:\/\//i.test(u)) return true;
+      if (u.startsWith('/api/books/cover')) return true;
+      if (u.startsWith('/images/') && !u.includes('fallback')) return true;
+      return false;
     }
 
     async function loadGames(signal, options = {}) {
@@ -9934,7 +9937,7 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           await Promise.allSettled(broken.map(async (it) => {
             try {
               const q = encodeURIComponent(it.title);
-              const res2 = await fetch('/api/books/popular?limit=1&q=' + q, { signal });
+              const res2 = await fetch('/api/books/search?limit=1&q=' + q, { signal });
               if (!res2.ok) return;
               const d2 = await res2.json();
               const b2 = Array.isArray(d2.books) ? d2.books[0] : null;

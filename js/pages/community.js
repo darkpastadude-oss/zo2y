@@ -1976,6 +1976,22 @@ window.CommunityManager = (function() {
             } else {
                 map = await individualFallback('games', 'id, cover_url, hero_url', uniqueIds, true, function(d) { return d.cover_url || d.hero_url || ''; });
             }
+            var missingGameIds = uniqueIds.filter(function(id) { return !map[id]; });
+            if (missingGameIds.length) {
+                try {
+                    var liResult = await client.from('list_items').select('item_id, image_url, title').eq('media_type', 'game').in('item_id', missingGameIds).not('image_url', 'is', null).order('created_at', { ascending: false });
+                    if (liResult && !liResult.error && Array.isArray(liResult.data)) {
+                        var seen = new Set();
+                        liResult.data.forEach(function(li) {
+                            var lid = String(li.item_id || '');
+                            if (lid && !seen.has(lid) && li.image_url) {
+                                seen.add(lid);
+                                map[lid] = li.image_url;
+                            }
+                        });
+                    }
+                } catch (_e) {}
+            }
             applyMap(items, map);
         };
 
@@ -1989,6 +2005,22 @@ window.CommunityManager = (function() {
                 rows.forEach(function(row) { map[String(row.id)] = row.thumbnail || ''; });
             } else {
                 map = await individualFallback('books', 'id, thumbnail', uniqueIds, false, function(d) { return d.thumbnail || ''; });
+            }
+            var missingBookIds = uniqueIds.filter(function(id) { return !map[id]; });
+            if (missingBookIds.length) {
+                try {
+                    var liResult = await client.from('list_items').select('item_id, image_url, title').eq('media_type', 'book').in('item_id', missingBookIds).not('image_url', 'is', null).order('created_at', { ascending: false });
+                    if (liResult && !liResult.error && Array.isArray(liResult.data)) {
+                        var seen = new Set();
+                        liResult.data.forEach(function(li) {
+                            var lid = String(li.item_id || '');
+                            if (lid && !seen.has(lid) && li.image_url) {
+                                seen.add(lid);
+                                map[lid] = li.image_url;
+                            }
+                        });
+                    }
+                } catch (_e) {}
             }
             applyMap(items, map);
         };

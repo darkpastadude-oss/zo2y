@@ -1886,7 +1886,10 @@
 
         if (nextSaved) {
 
-          const { error } = await client.from('list_items').insert({
+          const gameTitle = game.name || game.title || 'Untitled';
+          const gameCover = game.cover || '';
+
+          const { error } = await client.from('list_items').upsert({
 
             user_id: currentUser.id,
 
@@ -1894,14 +1897,36 @@
 
             media_type: 'game',
 
-            list_type: listType
+            list_type: listType,
 
-          });
+            title: gameTitle,
+
+            image_url: gameCover || '/newlogo.webp'
+
+          }, { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
 
           if (error) {
             if (String(error.code || '') === '23505') return;
             throw error;
           }
+
+          try {
+            var _shared = window.__zo2yGamesShared || null;
+            if (_shared && _shared.ensureGameInSupabase) {
+              await _shared.ensureGameInSupabase(client, {
+                id: gameId,
+                name: game.name || game.title || '',
+                title: game.name || game.title || '',
+                slug: game.slug || '',
+                source: game.source || 'igdb',
+                cover: gameCover,
+                cover_url: gameCover,
+                released: game.firstReleaseDate || '',
+                rating: game.rating || 0,
+                description: game.summary || game.description || ''
+              });
+            }
+          } catch (_ensErr) {}
 
           showToast('Added to list');
 

@@ -228,24 +228,29 @@ async function loadBooks(append) {
         total = state._poolCacheTotal || poolBooks.length;
       } else {
         if (q) {
+          const pagePromises = [];
           for (let p = 0; p < 5; p++) {
-            const r = await fetchPage(p * PAGE_SIZE, PAGE_SIZE);
+            pagePromises.push(fetchPage(p * PAGE_SIZE, PAGE_SIZE));
+          }
+          const results = await Promise.allSettled(pagePromises);
+          for (const result of results) {
             if (abort.signal.aborted) return;
-            if (r.items && r.items.length) {
-              poolBooks = poolBooks.concat(r.items);
-              if (total === 0 || r.total > total) total = r.total;
+            if (result.status === 'fulfilled' && result.value && result.value.items && result.value.items.length) {
+              poolBooks = poolBooks.concat(result.value.items);
+              if (total === 0 || result.value.total > total) total = result.value.total;
             }
           }
         } else {
-          const r1 = await fetchPage(0, 100);
+          const [r1, r2] = await Promise.all([
+            fetchPage(0, 100),
+            fetchPage(100, 100)
+          ]);
           if (abort.signal.aborted) return;
-          if (r1.items && r1.items.length) {
+          if (r1 && r1.items && r1.items.length) {
             poolBooks = poolBooks.concat(r1.items);
             total = r1.total || poolBooks.length;
           }
-          const r2 = await fetchPage(100, 100);
-          if (abort.signal.aborted) return;
-          if (r2.items && r2.items.length) {
+          if (r2 && r2.items && r2.items.length) {
             poolBooks = poolBooks.concat(r2.items);
             if (r2.total > total) total = r2.total;
           }

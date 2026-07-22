@@ -1150,14 +1150,15 @@
     if (!id) return false;
     const title = String(payload.title || payload.name || '').trim() || 'Untitled';
     const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
-    const validThumbnail = /^https?:\/\//i.test(incomingThumbnail) ? incomingThumbnail : null;
+    const validThumbnail = /^https?:\/\//i.test(incomingThumbnail) || incomingThumbnail.startsWith('/') ? incomingThumbnail : null;
     const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
     let row = { id, title, authors: incomingAuthors, thumbnail: validThumbnail };
     try {
       const { data: existing } = await client.from('books').select('id, title, thumbnail').eq('id', id).maybeSingle();
       if (existing) {
         const mergedTitle = existing.title || title;
-        const existingValid = /^https?:\/\//i.test(String(existing.thumbnail || '').trim());
+        const existingThumb = String(existing.thumbnail || '').trim();
+        const existingValid = /^https?:\/\//i.test(existingThumb) || existingThumb.startsWith('/');
         const mergedThumbnail = existingValid ? existing.thumbnail : (validThumbnail || existing.thumbnail);
         row = { id, title: mergedTitle, authors: incomingAuthors || existing.authors || null, thumbnail: mergedThumbnail };
       }
@@ -1376,7 +1377,7 @@
       if (itemPayload) {
         row.title = itemPayload.name || itemPayload.title || 'Untitled';
         let img = itemPayload.image || itemPayload.image_url || '';
-        if (!img || !/^https?:\/\//i.test(String(img).trim())) {
+        if (!img || !/^https?:\/\//i.test(String(img).trim()) && !img.startsWith('/')) {
           const fallbackMap = { book: '/images/fallback/book.svg', music: '/images/fallback/music.svg', game: '/newlogo.webp', movie: '/images/fallback/movie.svg', tv: '/images/fallback/tv.svg', anime: '/images/fallback/anime.svg' };
           img = fallbackMap[type] || '/newlogo.webp';
         }
@@ -1406,6 +1407,25 @@
     }
     if (type === 'book' && typeof window !== 'undefined' && typeof window.bustBookCache === 'function') {
       window.bustBookCache(entityId);
+    }
+    if (type === 'game' && itemPayload && typeof window !== 'undefined') {
+      const _shared = window.__zo2yGamesShared || null;
+      if (_shared && _shared.ensureGameInSupabase) {
+        try {
+          await _shared.ensureGameInSupabase(client, {
+            id: entityId,
+            name: itemPayload.name || itemPayload.title || '',
+            title: itemPayload.name || itemPayload.title || '',
+            slug: '',
+            source: 'igdb',
+            cover: itemPayload.image || itemPayload.image_url || '',
+            cover_url: itemPayload.image || itemPayload.image_url || '',
+            released: '',
+            rating: 0,
+            description: ''
+          });
+        } catch (_ensErr) {}
+      }
     }
   }
 
@@ -1437,7 +1457,7 @@
     if (itemPayload) {
       row.title = itemPayload.name || itemPayload.title || 'Untitled';
       let img = itemPayload.image || itemPayload.image_url || '';
-      if (!img || !/^https?:\/\//i.test(String(img).trim())) {
+      if (!img || (!/^https?:\/\//i.test(String(img).trim()) && !img.startsWith('/'))) {
         const fallbackMap = { book: '/images/fallback/book.svg', music: '/images/fallback/music.svg', game: '/newlogo.webp', movie: '/images/fallback/movie.svg', tv: '/images/fallback/tv.svg', anime: '/images/fallback/anime.svg' };
         img = fallbackMap[type] || '/newlogo.webp';
       }
@@ -1464,6 +1484,25 @@
     }
     if (type === 'book' && typeof window !== 'undefined' && typeof window.bustBookCache === 'function') {
       window.bustBookCache(entityId);
+    }
+    if (type === 'game' && itemPayload && typeof window !== 'undefined') {
+      const _shared = window.__zo2yGamesShared || null;
+      if (_shared && _shared.ensureGameInSupabase) {
+        try {
+          await _shared.ensureGameInSupabase(client, {
+            id: entityId,
+            name: itemPayload.name || itemPayload.title || '',
+            title: itemPayload.name || itemPayload.title || '',
+            slug: '',
+            source: 'igdb',
+            cover: itemPayload.image || itemPayload.image_url || '',
+            cover_url: itemPayload.image || itemPayload.image_url || '',
+            released: '',
+            rating: 0,
+            description: ''
+          });
+        } catch (_ensErr) {}
+      }
     }
     return true;
   }

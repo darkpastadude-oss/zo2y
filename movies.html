@@ -755,12 +755,21 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('list_items').insert({
+          const movieTitle = movie.title || movie.name || 'Unknown Movie';
+          let moviePoster = '';
+          if (movie.posterPath) {
+            moviePoster = `${POSTER_BASE}${movie.posterPath}`;
+          } else if (movie.backdropPath) {
+            moviePoster = `${BACKDROP_BASE}${movie.backdropPath}`;
+          }
+          const { error } = await client.from('list_items').upsert({
             user_id: currentUser.id,
             item_id: movieId,
             media_type: 'movie',
-            list_type: listType
-          });
+            list_type: listType,
+            title: movieTitle,
+            image_url: moviePoster || '/images/fallback/movie.svg'
+          }, { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
           if (error) {
             if (String(error.code || '') === '23505') return;
             throw error;

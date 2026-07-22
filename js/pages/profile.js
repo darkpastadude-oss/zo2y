@@ -4819,6 +4819,36 @@
                     return cacheGameRecord(normalized);
                 }
 
+                if (supabase) {
+                    try {
+                        const { data: liGame } = await supabase
+                            .from('list_items')
+                            .select('title, image_url, subtitle')
+                            .eq('item_id', cacheKey)
+                            .eq('media_type', 'game')
+                            .not('title', 'is', null)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .maybeSingle();
+                        if (liGame && (liGame.title || liGame.image_url)) {
+                            const liRecord = {
+                                id: cacheKey,
+                                title: liGame.title || '',
+                                name: liGame.title || '',
+                                description: '',
+                                cover_url: liGame.image_url || '',
+                                hero_url: '',
+                                release_date: '',
+                                rating: 0,
+                                rating_count: 0,
+                                source: 'list_items',
+                                extra: {}
+                            };
+                            return cacheGameRecord(liRecord);
+                        }
+                    } catch (_liErr) {}
+                }
+
                 return null;
             }
 

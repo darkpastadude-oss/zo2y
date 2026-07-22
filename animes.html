@@ -1376,12 +1376,21 @@
       status[listType] = nextSaved;
       try {
         if (nextSaved) {
-          const { error } = await client.from('list_items').insert({
+          const animeTitle = anime.name || anime.title || 'Unknown Anime';
+          let animePoster = '';
+          if (anime.posterPath) {
+            animePoster = `${POSTER_BASE}${anime.posterPath}`;
+          } else if (anime.backdropPath) {
+            animePoster = `${BACKDROP_BASE}${anime.backdropPath}`;
+          }
+          const { error } = await client.from('list_items').upsert({
             user_id: currentUser.id,
             item_id: animeId,
             media_type: 'anime',
-            list_type: listType
-          });
+            list_type: listType,
+            title: animeTitle,
+            image_url: animePoster || '/images/fallback/anime.svg'
+          }, { onConflict: 'user_id,item_id,media_type,list_type', ignoreDuplicates: true });
           if (error) {
             if (String(error.code || '') === '23505') return;
             throw error;
