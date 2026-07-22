@@ -2177,6 +2177,7 @@ window.CommunityManager = (function() {
     // === DISCOVER FEED ENGINE ===
     var discoverLoaded = false;
     var discListsMode = 'media';
+    var discModeVersion = 0;
     var discGlobalMode = 'media';
     var discLifestyleLoaded = false;
 
@@ -2231,6 +2232,8 @@ window.CommunityManager = (function() {
 
     function setDiscGlobalMode(mode) {
         discGlobalMode = mode || 'media';
+        discModeVersion++;
+        var thisVersion = discModeVersion;
         var mediaContent = document.getElementById('discMediaContent');
         var lifestyleContent = document.getElementById('discLifestyleContent');
         var mediaBtn = document.getElementById('discGlobalModeMedia');
@@ -2239,7 +2242,7 @@ window.CommunityManager = (function() {
         if (mediaBtn) mediaBtn.classList.toggle('active', discGlobalMode === 'media');
         if (lifestyleBtn) lifestyleBtn.classList.toggle('active', discGlobalMode === 'lifestyle');
 
-        // Fade transition for mode switching
+        // Show skeleton in target sections while loading
         var showEl = discGlobalMode === 'media' ? mediaContent : lifestyleContent;
         var hideEl = discGlobalMode === 'media' ? lifestyleContent : mediaContent;
         if (hideEl) {
@@ -2258,9 +2261,7 @@ window.CommunityManager = (function() {
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     showEl.style.opacity = '1';
-                    setTimeout(function() {
-                        showEl.style.transition = '';
-                    }, 200);
+                    setTimeout(function() { showEl.style.transition = ''; }, 200);
                 });
             });
         }
@@ -2284,9 +2285,9 @@ window.CommunityManager = (function() {
                 discLoadCars()
             ]);
         }
-        discLoadPopularReview();
-        discLoadPopularListsHighlights();
-        discLoadRecentReviews(discGlobalMode);
+        discLoadPopularReview(thisVersion);
+        discLoadPopularListsHighlights(thisVersion);
+        discLoadRecentReviews(discGlobalMode, thisVersion);
     }
 
     function updateDiscSidebarVisibility() {
@@ -2352,7 +2353,7 @@ window.CommunityManager = (function() {
         } catch (_e) { el.innerHTML = ''; }
     }
 
-    async function discLoadRecentReviews(mode) {
+    async function discLoadRecentReviews(mode, version) {
         var el = document.getElementById('discReviewStack');
         if (!el) return;
         var client = getSupabaseClient();
@@ -2373,6 +2374,7 @@ window.CommunityManager = (function() {
             } else {
                 reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) === -1; });
             }
+            if (version && version !== discModeVersion) return;
             if (!reviews.length) { el.innerHTML = '<div class="disc-empty">no ' + activeMode + ' reviews yet.</div>'; return; }
             reviews = reviews.slice(0, 5);
             var userIds = [];
@@ -2508,43 +2510,62 @@ window.CommunityManager = (function() {
         var el = document.getElementById('discTopArtistsRail');
         if (!el) return;
         var popularArtists = [
-            { id: 'drake', name: 'Drake', img: 'https://i.scdn.co/image/ab6761610000e5eb4293385d429e92e143996005' },
-            { id: 'taylor-swift', name: 'Taylor Swift', img: 'https://i.scdn.co/image/ab6761610000e5eb7c63d3b4cc3f6ab6e4e02278' },
-            { id: 'the-weeknd', name: 'The Weeknd', img: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26f5f8' },
-            { id: 'bad-bunny', name: 'Bad Bunny', img: 'https://i.scdn.co/image/ab6761610000e5eb8278b782cbb5a3963db88ada' },
-            { id: 'billie-eilish', name: 'Billie Eilish', img: 'https://i.scdn.co/image/ab6761610000e5ebd8b9980db67272cb4d2c3daf' },
-            { id: 'kendrick-lamar', name: 'Kendrick Lamar', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
-            { id: 'sza', name: 'SZA', img: 'https://i.scdn.co/image/ab6761610000e5eb7b85e4d6560eb395a2f4fc0ac' },
-            { id: 'ed-sheeran', name: 'Ed Sheeran', img: 'https://i.scdn.co/image/ab6761610000e5eb7b445e7c24f5757747f8ff05' },
-            { id: 'post-malone', name: 'Post Malone', img: 'https://i.scdn.co/image/ab6761610000e5eb341d7e2a5d48adec064971ae' },
-            { id: 'doja-cat', name: 'Doja Cat', img: 'https://i.scdn.co/image/ab6761610000e5eb8278b782cbb5a3963db88ada' },
-            { id: 'travis-scott', name: 'Travis Scott', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
-            { id: 'dua-lipa', name: 'Dua Lipa', img: 'https://i.scdn.co/image/ab6761610000e5eb0797e438d5b28b4e6e8b7a5f' },
-            { id: 'ariana-grande', name: 'Ariana Grande', img: 'https://i.scdn.co/image/ab6761610000e5eb9d7e5e2a5d48adec064971ae' },
-            { id: 'j cole', name: 'J. Cole', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
-            { id: 'lil-wayne', name: 'Lil Wayne', img: 'https://i.scdn.co/image/ab6761610000e5eb7b445e7c24f5757747f8ff05' },
-            { id: 'rihanna', name: 'Rihanna', img: 'https://i.scdn.co/image/ab6761610000e5eb7c63d3b4cc3f6ab6e4e02278' }
+            { id: '36QJpDe2go2KgaRleHADTp', name: 'Drake' },
+            { id: '06HL4z0CvFAxyc27GXpf02', name: 'Taylor Swift' },
+            { id: '1Xyo4u8uXC1ZmMpatF05PJ', name: 'The Weeknd' },
+            { id: '4q3ewBCX7sLwd24euuV69X', name: 'Bad Bunny' },
+            { id: '6qqNVTkY8uBg9cP3Jd7DAH', name: 'Billie Eilish' },
+            { id: '2YZyLoL8N0Wb9KlfHawXP', name: 'Kendrick Lamar' },
+            { id: '7MFORA07eaOkS4e3eRA5n2', name: 'SZA' },
+            { id: '6eUKZXaKkcviH0Ku9w2n3V', name: 'Ed Sheeran' },
+            { id: '246dkjvS1zLTtlykjXyN48', name: 'Post Malone' },
+            { id: '6M2wZ9GZgrQXHCFfjv46we', name: 'Doja Cat' },
+            { id: '0Y5tJX1MQlPlqiwlOH7tqY', name: 'Travis Scott' },
+            { id: '6M2wZ9GZgrQXHCFfjv46we', name: 'Dua Lipa' },
+            { id: '66CXWjxzNUsdJxT27Xf0ln', name: 'Ariana Grande' },
+            { id: '6nfT3vqEieRMFSHlf1G6b', name: 'J. Cole' },
+            { id: '5K4W6rqBFbedoAWHb5Y1sH', name: 'Lil Wayne' },
+            { id: '5pKCCKE2aj0tzKRshqC8i1', name: 'Rihanna' }
         ];
         try {
-            var resp = await fetch('/api/music/artists?limit=24');
+            var resp = await fetch('/api/music/artists?limit=30');
             var data = await resp.json();
             var apiArtists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
-            var apiMap = {};
+            var apiByName = {};
+            var apiById = {};
             if (apiArtists.length) {
                 apiArtists.forEach(function(a) {
                     var name = String(a.title || a.name || '').toLowerCase().trim();
-                    if (name && a.image) apiMap[name] = a;
+                    var id = String(a.id || '').trim();
+                    if (name && a.image) apiByName[name] = a;
+                    if (id && a.image) apiById[id] = a;
                 });
             }
-            var merged = popularArtists.map(function(pa) {
-                var match = apiMap[pa.name.toLowerCase()] || apiMap[pa.id] || null;
-                return { id: pa.id, name: pa.name, image: (match && match.image) ? match.image : pa.img };
+            var merged = [];
+            var usedIds = {};
+            popularArtists.forEach(function(pa) {
+                var match = apiByName[pa.name.toLowerCase()] || apiById[pa.id] || null;
+                var img = match ? (match.image || match.image_url || '') : '';
+                if (!img) return;
+                if (usedIds[pa.id]) return;
+                usedIds[pa.id] = true;
+                merged.push({ id: pa.id, name: pa.name, image: img });
             });
+            if (merged.length < 8 && apiArtists.length) {
+                apiArtists.forEach(function(a) {
+                    if (merged.length >= 8) return;
+                    var name = String(a.title || a.name || '').toLowerCase().trim();
+                    var id = String(a.id || '').trim();
+                    if (!a.image) return;
+                    var exists = merged.some(function(m) { return m.name.toLowerCase() === name || m.id === id; });
+                    if (!exists) merged.push({ id: id || name, name: a.title || a.name || '', image: a.image });
+                });
+            }
             shuffleArray(merged);
             el.innerHTML = merged.slice(0, 8).map(function(a) {
                 var link = 'song.html?id=' + encodeURIComponent(a.id || '');
                 return '<a href="' + escapeHtml(link) + '" class="disc-poster disc-poster-artist">' +
-                    '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(a.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(a.image) + '" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'">' +
                     '<div class="disc-poster-title">' + escapeHtml(a.name) + '</div>' +
                 '</a>';
             }).join('');
@@ -2552,7 +2573,7 @@ window.CommunityManager = (function() {
     }
 
     /* === POPULAR REVIEW HERO === */
-    async function discLoadPopularReview() {
+    async function discLoadPopularReview(version) {
         var el = document.getElementById('discPopularReviewContent');
         if (!el) return;
         var client = getSupabaseClient();
@@ -2571,6 +2592,7 @@ window.CommunityManager = (function() {
             } else {
                 reviews = reviews.filter(function(r) { return lifestyleTypes.indexOf((r.media_type || '').toLowerCase()) === -1; });
             }
+            if (version && version !== discModeVersion) return;
             if (!reviews.length) { el.innerHTML = '<div class="disc-empty">no ' + discGlobalMode + ' reviews yet.</div>'; return; }
             var userIds = [];
             var uidSet = {};
@@ -2653,7 +2675,7 @@ window.CommunityManager = (function() {
     }
 
     /* === POPULAR LISTS RAILS === */
-    async function discLoadPopularListsHighlights() {
+    async function discLoadPopularListsHighlights(version) {
         var el = document.getElementById('discPopularListsContent');
         if (!el) return;
         var client = getSupabaseClient();
@@ -2664,6 +2686,7 @@ window.CommunityManager = (function() {
                 .order('created_at', { ascending: false })
                 .limit(200);
             if (!rows || !rows.length) { el.innerHTML = '<div class="disc-empty">no lists yet.</div>'; return; }
+            if (version && version !== discModeVersion) return;
             var customListIds = [];
             rows.forEach(function(r) {
                 if (r.list_id && customListIds.indexOf(String(r.list_id)) === -1) customListIds.push(String(r.list_id));

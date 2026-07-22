@@ -449,7 +449,7 @@
 
     try {
       if (isAdding) {
-        var insertResult = await client.from('list_items').upsert(payload, { onConflict: 'ux_list_items_default', ignoreDuplicates: false });
+        var insertResult = await client.from('list_items').insert(payload);
         if (insertResult && insertResult.error) {
           if (String(insertResult.error.code || '') === '23505') {
             // Already in list — treat as success

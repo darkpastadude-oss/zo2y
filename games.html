@@ -713,11 +713,11 @@
 
           <select id="sort">
 
+            <option value="released">newest releases</option>
+
             <option value="popular">popular right now</option>
 
             <option value="name">Name A-Z</option>
-
-            <option value="released">Release Date</option>
 
           </select>
 
@@ -844,7 +844,7 @@
 
       platform: '',
 
-      sort: 'popular',
+      sort: 'released',
 
       listStatusMap: new Map(),
 
@@ -1129,12 +1129,12 @@
             }
           }
         } else {
-          const cacheKey = 'browse_rawg_v2';
+          const cacheKey = 'browse_rawg_v3';
           let rawgGames = readIgdbBrowseCache(cacheKey);
 
           if (!rawgGames) {
             const currentYear = new Date().getFullYear();
-            let ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-added';
+            let ordering = state.sort === 'name' ? 'name' : state.sort === 'released' ? '-released' : '-released';
             let datesParam = state.sort === 'popular' ? `&dates=${currentYear-1}-01-01,${currentYear+1}-12-31` : '';
             
             const requests = [
@@ -1971,7 +1971,9 @@
 
 
 
-    async function loadPage() {
+    async function loadPage(retries) {
+
+      retries = retries || 0;
 
       try {
 
@@ -1983,6 +1985,16 @@
         renderGrid();
 
       } catch (_err) {
+
+        console.error('loadPage error:', _err);
+
+        if (retries < 2) {
+
+          await new Promise(function(r) { setTimeout(r, 500); });
+
+          return loadPage(retries + 1);
+
+        }
 
         const grid = document.getElementById('gamesGrid');
 
@@ -2126,7 +2138,7 @@
 
       }
 
-      initGameFilters().then(async () => {
+      initGameFilters().catch(function() {}).then(async () => {
         await loadPage();
         setupInfiniteScroll();
       });

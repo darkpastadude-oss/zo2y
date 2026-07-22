@@ -1379,7 +1379,7 @@
       return row;
     });
     if (inserts.length && !missingItemTables.has(cfg.itemsTable)) {
-      const { error: insertError } = await client.from(cfg.itemsTable).upsert(inserts, { onConflict: 'ux_list_items_custom', ignoreDuplicates: false });
+      const { error: insertError } = await client.from(cfg.itemsTable).insert(inserts);
       if (insertError) {
         if (String(insertError.code || '') === '23505') {
           if (itemPayload) {
@@ -1432,8 +1432,7 @@
       row.title = itemPayload.name || itemPayload.title || 'Untitled';
       row.image_url = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
     }
-    const conflictIndex = isDefault ? 'ux_list_items_default' : 'ux_list_items_custom';
-    const { error } = await client.from(cfg.itemsTable).upsert(row, { onConflict: conflictIndex, ignoreDuplicates: false });
+    const { error } = await client.from(cfg.itemsTable).insert(row);
     if (error) {
       if (String(error.code || '') === '23505') {
         if (itemPayload) {
