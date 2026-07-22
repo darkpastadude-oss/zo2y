@@ -419,16 +419,25 @@
     var cardImage = '';
     var cardTitle = '';
     var cardHref = '';
+    var cardSubtitle = '';
     if (cardEl) {
       cardImage = cardEl.getAttribute('data-image') || cardEl.getAttribute('data-list-image') || '';
       cardTitle = cardEl.getAttribute('data-title') || '';
       cardHref = cardEl.getAttribute('data-href') || '';
+      cardSubtitle = cardEl.getAttribute('data-author') || cardEl.getAttribute('data-subtitle') || '';
       if (!cardImage) {
-        var imgEl = cardEl.querySelector('.card-media img, img');
-        if (imgEl) cardImage = imgEl.getAttribute('src') || '';
+        var imgEl = cardEl.querySelector('.card-media img, .collection-item-image img, .poster-img img, img[src]');
+        if (imgEl) cardImage = imgEl.getAttribute('src') || imgEl.currentSrc || '';
+      }
+      if (!cardImage) {
+        var bgEl = cardEl.querySelector('[style*="background-image"]');
+        if (bgEl) {
+          var bgMatch = (bgEl.getAttribute('style') || '').match(/url\(['"]?([^'"]+)['"]?\)/);
+          if (bgMatch) cardImage = bgMatch[1];
+        }
       }
       if (!cardTitle) {
-        var titleEl = cardEl.querySelector('.card-name, .card-title, .title, .media-title, h2, h3');
+        var titleEl = cardEl.querySelector('.card-name, .card-title, .title, .media-title, .collection-item-title, h2, h3');
         if (titleEl) cardTitle = titleEl.textContent.trim();
       }
       if (!cardTitle) {
@@ -443,7 +452,7 @@
       item_id: String(itemId),
       list_type: String(listType).toLowerCase(),
       title: cardTitle || _config.title || 'Untitled',
-      subtitle: _config.subtitle || '',
+      subtitle: cardSubtitle || _config.subtitle || '',
       image_url: cardImage || _config.image || '/images/fallback/book.svg'
     };
 

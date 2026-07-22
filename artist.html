@@ -387,7 +387,7 @@
     </div>
   </div>
 
-  <script src="js/list-utils.js?v=20260718a" defer></script>
+  <script src="js/list-utils.js?v=20260722a" defer></script>
   <script src="js/skeleton.js" defer></script>
 
   <script>
@@ -679,7 +679,7 @@
                   <img src="${escapeHtml(String(latest.image || ''))}" alt="${escapeHtml(String(latest.title || ''))}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;" onerror="this.src='/images/fallback/music.svg'">
                   <div style="flex:1;min-width:0;">
                     <div style="font-size:16px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(String(latest.title || ''))}</div>
-                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">${escapeHtml(latestLabel)}${latestYear ? ' · ' + escapeHtml(latestYear) : ''}${latest.totalTracks ? ' · ' + latest.totalTracks + ' tracks' : ''}</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">${escapeHtml(latestLabel)}${latestYear ? ' ï¿½ ' + escapeHtml(latestYear) : ''}${latest.totalTracks ? ' ï¿½ ' + latest.totalTracks + ' tracks' : ''}</div>
                   </div>
                   <i class="fas fa-arrow-right" style="color:var(--accent);font-size:14px;"></i>
                 </a>
@@ -705,7 +705,7 @@
             <a class="artist-album-card" href="${escapeHtml(href)}">
               ${image ? `<img class="artist-album-cover" src="${image}" alt="${title}" loading="lazy" onerror="this.src='/images/fallback/music.svg'">` : '<div class="artist-album-cover"></div>'}
               <div class="artist-album-title">${title}</div>
-              <div class="artist-album-meta">${escapeHtml(metaParts.join(' · '))}</div>
+              <div class="artist-album-meta">${escapeHtml(metaParts.join(' ï¿½ '))}</div>
             </a>
           `;
         }).join('');

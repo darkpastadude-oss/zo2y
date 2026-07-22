@@ -341,7 +341,7 @@ function renderGrid(append) {
     const bookId = b.id || b.providerId || "";
     const href = "book.html?id=" + encodeURIComponent(bookId);
     const safeTitle = b.title || 'Untitled';
-    const safeAuthor = b.author || b.authors || "Unknown Author";
+    const safeAuthor = b.author || b.authors || "";
     return `
       <article class="card" data-id="${escapeHtml(bookId)}" data-item-id="${escapeHtml(bookId)}" data-media-type="book" data-title="${escapeHtml(safeTitle)}" data-image="${escapeHtml(coverUrl)}" data-href="${escapeHtml(href)}" data-author="${escapeHtml(safeAuthor)}">
         <div class="card-media cover">
@@ -357,7 +357,7 @@ function renderGrid(append) {
               <button class="card-menu-btn" type="button" aria-label="Open list menu"><i class="fas fa-ellipsis-v"></i></button>
             </div>
           </div>
-          <p class="card-sub">${escapeHtml(safeAuthor)}</p>
+          <p class="card-sub">${safeAuthor ? escapeHtml(safeAuthor) : ''}</p>
           <p class="card-extra">${b.year ? escapeHtml(String(b.year)) : ""}${b.pageCount ? ` | ${b.pageCount} pages` : ""}</p>
         </div>
       </article>

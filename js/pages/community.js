@@ -169,6 +169,7 @@ window.CommunityManager = (function() {
 
             // Query books table for books
             const bookIds = items.filter(it => (it.media_type || '').toLowerCase() === 'book').map(it => String(it.item_id || '')).filter(Boolean);
+            const missingBookIds = new Set(bookIds);
             if (bookIds.length) {
                 try {
                     const { data: books } = await client
@@ -177,11 +178,39 @@ window.CommunityManager = (function() {
                         .in('id', bookIds);
                     if (Array.isArray(books)) {
                         books.forEach(b => {
-                            if (b && b.id && b.title) {
+                            if (b && b.id) {
+                                missingBookIds.delete(String(b.id));
                                 const existing = mediaMap.get(String(b.id)) || {};
                                 mediaMap.set(String(b.id), {
-                                    title: b.title,
+                                    title: b.title || existing.title || '',
                                     image_url: b.thumbnail || existing.image_url || ''
+                                });
+                            }
+                        });
+                    }
+                } catch (_e) {}
+            }
+            // Fallback: query list_items for books missing from books table
+            const missingBookArr = Array.from(missingBookIds);
+            if (missingBookArr.length) {
+                try {
+                    const { data: liBooks } = await client
+                        .from('list_items')
+                        .select('item_id, title, image_url')
+                        .eq('media_type', 'book')
+                        .in('item_id', missingBookArr)
+                        .not('title', 'is', null)
+                        .order('created_at', { ascending: false });
+                    if (Array.isArray(liBooks)) {
+                        const seen = new Set();
+                        liBooks.forEach(li => {
+                            const bid = String(li.item_id || '');
+                            if (bid && !seen.has(bid) && (li.title || li.image_url)) {
+                                seen.add(bid);
+                                const existing = mediaMap.get(bid) || {};
+                                mediaMap.set(bid, {
+                                    title: li.title || existing.title || '',
+                                    image_url: li.image_url || existing.image_url || ''
                                 });
                             }
                         });
@@ -330,11 +359,19 @@ window.CommunityManager = (function() {
                 } else if (type === 'book') {
                     try {
                         const { data } = await client.from('books').select('id, title, thumbnail').eq('id', rawId).maybeSingle();
-                        if (data && data.thumbnail) {
+                        if (data && (data.title || data.thumbnail)) {
                             mediaMap.set(rawId, {
                                 title: data.title || existing?.title || '',
                                 image_url: data.thumbnail || existing?.image_url || ''
                             });
+                        } else {
+                            const { data: liRow } = await client.from('list_items').select('title, image_url').eq('item_id', rawId).eq('media_type', 'book').not('title', 'is', null).order('created_at', { ascending: false }).limit(1).maybeSingle();
+                            if (liRow && (liRow.title || liRow.image_url)) {
+                                mediaMap.set(rawId, {
+                                    title: liRow.title || existing?.title || '',
+                                    image_url: liRow.image_url || existing?.image_url || ''
+                                });
+                            }
                         }
                     } catch (_e) {}
                 } else if (type === 'music' || type === 'song' || type === 'track' || type === 'album') {

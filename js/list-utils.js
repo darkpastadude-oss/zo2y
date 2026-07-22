@@ -1148,8 +1148,7 @@
     if (!client || !payload) return false;
     const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
     if (!id) return false;
-    const title = String(payload.title || payload.name || '').trim();
-    if (!title) return false;
+    const title = String(payload.title || payload.name || '').trim() || 'Untitled';
     const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim() || null;
     const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
     let row = { id, title, authors: incomingAuthors, thumbnail: incomingThumbnail };

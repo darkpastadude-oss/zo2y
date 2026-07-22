@@ -4872,6 +4872,8 @@
                         .select('title, image_url, subtitle')
                         .eq('item_id', key)
                         .eq('media_type', 'book')
+                        .not('title', 'is', null)
+                        .order('created_at', { ascending: false })
                         .limit(1)
                         .maybeSingle();
                     if (liRows && (liRows.title || liRows.image_url)) {
@@ -9273,13 +9275,16 @@ const alreadyActive = isMobile
                     let subtitle;
                     if (Array.isArray(rawAuthors)) {
                         subtitle = rawAuthors.join(', ');
-                    } else if (typeof rawAuthors === 'string') {
+                    } else if (typeof rawAuthors === 'string' && rawAuthors.trim()) {
                         subtitle = rawAuthors;
                     } else {
-                        subtitle = row?.author_name || row?.authors || 'Unknown';
+                        subtitle = row?.author_name || (listItemMeta?.subtitle ? listItemMeta.subtitle : '') || '';
                     }
                     const metaYear = row?.published_date ? String(row.published_date).slice(0, 4) : 'N/A';
-                    const image = row?.cover_url || row?.thumbnail || listItemMeta?.image_url || FALLBACK_BOOK_IMAGE;
+                    let image = row?.cover_url || row?.thumbnail || listItemMeta?.image_url || '';
+                    if (!image || image === '/images/fallback/book.svg') {
+                        image = FALLBACK_BOOK_IMAGE;
+                    }
                     const canReorder = canReorderList;
                     const rankMarkup = tierMeta.isTier
                         ? buildTierRankControlMarkup(
@@ -9306,7 +9311,7 @@ const alreadyActive = isMobile
                                 </button>
                             ` : ''}
                             <div class="collection-item-meta">
-                                <span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>
+                                ${subtitle ? `<span><i class="fas fa-user"></i> ${ProfileManager.escapeHtml(subtitle)}</span>` : ''}
                                 <span><i class="fas fa-calendar"></i> ${ProfileManager.escapeHtml(metaYear)}</span>
                             </div>
                             ${rankMarkup}
