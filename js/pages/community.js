@@ -45,6 +45,20 @@ window.CommunityManager = (function() {
         return supabase;
     }
 
+    // Image fade-in utility
+    function applyFadeIn(root = document) {
+        if (!root || !root.querySelectorAll) return;
+        root.querySelectorAll('img:not(.fade-in)').forEach(img => {
+            if (img.complete && img.naturalWidth > 0) {
+                img.classList.add('fade-in', 'loaded');
+            } else {
+                img.classList.add('fade-in');
+                img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+                img.addEventListener('error', () => img.classList.add('loaded'), { once: true });
+            }
+        });
+    }
+
     async function getCurrentUser() {
         if (currentUser) return currentUser;
         try {
@@ -613,6 +627,7 @@ window.CommunityManager = (function() {
 
             const isReview = eventType === 'review' || eventType === 'review_add' || eventType === 'review_edit';
             const feedId = item.id || '';
+            const reviewBody = isReview ? (item.review_text || item.body || item.content || item.comment || '').trim() : '';
 
             const coverClassMap = {
                 movie: 'activity-cover-poster', tv: 'activity-cover-poster', tvshow: 'activity-cover-poster',
@@ -664,10 +679,15 @@ window.CommunityManager = (function() {
                                 <span class="activity-media-type-badge"><i class="fas ${mediaIconClass}"></i> ${escapeHtml(mediaType)}</span>
                                 ${ts ? `<span class="activity-card-time">${escapeHtml(timeAgo(ts))}</span>` : ''}
                             </div>
+                            ${reviewBody ? `<div class="activity-review-preview" onclick="event.stopPropagation(); this.classList.toggle('expanded')"><p>${escapeHtml(reviewBody)}</p><span class="activity-review-toggle">read more</span></div>` : ''}
                             ${interactionsHtml}
                         </div>
                     </div>
-                    ${coverUrl ? `<img class="activity-cover-img ${coverClass}" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle || mediaLabel)}" loading="lazy" />` : ((eventType === 'create_list' || eventType === 'list_create') ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : `<div class="activity-list-icon-badge"><i class="fas ${mediaIconClass} text-accent"></i></div>`)}
+                    ${coverUrl ? `<img class="activity-cover-img ${coverClass}" src="${escapeHtml(coverUrl)}" alt="${escapeHtml(itemTitle || mediaLabel)}" loading="lazy" />` : (item._posterPreviews && item._posterPreviews.length >= 2 ? `
+                        <div class="activity-poster-grid activity-poster-grid-${item._posterPreviews.length}">
+                            ${item._posterPreviews.map((url, i) => `<img class="activity-poster-thumb" src="${escapeHtml(url)}" alt="" loading="lazy" style="--poster-i:${i}" />`).join('')}
+                        </div>
+                    ` : ((eventType === 'create_list' || eventType === 'list_create') ? `<div class="activity-list-icon-badge"><i class="fas fa-layer-group text-accent"></i></div>` : `<div class="activity-list-icon-badge"><i class="fas ${mediaIconClass} text-accent"></i></div>`))}
                 </div>
             `;
         }
@@ -720,8 +740,39 @@ window.CommunityManager = (function() {
 
             await hydrateMediaMetadata(topActivities);
 
+            // Fetch poster thumbnails for list activities
+            const listActivities = topActivities.filter(a => {
+                const et = String(a.event_type || '').toLowerCase();
+                return (et.includes('list') || et === 'create_list' || et === 'list_create') && a.list_id;
+            });
+            if (listActivities.length) {
+                try {
+                    const listIds = [...new Set(listActivities.map(a => String(a.list_id)).filter(Boolean))];
+                    if (listIds.length) {
+                        const { data: listItems } = await client
+                            .from('list_items')
+                            .select('list_id, image_url')
+                            .in('list_id', listIds)
+                            .order('created_at', { ascending: false })
+                            .limit(listIds.length * 3);
+                        if (Array.isArray(listItems)) {
+                            const byListId = {};
+                            listItems.forEach(li => {
+                                const lid = String(li.list_id);
+                                if (!byListId[lid]) byListId[lid] = [];
+                                if (byListId[lid].length < 3 && li.image_url) byListId[lid].push(li.image_url);
+                            });
+                            listActivities.forEach(a => {
+                                a._posterPreviews = byListId[String(a.list_id)] || [];
+                            });
+                        }
+                    }
+                } catch (_lp) {}
+            }
+
             container.innerHTML = topActivities.map(a => ActivityCard.render(a)).join('');
             await loadActivityInteractions();
+            applyFadeIn(container);
         } catch (_e) {
             renderEmptyActivityState(container);
         }
@@ -1783,6 +1834,8 @@ window.CommunityManager = (function() {
                 + '<div class="cml-rail-track">' + cardsHtml + '</div>'
                 + '</div>';
         }).join('') : '<div class="cml-rail-empty"><i class="fas fa-futbol"></i><span class="cml-rail-empty-text">nothing here yet</span></div>';
+        applyFadeIn(mediaPanel);
+        applyFadeIn(lifestylePanel);
     }
 
     async function hydrateRailPosters(rails) {
@@ -2132,10 +2185,15 @@ window.CommunityManager = (function() {
             discLoadTopBooks(),
             discLoadTopArtists(),
             discLoadSidebarActive(),
-            discLoadSidebarLists()
+            discLoadSidebarLists(),
+            discLoadTodayActivity(),
+            discLoadCurrentlyPopular(),
+            discLoadEditorial(),
+            discLoadRecentActivityCompact()
         ]);
         setTimeout(function() { initDiscGlobalModeIndicator(); }, 100);
         setTimeout(function() { updateDiscSidebarVisibility(); }, 50);
+        setTimeout(function() { applyFadeIn(document.getElementById('discMediaContent') || document); }, 800);
     }
 
     function initDiscGlobalModeIndicator() {
@@ -2154,8 +2212,33 @@ window.CommunityManager = (function() {
         var indicator = document.getElementById('discGlobalModeIndicator');
         if (mediaBtn) mediaBtn.classList.toggle('active', discGlobalMode === 'media');
         if (lifestyleBtn) lifestyleBtn.classList.toggle('active', discGlobalMode === 'lifestyle');
-        if (mediaContent) mediaContent.style.display = discGlobalMode === 'media' ? '' : 'none';
-        if (lifestyleContent) lifestyleContent.style.display = discGlobalMode === 'lifestyle' ? '' : 'none';
+
+        // Fade transition for mode switching
+        var showEl = discGlobalMode === 'media' ? mediaContent : lifestyleContent;
+        var hideEl = discGlobalMode === 'media' ? lifestyleContent : mediaContent;
+        if (hideEl) {
+            hideEl.style.opacity = '0';
+            hideEl.style.transition = 'opacity 0.15s ease';
+            setTimeout(function() {
+                hideEl.style.display = 'none';
+                hideEl.style.opacity = '';
+                hideEl.style.transition = '';
+            }, 150);
+        }
+        if (showEl) {
+            showEl.style.display = '';
+            showEl.style.opacity = '0';
+            showEl.style.transition = 'opacity 0.2s ease';
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    showEl.style.opacity = '1';
+                    setTimeout(function() {
+                        showEl.style.transition = '';
+                    }, 200);
+                });
+            });
+        }
+
         if (indicator && mediaBtn) {
             if (discGlobalMode === 'media') {
                 indicator.style.width = mediaBtn.offsetWidth + 'px';
@@ -2512,6 +2595,7 @@ window.CommunityManager = (function() {
                     '</div>' +
                 '</div>' +
             '</a>';
+            applyFadeIn(el);
         } catch (_e) { el.innerHTML = ''; }
     }
 
@@ -2778,6 +2862,162 @@ window.CommunityManager = (function() {
                         '<div class="disc-sidebar-list-meta">' + escapeHtml(l.media_type) + ' &middot; ' + count + ' items</div>' +
                     '</div>' +
                 '</a>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadTodayActivity() {
+        var el = document.getElementById('discTodayActivity');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var now = new Date();
+            var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+            var { data: reviews } = await client.from('reviews').select('id, media_type').gte('created_at', todayStart);
+            var { data: listItems } = await client.from('list_items').select('id, media_type').gte('created_at', todayStart);
+            var reviewCount = Array.isArray(reviews) ? reviews.length : 0;
+            var listCount = Array.isArray(listItems) ? listItems.length : 0;
+            var mediaCounts = {};
+            (reviews || []).forEach(function(r) { var mt = r.media_type || 'other'; mediaCounts[mt] = (mediaCounts[mt] || 0) + 1; });
+            (listItems || []).forEach(function(i) { var mt = i.media_type || 'other'; mediaCounts[mt] = (mediaCounts[mt] || 0) + 1; });
+            var topMedia = Object.keys(mediaCounts).sort(function(a, b) { return mediaCounts[b] - mediaCounts[a]; }).slice(0, 3);
+            el.innerHTML = '<div class="disc-sidebar-activity-stats">' +
+                '<div class="disc-sidebar-activity-stat">' +
+                    '<div class="disc-sidebar-activity-num">' + (reviewCount + listCount) + '</div>' +
+                    '<div class="disc-sidebar-activity-label">actions</div>' +
+                '</div>' +
+                '<div class="disc-sidebar-activity-stat">' +
+                    '<div class="disc-sidebar-activity-num">' + reviewCount + '</div>' +
+                    '<div class="disc-sidebar-activity-label">reviews</div>' +
+                '</div>' +
+                '<div class="disc-sidebar-activity-stat">' +
+                    '<div class="disc-sidebar-activity-num">' + listCount + '</div>' +
+                    '<div class="disc-sidebar-activity-label">lists</div>' +
+                '</div>' +
+            '</div>' +
+            (topMedia.length ? '<div class="disc-sidebar-activity-tags">' + topMedia.map(function(mt) {
+                return '<span class="disc-sidebar-activity-tag"><i class="fas ' + discMediaIcon(mt) + '"></i> ' + escapeHtml(mt) + '</span>';
+            }).join('') + '</div>' : '');
+        } catch (_e) { el.innerHTML = '<div class="disc-empty">loading...</div>'; }
+    }
+
+    async function discLoadCurrentlyPopular() {
+        var el = document.getElementById('discCurrentlyPopular');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: reviews } = await client.from('reviews').select('item_id, media_type, title').order('created_at', { ascending: false }).limit(200);
+            if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no reviews yet.</div>'; return; }
+            var itemCounts = {};
+            reviews.forEach(function(r) {
+                var key = (r.media_type || 'other') + ':' + (r.item_id || '');
+                if (!itemCounts[key]) itemCounts[key] = { count: 0, title: r.title || r.item_id, media_type: r.media_type };
+                itemCounts[key].count++;
+            });
+            var sorted = Object.keys(itemCounts).sort(function(a, b) { return itemCounts[b].count - itemCounts[a].count; }).slice(0, 5);
+            el.innerHTML = sorted.map(function(key) {
+                var item = itemCounts[key];
+                var icon = discMediaIcon(item.media_type);
+                return '<div class="disc-sidebar-popular-item">' +
+                    '<div class="disc-sidebar-popular-icon"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="disc-sidebar-popular-info">' +
+                        '<div class="disc-sidebar-popular-name">' + escapeHtml(item.title || 'item') + '</div>' +
+                        '<div class="disc-sidebar-popular-count">' + item.count + ' review' + (item.count !== 1 ? 's' : '') + '</div>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadEditorial() {
+        var el = document.getElementById('discEditorialContent');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: reviews } = await client.from('reviews')
+                .select('*')
+                .not('body', 'is', null)
+                .neq('body', '')
+                .order('created_at', { ascending: false })
+                .limit(50);
+            if (!reviews || !reviews.length) { el.innerHTML = '<div class="disc-empty">no featured content yet.</div>'; return; }
+            var scored = reviews.map(function(r) {
+                var bodyLen = String(r.body || '').length;
+                return { review: r, score: bodyLen * 0.1 + Math.random() * 5 };
+            }).sort(function(a, b) { return b.score - a.score; });
+            var best = scored[0];
+            if (!best) { el.innerHTML = ''; return; }
+            var r = best.review;
+            var link = itemLink(r.media_type, r.item_id);
+            var excerpt = discTruncate(r.body, 300);
+            var reviewImg = r._image || r.image_url || r.cover_url || r.image || r.thumbnail || '';
+            if (!reviewImg && r.item_id) {
+                try {
+                    var tmdbPath = (r.media_type === 'tv' || r.media_type === 'tvshow') ? 'tv' : 'movie';
+                    if (r.media_type === 'movie' || r.media_type === 'tv' || r.media_type === 'tvshow' || r.media_type === 'anime') {
+                        var resp = await fetch('/api/tmdb/' + tmdbPath + '/' + encodeURIComponent(r.item_id) + '?language=en');
+                        if (resp.ok) {
+                            var d = await resp.json();
+                            if (d && d.poster_path) reviewImg = 'https://image.tmdb.org/t/p/w500' + d.poster_path;
+                        }
+                    }
+                } catch (_e) {}
+            }
+            var stars = discRenderStars(r.rating);
+            el.innerHTML = '<a href="' + escapeHtml(link) + '" class="disc-editorial-card">' +
+                (reviewImg ? '<img class="disc-editorial-img" src="' + escapeHtml(reviewImg) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' : '<div class="disc-editorial-img disc-editorial-placeholder"><i class="fas fa-quote-left"></i></div>') +
+                '<div class="disc-editorial-body">' +
+                    '<div class="disc-editorial-stars">' + stars + '</div>' +
+                    '<div class="disc-editorial-text">' + escapeHtml(excerpt) + '</div>' +
+                    '<div class="disc-editorial-meta">' +
+                        '<span class="disc-editorial-media"><i class="fas ' + discMediaIcon(r.media_type) + '"></i> ' + escapeHtml(r.media_type || 'review') + '</span>' +
+                        '<span class="disc-editorial-title">' + escapeHtml(r._title || r.title || r.media_type || '') + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</a>';
+            applyFadeIn(el);
+        } catch (_e) { el.innerHTML = ''; }
+    }
+
+    async function discLoadRecentActivityCompact() {
+        var el = document.getElementById('discRecentActivityContent');
+        if (!el) return;
+        var client = getSupabaseClient();
+        if (!client) return;
+        try {
+            var { data: activities } = await client.from('user_activity_feed')
+                .select('id, actor_id, event_type, media_type, item_id, list_type, created_at')
+                .order('created_at', { ascending: false })
+                .limit(15);
+            if (!activities || !activities.length) { el.innerHTML = '<div class="disc-empty">no recent activity.</div>'; return; }
+            var userIds = [];
+            var uidSet = {};
+            activities.forEach(function(a) { if (a.actor_id && !uidSet[a.actor_id]) { uidSet[a.actor_id] = true; userIds.push(a.actor_id); } });
+            var userMap = {};
+            if (userIds.length) {
+                try {
+                    var { data: profiles } = await client.from('user_profiles').select('id, username, full_name').in('id', userIds);
+                    if (Array.isArray(profiles)) profiles.forEach(function(p) { if (p && p.id) userMap[p.id] = p.username || p.full_name || 'member'; });
+                } catch (_e) {}
+            }
+            el.innerHTML = activities.map(function(a) {
+                var name = userMap[a.actor_id] || 'member';
+                var et = (a.event_type || '').toLowerCase();
+                var mt = (a.media_type || 'movie').toLowerCase();
+                var icon = discMediaIcon(mt);
+                var verb = et.includes('review') ? 'reviewed' : et.includes('list') || et.includes('create_list') ? 'created a list' : 'added to';
+                var timeStr = timeAgo(a.created_at);
+                return '<div class="disc-activity-compact">' +
+                    '<div class="disc-activity-compact-icon"><i class="fas ' + icon + '"></i></div>' +
+                    '<div class="disc-activity-compact-info">' +
+                        '<span class="disc-activity-compact-user">' + escapeHtml(name) + '</span> ' + escapeHtml(verb) +
+                        (a.item_id ? ' <span class="disc-activity-compact-media">' + escapeHtml(mt) + '</span>' : '') +
+                        '<span class="disc-activity-compact-time">' + escapeHtml(timeStr) + '</span>' +
+                    '</div>' +
+                '</div>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }
     }

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721O">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721Q">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721O" defer></script>
+    <script src="js/pages/community.js?v=20260721Q" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -217,6 +217,30 @@
                                     <div class="disc-skel-poster"></div>
                                     <div class="disc-skel-poster"></div>
                                     <div class="disc-skel-poster"></div>
+                                </div>
+                            </div>
+
+                            <!-- Editorial Featured -->
+                            <div class="disc-section" id="discEditorial">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Editor's Pick</span>
+                                    <span class="disc-section-sub">featured review</span>
+                                </div>
+                                <div id="discEditorialContent">
+                                    <div class="disc-skel-editorial"></div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Activity Compact -->
+                            <div class="disc-section" id="discRecentActivity">
+                                <div class="disc-section-hdr">
+                                    <span class="disc-section-label">Recent Activity</span>
+                                    <span class="disc-section-sub">latest updates</span>
+                                </div>
+                                <div id="discRecentActivityContent">
+                                    <div class="disc-skel-sidebar-row"></div>
+                                    <div class="disc-skel-sidebar-row"></div>
+                                    <div class="disc-skel-sidebar-row"></div>
                                 </div>
                             </div>
 
@@ -447,6 +471,21 @@
                                 <div class="community-stat-number" id="cmlStatItems">-</div>
                                 <div class="community-stat-label">Items</div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="community-sidebar-widget" id="discSidebarActivity">
+                        <div class="community-sidebar-title">Today's Activity</div>
+                        <div id="discTodayActivity" class="disc-sidebar-activity">
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
+                        </div>
+                    </div>
+                    <div class="community-sidebar-widget" id="discSidebarPopular">
+                        <div class="community-sidebar-title">Currently Popular</div>
+                        <div id="discCurrentlyPopular" class="disc-sidebar-popular">
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
+                            <div class="disc-skel-sidebar-row"></div>
                         </div>
                     </div>
                     <div class="community-sidebar-widget" id="discSidebarActive">
