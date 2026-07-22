@@ -2486,6 +2486,18 @@ window.CommunityManager = (function() {
             var data = await resp.json();
             var artists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
             if (!artists.length) { el.innerHTML = ''; return; }
+            var skipWords = ['playlist', 'pop!', 'country boy', 'hits', 'top ', 'best of', 'mix', 'radio', 'live', 'acoustic', 'cover', 'karaoke', 'instrumental', 'remix', 'vol.', 'volume'];
+            artists = artists.filter(function(a) {
+                var name = String(a.title || a.name || '').toLowerCase().trim();
+                if (!name || name.length < 2) return false;
+                for (var i = 0; i < skipWords.length; i++) {
+                    if (name.indexOf(skipWords[i]) !== -1) return false;
+                }
+                if (/^\d/.test(name)) return false;
+                if (name === 'pop!' || name === 'pop') return false;
+                return true;
+            });
+            if (!artists.length) { el.innerHTML = ''; return; }
             shuffleArray(artists);
             el.innerHTML = artists.slice(0, 8).map(function(a) {
                 var img = a.image || a.image_url || '';
@@ -2648,7 +2660,9 @@ window.CommunityManager = (function() {
             }
             await hydrateRailPosters(rails);
             rails.sort(function(a, b) { return b.items.length - a.items.length; });
-            rails = rails.slice(0, 8);
+            var topRails = rails.slice(0, 12);
+            shuffleArray(topRails);
+            rails = topRails.slice(0, 8);
             var userIds = [];
             var uidSet = {};
             rails.forEach(function(r) { var uid = String(r.user_id || ''); if (uid && !uidSet[uid]) { uidSet[uid] = true; userIds.push(uid); } });

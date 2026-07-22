@@ -1649,7 +1649,7 @@ body::after {
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    padding-bottom: 4px;
+    padding: 0 4px 4px 4px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
 }
@@ -1692,7 +1692,7 @@ body::after {
 }
 
 .disc-rail-wide .disc-poster { width: 200px; }
-.disc-rail-wide .disc-poster-img { aspect-ratio: 16 / 9; }
+.disc-rail-wide .disc-poster-img { aspect-ratio: 16 / 9; object-fit: contain; background: rgba(0,0,0,0.3); }
 
 .disc-skel-poster {
     flex-shrink: 0;
@@ -2708,10 +2708,15 @@ body::after {
     .disc-poster { width: 110px; }
     .disc-rail-wide .disc-poster { width: 160px; }
     .disc-list-card { width: 220px; }
-    .disc-review-hero { min-height: 120px; }
-    .disc-review-hero-content { flex-direction: column; align-items: flex-start; padding: 12px 14px; }
-    .disc-review-hero-poster { width: 50px; height: 75px; }
-    .disc-review-hero-excerpt { -webkit-line-clamp: 2; }
+    .disc-review-hero { min-height: 100px; }
+    .disc-review-hero-content { flex-direction: row; align-items: center; padding: 10px 12px; gap: 10px; }
+    .disc-review-hero-poster { width: 44px; height: 66px; border-radius: 6px; }
+    .disc-review-hero-excerpt { -webkit-line-clamp: 1; font-size: 0.7rem; }
+    .disc-review-hero-title { font-size: 0.75rem; }
+    .disc-review-hero-avatar { width: 20px; height: 20px; font-size: 0.55rem; }
+    .disc-review-hero-username { font-size: 0.68rem; }
+    .disc-review-hero-stars { font-size: 0.65rem; }
+    .disc-review-hero-action { font-size: 0.65rem; padding: 2px 6px; }
     .disc-lists-stacks { gap: 28px; padding: 16px 4px 20px 4px; }
     .disc-list-stack { width: 135px; }
     .disc-list-stack-deck { width: 125px; height: 125px; }
