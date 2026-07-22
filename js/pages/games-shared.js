@@ -210,7 +210,7 @@
     if (!Array.isArray(raw)) return [];
     return raw
       .filter(s => isValidScreenshot(s))
-      .map(s => normalizeGameCoverUrl(typeof s === 'string' ? s : (s?.image || s?.url || '')))
+      .map(s => normalizeGameCoverUrl(stripResizeParams(typeof s === 'string' ? s : (s?.image || s?.url || ''))))
       .filter(Boolean)
       .slice(0, 12);
   }
@@ -867,7 +867,7 @@
       const heroBg = normalizeGameCoverUrl(rawgGame.hero_background || rawgGame.background_image || '');
       const heroSec = normalizeGameCoverUrl(rawgGame.hero_background_secondary || rawgGame.background_image_additional || '');
       const screenshots = Array.isArray(rawgGame.screenshots)
-        ? rawgGame.screenshots.slice(0, 12)
+        ? rawgGame.screenshots.map(s => stripResizeParams(typeof s === 'string' ? s : (s?.image || s?.url || ''))).filter(Boolean).slice(0, 12)
         : [];
       const poster = normalizeGameCoverUrl(rawgGame.cover || rawgGame.cover_url || rawgGame.poster_image || '');
       const existingExtra = existing?.extra || {};

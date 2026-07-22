@@ -43,8 +43,7 @@ window.Skel = (() => {
   }
 
   function grid(count = 8, cols = 4) {
-    const inner = Array(count).fill(posterCard()).join('');
-    return `<div class="skel-grid skel-grid-${cols}">${inner}</div>`;
+    return Array(count).fill(posterCard()).join('');
   }
 
   function collectionItem() {

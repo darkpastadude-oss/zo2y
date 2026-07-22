@@ -51,6 +51,10 @@
     return raw.replace(/^http:\/\//i, 'https://');
   }
 
+  function stripResizeParams(url) {
+    return String(url).replace(/\/resize\/\d+\/-\//, '/').replace(/\/crop\/\d+\/\d+\//, '/');
+  }
+
   async function isTransparentPng(url) {
     if (!url) return false;
     const ext = url.split('?')[0].split('.').pop().toLowerCase();
@@ -133,13 +137,13 @@
       : '';
     const rawScreenshots = row?.screenshots || [];
     const screenshots = Array.isArray(rawScreenshots)
-      ? rawScreenshots.map(s => typeof s === 'string' ? normalizeUrl(s) : normalizeUrl(s?.image || s?.url || '')).filter(Boolean)
+      ? rawScreenshots.map(s => typeof s === 'string' ? normalizeUrl(stripResizeParams(s)) : normalizeUrl(stripResizeParams(s?.image || s?.url || ''))).filter(Boolean)
       : [];
 
     return {
       poster: normalizeUrl(row?.cover_url || row?.cover || row?.image || '') || steamAppId ? `https://steamcdn-a.akamaihd.net/steam/apps/${String(steamAppId || '').replace(/\D/g, '')}/library_600x900.jpg` : '',
-      heroBackground: normalizeUrl(row?.hero_background || row?.background_image || row?.hero_url || row?.hero || row?.background || '') || steamHero,
-      heroBackgroundSecondary: normalizeUrl(row?.hero_background_secondary || row?.background_image_additional || ''),
+      heroBackground: normalizeUrl(stripResizeParams(row?.hero_background || row?.background_image || row?.hero_url || row?.hero || row?.background || '')) || steamHero,
+      heroBackgroundSecondary: normalizeUrl(stripResizeParams(row?.hero_background_secondary || row?.background_image_additional || '')),
       screenshots: screenshots.slice(0, 12)
     };
   }
@@ -169,8 +173,8 @@
     if (!Array.isArray(raw)) return [];
     return raw
       .map(s => {
-        if (typeof s === 'string') return normalizeUrl(s);
-        return normalizeUrl(s?.image || s?.url || '');
+        if (typeof s === 'string') return normalizeUrl(stripResizeParams(s));
+        return normalizeUrl(stripResizeParams(s?.image || s?.url || ''));
       })
       .filter(Boolean)
       .slice(0, 12);

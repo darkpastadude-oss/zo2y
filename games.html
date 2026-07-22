@@ -779,7 +779,7 @@
 
 
   <script src="js/cover-cache.js?v=20260714d" defer></script>
-    <script src="js/pages/games-shared.js?v=20260718a" defer></script>
+    <script src="js/pages/games-shared.js?v=20260722a" defer></script>
 
   <script>
 
@@ -1112,7 +1112,12 @@
               if (res.ok) {
                 const data = await res.json();
                 if (data && data.results && data.results.length > 0) {
-                  games = data.results;
+                  const qLower = variation.toLowerCase();
+                  games = data.results.filter(g => {
+                    const title = String(g.title || g.name || '').toLowerCase();
+                    return title.includes(qLower);
+                  });
+                  if (!games.length) games = data.results;
                   found = true;
                   break;
                 }
