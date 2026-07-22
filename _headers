@@ -11,36 +11,6 @@
   Cache-Control: public, max-age=3600
 
 /js/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/js/auth-gate.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/shared-header.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/universal-search.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/pages/profile.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/pages/index.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/list-utils.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/components/list-modal.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/pages/books.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/pages/games-shared.js
-  Cache-Control: public, max-age=0, must-revalidate
-
-/js/pages/game.js
   Cache-Control: public, max-age=0, must-revalidate
 
 /*
