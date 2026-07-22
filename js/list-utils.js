@@ -1149,14 +1149,16 @@
     const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
     if (!id) return false;
     const title = String(payload.title || payload.name || '').trim() || 'Untitled';
-    const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim() || null;
+    const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
+    const validThumbnail = /^https?:\/\//i.test(incomingThumbnail) ? incomingThumbnail : null;
     const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
-    let row = { id, title, authors: incomingAuthors, thumbnail: incomingThumbnail };
+    let row = { id, title, authors: incomingAuthors, thumbnail: validThumbnail };
     try {
       const { data: existing } = await client.from('books').select('id, title, thumbnail').eq('id', id).maybeSingle();
       if (existing) {
         const mergedTitle = existing.title || title;
-        const mergedThumbnail = existing.thumbnail || incomingThumbnail;
+        const existingValid = /^https?:\/\//i.test(String(existing.thumbnail || '').trim());
+        const mergedThumbnail = existingValid ? existing.thumbnail : (validThumbnail || existing.thumbnail);
         row = { id, title: mergedTitle, authors: incomingAuthors || existing.authors || null, thumbnail: mergedThumbnail };
       }
     } catch (_checkErr) {
@@ -1373,7 +1375,12 @@
       row.user_id = ownerId || userId;
       if (itemPayload) {
         row.title = itemPayload.name || itemPayload.title || 'Untitled';
-        row.image_url = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
+        let img = itemPayload.image || itemPayload.image_url || '';
+        if (!img || !/^https?:\/\//i.test(String(img).trim())) {
+          const fallbackMap = { book: '/images/fallback/book.svg', music: '/images/fallback/music.svg', game: '/newlogo.webp', movie: '/images/fallback/movie.svg', tv: '/images/fallback/tv.svg', anime: '/images/fallback/anime.svg' };
+          img = fallbackMap[type] || '/newlogo.webp';
+        }
+        row.image_url = img;
       }
       return row;
     });
@@ -1429,7 +1436,12 @@
     }
     if (itemPayload) {
       row.title = itemPayload.name || itemPayload.title || 'Untitled';
-      row.image_url = itemPayload.image || itemPayload.image_url || '/images/fallback/book.svg';
+      let img = itemPayload.image || itemPayload.image_url || '';
+      if (!img || !/^https?:\/\//i.test(String(img).trim())) {
+        const fallbackMap = { book: '/images/fallback/book.svg', music: '/images/fallback/music.svg', game: '/newlogo.webp', movie: '/images/fallback/movie.svg', tv: '/images/fallback/tv.svg', anime: '/images/fallback/anime.svg' };
+        img = fallbackMap[type] || '/newlogo.webp';
+      }
+      row.image_url = img;
     }
     const { error } = await client.from(cfg.itemsTable).insert(row);
     if (error) {

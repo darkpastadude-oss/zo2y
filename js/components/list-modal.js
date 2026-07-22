@@ -446,6 +446,11 @@
       }
     }
 
+    var rawImage = cardImage || _config.image || '';
+    if (!rawImage || !/^https?:\/\//i.test(String(rawImage).trim())) {
+      var fallbackMap = { book: '/images/fallback/book.svg', music: '/images/fallback/music.svg', game: '/newlogo.webp', movie: '/images/fallback/movie.svg', tv: '/images/fallback/tv.svg', anime: '/images/fallback/anime.svg' };
+      rawImage = fallbackMap[mediaType] || '/newlogo.webp';
+    }
     var payload = {
       user_id: user.id,
       media_type: mediaType,
@@ -453,7 +458,7 @@
       list_type: String(listType).toLowerCase(),
       title: cardTitle || _config.title || 'Untitled',
       subtitle: cardSubtitle || _config.subtitle || '',
-      image_url: cardImage || _config.image || '/images/fallback/book.svg'
+      image_url: rawImage
     };
 
     try {
@@ -467,10 +472,10 @@
           }
         }
         if (window.ListUtils && typeof window.ListUtils.ensureBookRecord === 'function' && mediaType === 'book') {
-          await window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: payload.image_url, authors: payload.subtitle || _config.subtitle || '' });
+          await window.ListUtils.ensureBookRecord(client, { id: String(itemId), title: payload.title, image: rawImage, authors: payload.subtitle || _config.subtitle || '' });
         }
         if (cardEl && window.ListUtils) {
-          window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle || payload.title, image: cardImage || payload.image_url, url: cardHref });
+          window.ListUtils.cacheSavedItemMetadata(mediaType, itemId, { name: cardTitle || payload.title, image: rawImage, url: cardHref });
         }
         if (mediaType === 'book' && typeof window.bustBookCache === 'function') {
           window.bustBookCache(String(itemId));

@@ -2039,6 +2039,20 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return HOME_MEDIA_META[type] || { label: 'Item', icon: 'fa-star', accent: '#f59e0b' };
     }
 
+    function getHomeMediaTypeFallback(mediaType) {
+      const type = String(mediaType || '').toLowerCase();
+      const map = {
+        movie: '/images/fallback/movie.svg',
+        tv: '/images/fallback/tv.svg',
+        game: '/newlogo.webp',
+        book: '/images/fallback/book.svg',
+        music: '/images/fallback/music.svg',
+        anime: '/images/fallback/anime.svg',
+        sports: '/images/fallback/sports.svg'
+      };
+      return map[type] || HOME_LOCAL_FALLBACK_IMAGE;
+    }
+
     function getHomeSpotlightBackgroundByType(mediaType) {
       const type = String(mediaType || '').toLowerCase();
       return '';
@@ -6244,7 +6258,8 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const listImage = escapeHtml(itemData.listImage || itemData.image || '');
         const logo = escapeHtml(itemData.logo || '');
         const fallbackImage = 'fallbackImage' in itemData ? escapeHtml(itemData.fallbackImage) : escapeHtml(HOME_LOCAL_FALLBACK_IMAGE);
-        const safeImage = image || listImage || (fallbackImage || undefined);
+        let safeImage = image || listImage || (fallbackImage || undefined);
+        if (!safeImage) safeImage = getHomeMediaTypeFallback(mediaTypeRaw) || HOME_LOCAL_FALLBACK_IMAGE;
         const coverImage = image || listImage || logo;
         const hrefRaw = itemData.href || '#';
         const href = escapeHtml(hrefRaw);
@@ -6432,6 +6447,15 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
             return;
           }
           if (!fallback) {
+            const cardMediaType = String(card?.getAttribute('data-media-type') || '').toLowerCase();
+            const finalFallback = getHomeMediaTypeFallback(cardMediaType);
+            if (finalFallback && img.src !== finalFallback) {
+              img.setAttribute('data-fallback-applied', '1');
+              img.setAttribute('data-image-ready', '0');
+              img.setAttribute('data-home-image-state', 'loading');
+              img.src = finalFallback;
+              return;
+            }
             img.setAttribute('data-image-ready', '1');
             img.setAttribute('data-home-image-state', 'loaded');
             const wrapper = getHomeImageWrapper(img);
@@ -9180,6 +9204,51 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
       return hasPosterOfficialGameCover(row) || isOfficialGameProviderRow(row);
     }
 
+    const HOME_GAME_COVER_BROKEN = '/newlogo.webp';
+    async function hydrateBrokenGameCovers(items, signal) {
+      if (!Array.isArray(items) || !items.length) return items;
+      const broken = items.filter((it) => {
+        const img = String(it?.image || '').trim();
+        return !img || img === HOME_GAME_COVER_BROKEN;
+      });
+      if (!broken.length) return items;
+      const fixed = new Map();
+      await Promise.allSettled(broken.map(async (it) => {
+        try {
+          const title = String(it.title || '').trim();
+          const id = String(it.itemId || '').trim();
+          if (!title && !id) return;
+          const searchUrl = '/api/igdb/games?search=' + encodeURIComponent(title || id) + '&page_size=1&cache=1';
+          const res = await fetch(searchUrl, { signal });
+          if (!res.ok) return;
+          const data = await res.json();
+          const row = Array.isArray(data?.results) ? data.results[0] : null;
+          if (!row) return;
+          const cover = resolveHomeGameCover(row);
+          if (cover && cover !== HOME_GAME_COVER_BROKEN && isImageUrlReachable(cover)) {
+            fixed.set(it.itemId, { image: cover, row });
+          }
+        } catch (_e) {}
+      }));
+      if (!fixed.size) return items;
+      return items.map((it) => {
+        const patch = fixed.get(it.itemId);
+        if (!patch) return it;
+        return Object.assign({}, it, {
+          image: patch.image,
+          listImage: patch.image,
+          backgroundImage: it.backgroundImage || resolveHomeGameHero(patch.row, '') || patch.image,
+          fallbackImage: ''
+        });
+      });
+    }
+    function isImageUrlReachable(url) {
+      if (!url) return false;
+      const u = String(url).trim();
+      if (!u || u === '/newlogo.webp' || u === '/images/fallback/book.svg' || u === '/images/fallback/game.svg') return false;
+      return /^https?:\/\//i.test(u);
+    }
+
     async function loadGames(signal, options = {}) {
       // Keep homepage games logic identical to the previously working implementation (commit b57da823).
       // This version pulls from the existing `/api/igdb/games` aggregator instead of Supabase tables.
@@ -9332,21 +9401,22 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
           const rotatedItems = shuffleArray(items)
             .slice(0, targetCount);
           if (rotatedItems.length) {
+            const brokenCount = rotatedItems.filter((it) => !it.image || it.image === HOME_GAME_COVER_BROKEN).length;
             const minHealthy = Math.min(targetCount, 10);
-            if (rotatedItems.length < minHealthy && !homeGamesHydrationPromise) {
+            if ((rotatedItems.length < minHealthy || brokenCount > 0) && !homeGamesHydrationPromise) {
               homeGamesHydrationPromise = (async () => {
                 try {
                   const rail = document.getElementById('gamesRail');
                   if (!rail) return;
-                  const hydrated = await loadGames(null, { cacheBust: true });
-                  if (!Array.isArray(hydrated) || hydrated.length <= rotatedItems.length) return;
+                  let hydrated = await loadGames(null, { cacheBust: true });
+                  if (!Array.isArray(hydrated) || !hydrated.length) return;
+                  hydrated = await hydrateBrokenGameCovers(hydrated, null);
                   homeFeedState.game = hydrated;
                   renderRail('gamesRail', hydrated, { mediaType: 'game' });
                   if (typeof hydrateSpotlightFromPool === 'function' && typeof buildScoredDiscoveryPool === 'function') {
                     hydrateSpotlightFromPool(buildScoredDiscoveryPool(homeFeedState));
                   }
                 } catch (_err) {
-                  // Ignore; existing items stay visible.
                 }
               })().finally(() => {
                 homeGamesHydrationPromise = null;
@@ -9842,22 +9912,43 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
         const books = Array.isArray(data.books) ? data.books : [];
         const normalized = books.map(b => (window.normalizeBook ? window.normalizeBook(b) : b)).filter(Boolean);
         const shuffled = shuffleArray(normalized);
-        return shuffled.slice(0, targetCount).map((item) => {
+        const items = shuffled.slice(0, targetCount).map((item) => {
           const rawCover = String(item?.rawCover || '').trim();
           const proxyCover = String(item?.image || item?.cover || '').trim();
+          const image = rawCover || proxyCover;
           const fallbackChain = [];
           if (proxyCover && proxyCover !== rawCover) fallbackChain.push(proxyCover);
           return {
             mediaType: 'book',
             itemId: item.id || item.providerId || '',
             title: String(item?.title || '').trim() || 'Untitled',
-            subtitle: String(item?.subtitle || item?.author || 'Book').trim(),
-            image: rawCover || proxyCover,
+            subtitle: String(item?.subtitle || item?.author || '').trim() || 'Book',
+            image,
             fallbackImage: proxyCover || '',
             fallbackChain,
             href: 'book.html?id=' + encodeURIComponent(item.id || item.providerId || '')
           };
         });
+        const broken = items.filter((it) => !isImageUrlReachable(it.image));
+        if (broken.length) {
+          await Promise.allSettled(broken.map(async (it) => {
+            try {
+              const q = encodeURIComponent(it.title);
+              const res2 = await fetch('/api/books/popular?limit=1&q=' + q, { signal });
+              if (!res2.ok) return;
+              const d2 = await res2.json();
+              const b2 = Array.isArray(d2.books) ? d2.books[0] : null;
+              if (!b2) return;
+              const n2 = window.normalizeBook ? window.normalizeBook(b2) : b2;
+              const newImg = String(n2?.image || '').trim();
+              if (isImageUrlReachable(newImg)) {
+                it.image = newImg;
+                it.fallbackImage = it.fallbackImage || newImg;
+              }
+            } catch (_e) {}
+          }));
+        }
+        return items;
       } catch (_) { return []; }
     }
 

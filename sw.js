@@ -1,9 +1,9 @@
 // Bump these versions any time you change precached asset URLs to ensure old cached
 // variants don't keep serving stale JS (especially the home heavy loaders).
-const APP_SHELL_CACHE = 'zo2y-app-shell-v302';
-const PAGE_CACHE = 'zo2y-pages-v237';
-const IMAGE_CACHE = 'zo2y-images-v63';
-const API_CACHE = 'zo2y-api-v45';
+const APP_SHELL_CACHE = 'zo2y-app-shell-v303';
+const PAGE_CACHE = 'zo2y-pages-v238';
+const IMAGE_CACHE = 'zo2y-images-v64';
+const API_CACHE = 'zo2y-api-v46';
 const MOVIES_PAGE_VERSION = '20260418a';
 const MAX_IMAGE_CACHE_ENTRIES = 1000;
 const MAX_API_CACHE_ENTRIES = 500;
@@ -27,13 +27,13 @@ const STATIC_ASSETS = [
   '/css/pages/index-landing.css?v=20260601b',
   '/css/shared-header.css?v=20260610c',
   '/css/global-lowercase.css?v=20260601b',
-  '/js/pages/index.js?v=20260708c',
+  '/js/pages/index.js?v=20260722a',
   '/js/pages/index-home-heavy-loaders.js?v=20260708b',
   '/js/home-desktop-rebrand.js?v=20260708b',
   '/js/referral-utils.js?v=20260601b',
   '/js/shared-header.js?v=20260601b',
   '/js/review-interactions.js?v=20260613a',
-  '/js/list-utils.js?v=20260718a',
+  '/js/list-utils.js?v=20260722a',
   '/js/unified-list-menu.js?v=20260708b',
   '/js/universal-search.js?v=20260601b',
   '/js/auth-gate.js?v=20260614a',
@@ -63,7 +63,7 @@ const STATIC_ASSETS = [
   '/js/pages/brands.js?v=20260708b',
   '/js/pages/brand.js?v=20260708b',
   '/js/profile-showcase.js?v=20260708b',
-  '/js/pages/profile.js?v=20260708c',
+  '/js/pages/profile.js?v=20260722a',
   '/js/review-interactions.js?v=20260708b',
   '/team.html',
 
