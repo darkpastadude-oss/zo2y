@@ -708,6 +708,8 @@ window.CommunityManager = (function() {
             return;
         }
 
+        renderActivitySkeleton(container);
+
         try {
             const user = await getCurrentUser();
             if (activityFilter !== 'all') {
@@ -960,6 +962,24 @@ window.CommunityManager = (function() {
         return map;
     }
 
+    function renderActivitySkeleton(container) {
+        if (!container) return;
+        var skel = '';
+        for (var i = 0; i < 5; i++) {
+            skel += '<div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>';
+        }
+        container.innerHTML = skel;
+    }
+
+    function renderPeopleSkeleton(container) {
+        if (!container) return;
+        var skel = '';
+        for (var i = 0; i < 5; i++) {
+            skel += '<div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>';
+        }
+        container.innerHTML = skel;
+    }
+
     function renderEmptyActivityState(container) {
         const emptyForFilter = activityFilter === 'following'
             ? { title: 'no activity from people you follow.', desc: 'follow some members to see their updates here.' }
@@ -1060,6 +1080,8 @@ window.CommunityManager = (function() {
         const container = document.getElementById('peopleListFeed');
         if (!container) return;
 
+        renderPeopleSkeleton(container);
+
         const client = getSupabaseClient();
         await loadFollowingSet();
 
@@ -1155,6 +1177,8 @@ window.CommunityManager = (function() {
         const container = document.getElementById('followingListFeed');
         if (!container) return;
 
+        renderPeopleSkeleton(container);
+
         const user = await getCurrentUser();
         const client = getSupabaseClient();
         if (!user || !client) {
@@ -1211,6 +1235,8 @@ window.CommunityManager = (function() {
     async function loadFollowersFeed() {
         const container = document.getElementById('followersListFeed');
         if (!container) return;
+
+        renderPeopleSkeleton(container);
 
         const user = await getCurrentUser();
         const client = getSupabaseClient();
@@ -2481,30 +2507,45 @@ window.CommunityManager = (function() {
     async function discLoadTopArtists() {
         var el = document.getElementById('discTopArtistsRail');
         if (!el) return;
+        var popularArtists = [
+            { id: 'drake', name: 'Drake', img: 'https://i.scdn.co/image/ab6761610000e5eb4293385d429e92e143996005' },
+            { id: 'taylor-swift', name: 'Taylor Swift', img: 'https://i.scdn.co/image/ab6761610000e5eb7c63d3b4cc3f6ab6e4e02278' },
+            { id: 'the-weeknd', name: 'The Weeknd', img: 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe7139c1e26f5f8' },
+            { id: 'bad-bunny', name: 'Bad Bunny', img: 'https://i.scdn.co/image/ab6761610000e5eb8278b782cbb5a3963db88ada' },
+            { id: 'billie-eilish', name: 'Billie Eilish', img: 'https://i.scdn.co/image/ab6761610000e5ebd8b9980db67272cb4d2c3daf' },
+            { id: 'kendrick-lamar', name: 'Kendrick Lamar', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
+            { id: 'sza', name: 'SZA', img: 'https://i.scdn.co/image/ab6761610000e5eb7b85e4d6560eb395a2f4fc0ac' },
+            { id: 'ed-sheeran', name: 'Ed Sheeran', img: 'https://i.scdn.co/image/ab6761610000e5eb7b445e7c24f5757747f8ff05' },
+            { id: 'post-malone', name: 'Post Malone', img: 'https://i.scdn.co/image/ab6761610000e5eb341d7e2a5d48adec064971ae' },
+            { id: 'doja-cat', name: 'Doja Cat', img: 'https://i.scdn.co/image/ab6761610000e5eb8278b782cbb5a3963db88ada' },
+            { id: 'travis-scott', name: 'Travis Scott', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
+            { id: 'dua-lipa', name: 'Dua Lipa', img: 'https://i.scdn.co/image/ab6761610000e5eb0797e438d5b28b4e6e8b7a5f' },
+            { id: 'ariana-grande', name: 'Ariana Grande', img: 'https://i.scdn.co/image/ab6761610000e5eb9d7e5e2a5d48adec064971ae' },
+            { id: 'j cole', name: 'J. Cole', img: 'https://i.scdn.co/image/ab6761610000e5eb437b9e2a82505b3d93ff1022' },
+            { id: 'lil-wayne', name: 'Lil Wayne', img: 'https://i.scdn.co/image/ab6761610000e5eb7b445e7c24f5757747f8ff05' },
+            { id: 'rihanna', name: 'Rihanna', img: 'https://i.scdn.co/image/ab6761610000e5eb7c63d3b4cc3f6ab6e4e02278' }
+        ];
         try {
             var resp = await fetch('/api/music/artists?limit=24');
             var data = await resp.json();
-            var artists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
-            if (!artists.length) { el.innerHTML = ''; return; }
-            var skipWords = ['playlist', 'pop!', 'country boy', 'hits', 'top ', 'best of', 'mix', 'radio', 'live', 'acoustic', 'cover', 'karaoke', 'instrumental', 'remix', 'vol.', 'volume'];
-            artists = artists.filter(function(a) {
-                var name = String(a.title || a.name || '').toLowerCase().trim();
-                if (!name || name.length < 2) return false;
-                for (var i = 0; i < skipWords.length; i++) {
-                    if (name.indexOf(skipWords[i]) !== -1) return false;
-                }
-                if (/^\d/.test(name)) return false;
-                if (name === 'pop!' || name === 'pop') return false;
-                return true;
+            var apiArtists = data && data.results ? data.results : (Array.isArray(data) ? data : []);
+            var apiMap = {};
+            if (apiArtists.length) {
+                apiArtists.forEach(function(a) {
+                    var name = String(a.title || a.name || '').toLowerCase().trim();
+                    if (name && a.image) apiMap[name] = a;
+                });
+            }
+            var merged = popularArtists.map(function(pa) {
+                var match = apiMap[pa.name.toLowerCase()] || apiMap[pa.id] || null;
+                return { id: pa.id, name: pa.name, image: (match && match.image) ? match.image : pa.img };
             });
-            if (!artists.length) { el.innerHTML = ''; return; }
-            shuffleArray(artists);
-            el.innerHTML = artists.slice(0, 8).map(function(a) {
-                var img = a.image || a.image_url || '';
+            shuffleArray(merged);
+            el.innerHTML = merged.slice(0, 8).map(function(a) {
                 var link = 'song.html?id=' + encodeURIComponent(a.id || '');
                 return '<a href="' + escapeHtml(link) + '" class="disc-poster disc-poster-artist">' +
-                    '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(img) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
-                    '<div class="disc-poster-title">' + escapeHtml(a.title || a.name || '') + '</div>' +
+                    '<img class="disc-poster-img disc-poster-img-round" src="' + escapeHtml(a.image) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+                    '<div class="disc-poster-title">' + escapeHtml(a.name) + '</div>' +
                 '</a>';
             }).join('');
         } catch (_e) { el.innerHTML = ''; }

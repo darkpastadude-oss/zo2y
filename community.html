@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/skeleton.css">
     <link rel="stylesheet" href="css/shared-header.css">
     <link rel="stylesheet" href="css/pages/profile.css">
-    <link rel="stylesheet" href="css/pages/community.css?v=20260721R">
+    <link rel="stylesheet" href="css/pages/community.css?v=20260721S">
     <link rel="stylesheet" href="css/global-lowercase.css">
     <link rel="icon" href="/favicon.ico" sizes="any" />
     
@@ -23,7 +23,7 @@
     <script src="/js/bootstrap-auth.js?v=20260709L" defer></script>
     <script src="js/skeleton.js" defer></script>
     <script src="js/components/navigation.js" defer></script>
-    <script src="js/pages/community.js?v=20260721R" defer></script>
+    <script src="js/pages/community.js?v=20260721S" defer></script>
     <script src="js/review-interactions.js?v=20260720F" defer></script>
 </head>
 <body data-nav-page="community">
@@ -347,11 +347,11 @@
                             <button class="activity-filter-btn" data-activity-filter="followers" onclick="CommunityManager.setActivityFilter('followers')">followers</button>
                         </div>
                         <div id="activityListFeed" class="activity-feed-container">
-                            <div class="community-empty-box">
-                                <div class="empty-icon"><i class="fas fa-rss"></i></div>
-                                <div class="empty-title">no activity yet.</div>
-                                <div class="empty-desc">when members add media to their lists, it will show up here.</div>
-                            </div>
+                            <div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>
+                            <div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>
+                            <div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>
+                            <div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>
+                            <div class="skel-activity-card"><div class="skel-activity-avatar"></div><div class="skel-activity-content"><div class="skel-activity-line"></div><div class="skel-activity-line"></div></div><div class="skel-activity-cover"></div></div>
                         </div>
                     </div>
 
@@ -404,11 +404,11 @@
                             <input type="text" id="peopleSearchInput" class="community-search-input" placeholder="search members by username..." oninput="CommunityManager.searchPeople(this.value)" />
                         </div>
                         <div id="peopleListFeed" class="people-feed-grid">
-                            <div class="community-empty-box">
-                                <div class="empty-icon"><i class="fas fa-users"></i></div>
-                                <div class="empty-title">discover members by taste.</div>
-                                <div class="empty-desc">find people who love the same movies, games, books, and music as you.</div>
-                            </div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
                         </div>
                     </div>
 
@@ -422,11 +422,11 @@
                             <input type="text" id="followingSearchInput" class="community-search-input" placeholder="search people you follow..." oninput="CommunityManager.searchFollowing(this.value)" />
                         </div>
                         <div id="followingListFeed" class="people-feed-grid">
-                            <div class="community-empty-box">
-                                <div class="empty-icon"><i class="fas fa-user-check"></i></div>
-                                <div class="empty-title">follow members to see activity.</div>
-                                <div class="empty-desc">when members you follow rate or review media, their activity appears here.</div>
-                            </div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
                         </div>
                     </div>
 
@@ -440,11 +440,11 @@
                             <input type="text" id="followersSearchInput" class="community-search-input" placeholder="search your followers..." oninput="CommunityManager.searchFollowers(this.value)" />
                         </div>
                         <div id="followersListFeed" class="people-feed-grid">
-                            <div class="community-empty-box">
-                                <div class="empty-icon"><i class="fas fa-user-friends"></i></div>
-                                <div class="empty-title">see who follows you.</div>
-                                <div class="empty-desc">when members follow your profile, they will appear here.</div>
-                            </div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
+                            <div class="skel-user-card"><div class="skel-user-avatar"></div><div class="skel-user-info"><div class="skel-user-line"></div><div class="skel-user-line"></div></div></div>
                         </div>
                     </div>
 

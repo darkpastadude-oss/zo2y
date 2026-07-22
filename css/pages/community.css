@@ -441,6 +441,90 @@ body::after {
     gap: 8px;
 }
 
+.skel-activity-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.skel-activity-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.skel-activity-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skel-activity-line {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+.skel-activity-line:nth-child(1) { width: 70%; }
+.skel-activity-line:nth-child(2) { width: 40%; }
+
+.skel-activity-cover {
+    width: 40px;
+    height: 56px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.skel-user-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.skel-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+    flex-shrink: 0;
+}
+
+.skel-user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skel-user-line {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+    background-size: 200% 100%;
+    animation: cmlShimmer 1.5s infinite;
+}
+
+.skel-user-line:nth-child(1) { width: 60%; }
+.skel-user-line:nth-child(2) { width: 40%; }
+
 .community-activity-card {
     background: var(--card);
     border-radius: 12px;
