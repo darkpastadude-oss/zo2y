@@ -7104,19 +7104,12 @@
                 const categoryView = document.getElementById('pv2CategoryView');
 
                 if (isMediaTab && categoryView && safeTab !== 'sports') {
-                    const desktopView = document.querySelector('.desktop-only');
-                    const mobileView = document.querySelector('.mobile-only');
-                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
-                    
-                    if (desktopView) desktopView.style.display = 'none';
-                    if (mobileView) mobileView.style.display = 'none';
-                    if (profileContainer) profileContainer.style.display = 'none';
+                    hideProfileHeaderForDetail();
                     const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                     if (listsTab) listsTab.style.display = 'none';
                     const mobileListsPanel = document.getElementById('mobileListsPanel');
                     if (mobileListsPanel) mobileListsPanel.style.display = 'none';
 
-                    
                     categoryView.style.display = 'block';
 
                     const titleMap = { movie: 'Movies', tv: 'TV Shows', anime: 'Anime', game: 'Games', book: 'Books', music: 'Music', sports: 'Sports', travel: 'Travel', fashion: 'Fashion', food: 'Food', car: 'Cars' };
@@ -8386,9 +8379,44 @@ const alreadyActive = isMobile
                 }
             }
 
-            async function backToCollections(contentType) {
+            function restoreProfileHeader() {
                 document.body.classList.remove('in-collection-detail');
                 setCollectionAmbientBackdrop(null);
+
+                const profileHeader = document.querySelector('.profile-header');
+                if (profileHeader) profileHeader.style.display = '';
+                const hero = document.querySelector('.pv2-hero');
+                if (hero) hero.style.display = '';
+                const mobileCard = document.querySelector('.mph2-card');
+                if (mobileCard) mobileCard.style.display = '';
+                const viewingOther = document.getElementById('viewingOtherProfile');
+                if (viewingOther) viewingOther.style.display = '';
+                const statsBar = document.querySelector('.pv2-stats');
+                if (statsBar) statsBar.style.display = '';
+                const desktopView = document.querySelector('.desktop-only');
+                if (desktopView) desktopView.style.display = '';
+                const mobileView = document.querySelector('.mobile-only');
+                if (mobileView) mobileView.style.display = '';
+                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                if (profileContainer) profileContainer.style.display = '';
+            }
+
+            function hideProfileHeaderForDetail() {
+                document.body.classList.add('in-collection-detail');
+                const profileHeader = document.querySelector('.profile-header');
+                if (profileHeader) profileHeader.style.display = 'none';
+                const hero = document.querySelector('.pv2-hero');
+                if (hero) hero.style.display = 'none';
+                const mobileCard = document.querySelector('.mph2-card');
+                if (mobileCard) mobileCard.style.display = 'none';
+                const viewingOther = document.getElementById('viewingOtherProfile');
+                if (viewingOther) viewingOther.style.display = 'none';
+                const statsBar = document.querySelector('.pv2-stats');
+                if (statsBar) statsBar.style.display = 'none';
+            }
+
+            async function backToCollections(contentType) {
+                restoreProfileHeader();
 
                 const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
                 const parentTab = getTabForCollectionType(safeType);
@@ -8459,23 +8487,11 @@ const alreadyActive = isMobile
             }
 
             async function showCollectionDetail(listId, contentType, listType) {
-                document.body.classList.add('in-collection-detail');
+                hideProfileHeaderForDetail();
                 const isMobile = window.innerWidth <= 768;
 
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
-
-                // Completely hide profile headers & hero controls on collection detail page
-                const profileHeader = document.querySelector('.profile-header');
-                if (profileHeader) profileHeader.style.display = 'none';
-                const hero = document.querySelector('.pv2-hero');
-                if (hero) hero.style.display = 'none';
-                const mobileCard = document.querySelector('.mph2-card');
-                if (mobileCard) mobileCard.style.display = 'none';
-                const viewingOther = document.getElementById('viewingOtherProfile');
-                if (viewingOther) viewingOther.style.display = 'none';
-                const statsBar = document.querySelector('.pv2-stats');
-                if (statsBar) statsBar.style.display = 'none';
 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -8703,17 +8719,19 @@ const alreadyActive = isMobile
                     itemCard.onclick = () => window.location.href = `movie.html?id=${movie.id}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
+                        <div class="collection-poster-wrapper">
+                            <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')" aria-label="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${movie.title}</h3>
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
                                 ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
-                                ${canEditItems ? `
-                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')" title="Remove" aria-label="Remove">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
@@ -8887,17 +8905,19 @@ const alreadyActive = isMobile
                     const showTitle = show.name || show.original_name || show.title || 'Untitled';
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                        <div class="collection-poster-wrapper">
+                            <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')" aria-label="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
-                                ${canEditItems ? `
-                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')" title="Remove" aria-label="Remove">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
@@ -9071,17 +9091,19 @@ const alreadyActive = isMobile
                     const showTitle = show.name || show.original_name || show.title || 'Untitled';
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                        <div class="collection-poster-wrapper">
+                            <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
+                            ${canEditItems ? `
+                                <button class="collection-item-corner-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')" aria-label="Remove item">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
-                                ${canEditItems ? `
-                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')" title="Remove" aria-label="Remove">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
@@ -10569,21 +10591,13 @@ const alreadyActive = isMobile
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
-                
-                const categoryView = document.getElementById('pv2CategoryView');
-                if (categoryView) categoryView.style.display = 'none';
-                const desktopView = document.querySelector('.desktop-only');
-                const mobileView = document.querySelector('.mobile-only');
-                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
-                if (desktopView) desktopView.style.display = '';
-                if (mobileView) mobileView.style.display = '';
-                if (profileContainer) profileContainer.style.display = '';
-                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                    if (listsTab) listsTab.style.display = 'none';
-                    const mobileListsPanel = document.getElementById('mobileListsPanel');
-                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+                restoreProfileHeader();
+                const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                if (listsTab) listsTab.style.display = 'none';
+                const mobileListsPanel = document.getElementById('mobileListsPanel');
+                if (mobileListsPanel) mobileListsPanel.style.display = 'none';
 
-resetDetailPanels();
+                resetDetailPanels();
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 document.querySelectorAll('.tab-content').forEach(el => {
