@@ -6213,13 +6213,14 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   background: #0f1e40;
   border-bottom: 1px solid rgba(255,255,255,0.06);
   margin-bottom: 0;
+  overflow: visible;
 }
 
 /* === Cinematic backdrop banner === */
 .pv2-banner {
   position: relative;
   height: 200px;
-  overflow: hidden;
+  overflow: visible;
   background: #0a1428;
 }
 
@@ -6229,6 +6230,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   z-index: 1;
   display: flex;
   gap: 0;
+  overflow: hidden;
 }
 
 .pv2-banner-backdrops .pv2-backdrop-panel {
@@ -7161,14 +7163,14 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   position: relative;
   background: #0f1e40;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* === Cinematic backdrop banner (mobile) === */
 .mph2-banner {
   position: relative;
   height: 130px;
-  overflow: hidden;
+  overflow: visible;
   background: #0a1428;
 }
 
@@ -7178,6 +7180,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   z-index: 1;
   display: flex;
   gap: 0;
+  overflow: hidden;
 }
 
 .mph2-banner-backdrops .pv2-backdrop-panel {
