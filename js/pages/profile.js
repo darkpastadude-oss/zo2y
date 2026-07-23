@@ -8706,22 +8706,17 @@ const alreadyActive = isMobile
                         <img class="collection-item-image" src="${movie.poster_path ? TMDB_POSTER + movie.poster_path : 'images/placeholder.jpg'}" alt="${movie.title}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${movie.title}</h3>
-                            ${canEditItems ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
-                                </button>
-                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
                                 ${movie.vote_average ? `<span><i class="fas fa-star"></i> ${movie.vote_average.toFixed(1)}</span>` : ''}
+                                ${canEditItems ? `
+                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')" title="Remove" aria-label="Remove">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${canEditItems ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${movieIdValue}, '${listId}', 'movie', '${listType}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
                     `;
 
                     if (canReorder) {
@@ -8895,22 +8890,17 @@ const alreadyActive = isMobile
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
-                            ${canEditItems ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
-                                </button>
-                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                ${canEditItems ? `
+                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')" title="Remove" aria-label="Remove">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${canEditItems ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${tvIdValue}, '${listId}', 'tv', '${listType}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
                     `;
 
                     if (canReorder) {
@@ -9084,22 +9074,17 @@ const alreadyActive = isMobile
                         <img class="collection-item-image" src="${show.poster_path ? TMDB_POSTER + show.poster_path : 'images/placeholder.jpg'}" alt="${showTitle}" loading="lazy">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${showTitle}</h3>
-                            ${canEditItems ? `
-                                <button class="collection-item-remove-inline" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
-                                    <i class="fas fa-times"></i> Remove
-                                </button>
-                            ` : ''}
                             <div class="collection-item-meta">
                                 <span><i class="fas fa-calendar"></i> ${show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}</span>
                                 <span><i class="fas fa-star"></i> ${show.vote_average ? show.vote_average.toFixed(1) : 'N/A'}</span>
+                                ${canEditItems ? `
+                                    <button class="collection-item-trash-btn" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')" title="Remove" aria-label="Remove">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                ` : ''}
                             </div>
                             ${rankMarkup}
                         </div>
-                        ${canEditItems ? `
-                            <button class="collection-item-remove" onclick="event.stopPropagation(); ProfileManager.removeFromCollection(${animeIdValue}, '${listId}', 'anime', '${listType}')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        ` : ''}
                     `;
 
                     if (canReorder) {

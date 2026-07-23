@@ -8480,10 +8480,10 @@ body.in-collection-detail .mobile-section {
 
 /* === Sticky Glass Toolbar V2 === */
 .collection-sticky-toolbar {
-  position: sticky;
-  top: 10px;
-  z-index: 100;
-  margin-bottom: 16px;
+  position: static !important;
+  top: auto !important;
+  z-index: 1;
+  margin-bottom: 20px;
 }
 
 .collection-toolbar-inner {
@@ -8491,13 +8491,13 @@ body.in-collection-detail .mobile-section {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  background: rgba(11, 22, 51, 0.94);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 8px 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
 }
 
 .collection-search-wrap {
@@ -8643,8 +8643,8 @@ body.in-collection-detail .mobile-section {
   .collection-toolbar-inner {
     flex-direction: column;
     align-items: stretch;
-    padding: 10px;
-    gap: 8px;
+    padding: 0 !important;
+    gap: 10px;
   }
   .collection-search-wrap {
     max-width: 100%;
@@ -8661,5 +8661,42 @@ body.in-collection-detail .mobile-section {
   .collection-sort-select {
     width: 100%;
   }
+}
+
+/* === Minimalist Sleek Trash Icon Beside Metadata === */
+.collection-item-remove-inline,
+.collection-item-remove {
+  display: none !important;
+}
+
+.collection-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.collection-item-trash-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #64748b !important;
+  font-size: 0.85rem !important;
+  padding: 4px 6px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  margin-left: auto !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.collection-item-trash-btn:hover,
+.collection-item-trash-btn:active {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  transform: scale(1.1);
 }
 
