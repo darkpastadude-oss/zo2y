@@ -8057,67 +8057,77 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 .pv2-gear-wrap {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pv2-gear-menu {
+  display: none !important;
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
   width: 210px;
+  background: #132347;
   background: rgba(11, 22, 51, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
   padding: 6px;
-  display: flex;
   flex-direction: column;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  gap: 2px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   opacity: 0;
   transform: translateY(-8px) scale(0.95);
   pointer-events: none;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: 100;
+  transition: opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1000;
 }
 
 .pv2-gear-menu.open {
+  display: flex !important;
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
 .pv2-gear-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: var(--color-text-secondary);
-  font-size: 0.88rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease, color 0.15s ease;
-  width: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: #cbd5e1 !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .pv2-gear-item:hover {
-  background: var(--color-bg-hover);
-  color: var(--color-text-primary);
+  background: #1a2c5a !important;
+  color: #ffffff !important;
 }
 
 .pv2-gear-item i {
-  width: 16px;
+  width: 18px;
   text-align: center;
-  color: var(--color-accent);
+  color: #f59e0b;
+  font-size: 0.95rem;
 }
 
 .pv2-gear-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 6px 0;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 4px 0;
 }
 
 .pv2-gear-danger {
@@ -8126,6 +8136,11 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
 
 .pv2-gear-danger:hover {
   background: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+.pv2-gear-danger i {
+  color: #ef4444 !important;
 }
 
 /* === Visual Featured Showcase Strip === */
