@@ -1889,10 +1889,13 @@ const HOME_DEFERRED_IMAGE_ROOT_MARGIN = '420px 0px';
     function resolveBrandLogo(row, mediaType) {
       const logoValue = String(row?.logo_url || row?.logo || '').trim();
       if (logoValue) {
-        if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
+        if (logoValue.includes('unavatar.io') || logoValue.includes('google.com/s2/favicons') || logoValue.includes('icon.horse') || logoValue.endsWith('.ico')) {
+          // Favicon URL detected, skip to fallback
+        } else if (/^https?:\/\//i.test(logoValue) || logoValue.startsWith('/') || logoValue.startsWith('data:')) {
           return logoValue;
+        } else {
+          return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${logoValue}`;
         }
-        return `${SUPABASE_URL}/storage/v1/object/public/brand-logos/${logoValue}`;
       }
       const typeKey = String(mediaType || '').toLowerCase();
       // No favicons on home rails. If Supabase doesn't provide a logo_url, fall back to local category artwork.

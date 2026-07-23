@@ -516,32 +516,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- TV Show Detail View -->
             <div class="tab-content" id="tv-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="tvDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('tv')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="tvDetailTitle">
                                 <span id="tvDetailIcon"></span>
-                                <span id="tvDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="tvDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="tv">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="tvDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="tvListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="tvListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="tvDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="tvDetailDescription">TV shows you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="tvDetailCount">0 shows</span>
+                            </p>
                         </div>
                     </div>
+
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="tvSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('tv', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="tvSortSelect" onchange="ProfileManager.sortCollectionItems('tv', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="tv">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="tvDetailActions">
+                                    <button class="btn-action-icon" id="tvListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="tvListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="tvItemsContainer"></div>
                 </div>
             </div>
@@ -580,32 +611,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Anime Detail View -->
             <div class="tab-content" id="anime-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="animeDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('anime')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="animeDetailTitle">
                                 <span id="animeDetailIcon"></span>
-                                <span id="animeDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="animeDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="anime">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="animeDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="animeListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="animeListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="animeDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="animeDetailDescription">Anime you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="animeDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="animeSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('anime', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="animeSortSelect" onchange="ProfileManager.sortCollectionItems('anime', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="anime">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="animeDetailActions">
+                                    <button class="btn-action-icon" id="animeListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="animeListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="animeItemsContainer"></div>
                 </div>
             </div>
@@ -644,32 +706,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Games Detail View -->
             <div class="tab-content" id="game-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('game')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="gameDetailTitle">
                                 <span id="gameDetailIcon"></span>
-                                <span id="gameDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="gameDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="game">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="gameDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="gameListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="gameListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="gameDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="gameDetailDescription">Games you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="gameDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="gameSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('game', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="gameSortSelect" onchange="ProfileManager.sortCollectionItems('game', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="game">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="gameDetailActions">
+                                    <button class="btn-action-icon" id="gameListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="gameListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="gameItemsContainer"></div>
                 </div>
             </div>
@@ -708,32 +801,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Book Detail View -->
             <div class="tab-content" id="book-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="bookDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('book')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="bookDetailTitle">
                                 <span id="bookDetailIcon"></span>
-                                <span id="bookDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="bookDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="book">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="bookDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="bookListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="bookListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="bookDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="bookDetailDescription">Books you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="bookDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="bookSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('book', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="bookSortSelect" onchange="ProfileManager.sortCollectionItems('book', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="book">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="bookDetailActions">
+                                    <button class="btn-action-icon" id="bookListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="bookListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="bookItemsContainer"></div>
                 </div>
             </div>
@@ -771,32 +895,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Music Detail View -->
             <div class="tab-content" id="music-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="musicDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('music')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="musicDetailTitle">
                                 <span id="musicDetailIcon"></span>
-                                <span id="musicDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="musicDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="music">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="musicDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="musicListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="musicListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="musicDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="musicDetailDescription">Music you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="musicDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="musicSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('music', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="musicSortSelect" onchange="ProfileManager.sortCollectionItems('music', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="music">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="musicDetailActions">
+                                    <button class="btn-action-icon" id="musicListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="musicListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="musicItemsContainer"></div>
                 </div>
             </div>
@@ -927,32 +1082,64 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Fashion Detail View -->
             <div class="tab-content" id="fashion-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="fashionDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('fashion')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="fashionDetailTitle">
                                 <span id="fashionDetailIcon"></span>
-                                <span id="fashionDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="fashionDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="fashion">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="fashionDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="fashionListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="fashionListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="fashionDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="fashionDetailDescription">Fashion you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="fashionDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <!-- Sticky Glass Toolbar V2 -->
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="fashionSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('fashion', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="fashionSortSelect" onchange="ProfileManager.sortCollectionItems('fashion', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="fashion">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="fashionDetailActions">
+                                    <button class="btn-action-icon" id="fashionListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="fashionListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="fashionItemsContainer"></div>
                 </div>
             </div>
@@ -991,32 +1178,64 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Cars Detail View -->
             <div class="tab-content" id="cars-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="carsDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('car')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="carsDetailTitle">
                                 <span id="carsDetailIcon"></span>
-                                <span id="carsDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="carsDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="car">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="carsDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="carsListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="carsListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="carsDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="carsDetailDescription">Cars you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="carsDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <!-- Sticky Glass Toolbar V2 -->
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="carSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('car', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="carSortSelect" onchange="ProfileManager.sortCollectionItems('car', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="car">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="carsDetailActions">
+                                    <button class="btn-action-icon" id="carsListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="carsListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="carsItemsContainer"></div>
                 </div>
             </div>
@@ -1055,32 +1274,64 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Food Detail View -->
             <div class="tab-content" id="food-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header">
-                        <div class="collection-detail-back">
-                            <button class="btn btn-secondary btn-sm" onclick="ProfileManager.backToProfile()">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <div class="collection-detail-title-group">
-                            <h2 class="collection-detail-title" id="foodDetailTitle">
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('food')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="foodDetailTitle">
                                 <span id="foodDetailIcon"></span>
-                                <span id="foodDetailName"></span>
-                            </h2>
-                            <p class="collection-detail-subtitle" id="foodDetailDescription">Collection description</p>
-                        </div>
-                        <div class="collection-view-toggle" data-media="food">
-                            <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid')"><i class="fas fa-th"></i></button>
-                            <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list')"><i class="fas fa-list"></i></button>
-                        </div>
-                        <div class="collection-detail-actions hidden" id="foodDetailActions">
-                            <button class="btn btn-secondary btn-sm" id="foodListEditBtn">
-                                <i class="fas fa-pen"></i> Edit
-                            </button>
-                            <button class="btn btn-secondary btn-sm" id="foodListDeleteBtn">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                                <span id="foodDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="foodDetailDescription">Food you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="foodDetailCount">0 items</span>
+                            </p>
                         </div>
                     </div>
+
+                    <!-- Sticky Glass Toolbar V2 -->
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-search-wrap">
+                                <i class="fas fa-search collection-search-icon"></i>
+                                <input type="text" class="collection-search-input" id="foodSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('food', this.value)">
+                            </div>
+
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="foodSortSelect" onchange="ProfileManager.sortCollectionItems('food', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
+
+                                <div class="collection-view-toggle" data-media="food">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+
+                                <div class="collection-detail-actions hidden" id="foodDetailActions">
+                                    <button class="btn-action-icon" id="foodListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="foodListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="foodItemsContainer"></div>
                 </div>
             </div>
@@ -1541,25 +1792,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- TV Detail View -->
             <div class="mobile-section" id="mobileTvDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('tv')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileTvDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileTvDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileTvDetailDescription">TV shows you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileTvDetailCount">0 shows</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileTvDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="tv">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileTvSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('tv', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileTvSortSelect" onchange="ProfileManager.sortCollectionItems('tv', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="tv">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('tv', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('tv', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileTvDetailActions">
+                                <button class="btn-action-icon" id="mobileTvListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileTvListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileTvDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileTvListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileTvItems"></div>
             </div>
 
@@ -1593,25 +1881,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Anime Detail View -->
             <div class="mobile-section" id="mobileAnimeDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('anime')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileAnimeDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileAnimeDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileAnimeDetailDescription">Anime you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileAnimeDetailCount">0 anime</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileAnimeDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="anime">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileAnimeSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('anime', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileAnimeSortSelect" onchange="ProfileManager.sortCollectionItems('anime', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="anime">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('anime', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('anime', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileAnimeDetailActions">
+                                <button class="btn-action-icon" id="mobileAnimeListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileAnimeListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileAnimeDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileAnimeListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileAnimeItems"></div>
             </div>
 
@@ -1645,25 +1970,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Games Detail View -->
             <div class="mobile-section" id="mobileGameDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('game')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileGameDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileGameDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileGameDetailDescription">Games you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileGameDetailCount">0 games</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileGameDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="game">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileGameSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('game', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileGameSortSelect" onchange="ProfileManager.sortCollectionItems('game', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="game">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('game', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('game', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileGameDetailActions">
+                                <button class="btn-action-icon" id="mobileGameListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileGameListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileGameDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileGameListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileGameItems"></div>
             </div>
 
@@ -1697,25 +2059,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Books Detail View -->
             <div class="mobile-section" id="mobileBookDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('book')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileBookDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileBookDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileBookDetailDescription">Books you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileBookDetailCount">0 books</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileBookDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="book">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileBookSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('book', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileBookSortSelect" onchange="ProfileManager.sortCollectionItems('book', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="book">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('book', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('book', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileBookDetailActions">
+                                <button class="btn-action-icon" id="mobileBookListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileBookListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileBookDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileBookListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileBookItems"></div>
             </div>
             <!-- Music Section -->
@@ -1748,25 +2147,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Music Detail View -->
             <div class="mobile-section" id="mobileMusicDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('music')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileMusicDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileMusicDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileMusicDetailDescription">Tracks you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileMusicDetailCount">0 tracks</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileMusicDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="music">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileMusicSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('music', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileMusicSortSelect" onchange="ProfileManager.sortCollectionItems('music', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="music">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('music', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('music', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileMusicDetailActions">
+                                <button class="btn-action-icon" id="mobileMusicListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileMusicListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileMusicDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileMusicListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileMusicItems"></div>
             </div>
 
@@ -1877,25 +2313,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Fashion Detail View -->
             <div class="mobile-section" id="mobileFashionDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('fashion')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileFashionDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileFashionDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileFashionDetailDescription">Fashion you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileFashionDetailCount">0 items</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileFashionDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="fashion">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileFashionSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('fashion', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileFashionSortSelect" onchange="ProfileManager.sortCollectionItems('fashion', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="fashion">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('fashion', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('fashion', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileFashionDetailActions">
+                                <button class="btn-action-icon" id="mobileFashionListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileFashionListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileFashionDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileFashionListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileFashionItems"></div>
             </div>
 
@@ -1929,25 +2402,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Cars Detail View -->
             <div class="mobile-section" id="mobileCarsDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('car')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileCarsDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileCarsDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileCarsDetailDescription">Cars you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileCarsDetailCount">0 items</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileCarsDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="car">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileCarsSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('car', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileCarsSortSelect" onchange="ProfileManager.sortCollectionItems('car', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="car">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('car', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('car', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileCarsDetailActions">
+                                <button class="btn-action-icon" id="mobileCarsListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileCarsListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileCarsDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileCarsListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileCarsItems"></div>
             </div>
 
@@ -1981,25 +2491,62 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Food Detail View -->
             <div class="mobile-section" id="mobileFoodDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('food')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileFoodDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileFoodDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileFoodDetailDescription">Food you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileFoodDetailCount">0 items</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileFoodDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="food">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileFoodSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('food', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileFoodSortSelect" onchange="ProfileManager.sortCollectionItems('food', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="food">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('food', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('food', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileFoodDetailActions">
+                                <button class="btn-action-icon" id="mobileFoodListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileFoodListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileFoodDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileFoodListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileFoodItems"></div>
             </div>
 

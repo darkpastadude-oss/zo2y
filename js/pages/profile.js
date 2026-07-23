@@ -5284,7 +5284,8 @@
                         })();
                         let rawLogoUrl = row?.logo_url || '';
                             let localLogo = '';
-                            if (rawLogoUrl) {
+                            const isFaviconUrl = rawLogoUrl && (rawLogoUrl.includes('unavatar.io') || rawLogoUrl.includes('google.com/s2/favicons') || rawLogoUrl.includes('icon.horse') || rawLogoUrl.includes('.ico'));
+                            if (rawLogoUrl && !isFaviconUrl) {
                                 if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
                                     localLogo = toHttpsUrl(rawLogoUrl);
                                 } else {
@@ -8277,7 +8278,8 @@ const alreadyActive = isMobile
                                 let imageUrl = '';
                                 let rawLogoUrl = row?.logo_url || '';
                                 let localLogo = '';
-                                if (rawLogoUrl) {
+                                const isFaviconUrl2 = rawLogoUrl && (rawLogoUrl.includes('unavatar.io') || rawLogoUrl.includes('google.com/s2/favicons') || rawLogoUrl.includes('icon.horse') || rawLogoUrl.includes('.ico'));
+                                if (rawLogoUrl && !isFaviconUrl2) {
                                     if (/^https?:\/\//i.test(rawLogoUrl) || rawLogoUrl.startsWith('/') || rawLogoUrl.startsWith('data:')) {
                                         localLogo = toHttpsUrl(rawLogoUrl);
                                     } else {
@@ -8293,7 +8295,7 @@ const alreadyActive = isMobile
                                     params.set('mode', 'logo');
                                     imageUrl = `/api/logo?${params.toString()}`;
                                 } else if (domain) {
-                                    imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256`;
+                                    imageUrl = `/api/logo?domain=${encodeURIComponent(domain)}&size=256&mode=logo`;
                                 }
                                 writePreviewAssetCache(contentType, id, imageUrl || '/newlogo.webp');
                             });
@@ -8820,11 +8822,41 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('tv', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('tv', listId, list);
+                const countText = getCollectionItemLabel('tv', tvIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileTvDetailTitle');
                     const descEl = document.getElementById('mobileTvDetailDescription');
+                    const countEl = document.getElementById('mobileTvDetailCount');
                     const actions = document.getElementById('mobileTvDetailActions');
+                    const editBtn = document.getElementById('mobileTvListEditBtn');
+                    const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
+                    if (titleEl) titleEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
+                } else {
+                    const iconEl = document.getElementById('tvDetailIcon');
+                    const nameEl = document.getElementById('tvDetailName');
+                    const descEl = document.getElementById('tvDetailDescription');
+                    const countEl = document.getElementById('tvDetailCount');
+                    const actions = document.getElementById('tvDetailActions');
+                    const editBtn = document.getElementById('tvListEditBtn');
+                    const deleteBtn = document.getElementById('tvListDeleteBtn');
+                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'tv');
+                    if (nameEl) nameEl.textContent = detailTitle;
+                    if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
+                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
+                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
+                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
+                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
+                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
+                }
                     const editBtn = document.getElementById('mobileTvListEditBtn');
                     const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
@@ -9006,15 +9038,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('anime', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('anime', listId, list);
+                const countText = getCollectionItemLabel('anime', animeIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileAnimeDetailTitle');
                     const descEl = document.getElementById('mobileAnimeDetailDescription');
+                    const countEl = document.getElementById('mobileAnimeDetailCount');
                     const actions = document.getElementById('mobileAnimeDetailActions');
                     const editBtn = document.getElementById('mobileAnimeListEditBtn');
                     const deleteBtn = document.getElementById('mobileAnimeListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9024,12 +9059,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('animeDetailIcon');
                     const nameEl = document.getElementById('animeDetailName');
                     const descEl = document.getElementById('animeDetailDescription');
+                    const countEl = document.getElementById('animeDetailCount');
                     const actions = document.getElementById('animeDetailActions');
                     const editBtn = document.getElementById('animeListEditBtn');
                     const deleteBtn = document.getElementById('animeListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'anime');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9192,15 +9229,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('game', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('game', listId, list);
+                const countText = getCollectionItemLabel('game', gameIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileGameDetailTitle');
                     const descEl = document.getElementById('mobileGameDetailDescription');
+                    const countEl = document.getElementById('mobileGameDetailCount');
                     const actions = document.getElementById('mobileGameDetailActions');
                     const editBtn = document.getElementById('mobileGameListEditBtn');
                     const deleteBtn = document.getElementById('mobileGameListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9210,12 +9250,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('gameDetailIcon');
                     const nameEl = document.getElementById('gameDetailName');
                     const descEl = document.getElementById('gameDetailDescription');
+                    const countEl = document.getElementById('gameDetailCount');
                     const actions = document.getElementById('gameDetailActions');
                     const editBtn = document.getElementById('gameListEditBtn');
                     const deleteBtn = document.getElementById('gameListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'game');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9390,15 +9432,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('book', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('book', listId, list);
+                const countText = getCollectionItemLabel('book', bookIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileBookDetailTitle');
                     const descEl = document.getElementById('mobileBookDetailDescription');
+                    const countEl = document.getElementById('mobileBookDetailCount');
                     const actions = document.getElementById('mobileBookDetailActions');
                     const editBtn = document.getElementById('mobileBookListEditBtn');
                     const deleteBtn = document.getElementById('mobileBookListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9408,12 +9453,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('bookDetailIcon');
                     const nameEl = document.getElementById('bookDetailName');
                     const descEl = document.getElementById('bookDetailDescription');
+                    const countEl = document.getElementById('bookDetailCount');
                     const actions = document.getElementById('bookDetailActions');
                     const editBtn = document.getElementById('bookListEditBtn');
                     const deleteBtn = document.getElementById('bookListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9649,15 +9696,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('music', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('music', listId, list);
+                const countText = getCollectionItemLabel('music', trackIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMusicDetailTitle');
                     const descEl = document.getElementById('mobileMusicDetailDescription');
+                    const countEl = document.getElementById('mobileMusicDetailCount');
                     const actions = document.getElementById('mobileMusicDetailActions');
                     const editBtn = document.getElementById('mobileMusicListEditBtn');
                     const deleteBtn = document.getElementById('mobileMusicListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -9667,12 +9717,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('musicDetailIcon');
                     const nameEl = document.getElementById('musicDetailName');
                     const descEl = document.getElementById('musicDetailDescription');
+                    const countEl = document.getElementById('musicDetailCount');
                     const actions = document.getElementById('musicDetailActions');
                     const editBtn = document.getElementById('musicListEditBtn');
                     const deleteBtn = document.getElementById('musicListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'music');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10019,15 +10071,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('fashion', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('fashion', listId, list);
+                const countText = getCollectionItemLabel('fashion', brandIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileFashionDetailTitle');
                     const descEl = document.getElementById('mobileFashionDetailDescription');
+                    const countEl = document.getElementById('mobileFashionDetailCount');
                     const actions = document.getElementById('mobileFashionDetailActions');
                     const editBtn = document.getElementById('mobileFashionListEditBtn');
                     const deleteBtn = document.getElementById('mobileFashionListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10037,12 +10092,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('fashionDetailIcon');
                     const nameEl = document.getElementById('fashionDetailName');
                     const descEl = document.getElementById('fashionDetailDescription');
+                    const countEl = document.getElementById('fashionDetailCount');
                     const actions = document.getElementById('fashionDetailActions');
                     const editBtn = document.getElementById('fashionListEditBtn');
                     const deleteBtn = document.getElementById('fashionListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'fashion');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10186,15 +10243,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('car', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('car', listId, list);
+                const countText = getCollectionItemLabel('car', brandIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileCarsDetailTitle');
                     const descEl = document.getElementById('mobileCarsDetailDescription');
+                    const countEl = document.getElementById('mobileCarsDetailCount');
                     const actions = document.getElementById('mobileCarsDetailActions');
                     const editBtn = document.getElementById('mobileCarsListEditBtn');
                     const deleteBtn = document.getElementById('mobileCarsListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10204,12 +10264,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('carsDetailIcon');
                     const nameEl = document.getElementById('carsDetailName');
                     const descEl = document.getElementById('carsDetailDescription');
+                    const countEl = document.getElementById('carsDetailCount');
                     const actions = document.getElementById('carsDetailActions');
                     const editBtn = document.getElementById('carsListEditBtn');
                     const deleteBtn = document.getElementById('carsListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'car');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10366,15 +10428,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('food', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('food', listId, list);
+                const countText = getCollectionItemLabel('food', brandIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileFoodDetailTitle');
                     const descEl = document.getElementById('mobileFoodDetailDescription');
+                    const countEl = document.getElementById('mobileFoodDetailCount');
                     const actions = document.getElementById('mobileFoodDetailActions');
                     const editBtn = document.getElementById('mobileFoodListEditBtn');
                     const deleteBtn = document.getElementById('mobileFoodListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -10384,12 +10449,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('foodDetailIcon');
                     const nameEl = document.getElementById('foodDetailName');
                     const descEl = document.getElementById('foodDetailDescription');
+                    const countEl = document.getElementById('foodDetailCount');
                     const actions = document.getElementById('foodDetailActions');
                     const editBtn = document.getElementById('foodListEditBtn');
                     const deleteBtn = document.getElementById('foodListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'food');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';

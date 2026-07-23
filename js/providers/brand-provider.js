@@ -71,13 +71,28 @@
     var title = raw.name || '';
     if (!title) return null;
 
+    var rawLogo = raw.logo_url || raw.logo || '';
+    var domain = raw.domain || (title ? title.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com' : '');
+    var logoUrl = rawLogo;
+    if (!logoUrl || logoUrl.includes('placeholder') || logoUrl.includes('unavatar.io') || logoUrl.includes('google.com/s2/favicons') || logoUrl.includes('icon.horse')) {
+      if (title) {
+        var params = new URLSearchParams();
+        params.set('title', title);
+        if (domain) params.set('domain', domain);
+        params.set('mode', 'logo');
+        logoUrl = '/api/logo?' + params.toString();
+      } else if (domain) {
+        logoUrl = '/api/logo?domain=' + encodeURIComponent(domain) + '&mode=logo';
+      }
+    }
+
     return Content.normalizeContent({
       id: String(raw.id || ''),
       title: title,
       subtitle: raw.category || raw.industry || '',
       creators: raw.founder || raw.founders || '',
       description: raw.description || raw.bio || '',
-      image: raw.logo_url || raw.logo || '',
+      image: logoUrl,
       genres: [raw.category || raw.industry || ''].filter(Boolean),
       externalUrl: raw.website || raw.url || '',
       provider: this.name,

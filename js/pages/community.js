@@ -274,9 +274,11 @@ window.CommunityManager = (function() {
                         brands.forEach(b => {
                             if (b && b.id && b.name) {
                                 const existing = mediaMap.get(String(b.id)) || {};
+                                const rawLogo = b.logo_url || '';
+                                const isFavicon = rawLogo && (rawLogo.includes('unavatar.io') || rawLogo.includes('google.com/s2/favicons') || rawLogo.includes('icon.horse') || rawLogo.endsWith('.ico'));
                                 mediaMap.set(String(b.id), {
                                     title: b.name,
-                                    image_url: b.logo_url || existing.image_url || ''
+                                    image_url: isFavicon ? '' : (rawLogo || existing.image_url || '')
                                 });
                             }
                         });
@@ -296,9 +298,11 @@ window.CommunityManager = (function() {
                         foods.forEach(f => {
                             if (f && f.id && f.name) {
                                 const existing = mediaMap.get(String(f.id)) || {};
+                                const rawLogo = f.logo_url || '';
+                                const isFavicon = rawLogo && (rawLogo.includes('unavatar.io') || rawLogo.includes('google.com/s2/favicons') || rawLogo.includes('icon.horse') || rawLogo.endsWith('.ico'));
                                 mediaMap.set(String(f.id), {
                                     title: f.name,
-                                    image_url: f.logo_url || existing.image_url || ''
+                                    image_url: isFavicon ? '' : (rawLogo || existing.image_url || '')
                                 });
                             }
                         });
@@ -2831,6 +2835,7 @@ window.CommunityManager = (function() {
     function resolveBrandLogoUrl(logoUrl, mediaType) {
         var val = String(logoUrl || '').trim();
         if (!val) return '';
+        if (val.includes('unavatar.io') || val.includes('google.com/s2/favicons') || val.includes('icon.horse') || val.endsWith('.ico')) return '';
         if (/^https?:\/\//i.test(val) || val.startsWith('/') || val.startsWith('data:')) return val;
         var config = getSupabaseConfig();
         var base = config.url || '';
