@@ -4797,7 +4797,7 @@
                         const numericId = Number(cacheKey);
                         let query = supabase
                             .from('games')
-                            .select('id,title,description,cover_url,hero_url,release_date,rating,rating_count,source,igdb_id,rawg_id,slug,extra,last_synced_at')
+                            .select('*')
                             .limit(1);
                         query = Number.isFinite(numericId)
                             ? query.eq('id', numericId)

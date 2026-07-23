@@ -7249,7 +7249,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .mph2-menu-btn {
@@ -7278,6 +7278,7 @@ body[data-profile-primary="activity"] .mobile-primary-panel[data-panel="activity
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .mph2-edit-pill {
