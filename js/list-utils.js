@@ -1149,7 +1149,9 @@
     const id = String(payload.id || payload.book_id || payload.bookId || '').trim();
     if (!id) return false;
     const title = String(payload.title || payload.name || '').trim() || 'Untitled';
-    const incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
+    let incomingThumbnail = String(payload.thumbnail || payload.image || payload.cover || '').trim();
+    if (incomingThumbnail.startsWith('//')) incomingThumbnail = `https:${incomingThumbnail}`;
+    if (incomingThumbnail.startsWith('http://')) incomingThumbnail = incomingThumbnail.replace(/^http:\/\//i, 'https://');
     const validThumbnail = /^https?:\/\//i.test(incomingThumbnail) || incomingThumbnail.startsWith('/') ? incomingThumbnail : null;
     const incomingAuthors = String(payload.authors || payload.author_name || payload.subtitle || '').trim() || null;
     let row = { id, title, authors: incomingAuthors, thumbnail: validThumbnail };
@@ -1157,9 +1159,11 @@
       const { data: existing } = await client.from('books').select('id, title, thumbnail').eq('id', id).maybeSingle();
       if (existing) {
         const mergedTitle = existing.title || title;
-        const existingThumb = String(existing.thumbnail || '').trim();
+        let existingThumb = String(existing.thumbnail || '').trim();
+        if (existingThumb.startsWith('//')) existingThumb = `https:${existingThumb}`;
+        if (existingThumb.startsWith('http://')) existingThumb = existingThumb.replace(/^http:\/\//i, 'https://');
         const existingValid = /^https?:\/\//i.test(existingThumb) || existingThumb.startsWith('/');
-        const mergedThumbnail = existingValid ? existing.thumbnail : (validThumbnail || existing.thumbnail);
+        const mergedThumbnail = existingValid ? existingThumb : (validThumbnail || existing.thumbnail);
         row = { id, title: mergedTitle, authors: incomingAuthors || existing.authors || null, thumbnail: mergedThumbnail };
       }
     } catch (_checkErr) {

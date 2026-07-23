@@ -8,7 +8,9 @@
             const IGDB_PROXY_BASE = "/api/igdb";
             const TMDB_POSTER = "https://image.tmdb.org/t/p/w500";
 
-            const FALLBACK_BOOK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300' fill='%23132347'%3E%3Crect width='200' height='300'/%3E%3C/svg%3E";
+            const FALLBACK_BOOK_IMAGE = "/images/fallback/book.svg";
+            const FALLBACK_GAME_IMAGE = "/images/fallback/game.svg";
+            const FALLBACK_MEDIA_IMAGE = "/newlogo.webp";
             const BOOKS_CACHE_BUSTER = "20260323-api-only-profile";
 
             async function igdbFetch(path, params = {}, signal = null) {
@@ -4539,6 +4541,19 @@
                 return value;
             }
 
+            function normalizeBookCoverUrl(url) {
+                const value = String(url || '').trim();
+                if (!value) return '';
+                if (value === '/images/fallback/book.svg' || value === FALLBACK_BOOK_IMAGE) return value;
+                let normalized = value;
+                if (normalized.startsWith('//')) normalized = `https:${normalized}`;
+                if (normalized.startsWith('http://')) normalized = normalized.replace(/^http:\/\//i, 'https://');
+                if (normalized.includes('books.google.com') && !normalized.includes('&edge=curl')) {
+                    normalized += (normalized.includes('?') ? '&' : '?') + 'edge=curl';
+                }
+                return normalized;
+            }
+
             function isLikelyBackdropGameUrl(url) {
                 const value = String(url || '').trim().toLowerCase();
                 if (!value) return false;
@@ -4868,8 +4883,8 @@
                             id: data.id,
                             title: data.title,
                             author_name: data.authors,
-                            cover_url: data.thumbnail,
-                            thumbnail: data.thumbnail
+                            cover_url: normalizeBookCoverUrl(data.thumbnail),
+                            thumbnail: normalizeBookCoverUrl(data.thumbnail)
                         };
                     }
                 } catch (_err) { }
@@ -4886,7 +4901,7 @@
                                     id: key,
                                     title: apiBook.title || dbData?.title || 'Untitled',
                                     author_name: apiBook.authors || apiBook.author || dbData?.author_name || '',
-                                    cover_url: apiBook.image || apiBook.cover || dbData?.cover_url || '',
+                                    cover_url: normalizeBookCoverUrl(apiBook.image || apiBook.cover || dbData?.cover_url || ''),
                                     external_url: apiBook.externalUrl || dbData?.external_url || ''
                                 };
                                 merged.thumbnail = merged.cover_url;
@@ -4913,8 +4928,8 @@
                             id: key,
                             title: liRows.title || '',
                             author_name: liRows.subtitle || '',
-                            cover_url: liRows.image_url || '',
-                            thumbnail: liRows.image_url || ''
+                            cover_url: normalizeBookCoverUrl(liRows.image_url || ''),
+                            thumbnail: normalizeBookCoverUrl(liRows.image_url || '')
                         };
                     }
                 } catch (_liErr) { }
@@ -4932,6 +4947,22 @@
                     }
                     dbData.thumbnail = dbData.cover_url || dbData.thumbnail || '';
                     dbData.cover_url = dbData.cover_url || dbData.thumbnail || '';
+
+                    const mergedCover = String(dbData.cover_url || '').trim();
+                    if (!mergedCover || mergedCover === '/images/fallback/book.svg') {
+                        try {
+                            const res2 = await fetch(`/api/books/${key}`);
+                            if (res2.ok) {
+                                const json2 = await res2.json();
+                                const apiBook2 = json2.books && json2.books[0] ? json2.books[0] : (json2.book || json2);
+                                if (apiBook2 && (apiBook2.image || apiBook2.cover)) {
+                                    dbData.cover_url = apiBook2.image || apiBook2.cover || dbData.cover_url;
+                                    dbData.thumbnail = dbData.cover_url;
+                                }
+                            }
+                        } catch (_e2) { }
+                    }
+
                     bookCache.set(key, dbData);
                     return dbData;
                 }
@@ -7425,6 +7456,7 @@ const alreadyActive = isMobile
                     img.setAttribute('data-fallback-wired', '1');
                     const originalSrc = img.src;
                     const isBook = originalSrc && (originalSrc.includes('/api/books/cover') || originalSrc.includes('covers.openlibrary.org'));
+                    const isGame = originalSrc && (originalSrc.includes('igdb.com') || originalSrc.includes('steamcdn') || originalSrc.includes('steamstatic'));
                     let triedRaw = false;
                     let triedFallback = false;
                     img.onerror = function () {
@@ -7443,7 +7475,7 @@ const alreadyActive = isMobile
                         if (!triedFallback) {
                             triedFallback = true;
                             img.onerror = null;
-                            img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="300" fill="%23132347"%3E%3Crect width="200" height="300"/%3E%3C/svg%3E';
+                            img.src = isGame ? FALLBACK_GAME_IMAGE : FALLBACK_BOOK_IMAGE;
                         }
                     };
                 });
@@ -7516,7 +7548,17 @@ const alreadyActive = isMobile
                     img.src = url;
                     img.alt = 'Poster';
                     img.loading = 'lazy';
-                    img.onerror = () => { img.src = '/newlogo.webp'; };
+                    let railImgErrors = 0;
+                    img.onerror = function() {
+                        railImgErrors++;
+                        if (railImgErrors === 1 && url.includes('/api/books/cover')) {
+                            const m = url.match(/[?&]url=([^&]+)/);
+                            if (m) { img.src = decodeURIComponent(m[1]); return; }
+                        }
+                        if (railImgErrors <= 2) { img.src = '/newlogo.webp'; return; }
+                        img.onerror = null;
+                        img.src = FALLBACK_MEDIA_IMAGE;
+                    };
                     img.className = isMobile ? 'mph2-poster-img' : 'pv2-poster-img';
 
                     imgWrap.appendChild(img);
@@ -8256,9 +8298,10 @@ const alreadyActive = isMobile
                                 try {
                                     const game = await fetchGameDetails(id);
                                     const imageUrl = normalizeGameImageSource(game);
-                                    if (imageUrl) writePreviewAssetCache(contentType, id, imageUrl);
+                                    writePreviewAssetCache(contentType, id, imageUrl || FALLBACK_GAME_IMAGE);
                                 } catch (err) {
                                     console.error(`Error fetching game details for ${id} in preview:`, err);
+                                    writePreviewAssetCache(contentType, id, FALLBACK_GAME_IMAGE);
                                 }
                             }));
                         } else if (contentType === 'tv') {
@@ -8297,16 +8340,16 @@ const alreadyActive = isMobile
                     }
                 }
 
-                const MUSIC_FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' fill='%23132347'%3E%3Crect width='200' height='200'/%3E%3Cpath d='M85 55v60a20 20 0 1 1-10-17.3V65L60 70v50a20 20 0 1 1-10-17.3V50l35-10z' fill='%232a4070' opacity='0.5'/%3E%3C/svg%3E";
+                const MUSIC_FALLBACK_IMG = "/images/fallback/music.svg";
                 return normalizedIds.map((id) => {
                     const cached = readPreviewAssetCache(contentType, id);
                     if (cached) return cached;
                     if (contentType === 'book') return FALLBACK_BOOK_IMAGE;
                     if (contentType === 'music') return MUSIC_FALLBACK_IMG;
-                    if (contentType === 'game') return FALLBACK_BOOK_IMAGE;
+                    if (contentType === 'game') return FALLBACK_GAME_IMAGE;
                     if (contentType === 'travel') return countryFlagFromCode(normalizeCountryCode(id) || id);
                     if (contentType === 'movie' || contentType === 'tv' || contentType === 'anime') return 'images/placeholder.jpg';
-                    return FALLBACK_BOOK_IMAGE;
+                    return FALLBACK_MEDIA_IMAGE;
                 });
             }
 
@@ -9334,7 +9377,7 @@ const alreadyActive = isMobile
                     itemCard.onclick = () => window.location.href = `book.html?id=${encodeURIComponent(id)}`;
 
                     itemCard.innerHTML = `
-                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" data-raw-fallback="${rawBookFallback}" onerror="if(!this.dataset.rawTried&&this.dataset.rawFallback){this.dataset.rawTried='1';this.src=this.dataset.rawFallback}else{this.onerror=null;this.src='/newlogo.webp'}">
+                        <img class="collection-item-image" src="${image}" alt="${title}" loading="lazy" data-raw-fallback="${rawBookFallback}" data-fb="${FALLBACK_BOOK_IMAGE}" onerror="if(!this.dataset.rawTried&&this.dataset.rawFallback){this.dataset.rawTried='1';this.src=this.dataset.rawFallback}else if(!this.dataset.fbTried){this.dataset.fbTried='1';this.src=this.dataset.fb}else{this.onerror=null;}">
                         <div class="collection-item-body">
                             <h3 class="collection-item-title">${ProfileManager.escapeHtml(title)}</h3>
                             ${canEditItems ? `
@@ -11901,14 +11944,14 @@ return;
         window.ProfileManager = Object.assign(window.ProfileManager || {}, ProfileManager);
 
         // ===== INITIALIZE WHEN DOM IS LOADED =====
-        document.addEventListener('DOMContentLoaded', function() {
+        function bootProfileManager() {
+            if (window.__profileManagerBooted) return;
+            window.__profileManagerBooted = true;
             ProfileManager.initialize();
-        });
+        }
 
-
-
-
-
-
-
-
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootProfileManager);
+        } else {
+            bootProfileManager();
+        }
