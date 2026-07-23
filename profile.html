@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260723h">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260723i">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260723h" defer></script>
+    <script src="js/pages/profile.js?v=20260723i" defer></script>
     <noscript></noscript>
 
   
@@ -1450,27 +1450,65 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-            <!-- Movie Detail View -->
+            <!-- Mobile Movie Detail View -->
             <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0" onclick="ProfileManager.backToProfile()">
-                        <i class="fas fa-arrow-left"></i> Back
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('movie')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
                     </button>
-                    <span id="mobileMovieDetailTitle">Collection</span>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileMovieDetailTitle">Favorites</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileMovieDetailDescription">Movies you love</span>
+                            <span class="dot-sep">•</span>
+                            <span class="collection-count-text" id="mobileMovieDetailCount">0 movies</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileMovieDetailDescription"></div>
-                <div class="collection-view-toggle mb-10" data-media="movie">
-                    <button class="collection-view-toggle-btn" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)"><i class="fas fa-th"></i></button>
-                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)"><i class="fas fa-list"></i></button>
+
+                <!-- Sticky Glass Toolbar V2 (Mobile) -->
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-search-wrap">
+                            <i class="fas fa-search collection-search-icon"></i>
+                            <input type="text" class="collection-search-input" id="mobileMovieSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('movie', this.value)">
+                        </div>
+
+                        <div class="collection-toolbar-controls">
+                            <div class="collection-sort-wrap">
+                                <select class="collection-sort-select" id="mobileMovieSortSelect" onchange="ProfileManager.sortCollectionItems('movie', this.value)">
+                                    <option value="recent">Recently Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="alpha">Alphabetical</option>
+                                    <option value="release">Release Date</option>
+                                    <option value="rating">Rating</option>
+                                    <option value="title">Title</option>
+                                </select>
+                            </div>
+
+                            <div class="collection-view-toggle" data-media="movie">
+                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)" title="Grid View">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)" title="List View">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+
+                            <div class="collection-detail-actions hidden" id="mobileMovieDetailActions">
+                                <button class="btn-action-icon" id="mobileMovieListEditBtn" title="Edit Collection">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button class="btn-action-icon btn-action-danger" id="mobileMovieListDeleteBtn" title="Delete Collection">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div id="mobileMovieDetailActions" class="hidden d-flex gap-sm mt-8 mb-4">
-                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListEditBtn">
-                        <i class="fas fa-pen"></i> Edit
-                    </button>
-                    <button class="mobile-action-btn secondary btn-base" id="mobileMovieListDeleteBtn">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-                </div>
+
                 <div id="mobileMovieItems"></div>
             </div>
 
