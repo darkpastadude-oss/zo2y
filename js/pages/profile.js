@@ -8376,11 +8376,113 @@ const alreadyActive = isMobile
                 });
             }
 
+            function setCollectionAmbientBackdrop(imageUrl) {
+                let ambientEl = document.getElementById('collectionAmbientBg');
+                if (!ambientEl) {
+                    ambientEl = document.createElement('div');
+                    ambientEl.id = 'collectionAmbientBg';
+                    ambientEl.className = 'collection-detail-ambient-bg';
+                    document.body.appendChild(ambientEl);
+                }
+                if (imageUrl) {
+                    ambientEl.style.backgroundImage = `url("${imageUrl}")`;
+                    ambientEl.style.opacity = '0.05';
+                } else {
+                    ambientEl.style.opacity = '0';
+                }
+            }
+
+            async function backToCollections(contentType) {
+                document.body.classList.remove('in-collection-detail');
+                setCollectionAmbientBackdrop(null);
+
+                const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
+                const parentTab = getTabForCollectionType(safeType);
+                currentMediaDetail = null;
+
+                document.querySelectorAll('.tab-content, .mobile-section').forEach(el => {
+                    if (el.id && (el.id.includes('-detail-view') || el.id.includes('DetailSection'))) {
+                        el.style.display = 'none';
+                        el.classList.remove('active', 'rendered');
+                    }
+                });
+
+                leaveCollectionRoute(parentTab);
+                await showTab(parentTab);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            function filterCollectionItems(mediaType, query) {
+                const q = String(query || '').trim().toLowerCase();
+                const type = String(mediaType || '').toLowerCase();
+                const isMobile = window.innerWidth <= 768;
+                const containerId = isMobile 
+                    ? `mobile${capitalizeFirst(type)}Items` 
+                    : `${type === 'car' ? 'car' : type}ItemsContainer`;
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const cards = container.querySelectorAll('.collection-item-card, .collection-item, .tier-row-card');
+                let matchCount = 0;
+                cards.forEach(card => {
+                    const titleEl = card.querySelector('.collection-item-title, .item-title, h3, h4');
+                    const text = titleEl ? titleEl.textContent.toLowerCase() : card.textContent.toLowerCase();
+                    if (!q || text.includes(q)) {
+                        card.style.display = '';
+                        matchCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+
+            function sortCollectionItems(mediaType, sortKey) {
+                const type = String(mediaType || '').toLowerCase();
+                const isMobile = window.innerWidth <= 768;
+                const containerId = isMobile 
+                    ? `mobile${capitalizeFirst(type)}Items` 
+                    : `${type === 'car' ? 'car' : type}ItemsContainer`;
+                const container = document.getElementById(containerId);
+                if (!container) return;
+
+                const cards = Array.from(container.querySelectorAll('.collection-item-card, .collection-item, .tier-row-card'));
+                if (cards.length === 0) return;
+
+                cards.sort((a, b) => {
+                    const titleA = (a.querySelector('.collection-item-title, h3, h4')?.textContent || '').trim().toLowerCase();
+                    const titleB = (b.querySelector('.collection-item-title, h3, h4')?.textContent || '').trim().toLowerCase();
+                    
+                    if (sortKey === 'alpha' || sortKey === 'title') {
+                        return titleA.localeCompare(titleB);
+                    } else if (sortKey === 'oldest') {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                });
+
+                cards.forEach(card => container.appendChild(card));
+            }
+
             async function showCollectionDetail(listId, contentType, listType) {
+                document.body.classList.add('in-collection-detail');
                 const isMobile = window.innerWidth <= 768;
 
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
+
+                // Completely hide profile headers & hero controls on collection detail page
+                const profileHeader = document.querySelector('.profile-header');
+                if (profileHeader) profileHeader.style.display = 'none';
+                const hero = document.querySelector('.pv2-hero');
+                if (hero) hero.style.display = 'none';
+                const mobileCard = document.querySelector('.mph2-card');
+                if (mobileCard) mobileCard.style.display = 'none';
+                const viewingOther = document.getElementById('viewingOtherProfile');
+                if (viewingOther) viewingOther.style.display = 'none';
+                const statsBar = document.querySelector('.pv2-stats');
+                if (statsBar) statsBar.style.display = 'none';
+
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (isMobile) {
@@ -8403,10 +8505,6 @@ const alreadyActive = isMobile
                     if (profileContainer) profileContainer.style.display = '';
                     const overview = document.getElementById('pv2Overview');
                     if (overview) overview.style.display = 'none';
-                    const profileHeader = document.querySelector('.profile-header');
-                    if (profileHeader) profileHeader.style.display = 'none';
-                    const statsBar = document.querySelector('.pv2-stats');
-                    if (statsBar) statsBar.style.display = 'none';
                     const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                     if (listsPanel) listsPanel.style.display = 'block';
                     document.querySelectorAll('.profile-primary-panel[data-panel="lists"] .tab-content').forEach(function(el) {
@@ -8519,15 +8617,18 @@ const alreadyActive = isMobile
                     : (list.description || '');
                 const canEditList = listType === 'custom' && canEditCustomCollection('movie', listId, list);
                 const canDeleteList = listType === 'custom' && canDeleteCustomCollection('movie', listId, list);
+                const countText = getCollectionItemLabel('movie', movieIds.length);
 
                 if (isMobile) {
                     const titleEl = document.getElementById('mobileMovieDetailTitle');
                     const descEl = document.getElementById('mobileMovieDetailDescription');
+                    const countEl = document.getElementById('mobileMovieDetailCount');
                     const actions = document.getElementById('mobileMovieDetailActions');
                     const editBtn = document.getElementById('mobileMovieListEditBtn');
                     const deleteBtn = document.getElementById('mobileMovieListDeleteBtn');
                     if (titleEl) titleEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -8537,12 +8638,14 @@ const alreadyActive = isMobile
                     const iconEl = document.getElementById('movieDetailIcon');
                     const nameEl = document.getElementById('movieDetailName');
                     const descEl = document.getElementById('movieDetailDescription');
+                    const countEl = document.getElementById('movieDetailCount');
                     const actions = document.getElementById('movieDetailActions');
                     const editBtn = document.getElementById('movieListEditBtn');
                     const deleteBtn = document.getElementById('movieListDeleteBtn');
                     if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'list');
                     if (nameEl) nameEl.textContent = detailTitle;
                     if (descEl) descEl.textContent = detailDescription;
+                    if (countEl) countEl.textContent = countText;
                     if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
                     if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
                     if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
@@ -8581,6 +8684,10 @@ const alreadyActive = isMobile
                 const canEditItems = canEditCollectionItems('movie', listId, listType, list);
 
                 const movies = await Promise.all(rankedMovieIds.map(id => fetchMovieDetails(id)));
+                const validMovies = movies.filter(Boolean);
+                if (validMovies.length > 0 && validMovies[0].poster_path) {
+                    setCollectionAmbientBackdrop(TMDB_POSTER + validMovies[0].poster_path);
+                }
 
                 container.innerHTML = '';
 
@@ -11960,6 +12067,9 @@ return;
                 setShowcaseList: setShowcaseList,
                 setShowcaseOrder: setShowcaseOrder,
                 backToProfile: backToProfile,
+                backToCollections: backToCollections,
+                filterCollectionItems: filterCollectionItems,
+                sortCollectionItems: sortCollectionItems,
                 showShowcaseDetail: showShowcaseDetail,
                 reorderList: reorderList
             };
