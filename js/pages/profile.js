@@ -4286,6 +4286,9 @@
             function bindRouteListeners() {
                 if (hasBoundRouteListeners) return;
                 hasBoundRouteListeners = true;
+                if ('scrollRestoration' in history) {
+                    history.scrollRestoration = 'manual';
+                }
                 window.addEventListener('popstate', () => {
                     hydrateInitialRoute().catch((error) => {
                         console.error('Route hydration failed:', error);
@@ -4408,6 +4411,10 @@
                     if (statsBar) statsBar.style.display = '';
                     currentTab = DEFAULT_PROFILE_TAB;
                     requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                    requestAnimationFrame(() => { window.scrollTo(0, 0); });
                     return;
                 }
 
@@ -7136,10 +7143,23 @@
 
                     const container = document.getElementById('pv2CategoryContent');
                     if (container) {
-                        container.innerHTML = Skel.rail(6);
                         const userId = isViewingOwnProfile ? currentUser?.id : targetUserId;
+                        window.sessionProfileListsCache = window.sessionProfileListsCache || new Map();
+                        const cacheKey = `${userId}_${mappedTab}`;
+                        const isCached = window.sessionProfileListsCache.has(cacheKey);
+
+                        if (!isCached) {
+                            container.innerHTML = Skel.rail(6);
+                        }
+
                         if (userId && window.ProfileShowcase) {
-                            window.ProfileShowcase.getAllListsForType(mappedTab, userId).then(async allLists => {
+                            let listsPromise = window.sessionProfileListsCache.get(cacheKey);
+                            if (!listsPromise) {
+                                listsPromise = window.ProfileShowcase.getAllListsForType(mappedTab, userId);
+                                window.sessionProfileListsCache.set(cacheKey, listsPromise);
+                            }
+
+                            listsPromise.then(async allLists => {
                                 container.innerHTML = '';
                                 let hasAddedDivider = false;
                                 const addDivider = () => {
@@ -8405,6 +8425,15 @@ const alreadyActive = isMobile
                 if (mobileView) mobileView.style.display = '';
                 const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
                 if (profileContainer) profileContainer.style.display = '';
+
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                });
             }
 
             function hideProfileHeaderForDetail() {
@@ -8422,8 +8451,6 @@ const alreadyActive = isMobile
             }
 
             async function backToCollections(contentType) {
-                restoreProfileHeader();
-
                 const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
                 const parentTab = getTabForCollectionType(safeType);
                 currentMediaDetail = null;
@@ -8435,9 +8462,18 @@ const alreadyActive = isMobile
                     }
                 });
 
+                if (window.previousWasCollectionRoute && window.history.length > 1) {
+                    window.previousWasCollectionRoute = false;
+                    window.history.back();
+                    return;
+                }
+
                 leaveCollectionRoute(parentTab);
                 await showTab(parentTab);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                requestAnimationFrame(() => { window.scrollTo(0, 0); });
             }
 
             function filterCollectionItems(mediaType, query) {
@@ -8499,7 +8535,10 @@ const alreadyActive = isMobile
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
 
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                requestAnimationFrame(() => { window.scrollTo(0, 0); });
 
                 if (isMobile) {
                     const mobileView = document.querySelector('.mobile-only');
@@ -10710,6 +10749,9 @@ const alreadyActive = isMobile
 
             function backToProfile() {
                 restoreProfileHeader();
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+
                 const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                 if (listsTab) listsTab.style.display = 'none';
                 const mobileListsPanel = document.getElementById('mobileListsPanel');
@@ -10747,8 +10789,19 @@ const alreadyActive = isMobile
                 const statsBar = document.querySelector('.pv2-stats');
                 if (statsBar) statsBar.style.display = '';
                 currentTab = DEFAULT_PROFILE_TAB;
+
+                if (window.previousWasCollectionRoute && window.history.length > 1) {
+                    window.previousWasCollectionRoute = false;
+                    window.history.back();
+                    return;
+                }
+
                 const nextUrl = buildProfileUrl({});
-                history.pushState({}, '', nextUrl);
+                history.replaceState({}, '', nextUrl);
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                requestAnimationFrame(() => { window.scrollTo(0, 0); });
             }
 
             function showShowcaseDetail(type) {
