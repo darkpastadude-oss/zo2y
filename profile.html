@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260723g">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260723h">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260723g" defer></script>
+    <script src="js/pages/profile.js?v=20260723h" defer></script>
     <noscript></noscript>
 
   
@@ -420,25 +420,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Movie Detail View -->
             <div class="tab-content" id="movie-detail-view">
                 <div class="section">
-                    <div class="collection-detail-header-compact">
-                        <div class="collection-detail-top-row">
-                            <button class="collection-back-arrow" onclick="ProfileManager.backToCollections('movie')" title="Back to Collections" aria-label="Back">
-                                <i class="fas fa-arrow-left"></i>
-                            </button>
-                        </div>
-                        <div class="collection-title-wrap">
-                            <div class="collection-title-main-line">
-                                <h1 class="collection-title-text" id="movieDetailTitle">
-                                    <span id="movieDetailIcon"></span>
-                                    <span id="movieDetailName">Collection</span>
-                                </h1>
-                                <div class="collection-meta-count" id="movieDetailCount">0 items</div>
-                            </div>
-                            <p class="collection-subtitle-text" id="movieDetailDescription">Collection description</p>
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('movie')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="movieDetailTitle">
+                                <span id="movieDetailIcon"></span>
+                                <span id="movieDetailName">Favorites</span>
+                            </h1>
+                            <p class="collection-subheading">
+                                <span id="movieDetailDescription">Movies you love</span>
+                                <span class="dot-sep">•</span>
+                                <span class="collection-count-text" id="movieDetailCount">0 movies</span>
+                            </p>
                         </div>
                     </div>
 
-                    <!-- Sticky Glass Toolbar -->
+                    <!-- Sticky Glass Toolbar V2 -->
                     <div class="collection-sticky-toolbar">
                         <div class="collection-toolbar-inner">
                             <div class="collection-search-wrap">
@@ -446,33 +445,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <input type="text" class="collection-search-input" id="movieSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('movie', this.value)">
                             </div>
 
-                            <div class="collection-sort-wrap">
-                                <select class="collection-sort-select" id="movieSortSelect" onchange="ProfileManager.sortCollectionItems('movie', this.value)">
-                                    <option value="recent">Recently Added</option>
-                                    <option value="oldest">Oldest Added</option>
-                                    <option value="alpha">Alphabetical</option>
-                                    <option value="release">Release Date</option>
-                                    <option value="rating">Rating</option>
-                                    <option value="title">Title</option>
-                                </select>
-                            </div>
+                            <div class="collection-toolbar-controls">
+                                <div class="collection-sort-wrap">
+                                    <select class="collection-sort-select" id="movieSortSelect" onchange="ProfileManager.sortCollectionItems('movie', this.value)">
+                                        <option value="recent">Recently Added</option>
+                                        <option value="oldest">Oldest Added</option>
+                                        <option value="alpha">Alphabetical</option>
+                                        <option value="release">Release Date</option>
+                                        <option value="rating">Rating</option>
+                                        <option value="title">Title</option>
+                                    </select>
+                                </div>
 
-                            <div class="collection-view-toggle" data-media="movie">
-                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid')" title="Grid View">
-                                    <i class="fas fa-th-large"></i>
-                                </button>
-                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list')" title="List View">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                            </div>
+                                <div class="collection-view-toggle" data-media="movie">
+                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid')" title="Grid View">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list')" title="List View">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
 
-                            <div class="collection-detail-actions hidden" id="movieDetailActions">
-                                <button class="btn-action-icon" id="movieListEditBtn" title="Edit Collection">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="btn-action-icon btn-action-danger" id="movieListDeleteBtn" title="Delete Collection">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <div class="collection-detail-actions hidden" id="movieDetailActions">
+                                    <button class="btn-action-icon" id="movieListEditBtn" title="Edit Collection">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon btn-action-danger" id="movieListDeleteBtn" title="Delete Collection">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -83,7 +83,7 @@
             let tabSwitchToken = 0;
             let hasBoundRouteListeners = false;
             let hasBoundModalViewportListeners = false;
-            const TAB_RENDER_CACHE_TTL_MS = 5 * 60 * 1000;
+            const TAB_RENDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
             const tabRenderCache = new Map();
             const PREVIEW_ASSET_CACHE_TTL_MS = 10 * 60 * 1000;
             const previewAssetCache = new Map();
@@ -262,12 +262,10 @@
                 let initCompleted = false;
                 
                 try {
-                    console.log('[profile.js] Starting ProfileManager.initialize()...');
                     clearLegacyProfileBookCaches();
 
                     // Wait for window.supabase if scripts are still evaluating
                     if (!window.supabase) {
-                        console.log('[profile.js] window.supabase not ready yet, waiting up to 10s...');
                         const sTime = Date.now();
                         while (!window.supabase && (Date.now() - sTime < 10000)) {
                             await new Promise(r => setTimeout(r, 50));
@@ -275,14 +273,11 @@
                     }
 
                     if (!window.supabase) {
-                        console.error('[profile.js] Supabase library failed to load after waiting 10s');
                         return;
                     }
-                    console.log('[profile.js] Supabase library confirmed available');
 
                     const authRuntime = window.ZO2Y_AUTH || null;
                     if (authRuntime && typeof authRuntime.waitForSupabase === 'function') {
-                        console.log('[profile.js] Calling authRuntime.waitForSupabase(8000)...');
                         await authRuntime.waitForSupabase(8000);
                     }
 
@@ -300,7 +295,6 @@
                             }
                         });
                     }
-                    console.log('[profile.js] Supabase client initialized');
                     
                     const user = await resolveAuthenticatedProfileUser(supabase);
                     if (!user) { 

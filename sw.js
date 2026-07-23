@@ -49,7 +49,6 @@ const STATIC_ASSETS = [
   '/newlogo.webp',
   '/logo-placeholder.svg',
   '/scared.webp',
-  '/file-blank.svg',
   '/file.svg',
   '/sports.html',
   '/css/pages/sports-page.css?v=20260626a',
