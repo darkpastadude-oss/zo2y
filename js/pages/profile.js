@@ -905,6 +905,15 @@
                 }
             }
 
+            function confirmLogout() {
+                closeGearMenu();
+                showConfirmModal(
+                    'Logout',
+                    'Are you sure you want to log out?',
+                    () => logout()
+                );
+            }
+
             // ===== LOGOUT FUNCTION =====
             async function logout() {
                 function clearAuthStorageNuclear() {
@@ -11940,6 +11949,7 @@ return;
                 showCreateListTypeModal,
                 createListForType,
                 logout,
+                confirmLogout,
                 escapeHtml,
                 getFavoriteBackdropUrls: getFavoriteBackdropUrls,
                 favoriteIds: favoriteIds,
