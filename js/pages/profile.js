@@ -7110,6 +7110,10 @@
                     if (listsTab) listsTab.style.display = 'none';
                     const mobileListsPanel = document.getElementById('mobileListsPanel');
                     if (mobileListsPanel) mobileListsPanel.style.display = 'none';
+                    const desktopView = document.querySelector('.desktop-only');
+                    const mobileView = document.querySelector('.mobile-only');
+                    if (desktopView) desktopView.style.display = 'none';
+                    if (mobileView) mobileView.style.display = 'none';
 
                     categoryView.style.display = 'block';
 
@@ -8668,6 +8672,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'movie', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('movie');
                 await renderMovieItems(movieIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileMovieItems')
+                    : document.getElementById('movieItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : movieIds.length;
+                const finalCountText = getCollectionItemLabel('movie', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileMovieDetailCount' : 'movieDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderMovieItems(movieIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -8857,35 +8869,18 @@ const alreadyActive = isMobile
                     if (editBtn) editBtn.onclick = () => renameTvList(listId);
                     if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
                 }
-                    const editBtn = document.getElementById('mobileTvListEditBtn');
-                    const deleteBtn = document.getElementById('mobileTvListDeleteBtn');
-                    if (titleEl) titleEl.textContent = detailTitle;
-                    if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
-                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
-                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
-                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
-                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
-                } else {
-                    const iconEl = document.getElementById('tvDetailIcon');
-                    const nameEl = document.getElementById('tvDetailName');
-                    const descEl = document.getElementById('tvDetailDescription');
-                    const actions = document.getElementById('tvDetailActions');
-                    const editBtn = document.getElementById('tvListEditBtn');
-                    const deleteBtn = document.getElementById('tvListDeleteBtn');
-                    if (iconEl) iconEl.innerHTML = iconGlyph(list.icon, 'tv');
-                    if (nameEl) nameEl.textContent = detailTitle;
-                    if (descEl) descEl.textContent = detailDescription;
-                    if (actions) actions.style.display = (canEditList || canDeleteList) ? 'flex' : 'none';
-                    if (editBtn) editBtn.style.display = canEditList ? 'inline-flex' : 'none';
-                    if (deleteBtn) deleteBtn.style.display = canDeleteList ? 'inline-flex' : 'none';
-                    if (editBtn) editBtn.onclick = () => renameTvList(listId);
-                    if (deleteBtn) deleteBtn.onclick = () => deleteTvList(listId);
-                }
 
                 currentMediaDetail = { mediaType: 'tv', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('tv');
                 await renderTvItems(tvIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileTvItems')
+                    : document.getElementById('tvItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : tvIds.length;
+                const finalCountText = getCollectionItemLabel('tv', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileTvDetailCount' : 'tvDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderTvItems(tvIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -9077,6 +9072,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'anime', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('anime');
                 await renderAnimeItems(animeIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileAnimeItems')
+                    : document.getElementById('animeItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : animeIds.length;
+                const finalCountText = getCollectionItemLabel('anime', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileAnimeDetailCount' : 'animeDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderAnimeItems(animeIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -9268,6 +9271,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'game', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('game');
                 await renderGameItems(gameIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileGameItems')
+                    : document.getElementById('gameItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : gameIds.length;
+                const finalCountText = getCollectionItemLabel('game', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileGameDetailCount' : 'gameDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderGameItems(gameIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -9471,6 +9482,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'book', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('book');
                 await renderBookItems(bookIds, listId, listType, isMobile, list, listOwnerUserId, listItemsMeta);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileBookItems')
+                    : document.getElementById('bookItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : bookIds.length;
+                const finalCountText = getCollectionItemLabel('book', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileBookDetailCount' : 'bookDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderBookItems(bookIds, listId, listType, isMobile, list = null, ownerUserId = null, listItemsMeta = null) {
@@ -9735,6 +9754,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'music', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('music');
                 await renderMusicItems(trackIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileMusicItems')
+                    : document.getElementById('musicItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : trackIds.length;
+                const finalCountText = getCollectionItemLabel('music', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileMusicDetailCount' : 'musicDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderMusicItems(trackIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -10110,6 +10137,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'fashion', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('fashion');
                 await renderFashionItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileFashionItems')
+                    : document.getElementById('fashionItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : brandIds.length;
+                const finalCountText = getCollectionItemLabel('fashion', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileFashionDetailCount' : 'fashionDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderFashionItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -10282,6 +10317,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'car', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('car');
                 await renderCarItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileCarsItems')
+                    : document.getElementById('carsItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : brandIds.length;
+                const finalCountText = getCollectionItemLabel('car', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileCarsDetailCount' : 'carsDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderCarItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -10467,6 +10510,14 @@ const alreadyActive = isMobile
                 currentMediaDetail = { mediaType: 'food', listId, listType, isMobile };
                 updateCollectionViewToggleButtons('food');
                 await renderFoodItems(brandIds, listId, listType, isMobile, list, listOwnerUserId);
+
+                const finalCount = isMobile
+                    ? document.getElementById('mobileFoodItems')
+                    : document.getElementById('foodItemsContainer');
+                const finalCountNum = finalCount ? finalCount.querySelectorAll('.collection-item-card').length : brandIds.length;
+                const finalCountText = getCollectionItemLabel('food', finalCountNum);
+                const finalCountEl = document.getElementById(isMobile ? 'mobileFoodDetailCount' : 'foodDetailCount');
+                if (finalCountEl) finalCountEl.textContent = finalCountText;
             }
 
             async function renderFoodItems(brandIds, listId, listType, isMobile, list = null, ownerUserId = null) {
@@ -10704,8 +10755,14 @@ const alreadyActive = isMobile
                 const listId = getShowcaseListId(type);
                 const listType = (listId === 'favorites' || listId === 'watched' || listId === 'watchlist' || listId === 'read' || listId === 'readlist' || listId === 'currently_reading' || listId === 'played' || listId === 'wishlist' || listId === 'visited' || listId === 'bucketlist' || listId === 'tried' || listId === 'want_to_try' || listId === 'owned') ? 'default' : 'custom';
                 const isMobile = window.innerWidth <= 768;
-                
-                // Hide the Overview Panels
+
+                const categoryView = document.getElementById('pv2CategoryView');
+                if (categoryView) categoryView.style.display = 'none';
+                const desktopView = document.querySelector('.desktop-only');
+                const mobileView = document.querySelector('.mobile-only');
+                if (desktopView) desktopView.style.display = '';
+                if (mobileView) mobileView.style.display = '';
+
                 const overview = document.getElementById('pv2Overview');
                 if (overview) overview.style.display = 'none';
                 const mobileOverview = document.getElementById('mobileOverviewPanel');
