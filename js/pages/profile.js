@@ -39,7 +39,7 @@
             let targetUserId = null;
             let isViewingOwnProfile = true;
 
-            const DEFAULT_PROFILE_TAB = 'movies';
+            const DEFAULT_PROFILE_TAB = 'overview';
             const VALID_PRIMARY_TABS = new Set(['lists', 'activity', 'overview']);
             let currentPrimaryTab = 'overview';
             let lastMediaTab = DEFAULT_PROFILE_TAB;
@@ -181,7 +181,7 @@
             let hasBoundStatsRealtimeLifecycle = false;
             const STATS_REALTIME_DEBOUNCE_MS = 220;
             const VALID_PROFILE_TABS = new Set(
-                ['movies', 'tv', 'anime', 'games', 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
+                ['overview', 'movies', 'tv', 'anime', 'games', 'books', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'community']
             );
             const VALID_COLLECTION_TYPES = new Set([
                 'movie',
@@ -4351,7 +4351,8 @@
 
             async function hydrateInitialRoute() {
                 const params = new URLSearchParams(window.location.search);
-                const requestedTab = normalizeProfileTab(params.get('tab'));
+                const rawTab = params.get('tab');
+                const requestedTab = rawTab ? normalizeProfileTab(rawTab) : 'overview';
                 const routeCollection = String(params.get('collection') || '').toLowerCase();
                 const routeListId = params.get('listId');
                 const routeListType = params.get('listType');
@@ -4359,7 +4360,7 @@
 
                 const isMediaTab = ['movies', 'tvshows', 'tv', 'anime', 'games', 'game', 'books', 'book', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'car'].includes(requestedTab);
                 const hasDetailRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
-                const hasCategoryRoute = !hasDetailRoute && isMediaTab && requestedTab !== 'sports';
+                const hasCategoryRoute = !hasDetailRoute && isMediaTab && requestedTab !== 'sports' && requestedTab !== 'overview';
 
                 const resetScrollTop = () => {
                     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -4384,8 +4385,8 @@
                     const overview = document.getElementById('pv2Overview');
                     if (overview) overview.style.display = '';
 
-                    currentTab = DEFAULT_PROFILE_TAB;
-                    requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
+                    currentTab = 'overview';
+                    requestTabRender('overview', ++tabSwitchToken);
                     resetScrollTop();
                     return;
                 }
