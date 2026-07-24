@@ -4356,86 +4356,72 @@
                 const routeListId = params.get('listId');
                 const routeListType = params.get('listType');
                 const routeView = normalizeCollectionViewMode(params.get('view'));
-                const hasCollectionRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
-                const initialTab = hasCollectionRoute ? getTabForCollectionType(routeCollection) : requestedTab;
 
-                const returningFromCollection = window.previousWasCollectionRoute && !hasCollectionRoute;
-                window.previousWasCollectionRoute = hasCollectionRoute;
+                const isMediaTab = ['movies', 'tvshows', 'tv', 'anime', 'games', 'game', 'books', 'book', 'music', 'sports', 'travel', 'fashion', 'food', 'cars', 'car'].includes(requestedTab);
+                const hasDetailRoute = !!(routeCollection && routeListId && VALID_COLLECTION_TYPES.has(routeCollection));
+                const hasCategoryRoute = !hasDetailRoute && isMediaTab && requestedTab !== 'sports';
 
-                if (returningFromCollection) {
+                const resetScrollTop = () => {
+                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                    requestAnimationFrame(() => { window.scrollTo(0, 0); });
+                };
+
+                // Level 1: Main Profile Homepage Overview
+                if (!hasDetailRoute && !hasCategoryRoute && (requestedTab === 'overview' || !requestedTab)) {
+                    restoreProfileHeader();
                     const categoryView = document.getElementById('pv2CategoryView');
                     if (categoryView) categoryView.style.display = 'none';
                     resetDetailPanels();
                     currentMediaDetail = null;
-                    const isMobile = window.innerWidth <= 768;
-                    document.querySelectorAll('.tab-content').forEach(function(el) {
-                        el.classList.remove('active', 'rendered');
-                        el.style.display = 'none';
-                    });
+
                     const desktopView = document.querySelector('.desktop-only');
                     const mobileView = document.querySelector('.mobile-only');
                     if (desktopView) desktopView.style.display = '';
                     if (mobileView) mobileView.style.display = '';
-                    const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
-                    if (profileContainer) profileContainer.style.display = '';
-                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                    if (listsTab) listsTab.style.display = 'none';
-                    const mobileListsPanel = document.getElementById('mobileListsPanel');
-                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
-                    if (isMobile) {
-                        const overviewPanel = document.getElementById('mobileOverviewPanel');
-                        const listsPanel = document.getElementById('mobileListsPanel');
-                        const communityPanel = document.getElementById('mobileCommunityPanel');
-                        const spaContainer = document.getElementById('mobileSpaViewAllContainer');
-                        const mediaToggle = document.querySelector('.mobile-media-toggle');
-                        if (overviewPanel) overviewPanel.style.display = '';
-                        if (listsPanel) listsPanel.style.display = 'none';
-                        if (communityPanel) communityPanel.style.display = 'none';
-                        if (spaContainer) spaContainer.innerHTML = '';
-                        if (mediaToggle) mediaToggle.style.display = '';
-                        document.querySelectorAll('.mobile-tab').forEach(function(tab) {
-                            tab.classList.remove('active');
-                        });
-                        closeProfileTabGroups();
-                    }
+
                     const overview = document.getElementById('pv2Overview');
-                    const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
                     if (overview) overview.style.display = '';
-                    if (listsPanel) listsPanel.style.display = 'none';
-                    const profileHeader = document.querySelector('.profile-header');
-                    if (profileHeader) profileHeader.style.display = '';
-                    const statsBar = document.querySelector('.pv2-stats');
-                    if (statsBar) statsBar.style.display = '';
+
+                    const viewingOther = document.getElementById('viewingOtherProfile');
+                    if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
+
                     currentTab = DEFAULT_PROFILE_TAB;
                     requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
+                    resetScrollTop();
                     return;
                 }
 
-                if (initialTab !== currentTab) {
-                    showTab(initialTab, { skipUrlSync: true, skipRender: hasCollectionRoute });
-                } else if (!hasCollectionRoute) {
-                    requestTabRender(initialTab, ++tabSwitchToken);
-                }
-
-                if (!hasCollectionRoute) {
+                // Level 2: Category Collections View (e.g. tab=movies)
+                if (hasCategoryRoute) {
+                    resetDetailPanels();
+                    currentMediaDetail = null;
+                    await showTab(requestedTab, { skipUrlSync: true });
+                    resetScrollTop();
                     return;
                 }
 
-                collectionViewModes[routeCollection] = routeView;
-                persistCollectionViewModes();
-                updateCollectionViewToggleButtons(routeCollection);
+                // Level 3: Collection Detailed List View
+                if (hasDetailRoute) {
+                    collectionViewModes[routeCollection] = routeView;
+                    persistCollectionViewModes();
+                    updateCollectionViewToggleButtons(routeCollection);
 
-                const expectedTab = getTabForCollectionType(routeCollection);
-                if (expectedTab !== currentTab) {
-                    showTab(expectedTab, { skipUrlSync: true, skipRender: true });
-                }
+                    const expectedTab = getTabForCollectionType(routeCollection);
+                    if (expectedTab !== currentTab) {
+                        await showTab(expectedTab, { skipUrlSync: true, skipRender: true });
+                    }
 
-                try {
-                    const fallbackListType = routeListType || 'default';
-                    await showCollectionDetail(routeListId, routeCollection, fallbackListType);
-                } catch (error) {
-                    console.error('Unable to open collection route:', error);
-                    showToast('Unable to open this collection', 'error');
+                    try {
+                        const fallbackListType = routeListType || 'default';
+                        await showCollectionDetail(routeListId, routeCollection, fallbackListType);
+                    } catch (error) {
+                        console.error('Unable to open collection route:', error);
+                        showToast('Unable to open this collection', 'error');
+                    }
+                    resetScrollTop();
+                    return;
                 }
             }
 
@@ -8446,23 +8432,13 @@ const alreadyActive = isMobile
             }
 
             async function backToCollections(contentType) {
-                document.body.classList.remove('in-collection-detail');
-                setCollectionAmbientBackdrop(null);
-
                 const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
                 const parentTab = getTabForCollectionType(safeType);
                 currentMediaDetail = null;
 
-                document.querySelectorAll('.tab-content, .mobile-section').forEach(el => {
-                    if (el.id && (el.id.includes('-detail-view') || el.id.includes('DetailSection'))) {
-                        el.style.display = 'none';
-                        el.classList.remove('active', 'rendered');
-                    }
-                });
-
-                leaveCollectionRoute(parentTab);
-                await showTab(parentTab);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const nextUrl = buildProfileUrl({ tab: parentTab });
+                history.replaceState({}, '', nextUrl);
+                await hydrateInitialRoute();
             }
 
             function filterCollectionItems(mediaType, query) {
@@ -10737,54 +10713,10 @@ const alreadyActive = isMobile
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
-                
-                const categoryView = document.getElementById('pv2CategoryView');
-                if (categoryView) categoryView.style.display = 'none';
-                const desktopView = document.querySelector('.desktop-only');
-                const mobileView = document.querySelector('.mobile-only');
-                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
-                if (desktopView) desktopView.style.display = '';
-                if (mobileView) mobileView.style.display = '';
-                if (profileContainer) profileContainer.style.display = '';
-                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                    if (listsTab) listsTab.style.display = 'none';
-                    const mobileListsPanel = document.getElementById('mobileListsPanel');
-                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
-
-resetDetailPanels();
                 currentMediaDetail = null;
-                const isMobile = window.innerWidth <= 768;
-                document.querySelectorAll('.tab-content').forEach(el => {
-                    el.classList.remove('active', 'rendered');
-                    el.style.display = 'none';
-                });
-                if (isMobile) {
-                    const overviewPanel = document.getElementById('mobileOverviewPanel');
-                    const listsPanel = document.getElementById('mobileListsPanel');
-                    const communityPanel = document.getElementById('mobileCommunityPanel');
-                    const spaContainer = document.getElementById('mobileSpaViewAllContainer');
-                    const mediaToggle = document.querySelector('.mobile-media-toggle');
-                    if (overviewPanel) overviewPanel.style.display = '';
-                    if (listsPanel) listsPanel.style.display = 'none';
-                    if (communityPanel) communityPanel.style.display = 'none';
-                    if (spaContainer) spaContainer.innerHTML = '';
-                    if (mediaToggle) mediaToggle.style.display = '';
-                    document.querySelectorAll('.mobile-tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    closeProfileTabGroups();
-                }
-                const overview = document.getElementById('pv2Overview');
-                const listsPanel = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                if (overview) overview.style.display = '';
-                if (listsPanel) listsPanel.style.display = 'none';
-                const profileHeader = document.querySelector('.profile-header');
-                if (profileHeader) profileHeader.style.display = '';
-                const statsBar = document.querySelector('.pv2-stats');
-                if (statsBar) statsBar.style.display = '';
-                currentTab = DEFAULT_PROFILE_TAB;
                 const nextUrl = buildProfileUrl({});
-                history.pushState({}, '', nextUrl);
+                history.replaceState({}, '', nextUrl);
+                hydrateInitialRoute().catch(err => console.error(err));
             }
 
             function showShowcaseDetail(type) {
