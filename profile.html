@@ -37,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
     </script>
     <link rel="stylesheet" href="css/animations.css?v=1751700000z">
     <link rel="stylesheet" href="css/skeleton.css?v=20260705">
-    <link rel="stylesheet" href="css/pages/profile.css?v=20260723i">
+    <link rel="stylesheet" href="css/pages/profile.css?v=20260708a">
     <link rel="icon" href="/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="192x192" href="/images/icon-192.png" />
   <meta name="theme-color" content="#0b1633" />
@@ -55,7 +55,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 <script src="js/shared-header.js?v=20260721B" defer></script>
 
     <script src="/js/components/list-modal.js?v=20260722b" defer></script>
-    <script src="js/pages/profile.js?v=20260723i" defer></script>
+    <script src="js/pages/profile.js?v=20260723b" defer></script>
     <noscript></noscript>
 
   
@@ -138,7 +138,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                     <i class="fas fa-sliders-h"></i> Account Settings
                                 </button>
                                 <div class="pv2-gear-divider"></div>
-                                <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.confirmLogout()">
+                                <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.logout()">
                                     <i class="fas fa-sign-out-alt"></i> Logout
                                 </button>
                             </div>
@@ -439,52 +439,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                         </div>
                     </div>
 
-                    <!-- Sticky Glass Toolbar V2 -->
-                    <div class="collection-sticky-toolbar">
-                        <div class="collection-toolbar-inner">
-                            <div class="collection-search-wrap">
-                                <i class="fas fa-search collection-search-icon"></i>
-                                <input type="text" class="collection-search-input" id="movieSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('movie', this.value)">
-                            </div>
-
-                            <div class="collection-toolbar-controls">
-                                <div class="collection-sort-wrap">
-                                    <select class="collection-sort-select" id="movieSortSelect" onchange="ProfileManager.sortCollectionItems('movie', this.value)">
-                                        <option value="recent">Recently Added</option>
-                                        <option value="oldest">Oldest Added</option>
-                                        <option value="alpha">Alphabetical</option>
-                                        <option value="release">Release Date</option>
-                                        <option value="rating">Rating</option>
-                                        <option value="title">Title</option>
-                                    </select>
-                                </div>
-
-                                <div class="collection-view-toggle" data-media="movie">
-                                    <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid')" title="Grid View">
-                                        <i class="fas fa-th-large"></i>
-                                    </button>
-                                    <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list')" title="List View">
-                                        <i class="fas fa-list"></i>
-                                    </button>
-                                </div>
-
-                                <div class="collection-detail-actions hidden" id="movieDetailActions">
-                                    <button class="btn-action-icon" id="movieListEditBtn" title="Edit Collection">
-                                        <i class="fas fa-pen"></i>
-                                    </button>
-                                    <button class="btn-action-icon btn-action-danger" id="movieListDeleteBtn" title="Delete Collection">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="movieItemsContainer"></div>
-                </div>
-            </div>
-
-            <!-- TV Shows Tab Content -->
+                    <!-- TV Shows Tab Content -->
             <div class="tab-content" id="tv-tab">
                 <div class="section">
                     <div class="section-header">
@@ -1379,7 +1334,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                                 <i class="fas fa-sliders-h"></i> Account Settings
                             </button>
                             <div class="pv2-gear-divider"></div>
-                            <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.confirmLogout()">
+                            <button class="pv2-gear-item pv2-gear-danger" onclick="window.ProfileManager&&ProfileManager.logout()">
                                 <i class="fas fa-sign-out-alt"></i> Logout
                             </button>
                         </div>
@@ -1580,7 +1535,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                 </div>
             </div>
 
-            <!-- Mobile Movie Detail View -->
+            <!-- Movie Detail View -->
             <div class="mobile-section" id="mobileMovieDetailSection" style="display: none;">
                 <div class="collection-detail-header-v2">
                     <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('movie')" title="Back to Collections" aria-label="Back">
@@ -1598,51 +1553,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
                     </div>
                 </div>
 
-                <!-- Sticky Glass Toolbar V2 (Mobile) -->
-                <div class="collection-sticky-toolbar">
-                    <div class="collection-toolbar-inner">
-                        <div class="collection-search-wrap">
-                            <i class="fas fa-search collection-search-icon"></i>
-                            <input type="text" class="collection-search-input" id="mobileMovieSearchInput" placeholder="Search..." oninput="ProfileManager.filterCollectionItems('movie', this.value)">
-                        </div>
-
-                        <div class="collection-toolbar-controls">
-                            <div class="collection-sort-wrap">
-                                <select class="collection-sort-select" id="mobileMovieSortSelect" onchange="ProfileManager.sortCollectionItems('movie', this.value)">
-                                    <option value="recent">Recently Added</option>
-                                    <option value="oldest">Oldest Added</option>
-                                    <option value="alpha">Alphabetical</option>
-                                    <option value="release">Release Date</option>
-                                    <option value="rating">Rating</option>
-                                    <option value="title">Title</option>
-                                </select>
-                            </div>
-
-                            <div class="collection-view-toggle" data-media="movie">
-                                <button class="collection-view-toggle-btn active" data-mode="grid" onclick="ProfileManager.setCollectionViewMode('movie', 'grid', true)" title="Grid View">
-                                    <i class="fas fa-th-large"></i>
-                                </button>
-                                <button class="collection-view-toggle-btn" data-mode="list" onclick="ProfileManager.setCollectionViewMode('movie', 'list', true)" title="List View">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                            </div>
-
-                            <div class="collection-detail-actions hidden" id="mobileMovieDetailActions">
-                                <button class="btn-action-icon" id="mobileMovieListEditBtn" title="Edit Collection">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="btn-action-icon btn-action-danger" id="mobileMovieListDeleteBtn" title="Delete Collection">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="mobileMovieItems"></div>
-            </div>
-
-            <!-- TV Shows Section -->
+                <!-- TV Shows Section -->
             <div class="mobile-section" id="mobileTvSection">
                 <div class="mobile-section-title">
                     <span>My TV Shows</span>
