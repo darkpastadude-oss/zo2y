@@ -4368,7 +4368,7 @@
                     requestAnimationFrame(() => { window.scrollTo(0, 0); });
                 };
 
-                // Level 1: Main Profile Homepage Overview
+                // State 1: Main Profile Page (Overview)
                 if (!hasDetailRoute && !hasCategoryRoute && (requestedTab === 'overview' || !requestedTab)) {
                     restoreProfileHeader();
                     const categoryView = document.getElementById('pv2CategoryView');
@@ -4384,17 +4384,15 @@
                     const overview = document.getElementById('pv2Overview');
                     if (overview) overview.style.display = '';
 
-                    const viewingOther = document.getElementById('viewingOtherProfile');
-                    if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
-
                     currentTab = DEFAULT_PROFILE_TAB;
                     requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
                     resetScrollTop();
                     return;
                 }
 
-                // Level 2: Category Collections View (e.g. tab=movies)
+                // State 2: Collections Category View (e.g. tab=movies)
                 if (hasCategoryRoute) {
+                    hideProfileHeaderForDetail();
                     resetDetailPanels();
                     currentMediaDetail = null;
                     await showTab(requestedTab, { skipUrlSync: true });
@@ -4402,16 +4400,12 @@
                     return;
                 }
 
-                // Level 3: Collection Detailed List View
+                // State 3: Collection Detailed List View (e.g. collection=movie&listId=favorites)
                 if (hasDetailRoute) {
+                    hideProfileHeaderForDetail();
                     collectionViewModes[routeCollection] = routeView;
                     persistCollectionViewModes();
                     updateCollectionViewToggleButtons(routeCollection);
-
-                    const expectedTab = getTabForCollectionType(routeCollection);
-                    if (expectedTab !== currentTab) {
-                        await showTab(expectedTab, { skipUrlSync: true, skipRender: true });
-                    }
 
                     try {
                         const fallbackListType = routeListType || 'default';
@@ -8396,10 +8390,11 @@ const alreadyActive = isMobile
                 if (hero) hero.style.display = '';
                 const mobileCard = document.querySelector('.mph2-card');
                 if (mobileCard) mobileCard.style.display = '';
-                const viewingOther = document.getElementById('viewingOtherProfile');
-                if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
                 const statsBar = document.querySelector('.pv2-stats');
                 if (statsBar) statsBar.style.display = '';
+                const viewingOther = document.getElementById('viewingOtherProfile');
+                if (viewingOther) viewingOther.style.display = (!isViewingOwnProfile && targetUserId) ? '' : 'none';
+
                 const desktopView = document.querySelector('.desktop-only');
                 if (desktopView) desktopView.style.display = '';
                 const mobileView = document.querySelector('.mobile-only');
