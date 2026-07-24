@@ -4286,9 +4286,6 @@
             function bindRouteListeners() {
                 if (hasBoundRouteListeners) return;
                 hasBoundRouteListeners = true;
-                if ('scrollRestoration' in history) {
-                    history.scrollRestoration = 'manual';
-                }
                 window.addEventListener('popstate', () => {
                     hydrateInitialRoute().catch((error) => {
                         console.error('Route hydration failed:', error);
@@ -4411,10 +4408,6 @@
                     if (statsBar) statsBar.style.display = '';
                     currentTab = DEFAULT_PROFILE_TAB;
                     requestTabRender(DEFAULT_PROFILE_TAB, ++tabSwitchToken);
-                    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                    document.documentElement.scrollTop = 0;
-                    document.body.scrollTop = 0;
-                    requestAnimationFrame(() => { window.scrollTo(0, 0); });
                     return;
                 }
 
@@ -8451,6 +8444,9 @@ const alreadyActive = isMobile
             }
 
             async function backToCollections(contentType) {
+                document.body.classList.remove('in-collection-detail');
+                setCollectionAmbientBackdrop(null);
+
                 const safeType = String(contentType || (currentMediaDetail && currentMediaDetail.mediaType) || 'movie').toLowerCase();
                 const parentTab = getTabForCollectionType(safeType);
                 currentMediaDetail = null;
@@ -8462,18 +8458,9 @@ const alreadyActive = isMobile
                     }
                 });
 
-                if (window.previousWasCollectionRoute && window.history.length > 1) {
-                    window.previousWasCollectionRoute = false;
-                    window.history.back();
-                    return;
-                }
-
                 leaveCollectionRoute(parentTab);
                 await showTab(parentTab);
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-                requestAnimationFrame(() => { window.scrollTo(0, 0); });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             function filterCollectionItems(mediaType, query) {
@@ -10748,16 +10735,21 @@ const alreadyActive = isMobile
             function hideGameDetail() { hideDetailByType('game'); }
 
             function backToProfile() {
-                restoreProfileHeader();
+                
                 const categoryView = document.getElementById('pv2CategoryView');
                 if (categoryView) categoryView.style.display = 'none';
+                const desktopView = document.querySelector('.desktop-only');
+                const mobileView = document.querySelector('.mobile-only');
+                const profileContainer = document.getElementById('pv2Overview')?.closest('.container');
+                if (desktopView) desktopView.style.display = '';
+                if (mobileView) mobileView.style.display = '';
+                if (profileContainer) profileContainer.style.display = '';
+                    const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
+                    if (listsTab) listsTab.style.display = 'none';
+                    const mobileListsPanel = document.getElementById('mobileListsPanel');
+                    if (mobileListsPanel) mobileListsPanel.style.display = 'none';
 
-                const listsTab = document.querySelector('.profile-primary-panel[data-panel="lists"]');
-                if (listsTab) listsTab.style.display = 'none';
-                const mobileListsPanel = document.getElementById('mobileListsPanel');
-                if (mobileListsPanel) mobileListsPanel.style.display = 'none';
-
-                resetDetailPanels();
+resetDetailPanels();
                 currentMediaDetail = null;
                 const isMobile = window.innerWidth <= 768;
                 document.querySelectorAll('.tab-content').forEach(el => {
@@ -10789,19 +10781,8 @@ const alreadyActive = isMobile
                 const statsBar = document.querySelector('.pv2-stats');
                 if (statsBar) statsBar.style.display = '';
                 currentTab = DEFAULT_PROFILE_TAB;
-
-                if (window.previousWasCollectionRoute && window.history.length > 1) {
-                    window.previousWasCollectionRoute = false;
-                    window.history.back();
-                    return;
-                }
-
                 const nextUrl = buildProfileUrl({});
-                history.replaceState({}, '', nextUrl);
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                document.documentElement.scrollTop = 0;
-                document.body.scrollTop = 0;
-                requestAnimationFrame(() => { window.scrollTo(0, 0); });
+                history.pushState({}, '', nextUrl);
             }
 
             function showShowcaseDetail(type) {
