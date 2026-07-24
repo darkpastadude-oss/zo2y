@@ -957,16 +957,24 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
             <!-- Sports Tab -->
             <div class="tab-content" id="sports-tab" style="display:none">
                 <div class="section">
-                    <div class="section-header">
-                        <div>
-                            <button class="btn btn-secondary btn-sm mb-sm" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.8);" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i> Back</button>
-                            <h2 class="section-title" id="sportsTitle">Favorite Teams</h2>
-                            <p class="section-subtitle" id="sportsSubtitle">Teams you follow across leagues</p>
+                    <div class="collection-detail-header-v2">
+                        <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('sports')" title="Back to Collections" aria-label="Back">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div class="collection-title-block">
+                            <h1 class="collection-heading" id="sportsTitle">Favorite Teams</h1>
+                            <p class="collection-subheading" id="sportsSubtitle">Teams you follow across leagues</p>
                         </div>
-                        <div class="section-actions">
-                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='sports.html'">
-                                <i class="fas fa-futbol"></i> Browse Sports
-                            </button>
+                    </div>
+                    <div class="collection-sticky-toolbar">
+                        <div class="collection-toolbar-inner">
+                            <div class="collection-toolbar-controls" style="justify-content: flex-end;">
+                                <div class="collection-detail-actions">
+                                    <button class="btn-action-icon" onclick="window.location.href='sports.html'" title="Browse Sports">
+                                        <i class="fas fa-futbol"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="collection-grid" id="sportsGrid">
@@ -1633,16 +1641,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 
             <!-- Sports Section -->
             <div class="mobile-section" id="mobileSportsSection">
-                <div class="mobile-section-title">
-                    <button class="mobile-action-btn secondary btn-base mb-0 mr-sm" onclick="ProfileManager.backToProfile()"><i class="fas fa-arrow-left"></i></button>
-                    <span id="mobileSportsTitle">Favorite Teams</span>
-                    <div class="d-flex gap-sm">
-                        <button class="mobile-action-btn secondary btn-base mb-0" onclick="window.location.href='sports.html'">
-                            <i class="fas fa-futbol"></i> Browse
-                        </button>
+                <div class="collection-detail-header-v2">
+                    <button class="collection-back-arrow-v2" onclick="ProfileManager.backToCollections('sports')" title="Back to Collections" aria-label="Back">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <div class="collection-title-block">
+                        <h1 class="collection-heading">
+                            <span id="mobileSportsTitle">Favorite Teams</span>
+                        </h1>
+                        <p class="collection-subheading">
+                            <span id="mobileSportsSubtitle">Teams you follow across leagues</span>
+                        </p>
                     </div>
                 </div>
-                <div class="mobile-section-subtitle" id="mobileSportsSubtitle">Teams you follow across leagues</div>
+                <div class="collection-sticky-toolbar">
+                    <div class="collection-toolbar-inner">
+                        <div class="collection-toolbar-controls" style="justify-content: flex-end;">
+                            <div class="collection-detail-actions">
+                                <button class="btn-action-icon" onclick="window.location.href='sports.html'" title="Browse Sports">
+                                    <i class="fas fa-futbol"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="collection-grid" id="mobileSportsGrid">
                     <div class="mobile-empty-state">
                         <div class="mobile-empty-icon"><i class="fas fa-list"></i></div>

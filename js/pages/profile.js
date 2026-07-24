@@ -810,6 +810,8 @@
 
             function syncProfileModalViewport(modal) {
                 if (!modal || !modal.classList.contains('active')) return;
+                // menu-modals use CSS flexbox centering with inset:0 — inline styles break that
+                if (modal.classList.contains('menu-modal')) return;
                 const visual = window.visualViewport;
                 const top = (visual?.offsetTop || 0) + window.scrollY;
                 const left = (visual?.offsetLeft || 0) + window.scrollX;
@@ -11359,12 +11361,17 @@ const alreadyActive = isMobile
                 wireProfileTabGroups();
                 bindProfileModalViewportListeners();
                 
-                // Remove existing listener before adding new one
                 const createListForm = document.getElementById('createListForm');
                 if (createListForm) {
-                    // Clone and replace to remove all listeners
-                    const newForm = createListForm.cloneNode(true);
-                    createListForm.parentNode.replaceChild(newForm, createListForm);
+                    createListForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        const name = document.getElementById('listName')?.value?.trim();
+                        if (!name) return;
+                        if (window.ProfileManager && window.ProfileManager.showCreateListTypeModal) {
+                            ProfileManager.closeModal('createListModal');
+                            ProfileManager.showCreateListTypeModal();
+                        }
+                    });
                 }
                 
                 // Rest of your event listeners...
